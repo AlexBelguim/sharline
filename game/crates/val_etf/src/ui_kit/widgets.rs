@@ -693,7 +693,10 @@ pub fn kit_controls(
     mut steppers: Query<(&mut StepperValue, &Children)>,
     mut texts: Query<&mut Text, With<StepperText>>,
     children: Query<&Children>,
-    mut switches: Query<(&Interaction, &mut Switch, &mut BackgroundColor, &Children), Changed<Interaction>>,
+    mut switches: Query<
+        (&Interaction, &mut Switch, &mut BackgroundColor, &Children),
+        (Changed<Interaction>, Without<Disabled>),
+    >,
     mut knobs: Query<(&mut Node, &mut BackgroundColor), (With<SwitchKnob>, Without<Switch>)>,
 ) {
     for (i, parent, b) in &presses {
