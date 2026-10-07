@@ -50,7 +50,10 @@ pub struct Cli {
     pub host: Option<String>,
     /// Join straight away (join code, ip:port or ip).
     pub join: Option<String>,
+    /// `--name`, else `$USER`. The name saved from the main menu wins unless [`Cli::name_given`].
     pub name: String,
+    /// `--name` was given: it overrides the saved profile name for this run.
+    pub name_given: bool,
     pub port: Option<u16>,
     pub width: u32,
     pub height: u32,
@@ -64,6 +67,21 @@ pub struct Cli {
     pub bot: bool,
     /// Start looking this way (degrees, 0 = north / -Z, 90 = west); the bot then holds this heading.
     pub yaw: Option<f32>,
+    /// Open a menu for screenshots: `reload` (the magazine radial), `heal` / `heal-region` (the heal ring),
+    /// `hud` (wounds and a mag check), `loadout` (the Loadout screen), `loadout-ammo` (its ammo picker on
+    /// MAG 1), `loadout-attach` (its attachment list on the optic slot). The heal and hud ones also hurt
+    /// the host's own player. On the main menu: `menu-join` (JOIN GAME, code tab), `menu-join-ip` (direct
+    /// IP tab), `menu-host` (HOST GAME).
+    pub demo_ui: Option<String>,
+    /// Loadout overrides (weapon id, ammo like `rip3`, armor preset id, comma-separated attachment ids).
+    /// Without any of them the Loadout screen's active preset is used; with some, anything missing uses
+    /// `rules.ron`'s default loadout.
+    pub weapon: Option<String>,
+    pub ammo: Option<String>,
+    /// Magazines in slot order, e.g. `std,std,ap2,ap2`.
+    pub mags: Option<String>,
+    pub armor: Option<String>,
+    pub attach: Option<String>,
 }
 
 impl Cli {
@@ -72,6 +90,7 @@ impl Cli {
             host: None,
             join: None,
             name: default_name(),
+            name_given: false,
             port: None,
             width: 1600,
             height: 900,
@@ -80,6 +99,12 @@ impl Cli {
             exit_after: None,
             bot: false,
             yaw: None,
+            demo_ui: None,
+            weapon: None,
+            ammo: None,
+            mags: None,
+            armor: None,
+            attach: None,
         };
         let mut args = std::env::args().skip(1);
         while let Some(a) = args.next() {
@@ -87,7 +112,10 @@ impl Cli {
             match a.as_str() {
                 "--host" => cli.host = Some(val()),
                 "--join" => cli.join = Some(val()),
-                "--name" => cli.name = val(),
+                "--name" => {
+                    cli.name = val();
+                    cli.name_given = true;
+                }
                 "--port" => cli.port = val().parse().ok(),
                 "--width" => cli.width = val().parse().unwrap_or(cli.width),
                 "--height" => cli.height = val().parse().unwrap_or(cli.height),
@@ -96,10 +124,23 @@ impl Cli {
                 "--exit-after" => cli.exit_after = val().parse().ok(),
                 "--bot" => cli.bot = true,
                 "--yaw" => cli.yaw = val().parse().ok(),
+                "--demo-ui" => cli.demo_ui = Some(val()),
+                "--weapon" => cli.weapon = Some(val()),
+                "--ammo" => cli.ammo = Some(val()),
+                "--mags" => cli.mags = Some(val()),
+                "--armor" => cli.armor = Some(val()),
+                "--attach" => cli.attach = Some(val()),
                 "--help" | "-h" => {
                     println!(
                         "val_etf [--host showhome|range] [--join CODE|IP[:PORT]] [--name NAME] [--port PORT]\n\
-                         \x20       [--width W --height H] [--screenshot PATH [--screenshot-after S]] [--exit-after S] [--bot] [--yaw DEG]"
+                         \x20       [--width W --height H] [--screenshot PATH [--screenshot-after S]] [--exit-after S] [--bot] [--yaw DEG]\n\
+                         \x20       [--weapon ID] [--ammo std|ap1..3|rip1..3|slug1..2] [--mags std,ap2,..]\n\
+                         \x20       [--armor PRESET] [--attach A,B]\n\
+                         \x20       [--demo-ui reload|heal|heal-region|hud|menu-join|menu-join-ip|menu-host|\n\
+                         \x20                  loadout|loadout-ammo|loadout-attach]\n\
+                         \n\
+                         --name overrides the name saved from the main menu (EDIT NAME) for this run.\n\
+                         --port sets the HOST GAME port (default: net.ron, 47820)."
                     );
                     std::process::exit(0);
                 }
@@ -108,8 +149,135 @@ impl Cli {
         }
         cli
     }
+
+    /// Any loadout option on the command line (they override the Loadout screen's preset).
+    pub fn has_loadout_overrides(&self) -> bool {
+        self.weapon.is_some()
+            || self.ammo.is_some()
+            || self.mags.is_some()
+            || self.armor.is_some()
+            || self.attach.is_some()
+    }
 }
 
-fn default_name() -> String {
+/// Parse an ammo shorthand: `std`, `ap2`, `shr3` / `shrapnel3`, `rip1`, `slug2` (tier defaults to 1).
+pub fn parse_ammo(s: &str) -> Option<vetf_sim::data::AmmoChoice> {
+    use vetf_sim::data::{AmmoChoice, AmmoKind};
+    let s = s.trim().to_ascii_lowercase();
+    let split = s.find(|c: char| c.is_ascii_digit()).unwrap_or(s.len());
+    let (name, tier) = s.split_at(split);
+    let tier = if tier.is_empty() { 1 } else { tier.parse().ok()? };
+    let kind = match name.trim_end_matches(['-', '_', ' ']) {
+        "std" | "standard" => AmmoKind::Standard,
+        "ap" | "armorpiercing" | "armor_piercing" => AmmoKind::ArmorPiercing,
+        "shr" | "shrapnel" => AmmoKind::Shrapnel,
+        "rip" => AmmoKind::Rip,
+        "slug" => AmmoKind::Slug,
+        _ => return None,
+    };
+    Some(AmmoChoice { kind, tier })
+}
+
+/// The agent a loadout starts with (agents are cosmetic for now).
+pub const DEFAULT_AGENT: &str = "kestrel";
+
+/// The halo of an armor preset id, within the loadout tier caps (unknown ids give the default armor).
+pub fn halo_from_armor(id: &str, data: &GameData) -> vetf_sim::gear::HaloChoice {
+    let preset = data.armor.preset(id).or_else(|| data.armor.preset(&data.rules.default_loadout.armor));
+    preset.map(vetf_sim::gear::HaloChoice::from_preset).unwrap_or_default().capped(data.armor.loadout_tier_caps)
+}
+
+/// The loadout this player asks the host for: `rules.ron` defaults with any command-line overrides
+/// (`--armor` takes a preset id and becomes a custom halo, capped like the Loadout screen caps it).
+pub fn loadout_choice(cli: &Cli, data: &GameData) -> vetf_net::LoadoutChoice {
+    let d = &data.rules.default_loadout;
+    let weapon = cli.weapon.clone().unwrap_or_else(|| d.primary.clone());
+    // Another gun's default attachments would not fit: only keep the rules.ron ones for the default gun.
+    let attachments = match &cli.attach {
+        Some(list) => list.split(',').map(|a| a.trim().to_string()).filter(|a| !a.is_empty()).collect(),
+        None if weapon == d.primary => d.attachments.clone(),
+        None => Vec::new(),
+    };
+    // `--mags` lists the slots in order; `--ammo` loads every default magazine with one ammo.
+    let mags = match (&cli.mags, cli.ammo.as_deref().and_then(parse_ammo)) {
+        (Some(list), _) => parse_mags(list),
+        (None, Some(ammo)) => vec![ammo; d.mags.len()],
+        (None, None) => d.mags.clone(),
+    };
+    vetf_net::LoadoutChoice {
+        weapon,
+        mags,
+        attachments,
+        halo: halo_from_armor(cli.armor.as_deref().unwrap_or(&d.armor), data),
+        agent: DEFAULT_AGENT.into(),
+    }
+}
+
+/// Parse a magazine list in slot order (`std,ap2,ap2`); unknown entries are skipped, past six dropped.
+pub fn parse_mags(s: &str) -> Vec<vetf_sim::data::AmmoChoice> {
+    s.split(',').filter_map(parse_ammo).take(vetf_sim::weapon::MAX_MAGS).collect()
+}
+
+pub fn default_name() -> String {
     std::env::var("USER").or_else(|_| std::env::var("USERNAME")).map(|u| u.to_uppercase()).unwrap_or("AGENT".into())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use vetf_sim::data::{AmmoChoice, AmmoKind};
+
+    #[test]
+    fn ammo_shorthand() {
+        assert_eq!(parse_ammo("std"), Some(AmmoChoice::STANDARD));
+        assert_eq!(parse_ammo("RIP3"), Some(AmmoChoice { kind: AmmoKind::Rip, tier: 3 }));
+        assert_eq!(parse_ammo("ap-2"), Some(AmmoChoice { kind: AmmoKind::ArmorPiercing, tier: 2 }));
+        assert_eq!(parse_ammo("shrapnel"), Some(AmmoChoice { kind: AmmoKind::Shrapnel, tier: 1 }));
+        assert_eq!(parse_ammo("laser"), None);
+        let ap2 = AmmoChoice { kind: AmmoKind::ArmorPiercing, tier: 2 };
+        assert_eq!(parse_mags("std, ap2,laser,ap2"), vec![AmmoChoice::STANDARD, ap2, ap2]);
+        assert_eq!(parse_mags("std,std,std,std,std,std,std").len(), 6);
+    }
+
+    fn cli() -> Cli {
+        Cli {
+            host: None,
+            join: None,
+            name: "T".into(),
+            name_given: false,
+            port: None,
+            width: 1,
+            height: 1,
+            screenshot: None,
+            screenshot_after: 0.0,
+            exit_after: None,
+            bot: false,
+            yaw: None,
+            demo_ui: None,
+            weapon: None,
+            ammo: None,
+            mags: None,
+            armor: None,
+            attach: None,
+        }
+    }
+
+    #[test]
+    fn the_armor_option_becomes_a_capped_custom_halo() {
+        use vetf_sim::data::Core;
+        let d = GameData::embedded();
+        let plain = loadout_choice(&cli(), &d);
+        assert!(!cli().has_loadout_overrides());
+        assert_eq!(plain.halo.core, Core::Mender, "rules.ron default armor");
+        assert_eq!((plain.halo.tiers.head, plain.halo.tiers.torso), (2, 2));
+        assert_eq!(plain.agent, DEFAULT_AGENT);
+        let jugg = loadout_choice(&Cli { armor: Some("arm_bulwark_jugg".into()), ..cli() }, &d);
+        assert!(jugg.halo.within_caps(d.armor.loadout_tier_caps));
+        assert_eq!(jugg.halo.tiers.legs, d.armor.loadout_tier_caps.legs);
+        assert_eq!(halo_from_armor("arm_none", &d).score(), 0);
+        assert_eq!(halo_from_armor("nope", &d), plain.halo, "unknown ids fall back to the default armor");
+        let c = Cli { mags: Some("ap2,std".into()), ..cli() };
+        assert!(c.has_loadout_overrides());
+        assert_eq!(loadout_choice(&c, &d).mags.len(), 2);
+    }
 }

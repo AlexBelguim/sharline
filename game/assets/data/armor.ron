@@ -50,4 +50,11 @@
         (id: "arm_bulwark_vanguard", name: "Bulwark Vanguard", core: Some(Bulwark), tiers: (head: 2, torso: 4, arms: 2, legs: 1)),
         (id: "arm_mender_medic", name: "Mender Medic", core: Some(Mender), tiers: (head: 1, torso: 3, arms: 1, legs: 1)),
     ],
+    // One line per core on the Loadout screen's core cards (display copy).
+    core_blurbs: {
+        Bulwark: "Most shield, slow regen",
+        Mender: "Regens out of combat",
+        Volt: "Break = shock pulse",
+        Phase: "Immune to slow",
+    },
 )

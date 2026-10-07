@@ -1,0 +1,72 @@
+// Display copy and UI-only numbers of the Loadout screen (design/ui/mockups 05 / 05b). Not gameplay data:
+// the host never reads this file. Gameplay numbers (stats, costs, caps) come from the other data files.
+(
+    // Weapon tab subtitles: the class label, then " · " and the fire modes joined with " / " when a gun has
+    // more than one.
+    class_labels: {
+        smg: "SMG",
+        light_assault: "LIGHT ASSAULT",
+        assault_rifle: "ASSAULT RIFLE",
+        heavy_assault: "HEAVY ASSAULT",
+        shotgun: "SHOTGUN",
+        bolt_sniper: "HEAVY BOLT-ACTION",
+    },
+    fire_mode_labels: { auto: "AUTO", semi: "SEMI", bolt: "BOLT" },
+    // Stat bars: the value at an empty bar and at a full one (worst, best).
+    stat_bars: (
+        ads_s: (0.60, 0.10),
+        rpm: (0.0, 1000.0),
+        recoil: (150.0, 50.0),
+        mobility: (85.0, 105.0),
+        reload_s: (4.0, 1.0),
+        range_m: (0.0, 100.0),
+        mag: (0.0, 60.0),
+    ),
+    // Halo tier colours as words (WHAT OTHERS SEE), T1..T4.
+    tier_colour_names: ["white", "blue", "purple", "gold"],
+    // The NONE row of an optional slot's attachment list.
+    none_blurbs: {
+        under: "Lightest. Best sprint-to-fire.",
+        side: "Nothing on the side rail.",
+        shield: "No plate. Lighter and quicker to aim.",
+    },
+    // The NO MAG row of the ammo picker (only the last magazine can be removed).
+    no_mag_blurb: "Leave this slot empty.",
+    // The preview until the 3D viewport exists, per weapon: a render (game/assets/ui/img) drawn at
+    // (left, top, width, height) in the preview's 870 x 428 inner box, or a silhouette icon (white, tinted
+    // bone at `alpha`) drawn the same way. Hotspot dots are centred at (x, y) in that box; `side` is where
+    // the tag sits.
+    previews: {
+        "ar7_mako": (
+            image: "mako_dark.jpg", icon: "", alpha: 1.0, rect: (0.0, -30.0, 870.0, 489.0),
+            hotspots: [
+                (slot: optic, x: 524.0, y: 102.0, side: right),
+                (slot: stock, x: 718.0, y: 162.0, side: left),
+                (slot: mag, x: 497.0, y: 352.0, side: right),
+                (slot: under, x: 274.0, y: 337.0, side: left),
+                (slot: side, x: 198.0, y: 287.0, side: below),
+                (slot: shield, x: 98.0, y: 303.0, side: above),
+            ],
+        ),
+        // No Warden render yet (art request): its silhouette stands in.
+        "vk50_warden": (
+            image: "", icon: "warden", alpha: 0.35, rect: (85.0, 134.0, 700.0, 160.0),
+            hotspots: [
+                (slot: optic, x: 335.0, y: 156.0, side: above),
+                (slot: stock, x: 140.0, y: 205.0, side: below),
+                (slot: mag, x: 300.0, y: 238.0, side: below),
+                (slot: under, x: 590.0, y: 262.0, side: right),
+                (slot: side, x: 470.0, y: 190.0, side: above),
+            ],
+        ),
+        // No Skink silhouette or render yet (art request): the Mako silhouette, smaller, stands in.
+        "sk9_skink": (
+            image: "", icon: "mako", alpha: 0.35, rect: (175.0, 144.0, 520.0, 139.0),
+            hotspots: [
+                (slot: optic, x: 370.0, y: 150.0, side: above),
+                (slot: mag, x: 372.0, y: 250.0, side: right),
+                (slot: side, x: 560.0, y: 194.0, side: right),
+            ],
+        ),
+    },
+)

@@ -125,16 +125,21 @@ pub struct AdsFirstShot {
 }
 
 /// Ammo is picked per loadout as a type and a tier; the weapon class sets the baseline.
+///
+/// `pen` is a shield-damage multiplier per halo tier (user direction): a covered arc takes
+/// `damage x pen[tier]`, zone HP takes nothing until the arc is down, and the bullet that breaks an arc
+/// carries its leftover (converted back by `/ pen`) on to HP.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct AmmoFile {
-    pub max_pen: f32,
+    /// Upper limit on the broken-limb -> torso spill factor after `spill_mult`.
+    pub spill_cap: f32,
     pub classes: BTreeMap<WeaponClass, AmmoClassSpec>,
     pub types: BTreeMap<AmmoKind, AmmoTypeSpec>,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct AmmoClassSpec {
-    /// Baseline fraction of damage that passes through a halo arc of tier 1..4.
+    /// Baseline shield-damage multiplier against a halo arc of tier 1..4 (1.0 = normal).
     pub pen: [f32; 4],
 }
 
@@ -149,20 +154,67 @@ pub enum AmmoKind {
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct AmmoTypeSpec {
+    /// Short label (chips, the reload wheel): `STD`, `AP`; the tier numeral is added for multi-tier types.
     pub label: String,
+    /// Long name for the Loadout screen (`STANDARD`, `AP`); empty = the label.
+    #[serde(default, skip_serializing_if = "String::is_empty")]
+    pub name: String,
+    /// One line for the Loadout screen's ammo picker.
+    #[serde(default, skip_serializing_if = "String::is_empty")]
+    pub blurb: String,
     /// Weapon classes that can load this type (empty = all).
     #[serde(default)]
     pub only: Vec<WeaponClass>,
+    /// False for NPC-only rounds (Shrapnel is meant for bots and bosses in the extraction mode).
+    #[serde(default = "yes")]
+    pub player_loadout: bool,
     /// Ammo tiers I, II, III (some types have fewer).
     pub tiers: Vec<AmmoTierSpec>,
 }
 
+fn yes() -> bool {
+    true
+}
+
+/// Bleeding from fragments: per stack on the hit zone, until treated; treatment leaves a residual
+/// trickle that lasts until respawn ("cannot be removed fully").
 #[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
+pub struct BleedSpec {
+    pub hp_per_s: f32,
+    pub max_stacks: u8,
+    pub residual_hp_per_s: f32,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
+#[serde(default)]
 pub struct AmmoTierSpec {
+    /// Multiplies the class shield-damage multiplier.
     pub pen_mult: f32,
-    pub pen_add: f32,
-    pub shield_mult: f32,
+    /// Multiplies the bullet's damage (shield and HP).
+    pub damage_mult: f32,
+    /// Multiplies damage that reaches zone HP.
     pub flesh_mult: f32,
+    /// Multiplies the broken-limb -> torso spill factors (capped by `spill_cap`).
+    pub spill_mult: f32,
+    /// Chance that a hit on a covered arc ignores the shield entirely.
+    pub bypass_chance: f32,
+    pub bleed: Option<BleedSpec>,
+    /// Points against the team-deathmatch loadout gear budget.
+    pub gear_cost: u32,
+}
+
+impl Default for AmmoTierSpec {
+    fn default() -> Self {
+        Self {
+            pen_mult: 1.0,
+            damage_mult: 1.0,
+            flesh_mult: 1.0,
+            spill_mult: 1.0,
+            bypass_chance: 0.0,
+            bleed: None,
+            gear_cost: 0,
+        }
+    }
 }
 
 /// What a loadout loads: e.g. `AmmoChoice { kind: ArmorPiercing, tier: 2 }` = AP II.
@@ -181,26 +233,53 @@ impl AmmoChoice {
 pub struct AmmoSpec {
     pub choice: AmmoChoice,
     pub label: String,
-    /// Fraction of damage that passes through a halo arc of tier 1..4 straight to zone HP.
+    /// Shield-damage multiplier against a halo arc of tier 1..4.
     pub pen: [f32; 4],
-    /// Multiplier on damage dealt to a halo arc.
-    pub shield_mult: f32,
-    /// Multiplier on damage dealt to zone HP.
+    pub damage_mult: f32,
     pub flesh_mult: f32,
+    /// Broken-limb -> torso spill multiplier, and the cap on the result.
+    pub spill_mult: f32,
+    pub spill_cap: f32,
+    pub bypass_chance: f32,
+    pub bleed: Option<BleedSpec>,
+    pub gear_cost: u32,
+    pub player_loadout: bool,
 }
 
 impl AmmoSpec {
+    /// Shield-damage multiplier against an arc of `tier` (tier 0 = no arc).
     pub fn pen_for_tier(&self, tier: u8) -> f32 {
         match tier {
             0 => 1.0,
             t => self.pen[(t.min(4) - 1) as usize],
         }
     }
+
+    /// The spill factors this round uses for broken limbs.
+    pub fn spill(&self, base: &SpillToTorso) -> SpillToTorso {
+        SpillToTorso {
+            arms: (base.arms * self.spill_mult).min(self.spill_cap),
+            legs: (base.legs * self.spill_mult).min(self.spill_cap),
+        }
+    }
 }
 
 const ROMAN: [&str; 4] = ["I", "II", "III", "IV"];
 
+/// A tier as a roman numeral (1 = I).
+pub fn roman(tier: u8) -> &'static str {
+    ROMAN[(tier.clamp(1, 4) - 1) as usize]
+}
+
 impl AmmoFile {
+    /// The long name of an ammo choice: `STANDARD`, `AP II`, `SLUG I` (the numeral only for types with more
+    /// than one tier).
+    pub fn long_name(&self, choice: AmmoChoice) -> Option<String> {
+        let ty = self.types.get(&choice.kind)?;
+        let base = if ty.name.is_empty() { &ty.label } else { &ty.name };
+        Some(if ty.tiers.len() > 1 { format!("{base} {}", roman(choice.tier)) } else { base.clone() })
+    }
+
     pub fn resolve(&self, class: WeaponClass, choice: AmmoChoice) -> Option<AmmoSpec> {
         let base = self.classes.get(&class)?;
         let ty = self.types.get(&choice.kind)?;
@@ -208,13 +287,21 @@ impl AmmoFile {
             return None;
         }
         let tier = ty.tiers.get((choice.tier as usize).checked_sub(1)?)?;
-        let pen = base.pen.map(|p| (p * tier.pen_mult + tier.pen_add).clamp(0.0, self.max_pen));
-        let label = if ty.tiers.len() > 1 {
-            format!("{} {}", ty.label, ROMAN[(choice.tier as usize - 1).min(3)])
-        } else {
-            ty.label.clone()
-        };
-        Some(AmmoSpec { choice, label, pen, shield_mult: tier.shield_mult, flesh_mult: tier.flesh_mult })
+        let pen = base.pen.map(|p| (p * tier.pen_mult).max(0.0));
+        let label = if ty.tiers.len() > 1 { format!("{} {}", ty.label, roman(choice.tier)) } else { ty.label.clone() };
+        Some(AmmoSpec {
+            choice,
+            label,
+            pen,
+            damage_mult: tier.damage_mult,
+            flesh_mult: tier.flesh_mult,
+            spill_mult: tier.spill_mult,
+            spill_cap: self.spill_cap,
+            bypass_chance: tier.bypass_chance,
+            bleed: tier.bleed,
+            gear_cost: tier.gear_cost,
+            player_loadout: ty.player_loadout,
+        })
     }
 }
 
@@ -405,6 +492,9 @@ pub struct ArmorFile {
     pub loadout_tier_caps: ZoneTable<u8>,
     pub status_effects: BTreeMap<Core, String>,
     pub presets: Vec<ArmorPreset>,
+    /// One line per core for the Loadout screen's core cards.
+    #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
+    pub core_blurbs: BTreeMap<Core, String>,
 }
 
 /// An armor: one core type, and a tier (0 = uncovered) per halo arc.
@@ -528,7 +618,7 @@ impl ArmorFile {
 
 // ---------------------------------------------------------------------------------------------- attachments
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum AttachmentCategory {
     Optic,
@@ -537,6 +627,29 @@ pub enum AttachmentCategory {
     Under,
     Side,
     Shield,
+}
+
+impl AttachmentCategory {
+    /// Slot order on the Loadout screen.
+    pub const ALL: [AttachmentCategory; 6] = [
+        AttachmentCategory::Optic,
+        AttachmentCategory::Stock,
+        AttachmentCategory::Mag,
+        AttachmentCategory::Under,
+        AttachmentCategory::Side,
+        AttachmentCategory::Shield,
+    ];
+
+    pub fn label(self) -> &'static str {
+        match self {
+            AttachmentCategory::Optic => "OPTIC",
+            AttachmentCategory::Stock => "STOCK",
+            AttachmentCategory::Mag => "MAG",
+            AttachmentCategory::Under => "UNDER",
+            AttachmentCategory::Side => "SIDE",
+            AttachmentCategory::Shield => "SHIELD",
+        }
+    }
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -549,6 +662,15 @@ pub enum Zoom {
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct AttachmentsFile {
     pub attachments: Vec<AttachmentSpec>,
+    /// Categories a loadout may leave empty (the Loadout screen offers NONE); the others always hold a part.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub optional: Vec<AttachmentCategory>,
+}
+
+impl AttachmentsFile {
+    pub fn is_optional(&self, cat: AttachmentCategory) -> bool {
+        self.optional.contains(&cat)
+    }
 }
 
 /// Every modifier is a multiplier on the base weapon stat; `None` means 1.0.
@@ -580,6 +702,15 @@ pub struct AttachmentSpec {
     pub id: String,
     pub cat: AttachmentCategory,
     pub fits: Vec<String>,
+    /// Display name (`ANGLED GRIP`, `30-RND STANAG`); empty = the id.
+    #[serde(default, skip_serializing_if = "String::is_empty")]
+    pub name: String,
+    /// Short name for tight spots (the preview hotspot tags); empty = the name.
+    #[serde(default, skip_serializing_if = "String::is_empty")]
+    pub short: String,
+    /// One line for the Loadout screen's attachment list.
+    #[serde(default, skip_serializing_if = "String::is_empty")]
+    pub blurb: String,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub zoom: Option<Zoom>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -610,6 +741,16 @@ pub struct AttachmentSpec {
 }
 
 impl AttachmentSpec {
+    /// The display name (the id when the data has none).
+    pub fn display_name(&self) -> &str {
+        if self.name.is_empty() { &self.id } else { &self.name }
+    }
+
+    /// The short display name.
+    pub fn short_name(&self) -> &str {
+        if self.short.is_empty() { self.display_name() } else { &self.short }
+    }
+
     pub fn modifiers(&self) -> Modifiers {
         Modifiers {
             ads_time: self.ads_time,
@@ -893,11 +1034,57 @@ pub struct HitboxSpec {
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct RulesFile {
     pub tdm: TdmRules,
+    pub rulesets: Rulesets,
     pub default_loadout: LoadoutSpec,
+}
+
+/// What a mode switches on. Team deathmatch is the gunplay and netcode test bed: per-region shields and
+/// health, but no status effects, and only the high-end items that heal every region or every arc at once.
+/// The gun range runs the full extraction rules.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+pub struct Ruleset {
+    /// Bleeds (from Shrapnel) tick until treated.
+    pub bleeding: bool,
+    /// A limb at 0 HP is broken: broken legs slow you, broken arms hurt aim and recoil. Off, a limb at 0 HP
+    /// still spills damage into the torso; it just carries no penalty.
+    pub injuries: bool,
+    /// Items that treat one region can be used. Off, only whole-body items.
+    pub regional_items: bool,
+}
+
+impl Ruleset {
+    /// The full rules (extraction mode).
+    pub const FULL: Ruleset = Ruleset { bleeding: true, injuries: true, regional_items: true };
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+pub struct Rulesets {
+    pub tdm: Ruleset,
+    pub range: Ruleset,
+}
+
+impl Rulesets {
+    pub fn get(&self, mode: Mode) -> Ruleset {
+        match mode {
+            Mode::Tdm => self.tdm,
+            Mode::Range => self.range,
+        }
+    }
+}
+
+/// The game modes of the slice.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
+pub enum Mode {
+    /// Team deathmatch on Showhome.
+    Tdm,
+    /// Gun range: free practice, no score, full rules.
+    Range,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct TdmRules {
+    /// Halo arc tiers plus ammo gear cost must fit this (AP's price in team deathmatch).
+    pub gear_budget: u32,
     pub score_limit: u32,
     pub time_limit_s: f32,
     pub respawn_s: f32,
@@ -908,9 +1095,9 @@ pub struct TdmRules {
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct LoadoutSpec {
     pub primary: String,
-    pub ammo: AmmoChoice,
+    /// Magazines in slot order (at most six), each with its own ammo. Slot 1 starts in the gun.
+    pub mags: Vec<AmmoChoice>,
     pub attachments: Vec<String>,
-    pub spare_mags: u8,
     pub armor: String,
 }
 
@@ -942,11 +1129,12 @@ pub struct GameData {
     pub hitboxes: HitboxFile,
     pub rules: RulesFile,
     pub net: NetSpec,
+    pub items: crate::items::ItemsFile,
     /// FNV-1a hash of the source text, so host and clients can check they run the same numbers.
     pub fingerprint: u64,
 }
 
-const FILES: [&str; 10] = [
+const FILES: [&str; 11] = [
     "weapons.ron",
     "ammo.ron",
     "recoil_patterns.ron",
@@ -957,6 +1145,7 @@ const FILES: [&str; 10] = [
     "hitboxes.ron",
     "rules.ron",
     "net.ron",
+    "items.ron",
 ];
 
 macro_rules! embedded {
@@ -965,7 +1154,7 @@ macro_rules! embedded {
     };
 }
 
-const EMBEDDED: [(&str, &str); 10] = [
+const EMBEDDED: [(&str, &str); 11] = [
     embedded!("weapons.ron"),
     embedded!("ammo.ron"),
     embedded!("recoil_patterns.ron"),
@@ -976,6 +1165,7 @@ const EMBEDDED: [(&str, &str); 10] = [
     embedded!("hitboxes.ron"),
     embedded!("rules.ron"),
     embedded!("net.ron"),
+    embedded!("items.ron"),
 ];
 
 fn parse<T: serde::de::DeserializeOwned>(file: &str, text: &str) -> Result<T, DataError> {
@@ -1022,6 +1212,7 @@ impl GameData {
             hitboxes: parse(FILES[7], &texts[7])?,
             rules: parse(FILES[8], &texts[8])?,
             net: parse(FILES[9], &texts[9])?,
+            items: parse(FILES[10], &texts[10])?,
             fingerprint,
         };
         data.validate()?;
@@ -1076,21 +1267,40 @@ impl GameData {
             }
         }
         for (class, c) in &self.ammo.classes {
-            if c.pen.iter().any(|p| !(0.0..=1.0).contains(p)) {
-                return bad(format!("ammo class {class:?}: penetration must be within 0..1"));
+            if c.pen.iter().any(|p| !(0.05..=5.0).contains(p)) {
+                return bad(format!("ammo class {class:?}: shield multiplier (pen) must be within 0.05..5"));
             }
         }
         for (kind, t) in &self.ammo.types {
             if t.tiers.is_empty() || t.tiers.len() > 3 {
                 return bad(format!("ammo type {kind:?}: needs 1 to 3 tiers"));
             }
+            for tier in &t.tiers {
+                let ok = tier.pen_mult > 0.0
+                    && tier.damage_mult > 0.0
+                    && tier.flesh_mult > 0.0
+                    && tier.spill_mult > 0.0
+                    && (0.0..=1.0).contains(&tier.bypass_chance)
+                    && tier.bleed.is_none_or(|b| b.hp_per_s >= 0.0 && b.residual_hp_per_s <= b.hp_per_s);
+                if !ok {
+                    return bad(format!("ammo type {kind:?}: invalid tier {tier:?}"));
+                }
+            }
+        }
+        if !(0.0..=1.0).contains(&self.ammo.spill_cap) {
+            return bad("ammo spill_cap must be within 0..1".into());
         }
         let l = &self.rules.default_loadout;
         let Some(w) = self.weapon(&l.primary) else {
             return bad(format!("default loadout: unknown weapon {}", l.primary));
         };
-        if self.ammo.resolve(w.cls, l.ammo).is_none() {
-            return bad(format!("default loadout: {} cannot load {:?}", l.primary, l.ammo));
+        if l.mags.is_empty() || l.mags.len() > crate::weapon::MAX_MAGS {
+            return bad(format!("default loadout: 1..={} magazines", crate::weapon::MAX_MAGS));
+        }
+        for m in &l.mags {
+            if self.ammo.resolve(w.cls, *m).is_none_or(|a| !a.player_loadout) {
+                return bad(format!("default loadout: {} cannot load {m:?}", l.primary));
+            }
         }
         for a in &l.attachments {
             match self.attachment(a) {
@@ -1100,6 +1310,35 @@ impl GameData {
         }
         if self.armor.preset(&l.armor).is_none() {
             return bad(format!("default loadout: unknown armor {}", l.armor));
+        }
+        for mode in [Mode::Tdm, Mode::Range] {
+            let kit = self.items.kits.get(mode);
+            if kit.len() > crate::items::MAX_KIT {
+                return bad(format!("{mode:?} kit: at most {} items", crate::items::MAX_KIT));
+            }
+            let rules = self.rules.rulesets.get(mode);
+            for e in kit {
+                let Some(i) = self.items.index(&e.item) else {
+                    return bad(format!("{mode:?} kit: unknown item {}", e.item));
+                };
+                if e.count == 0 {
+                    return bad(format!("{mode:?} kit: {} has a count of 0", e.item));
+                }
+                if self.items.items[i].scope == crate::items::ItemScope::Region && !rules.regional_items {
+                    return bad(format!("{mode:?} kit: {} treats one region, which this mode's rules forbid", e.item));
+                }
+            }
+        }
+        if !(self.items.use_move_mult > 0.0 && self.items.use_move_mult <= 1.0) {
+            return bad("items use_move_mult must be within (0, 1]".into());
+        }
+        for (n, i) in self.items.items.iter().enumerate() {
+            if self.items.items[..n].iter().any(|o| o.id == i.id) {
+                return bad(format!("item {}: duplicate id", i.id));
+            }
+            if i.use_s <= 0.0 || !(0.0..=1.0).contains(&i.shield_frac) || i.heal_hp < 0.0 {
+                return bad(format!("item {}: use_s > 0, heal_hp >= 0, shield_frac within 0..1", i.id));
+            }
         }
         Ok(())
     }
@@ -1140,9 +1379,10 @@ mod tests {
     #[test]
     fn embedded_data_loads_and_validates() {
         let d = GameData::embedded();
-        assert_eq!(d.weapons.weapons.len(), 2);
+        assert_eq!(d.weapons.weapons.len(), 3);
         assert_eq!(d.net.tick_hz, d.weapons.tick_hz);
         assert!(d.weapon("ar7_mako").is_some());
+        assert_eq!(d.weapon("sk9_skink").map(|w| w.cls), Some(WeaponClass::Smg));
         assert_ne!(d.fingerprint, 0);
     }
 
@@ -1204,23 +1444,25 @@ mod tests {
     }
 
     #[test]
-    fn smg_standard_only_slightly_pierces_t1() {
+    fn smg_standard_only_slightly_beats_t1() {
         let d = GameData::embedded();
         let smg = d.ammo.resolve(WeaponClass::Smg, AmmoChoice::STANDARD).unwrap();
-        assert!(smg.pen_for_tier(1) > 0.0 && smg.pen_for_tier(1) <= 0.15);
-        assert_eq!(smg.pen_for_tier(2), 0.0);
-        assert_eq!(smg.pen_for_tier(4), 0.0);
+        assert!(smg.pen_for_tier(1) >= 1.0 && smg.pen_for_tier(1) <= 1.2);
+        assert!(smg.pen[1..].iter().all(|p| *p <= 1.0));
         assert_eq!(smg.pen_for_tier(0), 1.0);
         assert_eq!(smg.label, "STD");
+        assert!(smg.player_loadout);
     }
 
     #[test]
-    fn ap_tiers_pierce_more() {
+    fn ap_tiers_shred_more() {
         let d = GameData::embedded();
         let ap = |t| {
             d.ammo.resolve(WeaponClass::AssaultRifle, AmmoChoice { kind: AmmoKind::ArmorPiercing, tier: t }).unwrap()
         };
         assert!(ap(1).pen[2] < ap(2).pen[2] && ap(2).pen[2] < ap(3).pen[2]);
+        assert!(ap(1).pen.iter().all(|p| *p > 1.0) && ap(1).damage_mult > 1.0);
+        assert!(ap(1).gear_cost > 0 && ap(1).gear_cost < ap(3).gear_cost);
         assert_eq!(ap(2).label, "AP II");
         assert!(
             d.ammo.resolve(WeaponClass::AssaultRifle, AmmoChoice { kind: AmmoKind::ArmorPiercing, tier: 4 }).is_none()
@@ -1228,18 +1470,31 @@ mod tests {
     }
 
     #[test]
-    fn slugs_are_shotgun_only() {
+    fn rip_is_smg_only_and_slugs_shotgun_only() {
         let d = GameData::embedded();
+        let rip = AmmoChoice { kind: AmmoKind::Rip, tier: 2 };
+        assert!(d.ammo.resolve(WeaponClass::Smg, rip).is_some());
+        assert!(d.ammo.resolve(WeaponClass::AssaultRifle, rip).is_none());
         let slug = AmmoChoice { kind: AmmoKind::Slug, tier: 1 };
         assert!(d.ammo.resolve(WeaponClass::Shotgun, slug).is_some());
         assert!(d.ammo.resolve(WeaponClass::AssaultRifle, slug).is_none());
     }
 
     #[test]
-    fn sniper_standard_keeps_design_t3_pierce() {
+    fn shrapnel_is_npc_only() {
         let d = GameData::embedded();
-        let w = d.weapon("vk50_warden").unwrap();
-        assert_eq!(d.ammo_for(w, AmmoChoice::STANDARD).unwrap().pen[2], 0.3);
+        let shr = d.ammo.resolve(WeaponClass::AssaultRifle, AmmoChoice { kind: AmmoKind::Shrapnel, tier: 1 }).unwrap();
+        assert!(!shr.player_loadout);
+        assert!(shr.bypass_chance > 0.0 && shr.bleed.is_some());
+    }
+
+    #[test]
+    fn mako_standard_is_neutral_against_every_tier() {
+        // Keeps the Mako on the design's numbers: nothing pierced in the design, nothing is multiplied here.
+        let d = GameData::embedded();
+        let a = d.ammo_for(d.weapon("ar7_mako").unwrap(), AmmoChoice::STANDARD).unwrap();
+        assert_eq!(a.pen, [1.0; 4]);
+        assert_eq!((a.damage_mult, a.flesh_mult, a.spill_mult), (1.0, 1.0, 1.0));
     }
 
     #[test]

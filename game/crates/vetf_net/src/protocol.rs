@@ -8,16 +8,18 @@ use lightyear::prelude::*;
 use serde::{Deserialize, Serialize};
 use vetf_sim::Zone;
 use vetf_sim::combat::{HaloState, Health};
-use vetf_sim::data::AmmoChoice;
+use vetf_sim::data::{AmmoChoice, Ruleset};
+use vetf_sim::gear::HaloChoice;
 use vetf_sim::hitbox::HitClaim;
 use vetf_sim::input::{Buttons, InputFrame};
+use vetf_sim::items::ItemState;
 use vetf_sim::level::Team;
 use vetf_sim::movement::MoveState;
 use vetf_sim::player::{Loadout, Wounds};
 use vetf_sim::weapon::WeaponState;
 
 /// Bumped whenever the protocol changes; part of the netcode protocol id, so old builds cannot connect.
-pub const PROTOCOL_VERSION: u64 = 1;
+pub const PROTOCOL_VERSION: u64 = 4;
 
 /// netcode.io protocol id shared by host and clients.
 pub fn protocol_id() -> u64 {
@@ -54,6 +56,10 @@ pub struct PlayerLook {
 #[derive(Component, Serialize, Deserialize, Clone, Debug, PartialEq)]
 pub struct PlayerWeapon(pub WeaponState);
 
+/// Healing items left and the item in use. Predicted by the owner.
+#[derive(Component, Serialize, Deserialize, Clone, Debug, PartialEq, Default)]
+pub struct PlayerItems(pub ItemState);
+
 /// Gun, ammo, attachments and halo for the current life.
 #[derive(Component, Serialize, Deserialize, Clone, Debug, PartialEq)]
 pub struct PlayerLoadout(pub Loadout);
@@ -76,13 +82,7 @@ pub struct Score {
     pub deaths: u16,
 }
 
-#[derive(Serialize, Deserialize, Clone, Copy, Debug, PartialEq, Eq)]
-pub enum MatchMode {
-    /// Team deathmatch on Showhome.
-    Tdm,
-    /// Gun range: free practice, no score.
-    Range,
-}
+pub use vetf_sim::data::Mode as MatchMode;
 
 #[derive(Serialize, Deserialize, Clone, Copy, Debug, PartialEq, Eq)]
 pub enum MatchPhase {
@@ -100,6 +100,8 @@ pub struct MatchState {
     pub score_limit: u32,
     pub time_left_s: f32,
     pub phase: MatchPhase,
+    /// What this mode switches on (status effects, regional items). Clients use it for the HUD and menus.
+    pub rules: Ruleset,
 }
 
 // ---------------------------------------------------------------------------------------------- input
@@ -112,6 +114,11 @@ pub struct PlayerInput {
     pub yaw: f32,
     pub pitch: f32,
     pub buttons: u16,
+    /// Reload radial pick: 1..=6, or 0.
+    pub reload_slot: u8,
+    /// Heal ring pick: kit slot 1..=8 and region 1..=4 (0 = none / whole body).
+    pub use_item: u8,
+    pub use_zone: u8,
 }
 
 impl MapEntities for PlayerInput {
@@ -125,11 +132,23 @@ impl PlayerInput {
             yaw: self.yaw,
             pitch: self.pitch,
             buttons: Buttons(self.buttons),
+            reload_slot: self.reload_slot,
+            use_item: self.use_item,
+            use_zone: self.use_zone,
         }
     }
 
     pub fn from_frame(f: &InputFrame) -> Self {
-        Self { move_x: f.movement.x, move_y: f.movement.y, yaw: f.yaw, pitch: f.pitch, buttons: f.buttons.0 }
+        Self {
+            move_x: f.movement.x,
+            move_y: f.movement.y,
+            yaw: f.yaw,
+            pitch: f.pitch,
+            buttons: f.buttons.0,
+            reload_slot: f.reload_slot,
+            use_item: f.use_item,
+            use_zone: f.use_zone,
+        }
     }
 }
 
@@ -139,9 +158,21 @@ impl PlayerInput {
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq)]
 pub struct LoadoutChoice {
     pub weapon: String,
-    pub ammo: AmmoChoice,
+    /// Magazines in slot order: one to six, no gaps, each with its own ammo. Slot 1 starts in the gun, and
+    /// a slot's index is its position on the reload wheel.
+    pub mags: Vec<AmmoChoice>,
+    /// Attachment ids, at most one per category; categories left out use the weapon's defaults.
     pub attachments: Vec<String>,
-    pub armor: String,
+    /// The halo: one core and a tier per arc, within the armor data's loadout tier caps.
+    pub halo: HaloChoice,
+    /// Agent id (cosmetic for now: agents have no abilities in this build).
+    pub agent: String,
+}
+
+/// Client -> host: a new loadout from the Loadout screen during a match, applied at the next spawn.
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq)]
+pub struct LoadoutUpdate {
+    pub loadout: LoadoutChoice,
 }
 
 /// Client -> host, after connecting.
@@ -220,13 +251,17 @@ fn move_should_rollback(confirmed: &PlayerMove, predicted: &PlayerMove) -> bool 
 
 fn weapon_should_rollback(confirmed: &PlayerWeapon, predicted: &PlayerWeapon) -> bool {
     let (a, b) = (&confirmed.0, &predicted.0);
-    a.mag != b.mag
-        || a.spares != b.spares
+    a.rounds != b.rounds
+        || a.loaded != b.loaded
         || a.action != b.action
         || a.fire_mode != b.fire_mode
         || a.shot_seq != b.shot_seq
         || a.cooldown != b.cooldown
         || (a.ads - b.ads).abs() > 0.05
+}
+
+fn items_should_rollback(confirmed: &PlayerItems, predicted: &PlayerItems) -> bool {
+    confirmed != predicted
 }
 
 fn lerp_move(start: PlayerMove, end: PlayerMove, t: f32) -> PlayerMove {
@@ -265,6 +300,7 @@ impl Plugin for ProtocolPlugin {
             .add_interpolation_with(lerp_move);
         app.component::<PlayerLook>().replicate().add_interpolation_with(lerp_look);
         app.component::<PlayerWeapon>().replicate().predict().with_rollback_condition(weapon_should_rollback);
+        app.component::<PlayerItems>().replicate().predict().with_rollback_condition(items_should_rollback);
         app.component::<PlayerLoadout>().replicate();
         app.component::<Vitals>().replicate();
         app.component::<Score>().replicate();
@@ -285,6 +321,7 @@ impl Plugin for ProtocolPlugin {
 
         // One direction per message type (in host mode both ends share one receiver per type).
         app.register_message::<Hello>().add_direction(NetworkDirection::ClientToServer);
+        app.register_message::<LoadoutUpdate>().add_direction(NetworkDirection::ClientToServer);
         app.register_message::<ShotClaim>().add_direction(NetworkDirection::ClientToServer);
         app.register_message::<HitConfirm>().add_direction(NetworkDirection::ServerToClient);
         app.register_message::<DamageTaken>().add_direction(NetworkDirection::ServerToClient);
@@ -308,11 +345,12 @@ mod tests {
     #[test]
     fn components_and_messages_roundtrip() {
         let d = GameData::embedded();
-        let loadout = Loadout::default_for(&d);
+        let loadout = Loadout::default_for(&d, MatchMode::Range);
         let ws = WeaponState::new(&d, &loadout.weapon);
         let ms = MoveState::spawn(Vec3::new(1.0, 2.0, 3.0), 1.6);
         roundtrip(&PlayerMove(ms));
         roundtrip(&PlayerWeapon(ws));
+        roundtrip(&PlayerItems(ItemState::new(&loadout.kit)));
         roundtrip(&PlayerLoadout(loadout.clone()));
         roundtrip(&Vitals {
             health: Health::new(d.armor.zone_hp),
@@ -332,22 +370,62 @@ mod tests {
                 point: Vec3::new(0.0, 1.6, -10.0),
             },
         });
-        roundtrip(&Hello {
-            name: "KESTREL_YOU".into(),
-            loadout: LoadoutChoice {
-                weapon: "ar7_mako".into(),
-                ammo: AmmoChoice::STANDARD,
-                attachments: vec!["optic_holo".into()],
-                armor: "arm_mender_scout".into(),
-            },
-            data_fingerprint: d.fingerprint,
-        });
+        let choice = LoadoutChoice {
+            weapon: "ar7_mako".into(),
+            mags: vec![AmmoChoice::STANDARD, AmmoChoice { kind: vetf_sim::data::AmmoKind::ArmorPiercing, tier: 2 }],
+            attachments: vec!["optic_holo".into()],
+            halo: HaloChoice::from_preset(d.armor.preset("arm_mender_scout").unwrap()),
+            agent: "kestrel".into(),
+        };
+        roundtrip(&Hello { name: "KESTREL_YOU".into(), loadout: choice.clone(), data_fingerprint: d.fingerprint });
+        roundtrip(&LoadoutUpdate { loadout: choice });
         roundtrip(&KillFeed { killer: Some(1), victim: 2, zone: Some(Zone::Head) });
+        roundtrip(&MatchState {
+            mode: MatchMode::Tdm,
+            map: "showhome".into(),
+            score_a: 3,
+            score_b: 4,
+            score_limit: 50,
+            time_left_s: 12.5,
+            phase: MatchPhase::Ended { winner: None },
+            rules: d.rules.rulesets.tdm,
+        });
+    }
+
+    /// The Loadout screen's output: six ordered magazines with mixed ammo, a mixed-tier custom halo and
+    /// the agent survive the wire (ron here; lightyear's binary serde uses the same derive).
+    #[test]
+    fn loadout_choice_with_six_mags_and_a_custom_halo_roundtrips() {
+        use vetf_sim::ZoneTable;
+        use vetf_sim::data::{AmmoKind, Core};
+        let ap = |tier| AmmoChoice { kind: AmmoKind::ArmorPiercing, tier };
+        let choice = LoadoutChoice {
+            weapon: "sk9_skink".into(),
+            mags: vec![ap(2), AmmoChoice::STANDARD, AmmoChoice { kind: AmmoKind::Rip, tier: 3 }, ap(1), ap(3), ap(2)],
+            attachments: vec!["optic_reddot".into(), "skink_mag_60".into(), "laser".into()],
+            halo: HaloChoice { core: Core::Phase, tiers: ZoneTable { head: 3, torso: 1, arms: 0, legs: 2 } },
+            agent: "solace".into(),
+        };
+        roundtrip(&LoadoutUpdate { loadout: choice.clone() });
+        let text = ron::to_string(&choice).unwrap();
+        let back: LoadoutChoice = ron::from_str(&text).unwrap();
+        assert_eq!(back.mags.len(), 6);
+        assert_eq!(back.mags[2], AmmoChoice { kind: AmmoKind::Rip, tier: 3 }, "slot order is kept");
+        assert_eq!(back.halo.tiers.legs, 2);
+        assert_eq!(protocol_id() ^ 0x5641_4c5f_4554_4600, PROTOCOL_VERSION);
     }
 
     #[test]
     fn input_frame_roundtrip() {
-        let f = InputFrame { movement: Vec2::new(0.5, -1.0), yaw: 1.0, pitch: -0.2, buttons: Buttons(0b1011) };
+        let f = InputFrame {
+            movement: Vec2::new(0.5, -1.0),
+            yaw: 1.0,
+            pitch: -0.2,
+            buttons: Buttons(0b1011),
+            reload_slot: 3,
+            use_item: 2,
+            use_zone: 4,
+        };
         assert_eq!(PlayerInput::from_frame(&f).frame(), f);
     }
 

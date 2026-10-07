@@ -46,6 +46,12 @@ pub struct InputFrame {
     pub yaw: f32,
     pub pitch: f32,
     pub buttons: Buttons,
+    /// A magazine picked on the reload radial: 1..=6 for that slot, 0 for none. Sent for one tick.
+    pub reload_slot: u8,
+    /// An item picked on the heal ring: kit slot 1..=8, 0 for none. Sent for one tick.
+    pub use_item: u8,
+    /// The region for a region item: 1..=4 in `Zone::ALL` order, 0 for none.
+    pub use_zone: u8,
 }
 
 impl InputFrame {
@@ -66,6 +72,13 @@ impl InputFrame {
         }
         self.yaw = self.yaw.rem_euclid(std::f32::consts::TAU);
         self.pitch = if self.pitch.is_finite() { self.pitch.clamp(-MAX_PITCH, MAX_PITCH) } else { 0.0 };
+        if self.reload_slot as usize > crate::weapon::MAX_MAGS {
+            self.reload_slot = 0;
+        }
+        if self.use_item as usize > crate::items::MAX_KIT || self.use_zone as usize > crate::Zone::ALL.len() {
+            self.use_item = 0;
+            self.use_zone = 0;
+        }
         self
     }
 }
@@ -115,9 +128,18 @@ mod tests {
 
     #[test]
     fn sanitize_clamps() {
-        let f =
-            InputFrame { movement: Vec2::new(5.0, f32::NAN), yaw: -0.5, pitch: 9.0, buttons: Buttons(0) }.sanitized();
+        let f = InputFrame {
+            movement: Vec2::new(5.0, f32::NAN),
+            yaw: -0.5,
+            pitch: 9.0,
+            buttons: Buttons(0),
+            reload_slot: 7,
+            use_item: 9,
+            use_zone: 1,
+        }
+        .sanitized();
         assert_eq!(f.movement, Vec2::ZERO);
+        assert_eq!((f.reload_slot, f.use_item, f.use_zone), (0, 0, 0));
         assert!(f.yaw >= 0.0 && f.pitch == MAX_PITCH);
     }
 }

@@ -4,7 +4,7 @@ use crate::config::{CurrentLevel, Data};
 use bevy::prelude::*;
 use lightyear::prelude::input::native::{ActionState, InputMarker};
 use lightyear::prelude::*;
-use vetf_net::{PlayerId, PlayerInput, PlayerLoadout, PlayerMove, PlayerWeapon, Vitals};
+use vetf_net::{PlayerId, PlayerInput, PlayerItems, PlayerLoadout, PlayerMove, PlayerWeapon, Vitals};
 use vetf_sim::player;
 use vetf_sim::weapon::Shot;
 
@@ -58,6 +58,7 @@ fn simulate_predicted(
             Option<&ActionState<PlayerInput>>,
             &mut PlayerMove,
             &mut PlayerWeapon,
+            &mut PlayerItems,
             &PlayerLoadout,
             Option<&Vitals>,
         ),
@@ -66,13 +67,13 @@ fn simulate_predicted(
     mut shots: MessageWriter<LocalShot>,
 ) {
     let Some(level) = level else { return };
-    for (id, input, mut mv, mut weapon, loadout, vitals) in &mut players {
+    for (id, input, mut mv, mut weapon, mut items, loadout, vitals) in &mut players {
         if vitals.is_some_and(|v| v.health.dead) {
             continue;
         }
         let frame = input.map(|a| a.0.frame()).unwrap_or_default();
         let mut wounds = vitals.map(|v| v.wounds).unwrap_or_default();
-        let ev = player::step(&data, &level, &loadout.0, &mut mv.0, &mut weapon.0, &mut wounds, &frame);
+        let ev = player::step(&data, &level, &loadout.0, &mut mv.0, &mut weapon.0, &mut items.0, &mut wounds, &frame);
         if let (Some(shot), None) = (ev.weapon.shot, &rollback) {
             shots.write(LocalShot { shot, player: id.0, origin: mv.0.eye_pos(), yaw: frame.yaw, pitch: frame.pitch });
         }

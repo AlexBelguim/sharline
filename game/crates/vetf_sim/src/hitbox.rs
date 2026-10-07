@@ -173,6 +173,8 @@ pub struct FiredShot {
     /// Aim direction from the shooter's input at that tick.
     pub aim: Vec3,
     pub spread_deg: f32,
+    /// The magazine slot it came from: its ammo decides the damage.
+    pub ammo_slot: u8,
 }
 
 /// What a client says one of its shots hit.
@@ -317,7 +319,14 @@ mod tests {
         for t in 0..=100 {
             h.push(t, stand(Vec3::new(t as f32 * 0.1 - 5.0, 0.0, -20.0)), 30);
         }
-        let shot = FiredShot { seq: 1, tick: 100, origin: Vec3::new(0.0, 1.6, 0.0), aim: Vec3::NEG_Z, spread_deg: 0.5 };
+        let shot = FiredShot {
+            seq: 1,
+            tick: 100,
+            origin: Vec3::new(0.0, 1.6, 0.0),
+            aim: Vec3::NEG_Z,
+            spread_deg: 0.5,
+            ammo_slot: 0,
+        };
         (d, CollisionWorld::default(), h, shot)
     }
 

@@ -8,12 +8,19 @@
 
 mod client;
 mod config;
+mod esc_menu;
 mod hud;
+mod loadout;
 mod menu;
 mod net;
+mod radial;
 mod render;
+mod screens;
 mod server;
+mod settings;
 mod shared;
+mod ui_kit;
+mod user_config;
 
 use bevy::prelude::*;
 use bevy::window::{PresentMode, WindowResolution};
@@ -59,7 +66,11 @@ fn main() -> AppExit {
     ));
     app.add_plugins(vetf_net::ProtocolPlugin { input_redundancy: data.net.input_redundancy as u16 });
     app.insert_resource(config::Data(std::sync::Arc::new(data)));
-    app.insert_resource(net::Session { local_name: cli.name.clone(), ..Default::default() });
+    // The name saved from the main menu, unless --name overrides it for this run.
+    let profile = user_config::PlayerProfile::load();
+    let local_name = if cli.name_given { cli.name.clone() } else { profile.name.clone() };
+    app.insert_resource(net::Session { local_name, ..Default::default() });
+    app.insert_resource(profile);
     app.insert_resource(cli);
     app.init_state::<AppState>();
     app.add_plugins((
@@ -69,7 +80,16 @@ fn main() -> AppExit {
         client::ClientPlugin,
         render::RenderPlugin,
         hud::HudPlugin,
+        radial::RadialPlugin,
+        ui_kit::UiKitPlugin,
         menu::MenuPlugin,
+    ));
+    // Hub screens over the menu or the match.
+    app.add_plugins((
+        screens::ScreensPlugin,
+        loadout::LoadoutScreenPlugin,
+        settings::SettingsScreenPlugin,
+        esc_menu::EscMenuPlugin,
     ));
     app.run()
 }

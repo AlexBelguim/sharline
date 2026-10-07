@@ -35,7 +35,7 @@ impl Zone {
 }
 
 /// One value per zone. Serialises as `{head, torso, arms, legs}` like the design data.
-#[derive(Copy, Clone, Debug, PartialEq, Default, Serialize, Deserialize)]
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Default, Serialize, Deserialize)]
 pub struct ZoneTable<T> {
     pub head: T,
     pub torso: T,
@@ -109,6 +109,10 @@ impl ZoneSet {
 
     pub fn insert(&mut self, zone: Zone) {
         self.0 |= 1 << zone.index();
+    }
+
+    pub fn remove(&mut self, zone: Zone) {
+        self.0 &= !(1 << zone.index());
     }
 
     pub fn len(self) -> u32 {

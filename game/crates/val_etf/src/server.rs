@@ -1,7 +1,7 @@
 //! Host authority: player spawns, the authoritative simulation, shot-claim validation, damage, deaths,
 //! respawns and team-deathmatch rules. Runs only while hosting.
 
-use crate::config::{CurrentLevel, Data};
+use crate::config::{Cli, CurrentLevel, Data};
 use crate::net::{Role, Session};
 use crate::shared::{LocalShot, SimSystems};
 use bevy::prelude::*;
@@ -13,13 +13,15 @@ use vetf_net::*;
 use vetf_sim::GameData;
 use vetf_sim::Zone;
 use vetf_sim::combat::{HaloState, Health, resolve_hit};
-use vetf_sim::data::Core;
+use vetf_sim::data::{Core, Ruleset};
+use vetf_sim::gear::{gear_budget, gear_cost};
 use vetf_sim::hitbox::{FiredShot, Pose, PoseHistory, Verdict, validate_claim};
 use vetf_sim::input::view_dir;
+use vetf_sim::items::{self, ItemState};
 use vetf_sim::level::{Level, SpawnPoint, Team};
 use vetf_sim::movement::MoveState;
 use vetf_sim::player::{self, Loadout, Wounds};
-use vetf_sim::weapon::{WeaponLoadout, WeaponState, shot_direction, shot_seed};
+use vetf_sim::weapon::{MAX_MAGS, WeaponLoadout, WeaponState, shot_direction, shot_seed};
 
 pub struct ServerPlugin;
 
@@ -29,7 +31,10 @@ impl Plugin for ServerPlugin {
             .add_message::<PlayerDied>()
             .add_observer(on_new_link)
             .add_observer(on_link_connected)
-            .add_systems(Update, (receive_hellos, receive_claims).run_if(is_hosting))
+            .add_systems(
+                Update,
+                (receive_hellos, receive_loadout_updates, receive_claims, demo_wounds).run_if(is_hosting),
+            )
             .add_systems(FixedUpdate, simulate_authoritative.in_set(SimSystems::Simulate).run_if(is_hosting))
             .add_systems(
                 FixedUpdate,
@@ -53,6 +58,8 @@ pub struct ServerPlayer {
     pub history: PoseHistory,
     pub shots: VecDeque<FiredShot>,
     pub choice: Option<LoadoutChoice>,
+    /// Who last damaged this player (kill credit for bleeding out).
+    pub last_attacker: Option<Entity>,
 }
 
 #[derive(Message, Debug, Clone, Copy)]
@@ -88,8 +95,11 @@ pub fn spawn_match(commands: &mut Commands, data: &GameData, map: &str) {
             score_limit: data.rules.tdm.score_limit,
             time_left_s: data.rules.tdm.time_limit_s,
             phase: MatchPhase::Live,
+            rules: if range { data.rules.rulesets.range } else { data.rules.rulesets.tdm },
         },
         Replicate::to_clients(NetworkTarget::All),
+        // A session that ends must not leave its mode and rules to the next one.
+        DespawnOnEnter(crate::AppState::MainMenu),
     ));
 }
 
@@ -130,7 +140,8 @@ fn on_link_connected(
         .map(|(_, m, _)| m.0.pos)
         .collect();
     let spawn = pick_spawn(&level, team, &enemies);
-    let loadout = Loadout::default_for(&data);
+    let mode = if tdm { MatchMode::Tdm } else { MatchMode::Range };
+    let loadout = Loadout::default_for(&data, mode);
     let id = peer.to_bits();
     let player = commands
         .spawn((
@@ -140,6 +151,7 @@ fn on_link_connected(
             PlayerMove(MoveState::spawn(spawn.pos, loadout_fuel(&data, &loadout))),
             PlayerLook { yaw: spawn.yaw, pitch: 0.0 },
             PlayerWeapon(WeaponState::new(&data, &loadout.weapon)),
+            PlayerItems(ItemState::new(&loadout.kit)),
             fresh_vitals(&data, &loadout),
             PlayerLoadout(loadout),
             Score::default(),
@@ -149,6 +161,7 @@ fn on_link_connected(
                 history: PoseHistory::default(),
                 shots: VecDeque::new(),
                 choice: None,
+                last_attacker: None,
             },
         ))
         .insert((
@@ -192,19 +205,73 @@ fn pick_spawn(level: &Level, team: Option<Team>, enemies: &[Vec3]) -> SpawnPoint
     best.unwrap_or(SpawnPoint { pos: Vec3::new(0.0, 0.5, 0.0), yaw: 0.0, team })
 }
 
-/// Build a loadout from a client's choice, with the loadout tier caps applied to the halo arcs.
-fn loadout_from_choice(data: &GameData, choice: &LoadoutChoice) -> Option<Loadout> {
-    let weapon = WeaponLoadout::resolve(
-        data,
-        &choice.weapon,
-        choice.ammo,
-        &choice.attachments,
-        data.rules.default_loadout.spare_mags,
-    )?;
-    let mut preset = data.armor.preset(&choice.armor)?.clone();
-    let caps = data.armor.loadout_tier_caps;
-    preset.tiers = preset.tiers.map(|z, t| (*t).min(caps[z]));
-    Some(Loadout::new(weapon, &data.armor.resolve(&preset)))
+/// Why the host refused a requested loadout.
+#[derive(Debug, Clone, PartialEq)]
+pub enum LoadoutError {
+    UnknownWeapon,
+    /// An attachment that does not exist or does not fit the gun, or two in one category.
+    Attachment,
+    /// A halo arc above its loadout tier cap.
+    TierCap,
+    /// A magazine's ammo cannot be loaded by that gun, or it is NPC-only.
+    Ammo,
+    /// No magazines, or more than six.
+    MagCount,
+    /// Halo arc tiers plus the magazines' gear cost exceed the mode's gear budget.
+    OverBudget {
+        cost: u32,
+        budget: u32,
+    },
+}
+
+/// Build a loadout from a client's choice (the Loadout screen checks the same rules before CONFIRM):
+/// attachments that fit the gun (one per category), halo arcs within the loadout tier caps, players' ammo
+/// only, one to six magazines, and the mode's gear budget (arc tiers + every magazine's gear cost, see
+/// `vetf_sim::gear`; the gun range has none). The healing kit comes from the mode, not the client.
+pub fn loadout_from_choice(data: &GameData, choice: &LoadoutChoice, mode: MatchMode) -> Result<Loadout, LoadoutError> {
+    let spec = data.weapon(&choice.weapon).ok_or(LoadoutError::UnknownWeapon)?;
+    if choice.mags.is_empty() || choice.mags.len() > MAX_MAGS {
+        return Err(LoadoutError::MagCount);
+    }
+    for m in &choice.mags {
+        data.ammo_for(spec, *m).filter(|a| a.player_loadout).ok_or(LoadoutError::Ammo)?;
+    }
+    let mut cats = Vec::new();
+    for id in &choice.attachments {
+        let a = data.attachment(id).filter(|a| a.fits.contains(&choice.weapon)).ok_or(LoadoutError::Attachment)?;
+        if cats.contains(&a.cat) {
+            return Err(LoadoutError::Attachment);
+        }
+        cats.push(a.cat);
+    }
+    if !choice.halo.within_caps(data.armor.loadout_tier_caps) {
+        return Err(LoadoutError::TierCap);
+    }
+    let weapon = WeaponLoadout::resolve(data, &choice.weapon, &choice.mags, &choice.attachments)
+        .ok_or(LoadoutError::UnknownWeapon)?;
+    let cost = gear_cost(data, spec, &choice.halo, &choice.mags).total();
+    if let Some(budget) = gear_budget(data, mode)
+        && cost > budget
+    {
+        return Err(LoadoutError::OverBudget { cost, budget });
+    }
+    let armor = data.armor.resolve_halo(&choice.halo);
+    Ok(Loadout::new(weapon, &armor, data.items.kit(mode)))
+}
+
+/// The running match's rules (full rules before the match entity exists).
+fn match_rules(matches: &Query<&MatchState>) -> Ruleset {
+    matches.iter().next().map_or(Ruleset::FULL, |m| m.rules)
+}
+
+/// The running match's mode.
+fn match_mode(matches: &Query<&MatchState>) -> MatchMode {
+    matches.iter().next().map_or(MatchMode::Tdm, |m| m.mode)
+}
+
+/// Deterministic shield-bypass roll for one hit (shooter, shot number, victim).
+fn bypass_roll(shooter: u64, seq: u32, victim: u64) -> f32 {
+    vetf_sim::rng::SplitMix::from_parts(&[shooter, seq as u64, victim, 0x4259_5041_5353]).next_f32()
 }
 
 fn receive_hellos(
@@ -214,29 +281,97 @@ fn receive_hellos(
         &mut ServerPlayer,
         &mut PlayerLoadout,
         &mut PlayerWeapon,
+        &mut PlayerItems,
         &mut Vitals,
         &mut PlayerMove,
     )>,
+    matches: Query<&MatchState>,
     data: Res<Data>,
 ) {
+    let mode = match_mode(&matches);
     for (link, mut rx) in &mut links {
         for hello in rx.receive() {
             if hello.data_fingerprint != data.fingerprint {
                 warn!("{} runs different gameplay data: prediction will drift", hello.name);
             }
-            for (mut info, mut sp, mut lo, mut w, mut v, mut mv) in &mut players {
+            for (mut info, mut sp, mut lo, mut w, mut it, mut v, mut mv) in &mut players {
                 if sp.link != link {
                     continue;
                 }
                 info.name = hello.name.chars().filter(|c| !c.is_control()).take(16).collect();
-                if let Some(l) = loadout_from_choice(&data, &hello.loadout) {
+                let chosen = loadout_from_choice(&data, &hello.loadout, mode);
+                if let Err(e) = &chosen {
+                    warn!("{}: loadout {:?} refused ({e:?}); keeping the default", hello.name, hello.loadout);
+                }
+                if let Ok(l) = chosen {
                     *w = PlayerWeapon(WeaponState::new(&data, &l.weapon));
+                    *it = PlayerItems(ItemState::new(&l.kit));
                     *v = fresh_vitals(&data, &l);
                     mv.0.fuel = loadout_fuel(&data, &l);
                     *lo = PlayerLoadout(l);
+                    // Kept for every respawn (a LoadoutUpdate replaces it).
+                    sp.choice = Some(hello.loadout.clone());
                 }
-                sp.choice = Some(hello.loadout.clone());
             }
+        }
+    }
+}
+
+/// A player changed their loadout on the Loadout screen during the match: check it now, apply it at their
+/// next spawn (the current life keeps its gear).
+fn receive_loadout_updates(
+    mut links: Query<(Entity, &mut MessageReceiver<LoadoutUpdate>), With<ClientOf>>,
+    mut players: Query<(&PlayerInfo, &mut ServerPlayer)>,
+    matches: Query<&MatchState>,
+    data: Res<Data>,
+) {
+    let mode = match_mode(&matches);
+    for (link, mut rx) in &mut links {
+        for update in rx.receive() {
+            for (info, mut sp) in &mut players {
+                if sp.link != link {
+                    continue;
+                }
+                match loadout_from_choice(&data, &update.loadout, mode) {
+                    Ok(_) => {
+                        info!("{}: new loadout for the next spawn", info.name);
+                        sp.choice = Some(update.loadout.clone());
+                    }
+                    Err(e) => warn!("{}: loadout update {:?} refused ({e:?})", info.name, update.loadout),
+                }
+            }
+        }
+    }
+}
+
+/// `--demo-ui heal*|hud`: hurt the host's own player once, so the HUD and the heal ring have something
+/// to show in screenshots.
+fn demo_wounds(
+    cli: Res<Cli>,
+    data: Res<Data>,
+    mut done: Local<bool>,
+    mut me: Query<(&mut Vitals, &ServerPlayer), With<Controlled>>,
+) {
+    if *done || !cli.demo_ui.as_deref().is_some_and(|d| d.starts_with("heal") || d == "hud") {
+        return;
+    }
+    // After the hello (which resets vitals for the chosen loadout).
+    for (mut v, _) in me.iter_mut().filter(|(_, sp)| sp.choice.is_some()) {
+        *done = true;
+        let spill = &data.weapons.spill_to_torso;
+        v.health.apply(Zone::Legs, 60.0, spill);
+        v.health.apply(Zone::Head, 12.0, spill);
+        v.halo.shield.torso = 0.0;
+        v.halo.regen_wait_s = 600.0;
+        if let Some(bleed) = data
+            .ammo
+            .resolve(
+                vetf_sim::data::WeaponClass::AssaultRifle,
+                vetf_sim::data::AmmoChoice { kind: vetf_sim::data::AmmoKind::Shrapnel, tier: 1 },
+            )
+            .and_then(|a| a.bleed)
+        {
+            v.health.bleeding.add_stack(Zone::Arms, &bleed);
         }
     }
 }
@@ -264,6 +399,7 @@ fn simulate_authoritative(
             Option<&ActionState<PlayerInput>>,
             &mut PlayerMove,
             &mut PlayerWeapon,
+            &mut PlayerItems,
             &PlayerLoadout,
             &mut Vitals,
             &mut PlayerLook,
@@ -273,16 +409,19 @@ fn simulate_authoritative(
         With<Replicate>,
     >,
     server: Query<&Server>,
+    matches: Query<&MatchState>,
     mut fx: ServerMultiMessageSender,
     mut local_shots: MessageWriter<LocalShot>,
     mut deaths: MessageWriter<PlayerDied>,
 ) {
     let Some(level) = level else { return };
+    let rules = match_rules(&matches);
     let tick = timeline.tick().0;
     let dt = data.tick_dt();
     let keep = (data.combat.shot_validation.history_s * data.net.tick_hz as f32).ceil() as u32;
     let server = server.iter().next();
-    for (entity, id, input, mut mv, mut weapon, loadout, mut vitals, mut look, mut sp, local) in &mut players {
+    for (entity, id, input, mut mv, mut weapon, mut items, loadout, mut vitals, mut look, mut sp, local) in &mut players
+    {
         if vitals.health.dead {
             continue;
         }
@@ -290,15 +429,31 @@ fn simulate_authoritative(
         look.yaw = frame.yaw;
         look.pitch = frame.pitch;
         let mut wounds = vitals.wounds;
-        let ev = player::step(&data, &level, &loadout.0, &mut mv.0, &mut weapon.0, &mut wounds, &frame);
+        let ev = player::step(&data, &level, &loadout.0, &mut mv.0, &mut weapon.0, &mut items.0, &mut wounds, &frame);
         vitals.wounds = wounds;
+        if let Some((slot, zone)) = ev.items.finished
+            && let Some(k) = loadout.0.kit.get(slot as usize)
+        {
+            let Vitals { health, halo, wounds, .. } = &mut *vitals;
+            items::apply(data.items.spec(k), zone, health, halo, &loadout.0.halo);
+            wounds.sync(health, &rules);
+        }
         vitals.protected_s = (vitals.protected_s - dt).max(0.0);
         let spec = loadout.0.halo;
         vitals.halo.tick(&spec, dt);
+        if vitals.health.bleeding.is_bleeding() {
+            let out = vitals.health.tick_bleeding(&data.weapons.spill_to_torso, dt);
+            let Vitals { health, wounds, .. } = &mut *vitals;
+            wounds.sync(health, &rules);
+            if out.died {
+                deaths.write(PlayerDied { victim: entity, killer: sp.last_attacker, zone: None });
+            }
+        }
 
         if ev.movement.fall_damage > 0.0 {
             let hp = vitals.health.apply(Zone::Legs, ev.movement.fall_damage, &data.weapons.spill_to_torso);
-            vitals.wounds.broken = vitals.health.broken();
+            let Vitals { health, wounds, .. } = &mut *vitals;
+            wounds.sync(health, &rules);
             if hp.died {
                 deaths.write(PlayerDied { victim: entity, killer: None, zone: Some(Zone::Legs) });
             }
@@ -320,6 +475,7 @@ fn simulate_authoritative(
                 origin,
                 aim: view_dir(frame.yaw, frame.pitch),
                 spread_deg: shot.spread_deg,
+                ammo_slot: shot.ammo_slot,
             });
             while sp.shots.len() > 64 {
                 sp.shots.pop_front();
@@ -355,12 +511,14 @@ fn resolve_claims(
     level: Option<Res<CurrentLevel>>,
     timeline: Res<LocalTimeline>,
     mut pending: ResMut<PendingClaims>,
-    mut players: Query<(Entity, &PlayerId, &PlayerInfo, &PlayerLoadout, &mut Vitals, &PlayerMove, &ServerPlayer)>,
+    mut players: Query<(Entity, &PlayerId, &PlayerInfo, &PlayerLoadout, &mut Vitals, &PlayerMove, &mut ServerPlayer)>,
     mut confirms: Query<&mut MessageSender<HitConfirm>>,
     mut damage: Query<&mut MessageSender<DamageTaken>>,
+    matches: Query<&MatchState>,
     mut deaths: MessageWriter<PlayerDied>,
 ) {
     let Some(level) = level else { return };
+    let rules = match_rules(&matches);
     let tick = timeline.tick().0;
     let mut keep = Vec::new();
     for mut p in std::mem::take(&mut pending.0) {
@@ -385,7 +543,7 @@ fn resolve_claims(
             continue;
         };
         let Some((victim_e, ..)) = players.iter().find(|(_, id, ..)| id.0 == p.claim.victim) else { continue };
-        let Ok((_, _, vinfo, vloadout, mut vitals, vmove, vsp)) = players.get_mut(victim_e) else { continue };
+        let Ok((_, _, vinfo, vloadout, mut vitals, vmove, mut vsp)) = players.get_mut(victim_e) else { continue };
         if victim_e == shooter.entity
             || vitals.health.dead
             || vitals.protected_s > 0.0
@@ -408,17 +566,19 @@ fn resolve_claims(
         let (mut halo, mut health) = (vitals.halo, vitals.health);
         let report = resolve_hit(
             weapon,
-            &shooter.loadout.weapon.ammo,
+            shooter.loadout.weapon.ammo(shooter.shot.ammo_slot),
             range,
             zone,
             &data.weapons.spill_to_torso,
             &halo_spec,
             &mut halo,
             &mut health,
+            bypass_roll(shooter.id, p.claim.seq, p.claim.victim),
         );
+        vsp.last_attacker = Some(shooter.entity);
+        vitals.wounds.sync(&mut health, &rules);
         vitals.halo = halo;
         vitals.health = health;
-        vitals.wounds.broken = health.broken();
         if report.to_hp > 0.0 && halo_spec.core != Some(Core::Phase) {
             vitals.wounds.tag_slow_s = data.combat.wounded.tag_slow_s;
         }
@@ -512,15 +672,18 @@ fn respawn_players(
         &mut PlayerMove,
         &mut PlayerLook,
         &mut PlayerWeapon,
+        &mut PlayerItems,
         &mut PlayerLoadout,
         &mut ServerPlayer,
     )>,
+    matches: Query<&MatchState>,
 ) {
     let Some(level) = level else { return };
+    let mode = match_mode(&matches);
     let dt = data.tick_dt();
     let living: Vec<(Option<Team>, Vec3)> =
         players.iter().filter(|(_, v, ..)| !v.health.dead).map(|(i, _, m, ..)| (i.team, m.0.pos)).collect();
-    for (info, mut v, mut mv, mut look, mut w, mut lo, mut sp) in &mut players {
+    for (info, mut v, mut mv, mut look, mut w, mut it, mut lo, mut sp) in &mut players {
         if !v.health.dead {
             continue;
         }
@@ -528,7 +691,7 @@ fn respawn_players(
         if v.respawn_s > 0.0 {
             continue;
         }
-        if let Some(l) = sp.choice.as_ref().and_then(|c| loadout_from_choice(&data, c)) {
+        if let Some(l) = sp.choice.as_ref().and_then(|c| loadout_from_choice(&data, c, mode).ok()) {
             lo.0 = l;
         }
         let enemies: Vec<Vec3> =
@@ -538,8 +701,10 @@ fn respawn_players(
         mv.0 = MoveState::spawn(spawn.pos, loadout_fuel(&data, &lo.0));
         *look = PlayerLook { yaw: spawn.yaw, pitch: 0.0 };
         w.0 = WeaponState::new(&data, &lo.0.weapon);
+        it.0 = ItemState::new(&lo.0.kit);
         sp.history.clear();
         sp.shots.clear();
+        sp.last_attacker = None;
     }
 }
 
@@ -589,6 +754,9 @@ fn run_match(
 #[cfg(test)]
 mod tests {
     use super::*;
+    use vetf_sim::ZoneTable;
+    use vetf_sim::data::{AmmoChoice, AmmoKind};
+    use vetf_sim::gear::HaloChoice;
 
     #[test]
     fn spawn_picks_far_from_enemies() {
@@ -601,17 +769,159 @@ mod tests {
         assert_eq!(s.pos.x, 20.0);
     }
 
+    /// Team deathmatch (the gear budget's mode).
+    fn loadout_from_choice(d: &GameData, c: &LoadoutChoice) -> Result<Loadout, LoadoutError> {
+        super::loadout_from_choice(d, c, MatchMode::Tdm)
+    }
+
+    /// A preset's halo, capped like the Loadout screen and the command line do.
+    fn halo(d: &GameData, armor: &str) -> HaloChoice {
+        HaloChoice::from_preset(d.armor.preset(armor).unwrap()).capped(d.armor.loadout_tier_caps)
+    }
+
     #[test]
-    fn loadout_choice_caps_leg_tier() {
+    fn the_mode_decides_the_healing_kit() {
         let d = GameData::embedded();
-        let choice = LoadoutChoice {
-            weapon: "ar7_mako".into(),
-            ammo: vetf_sim::data::AmmoChoice::STANDARD,
+        let c = choice("ar7_mako", AmmoChoice::STANDARD, "arm_none");
+        let tdm = super::loadout_from_choice(&d, &c, MatchMode::Tdm).unwrap();
+        let range = super::loadout_from_choice(&d, &c, MatchMode::Range).unwrap();
+        assert_eq!(tdm.kit, d.items.kit(MatchMode::Tdm));
+        assert_eq!(range.kit, d.items.kit(MatchMode::Range));
+        assert_ne!(tdm.kit, range.kit);
+    }
+
+    fn choice(weapon: &str, ammo: AmmoChoice, armor: &str) -> LoadoutChoice {
+        mags(weapon, &[ammo; 4], armor)
+    }
+
+    fn mags(weapon: &str, mags: &[AmmoChoice], armor: &str) -> LoadoutChoice {
+        let d = GameData::embedded();
+        LoadoutChoice {
+            weapon: weapon.into(),
+            mags: mags.to_vec(),
             attachments: vec![],
-            armor: "arm_bulwark_jugg".into(),
-        };
-        let l = loadout_from_choice(&d, &choice).unwrap();
+            halo: halo(&d, armor),
+            agent: "kestrel".into(),
+        }
+    }
+
+    #[test]
+    fn halo_arcs_must_stay_within_the_tier_caps() {
+        let mut d = GameData::embedded();
+        d.rules.tdm.gear_budget = 100; // only the caps matter here
+        let capped = choice("ar7_mako", AmmoChoice::STANDARD, "arm_bulwark_jugg");
+        let l = loadout_from_choice(&d, &capped).unwrap();
         assert_eq!(l.halo.tiers.legs, d.armor.loadout_tier_caps.legs);
         assert_eq!(l.halo.tiers.torso, 4);
+        // the uncapped rare-loot halo is refused, not silently capped
+        let raw = LoadoutChoice {
+            halo: HaloChoice::from_preset(d.armor.preset("arm_bulwark_jugg").unwrap()),
+            ..capped.clone()
+        };
+        assert_eq!(loadout_from_choice(&d, &raw).err(), Some(LoadoutError::TierCap));
+    }
+
+    #[test]
+    fn a_custom_mixed_tier_halo_is_resolved_per_arc() {
+        let d = GameData::embedded();
+        let mut c = choice("ar7_mako", AmmoChoice::STANDARD, "arm_none");
+        c.halo = HaloChoice { core: Core::Volt, tiers: ZoneTable { head: 1, torso: 3, arms: 0, legs: 2 } };
+        let l = loadout_from_choice(&d, &c).unwrap();
+        assert_eq!(l.halo.tiers, c.halo.tiers);
+        assert_eq!(l.halo.core, Some(Core::Volt));
+        assert_eq!(l.weight, d.armor.weight_class(6));
+        // no arcs: no halo, whatever the core
+        c.halo.tiers = ZoneTable::splat(0);
+        let l = loadout_from_choice(&d, &c).unwrap();
+        assert_eq!((l.halo.core, l.weight), (None, vetf_sim::data::WeightClass::None));
+    }
+
+    #[test]
+    fn attachments_must_fit_the_gun_once_per_category() {
+        let d = GameData::embedded();
+        let mut c = choice("ar7_mako", AmmoChoice::STANDARD, "arm_none");
+        c.attachments = vec!["optic_reddot".into(), "grip_angled".into(), "laser".into()];
+        let l = loadout_from_choice(&d, &c).unwrap();
+        assert!(l.weapon.attachments.contains(&"grip_angled".to_string()));
+        assert!(l.weapon.attachments.contains(&"mako_stock_standard".to_string()), "defaults fill the rest");
+        c.attachments = vec!["bipod".into()];
+        assert_eq!(loadout_from_choice(&d, &c).err(), Some(LoadoutError::Attachment), "a Warden part");
+        c.attachments = vec!["optic_reddot".into(), "optic_holo".into()];
+        assert_eq!(loadout_from_choice(&d, &c).err(), Some(LoadoutError::Attachment), "two optics");
+        c.attachments = vec!["nope".into()];
+        assert_eq!(loadout_from_choice(&d, &c).err(), Some(LoadoutError::Attachment));
+    }
+
+    #[test]
+    fn the_gun_range_has_no_gear_budget() {
+        let d = GameData::embedded();
+        let ap3 = AmmoChoice { kind: AmmoKind::ArmorPiercing, tier: 3 };
+        let c = mags("ar7_mako", &[ap3; 6], "arm_bulwark_assault");
+        assert!(matches!(loadout_from_choice(&d, &c), Err(LoadoutError::OverBudget { .. })));
+        assert!(super::loadout_from_choice(&d, &c, MatchMode::Range).is_ok());
+    }
+
+    #[test]
+    fn gear_budget_prices_armor_and_each_magazine() {
+        let d = GameData::embedded();
+        let std = AmmoChoice::STANDARD;
+        let ap1 = AmmoChoice { kind: AmmoKind::ArmorPiercing, tier: 1 };
+        let ap3 = AmmoChoice { kind: AmmoKind::ArmorPiercing, tier: 3 };
+        let budget = d.rules.tdm.gear_budget;
+        // the default loadout fits
+        let def = &d.rules.default_loadout;
+        assert!(loadout_from_choice(&d, &mags(&def.primary, &def.mags, &def.armor)).is_ok());
+        // the host prices a loadout exactly like the Loadout screen's RESULT panel (the shared function)
+        let c = mags("ar7_mako", &[ap1, ap3], "arm_mender_scout");
+        let shared = gear_cost(&d, d.weapon("ar7_mako").unwrap(), &c.halo, &c.mags).total();
+        assert_eq!(shared, 4 + d.ammo.resolve(vetf_sim::data::WeaponClass::AssaultRifle, ap3).unwrap().gear_cost + 2);
+        // every magazine is priced: one AP mag costs its tier's price, two cost twice that
+        let price = |m: &[AmmoChoice]| match loadout_from_choice(&d, &mags("ar7_mako", m, "arm_none")) {
+            Ok(l) => l.weapon.ammo_gear_cost(),
+            Err(LoadoutError::OverBudget { cost, .. }) => cost,
+            Err(e) => panic!("{e:?}"),
+        };
+        let one = d.ammo.resolve(vetf_sim::data::WeaponClass::AssaultRifle, ap1).unwrap().gear_cost;
+        assert_eq!(price(&[std, std, ap1]), one);
+        assert_eq!(price(&[std, ap1, ap1]), 2 * one);
+        // a full pouch of AP III is over budget even with no halo; one AP III mag with a light halo fits
+        let all_ap3 = loadout_from_choice(&d, &mags("ar7_mako", &[ap3; 6], "arm_none"));
+        assert!(matches!(all_ap3, Err(LoadoutError::OverBudget { budget: b, .. }) if b == budget), "{all_ap3:?}");
+        assert!(loadout_from_choice(&d, &mags("ar7_mako", &[std, std, std, ap3], "arm_phase_runner")).is_ok());
+    }
+
+    #[test]
+    fn magazine_count_is_one_to_six() {
+        let d = GameData::embedded();
+        let std = AmmoChoice::STANDARD;
+        assert_eq!(loadout_from_choice(&d, &mags("ar7_mako", &[], "arm_none")).err(), Some(LoadoutError::MagCount));
+        assert_eq!(
+            loadout_from_choice(&d, &mags("ar7_mako", &[std; 7], "arm_none")).err(),
+            Some(LoadoutError::MagCount)
+        );
+        assert_eq!(loadout_from_choice(&d, &mags("ar7_mako", &[std; 6], "arm_none")).unwrap().weapon.mags.len(), 6);
+    }
+
+    #[test]
+    fn npc_and_wrong_class_ammo_are_refused() {
+        let d = GameData::embedded();
+        let shr = AmmoChoice { kind: AmmoKind::Shrapnel, tier: 1 };
+        let rip = AmmoChoice { kind: AmmoKind::Rip, tier: 1 };
+        assert_eq!(loadout_from_choice(&d, &choice("ar7_mako", shr, "arm_none")).err(), Some(LoadoutError::Ammo));
+        assert_eq!(loadout_from_choice(&d, &choice("ar7_mako", rip, "arm_none")).err(), Some(LoadoutError::Ammo));
+        // one bad magazine refuses the whole loadout
+        let one_bad = mags("ar7_mako", &[AmmoChoice::STANDARD, shr], "arm_none");
+        assert_eq!(loadout_from_choice(&d, &one_bad).err(), Some(LoadoutError::Ammo));
+        assert_eq!(
+            loadout_from_choice(&d, &choice("nope", AmmoChoice::STANDARD, "arm_none")).err(),
+            Some(LoadoutError::UnknownWeapon)
+        );
+    }
+
+    #[test]
+    fn bypass_rolls_are_deterministic_and_spread() {
+        assert_eq!(bypass_roll(7, 3, 9), bypass_roll(7, 3, 9));
+        let under = (0..1000).filter(|i| bypass_roll(7, *i, 9) < 0.2).count();
+        assert!((150..250).contains(&under), "{under}");
     }
 }

@@ -5,8 +5,10 @@
 
 pub mod combat;
 pub mod data;
+pub mod gear;
 pub mod hitbox;
 pub mod input;
+pub mod items;
 pub mod level;
 pub mod maps;
 pub mod movement;

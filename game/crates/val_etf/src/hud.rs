@@ -1,20 +1,29 @@
-//! In-match HUD (layout after design/ui/mockups/png/01_hud.png and 02_hud_magcheck.png).
+//! In-match HUD: a compact, stylized readout instead of info panels (user direction).
 //!
-//! Hard rule: no exact ammo count anywhere. The weapon panel shows the gun, fire mode, ammo type and how
-//! many spare magazines are in the pouch; rounds are only ever reported as a mag-check estimate.
+//! - **Vitals** (bottom left): one row per region, like a boss bar. A thin strip of halo-arc shield in the
+//!   arc's tier colour sits over a segmented HP bar (one segment per 10 points, so a region's size is its
+//!   HP). Recent damage trails in orange. Bleeding and broken limbs show as chips on the row, only where
+//!   the mode's rules have them.
+//! - **No weapon panel.** A mag check leaves a small card (estimate + which magazine and ammo); reloads,
+//!   item use and fire-mode changes show briefly under the crosshair.
+//! - Score (top centre, ally/enemy colours), kill feed (top right), crosshair, hit marker and damage
+//!   direction stay.
+//!
+//! Hard rule: no exact ammo count anywhere. Rounds are only ever reported as a mag-check estimate.
 
 use crate::AppState;
 use crate::client::{Feedback, LocalControl};
 use crate::config::Data;
 use crate::net::{NetRequest, Session};
-use crate::render::{ViewCamera, team_color, tier_color};
+use crate::render::ViewCamera;
+use crate::ui_kit::{self as kit, Face, UiFonts, abs, panel};
 use bevy::prelude::*;
 use lightyear::prelude::*;
 use vetf_net::*;
 use vetf_sim::Zone;
 use vetf_sim::data::FireMode;
 use vetf_sim::level::Team;
-use vetf_sim::weapon::WeaponAction;
+use vetf_sim::weapon::{ReloadKind, WeaponAction, secs_to_ticks};
 
 pub struct HudPlugin;
 
@@ -25,8 +34,9 @@ impl Plugin for HudPlugin {
             .add_systems(
                 Update,
                 (
-                    update_vitals_panel,
-                    update_weapon_panel,
+                    update_vitals,
+                    update_mag_card,
+                    update_action,
                     update_score,
                     update_crosshair,
                     update_feed,
@@ -40,48 +50,83 @@ impl Plugin for HudPlugin {
     }
 }
 
-const PANEL: Color = Color::srgba(0.06, 0.07, 0.09, 0.82);
-const INK: Color = Color::srgb(0.93, 0.94, 0.95);
-const MUTED: Color = Color::srgb(0.58, 0.62, 0.68);
-const TEAL: Color = Color::srgb(0.0, 0.70, 0.62);
-const CORAL: Color = Color::srgb(1.0, 0.36, 0.30);
+/// HUD bars: px per point of HP or shield, points per segment, and the gap between segments.
+const PX_PER_POINT: f32 = 2.0;
+const SEG_POINTS: f32 = 10.0;
+const SEG_GAP: f32 = 3.0;
+const HP_H: f32 = 14.0;
+const SHIELD_H: f32 = 6.0;
+/// Recent damage stays visible this long, then drains at this rate (points per second).
+const GHOST_HOLD_S: f32 = 0.45;
+const GHOST_DRAIN: f32 = 90.0;
+/// A fire-mode change shows under the crosshair this long.
+const TOAST_S: f32 = 1.2;
+const FEED_ROWS: usize = 5;
 
 #[derive(Component)]
-struct ZoneBar(Zone);
+struct RowLabel(Zone);
 #[derive(Component)]
-struct ZoneValue(Zone);
+struct HpSeg;
 #[derive(Component)]
-struct ArcBar(Zone);
+struct HpFill(Zone, usize);
 #[derive(Component)]
-struct ShieldText;
+struct GhostFill(Zone, usize);
 #[derive(Component)]
-struct HaloLabel;
+struct ShieldSeg(Zone, usize);
 #[derive(Component)]
-struct StatusText;
+struct ShieldFill(Zone, usize);
+#[derive(Component, Clone, Copy, PartialEq, Eq)]
+enum Chip {
+    Bleed,
+    Broken,
+    Heal,
+}
 #[derive(Component)]
-struct WeaponName;
+struct ZoneChip(Zone, Chip);
 #[derive(Component)]
-struct WeaponDetail;
+struct VitalsHeader;
 #[derive(Component)]
-struct FireModeText;
+struct VitalsStatus;
 #[derive(Component)]
 struct MagCardRoot;
 #[derive(Component)]
-struct MagCardText;
+struct MagCardEstimate;
+#[derive(Component)]
+struct MagCardMag;
 #[derive(Component)]
 struct MagCardSegment(u8);
 #[derive(Component)]
-struct ScoreA;
+struct ActionRoot;
 #[derive(Component)]
-struct ScoreB;
+struct ActionText;
+#[derive(Component)]
+struct ActionTrack;
+#[derive(Component)]
+struct ActionFill;
+#[derive(Component)]
+struct ScoreRoot;
+#[derive(Component)]
+struct ScoreAlly;
+#[derive(Component)]
+struct ScoreEnemy;
+#[derive(Component)]
+struct ScoreBox;
 #[derive(Component)]
 struct MatchClock;
+#[derive(Component)]
+struct MatchSub;
 #[derive(Component)]
 struct CrosshairArm(u8);
 #[derive(Component)]
 struct HitMarker;
 #[derive(Component)]
-struct FeedText;
+struct FeedRow(usize);
+#[derive(Component)]
+struct FeedKiller(usize);
+#[derive(Component)]
+struct FeedVictim(usize);
+#[derive(Component)]
+struct FeedTag(usize);
 #[derive(Component)]
 struct CenterBanner;
 #[derive(Component)]
@@ -98,22 +143,7 @@ enum PauseButton {
     Leave,
 }
 
-fn text(s: impl Into<String>, size: f32, color: Color) -> (Text, TextFont, TextColor) {
-    (Text::new(s), TextFont::from_font_size(size), TextColor(color))
-}
-
-fn abs_node(left: Option<f32>, right: Option<f32>, top: Option<f32>, bottom: Option<f32>) -> Node {
-    Node {
-        position_type: PositionType::Absolute,
-        left: left.map_or(Val::Auto, Val::Px),
-        right: right.map_or(Val::Auto, Val::Px),
-        top: top.map_or(Val::Auto, Val::Px),
-        bottom: bottom.map_or(Val::Auto, Val::Px),
-        ..default()
-    }
-}
-
-fn spawn_connecting(mut commands: Commands) {
+fn spawn_connecting(mut commands: Commands, fonts: Res<UiFonts>) {
     commands.spawn((
         Node {
             width: percent(100),
@@ -122,9 +152,9 @@ fn spawn_connecting(mut commands: Commands) {
             justify_content: JustifyContent::Center,
             ..default()
         },
-        BackgroundColor(Color::srgb(0.04, 0.05, 0.07)),
+        BackgroundColor(kit::BG0),
         DespawnOnExit(AppState::Connecting),
-        children![(ConnectingText, text("CONNECTING...", 28.0, INK))],
+        children![(ConnectingText, fonts.text("CONNECTING...", Face::Display, 700, 28.0, kit::TEXT_HI, 0.08))],
     ));
 }
 
@@ -134,7 +164,20 @@ fn update_connecting(session: Res<Session>, mut q: Query<&mut Text, With<Connect
     }
 }
 
-fn spawn_hud(mut commands: Commands) {
+/// Segment widths (px) for a bar of `max` points.
+fn segments(max: f32) -> Vec<f32> {
+    let n = (max / SEG_POINTS).ceil().max(0.0) as usize;
+    (0..n).map(|i| (max - i as f32 * SEG_POINTS).min(SEG_POINTS) * PX_PER_POINT - SEG_GAP).collect()
+}
+
+/// How full segment `i` of a bar of `max` points is at `value` points (the last segment may be short).
+fn seg_fill(value: f32, max: f32, i: usize) -> f32 {
+    let start = i as f32 * SEG_POINTS;
+    let size = (max - start).min(SEG_POINTS);
+    if size <= 0.0 { 0.0 } else { ((value - start) / size).clamp(0.0, 1.0) }
+}
+
+fn spawn_hud(mut commands: Commands, data: Res<Data>, fonts: Res<UiFonts>) {
     let root = commands
         .spawn((
             Node { width: percent(100), height: percent(100), ..default() },
@@ -143,159 +186,240 @@ fn spawn_hud(mut commands: Commands) {
         ))
         .id();
 
-    // --- health panel (bottom left)
-    let health = commands
+    // --- vitals (bottom left)
+    let vitals = commands
         .spawn((
-            Node {
-                flex_direction: FlexDirection::Column,
-                padding: UiRect::all(px(14)),
-                row_gap: px(6),
-                width: px(380),
-                ..abs_node(Some(24.0), None, None, Some(24.0))
-            },
-            BackgroundColor(PANEL),
+            kit::panel_bg(
+                Node {
+                    flex_direction: FlexDirection::Column,
+                    padding: UiRect::axes(px(14), px(12)),
+                    row_gap: px(7),
+                    ..abs(Some(32.0), None, None, Some(32.0))
+                },
+                kit::PANEL.with_alpha(0.45),
+            ),
             ChildOf(root),
         ))
         .id();
-    commands.spawn((StatusText, text("", 14.0, CORAL), ChildOf(health)));
     commands.spawn((
-        Node { justify_content: JustifyContent::SpaceBetween, ..default() },
-        ChildOf(health),
-        children![(text("SHIELD", 13.0, MUTED)), (HaloLabel, text("", 13.0, Color::srgb(0.4, 0.65, 1.0)))],
+        Node { column_gap: px(10), align_items: AlignItems::Center, margin: UiRect::bottom(px(2)), ..default() },
+        ChildOf(vitals),
+        children![
+            (VitalsHeader, fonts.text("", Face::Display, 700, 14.0, kit::TEXT_MID, 0.14)),
+            (VitalsStatus, fonts.text("", Face::Display, 700, 14.0, kit::WARN, 0.14)),
+        ],
     ));
-    commands.spawn((ShieldText, text("", 30.0, INK), ChildOf(health)));
-    // one bar per halo arc
-    let arcs = commands
-        .spawn((Node { column_gap: px(4), height: px(8), margin: UiRect::bottom(px(6)), ..default() }, ChildOf(health)))
-        .id();
-    for zone in Zone::ALL {
-        commands.spawn((
-            Node { flex_grow: 1.0, height: percent(100), ..default() },
-            BackgroundColor(Color::srgb(0.15, 0.16, 0.19)),
-            ChildOf(arcs),
-            children![(
-                ArcBar(zone),
-                Node { width: percent(100), height: percent(100), ..default() },
-                BackgroundColor(Color::NONE)
-            )],
-        ));
-    }
+    // The largest arc any halo can have, so every loadout fits the shield strip.
+    let share = data.armor.zone_capacity_share.iter().fold(0.0f32, |m, (_, s)| m.max(*s));
+    let max_arc = data.armor.capacity.values().filter_map(|c| c.last()).fold(0.0f32, |m, c| m.max(*c * share));
     for zone in Zone::ALL {
         let row = commands
-            .spawn((Node { align_items: AlignItems::Center, column_gap: px(10), ..default() }, ChildOf(health)))
+            .spawn((Node { align_items: AlignItems::Center, column_gap: px(8), ..default() }, ChildOf(vitals)))
             .id();
-        commands.spawn((text(zone.label(), 13.0, MUTED), Node { width: px(56), ..default() }, ChildOf(row)));
         commands.spawn((
-            Node { width: px(220), height: px(6), ..default() },
-            BackgroundColor(Color::srgb(0.15, 0.16, 0.19)),
+            RowLabel(zone),
+            fonts.text(zone.label(), Face::Display, 700, 14.0, kit::TEXT_MID, 0.16),
+            Node { width: px(54), ..default() },
             ChildOf(row),
-            children![(
-                ZoneBar(zone),
-                Node { width: percent(100), height: percent(100), ..default() },
-                BackgroundColor(INK)
-            )],
         ));
-        commands.spawn((ZoneValue(zone), text("", 15.0, INK), ChildOf(row)));
+        let bars = commands
+            .spawn((Node { flex_direction: FlexDirection::Column, row_gap: px(2), ..default() }, ChildOf(row)))
+            .id();
+        let shield = commands.spawn((Node { height: px(SHIELD_H), ..default() }, ChildOf(bars))).id();
+        for (i, w) in segments(max_arc).into_iter().enumerate() {
+            commands.spawn((
+                ShieldSeg(zone, i),
+                Node { width: px(w), height: percent(100), margin: UiRect::right(px(SEG_GAP)), ..default() },
+                BackgroundColor(kit::UNLIT),
+                ChildOf(shield),
+                children![(
+                    ShieldFill(zone, i),
+                    Node { width: percent(100), height: percent(100), ..default() },
+                    BackgroundColor(kit::TIERS[1])
+                )],
+            ));
+        }
+        let hp = commands.spawn((Node { height: px(HP_H), ..default() }, ChildOf(bars))).id();
+        for (i, w) in segments(data.armor.zone_hp[zone]).into_iter().enumerate() {
+            commands.spawn((
+                HpSeg,
+                Node { width: px(w), height: percent(100), margin: UiRect::right(px(SEG_GAP)), ..default() },
+                BackgroundColor(kit::UNLIT),
+                ChildOf(hp),
+                children![
+                    (
+                        GhostFill(zone, i),
+                        Node { position_type: PositionType::Absolute, height: percent(100), ..default() },
+                        BackgroundColor(kit::HP_DMG)
+                    ),
+                    (
+                        HpFill(zone, i),
+                        Node { position_type: PositionType::Absolute, height: percent(100), ..default() },
+                        BackgroundColor(kit::HP_OK)
+                    ),
+                ],
+            ));
+        }
+        for (chip, label, bg, ink) in [
+            (Chip::Bleed, "BLEED", kit::BLEED, kit::TEXT_HI),
+            (Chip::Broken, "BROKEN", kit::HP_DMG, kit::BG0),
+            (Chip::Heal, "+ HEAL", kit::HEAL, kit::BG0),
+        ] {
+            commands.spawn((
+                ZoneChip(zone, chip),
+                Node {
+                    padding: UiRect::axes(px(6), px(1)),
+                    border_radius: BorderRadius::all(px(2)),
+                    display: Display::None,
+                    ..default()
+                },
+                BackgroundColor(bg),
+                ChildOf(row),
+                children![fonts.text(label, Face::Display, 700, 13.0, ink, 0.12)],
+            ));
+        }
     }
 
-    // --- weapon panel (bottom right)
-    let weapon = commands
-        .spawn((
-            Node {
-                flex_direction: FlexDirection::Column,
-                padding: UiRect::all(px(14)),
-                row_gap: px(6),
-                width: px(400),
-                ..abs_node(None, Some(24.0), None, Some(24.0))
-            },
-            BackgroundColor(PANEL),
-            ChildOf(root),
-        ))
-        .id();
-    commands.spawn((
-        Node { justify_content: JustifyContent::SpaceBetween, ..default() },
-        ChildOf(weapon),
-        children![(WeaponName, text("", 24.0, INK)), (FireModeText, text("", 16.0, INK))],
-    ));
-    commands.spawn((WeaponDetail, text("", 14.0, MUTED), ChildOf(weapon)));
-
-    // --- mag check card (above the weapon panel)
+    // --- mag check card (bottom right): an estimate, never a count
     let card = commands
         .spawn((
             MagCardRoot,
-            Node {
+            panel(Node {
                 flex_direction: FlexDirection::Column,
-                padding: UiRect::all(px(14)),
+                padding: UiRect::all(px(12)),
                 row_gap: px(6),
-                width: px(400),
-                ..abs_node(None, Some(24.0), None, Some(150.0))
-            },
-            BackgroundColor(PANEL),
+                width: px(240),
+                ..abs(None, Some(32.0), None, Some(32.0))
+            }),
             Visibility::Hidden,
             ChildOf(root),
         ))
         .id();
-    commands.spawn((text("MAG CHECK", 13.0, MUTED), ChildOf(card)));
-    commands.spawn((MagCardText, text("", 30.0, INK), ChildOf(card)));
-    let segs = commands.spawn((Node { column_gap: px(4), height: px(6), ..default() }, ChildOf(card))).id();
+    commands.spawn((
+        Node { justify_content: JustifyContent::SpaceBetween, ..default() },
+        ChildOf(card),
+        children![(fonts.lbl("MAG CHECK")), (MagCardMag, fonts.text("", Face::Display, 700, 13.0, kit::TEXT, 0.12))],
+    ));
+    commands.spawn((MagCardEstimate, fonts.text("", Face::Display, 700, 26.0, kit::TEXT_HI, 0.04), ChildOf(card)));
+    let segs = commands.spawn((Node { column_gap: px(3), height: px(6), ..default() }, ChildOf(card))).id();
     for i in 0..6 {
         commands.spawn((
             MagCardSegment(i),
             Node { flex_grow: 1.0, height: percent(100), ..default() },
-            BackgroundColor(Color::srgb(0.2, 0.21, 0.24)),
+            BackgroundColor(kit::UNLIT),
             ChildOf(segs),
         ));
     }
-    commands.spawn((
-        Node { justify_content: JustifyContent::SpaceBetween, ..default() },
-        ChildOf(card),
-        children![(text("EMPTY", 11.0, MUTED)), (text("FULL", 11.0, MUTED))],
-    ));
-    commands.spawn((text("Estimate from the mag window, not a count.", 12.0, MUTED), ChildOf(card)));
+    commands.spawn((fonts.micro("AN ESTIMATE, NOT A COUNT"), ChildOf(card)));
 
-    // --- score (top centre)
+    // --- action readout (under the crosshair): reload, item use, mag check, fire mode
     commands.spawn((
+        ActionRoot,
         Node {
             width: percent(100),
-            justify_content: JustifyContent::Center,
-            column_gap: px(4),
-            ..abs_node(None, None, Some(18.0), None)
+            flex_direction: FlexDirection::Column,
+            align_items: AlignItems::Center,
+            row_gap: px(5),
+            // A little under the screen centre (the UI is laid out at 1080p and scaled to the window).
+            ..abs(Some(0.0), None, Some(kit::REF_HEIGHT * 0.5 + 64.0), None)
         },
+        Visibility::Hidden,
         ChildOf(root),
         children![
+            (ActionText, fonts.text("", Face::Display, 700, 14.0, kit::TEXT_HI, 0.14)),
             (
-                Node { padding: UiRect::axes(px(18), px(6)), ..default() },
-                BackgroundColor(TEAL),
-                children![(ScoreA, text("0", 30.0, Color::BLACK))]
-            ),
-            (
-                Node {
-                    padding: UiRect::axes(px(18), px(6)),
-                    flex_direction: FlexDirection::Column,
-                    align_items: AlignItems::Center,
-                    ..default()
-                },
-                BackgroundColor(PANEL),
-                children![(MatchClock, text("", 22.0, INK))]
-            ),
-            (
-                Node { padding: UiRect::axes(px(18), px(6)), ..default() },
-                BackgroundColor(CORAL),
-                children![(ScoreB, text("0", 30.0, Color::BLACK))]
+                ActionTrack,
+                Node { width: px(180), height: px(3), ..default() },
+                BackgroundColor(kit::STROKE_MID),
+                children![(
+                    ActionFill,
+                    Node { width: percent(0), height: percent(100), ..default() },
+                    BackgroundColor(kit::TEXT_HI)
+                )]
             ),
         ],
     ));
 
-    // --- kill feed (top right)
+    // --- score (top centre)
     commands.spawn((
-        FeedText,
-        abs_node(None, Some(24.0), Some(24.0), None),
-        text("", 15.0, INK),
-        TextLayout::justify(Justify::Right),
+        ScoreRoot,
+        Node { width: percent(100), justify_content: JustifyContent::Center, ..abs(None, None, Some(24.0), None) },
         ChildOf(root),
+        children![(
+            Node { column_gap: px(3), align_items: AlignItems::Stretch, ..default() },
+            children![
+                (
+                    ScoreBox,
+                    Node {
+                        width: px(64),
+                        justify_content: JustifyContent::Center,
+                        align_items: AlignItems::Center,
+                        ..default()
+                    },
+                    BackgroundColor(kit::ALLY.with_alpha(0.92)),
+                    children![(ScoreAlly, fonts.text("0", Face::Display, 700, 30.0, kit::BG0, 0.0))]
+                ),
+                (
+                    panel(Node {
+                        padding: UiRect::axes(px(18), px(4)),
+                        flex_direction: FlexDirection::Column,
+                        align_items: AlignItems::Center,
+                        min_width: px(128),
+                        ..default()
+                    }),
+                    children![
+                        (MatchClock, fonts.text("", Face::Display, 700, 24.0, kit::TEXT_HI, 0.04)),
+                        (MatchSub, fonts.micro("")),
+                    ]
+                ),
+                (
+                    ScoreBox,
+                    Node {
+                        width: px(64),
+                        justify_content: JustifyContent::Center,
+                        align_items: AlignItems::Center,
+                        ..default()
+                    },
+                    BackgroundColor(kit::ENEMY.with_alpha(0.92)),
+                    children![(ScoreEnemy, fonts.text("0", Face::Display, 700, 30.0, kit::BG0, 0.0))]
+                ),
+            ]
+        )],
     ));
 
-    // --- crosshair + hit marker (centre)
+    // --- kill feed (top right)
+    let feed = commands
+        .spawn((
+            Node {
+                flex_direction: FlexDirection::Column,
+                align_items: AlignItems::FlexEnd,
+                row_gap: px(4),
+                ..abs(None, Some(32.0), Some(24.0), None)
+            },
+            ChildOf(root),
+        ))
+        .id();
+    for i in 0..FEED_ROWS {
+        commands.spawn((
+            FeedRow(i),
+            panel(Node {
+                padding: UiRect::axes(px(10), px(4)),
+                column_gap: px(8),
+                align_items: AlignItems::Center,
+                display: Display::None,
+                ..default()
+            }),
+            ChildOf(feed),
+            children![
+                (FeedKiller(i), fonts.text("", Face::Display, 700, 15.0, kit::TEXT, 0.04)),
+                (fonts.text(">", Face::Display, 700, 15.0, kit::TEXT_LOW, 0.0)),
+                (FeedVictim(i), fonts.text("", Face::Display, 700, 15.0, kit::TEXT, 0.04)),
+                (FeedTag(i), fonts.text("", Face::Display, 700, 11.0, kit::WARN, 0.16)),
+            ],
+        ));
+    }
+
+    // --- crosshair + hit marker + damage direction (centre)
     let center = commands
         .spawn((
             Node {
@@ -325,7 +449,7 @@ fn spawn_hud(mut commands: Commands) {
     commands.spawn((
         HitMarker,
         Node { position_type: PositionType::Absolute, ..default() },
-        text("X", 26.0, Color::WHITE),
+        fonts.text("X", Face::Display, 700, 26.0, Color::WHITE, 0.0),
         Visibility::Hidden,
         ChildOf(center),
     ));
@@ -333,7 +457,7 @@ fn spawn_hud(mut commands: Commands) {
         commands.spawn((
             DamageChevron(i),
             Node { position_type: PositionType::Absolute, width: px(18), height: px(18), ..default() },
-            BackgroundColor(Color::srgba(1.0, 0.25, 0.2, 0.85)),
+            BackgroundColor(kit::ENEMY.with_alpha(0.85)),
             Visibility::Hidden,
             ChildOf(center),
         ));
@@ -342,13 +466,9 @@ fn spawn_hud(mut commands: Commands) {
     // --- centre banner (death / match end) and pause menu
     commands.spawn((
         CenterBanner,
-        Node {
-            width: percent(100),
-            justify_content: JustifyContent::Center,
-            ..abs_node(None, None, Some(200.0), None)
-        },
+        Node { width: percent(100), justify_content: JustifyContent::Center, ..abs(None, None, Some(200.0), None) },
         ChildOf(root),
-        children![(text("", 30.0, INK), TextLayout::justify(Justify::Center))],
+        children![(fonts.text("", Face::Display, 700, 34.0, kit::TEXT_HI, 0.06), TextLayout::justify(Justify::Center))],
     ));
     commands.spawn((
         PauseRoot,
@@ -362,181 +482,274 @@ fn spawn_hud(mut commands: Commands) {
             row_gap: px(12),
             ..default()
         },
-        BackgroundColor(Color::srgba(0.02, 0.03, 0.05, 0.75)),
+        BackgroundColor(kit::BG0.with_alpha(0.78)),
         Visibility::Hidden,
         ChildOf(root),
         children![
-            (text("PAUSED", 34.0, INK)),
-            (ScoreboardText, text("", 16.0, INK), TextLayout::justify(Justify::Center)),
-            menu_button("RESUME", PauseButton::Resume),
-            menu_button("LEAVE MATCH", PauseButton::Leave),
+            (fonts.text("PAUSED", Face::Display, 700, 34.0, kit::TEXT_HI, 0.08)),
+            (
+                ScoreboardText,
+                fonts.text("", Face::Display, 600, 16.0, kit::TEXT, 0.04),
+                TextLayout::justify(Justify::Center)
+            ),
+            menu_button(&fonts, "RESUME", PauseButton::Resume),
+            menu_button(&fonts, "LEAVE MATCH", PauseButton::Leave),
         ],
     ));
 }
 
-fn menu_button(label: &str, action: PauseButton) -> impl Bundle {
+fn menu_button(fonts: &UiFonts, label: &str, action: PauseButton) -> impl Bundle {
     (
         Button,
         action,
         Node {
             width: px(260),
-            height: px(46),
+            height: px(44),
             align_items: AlignItems::Center,
             justify_content: JustifyContent::Center,
+            border_radius: BorderRadius::all(px(2)),
             ..default()
         },
-        BackgroundColor(Color::srgb(0.92, 0.91, 0.88)),
-        children![(text(label, 18.0, Color::BLACK))],
+        BackgroundColor(kit::TEXT_HI),
+        children![fonts.text(label, Face::Display, 700, 16.0, kit::BG0, 0.12)],
     )
 }
 
-#[allow(clippy::type_complexity)]
-fn update_vitals_panel(
-    me: Query<(&Vitals, &PlayerLoadout), With<Controlled>>,
+/// Recent-damage trail per region: the value shown, the last HP seen, and seconds before it drains.
+#[derive(Default)]
+struct Ghost {
+    shown: [f32; 4],
+    last: [f32; 4],
+    hold: [f32; 4],
+}
+
+impl Ghost {
+    fn step(&mut self, i: usize, hp: f32, dt: f32) {
+        if hp < self.last[i] {
+            self.hold[i] = GHOST_HOLD_S;
+        }
+        self.hold[i] -= dt;
+        if self.hold[i] <= 0.0 {
+            self.shown[i] -= GHOST_DRAIN * dt;
+        }
+        self.shown[i] = self.shown[i].max(hp);
+        self.last[i] = hp;
+    }
+}
+
+#[allow(clippy::type_complexity, clippy::too_many_arguments)]
+fn update_vitals(
+    me: Query<(&Vitals, &PlayerLoadout, Option<&PlayerItems>), With<Controlled>>,
+    matches: Query<&MatchState>,
     data: Res<Data>,
-    mut zone_bars: Query<(&ZoneBar, &mut Node, &mut BackgroundColor), Without<ArcBar>>,
-    mut zone_vals: Query<
-        (&ZoneValue, &mut Text, &mut TextColor),
-        (Without<ShieldText>, Without<HaloLabel>, Without<StatusText>),
+    time: Res<Time>,
+    mut ghost: Local<Ghost>,
+    mut hp_fill: Query<(&HpFill, &mut Node, &mut BackgroundColor), (Without<GhostFill>, Without<ShieldFill>)>,
+    mut ghost_fill: Query<(&GhostFill, &mut Node), (Without<HpFill>, Without<ShieldFill>)>,
+    mut shield_seg: Query<(&ShieldSeg, &mut Node), (Without<HpFill>, Without<GhostFill>, Without<ShieldFill>)>,
+    mut shield_fill: Query<(&ShieldFill, &mut Node, &mut BackgroundColor), (Without<HpFill>, Without<ShieldSeg>)>,
+    mut labels: Query<(&RowLabel, &mut TextColor)>,
+    mut chips: Query<
+        (&ZoneChip, &mut Node),
+        (Without<HpFill>, Without<GhostFill>, Without<ShieldSeg>, Without<ShieldFill>),
     >,
-    mut arc_bars: Query<(&ArcBar, &mut Node, &mut BackgroundColor), Without<ZoneBar>>,
-    mut shield: Query<&mut Text, (With<ShieldText>, Without<ZoneValue>, Without<HaloLabel>, Without<StatusText>)>,
-    mut label: Query<&mut Text, (With<HaloLabel>, Without<ZoneValue>, Without<ShieldText>, Without<StatusText>)>,
-    mut status: Query<&mut Text, (With<StatusText>, Without<ZoneValue>, Without<ShieldText>, Without<HaloLabel>)>,
+    mut header: Query<&mut Text, (With<VitalsHeader>, Without<VitalsStatus>)>,
+    mut status: Query<&mut Text, (With<VitalsStatus>, Without<VitalsHeader>)>,
 ) {
-    let Some((v, lo)) = me.iter().next() else { return };
+    let Some((v, lo, items)) = me.iter().next() else { return };
+    let rules = matches.iter().next().map_or(vetf_sim::data::Ruleset::FULL, |m| m.rules);
     let halo = lo.0.halo;
-    for (z, mut node, mut bg) in &mut zone_bars {
-        let frac = (v.health.hp[z.0] / v.health.max[z.0]).clamp(0.0, 1.0);
-        node.width = percent(frac * 100.0);
-        bg.0 = if frac < 0.35 { CORAL } else { INK };
+    let dt = time.delta_secs();
+    for z in Zone::ALL {
+        ghost.step(z.index(), v.health.hp[z].max(0.0), dt);
     }
-    for (z, mut t, mut c) in &mut zone_vals {
-        t.0 = format!("{:.0}", v.health.hp[z.0].max(0.0));
-        c.0 = if v.health.is_broken(z.0) { CORAL } else { INK };
+    for (f, mut node, mut bg) in &mut hp_fill {
+        let (hp, max) = (v.health.hp[f.0].max(0.0), v.health.max[f.0]);
+        node.width = percent(seg_fill(hp, max, f.1) * 100.0);
+        bg.0 = if hp / max.max(1.0) < 0.35 { kit::HP_CRIT } else { kit::HP_OK };
     }
-    for (a, mut node, mut bg) in &mut arc_bars {
-        let cap = halo.capacity[a.0];
-        let frac = if cap > 0.0 { v.halo.shield[a.0] / cap } else { 0.0 };
-        node.width = percent(frac * 100.0);
-        bg.0 = Color::from(tier_color(halo.tiers[a.0]));
+    for (g, mut node) in &mut ghost_fill {
+        node.width = percent(seg_fill(ghost.shown[g.0.index()], v.health.max[g.0], g.1) * 100.0);
     }
-    for mut t in &mut shield {
-        t.0 = format!("{:.0} / {:.0}", v.halo.total(), halo.total_capacity());
+    for (s, mut node) in &mut shield_seg {
+        let n = segments(halo.capacity[s.0]).len();
+        node.display = if s.1 < n { Display::Flex } else { Display::None };
+        if let Some(w) = segments(halo.capacity[s.0]).get(s.1) {
+            node.width = px(*w);
+        }
     }
-    for mut t in &mut label {
-        let tiers: Vec<String> = Zone::ALL
-            .iter()
-            .filter(|z| halo.tiers[**z] > 0)
-            .map(|z| format!("{} T{}", z.label(), halo.tiers[*z]))
-            .collect();
+    for (f, mut node, mut bg) in &mut shield_fill {
+        node.width = percent(seg_fill(v.halo.shield[f.0], halo.capacity[f.0], f.1) * 100.0);
+        bg.0 = kit::tier_color(halo.tiers[f.0]);
+    }
+    let healing = items
+        .filter(|_| !v.health.dead)
+        .and_then(|i| i.0.using)
+        .and_then(|u| Some((u.zone, data.items.spec(lo.0.kit.get(u.slot as usize)?).scope)));
+    for (label, mut c) in &mut labels {
+        c.0 = if v.health.hp[label.0] <= 0.0 { kit::HP_CRIT } else { kit::TEXT_MID };
+    }
+    for (chip, mut node) in &mut chips {
+        let z = chip.0;
+        let on = match chip.1 {
+            Chip::Bleed => rules.bleeding && v.health.bleeding.active[z] > 0.0,
+            Chip::Broken => v.wounds.broken.contains(z),
+            Chip::Heal => match healing {
+                Some((Some(hz), _)) => hz == z,
+                Some((None, _)) => true,
+                None => false,
+            },
+        };
+        node.display = if on { Display::Flex } else { Display::None };
+    }
+    for mut t in &mut header {
         t.0 = match halo.core {
-            Some(core) => format!("{}  {}  |  {}", core.label(), tiers.join(" "), lo.0.weight.label()),
+            Some(core) => format!("{} CORE  /  {}", core.label(), lo.0.weight.label()).to_uppercase(),
             None => "NO HALO".into(),
         };
     }
     for mut t in &mut status {
         let mut parts = vec![];
-        if v.health.is_broken(Zone::Arms) {
-            parts.push("ARMS BROKEN".to_string());
-        }
-        if v.health.is_broken(Zone::Legs) {
-            parts.push("LEGS BROKEN".to_string());
-        }
         if v.halo.regen_wait_s > 0.0 && halo.core.is_some() {
-            parts.push(format!("REGEN IN {:.0} S", v.halo.regen_wait_s.ceil()));
+            parts.push(format!("REGEN {:.0}", v.halo.regen_wait_s.ceil()));
         }
         if v.protected_s > 0.0 {
-            parts.push("SPAWN PROTECTED".into());
+            parts.push("PROTECTED".into());
         }
-        t.0 = parts.join("  |  ");
+        t.0 = parts.join("  ");
     }
-    let _ = data;
 }
 
 #[allow(clippy::type_complexity)]
-fn update_weapon_panel(
+fn update_mag_card(
     me: Query<(&PlayerWeapon, &PlayerLoadout), With<Controlled>>,
-    data: Res<Data>,
-    mut name: Query<&mut Text, (With<WeaponName>, Without<WeaponDetail>, Without<FireModeText>, Without<MagCardText>)>,
-    mut detail: Query<
-        &mut Text,
-        (With<WeaponDetail>, Without<WeaponName>, Without<FireModeText>, Without<MagCardText>),
-    >,
-    mut mode: Query<&mut Text, (With<FireModeText>, Without<WeaponName>, Without<WeaponDetail>, Without<MagCardText>)>,
-    mut card_root: Query<&mut Visibility, With<MagCardRoot>>,
-    mut card_text: Query<
-        &mut Text,
-        (With<MagCardText>, Without<WeaponName>, Without<WeaponDetail>, Without<FireModeText>),
-    >,
+    mut root: Query<&mut Visibility, With<MagCardRoot>>,
+    mut est: Query<&mut Text, (With<MagCardEstimate>, Without<MagCardMag>)>,
+    mut mag: Query<&mut Text, (With<MagCardMag>, Without<MagCardEstimate>)>,
     mut segs: Query<(&MagCardSegment, &mut BackgroundColor)>,
 ) {
-    let Some((w, lo)) = me.iter().next() else { return };
-    let spec = lo.0.weapon.spec(&data);
-    for mut t in &mut name {
-        t.0 = spec.name.to_uppercase();
-    }
-    for mut t in &mut mode {
-        t.0 = match w.0.fire_mode {
-            FireMode::Auto => "AUTO",
-            FireMode::Semi => "SEMI",
-            FireMode::Bolt => "BOLT",
-        }
-        .into();
-    }
-    for mut t in &mut detail {
-        // Pouch slots only: how many spare mags still hold rounds, never how many rounds.
-        let pouch: String =
-            (0..lo.0.weapon.spare_mags as usize).map(|i| if i < w.0.loaded_spares() { '#' } else { '.' }).collect();
-        let action = match w.0.action {
-            WeaponAction::Reloading { .. } => "  RELOADING",
-            WeaponAction::MagChecking { .. } => "  CHECKING MAG",
-            WeaponAction::Equipping { .. } => "  EQUIPPING",
-            WeaponAction::Ready => "",
-        };
-        let atts: Vec<String> = lo.0.weapon.attachments.iter().map(|a| a.replace('_', " ").to_uppercase()).collect();
-        t.0 = format!(
-            "{}  |  SPARE MAGS [{pouch}]{action}\n{}\n[T] CHECK MAG  [R] RELOAD  [B] FIRE MODE",
-            lo.0.weapon.ammo.label,
-            atts.join(" / ")
-        );
-    }
-    let card = w.0.card;
-    for mut v in &mut card_root {
+    let card = me.iter().next().and_then(|(w, lo)| Some((w.0.card?, lo)));
+    for mut v in &mut root {
         *v = if card.is_some() { Visibility::Inherited } else { Visibility::Hidden };
     }
-    if let Some(card) = card {
-        for mut t in &mut card_text {
-            t.0 = card.estimate.label().into();
+    let Some((card, lo)) = card else { return };
+    for mut t in &mut est {
+        t.0 = card.estimate.label().into();
+    }
+    for mut t in &mut mag {
+        t.0 = format!("MAG {}  {}", card.slot + 1, lo.0.weapon.ammo(card.slot).label);
+    }
+    for (s, mut bg) in &mut segs {
+        bg.0 = if s.0 == card.estimate.segment() { kit::TEXT_HI } else { kit::UNLIT };
+    }
+}
+
+/// What is happening to the gun or in your hands, under the crosshair: reloading (which magazine), using an
+/// item, checking the mag, or a fire-mode change.
+#[allow(clippy::type_complexity, clippy::too_many_arguments)]
+fn update_action(
+    me: Query<(&PlayerWeapon, &PlayerLoadout, Option<&PlayerItems>, &Vitals), With<Controlled>>,
+    data: Res<Data>,
+    time: Res<Time>,
+    mut last_mode: Local<Option<FireMode>>,
+    mut toast: Local<f32>,
+    mut root: Query<&mut Visibility, With<ActionRoot>>,
+    mut text: Query<&mut Text, With<ActionText>>,
+    mut track: Query<&mut Visibility, (With<ActionTrack>, Without<ActionRoot>)>,
+    mut fill: Query<(&mut Node, &mut BackgroundColor), (With<ActionFill>, Without<ActionRoot>)>,
+) {
+    let Some((w, lo, items, v)) = me.iter().next() else { return };
+    let spec = lo.0.weapon.spec(&data);
+    let hz = data.net.tick_hz;
+    // The dead are not simulated: their last action would stay frozen on screen.
+    let items = items.filter(|_| !v.health.dead);
+    if last_mode.is_some_and(|m| m != w.0.fire_mode) {
+        *toast = TOAST_S;
+    }
+    *last_mode = Some(w.0.fire_mode);
+    *toast = (*toast - time.delta_secs()).max(0.0);
+    let progress = |left: u16, total: u16| 1.0 - left as f32 / total.max(1) as f32;
+    let shown: Option<(String, Option<f32>, Color)> = if let Some(u) = items.and_then(|i| i.0.using) {
+        let item = data.items.spec(&lo.0.kit[u.slot as usize]);
+        let zone = u.zone.map_or(String::new(), |z| format!("  /  {}", z.label()));
+        Some((format!("{}{zone}", item.label), Some(progress(u.left, u.total)), kit::HEAL))
+    } else {
+        match w.0.action {
+            WeaponAction::Reloading { left, kind, slot } if !v.health.dead => {
+                let s = match kind {
+                    ReloadKind::Tactical => spec.reload_tactical_s,
+                    ReloadKind::Empty => spec.reload_empty_s,
+                } * lo.0.weapon.mods.reload;
+                let total = secs_to_ticks(s, hz).max(1);
+                let label = format!("RELOADING  /  MAG {}  {}", slot + 1, lo.0.weapon.ammo(slot).label);
+                Some((label, Some(progress(left, total)), kit::TEXT_HI))
+            }
+            WeaponAction::MagChecking { left } if !v.health.dead => {
+                let total = secs_to_ticks(spec.mag_check_s, hz).max(1);
+                Some(("CHECKING MAG".into(), Some(progress(left, total)), kit::TEXT_HI))
+            }
+            _ if v.health.dead => None,
+            _ if *toast > 0.0 => {
+                let mode = match w.0.fire_mode {
+                    FireMode::Auto => "AUTO",
+                    FireMode::Semi => "SEMI",
+                    FireMode::Bolt => "BOLT",
+                };
+                Some((mode.into(), None, kit::TEXT_HI))
+            }
+            _ => None,
         }
-        for (s, mut bg) in &mut segs {
-            bg.0 = if s.0 == card.estimate.segment() { INK } else { Color::srgb(0.2, 0.21, 0.24) };
-        }
+    };
+    for mut vis in &mut root {
+        *vis = if shown.is_some() { Visibility::Inherited } else { Visibility::Hidden };
+    }
+    let Some((label, bar, color)) = shown else { return };
+    for mut t in &mut text {
+        t.0 = label.clone();
+    }
+    for mut v in &mut track {
+        *v = if bar.is_some() { Visibility::Inherited } else { Visibility::Hidden };
+    }
+    for (mut node, mut bg) in &mut fill {
+        node.width = percent(bar.unwrap_or(0.0) * 100.0);
+        bg.0 = color;
     }
 }
 
 #[allow(clippy::type_complexity)]
 fn update_score(
     matches: Query<&MatchState>,
-    mut a: Query<&mut Text, (With<ScoreA>, Without<ScoreB>, Without<MatchClock>)>,
-    mut b: Query<&mut Text, (With<ScoreB>, Without<ScoreA>, Without<MatchClock>)>,
-    mut clock: Query<&mut Text, (With<MatchClock>, Without<ScoreA>, Without<ScoreB>)>,
+    me: Query<&PlayerInfo, With<Controlled>>,
+    mut ally: Query<&mut Text, (With<ScoreAlly>, Without<ScoreEnemy>, Without<MatchClock>, Without<MatchSub>)>,
+    mut enemy: Query<&mut Text, (With<ScoreEnemy>, Without<ScoreAlly>, Without<MatchClock>, Without<MatchSub>)>,
+    mut clock: Query<&mut Text, (With<MatchClock>, Without<ScoreAlly>, Without<ScoreEnemy>, Without<MatchSub>)>,
+    mut sub: Query<&mut Text, (With<MatchSub>, Without<ScoreAlly>, Without<ScoreEnemy>, Without<MatchClock>)>,
+    mut boxes: Query<&mut Node, With<ScoreBox>>,
 ) {
     let Some(m) = matches.iter().next() else { return };
-    for mut t in &mut a {
-        t.0 = m.score_a.to_string();
+    // Scores are relative: your team on the left in the ally colour.
+    let mine = me.iter().next().and_then(|i| i.team);
+    let (a, b) = if mine == Some(Team::B) { (m.score_b, m.score_a) } else { (m.score_a, m.score_b) };
+    for mut t in &mut ally {
+        t.0 = a.to_string();
     }
-    for mut t in &mut b {
-        t.0 = m.score_b.to_string();
+    for mut t in &mut enemy {
+        t.0 = b.to_string();
+    }
+    let range = m.mode == MatchMode::Range;
+    for mut node in &mut boxes {
+        node.display = if range { Display::None } else { Display::Flex };
     }
     for mut t in &mut clock {
-        t.0 = match m.mode {
-            MatchMode::Range => "GUN RANGE".into(),
-            MatchMode::Tdm => {
-                let s = m.time_left_s.max(0.0) as u32;
-                format!("{:02}:{:02}  TDM - FIRST TO {}", s / 60, s % 60, m.score_limit)
-            }
+        t.0 = if range {
+            "GUN RANGE".into()
+        } else {
+            let s = m.time_left_s.max(0.0) as u32;
+            format!("{:02}:{:02}", s / 60, s % 60)
         };
+    }
+    for mut t in &mut sub {
+        t.0 = if range { "FREE PRACTICE".into() } else { format!("TDM  /  FIRST TO {}", m.score_limit) };
     }
 }
 
@@ -544,7 +757,6 @@ fn update_score(
 fn update_crosshair(
     me: Query<(&PlayerWeapon, &PlayerLoadout, &PlayerMove, &Vitals), With<Controlled>>,
     data: Res<Data>,
-    windows: Query<&Window>,
     feedback: Res<Feedback>,
     mut arms: Query<(&CrosshairArm, &mut Node, &mut Visibility), Without<HitMarker>>,
     mut marker: Query<(&mut Visibility, &mut TextColor), With<HitMarker>>,
@@ -554,8 +766,8 @@ fn update_crosshair(
     let wounds = v.wounds;
     let env = vetf_sim::player::weapon_env(&data, &mv.0, &wounds);
     let spread = w.0.spread_deg(&data, spec, &lo.0.weapon, &env);
-    let h = windows.iter().next().map_or(900.0, |w| w.height());
-    let focal = h * 0.5 / (78f32.to_radians() * 0.5).tan();
+    // The UI is laid out at 1080p and scaled to the window, so project with the reference height.
+    let focal = kit::REF_HEIGHT * 0.5 / (78f32.to_radians() * 0.5).tan();
     let gap = 4.0 + spread.to_radians().tan() * focal;
     let hide = w.0.ads > 0.7 || v.health.dead;
     for (arm, mut node, mut vis) in &mut arms {
@@ -577,9 +789,9 @@ fn update_crosshair(
             Some((kind, _)) => {
                 *vis = Visibility::Inherited;
                 color.0 = match kind {
-                    HitKind::Shield => Color::srgb(0.45, 0.7, 1.0),
+                    HitKind::Shield => kit::TIERS[2],
                     HitKind::Health => Color::WHITE,
-                    HitKind::Kill => CORAL,
+                    HitKind::Kill => kit::ENEMY,
                 };
             }
             None => *vis = Visibility::Hidden,
@@ -587,17 +799,43 @@ fn update_crosshair(
     }
 }
 
-fn update_feed(feedback: Res<Feedback>, mut q: Query<&mut Text, With<FeedText>>) {
-    for mut t in &mut q {
-        t.0 = feedback
-            .kills
-            .iter()
-            .map(|(k, v, hs, _)| {
-                let k = if k.is_empty() { "--".to_string() } else { k.clone() };
-                format!("{k}  >  {v}{}", if *hs { "  [HEADSHOT]" } else { "" })
-            })
-            .collect::<Vec<_>>()
-            .join("\n");
+#[allow(clippy::type_complexity)]
+fn update_feed(
+    feedback: Res<Feedback>,
+    me: Query<&PlayerInfo, With<Controlled>>,
+    players: Query<&PlayerInfo>,
+    mut rows: Query<(&FeedRow, &mut Node)>,
+    mut killers: Query<(&FeedKiller, &mut Text, &mut TextColor), (Without<FeedVictim>, Without<FeedTag>)>,
+    mut victims: Query<(&FeedVictim, &mut Text, &mut TextColor), (Without<FeedKiller>, Without<FeedTag>)>,
+    mut tags: Query<(&FeedTag, &mut Text), (Without<FeedKiller>, Without<FeedVictim>)>,
+) {
+    let mine = me.iter().next().map(|i| (i.name.clone(), i.team));
+    // Ally is you and your team; in free-for-all modes everyone else is an enemy.
+    let color = |name: &str| {
+        let Some((my_name, my_team)) = &mine else { return kit::TEXT };
+        let team = players.iter().find(|p| p.name == name).and_then(|p| p.team);
+        if name == my_name || (my_team.is_some() && team == *my_team) { kit::ALLY } else { kit::ENEMY }
+    };
+    let entries: Vec<_> = feedback.kills.iter().rev().take(FEED_ROWS).collect();
+    for (row, mut node) in &mut rows {
+        node.display = if row.0 < entries.len() { Display::Flex } else { Display::None };
+    }
+    for (k, mut t, mut c) in &mut killers {
+        if let Some((killer, ..)) = entries.get(k.0) {
+            t.0 = if killer.is_empty() { "--".into() } else { killer.clone() };
+            c.0 = if killer.is_empty() { kit::TEXT_MID } else { color(killer) };
+        }
+    }
+    for (v, mut t, mut c) in &mut victims {
+        if let Some((_, victim, ..)) = entries.get(v.0) {
+            t.0 = victim.clone();
+            c.0 = color(victim);
+        }
+    }
+    for (tag, mut t) in &mut tags {
+        if let Some((_, _, hs, _)) = entries.get(tag.0) {
+            t.0 = if *hs { "HEADSHOT".into() } else { String::new() };
+        }
     }
 }
 
@@ -647,15 +885,19 @@ fn update_overlays(
             }
             lines.push(String::new());
         }
-        for team in [Some(Team::A), Some(Team::B), None] {
+        let teams = match info.team {
+            Some(t) => vec![Some(t), Some(t.other())],
+            None => vec![None],
+        };
+        for team in teams {
             let mut rows: Vec<_> = players.iter().filter(|(i, _)| i.team == team).collect();
             if rows.is_empty() {
                 continue;
             }
             rows.sort_by_key(|(_, s)| std::cmp::Reverse(s.kills));
             lines.push(match team {
-                Some(Team::A) => "TEAM TEAL".into(),
-                Some(Team::B) => "TEAM CORAL".into(),
+                Some(t) if Some(t) == info.team => "YOUR TEAM".into(),
+                Some(_) => "ENEMY TEAM".into(),
                 None => "PLAYERS".into(),
             });
             for (i, s) in rows {
@@ -667,7 +909,6 @@ fn update_overlays(
             t.0 = lines.join("\n");
         }
     }
-    let _ = team_color;
 }
 
 fn update_damage_indicators(
@@ -715,5 +956,24 @@ fn pause_buttons(
                 requests.write(NetRequest::Leave { reason: None });
             }
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn segments_are_ten_points_each_with_a_short_last_one() {
+        let s = segments(45.0);
+        assert_eq!(s.len(), 5);
+        assert!((s[0] - (10.0 * PX_PER_POINT - SEG_GAP)).abs() < 1e-4);
+        assert!((s[4] - (5.0 * PX_PER_POINT - SEG_GAP)).abs() < 1e-4);
+        assert!(segments(0.0).is_empty());
+        assert_eq!(seg_fill(45.0, 45.0, 4), 1.0, "a full short segment is full");
+        assert_eq!(seg_fill(42.5, 45.0, 4), 0.5);
+        assert_eq!(seg_fill(45.0, 45.0, 0), 1.0);
+        assert_eq!(seg_fill(3.0, 45.0, 1), 0.0);
+        assert_eq!(seg_fill(3.0, 45.0, 9), 0.0, "past the end");
     }
 }
