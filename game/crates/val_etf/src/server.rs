@@ -646,6 +646,7 @@ fn handle_deaths(
     data: Res<Data>,
     mut died: MessageReader<PlayerDied>,
     mut players: Query<(&PlayerId, &PlayerInfo, &mut Vitals, &mut Score, &mut PlayerMove)>,
+    mut weapons: Query<(&mut PlayerWeapon, &PlayerLoadout)>,
     mut matches: Query<&mut MatchState>,
     server: Query<&Server>,
     mut feed: ServerMultiMessageSender,
@@ -672,6 +673,10 @@ fn handle_deaths(
                     Some(Team::A) => m.score_a += 1,
                     Some(Team::B) => m.score_b += 1,
                     None => {}
+                }
+                // Every kill tops up a magazine (user direction), so a good run keeps going.
+                if let Ok((mut w, l)) = weapons.get_mut(k) {
+                    w.0.refill_mags(data.rules.tdm.kill_refill_mags, l.0.weapon.mag_capacity);
                 }
             }
         }

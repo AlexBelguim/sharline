@@ -1090,6 +1090,9 @@ pub struct TdmRules {
     pub respawn_s: f32,
     pub spawn_protection_s: f32,
     pub max_players: u32,
+    /// Magazines a kill tops back up (the killer's emptiest spare first, see `WeaponState::refill_mags`).
+    #[serde(default)]
+    pub kill_refill_mags: u8,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]

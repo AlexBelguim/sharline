@@ -309,6 +309,22 @@ pub struct WeaponEvents {
 }
 
 impl WeaponState {
+    /// Fill `count` magazines back to `capacity`: the emptiest spare in the pouch first, the one in the gun
+    /// last. Full magazines are skipped. Returns how many were topped up.
+    pub fn refill_mags(&mut self, count: u8, capacity: u16) -> u8 {
+        let mut done = 0;
+        while done < count {
+            let loaded = self.loaded as usize;
+            let pick = (0..self.rounds.len())
+                .filter(|&i| self.rounds[i] < capacity)
+                .min_by_key(|&i| (i == loaded, self.rounds[i], i));
+            let Some(i) = pick else { break };
+            self.rounds[i] = capacity;
+            done += 1;
+        }
+        done
+    }
+
     pub fn new(data: &GameData, loadout: &WeaponLoadout) -> Self {
         let spec = loadout.spec(data);
         let hz = data.net.tick_hz;
@@ -952,5 +968,20 @@ mod tests {
             assert!(ang <= 2.0 + 1e-3, "{ang}");
         }
         assert_eq!(shot_direction(0.4, 0.1, 1.0, 5), shot_direction(0.4, 0.1, 1.0, 5));
+    }
+
+    #[test]
+    fn a_kill_refills_the_emptiest_spare_first() {
+        let (_, l, mut s) = setup("ar7_mako");
+        let cap = l.mag_capacity;
+        s.rounds = vec![3, 0, cap, 10];
+        s.loaded = 0;
+        assert_eq!(s.refill_mags(1, cap), 1);
+        assert_eq!(s.rounds, vec![3, cap, cap, 10], "the empty spare, not the gun's 3");
+        assert_eq!(s.refill_mags(1, cap), 1);
+        assert_eq!(s.rounds, vec![3, cap, cap, cap], "then the next emptiest spare");
+        assert_eq!(s.refill_mags(1, cap), 1);
+        assert_eq!(s.rounds, vec![cap; 4], "the gun's own magazine last");
+        assert_eq!(s.refill_mags(1, cap), 0, "nothing to fill");
     }
 }
