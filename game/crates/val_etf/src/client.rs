@@ -9,7 +9,7 @@ use crate::shared::LocalShot;
 use bevy::input::mouse::AccumulatedMouseMotion;
 use bevy::prelude::*;
 use bevy::render::view::screenshot::{Screenshot, save_to_disk};
-use bevy::window::{CursorGrabMode, CursorOptions, PrimaryWindow};
+use bevy::window::{CursorGrabMode, CursorOptions, PrimaryWindow, WindowFocused};
 use lightyear::prelude::client::input::InputSystems;
 use lightyear::prelude::input::native::{ActionState, InputMarker};
 use lightyear::prelude::*;
@@ -39,7 +39,7 @@ impl Plugin for ClientPlugin {
             .add_systems(OnExit(AppState::InGame), release_cursor)
             .add_systems(
                 Update,
-                (toggle_pause, fire_claims, recoil_recovery, receive_feedback, tick_feedback)
+                (block_mouse_on_focus, toggle_pause, fire_claims, recoil_recovery, receive_feedback, tick_feedback)
                     .chain()
                     .run_if(in_state(AppState::InGame)),
             )
@@ -151,7 +151,17 @@ fn wait_for_player(
 fn reset_control(mut control: ResMut<LocalControl>, me: Query<&PlayerLook, With<Controlled>>, cli: Res<Cli>) {
     let look = me.iter().next().copied().unwrap_or_default();
     let yaw = cli.yaw.map_or(look.yaw, f32::to_radians);
-    *control = LocalControl { yaw, pitch: look.pitch, sensitivity: control.sensitivity, ..default() };
+    // A mouse button still held from the menu click that started the match (GUN RANGE, CREATE LOBBY) must
+    // not fire the first shot: buttons stay off until released.
+    *control =
+        LocalControl { yaw, pitch: look.pitch, sensitivity: control.sensitivity, mouse_block: true, ..default() };
+}
+
+/// The click that focuses the window again must not fire or aim: mouse buttons stay off until released.
+fn block_mouse_on_focus(mut focus: MessageReader<WindowFocused>, mut control: ResMut<LocalControl>) {
+    if focus.read().any(|f| f.focused) {
+        control.mouse_block = true;
+    }
 }
 
 fn grab_cursor(mut cursor: Query<&mut CursorOptions, With<PrimaryWindow>>) {
@@ -210,6 +220,8 @@ fn gather_input(
         control.reload_held_s = None;
         control.reload_radial = None;
         control.heal = None;
+        // The click on RESUME (or on a screen's CONFIRM) is still down when play resumes: not a shot.
+        control.mouse_block = true;
         return;
     }
     let me = me.iter().next();
