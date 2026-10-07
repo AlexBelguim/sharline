@@ -102,15 +102,7 @@ struct Row {
 fn rebuild(
     root: Query<&Visibility, With<BoardRoot>>,
     body: Query<Entity, With<BoardBody>>,
-    players: Query<(
-        &PlayerId,
-        &PlayerInfo,
-        &Score,
-        &Vitals,
-        &PlayerLoadout,
-        Option<&PlayerNet>,
-        Has<Controlled>,
-    )>,
+    players: Query<(&PlayerId, &PlayerInfo, &Score, &Vitals, &PlayerLoadout, Option<&PlayerNet>, Has<Controlled>)>,
     matches: Query<&MatchState>,
     session: Res<Session>,
     data: Res<Data>,
@@ -223,13 +215,7 @@ fn cell(right: bool) -> Node {
     }
 }
 
-fn table(
-    b: &mut ChildSpawnerCommands,
-    fonts: &UiFonts,
-    images: &UiImages,
-    mut rows: Vec<Row>,
-    my_team: Option<Team>,
-) {
+fn table(b: &mut ChildSpawnerCommands, fonts: &UiFonts, images: &UiImages, mut rows: Vec<Row>, my_team: Option<Team>) {
     b.spawn(Node {
         display: Display::Grid,
         grid_template_columns: columns(),
@@ -348,7 +334,12 @@ fn footer(b: &mut ChildSpawnerCommands, fonts: &UiFonts, tick_hz: u32, hosting: 
     b.spawn(Node { margin: UiRect::top(px(18)), column_gap: px(12), ..default() }).with_children(|f| {
         f.spawn(panel_of(
             PanelKind::Base,
-            Node { width: px(301), flex_direction: FlexDirection::Column, padding: UiRect::axes(px(14), px(12)), ..default() },
+            Node {
+                width: px(301),
+                flex_direction: FlexDirection::Column,
+                padding: UiRect::axes(px(14), px(12)),
+                ..default()
+            },
         ))
         .with_children(|p| {
             p.spawn(fonts.lbl("Server"));
