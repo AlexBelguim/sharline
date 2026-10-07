@@ -1,1 +1,1 @@
-pub fn _x(){}
+pub fn _x() {}

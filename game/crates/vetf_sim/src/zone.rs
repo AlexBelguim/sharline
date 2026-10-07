@@ -48,12 +48,7 @@ impl<T> ZoneTable<T> {
     where
         T: Clone,
     {
-        Self {
-            head: v.clone(),
-            torso: v.clone(),
-            arms: v.clone(),
-            legs: v,
-        }
+        Self { head: v.clone(), torso: v.clone(), arms: v.clone(), legs: v }
     }
 
     pub fn map<U>(&self, mut f: impl FnMut(Zone, &T) -> U) -> ZoneTable<U> {
@@ -147,9 +142,6 @@ mod tests {
         let mut t = ZoneTable::splat(1.0_f32);
         t[Zone::Arms] = 3.0;
         assert_eq!(t.arms, 3.0);
-        assert_eq!(
-            t.map(|z, v| if z == Zone::Arms { *v } else { 0.0 }).arms,
-            3.0
-        );
+        assert_eq!(t.map(|z, v| if z == Zone::Arms { *v } else { 0.0 }).arms, 3.0);
     }
 }

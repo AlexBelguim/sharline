@@ -209,8 +209,7 @@ fn probe_ground(
     let half = half_extents(m, stance);
     let c = center(pos, half);
     let tr = world.trace_box(c, c - Vec3::Y * reach, half);
-    (tr.hit() && !tr.start_solid && walkable(m, tr.normal))
-        .then_some((tr.end.y - half.y, tr.normal))
+    (tr.hit() && !tr.start_solid && walkable(m, tr.normal)).then_some((tr.end.y - half.y, tr.normal))
 }
 
 fn fits(world: &CollisionWorld, m: &MovementSpec, pos: Vec3, stance: Stance) -> bool {
@@ -221,13 +220,7 @@ fn fits(world: &CollisionWorld, m: &MovementSpec, pos: Vec3, stance: Stance) -> 
 }
 
 /// Quake-style collide-and-slide. Returns the new feet position and velocity.
-fn slide_move(
-    world: &CollisionWorld,
-    pos: Vec3,
-    vel: Vec3,
-    half: Vec3,
-    dt: f32,
-) -> (Vec3, Vec3, bool) {
+fn slide_move(world: &CollisionWorld, pos: Vec3, vel: Vec3, half: Vec3, dt: f32) -> (Vec3, Vec3, bool) {
     let mut p = center(pos, half);
     let mut v = vel;
     let mut left = dt;
@@ -377,25 +370,13 @@ pub fn step(
     if b.pressed(prev, Buttons::INTERACT)
         && st.zip_block <= 0.0
         && !mods.legs_broken
-        && matches!(
-            st.mode,
-            MoveMode::Ground | MoveMode::Air | MoveMode::Jetpack | MoveMode::Slide
-        )
+        && matches!(st.mode, MoveMode::Ground | MoveMode::Air | MoveMode::Jetpack | MoveMode::Slide)
     {
         let hands = st.pos + Vec3::Y * m.capsule.height_stand;
         if let Some((i, s)) = level.nearest_zipline(hands, m.zipline.attach_radius) {
             let line = &level.ziplines[i];
-            let dir = if input.view_dir().dot(line.b - line.a) >= 0.0 {
-                1.0
-            } else {
-                -1.0
-            };
-            st.zip = Some(ZipRide {
-                line: i as u8,
-                s,
-                dir,
-                speed: st.horizontal_speed().min(m.zipline.speed_flat),
-            });
+            let dir = if input.view_dir().dot(line.b - line.a) >= 0.0 { 1.0 } else { -1.0 };
+            st.zip = Some(ZipRide { line: i as u8, s, dir, speed: st.horizontal_speed().min(m.zipline.speed_flat) });
             st.mode = MoveMode::Zipline;
             st.stance = Stance::Stand;
             ev.zip_attached = true;
@@ -405,9 +386,7 @@ pub fn step(
     match st.mode {
         MoveMode::Ground => step_ground(data, world, st, b, prev, wish, mv, mods, dt, &mut ev),
         MoveMode::Slide => step_slide(data, world, st, b, wish, mods, dt, &mut ev),
-        MoveMode::Air | MoveMode::Jetpack => {
-            step_air(data, level, st, b, prev, input, wish, mods, dt, &mut ev)
-        }
+        MoveMode::Air | MoveMode::Jetpack => step_air(data, level, st, b, prev, input, wish, mods, dt, &mut ev),
         MoveMode::Mantle => step_mantle(data, world, st, dt),
         MoveMode::Zipline => step_zipline(data, level, st, b, prev, mods, dt, &mut ev),
     }
@@ -444,11 +423,7 @@ fn step_ground(
     // Crouch / slide entry.
     let speed = st.horizontal_speed();
     let crouch = b.held(Buttons::CROUCH);
-    if crouch
-        && b.pressed(prev, Buttons::CROUCH)
-        && speed >= m.slide.min_entry_speed
-        && !mods.legs_broken
-    {
+    if crouch && b.pressed(prev, Buttons::CROUCH) && speed >= m.slide.min_entry_speed && !mods.legs_broken {
         start_slide(m, st, mods, ev);
         return step_slide(data, world, st, b, wish, mods, dt, ev);
     }
@@ -484,10 +459,7 @@ fn step_ground(
     st.vel.y = 0.0;
 
     // Jump (buffered).
-    if st.since_jump_press <= m.air.jump_buffer_s
-        && b.held(Buttons::JUMP)
-        && fits(world, m, st.pos, Stance::Stand)
-    {
+    if st.since_jump_press <= m.air.jump_buffer_s && b.held(Buttons::JUMP) && fits(world, m, st.pos, Stance::Stand) {
         st.stance = Stance::Stand;
         st.vel.y = m.air.jump_v0;
         st.since_jump_press = f32::MAX;
@@ -504,13 +476,7 @@ fn step_ground(
     st.vel = Vec3::new(v.x, 0.0, v.z);
 
     // Stick to the ground (down slopes and stairs), or start falling.
-    match probe_ground(
-        world,
-        m,
-        st.pos,
-        st.stance,
-        m.ground.ground_snap + m.ground.step_height,
-    ) {
+    match probe_ground(world, m, st.pos, st.stance, m.ground.ground_snap + m.ground.step_height) {
         Some((y, _)) => st.pos.y = y,
         None => enter_air(st),
     }
@@ -529,8 +495,7 @@ fn start_slide(m: &MovementSpec, st: &mut MoveState, mods: &MoveModifiers, ev: &
     st.sprinting = false;
     if st.slide_cooldown <= 0.0 {
         let vh = horizontal(st.vel);
-        let boosted =
-            vh.normalize_or_zero() * (vh.length() + mods.fx.slide_boost).min(m.slide.max_speed);
+        let boosted = vh.normalize_or_zero() * (vh.length() + mods.fx.slide_boost).min(m.slide.max_speed);
         st.vel = Vec3::new(boosted.x, st.vel.y, boosted.z);
         st.slide_cooldown = m.slide.boost_cooldown_s;
     }
@@ -550,13 +515,7 @@ fn step_slide(
 ) {
     let m = &data.movement;
     st.since_ground = 0.0;
-    let ground = probe_ground(
-        world,
-        m,
-        st.pos,
-        Stance::Slide,
-        m.ground.ground_snap + m.ground.step_height,
-    );
+    let ground = probe_ground(world, m, st.pos, Stance::Slide, m.ground.ground_snap + m.ground.step_height);
     let Some((gy, normal)) = ground else {
         enter_air(st);
         st.stance = Stance::Crouch;
@@ -565,10 +524,7 @@ fn step_slide(
     st.pos.y = gy;
 
     // Jump out of a slide keeps most of the speed.
-    if b.held(Buttons::JUMP)
-        && st.since_jump_press <= m.air.jump_buffer_s
-        && fits(world, m, st.pos, Stance::Stand)
-    {
+    if b.held(Buttons::JUMP) && st.since_jump_press <= m.air.jump_buffer_s && fits(world, m, st.pos, Stance::Stand) {
         let vh = horizontal(st.vel) * m.slide.jump_keep_frac;
         st.vel = Vec3::new(vh.x, m.air.jump_v0, vh.z);
         st.stance = Stance::Stand;
@@ -594,8 +550,7 @@ fn step_slide(
         let max_turn = m.slide.steer_deg_per_s.to_radians() * dt;
         let ang = dir.x.atan2(dir.z);
         let target = wish.x.atan2(wish.z);
-        let mut delta = (target - ang + std::f32::consts::PI).rem_euclid(std::f32::consts::TAU)
-            - std::f32::consts::PI;
+        let mut delta = (target - ang + std::f32::consts::PI).rem_euclid(std::f32::consts::TAU) - std::f32::consts::PI;
         delta = delta.clamp(-max_turn, max_turn);
         let a = ang + delta;
         vh = Vec3::new(a.sin(), 0.0, a.cos()) * new_speed;
@@ -611,13 +566,7 @@ fn step_slide(
     let (p, v) = step_slide_move(world, m, st.pos, st.vel, Stance::Slide, dt);
     st.pos = p;
     st.vel = Vec3::new(v.x, 0.0, v.z);
-    if let Some((y, _)) = probe_ground(
-        world,
-        m,
-        st.pos,
-        Stance::Slide,
-        m.ground.ground_snap + m.ground.step_height,
-    ) {
+    if let Some((y, _)) = probe_ground(world, m, st.pos, Stance::Slide, m.ground.ground_snap + m.ground.step_height) {
         st.pos.y = y;
     }
 
@@ -652,10 +601,7 @@ fn step_air(
     if st.stance == Stance::Slide {
         st.stance = Stance::Crouch;
     }
-    if st.stance == Stance::Crouch
-        && !b.held(Buttons::CROUCH)
-        && fits(world, m, st.pos, Stance::Stand)
-    {
+    if st.stance == Stance::Crouch && !b.held(Buttons::CROUCH) && fits(world, m, st.pos, Stance::Stand) {
         st.stance = Stance::Stand;
     }
 
@@ -696,9 +642,7 @@ fn step_air(
         st.vel.y = st.vel.y.max(0.0) + m.jetpack.kick_up_mps;
         st.fuel = (st.fuel - m.jetpack.kick_cost_s).max(0.0);
         ev.jet_started = true;
-    } else if st.mode == MoveMode::Jetpack
-        && (!b.held(Buttons::JUMP) || st.fuel <= 0.0 || mods.legs_broken)
-    {
+    } else if st.mode == MoveMode::Jetpack && (!b.held(Buttons::JUMP) || st.fuel <= 0.0 || mods.legs_broken) {
         st.mode = MoveMode::Air;
     }
 
@@ -719,24 +663,10 @@ fn step_air(
             st.vel.y + net * dt
         };
         let cap_h = m.jetpack.horizontal_cap * mods.fx.move_mult;
-        st.vel = air_accel(
-            st.vel,
-            wish,
-            cap_h,
-            m.jetpack.air_accel,
-            horizontal(st.vel).length().max(cap_h),
-            dt,
-        );
+        st.vel = air_accel(st.vel, wish, cap_h, m.jetpack.air_accel, horizontal(st.vel).length().max(cap_h), dt);
     } else {
         st.vel.y = (st.vel.y - m.air.gravity * dt).max(-m.air.terminal_speed);
-        st.vel = air_accel(
-            st.vel,
-            wish,
-            m.air.air_wish_speed,
-            m.air.air_accel,
-            m.air.max_horizontal_speed,
-            dt,
-        );
+        st.vel = air_accel(st.vel, wish, m.air.air_wish_speed, m.air.air_accel, m.air.max_horizontal_speed, dt);
     }
 
     let falling = st.vel.y <= 0.0;
@@ -757,10 +687,7 @@ fn step_air(
         ev.landed = true;
         st.vel.y = 0.0;
         st.since_ground = 0.0;
-        if b.held(Buttons::CROUCH)
-            && st.horizontal_speed() >= m.slide.min_entry_speed
-            && !mods.legs_broken
-        {
+        if b.held(Buttons::CROUCH) && st.horizontal_speed() >= m.slide.min_entry_speed && !mods.legs_broken {
             start_slide(m, st, mods, ev);
         } else {
             st.mode = MoveMode::Ground;
@@ -790,11 +717,8 @@ fn find_mantle(
     let reach = horizontal(wall.end - c).length() + r + mt.min_ledge_depth * 0.5;
     let top = st.pos.y + mt.max_ledge + 0.05;
     let probe = Vec3::new(c.x, top, c.z) + fwd * reach;
-    let down = world.trace_box(
-        probe,
-        probe - Vec3::Y * (mt.max_ledge - mt.min_ledge + 0.05),
-        Vec3::new(0.05, 0.0, 0.05),
-    );
+    let down =
+        world.trace_box(probe, probe - Vec3::Y * (mt.max_ledge - mt.min_ledge + 0.05), Vec3::new(0.05, 0.0, 0.05));
     if !down.hit() || down.start_solid || !walkable(m, down.normal) {
         return None;
     }
@@ -806,11 +730,7 @@ fn find_mantle(
     // Room to crouch on top, and the ledge is deep enough.
     let target = Vec3::new(probe.x, ledge, probe.z);
     let deep = target + fwd * (mt.min_ledge_depth * 0.5);
-    let deep_tr = world.trace_box(
-        deep + Vec3::Y * 0.3,
-        deep - Vec3::Y * 0.1,
-        Vec3::new(0.05, 0.0, 0.05),
-    );
+    let deep_tr = world.trace_box(deep + Vec3::Y * 0.3, deep - Vec3::Y * 0.1, Vec3::new(0.05, 0.0, 0.05));
     if !deep_tr.hit() || (deep_tr.end.y - ledge).abs() > 0.15 {
         return None;
     }
@@ -823,17 +743,8 @@ fn find_mantle(
     if room.start_solid {
         return None;
     }
-    let base = if height <= mt.low_max {
-        mt.time_low_s
-    } else {
-        mt.time_high_s
-    };
-    Some(MantleMove {
-        from: st.pos,
-        to: target,
-        t: 0.0,
-        duration: base * mods.fx.mantle,
-    })
+    let base = if height <= mt.low_max { mt.time_low_s } else { mt.time_high_s };
+    Some(MantleMove { from: st.pos, to: target, t: 0.0, duration: base * mods.fx.mantle })
 }
 
 fn step_mantle(data: &GameData, world: &CollisionWorld, st: &mut MoveState, dt: f32) {

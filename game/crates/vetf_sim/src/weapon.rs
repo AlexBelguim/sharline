@@ -5,8 +5,8 @@
 //! mag check, and the round counts here stay internal.
 
 use crate::data::{
-    AmmoChoice, AmmoSpec, AttachmentCategory, FireMode, GameData, ModifierTotals, RecoilSpec,
-    WeaponClass, WeaponSpec, Zoom,
+    AmmoChoice, AmmoSpec, AttachmentCategory, FireMode, GameData, ModifierTotals, RecoilSpec, WeaponClass, WeaponSpec,
+    Zoom,
 };
 use crate::input::{Buttons, InputFrame, view_dir};
 use crate::movement::MoveMode;
@@ -86,13 +86,8 @@ impl WeaponLoadout {
         let weapon = data.weapon_index(weapon_id)?;
         let spec = &data.weapons.weapons[weapon];
         // Ammo this gun cannot load falls back to standard.
-        let ammo = data
-            .ammo_for(spec, ammo)
-            .or_else(|| data.ammo_for(spec, AmmoChoice::STANDARD))?;
-        let fits = |id: &str| {
-            data.attachment(id)
-                .filter(|a| a.fits.iter().any(|f| f == weapon_id))
-        };
+        let ammo = data.ammo_for(spec, ammo).or_else(|| data.ammo_for(spec, AmmoChoice::STANDARD))?;
+        let fits = |id: &str| data.attachment(id).filter(|a| a.fits.iter().any(|f| f == weapon_id));
         let mut chosen: Vec<&crate::data::AttachmentSpec> = Vec::new();
         for id in attachments {
             if let Some(a) = fits(id)
@@ -102,9 +97,7 @@ impl WeaponLoadout {
             }
         }
         for a in &data.attachments.attachments {
-            if a.default_for.iter().any(|w| w == weapon_id)
-                && !chosen.iter().any(|c| c.cat == a.cat)
-            {
+            if a.default_for.iter().any(|w| w == weapon_id) && !chosen.iter().any(|c| c.cat == a.cat) {
                 chosen.push(a);
             }
         }
@@ -140,8 +133,7 @@ impl WeaponLoadout {
     /// Resolve the default loadout from rules.ron.
     pub fn default_for(data: &GameData) -> Self {
         let l = &data.rules.default_loadout;
-        Self::resolve(data, &l.primary, l.ammo, &l.attachments, l.spare_mags)
-            .expect("valid default loadout")
+        Self::resolve(data, &l.primary, l.ammo, &l.attachments, l.spare_mags).expect("valid default loadout")
     }
 }
 
@@ -295,9 +287,7 @@ impl WeaponState {
             fire_mode: spec.fire_modes.first().copied().unwrap_or(FireMode::Semi),
             mag: loadout.mag_capacity,
             spares: vec![loadout.mag_capacity; loadout.spare_mags as usize],
-            action: WeaponAction::Equipping {
-                left: secs_to_ticks(spec.equip_s, hz),
-            },
+            action: WeaponAction::Equipping { left: secs_to_ticks(spec.equip_s, hz) },
             cooldown: 0,
             sprint_lock: 0,
             burst: 0,
@@ -347,8 +337,7 @@ impl WeaponState {
         // Sprinting lowers the gun; it takes `sprint_to_fire_s` to bring it back up.
         let lowered = env.sprinting || env.mode == MoveMode::Mantle;
         if lowered {
-            self.sprint_lock =
-                secs_to_ticks(spec.sprint_to_fire_s * loadout.mods.sprint_to_fire, hz);
+            self.sprint_lock = secs_to_ticks(spec.sprint_to_fire_s * loadout.mods.sprint_to_fire, hz);
         } else {
             self.sprint_lock = self.sprint_lock.saturating_sub(1);
         }
@@ -379,10 +368,7 @@ impl WeaponState {
                     *left = left.saturating_sub(1);
                     if *left == 0 {
                         let est = MagEstimate::from_rounds(self.mag, loadout.mag_capacity);
-                        self.card = Some(MagCard {
-                            estimate: est,
-                            left: secs_to_ticks(MAG_CARD_S, hz),
-                        });
+                        self.card = Some(MagCard { estimate: est, left: secs_to_ticks(MAG_CARD_S, hz) });
                         self.action = WeaponAction::Ready;
                         ev.mag_checked = Some(est);
                     }
@@ -391,9 +377,8 @@ impl WeaponState {
         }
 
         // ADS.
-        let can_ads = self.is_ready()
-            && !lowered
-            && !(env.mode == MoveMode::Jetpack && !data.movement.jetpack.ads_allowed);
+        let can_ads =
+            self.is_ready() && !lowered && !(env.mode == MoveMode::Jetpack && !data.movement.jetpack.ads_allowed);
         let mut ads_time = spec.ads_s * loadout.mods.ads_time;
         if env.broken_arms {
             ads_time *= data.combat.broken_arms.ads_time_mult;
@@ -425,41 +410,25 @@ impl WeaponState {
 
         // Fire mode toggle.
         if b.pressed(prev, Buttons::FIRE_MODE) && spec.fire_modes.len() > 1 {
-            let i = spec
-                .fire_modes
-                .iter()
-                .position(|m| *m == self.fire_mode)
-                .unwrap_or(0);
+            let i = spec.fire_modes.iter().position(|m| *m == self.fire_mode).unwrap_or(0);
             self.fire_mode = spec.fire_modes[(i + 1) % spec.fire_modes.len()];
             ev.fire_mode_changed = true;
         }
 
         // Reload / mag check.
-        if b.pressed(prev, Buttons::RELOAD)
-            && self.mag < loadout.mag_capacity
-            && self.loaded_spares() > 0
-        {
-            let kind = if self.mag == 0 {
-                ReloadKind::Empty
-            } else {
-                ReloadKind::Tactical
-            };
+        if b.pressed(prev, Buttons::RELOAD) && self.mag < loadout.mag_capacity && self.loaded_spares() > 0 {
+            let kind = if self.mag == 0 { ReloadKind::Empty } else { ReloadKind::Tactical };
             let s = match kind {
                 ReloadKind::Tactical => spec.reload_tactical_s,
                 ReloadKind::Empty => spec.reload_empty_s,
             } * loadout.mods.reload;
-            self.action = WeaponAction::Reloading {
-                left: secs_to_ticks(s, hz).max(1),
-                kind,
-            };
+            self.action = WeaponAction::Reloading { left: secs_to_ticks(s, hz).max(1), kind };
             self.ads = 0.0;
             ev.reload_started = Some(kind);
             return ev;
         }
         if b.pressed(prev, Buttons::MAG_CHECK) && !lowered {
-            self.action = WeaponAction::MagChecking {
-                left: secs_to_ticks(spec.mag_check_s, hz).max(1),
-            };
+            self.action = WeaponAction::MagChecking { left: secs_to_ticks(spec.mag_check_s, hz).max(1) };
             ev.mag_check_started = true;
             return ev;
         }
@@ -486,18 +455,12 @@ impl WeaponState {
         self.shot_seq = self.shot_seq.wrapping_add(1);
         // Bloom only builds while moving: standing still, the learnable pattern is the whole story.
         let (bloom_add, bloom_max) = (
-            lerp(sp.bloom_per_shot_hip, sp.bloom_per_shot_ads, self.ads)
-                * movement_factor(spec, env),
+            lerp(sp.bloom_per_shot_hip, sp.bloom_per_shot_ads, self.ads) * movement_factor(spec, env),
             lerp(sp.bloom_max_hip, sp.bloom_max_ads, self.ads),
         );
         self.bloom_deg = (self.bloom_deg + bloom_add).min(bloom_max.max(self.bloom_deg));
         let (kick_pitch, kick_yaw) = self.recoil_kick(data, spec, loadout, env);
-        ev.shot = Some(Shot {
-            seq: self.shot_seq,
-            spread_deg,
-            kick_pitch,
-            kick_yaw,
-        });
+        ev.shot = Some(Shot { seq: self.shot_seq, spread_deg, kick_pitch, kick_yaw });
         ev
     }
 
@@ -523,13 +486,7 @@ impl WeaponState {
     }
 
     /// Current spread cone half-angle in degrees.
-    pub fn spread_deg(
-        &self,
-        data: &GameData,
-        spec: &WeaponSpec,
-        loadout: &WeaponLoadout,
-        env: &WeaponEnv,
-    ) -> f32 {
+    pub fn spread_deg(&self, data: &GameData, spec: &WeaponSpec, loadout: &WeaponLoadout, env: &WeaponEnv) -> f32 {
         let sp = &spec.spread_deg;
         // An aimed first shot is accurate in the air and with slight movement (most guns).
         if let Some(fs) = spec.ads_first_shot
@@ -556,8 +513,7 @@ impl WeaponState {
         };
         let still = lerp(sp.hip_still * hip, ads_still, self.ads);
         let moving = lerp(sp.move_full_hip * hip, sp.move_full_ads, self.ads);
-        let t = ((env.speed_frac - sp.move_threshold_frac) / (1.0 - sp.move_threshold_frac))
-            .clamp(0.0, 1.0);
+        let t = ((env.speed_frac - sp.move_threshold_frac) / (1.0 - sp.move_threshold_frac)).clamp(0.0, 1.0);
         let mut s = lerp(still, moving, t);
         if env.crouched {
             s *= sp.crouch_mult;
@@ -572,18 +528,8 @@ impl WeaponState {
         s + self.bloom_deg
     }
 
-    fn recoil_kick(
-        &self,
-        data: &GameData,
-        spec: &WeaponSpec,
-        loadout: &WeaponLoadout,
-        env: &WeaponEnv,
-    ) -> (f32, f32) {
-        let arms = if env.broken_arms {
-            data.combat.broken_arms.recoil_mult
-        } else {
-            1.0
-        };
+    fn recoil_kick(&self, data: &GameData, spec: &WeaponSpec, loadout: &WeaponLoadout, env: &WeaponEnv) -> (f32, f32) {
+        let arms = if env.broken_arms { data.combat.broken_arms.recoil_mult } else { 1.0 };
         match &spec.recoil {
             RecoilSpec::Pattern(p) => {
                 let Some(pattern) = data.recoil_pattern(spec) else {
@@ -594,10 +540,7 @@ impl WeaponState {
                 if env.crouched {
                     m *= p.crouch_mult;
                 }
-                (
-                    kp * m * loadout.mods.recoil_v,
-                    ky * m * loadout.mods.recoil_h,
-                )
+                (kp * m * loadout.mods.recoil_v, ky * m * loadout.mods.recoil_h)
             }
             RecoilSpec::Kick(k) => {
                 let mut rng = SplitMix::from_parts(&[self.shot_seq as u64, 0x4b49_434b]);
@@ -662,73 +605,37 @@ mod tests {
     }
 
     fn still() -> WeaponEnv {
-        WeaponEnv {
-            mode: MoveMode::Ground,
-            sprinting: false,
-            crouched: false,
-            speed_frac: 0.0,
-            broken_arms: false,
-        }
+        WeaponEnv { mode: MoveMode::Ground, sprinting: false, crouched: false, speed_frac: 0.0, broken_arms: false }
     }
 
     fn input(bits: u16) -> InputFrame {
-        InputFrame {
-            movement: Vec2::ZERO,
-            yaw: 0.0,
-            pitch: 0.0,
-            buttons: Buttons(bits),
-        }
+        InputFrame { movement: Vec2::ZERO, yaw: 0.0, pitch: 0.0, buttons: Buttons(bits) }
     }
 
     #[test]
     fn fire_interval_from_rpm() {
         let d = GameData::embedded();
-        assert_eq!(
-            fire_interval_ticks(d.weapon("ar7_mako").unwrap(), 60, false),
-            5
-        );
-        assert_eq!(
-            fire_interval_ticks(d.weapon("ar7_mako").unwrap(), 60, true),
-            6
-        );
-        assert_eq!(
-            fire_interval_ticks(d.weapon("vk50_warden").unwrap(), 60, false),
-            75
-        );
-        assert_eq!(
-            fire_interval_ticks(d.weapon("vk50_warden").unwrap(), 60, true),
-            75
-        );
+        assert_eq!(fire_interval_ticks(d.weapon("ar7_mako").unwrap(), 60, false), 5);
+        assert_eq!(fire_interval_ticks(d.weapon("ar7_mako").unwrap(), 60, true), 6);
+        assert_eq!(fire_interval_ticks(d.weapon("vk50_warden").unwrap(), 60, false), 75);
+        assert_eq!(fire_interval_ticks(d.weapon("vk50_warden").unwrap(), 60, true), 75);
     }
 
     #[test]
     fn default_loadout_fills_categories() {
         let d = GameData::embedded();
-        let l = WeaponLoadout::resolve(
-            &d,
-            "ar7_mako",
-            AmmoChoice::STANDARD,
-            &["mag_45".into(), "optic_3x".into()],
-            2,
-        )
-        .unwrap();
+        let l = WeaponLoadout::resolve(&d, "ar7_mako", AmmoChoice::STANDARD, &["mag_45".into(), "optic_3x".into()], 2)
+            .unwrap();
         assert_eq!(l.ammo.label, "STD");
         assert_eq!(l.mag_capacity, 45);
         assert_eq!(l.zoom, 3.0);
         assert!(l.attachments.contains(&"mako_stock_standard".to_string()));
         assert!(!l.attachments.contains(&"mag_30".to_string()));
         // optics that do not fit are ignored
-        let slug = AmmoChoice {
-            kind: crate::data::AmmoKind::Slug,
-            tier: 1,
-        };
+        let slug = AmmoChoice { kind: crate::data::AmmoKind::Slug, tier: 1 };
         let l = WeaponLoadout::resolve(&d, "ar7_mako", slug, &["optic_sniper".into()], 2).unwrap();
         assert_eq!(l.zoom, 1.25);
-        assert_eq!(
-            l.ammo.choice,
-            AmmoChoice::STANDARD,
-            "ammo the gun cannot load falls back to standard"
-        );
+        assert_eq!(l.ammo.choice, AmmoChoice::STANDARD, "ammo the gun cannot load falls back to standard");
         WeaponLoadout::default_for(&d);
     }
 
@@ -754,13 +661,7 @@ mod tests {
     fn semi_needs_trigger_release() {
         let (d, l, mut s) = setup("ar7_mako");
         s.fire_mode = FireMode::Semi;
-        let shots = (0..60)
-            .filter(|_| {
-                s.step(&d, &l, &input(Buttons::FIRE), &still())
-                    .shot
-                    .is_some()
-            })
-            .count();
+        let shots = (0..60).filter(|_| s.step(&d, &l, &input(Buttons::FIRE), &still()).shot.is_some()).count();
         assert_eq!(shots, 1);
     }
 
@@ -905,10 +806,7 @@ mod tests {
         env.speed_frac = 0.3;
         assert!((s.spread_deg(&d, spec, &l, &env) - 0.08).abs() < 1e-5);
         env.speed_frac = 0.9;
-        assert!(
-            s.spread_deg(&d, spec, &l, &env) > 0.5,
-            "running still costs accuracy"
-        );
+        assert!(s.spread_deg(&d, spec, &l, &env) > 0.5, "running still costs accuracy");
         // follow-up shots in a burst lose the first-shot bonus in the air
         env = still();
         env.mode = MoveMode::Air;
@@ -948,9 +846,6 @@ mod tests {
             let ang = fwd.angle_between(d).to_degrees();
             assert!(ang <= 2.0 + 1e-3, "{ang}");
         }
-        assert_eq!(
-            shot_direction(0.4, 0.1, 1.0, 5),
-            shot_direction(0.4, 0.1, 1.0, 5)
-        );
+        assert_eq!(shot_direction(0.4, 0.1, 1.0, 5), shot_direction(0.4, 0.1, 1.0, 5));
     }
 }

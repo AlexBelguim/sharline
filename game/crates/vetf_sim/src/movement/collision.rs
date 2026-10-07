@@ -28,48 +28,59 @@ pub enum BrushKind {
     BulletOnly,
 }
 
+/// How a brush is drawn (the simulation ignores it).
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default, Serialize, Deserialize)]
+pub enum Look {
+    #[default]
+    Ground,
+    Floor,
+    Wall,
+    Roof,
+    Trim,
+    Prop,
+    Hedge,
+    Fence,
+    Glass,
+    Vehicle,
+    Metal,
+    Concrete,
+    Water,
+    TeamA,
+    TeamB,
+    Accent,
+    Target,
+    /// Not drawn (player clips, invisible bounds).
+    Invisible,
+}
+
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct Brush {
     pub planes: Vec<Plane>,
     pub min: Vec3,
     pub max: Vec3,
     pub kind: BrushKind,
+    pub look: Look,
+    /// For ramps: the horizontal direction the top surface rises toward.
+    pub ramp: Option<Vec3>,
 }
 
 impl Brush {
     pub fn cuboid(min: Vec3, max: Vec3, kind: BrushKind) -> Self {
         let planes = vec![
-            Plane {
-                normal: Vec3::X,
-                dist: max.x,
-            },
-            Plane {
-                normal: Vec3::NEG_X,
-                dist: -min.x,
-            },
-            Plane {
-                normal: Vec3::Y,
-                dist: max.y,
-            },
-            Plane {
-                normal: Vec3::NEG_Y,
-                dist: -min.y,
-            },
-            Plane {
-                normal: Vec3::Z,
-                dist: max.z,
-            },
-            Plane {
-                normal: Vec3::NEG_Z,
-                dist: -min.z,
-            },
+            Plane { normal: Vec3::X, dist: max.x },
+            Plane { normal: Vec3::NEG_X, dist: -min.x },
+            Plane { normal: Vec3::Y, dist: max.y },
+            Plane { normal: Vec3::NEG_Y, dist: -min.y },
+            Plane { normal: Vec3::Z, dist: max.z },
+            Plane { normal: Vec3::NEG_Z, dist: -min.z },
         ];
-        Self {
-            planes,
-            min,
-            max,
-            kind,
-        }
+        let look = if kind == BrushKind::PlayerClip { Look::Invisible } else { Look::default() };
+        Self { planes, min, max, kind, look, ramp: None }
+    }
+
+    pub fn with_look(mut self, look: Look) -> Self {
+        self.look = look;
+        self
     }
 
     /// A ramp inside the box `min..max` that rises from `y = min.y` at the `low` edge to `max.y` at the
@@ -77,11 +88,7 @@ impl Brush {
     pub fn ramp(min: Vec3, max: Vec3, rise_dir: Vec3, kind: BrushKind) -> Self {
         let mut b = Self::cuboid(min, max, kind);
         let h = max.y - min.y;
-        let run = if rise_dir.x.abs() > 0.5 {
-            max.x - min.x
-        } else {
-            max.z - min.z
-        };
+        let run = if rise_dir.x.abs() > 0.5 { max.x - min.x } else { max.z - min.z };
         // Top surface: passes through the low edge at min.y and the high edge at max.y.
         let n = Vec3::new(-rise_dir.x * h, run, -rise_dir.z * h).normalize();
         let low_edge = Vec3::new(
@@ -103,10 +110,8 @@ impl Brush {
         );
         // The +Y plane stays as an axial bevel: without it a box passing over the high edge would
         // collide early (the plane-offset trick needs bevels at edges between non-axial faces).
-        b.planes.push(Plane {
-            normal: n,
-            dist: n.dot(low_edge),
-        });
+        b.planes.push(Plane { normal: n, dist: n.dot(low_edge) });
+        b.ramp = Some(rise_dir);
         b
     }
 
@@ -153,12 +158,7 @@ impl CollisionWorld {
 
     /// Ray against bullet-blocking geometry: returns the hit distance along `dir` (unit), if any.
     pub fn raycast(&self, origin: Vec3, dir: Vec3, max_dist: f32) -> Option<(f32, Vec3)> {
-        let t = self.trace_filtered(
-            origin,
-            origin + dir * max_dist,
-            Vec3::ZERO,
-            Brush::blocks_bullets,
-        );
+        let t = self.trace_filtered(origin, origin + dir * max_dist, Vec3::ZERO, Brush::blocks_bullets);
         t.hit().then_some((t.fraction * max_dist, t.normal))
     }
 
@@ -168,19 +168,8 @@ impl CollisionWorld {
         !t.hit() || t.fraction >= 0.999
     }
 
-    fn trace_filtered(
-        &self,
-        start: Vec3,
-        end: Vec3,
-        half: Vec3,
-        keep: impl Fn(&Brush) -> bool,
-    ) -> Trace {
-        let mut best = Trace {
-            fraction: 1.0,
-            end,
-            normal: Vec3::ZERO,
-            start_solid: false,
-        };
+    fn trace_filtered(&self, start: Vec3, end: Vec3, half: Vec3, keep: impl Fn(&Brush) -> bool) -> Trace {
+        let mut best = Trace { fraction: 1.0, end, normal: Vec3::ZERO, start_solid: false };
         let lo = start.min(end) - half - Vec3::splat(SKIN);
         let hi = start.max(end) + half + Vec3::splat(SKIN);
         for b in &self.brushes {
@@ -256,16 +245,8 @@ mod tests {
 
     fn floor_world() -> CollisionWorld {
         let mut w = CollisionWorld::default();
-        w.push(Brush::cuboid(
-            Vec3::new(-50.0, -1.0, -50.0),
-            Vec3::new(50.0, 0.0, 50.0),
-            BrushKind::Solid,
-        ));
-        w.push(Brush::cuboid(
-            Vec3::new(2.0, 0.0, -5.0),
-            Vec3::new(3.0, 3.0, 5.0),
-            BrushKind::Solid,
-        ));
+        w.push(Brush::cuboid(Vec3::new(-50.0, -1.0, -50.0), Vec3::new(50.0, 0.0, 50.0), BrushKind::Solid));
+        w.push(Brush::cuboid(Vec3::new(2.0, 0.0, -5.0), Vec3::new(3.0, 3.0, 5.0), BrushKind::Solid));
         w
     }
 
@@ -292,11 +273,7 @@ mod tests {
     #[test]
     fn misses_when_clear() {
         let w = floor_world();
-        let t = w.trace_box(
-            Vec3::new(0.0, 1.0, 0.0),
-            Vec3::new(0.0, 1.0, -10.0),
-            Vec3::new(0.3, 0.9, 0.3),
-        );
+        let t = w.trace_box(Vec3::new(0.0, 1.0, 0.0), Vec3::new(0.0, 1.0, -10.0), Vec3::new(0.3, 0.9, 0.3));
         assert!(!t.hit());
     }
 
@@ -304,22 +281,10 @@ mod tests {
     fn ramp_surface_height() {
         let mut w = CollisionWorld::default();
         // rises 2 m over 6 m toward -Z
-        w.push(Brush::ramp(
-            Vec3::new(-5.0, 0.0, -6.0),
-            Vec3::new(5.0, 2.0, 0.0),
-            Vec3::NEG_Z,
-            BrushKind::Solid,
-        ));
-        let t = w.trace_box(
-            Vec3::new(0.0, 5.0, -3.0),
-            Vec3::new(0.0, -1.0, -3.0),
-            Vec3::ZERO,
-        );
+        w.push(Brush::ramp(Vec3::new(-5.0, 0.0, -6.0), Vec3::new(5.0, 2.0, 0.0), Vec3::NEG_Z, BrushKind::Solid));
+        let t = w.trace_box(Vec3::new(0.0, 5.0, -3.0), Vec3::new(0.0, -1.0, -3.0), Vec3::ZERO);
         assert!((t.end.y - 1.0).abs() < 0.01, "{:?}", t.end);
-        assert!(
-            t.normal.y > 0.9 && t.normal.z > 0.0,
-            "slope faces the low (+Z) side"
-        );
+        assert!(t.normal.y > 0.9 && t.normal.z > 0.0, "slope faces the low (+Z) side");
     }
 
     #[test]
@@ -335,19 +300,8 @@ mod tests {
     #[test]
     fn player_clip_does_not_stop_bullets() {
         let mut w = CollisionWorld::default();
-        w.push(Brush::cuboid(
-            Vec3::new(1.0, 0.0, -1.0),
-            Vec3::new(2.0, 3.0, 1.0),
-            BrushKind::PlayerClip,
-        ));
+        w.push(Brush::cuboid(Vec3::new(1.0, 0.0, -1.0), Vec3::new(2.0, 3.0, 1.0), BrushKind::PlayerClip));
         assert!(w.raycast(Vec3::new(0.0, 1.0, 0.0), Vec3::X, 10.0).is_none());
-        assert!(
-            w.trace_box(
-                Vec3::new(0.0, 1.0, 0.0),
-                Vec3::new(5.0, 1.0, 0.0),
-                Vec3::splat(0.3)
-            )
-            .hit()
-        );
+        assert!(w.trace_box(Vec3::new(0.0, 1.0, 0.0), Vec3::new(5.0, 1.0, 0.0), Vec3::splat(0.3)).hit());
     }
 }

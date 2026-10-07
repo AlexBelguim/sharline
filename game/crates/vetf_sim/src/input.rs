@@ -60,20 +60,12 @@ impl InputFrame {
     /// Clamp values a client could send out of range.
     pub fn sanitized(mut self) -> Self {
         let m = self.movement;
-        self.movement = if m.is_finite() {
-            m.clamp(Vec2::splat(-1.0), Vec2::splat(1.0))
-        } else {
-            Vec2::ZERO
-        };
+        self.movement = if m.is_finite() { m.clamp(Vec2::splat(-1.0), Vec2::splat(1.0)) } else { Vec2::ZERO };
         if !self.yaw.is_finite() {
             self.yaw = 0.0;
         }
         self.yaw = self.yaw.rem_euclid(std::f32::consts::TAU);
-        self.pitch = if self.pitch.is_finite() {
-            self.pitch.clamp(-MAX_PITCH, MAX_PITCH)
-        } else {
-            0.0
-        };
+        self.pitch = if self.pitch.is_finite() { self.pitch.clamp(-MAX_PITCH, MAX_PITCH) } else { 0.0 };
         self
     }
 }
@@ -123,13 +115,8 @@ mod tests {
 
     #[test]
     fn sanitize_clamps() {
-        let f = InputFrame {
-            movement: Vec2::new(5.0, f32::NAN),
-            yaw: -0.5,
-            pitch: 9.0,
-            buttons: Buttons(0),
-        }
-        .sanitized();
+        let f =
+            InputFrame { movement: Vec2::new(5.0, f32::NAN), yaw: -0.5, pitch: 9.0, buttons: Buttons(0) }.sanitized();
         assert_eq!(f.movement, Vec2::ZERO);
         assert!(f.yaw >= 0.0 && f.pitch == MAX_PITCH);
     }

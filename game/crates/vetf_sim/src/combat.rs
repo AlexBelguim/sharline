@@ -51,11 +51,7 @@ pub struct HpOutcome {
 
 impl Health {
     pub fn new(max: ZoneTable<f32>) -> Self {
-        Self {
-            hp: max,
-            max,
-            dead: false,
-        }
+        Self { hp: max, max, dead: false }
     }
 
     pub fn is_broken(&self, zone: Zone) -> bool {
@@ -130,28 +126,13 @@ pub struct HaloSpec {
 impl HaloSpec {
     pub const NONE: HaloSpec = HaloSpec {
         core: None,
-        tiers: ZoneTable {
-            head: 0,
-            torso: 0,
-            arms: 0,
-            legs: 0,
-        },
-        capacity: ZoneTable {
-            head: 0.0,
-            torso: 0.0,
-            arms: 0.0,
-            legs: 0.0,
-        },
+        tiers: ZoneTable { head: 0, torso: 0, arms: 0, legs: 0 },
+        capacity: ZoneTable { head: 0.0, torso: 0.0, arms: 0.0, legs: 0.0 },
         regen: None,
     };
 
     pub fn from_armor(a: &ArmorStats) -> Self {
-        Self {
-            core: a.core,
-            tiers: a.tiers,
-            capacity: a.arc_capacity,
-            regen: a.regen(),
-        }
+        Self { core: a.core, tiers: a.tiers, capacity: a.arc_capacity, regen: a.regen() }
     }
 
     pub fn coverage(&self) -> ZoneSet {
@@ -188,10 +169,7 @@ pub struct Absorb {
 
 impl HaloState {
     pub fn full(spec: &HaloSpec) -> Self {
-        Self {
-            shield: spec.capacity,
-            regen_wait_s: 0.0,
-        }
+        Self { shield: spec.capacity, regen_wait_s: 0.0 }
     }
 
     pub fn total(&self) -> f32 {
@@ -204,10 +182,7 @@ impl HaloState {
         let tier = spec.tiers[zone];
         let shield = &mut self.shield[zone];
         if tier == 0 || *shield <= 0.0 {
-            return Absorb {
-                to_hp: raw * ammo.flesh_mult,
-                ..Default::default()
-            };
+            return Absorb { to_hp: raw * ammo.flesh_mult, ..Default::default() };
         }
         let pierce = raw * ammo.pen_for_tier(tier);
         let rest = raw - pierce;
@@ -219,26 +194,14 @@ impl HaloState {
             *shield = 0.0;
         }
         // Convert the unabsorbed shield damage back into bullet damage before it reaches HP.
-        let leftover = if ammo.shield_mult > 0.0 {
-            (shield_dmg - absorbed) / ammo.shield_mult
-        } else {
-            rest
-        };
-        Absorb {
-            to_hp: (pierce + leftover) * ammo.flesh_mult,
-            absorbed,
-            broke,
-        }
+        let leftover = if ammo.shield_mult > 0.0 { (shield_dmg - absorbed) / ammo.shield_mult } else { rest };
+        Absorb { to_hp: (pierce + leftover) * ammo.flesh_mult, absorbed, broke }
     }
 
     /// Any damage taken (shield or HP) delays regen; a break delays it longer.
     pub fn on_damaged(&mut self, spec: &HaloSpec, broke: bool) {
         if let Some(r) = spec.regen {
-            let wait = if broke {
-                r.delay_after_break_s
-            } else {
-                r.delay_s
-            };
+            let wait = if broke { r.delay_after_break_s } else { r.delay_s };
             self.regen_wait_s = self.regen_wait_s.max(wait);
         }
     }
@@ -308,36 +271,17 @@ mod tests {
     use crate::data::{AmmoChoice, AmmoKind, GameData, WeaponClass};
 
     fn ammo(d: &GameData, weapon: &str, kind: AmmoKind, tier: u8) -> AmmoSpec {
-        d.ammo_for(d.weapon(weapon).unwrap(), AmmoChoice { kind, tier })
-            .unwrap()
+        d.ammo_for(d.weapon(weapon).unwrap(), AmmoChoice { kind, tier }).unwrap()
     }
 
-    fn shots_to_kill(
-        d: &GameData,
-        weapon: &str,
-        ammo: &AmmoSpec,
-        armor: &str,
-        zone: Zone,
-        range: f32,
-    ) -> u32 {
+    fn shots_to_kill(d: &GameData, weapon: &str, ammo: &AmmoSpec, armor: &str, zone: Zone, range: f32) -> u32 {
         let w = d.weapon(weapon).unwrap();
         let a = d.armor.resolve_id(armor).unwrap();
         let spec = HaloSpec::from_armor(&a);
         let mut halo = HaloState::full(&spec);
         let mut hp = Health::new(d.armor.zone_hp);
         for n in 1..200 {
-            if resolve_hit(
-                w,
-                ammo,
-                range,
-                zone,
-                &d.weapons.spill_to_torso,
-                &spec,
-                &mut halo,
-                &mut hp,
-            )
-            .killed
-            {
+            if resolve_hit(w, ammo, range, zone, &d.weapons.spill_to_torso, &spec, &mut halo, &mut hp).killed {
                 return n;
             }
         }
@@ -394,10 +338,8 @@ mod tests {
         let d = design_equivalent();
         for (range, armor, expect) in table {
             let mut got = [0; 8];
-            for (i, (w, z)) in ["ar7_mako", "vk50_warden"]
-                .iter()
-                .flat_map(|w| Zone::ALL.iter().map(move |z| (*w, *z)))
-                .enumerate()
+            for (i, (w, z)) in
+                ["ar7_mako", "vk50_warden"].iter().flat_map(|w| Zone::ALL.iter().map(move |z| (*w, *z))).enumerate()
             {
                 let ammo = flat_pen(if w == "ar7_mako" { 0.0 } else { 0.3 });
                 got[i] = shots_to_kill(&d, w, &ammo, armor, z, *range);
@@ -411,15 +353,9 @@ mod tests {
         let d = GameData::embedded();
         let mako = d.weapon("ar7_mako").unwrap();
         let warden = d.weapon("vk50_warden").unwrap();
-        for (r, want) in [
-            (0.0, 37.0),
-            (25.0, 37.0),
-            (30.0, 35.8),
-            (37.5, 34.0),
-            (50.0, 31.0),
-            (80.0, 27.0),
-            (300.0, 27.0),
-        ] {
+        for (r, want) in
+            [(0.0, 37.0), (25.0, 37.0), (30.0, 35.8), (37.5, 34.0), (50.0, 31.0), (80.0, 27.0), (300.0, 27.0)]
+        {
             assert!((falloff(mako, r) - want).abs() < 1e-4, "mako {r}");
         }
         for (r, want) in [(60.0, 160.0), (90.0, 155.0), (135.0, 145.0), (400.0, 140.0)] {
@@ -436,16 +372,7 @@ mod tests {
         let spec = HaloSpec::from_armor(&d.armor.resolve_id("arm_volt_line").unwrap());
         let mut halo = HaloState::full(&spec);
         let mut hp = Health::new(d.armor.zone_hp);
-        let r = resolve_hit(
-            w,
-            ammo,
-            30.0,
-            Zone::Torso,
-            &d.weapons.spill_to_torso,
-            &spec,
-            &mut halo,
-            &mut hp,
-        );
+        let r = resolve_hit(w, ammo, 30.0, Zone::Torso, &d.weapons.spill_to_torso, &spec, &mut halo, &mut hp);
         assert_eq!(r.raw, 160.0);
         assert!(r.shield_broke);
         assert!((r.to_hp - 60.0).abs() < 1e-3); // pierce 48 + overflow 12
@@ -465,18 +392,9 @@ mod tests {
         let mut hp = Health::new(d.armor.zone_hp);
         let mut broke = ZoneSet::EMPTY;
         for _ in 0..3 {
-            broke.0 |= resolve_hit(
-                w,
-                ammo,
-                10.0,
-                Zone::Legs,
-                &d.weapons.spill_to_torso,
-                &spec,
-                &mut halo,
-                &mut hp,
-            )
-            .newly_broken
-            .0;
+            broke.0 |= resolve_hit(w, ammo, 10.0, Zone::Legs, &d.weapons.spill_to_torso, &spec, &mut halo, &mut hp)
+                .newly_broken
+                .0;
         }
         // 3 x 31.45 = 94.35 on 85 HP legs: 9.35 over, x0.7 into the torso (design oracle: 113.455)
         assert!(broke.contains(Zone::Legs));
@@ -500,11 +418,7 @@ mod tests {
             halo.tick(&spec, dt);
             t += dt;
         }
-        assert_eq!(
-            halo.shield.head,
-            spec.capacity.head - 30.0,
-            "no regen during the delay"
-        );
+        assert_eq!(halo.shield.head, spec.capacity.head - 30.0, "no regen during the delay");
         for _ in 0..(60.0 * (30.0 / r.rate_per_s + 0.2)) as usize {
             halo.tick(&spec, dt);
         }
@@ -525,18 +439,11 @@ mod tests {
     #[test]
     fn smg_ammo_only_pierces_tier_one() {
         let d = GameData::embedded();
-        let smg = &d
-            .ammo
-            .resolve(WeaponClass::Smg, AmmoChoice::STANDARD)
-            .unwrap();
+        let smg = &d.ammo.resolve(WeaponClass::Smg, AmmoChoice::STANDARD).unwrap();
         let t1 = HaloSpec::from_armor(&d.armor.resolve_id("arm_phase_runner").unwrap());
         let mut h = HaloState::full(&t1);
         let a = h.absorb(&t1, Zone::Torso, 30.0, smg);
-        assert!(
-            (a.to_hp - 30.0 * smg.pen[0]).abs() < 1e-4,
-            "slight pen through T1: {}",
-            a.to_hp
-        );
+        assert!((a.to_hp - 30.0 * smg.pen[0]).abs() < 1e-4, "slight pen through T1: {}", a.to_hp);
         assert!(a.to_hp > 0.0);
         let t2 = HaloSpec::from_armor(&d.armor.resolve_id("arm_mender_scout").unwrap());
         let mut h = HaloState::full(&t2);
@@ -555,17 +462,8 @@ mod tests {
         let mut hp = Health::new(d.armor.zone_hp);
         let mut broke = false;
         for _ in 0..10 {
-            broke |= resolve_hit(
-                w,
-                ammo,
-                10.0,
-                Zone::Torso,
-                &d.weapons.spill_to_torso,
-                &spec,
-                &mut halo,
-                &mut hp,
-            )
-            .shield_broke;
+            broke |= resolve_hit(w, ammo, 10.0, Zone::Torso, &d.weapons.spill_to_torso, &spec, &mut halo, &mut hp)
+                .shield_broke;
         }
         assert!(broke);
         assert_eq!(halo.shield.torso, 0.0);
@@ -583,34 +481,21 @@ mod tests {
             let spec = HaloSpec::from_armor(&d.armor.resolve_id("arm_bulwark_vanguard").unwrap());
             let (mut halo, mut hp) = (HaloState::full(&spec), Health::new(d.armor.zone_hp));
             (1..50)
-                .find(|_| {
-                    resolve_hit(w, a, 10.0, Zone::Torso, spill, &spec, &mut halo, &mut hp)
-                        .shield_broke
-                })
+                .find(|_| resolve_hit(w, a, 10.0, Zone::Torso, spill, &spec, &mut halo, &mut hp).shield_broke)
                 .unwrap()
         };
         let std = ammo(&d, "ar7_mako", AmmoKind::Standard, 1);
-        assert!(
-            shots_to_break(&ammo(&d, "ar7_mako", AmmoKind::Shrapnel, 3)) < shots_to_break(&std)
-        );
+        assert!(shots_to_break(&ammo(&d, "ar7_mako", AmmoKind::Shrapnel, 3)) < shots_to_break(&std));
         let kill_bare = |a: &AmmoSpec| {
             let spec = HaloSpec::NONE;
             let (mut halo, mut hp) = (HaloState::full(&spec), Health::new(d.armor.zone_hp));
-            (1..50)
-                .find(|_| {
-                    resolve_hit(w, a, 10.0, Zone::Torso, spill, &spec, &mut halo, &mut hp).killed
-                })
-                .unwrap()
+            (1..50).find(|_| resolve_hit(w, a, 10.0, Zone::Torso, spill, &spec, &mut halo, &mut hp).killed).unwrap()
         };
         assert!(kill_bare(&ammo(&d, "ar7_mako", AmmoKind::Rip, 3)) < kill_bare(&std));
         // and AP gets more through a T3 arc than standard
         let spec = HaloSpec::from_armor(&d.armor.resolve_id("arm_volt_line").unwrap());
         let ap = ammo(&d, "ar7_mako", AmmoKind::ArmorPiercing, 3);
-        let through = |a: &AmmoSpec| {
-            HaloState::full(&spec)
-                .absorb(&spec, Zone::Torso, 37.0, a)
-                .to_hp
-        };
+        let through = |a: &AmmoSpec| HaloState::full(&spec).absorb(&spec, Zone::Torso, 37.0, a).to_hp;
         assert!(through(&ap) > through(&std));
     }
 }

@@ -70,8 +70,6 @@ impl Level {
     }
 
     pub fn spawns_for(&self, team: Option<Team>) -> impl Iterator<Item = &SpawnPoint> {
-        self.spawns
-            .iter()
-            .filter(move |s| s.team.is_none() || team.is_none() || s.team == team)
+        self.spawns.iter().filter(move |s| s.team.is_none() || team.is_none() || s.team == team)
     }
 }

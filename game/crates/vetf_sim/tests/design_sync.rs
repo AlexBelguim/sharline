@@ -60,11 +60,7 @@ fn compare(path: &str, design: &Value, game: &Value, errors: &mut Vec<String>) {
         }
         (Value::Array(a), Value::Array(b)) => {
             if a.len() != b.len() {
-                errors.push(format!(
-                    "{path}: design has {} items, game has {}",
-                    a.len(),
-                    b.len()
-                ));
+                errors.push(format!("{path}: design has {} items, game has {}", a.len(), b.len()));
                 return;
             }
             for (i, (x, y)) in a.iter().zip(b).enumerate() {
@@ -83,11 +79,7 @@ fn check(file: &str, game: Value) {
     };
     let mut errors = Vec::new();
     compare(file, &design, &game, &mut errors);
-    assert!(
-        errors.is_empty(),
-        "game/assets/data drifted from design/systems/data:\n  {}",
-        errors.join("\n  ")
-    );
+    assert!(errors.is_empty(), "game/assets/data drifted from design/systems/data:\n  {}", errors.join("\n  "));
 }
 
 fn to_value<T: serde::Serialize>(v: &T) -> Value {
@@ -103,10 +95,7 @@ fn weapons_match_design() {
 #[test]
 fn recoil_pattern_matches_design() {
     let d = GameData::embedded();
-    check(
-        "mako_recoil_pattern.json",
-        to_value(&d.recoil_patterns["mako_recoil_pattern"]),
-    );
+    check("mako_recoil_pattern.json", to_value(&d.recoil_patterns["mako_recoil_pattern"]));
 }
 
 #[test]
@@ -122,9 +111,7 @@ fn armor_matches_design() {
         .iter()
         .map(|p| {
             let id = p["id"].as_str().unwrap();
-            d.armor
-                .resolve_id(id)
-                .unwrap_or_else(|| panic!("design preset {id} missing from armor.ron"))
+            d.armor.resolve_id(id).unwrap_or_else(|| panic!("design preset {id} missing from armor.ron"))
         })
         .collect();
     let mut game = to_value(&d.armor);

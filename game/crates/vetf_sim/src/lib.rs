@@ -7,6 +7,7 @@ pub mod combat;
 pub mod data;
 pub mod input;
 pub mod level;
+pub mod maps;
 pub mod movement;
 pub mod recoil;
 pub mod rng;
