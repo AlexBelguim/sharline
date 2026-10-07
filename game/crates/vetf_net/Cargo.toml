@@ -11,3 +11,6 @@ vetf_sim.workspace = true
 bevy = { workspace = true, default-features = false, features = ["std", "bevy_state", "serialize"] }
 lightyear.workspace = true
 serde.workspace = true
+
+[dev-dependencies]
+ron.workspace = true

@@ -49,12 +49,12 @@ pub struct ZoneBox {
 }
 
 impl ZoneBox {
-    fn to_local(&self, p: Vec3) -> Vec3 {
+    fn local(&self, p: Vec3) -> Vec3 {
         Quat::from_rotation_y(-self.yaw) * (p - self.center)
     }
 
     pub fn contains(&self, p: Vec3, inflate: f32) -> bool {
-        let l = self.to_local(p).abs();
+        let l = self.local(p).abs();
         let h = self.half + Vec3::splat(inflate);
         l.x <= h.x && l.y <= h.y && l.z <= h.z
     }
@@ -118,13 +118,9 @@ pub struct PoseHistory {
 
 impl PoseHistory {
     pub fn push(&mut self, tick: u32, pose: Pose, keep_ticks: u32) {
-        if let Some(&(last, _)) = self.entries.back() {
-            if tick <= last {
-                // Re-recording a tick (should not happen on the host) replaces the newer entries.
-                while self.entries.back().is_some_and(|(t, _)| *t >= tick) {
-                    self.entries.pop_back();
-                }
-            }
+        // Re-recording a tick (should not happen on the host) replaces the newer entries.
+        while self.entries.back().is_some_and(|(t, _)| *t >= tick) {
+            self.entries.pop_back();
         }
         self.entries.push_back((tick, pose));
         while self.entries.front().is_some_and(|(t, _)| tick.saturating_sub(*t) > keep_ticks) {
