@@ -77,9 +77,8 @@ fn input_box(width: Option<f32>) -> impl Bundle {
             ..default()
         },
         BackgroundColor(K45),
-        // The visuals system keeps this border (browser-matched, red when invalid).
-        BorderColor::all(super::browser(STROKE_HI)),
-        super::BrowserBlended,
+        // The visuals system keeps this border (red when invalid).
+        BorderColor::all(STROKE_HI),
     )
 }
 
@@ -107,8 +106,6 @@ pub(super) fn spawn_flyout(
             },
         ),
     ))
-    // The panel sits over the art: blend like the browser does.
-    .insert(BackgroundColor(super::browser_fill_over_art(PANEL_HI)))
     .with_children(|p| {
         p.spawn(fonts.role(TextRole::FlyoutTitle, "Host game"));
         p.spawn((fonts.role(TextRole::Help, copy::HOST_INTRO), Node { margin: UiRect::top(px(6)), ..default() }));
@@ -385,7 +382,7 @@ fn visuals(
             continue;
         }
         port_ok = parse_host_port(&f.value).is_some();
-        let want = BorderColor::all(if port_ok { super::browser(STROKE_HI) } else { BAD });
+        let want = BorderColor::all(if port_ok { STROKE_HI } else { BAD });
         if *border != want {
             *border = want;
         }

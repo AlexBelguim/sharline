@@ -70,6 +70,16 @@ Hub screens (Loadout, Settings, the ESC menu, modals, later the lobby and death 
 - **Mouse after a click that changes screens:** `LocalControl.mouse_block` keeps the mouse buttons off until they
   are released (set on entering the match, while paused or under a screen, and when the window regains focus), so
   the click on CONFIRM, RESUME or CREATE LOBBY never fires a shot.
+- **Colours: the kit is the only place that blend-corrects.** Bevy blends UI in linear light, CSS in sRGB, so
+  translucent mockup colours need another alpha in Bevy. Every translucent token and helper in
+  `ui_kit/tokens.rs` (`STROKE*`, `W03`..`W70`, `PANEL*`, `white(a)`, `hexa(rgb, a)`, `translucent(c, a)`,
+  `fade(c, a)`) already carries the corrected alpha: pass the CSS alpha, use the result as it is, and never
+  correct it again (no `with_alpha` on a CSS `rgba(...)`). Over the main-menu art or the live match use
+  `hexa_over(rgb, a, ART_REF)` (`PANEL_HI_OVER_ART`). A dark shade or scrim over anything: `scrim(rgb, a)` or
+  `scrim_stops(..)` + `hexa_exact` for gradients (`MODAL_BACKDROP` and `SCOREBOARD_DIM` already are). Bevy does
+  not paint a node's fill under its border while CSS does, so a border on a filled element uses
+  `white_on(stroke_a, fill_a)` / `stroke_on_fill(..)` (the kit's `BTN`, `TILE`, `CHIP`, `LIST_ROW` looks do).
+  Measured against the mockup PNGs, the menu and Loadout fills and hairlines land within about 5 levels.
 - **Demo runs:** add a `--demo-ui <screen>` value that opens your screen (see `loadout::demo_open`), and check
   Esc with `--esc-at S,S,..` (Esc presses at those seconds after start-up).
 

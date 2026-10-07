@@ -21,7 +21,7 @@ pub enum PanelKind {
     Base,
     /// `.panel.hi`: PANEL_HI fill.
     Hi,
-    /// Main-menu flyout: PANEL_HI and a 2 px TEAL top border.
+    /// Main-menu flyout over the art: PANEL_HI and a 2 px TEAL top border (over-art colours).
     Flyout,
     /// Popover: PANEL_HI, 2 px TEAL top, a deep shadow.
     Popover,
@@ -40,9 +40,10 @@ pub fn panel_of(kind: PanelKind, node: Node) -> impl Bundle {
     let (bg, border, top, left) = match kind {
         PanelKind::Base => (PANEL, BorderColor::all(STROKE), 1.0, 1.0),
         PanelKind::Hi => (PANEL_HI, BorderColor::all(STROKE), 1.0, 1.0),
-        PanelKind::Flyout | PanelKind::Popover => {
-            (PANEL_HI, BorderColor { top: TEAL, ..BorderColor::all(STROKE) }, 2.0, 1.0)
+        PanelKind::Flyout => {
+            (PANEL_HI_OVER_ART, BorderColor { top: TEAL, ..BorderColor::all(PANEL_HI_OVER_ART_STROKE) }, 2.0, 1.0)
         }
+        PanelKind::Popover => (PANEL_HI, BorderColor { top: TEAL, ..BorderColor::all(STROKE) }, 2.0, 1.0),
         PanelKind::Result => (PANEL, BorderColor { top: TEXT_HI, ..BorderColor::all(STROKE) }, 2.0, 1.0),
         PanelKind::Killer => (PANEL_HI, BorderColor { left: ENEMY, ..BorderColor::all(STROKE) }, 1.0, 3.0),
         PanelKind::Menu => (MENU_SURFACE, BorderColor::all(STROKE), 1.0, 1.0),

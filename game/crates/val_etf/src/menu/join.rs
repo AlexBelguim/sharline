@@ -89,8 +89,6 @@ pub(super) fn spawn_flyout(r: &mut ChildSpawnerCommands, ctx: &Ctx, recent: &Rec
             },
         ),
     ))
-    // The panel sits over the art: blend like the browser does.
-    .insert(BackgroundColor(super::browser_fill_over_art(PANEL_HI)))
     .with_children(|p| {
         p.spawn(fonts.role(TextRole::FlyoutTitle, "Join game"));
         p.spawn((
@@ -155,8 +153,7 @@ pub(super) fn spawn_flyout(r: &mut ChildSpawnerCommands, ctx: &Ctx, recent: &Rec
                             ..default()
                         },
                         BackgroundColor(K45),
-                        BorderColor::all(super::browser(STROKE_HI)),
-                        super::BrowserBlended,
+                        BorderColor::all(STROKE_HI),
                     ),
                     |f| {
                         f.spawn((
@@ -429,7 +426,7 @@ fn visuals(
             continue;
         }
         let bad = error.is_some() && Some(f.id) == error_field;
-        let want = BorderColor::all(if bad { BAD } else { super::browser(STROKE_HI) });
+        let want = BorderColor::all(if bad { BAD } else { STROKE_HI });
         if *border != want {
             *border = want;
         }
