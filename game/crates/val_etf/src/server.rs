@@ -31,6 +31,7 @@ impl Plugin for ServerPlugin {
             .add_message::<PlayerDied>()
             .add_observer(on_new_link)
             .add_observer(on_link_connected)
+            .add_observer(on_link_lost)
             .add_systems(
                 Update,
                 (receive_hellos, receive_loadout_updates, receive_claims, demo_wounds).run_if(is_hosting),
@@ -106,6 +107,17 @@ pub fn spawn_match(commands: &mut Commands, data: &GameData, map: &str) {
 /// Every new link (remote clients and the host's own) needs a replication sender.
 fn on_new_link(trigger: On<Add, LinkOf>, mut commands: Commands) {
     commands.entity(trigger.entity).insert(ReplicationSender);
+}
+
+/// A client left (or timed out): remove their player, or it stays in the match as a ghost replaying its
+/// last input.
+fn on_link_lost(trigger: On<Remove, Connected>, players: Query<(Entity, &ServerPlayer)>, mut commands: Commands) {
+    for (e, p) in &players {
+        if p.link == trigger.entity {
+            info!("removing player {e} (link {} disconnected)", trigger.entity);
+            commands.entity(e).try_despawn();
+        }
+    }
 }
 
 /// A client finished connecting: give them a player.

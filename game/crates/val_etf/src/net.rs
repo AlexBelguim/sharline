@@ -25,10 +25,11 @@ impl Plugin for NetPlugin {
     fn build(&self, app: &mut App) {
         app.init_resource::<Session>()
             .init_resource::<HostSettings>()
+            .init_resource::<Closing>()
             .insert_resource(crate::user_config::load_or_default::<RecentServers>(RecentServers::FILE))
             .init_resource::<RecentPending>()
             .add_message::<NetRequest>()
-            .add_systems(Update, (poll_internet, handle_requests, copy_invite).chain())
+            .add_systems(Update, (poll_internet, handle_requests, copy_invite, finish_closing).chain())
             .add_systems(Startup, auto_start)
             .add_systems(OnEnter(AppState::InGame), arm_recent)
             .add_systems(Update, record_recent.run_if(in_state(AppState::InGame)))
@@ -213,6 +214,8 @@ fn handle_requests(
     mut next: ResMut<NextState<AppState>>,
     data: Res<Data>,
     host: Res<HostSettings>,
+    replicated: Query<Entity, Or<(With<Replicate>, With<lightyear::prelude::client::Remote>)>>,
+    mut closing: ResMut<Closing>,
 ) {
     for req in requests.read() {
         match req {
@@ -356,7 +359,7 @@ fn handle_requests(
                 next.set(AppState::Connecting);
             }
             NetRequest::Leave { reason } => {
-                session.internet = None;
+                let bridge = session.internet.take();
                 session.internet_error = None;
                 if let Some(server) = session.server.take() {
                     commands.trigger(Stop { entity: server });
@@ -365,8 +368,21 @@ fn handle_requests(
                 if let Some(client) = session.client.take() {
                     if session.role == Role::Client {
                         commands.trigger(Disconnect { entity: client });
+                        // Keep the link (and Iroh bridge) a moment so the disconnect packets reach the host.
+                        // Otherwise it only notices at the timeout, with our player left standing there.
+                        if let Some(old) = closing.client.replace(client) {
+                            commands.entity(old).try_despawn();
+                        }
+                        closing.bridge = bridge;
+                        closing.left_s = 0.5;
+                    } else {
+                        commands.entity(client).try_despawn();
                     }
-                    commands.entity(client).try_despawn();
+                }
+                // Players and the match state of the game we left (ours if we hosted, the host's copies if we
+                // joined). A stale player would keep `Controlled`, and the next game's camera would follow it.
+                for e in &replicated {
+                    commands.entity(e).try_despawn();
                 }
                 commands.remove_resource::<CurrentLevel>();
                 session.role = Role::Offline;
@@ -377,6 +393,27 @@ fn handle_requests(
                 next.set(AppState::MainMenu);
             }
         }
+    }
+}
+
+/// A connection we just left, kept until its disconnect packets are out.
+#[derive(Resource, Default)]
+struct Closing {
+    client: Option<Entity>,
+    bridge: Option<Bridge>,
+    left_s: f32,
+}
+
+fn finish_closing(mut closing: ResMut<Closing>, time: Res<Time>, mut commands: Commands) {
+    if closing.client.is_none() {
+        return;
+    }
+    closing.left_s -= time.delta_secs();
+    if closing.left_s <= 0.0 {
+        if let Some(client) = closing.client.take() {
+            commands.entity(client).try_despawn();
+        }
+        closing.bridge = None;
     }
 }
 

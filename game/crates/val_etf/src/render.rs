@@ -327,16 +327,26 @@ fn attach_player_visuals(
 #[allow(clippy::type_complexity)]
 fn update_player_visuals(
     mut players: Query<
-        (&PlayerMove, &PlayerLook, &Vitals, &PlayerLoadout, &mut Transform, &mut Visibility, &Children),
+        (
+            &PlayerMove,
+            &PlayerLook,
+            &Vitals,
+            &PlayerLoadout,
+            &mut Transform,
+            &mut Visibility,
+            &Children,
+            Has<Controlled>,
+        ),
         With<PlayerVisual>,
     >,
     mut arcs: Query<(&HaloArc, &mut Visibility), Without<PlayerVisual>>,
 ) {
-    for (mv, look, vitals, loadout, mut t, mut vis, children) in &mut players {
+    for (mv, look, vitals, loadout, mut t, mut vis, children, mine) in &mut players {
         t.translation = mv.0.pos;
         t.rotation = Quat::from_rotation_y(look.yaw);
         t.scale = Vec3::new(1.0, if mv.0.stance == Stance::Stand { 1.0 } else { 0.68 }, 1.0);
-        *vis = if vitals.health.dead { Visibility::Hidden } else { Visibility::Inherited };
+        // Our own body never shows (it can get visuals if it arrived a frame before `Controlled` did).
+        *vis = if vitals.health.dead || mine { Visibility::Hidden } else { Visibility::Inherited };
         for child in children.iter() {
             if let Ok((arc, mut v)) = arcs.get_mut(child) {
                 // A broken arc goes dark (it flares back when it regenerates).
