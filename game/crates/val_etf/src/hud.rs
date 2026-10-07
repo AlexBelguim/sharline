@@ -12,10 +12,9 @@
 //! Hard rule: no exact ammo count anywhere. Rounds are only ever reported as a mag-check estimate.
 
 use crate::AppState;
-use crate::client::{Feedback, LocalControl};
+use crate::client::Feedback;
 use crate::config::Data;
-use crate::invite::JoinInfo;
-use crate::net::{NetRequest, Session};
+use crate::net::Session;
 use crate::render::ViewCamera;
 use crate::ui_kit::{self as kit, Face, UiFonts, abs, panel};
 use bevy::prelude::*;
@@ -43,7 +42,6 @@ impl Plugin for HudPlugin {
                     update_feed,
                     update_overlays,
                     update_damage_indicators,
-                    pause_buttons,
                     update_connecting.run_if(in_state(AppState::Connecting)),
                 )
                     .run_if(in_state(AppState::InGame).or_else(in_state(AppState::Connecting))),
@@ -130,24 +128,10 @@ struct FeedVictim(usize);
 struct FeedTag(usize);
 #[derive(Component)]
 struct CenterBanner;
-/// The legacy pause overlay, which also carries the Tab board (until the ESC menu and the scoreboard
-/// replace both).
-#[derive(Component)]
-struct PauseRoot;
-/// Parts of the pause overlay shown only while paused (the title and buttons), not for the Tab board.
-#[derive(Component)]
-struct PauseOnly;
-#[derive(Component)]
-struct ScoreboardText;
 #[derive(Component)]
 struct DamageChevron(usize);
 #[derive(Component)]
 struct ConnectingText;
-#[derive(Component, Clone, Copy)]
-enum PauseButton {
-    Resume,
-    Leave,
-}
 
 fn spawn_connecting(mut commands: Commands, fonts: Res<UiFonts>) {
     commands.spawn((
@@ -477,56 +461,13 @@ fn spawn_hud(mut commands: Commands, data: Res<Data>, fonts: Res<UiFonts>) {
         ));
     }
 
-    // --- centre banner (death / match end) and pause menu
+    // --- centre banner (death / match end)
     commands.spawn((
         CenterBanner,
         Node { width: percent(100), justify_content: JustifyContent::Center, ..abs(None, None, Some(200.0), None) },
         ChildOf(root),
         children![(fonts.text("", Face::Display, 700, 34.0, kit::TEXT_HI, 0.06), TextLayout::justify(Justify::Center))],
     ));
-    commands.spawn((
-        PauseRoot,
-        Node {
-            position_type: PositionType::Absolute,
-            width: percent(100),
-            height: percent(100),
-            flex_direction: FlexDirection::Column,
-            align_items: AlignItems::Center,
-            justify_content: JustifyContent::Center,
-            row_gap: px(12),
-            ..default()
-        },
-        BackgroundColor(kit::BG0.with_alpha(0.78)),
-        Visibility::Hidden,
-        ChildOf(root),
-        children![
-            (PauseOnly, fonts.text("PAUSED", Face::Display, 700, 34.0, kit::TEXT_HI, 0.08)),
-            (
-                ScoreboardText,
-                fonts.text("", Face::Display, 600, 16.0, kit::TEXT, 0.04),
-                TextLayout::justify(Justify::Center)
-            ),
-            (PauseOnly, menu_button(&fonts, "RESUME", PauseButton::Resume)),
-            (PauseOnly, menu_button(&fonts, "LEAVE MATCH", PauseButton::Leave)),
-        ],
-    ));
-}
-
-fn menu_button(fonts: &UiFonts, label: &str, action: PauseButton) -> impl Bundle {
-    (
-        Button,
-        action,
-        Node {
-            width: px(260),
-            height: px(44),
-            align_items: AlignItems::Center,
-            justify_content: JustifyContent::Center,
-            border_radius: BorderRadius::all(px(2)),
-            ..default()
-        },
-        BackgroundColor(kit::TEXT_HI),
-        children![fonts.text(label, Face::Display, 700, 16.0, kit::BG0, 0.12)],
-    )
 }
 
 /// Recent-damage trail per region: the value shown, the last HP seen, and seconds before it drains.
@@ -865,19 +806,11 @@ fn update_feed(
     }
 }
 
-#[allow(clippy::type_complexity)]
 fn update_overlays(
     me: Query<(&Vitals, &PlayerInfo), With<Controlled>>,
     matches: Query<&MatchState>,
-    players: Query<(&PlayerInfo, &Score)>,
-    control: Res<LocalControl>,
-    session: Res<Session>,
-    data: Res<Data>,
     banner: Query<&Children, With<CenterBanner>>,
-    mut texts: Query<&mut Text, Without<ScoreboardText>>,
-    mut pause: Query<&mut Visibility, (With<PauseRoot>, Without<PauseOnly>)>,
-    mut pause_only: Query<&mut Visibility, (With<PauseOnly>, Without<PauseRoot>)>,
-    mut board: Query<&mut Text, With<ScoreboardText>>,
+    mut texts: Query<&mut Text>,
 ) {
     let Some((v, info)) = me.iter().next() else { return };
     let m = matches.iter().next();
@@ -897,57 +830,6 @@ fn update_overlays(
             if let Ok(mut t) = texts.get_mut(c) {
                 t.0 = msg.clone();
             }
-        }
-    }
-    // The pause overlay keeps the invite's state and a short list until the ESC menu replaces it; holding
-    // Tab shows the scoreboard (`scoreboard.rs`).
-    let show_board = control.paused;
-    let shown = |on: bool| if on { Visibility::Inherited } else { Visibility::Hidden };
-    for mut vis in &mut pause {
-        vis.set_if_neq(shown(show_board));
-    }
-    for mut vis in &mut pause_only {
-        vis.set_if_neq(shown(control.paused));
-    }
-    if show_board {
-        // How friends join: the invite's state (never the full 64-hex invite), see `invite::JoinInfo`.
-        let mut lines = vec![];
-        let join = JoinInfo::of(&session, data.net.port);
-        if join != JoinInfo::None {
-            lines.push(format!("{}  {}", join.label(), join.headline()));
-            if let Some(detail) = join.detail() {
-                lines.push(detail);
-            }
-            if let JoinInfo::Ready { lan: Some(lan), .. } | JoinInfo::Preparing { lan: Some(lan) } = &join {
-                lines.push(format!("LAN {lan}"));
-            }
-            if join.copy_text().is_some() {
-                lines.push(format!("[F6] {}", join.copy_label()));
-            }
-            lines.push(String::new());
-        }
-        let teams = match info.team {
-            Some(t) => vec![Some(t), Some(t.other())],
-            None => vec![None],
-        };
-        for team in teams {
-            let mut rows: Vec<_> = players.iter().filter(|(i, _)| i.team == team).collect();
-            if rows.is_empty() {
-                continue;
-            }
-            rows.sort_by_key(|(_, s)| std::cmp::Reverse(s.kills));
-            lines.push(match team {
-                Some(t) if Some(t) == info.team => "YOUR TEAM".into(),
-                Some(_) => "ENEMY TEAM".into(),
-                None => "PLAYERS".into(),
-            });
-            for (i, s) in rows {
-                lines.push(format!("{:<16} {:>3} / {:<3}", i.name, s.kills, s.deaths));
-            }
-            lines.push(String::new());
-        }
-        for mut t in &mut board {
-            t.0 = lines.join("\n");
         }
     }
 }
@@ -970,26 +852,6 @@ fn update_damage_indicators(
                 *vis = Visibility::Inherited;
             }
             None => *vis = Visibility::Hidden,
-        }
-    }
-}
-
-/// The pause overlay's buttons (the cursor follows `paused`, see `screens::apply_cursor`).
-fn pause_buttons(
-    q: Query<(&Interaction, &PauseButton), Changed<Interaction>>,
-    mut control: ResMut<LocalControl>,
-    mut requests: MessageWriter<NetRequest>,
-) {
-    for (i, b) in &q {
-        if *i != Interaction::Pressed {
-            continue;
-        }
-        match b {
-            PauseButton::Resume => control.paused = false,
-            PauseButton::Leave => {
-                control.paused = false;
-                requests.write(NetRequest::Leave { reason: None });
-            }
         }
     }
 }

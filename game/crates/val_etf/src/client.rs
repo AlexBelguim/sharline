@@ -179,8 +179,9 @@ fn block_mouse_on_focus(mut focus: MessageReader<WindowFocused>, mut control: Re
 }
 
 /// Esc in the match, when no hub screen is open (`screens::EscSystems::Base`): it closes an open ring menu,
-/// else toggles the pause overlay. The cursor follows `paused` (`screens::apply_cursor`).
-fn esc_in_match(mut esc: ResMut<EscPress>, mut control: ResMut<LocalControl>) {
+/// else opens the ESC menu (`esc_menu.rs`). The match keeps running; the cursor follows the screen stack
+/// (`screens::apply_cursor`).
+fn esc_in_match(mut esc: ResMut<EscPress>, mut control: ResMut<LocalControl>, mut screens: ResMut<Screens>) {
     if esc.take() {
         // Esc closes an open ring menu first (and forgets a reload hold, so it does not reopen).
         let heal = control.heal.take().is_some();
@@ -190,7 +191,7 @@ fn esc_in_match(mut esc: ResMut<EscPress>, mut control: ResMut<LocalControl>) {
             control.mouse_block = true;
             return;
         }
-        control.paused = !control.paused;
+        screens.push(crate::screens::Screen::Esc);
     }
 }
 
