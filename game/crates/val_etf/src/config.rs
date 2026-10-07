@@ -21,7 +21,13 @@ pub fn assets_root() -> &'static Path {
     ROOT.get_or_init(|| {
         let exe_dir = std::env::current_exe().ok().and_then(|e| e.parent().map(Path::to_path_buf));
         let source = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../assets");
-        pick_assets_root(std::env::var_os("VETF_ASSETS").map(PathBuf::from), exe_dir.as_deref(), &source)
+        let env = std::env::var_os("VETF_ASSETS").filter(|v| !v.is_empty()).map(PathBuf::from);
+        let root = pick_assets_root(env.clone(), exe_dir.as_deref(), &source);
+        // Before logging starts (the asset plugin needs the folder first), so on stderr.
+        if let Some(env) = env.filter(|e| std::path::absolute(e).ok().as_deref() != Some(root.as_path())) {
+            eprintln!("VETF_ASSETS={} has no data/rules.ron; using {}", env.display(), root.display());
+        }
+        root
     })
 }
 
@@ -29,6 +35,9 @@ pub fn assets_root() -> &'static Path {
 /// copied build) or in the nearest folder above it (`target/debug`, `target/release` and
 /// `target/<triple>/release` all sit under `game/`); else the source tree the binary was built from. Only a
 /// folder with `data/rules.ron` counts, so the repository's art `assets/` folder never matches.
+///
+/// The result is absolute: Bevy joins a relative asset path to the exe's folder (or `CARGO_MANIFEST_DIR`),
+/// not to the current directory the data files were checked against (a relative `VETF_ASSETS`).
 pub fn pick_assets_root(env: Option<PathBuf>, exe_dir: Option<&Path>, source: &Path) -> PathBuf {
     let is_root = |d: &Path| d.join("data").join("rules.ron").is_file();
     let mut candidates: Vec<PathBuf> = env.into_iter().collect();
@@ -36,7 +45,9 @@ pub fn pick_assets_root(env: Option<PathBuf>, exe_dir: Option<&Path>, source: &P
         candidates.extend(dir.ancestors().map(|a| a.join("assets")));
     }
     candidates.push(source.to_path_buf());
-    candidates.into_iter().find(|d| is_root(d)).unwrap_or_else(|| source.to_path_buf())
+    let root = candidates.into_iter().find(|d| is_root(d)).unwrap_or_else(|| source.to_path_buf());
+    // `absolute` (not `canonicalize`): no verbatim prefix on Windows, which would break `ui/icons/x.png`.
+    std::path::absolute(&root).unwrap_or(root)
 }
 
 /// Load `game/assets/data/*.ron` so numbers can be tuned without rebuilding; fall back to the copy compiled
@@ -364,6 +375,14 @@ mod tests {
         // VETF_ASSETS wins; nothing found falls back to the source tree.
         assert_eq!(pick_assets_root(Some(shipped.join("assets")), Some(&release), &source), shipped.join("assets"));
         assert_eq!(pick_assets_root(None, Some(&tmp.join("empty")), &source), source);
+        // A relative VETF_ASSETS is made absolute against the current directory (Bevy would otherwise join it
+        // to the exe's folder, while the data files were read from here).
+        let rel = PathBuf::from(format!("vetf_rel_assets_{}", std::process::id()));
+        mk(&rel, true);
+        let got = pick_assets_root(Some(rel.clone()), Some(&release), &source);
+        std::fs::remove_dir_all(&rel).ok();
+        assert!(got.is_absolute() && got.ends_with(&rel), "{}", got.display());
+        assert_eq!(got, std::env::current_dir().unwrap().join(&rel));
         std::fs::remove_dir_all(&tmp).ok();
     }
 
