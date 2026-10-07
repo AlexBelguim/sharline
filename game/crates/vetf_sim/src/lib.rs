@@ -5,10 +5,12 @@
 
 pub mod combat;
 pub mod data;
+pub mod hitbox;
 pub mod input;
 pub mod level;
 pub mod maps;
 pub mod movement;
+pub mod player;
 pub mod recoil;
 pub mod rng;
 pub mod weapon;
