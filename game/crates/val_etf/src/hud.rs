@@ -9,16 +9,23 @@
 //! - Score (top centre, ally/enemy colours), kill feed (top right), crosshair, hit marker and damage
 //!   direction stay.
 //!
+//! The settings shape it as they change: HUD scale, safe area and the 16:9 width scale and place the HUD
+//! (the crosshair keeps its own size), the crosshair and hit markers follow MOUSE & AIM, and the kill feed
+//! lines, team colours, damage flash and reduce flashing follow HUD & ACCESSIBILITY.
+//!
 //! Hard rule: no exact ammo count anywhere. Rounds are only ever reported as a mag-check estimate.
 
 use crate::AppState;
 use crate::client::{Feedback, LocalControl};
-use crate::config::Data;
+use crate::config::{Cli, Data};
 use crate::invite::JoinInfo;
 use crate::net::{NetRequest, Session};
 use crate::render::ViewCamera;
+use crate::settings::{DamageFlash, HitMarkers, Settings, Ultrawide, crosshair_rects, rgb_color};
 use crate::ui_kit::{self as kit, Face, UiFonts, abs, panel};
 use bevy::prelude::*;
+use bevy::ui::{ColorStop, RadialGradient, RadialGradientShape, UiPosition};
+use bevy::window::PrimaryWindow;
 use lightyear::prelude::*;
 use vetf_net::*;
 use vetf_sim::Zone;
@@ -47,7 +54,8 @@ impl Plugin for HudPlugin {
                     update_connecting.run_if(in_state(AppState::Connecting)),
                 )
                     .run_if(in_state(AppState::InGame).or_else(in_state(AppState::Connecting))),
-            );
+            )
+            .add_systems(Update, (fit_hud, update_damage_flash, demo_hud_fx).run_if(in_state(AppState::InGame)));
     }
 }
 
@@ -62,7 +70,18 @@ const GHOST_HOLD_S: f32 = 0.45;
 const GHOST_DRAIN: f32 = 90.0;
 /// A fire-mode change shows under the crosshair this long.
 const TOAST_S: f32 = 1.2;
-const FEED_ROWS: usize = 5;
+/// The most KILL FEED LINES offers; the setting shows 3, 5 or 7 of them.
+const FEED_ROWS: usize = 7;
+/// The camera's vertical field of view when there is no perspective view camera (render.rs's default).
+const FALLBACK_VFOV_DEG: f32 = 78.0;
+/// The crosshair outline (1 px, drawn around each line).
+const CROSSHAIR_OUTLINE: Color = Color::srgba(0.0, 0.0, 0.0, 0.6);
+/// The red edge flash when hit: its peak alpha at SOFT and FULL, the cap REDUCE FLASHING puts on it, and how
+/// long it fades.
+const FLASH_SOFT: f32 = 0.12;
+const FLASH_FULL: f32 = 0.25;
+const FLASH_REDUCED: f32 = 0.08;
+const FLASH_S: f32 = 0.45;
 
 #[derive(Component)]
 struct RowLabel(Zone);
@@ -110,16 +129,29 @@ struct ScoreRoot;
 struct ScoreAlly;
 #[derive(Component)]
 struct ScoreEnemy;
+/// A team score box: yours (ally colour) or theirs (enemy colour).
 #[derive(Component)]
-struct ScoreBox;
+struct ScoreBox {
+    enemy: bool,
+}
 #[derive(Component)]
 struct MatchClock;
 #[derive(Component)]
 struct MatchSub;
+/// The HUD canvas, scaled and narrowed by the settings (`fit_hud`).
 #[derive(Component)]
-struct CrosshairArm(u8);
+struct HudRoot;
+/// The corner and edge groups' frame: the canvas less the safe-area margin.
+#[derive(Component)]
+struct HudSafeArea;
+/// One rectangle of the crosshair (`settings::crosshair_rects`: four lines, then the dot).
+#[derive(Component)]
+struct CrosshairPart(usize);
 #[derive(Component)]
 struct HitMarker;
+/// The red screen-edge flash when hit.
+#[derive(Component)]
+struct DamageFlashEdge;
 #[derive(Component)]
 struct FeedRow(usize);
 #[derive(Component)]
@@ -184,12 +216,19 @@ fn seg_fill(value: f32, max: f32, i: usize) -> f32 {
 }
 
 fn spawn_hud(mut commands: Commands, data: Res<Data>, fonts: Res<UiFonts>) {
+    // The canvas: HUD SCALE scales it about the screen centre, and on ultrawide screens it can keep 16:9.
     let root = commands
         .spawn((
-            Node { width: percent(100), height: percent(100), ..default() },
+            HudRoot,
+            Node { position_type: PositionType::Absolute, width: percent(100), height: percent(100), ..default() },
+            UiTransform::IDENTITY,
             DespawnOnExit(AppState::InGame),
             Pickable::IGNORE,
         ))
+        .id();
+    // The corner and edge groups sit inside the safe-area margin.
+    let edges = commands
+        .spawn((HudSafeArea, abs(Some(32.0), Some(32.0), Some(32.0), Some(32.0)), Pickable::IGNORE, ChildOf(root)))
         .id();
 
     // --- vitals (bottom left)
@@ -200,11 +239,11 @@ fn spawn_hud(mut commands: Commands, data: Res<Data>, fonts: Res<UiFonts>) {
                     flex_direction: FlexDirection::Column,
                     padding: UiRect::axes(px(14), px(12)),
                     row_gap: px(7),
-                    ..abs(Some(32.0), None, None, Some(32.0))
+                    ..abs(Some(0.0), None, None, Some(0.0))
                 },
                 kit::PANEL.with_alpha(0.45),
             ),
-            ChildOf(root),
+            ChildOf(edges),
         ))
         .id();
     commands.spawn((
@@ -295,10 +334,10 @@ fn spawn_hud(mut commands: Commands, data: Res<Data>, fonts: Res<UiFonts>) {
                 padding: UiRect::all(px(12)),
                 row_gap: px(6),
                 width: px(240),
-                ..abs(None, Some(32.0), None, Some(32.0))
+                ..abs(None, Some(0.0), None, Some(0.0))
             }),
             Visibility::Hidden,
-            ChildOf(root),
+            ChildOf(edges),
         ))
         .id();
     commands.spawn((
@@ -326,8 +365,10 @@ fn spawn_hud(mut commands: Commands, data: Res<Data>, fonts: Res<UiFonts>) {
             flex_direction: FlexDirection::Column,
             align_items: AlignItems::Center,
             row_gap: px(5),
-            // A little under the screen centre (the UI is laid out at 1080p and scaled to the window).
-            ..abs(Some(0.0), None, Some(kit::REF_HEIGHT * 0.5 + 64.0), None)
+            // A little under the screen centre.
+            top: percent(50),
+            margin: UiRect::top(px(64)),
+            ..abs(Some(0.0), None, None, None)
         },
         Visibility::Hidden,
         ChildOf(root),
@@ -354,14 +395,14 @@ fn spawn_hud(mut commands: Commands, data: Res<Data>, fonts: Res<UiFonts>) {
             width: percent(100),
             justify_content: JustifyContent::Center,
             display: Display::None,
-            ..abs(None, None, Some(24.0), None)
+            ..abs(None, None, Some(0.0), None)
         },
-        ChildOf(root),
+        ChildOf(edges),
         children![(
             Node { column_gap: px(3), align_items: AlignItems::Stretch, ..default() },
             children![
                 (
-                    ScoreBox,
+                    ScoreBox { enemy: false },
                     Node {
                         width: px(64),
                         display: Display::None,
@@ -386,7 +427,7 @@ fn spawn_hud(mut commands: Commands, data: Res<Data>, fonts: Res<UiFonts>) {
                     ]
                 ),
                 (
-                    ScoreBox,
+                    ScoreBox { enemy: true },
                     Node {
                         width: px(64),
                         display: Display::None,
@@ -408,9 +449,9 @@ fn spawn_hud(mut commands: Commands, data: Res<Data>, fonts: Res<UiFonts>) {
                 flex_direction: FlexDirection::Column,
                 align_items: AlignItems::FlexEnd,
                 row_gap: px(4),
-                ..abs(None, Some(32.0), Some(24.0), None)
+                ..abs(None, Some(0.0), Some(0.0), None)
             },
-            ChildOf(root),
+            ChildOf(edges),
         ))
         .id();
     for i in 0..FEED_ROWS {
@@ -433,7 +474,8 @@ fn spawn_hud(mut commands: Commands, data: Res<Data>, fonts: Res<UiFonts>) {
         ));
     }
 
-    // --- crosshair + hit marker + damage direction (centre)
+    // --- damage flash, crosshair, hit marker and damage direction (centre): full screen and never scaled
+    // with the HUD (the crosshair has its own sizes), under the canvas so the banner draws over it.
     let center = commands
         .spawn((
             Node {
@@ -444,20 +486,33 @@ fn spawn_hud(mut commands: Commands, data: Res<Data>, fonts: Res<UiFonts>) {
                 justify_content: JustifyContent::Center,
                 ..default()
             },
-            ChildOf(root),
+            ZIndex(-1),
+            DespawnOnExit(AppState::InGame),
+            Pickable::IGNORE,
         ))
         .id();
-    for i in 0..4u8 {
-        commands.spawn((
-            CrosshairArm(i),
-            Node {
-                position_type: PositionType::Absolute,
-                width: px(if i < 2 { 10 } else { 2 }),
-                height: px(if i < 2 { 2 } else { 10 }),
-                ..default()
-            },
-            BackgroundColor(Color::srgba(1.0, 1.0, 1.0, 0.9)),
+    commands.spawn((
+        DamageFlashEdge,
+        abs(Some(0.0), Some(0.0), Some(0.0), Some(0.0)),
+        BackgroundGradient::default(),
+        Visibility::Hidden,
+        ChildOf(center),
+    ));
+    // The crosshair's rectangles are placed from the screen centre.
+    let anchor = commands
+        .spawn((
+            Node { position_type: PositionType::Absolute, left: percent(50), top: percent(50), ..default() },
             ChildOf(center),
+        ))
+        .id();
+    for i in 0..5 {
+        commands.spawn((
+            CrosshairPart(i),
+            Node { position_type: PositionType::Absolute, ..default() },
+            BackgroundColor(Color::WHITE),
+            Outline::new(px(1), px(0), Color::NONE),
+            Visibility::Hidden,
+            ChildOf(anchor),
         ));
     }
     commands.spawn((
@@ -750,8 +805,9 @@ fn update_score(
     mut enemy: Query<&mut Text, (With<ScoreEnemy>, Without<ScoreAlly>, Without<MatchClock>, Without<MatchSub>)>,
     mut clock: Query<&mut Text, (With<MatchClock>, Without<ScoreAlly>, Without<ScoreEnemy>, Without<MatchSub>)>,
     mut sub: Query<&mut Text, (With<MatchSub>, Without<ScoreAlly>, Without<ScoreEnemy>, Without<MatchClock>)>,
-    mut boxes: Query<&mut Node, (With<ScoreBox>, Without<ScoreRoot>)>,
+    mut boxes: Query<(&ScoreBox, &mut Node, &mut BackgroundColor), Without<ScoreRoot>>,
     mut root: Query<&mut Node, (With<ScoreRoot>, Without<ScoreBox>)>,
+    settings: Res<Settings>,
 ) {
     let Some(m) = matches.iter().next() else { return };
     // Scores are relative: your team on the left in the ally colour.
@@ -768,8 +824,13 @@ fn update_score(
     for mut node in &mut root {
         node.display = Display::Flex;
     }
-    for mut node in &mut boxes {
+    let (ally_color, enemy_color) = settings.team_colors();
+    for (b, mut node, mut bg) in &mut boxes {
         node.display = show(teams);
+        let c = if b.enemy { enemy_color } else { ally_color }.with_alpha(0.92);
+        if bg.0 != c {
+            bg.0 = c;
+        }
     }
     for mut t in &mut clock {
         t.0.clone_from(&title);
@@ -779,48 +840,217 @@ fn update_score(
     }
 }
 
+/// Px at 1080p that a spread angle opens the crosshair by, for a camera's vertical field of view (radians):
+/// the UI is laid out at 1080p and scaled to the window, so project with the reference height.
+fn spread_px(spread_deg: f32, vfov: f32) -> f32 {
+    let focal = kit::REF_HEIGHT * 0.5 / (vfov * 0.5).tan();
+    spread_deg.max(0.0).to_radians().tan() * focal
+}
+
+/// Whether HIT MARKERS shows a hit of this kind.
+fn hit_marker_shown(setting: HitMarkers, kind: HitKind) -> bool {
+    match setting {
+        HitMarkers::ShieldFlesh => true,
+        HitMarkers::FleshOnly => kind != HitKind::Shield,
+        HitMarkers::Off => false,
+    }
+}
+
+/// The crosshair from MOUSE & AIM (colour, outline, lines, dot), opened by the gun's live spread.
 #[allow(clippy::type_complexity)]
 fn update_crosshair(
     me: Query<(&PlayerWeapon, &PlayerLoadout, &PlayerMove, &Vitals), With<Controlled>>,
+    camera: Query<&Projection, With<ViewCamera>>,
     data: Res<Data>,
+    settings: Res<Settings>,
     feedback: Res<Feedback>,
-    mut arms: Query<(&CrosshairArm, &mut Node, &mut Visibility), Without<HitMarker>>,
+    mut parts: Query<
+        (&CrosshairPart, &mut Node, &mut BackgroundColor, &mut Outline, &mut Visibility),
+        Without<HitMarker>,
+    >,
     mut marker: Query<(&mut Visibility, &mut TextColor), With<HitMarker>>,
 ) {
     let Some((w, lo, mv, v)) = me.iter().next() else { return };
     let spec = lo.0.weapon.spec(&data);
-    let wounds = v.wounds;
-    let env = vetf_sim::player::weapon_env(&data, &mv.0, &wounds);
+    let env = vetf_sim::player::weapon_env(&data, &mv.0, &v.wounds);
     let spread = w.0.spread_deg(&data, spec, &lo.0.weapon, &env);
-    // The UI is laid out at 1080p and scaled to the window, so project with the reference height.
-    let focal = kit::REF_HEIGHT * 0.5 / (78f32.to_radians() * 0.5).tan();
-    let gap = 4.0 + spread.to_radians().tan() * focal;
+    let vfov = match camera.iter().next() {
+        Some(Projection::Perspective(p)) => p.fov,
+        _ => FALLBACK_VFOV_DEG.to_radians(),
+    };
+    let c = &settings.crosshair;
+    let rects = crosshair_rects(c, spread_px(spread, vfov));
+    let color = rgb_color(settings.crosshair_rgb());
+    let outline = if c.outline { CROSSHAIR_OUTLINE } else { Color::NONE };
     let hide = w.0.ads > 0.7 || v.health.dead;
-    for (arm, mut node, mut vis) in &mut arms {
-        let (dx, dy) = match arm.0 {
-            0 => (-gap - 10.0, -1.0),
-            1 => (gap, -1.0),
-            2 => (-1.0, -gap - 10.0),
-            _ => (-1.0, gap),
+    for (part, mut node, mut bg, mut line, mut vis) in &mut parts {
+        let Some(&(x, y, width, height)) = rects.get(part.0).filter(|_| !hide) else {
+            vis.set_if_neq(Visibility::Hidden);
+            continue;
         };
-        node.margin = UiRect {
-            left: px(dx * 2.0 + if arm.0 < 2 { 10.0 } else { 2.0 }),
-            top: px(dy * 2.0 + if arm.0 < 2 { 2.0 } else { 10.0 }),
-            ..default()
-        };
-        *vis = if hide { Visibility::Hidden } else { Visibility::Inherited };
+        vis.set_if_neq(Visibility::Inherited);
+        let place = (px(x), px(y), px(width), px(height));
+        if (node.left, node.top, node.width, node.height) != place {
+            (node.left, node.top, node.width, node.height) = place;
+        }
+        if bg.0 != color {
+            bg.0 = color;
+        }
+        if line.color != outline {
+            line.color = outline;
+        }
     }
-    for (mut vis, mut color) in &mut marker {
-        match feedback.hit_marker {
+    let (_, enemy) = settings.team_colors();
+    for (mut vis, mut text) in &mut marker {
+        match feedback.hit_marker.filter(|(kind, _)| hit_marker_shown(c.hit_markers, *kind)) {
             Some((kind, _)) => {
                 *vis = Visibility::Inherited;
-                color.0 = match kind {
+                text.0 = match kind {
                     HitKind::Shield => kit::TIERS[2],
                     HitKind::Health => Color::WHITE,
-                    HitKind::Kill => kit::ENEMY,
+                    HitKind::Kill => enemy,
                 };
             }
             None => *vis = Visibility::Hidden,
+        }
+    }
+}
+
+/// The HUD canvas in percent of the screen before it is scaled about the screen centre, and the safe-area
+/// inset in canvas px. Scaled by `scale`, it covers the screen (or the centred 16:9 part of an ultrawide one)
+/// exactly, with the corner groups `safe_area` px at 1080p from its edges.
+#[derive(Debug, Clone, Copy, PartialEq)]
+struct HudFit {
+    scale: f32,
+    width: f32,
+    height: f32,
+    left: f32,
+    top: f32,
+    inset: f32,
+}
+
+/// [`HudFit`] for HUD SCALE `scale` (1 = 100 %) on a window `aspect` (width / height) wide; `centre_16_9` keeps
+/// an ultrawide HUD 16:9 wide.
+fn hud_fit(scale: f32, aspect: f32, centre_16_9: bool, safe_area: f32) -> HudFit {
+    let s = scale.max(0.1);
+    let wide = if centre_16_9 && aspect > 0.0 { (16.0 / 9.0 / aspect).min(1.0) } else { 1.0 };
+    let (width, height) = (100.0 * wide / s, 100.0 / s);
+    let (left, top) = ((100.0 - width) / 2.0, (100.0 - height) / 2.0);
+    HudFit { scale: s, width, height, left, top, inset: safe_area.max(0.0) / s }
+}
+
+/// HUD SCALE, SAFE AREA MARGIN and ULTRAWIDE HUD WIDTH, live (also while Settings is open over the match).
+fn fit_hud(
+    settings: Res<Settings>,
+    windows: Query<&Window, With<PrimaryWindow>>,
+    mut canvas: Query<(&mut Node, &mut UiTransform), With<HudRoot>>,
+    mut safe: Query<&mut Node, (With<HudSafeArea>, Without<HudRoot>)>,
+) {
+    let aspect = windows.iter().next().map_or(16.0 / 9.0, |w| w.width() / w.height().max(1.0));
+    let h = &settings.hud;
+    let fit = hud_fit(h.scale / 100.0, aspect, h.ultrawide == Ultrawide::Centre, h.safe_area);
+    for (mut node, mut t) in &mut canvas {
+        let want = (percent(fit.left), percent(fit.top), percent(fit.width), percent(fit.height));
+        if (node.left, node.top, node.width, node.height) != want {
+            (node.left, node.top, node.width, node.height) = want;
+        }
+        let scale = Vec2::splat(fit.scale);
+        if t.scale != scale {
+            t.scale = scale;
+        }
+    }
+    let inset = px(fit.inset);
+    for mut node in &mut safe {
+        if (node.left, node.right, node.top, node.bottom) != (inset, inset, inset, inset) {
+            (node.left, node.right, node.top, node.bottom) = (inset, inset, inset, inset);
+        }
+    }
+}
+
+/// The edge flash's alpha `since` seconds after a hit, for DAMAGE FLASH and REDUCE FLASHING (which caps it).
+fn flash_alpha(setting: DamageFlash, reduce: bool, since: f32) -> f32 {
+    let peak = match setting {
+        DamageFlash::Off => 0.0,
+        DamageFlash::Soft => FLASH_SOFT,
+        DamageFlash::Full => FLASH_FULL,
+    };
+    let peak = if reduce { peak.min(FLASH_REDUCED) } else { peak };
+    if since >= FLASH_S { 0.0 } else { peak * (1.0 - since.max(0.0) / FLASH_S) }
+}
+
+/// Red from the screen edges in, at `alpha`.
+fn edge_gradient(alpha: f32) -> BackgroundGradient {
+    let red = kit::HP_CRIT;
+    BackgroundGradient::from(RadialGradient::new(
+        UiPosition::CENTER,
+        RadialGradientShape::ClosestCorner,
+        vec![ColorStop::new(red.with_alpha(0.0), percent(70)), ColorStop::new(red.with_alpha(alpha), percent(100))],
+    ))
+}
+
+/// Seconds since the last hit, and the freshest damage entry seen (each counts down from when it arrived, so
+/// a fresher one is a new hit).
+struct FlashClock {
+    since: f32,
+    freshest: f32,
+}
+
+impl Default for FlashClock {
+    fn default() -> Self {
+        FlashClock { since: FLASH_S, freshest: 0.0 }
+    }
+}
+
+fn update_damage_flash(
+    feedback: Res<Feedback>,
+    settings: Res<Settings>,
+    time: Res<Time>,
+    mut clock: Local<FlashClock>,
+    mut shown: Local<f32>,
+    mut edge: Query<(&mut BackgroundGradient, &mut Visibility), With<DamageFlashEdge>>,
+) {
+    let freshest = feedback.damage.iter().map(|d| d.1).fold(0.0, f32::max);
+    clock.since = if freshest > clock.freshest + 1e-4 { 0.0 } else { clock.since + time.delta_secs() };
+    clock.freshest = freshest;
+    let alpha = flash_alpha(settings.hud.damage_flash, settings.hud.reduce_flashing, clock.since);
+    if (alpha - *shown).abs() < 0.004 && (alpha > 0.0) == (*shown > 0.0) {
+        return;
+    }
+    *shown = alpha;
+    for (mut gradient, mut vis) in &mut edge {
+        vis.set_if_neq(if alpha > 0.0 { Visibility::Inherited } else { Visibility::Hidden });
+        if alpha > 0.0 {
+            *gradient = edge_gradient(alpha);
+        }
+    }
+}
+
+/// `--demo-ui hud-fx`: keep a kill hit marker, a stream of hits from the right and a kill feed on screen (you
+/// in the ally colour, the rest as enemies), for screenshots of the crosshair, team colours and flash.
+fn demo_hud_fx(
+    cli: Res<Cli>,
+    time: Res<Time>,
+    me: Query<(&PlayerInfo, &PlayerMove), With<Controlled>>,
+    mut feedback: ResMut<Feedback>,
+    mut since: Local<Option<f32>>,
+) {
+    if cli.demo_ui.as_deref() != Some("hud-fx") {
+        return;
+    }
+    let Some((info, mv)) = me.iter().next() else { return };
+    let t = time.elapsed_secs();
+    if t - *since.get_or_insert(t) < 1.0 {
+        return;
+    }
+    feedback.hit_marker = Some((HitKind::Kill, 0.2));
+    if feedback.damage.iter().all(|d| d.1 < 1.0) {
+        feedback.damage.push((mv.0.pos + Vec3::new(8.0, 0.0, 0.0), 1.2));
+    }
+    if feedback.kills.is_empty() {
+        let you = info.name.as_str();
+        for (killer, victim) in [("WREN", "ORCA"), ("VESPER", "MOTH"), (you, "VESPER"), ("ORCA", "LARK"), (you, "WREN")]
+        {
+            feedback.kills.push((killer.into(), victim.into(), killer == "ORCA", 6.0));
         }
     }
 }
@@ -834,15 +1064,18 @@ fn update_feed(
     mut killers: Query<(&FeedKiller, &mut Text, &mut TextColor), (Without<FeedVictim>, Without<FeedTag>)>,
     mut victims: Query<(&FeedVictim, &mut Text, &mut TextColor), (Without<FeedKiller>, Without<FeedTag>)>,
     mut tags: Query<(&FeedTag, &mut Text), (Without<FeedKiller>, Without<FeedVictim>)>,
+    settings: Res<Settings>,
 ) {
     let mine = me.iter().next().map(|i| (i.name.clone(), i.team));
+    let (ally, enemy) = settings.team_colors();
     // Ally is you and your team; in free-for-all modes everyone else is an enemy.
     let color = |name: &str| {
         let Some((my_name, my_team)) = &mine else { return kit::TEXT };
         let team = players.iter().find(|p| p.name == name).and_then(|p| p.team);
-        if name == my_name || (my_team.is_some() && team == *my_team) { kit::ALLY } else { kit::ENEMY }
+        if name == my_name || (my_team.is_some() && team == *my_team) { ally } else { enemy }
     };
-    let entries: Vec<_> = feedback.kills.iter().rev().take(FEED_ROWS).collect();
+    let lines = settings.hud.kill_feed.lines().min(FEED_ROWS);
+    let entries: Vec<_> = feedback.kills.iter().rev().take(lines).collect();
     for (row, mut node) in &mut rows {
         node.display = if row.0 < entries.len() { Display::Flex } else { Display::None };
     }
@@ -952,21 +1185,28 @@ fn update_overlays(
     }
 }
 
+/// The direction of recent damage, in the enemy colour. The chevrons always show: they are information, not
+/// a flash (DAMAGE FLASH drives the edge flash).
 fn update_damage_indicators(
     feedback: Res<Feedback>,
+    settings: Res<Settings>,
     camera: Query<&GlobalTransform, With<ViewCamera>>,
-    mut chevrons: Query<(&DamageChevron, &mut Node, &mut Visibility)>,
+    mut chevrons: Query<(&DamageChevron, &mut Node, &mut BackgroundColor, &mut Visibility)>,
 ) {
     let Some(cam) = camera.iter().next() else { return };
     let fwd = cam.forward().with_y(0.0).normalize_or_zero();
     let right = cam.right().with_y(0.0).normalize_or_zero();
-    for (c, mut node, mut vis) in &mut chevrons {
+    let tint = settings.team_colors().1.with_alpha(0.85);
+    for (c, mut node, mut bg, mut vis) in &mut chevrons {
         match feedback.damage.get(c.0) {
             Some((from, _)) => {
                 let d = (*from - cam.translation()).with_y(0.0).normalize_or_zero();
                 let (x, y) = (d.dot(right), -d.dot(fwd));
                 let r = 130.0;
                 node.margin = UiRect { left: px(x * r * 2.0), top: px(y * r * 2.0), ..default() };
+                if bg.0 != tint {
+                    bg.0 = tint;
+                }
                 *vis = Visibility::Inherited;
             }
             None => *vis = Visibility::Hidden,
@@ -1020,5 +1260,58 @@ mod tests {
         assert_eq!(seg_fill(45.0, 45.0, 0), 1.0);
         assert_eq!(seg_fill(3.0, 45.0, 1), 0.0);
         assert_eq!(seg_fill(3.0, 45.0, 9), 0.0, "past the end");
+    }
+
+    #[test]
+    fn the_crosshair_opens_with_spread_and_markers_follow_the_setting() {
+        let vfov = 78f32.to_radians();
+        assert_eq!(spread_px(0.0, vfov), 0.0);
+        // Half the field of view reaches the top of the 1080p canvas.
+        assert!((spread_px(39.0, vfov) - 540.0).abs() < 0.01);
+        assert!(spread_px(1.0, vfov) > spread_px(0.5, vfov));
+        assert!(spread_px(1.0, 60f32.to_radians()) > spread_px(1.0, vfov), "a narrower view opens it more");
+        assert!(hit_marker_shown(HitMarkers::ShieldFlesh, HitKind::Shield));
+        assert!(!hit_marker_shown(HitMarkers::FleshOnly, HitKind::Shield));
+        assert!(hit_marker_shown(HitMarkers::FleshOnly, HitKind::Health));
+        assert!(hit_marker_shown(HitMarkers::FleshOnly, HitKind::Kill));
+        assert!(!hit_marker_shown(HitMarkers::Off, HitKind::Kill));
+    }
+
+    #[test]
+    fn the_hud_canvas_scales_about_the_centre_and_keeps_the_margin() {
+        let at = |f: HudFit| (f.left, f.top, f.width, f.height, f.inset);
+        let same = |a: (f32, f32, f32, f32, f32), b: (f32, f32, f32, f32, f32)| {
+            [a.0 - b.0, a.1 - b.1, a.2 - b.2, a.3 - b.3, a.4 - b.4].iter().all(|d| d.abs() < 1e-3)
+        };
+        // 100 % on 16:9: the whole screen, the corner groups 32 px in.
+        assert!(same(at(hud_fit(1.0, 16.0 / 9.0, true, 32.0)), (0.0, 0.0, 100.0, 100.0, 32.0)));
+        // 120 %: a smaller canvas scaled up to the screen; the margin stays 32 px on screen.
+        let f = hud_fit(1.2, 16.0 / 9.0, true, 32.0);
+        assert!((f.width * f.scale - 100.0).abs() < 1e-3 && (f.left + f.width / 2.0 - 50.0).abs() < 1e-3);
+        assert!((f.inset * f.scale - 32.0).abs() < 1e-3);
+        // 21:9 keeps a centred 16:9 HUD, or the full width when asked.
+        let f = hud_fit(1.0, 21.0 / 9.0, true, 0.0);
+        assert!(same(at(f), (50.0 - 100.0 * 16.0 / 21.0 / 2.0, 0.0, 100.0 * 16.0 / 21.0, 100.0, 0.0)));
+        assert!(same(at(hud_fit(1.0, 21.0 / 9.0, false, 0.0)), (0.0, 0.0, 100.0, 100.0, 0.0)));
+        // 4:3 is narrower than 16:9 already.
+        assert!(same(at(hud_fit(1.0, 4.0 / 3.0, true, 0.0)), (0.0, 0.0, 100.0, 100.0, 0.0)));
+    }
+
+    #[test]
+    fn the_damage_flash_follows_the_comfort_settings() {
+        assert_eq!(flash_alpha(DamageFlash::Off, false, 0.0), 0.0);
+        assert_eq!(flash_alpha(DamageFlash::Soft, false, 0.0), FLASH_SOFT);
+        assert_eq!(flash_alpha(DamageFlash::Full, false, 0.0), FLASH_FULL);
+        assert!(flash_alpha(DamageFlash::Full, false, FLASH_S * 0.5) < FLASH_FULL, "it fades");
+        assert_eq!(flash_alpha(DamageFlash::Full, false, FLASH_S), 0.0);
+        assert_eq!(flash_alpha(DamageFlash::Full, true, 0.0), FLASH_REDUCED, "reduce flashing caps it");
+        let soft = flash_alpha(DamageFlash::Soft, true, 0.0);
+        assert!(soft <= FLASH_REDUCED && soft < flash_alpha(DamageFlash::Soft, false, 0.0), "SOFT is capped too");
+    }
+
+    #[test]
+    fn the_feed_has_a_row_for_every_kill_feed_choice() {
+        let most = crate::settings::KillFeed::ALL.iter().map(|k| k.lines()).max();
+        assert_eq!(most, Some(FEED_ROWS));
     }
 }
