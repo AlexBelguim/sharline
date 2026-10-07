@@ -53,7 +53,18 @@ impl Plugin for HudPlugin {
                 )
                     .run_if(in_state(AppState::InGame).or_else(in_state(AppState::Connecting))),
             )
-            .add_systems(Update, (fit_hud, update_damage_flash, demo_hud_fx).run_if(in_state(AppState::InGame)));
+            .add_systems(
+                Update,
+                (fit_hud, update_damage_flash, demo_hud_fx, hide_under_screens).run_if(in_state(AppState::InGame)),
+            );
+    }
+}
+
+/// The HUD hides while a hub screen is open over the match (the ESC menu, Settings, the lobby).
+fn hide_under_screens(screens: Res<crate::screens::Screens>, mut root: Query<&mut Visibility, With<HudRoot>>) {
+    let want = if screens.is_empty() { Visibility::Inherited } else { Visibility::Hidden };
+    for mut v in &mut root {
+        v.set_if_neq(want);
     }
 }
 
@@ -206,6 +217,7 @@ fn spawn_hud(mut commands: Commands, data: Res<Data>, fonts: Res<UiFonts>) {
             HudRoot,
             Node { position_type: PositionType::Absolute, width: percent(100), height: percent(100), ..default() },
             UiTransform::IDENTITY,
+            Visibility::Inherited,
             DespawnOnExit(AppState::InGame),
             Pickable::IGNORE,
         ))

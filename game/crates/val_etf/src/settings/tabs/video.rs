@@ -31,7 +31,7 @@ const DISPLAY: &[Item] = &[
     Item::Row("WINDOW MODE", None, Ctl::Seg(Ch::WindowMode), false),
     Item::Row("RESOLUTION", None, Ctl::Drop(Ch::Resolution, 240.0), false),
     Item::Row("RENDER SCALE", Some("3D only. UI always renders at native"), Ctl::Slider(Num::RenderScale), true),
-    Item::Row("FRAME LIMIT", None, Ctl::Seg(Ch::FrameLimit), true),
+    Item::Row("FRAME LIMIT", None, Ctl::Seg(Ch::FrameLimit), false),
     Item::Row("V-SYNC", Some("Bevy PresentMode"), Ctl::Seg(Ch::Vsync), false),
     Item::Row("BRIGHTNESS", None, Ctl::Slider(Num::Brightness), false),
     Item::Head("PERFORMANCE OVERLAY", 12.0, None),
@@ -44,10 +44,10 @@ const QUALITY: &[Item] = &[
     Item::Row("ANTI-ALIASING", None, Ctl::Seg(Ch::Aa), false),
     Item::Row("SHADOWS", None, Ctl::Seg(Ch::Shadows), false),
     Item::Row("STYLIZED OUTLINES", Some("Ink edges on characters and props"), Ctl::Switches(&[Tg::Outlines]), true),
-    Item::Row("BLOOM", Some("Halos, optics, jet cores"), Ctl::Seg(Ch::Bloom), true),
+    Item::Row("BLOOM", Some("Halos, optics, jet cores"), Ctl::Seg(Ch::Bloom), false),
     Item::Row("PARTICLES (BEVY_HANABI)", None, Ctl::Seg(Ch::Particles), true),
-    Item::Row("CONTACT SHADOWS · SSR", None, Ctl::Switches(&[Tg::ContactShadows, Tg::Ssr]), true),
-    Item::Row("MOTION BLUR · VIGNETTE", None, Ctl::Switches(&[Tg::MotionBlur, Tg::Vignette]), true),
+    Item::Row("CONTACT SHADOWS · SSR", None, Ctl::Switches(&[Tg::ContactShadows, Tg::Ssr]), false),
+    Item::Row("MOTION BLUR · VIGNETTE", None, Ctl::Switches(&[Tg::MotionBlur, Tg::Vignette]), false),
     Item::Note(
         "Competitive rule: settings may never hide halos, hex shards or enemy outlines. \"Low\" only drops their \
          particle count, not their visibility.",
@@ -69,19 +69,13 @@ fn items_into(card: &mut ChildSpawnerCommands, k: &Kit, items: &[Item]) {
             // The card's last row has no rule under it.
             Item::Row(label, sub, ctl, dim) => {
                 let ruled = i + 1 < items.len();
-                c::row(card, k, label, *sub, *dim, ruled, row_min_h(ruled), |r| control(r, k, *ctl, *dim))
+                c::row(card, k, label, *sub, *dim, ruled, 50.0, |r| control(r, k, *ctl, *dim))
             }
             Item::Note(text) => {
                 c::note(card, k, &[(*text, false, None)], Node { margin: UiRect::top(px(10)), ..default() })
             }
         }
     }
-}
-
-/// Rows are 50 px tall with their rule (a 64 px pitch with the card's 14 px gap). The kit's `row` lays its
-/// 1 px rule out below `min_h` (51 px rows), so a ruled row asks for 49.
-fn row_min_h(ruled: bool) -> f32 {
-    if ruled { 49.0 } else { 50.0 }
 }
 
 fn control(r: &mut ChildSpawnerCommands, k: &Kit, ctl: Ctl, dim: bool) {
@@ -100,7 +94,8 @@ fn control(r: &mut ChildSpawnerCommands, k: &Kit, ctl: Ctl, dim: bool) {
         }),
         Ctl::Switches(ts) => c::ctl(r, Node::default(), |x| {
             for t in ts {
-                c::switch(x, k, *t, dim);
+                // SSR needs deferred rendering, which the game does not use: that switch alone stays dimmed.
+                c::switch(x, k, *t, dim || *t == Tg::Ssr);
             }
         }),
     }

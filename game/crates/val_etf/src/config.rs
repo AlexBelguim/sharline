@@ -218,6 +218,10 @@ impl Cli {
                          \x20 desktop's mouse and keys (--allow-input keeps them); --bot runs do not grab the mouse.\n\
                          --esc-at presses Esc at those seconds after start-up (tests of the Esc routing).\n\
                          --host showhome opens the lobby; --live starts the match at once.\n\
+                         --demo-ui settings-gameplay|-mouse|-keybinds|-video|-audio|-hud opens that Settings tab from the\n\
+                         \x20 main menu; esc | esc-stop | esc-restart opens the ESC menu (or its confirm) over a hosted\n\
+                         \x20 match; ads holds aim down sights; hud-fx shows the damage flash; overlay keeps the\n\
+                         \x20 performance overlay in a scripted run.\n\
                          --demo-ui lobby-ready | lobby-switch | lobby-start presses READY, SWITCH TEAM then READY, or\n\
                          \x20 READY then START MATCH in the lobby (tests of the lobby over the network).\n\
                          --demo-ui first-run | first-run-invalid | first-run-valid opens the first-launch callsign\n\

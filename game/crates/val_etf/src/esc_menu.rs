@@ -555,8 +555,7 @@ fn key_hints(r: &mut ChildSpawnerCommands, fonts: &UiFonts, images: &UiImages) {
         });
 }
 
-/// The host resets the match like `server::reset_match`: scores, clock and phase, everyone's score and
-/// READY, and everyone respawns on the next tick.
+/// The host's RESTART MATCH / BACK TO LOBBY: `server::reset_match` on the match.
 fn reset_match(
     data: &GameData,
     matches: &mut Query<&mut MatchState>,
@@ -564,20 +563,7 @@ fn reset_match(
     phase: Option<MatchPhase>,
 ) {
     let Some(mut m) = matches.iter_mut().next() else { return };
-    m.score_a = 0;
-    m.score_b = 0;
-    if m.mode == MatchMode::Tdm {
-        m.time_left_s = data.rules.tdm.time_limit_s;
-    }
-    if let Some(phase) = phase {
-        m.phase = phase;
-    }
-    for (mut net, mut v, mut s) in players.iter_mut() {
-        *s = Score::default();
-        net.ready = false;
-        v.health.dead = true;
-        v.respawn_s = 0.0;
-    }
+    crate::server::reset_match(&mut m, data, phase, players.iter_mut());
 }
 
 /// Rows: hover selects, ↑↓ move the selection over the enabled rows (wrapping), Enter or a click acts.

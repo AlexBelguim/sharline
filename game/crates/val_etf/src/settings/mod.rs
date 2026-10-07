@@ -50,6 +50,7 @@ impl Plugin for SettingsScreenPlugin {
             .init_resource::<Listening>()
             .init_resource::<SaveTimer>()
             .add_systems(Startup, load_symbols)
+            .add_plugins(tabs::plugin)
             .add_systems(
                 Update,
                 (

@@ -58,7 +58,6 @@ struct StreetImage;
 struct CrosshairOrigin;
 
 pub fn build(p: &mut ChildSpawnerCommands, k: &Kit) {
-    p.commands().queue(install_systems);
     super::col(p, |c| {
         sensitivity(c, k);
         aim_down_sights(c, k);
@@ -260,9 +259,9 @@ fn field_of_view(p: &mut ChildSpawnerCommands, k: &Kit) {
             });
         });
         // The gun and hands have no camera of their own yet (there is one Camera3d).
-        row(c, k, "Viewmodel FOV", Some("Gun and hands only"), true, false, 50.0, |r| {
-            slider(r, k, Num::ViewmodelFov, Some(400.0), &[], true);
-            field(r, k, FieldKind::Num(Num::ViewmodelFov), 70.0, false, true);
+        row(c, k, "Viewmodel FOV", Some("Gun and hands only"), false, false, 50.0, |r| {
+            slider(r, k, Num::ViewmodelFov, Some(400.0), &[], false);
+            field(r, k, FieldKind::Num(Num::ViewmodelFov), 70.0, false, false);
         });
     });
 }
@@ -411,20 +410,9 @@ fn preview(p: &mut ChildSpawnerCommands, k: &Kit) {
 
 // ---------------------------------------------------------------------------------------------- behaviour
 
-/// The tab's systems are in the schedule.
-#[derive(Resource)]
-struct SystemsAdded;
-
-/// The frame's plugin registers the shared kit only, so the tab adds its own systems (swatches, APPLY, the
-/// code, the preview) the first time it is built. They run in PostUpdate, after the kit's (Update).
-fn install_systems(world: &mut World) {
-    if world.contains_resource::<SystemsAdded>() {
-        return;
-    }
-    world.insert_resource(SystemsAdded);
-    world
-        .resource_mut::<Schedules>()
-        .add_systems(PostUpdate, (clicks, crosshair_code, sync_tab).chain().before(UiSystems::Prepare));
+/// The tab's own systems (swatches, APPLY, the code, the preview), after the kit's (Update).
+pub fn plugin(app: &mut App) {
+    app.add_systems(PostUpdate, (clicks, crosshair_code, sync_tab).chain().before(UiSystems::Prepare));
 }
 
 /// APPLY: the turn distance that gives the import box's sensitivity in its game, at the same DPI. The box

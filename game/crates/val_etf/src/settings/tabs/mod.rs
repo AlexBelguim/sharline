@@ -12,6 +12,11 @@ use super::controls::Kit;
 use super::model::Tab;
 use bevy::prelude::*;
 
+/// Systems a tab needs beyond the shared kit.
+pub fn plugin(app: &mut App) {
+    mouse_aim::plugin(app);
+}
+
 pub fn build(p: &mut ChildSpawnerCommands, k: &Kit, tab: Tab) {
     match tab {
         Tab::Gameplay => gameplay::build(p, k),

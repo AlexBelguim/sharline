@@ -83,6 +83,10 @@ A real friend on a different network should still confirm gameplay and latency b
 
 ### Controls
 
+Every key below is the default and can be rebound in SETTINGS > KEYBINDS; look speed, FOV, the crosshair, HUD
+and video options are in SETTINGS too (changes apply at once and are saved to `settings.ron` in the config
+folder).
+
 | Key | Action |
 |---|---|
 | WASD, mouse | Move, look |
@@ -99,7 +103,7 @@ A real friend on a different network should still confirm gameplay and latency b
 | T | Mag check. Gives an estimate only; there is no ammo counter anywhere (genre rule) |
 | Tab (hold) | Scoreboard: kills, deaths and ping per player |
 | F6 | Copy the host's invite to the system clipboard |
-| Esc | Pause: resume or leave |
+| Esc | Match menu: resume, loadout, settings, key reference, leave (or stop hosting) |
 
 ### Command line (automation and testing)
 `val_etf [--host showhome|range [--live]] [--join CODE|IP[:PORT]] [--name NAME] [--port PORT] [--width W --height H]
@@ -114,6 +118,10 @@ A real friend on a different network should still confirm gameplay and latency b
 - `--host showhome` opens the lobby, like CREATE LOBBY; add `--live` to start the match at once.
   `--demo-ui lobby-ready|lobby-switch|lobby-start` presses READY, SWITCH TEAM then READY, or READY then START MATCH
   a few seconds in, to test the lobby over the network.
+- `--demo-ui settings-gameplay|settings-mouse|settings-keybinds|settings-video|settings-audio|settings-hud` opens
+  that Settings tab from the main menu. `--demo-ui esc|esc-stop|esc-restart` opens the ESC menu or one of its
+  confirms over a hosted match. `ads` holds aim down sights, `hud-fx` shows the damage flash and `overlay`
+  keeps the performance overlay in a scripted run.
 - `--port` sets HOST GAME's port (and so `--host`'s).
 - `VETF_ASSETS` points the game at another asset folder. Without it the game finds `game/assets` from wherever the
   exe was built (`target/debug`, `target/release`, `target/<triple>/release`) or an `assets` folder next to a

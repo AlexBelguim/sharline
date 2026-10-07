@@ -717,8 +717,10 @@ fn tick_feedback(time: Res<Time>, mut feedback: ResMut<Feedback>) {
         *t += dt;
         *t * TRACER_SPEED - TRACER_LEN < from.distance(*to)
     });
-    if feedback.kills.len() > 5 {
-        let n = feedback.kills.len() - 5;
+    // As many as the longest KILL FEED LINES choice; the HUD shows the player's number of them.
+    let keep = crate::settings::KillFeed::ALL.iter().map(|k| k.lines()).max().unwrap_or(5);
+    if feedback.kills.len() > keep {
+        let n = feedback.kills.len() - keep;
         feedback.kills.drain(..n);
     }
 }

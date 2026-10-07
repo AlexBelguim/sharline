@@ -438,7 +438,7 @@ fn receive_lobby_actions(
                         reset_match(
                             &mut m,
                             &data,
-                            MatchPhase::Live,
+                            Some(MatchPhase::Live),
                             players.iter_mut().map(|(_, n, v, s, _)| (n, v, s)),
                         );
                     }
@@ -448,17 +448,22 @@ fn receive_lobby_actions(
     }
 }
 
-/// A fresh match in `phase`: scores, clock, everyone's score and ready state, and everyone respawns.
-fn reset_match<'a>(
+/// A fresh match (in `phase`, if given): scores, the deathmatch clock, everyone's score and READY, and
+/// everyone respawns on the next tick. Also the host's RESTART MATCH / BACK TO LOBBY (`esc_menu.rs`).
+pub(crate) fn reset_match<'a>(
     m: &mut MatchState,
     data: &GameData,
-    phase: MatchPhase,
+    phase: Option<MatchPhase>,
     players: impl Iterator<Item = (Mut<'a, PlayerNet>, Mut<'a, Vitals>, Mut<'a, Score>)>,
 ) {
     m.score_a = 0;
     m.score_b = 0;
-    m.time_left_s = data.rules.tdm.time_limit_s;
-    m.phase = phase;
+    if m.mode == MatchMode::Tdm {
+        m.time_left_s = data.rules.tdm.time_limit_s;
+    }
+    if let Some(phase) = phase {
+        m.phase = phase;
+    }
     for (mut net, mut v, mut s) in players {
         *s = Score::default();
         net.ready = false;
@@ -883,7 +888,7 @@ fn run_match(
             *intermission -= dt;
             if *intermission <= 0.0 {
                 // Back to the lobby: teams, loadouts and READY for the next one.
-                reset_match(&mut m, &data, MatchPhase::Lobby, players.iter_mut());
+                reset_match(&mut m, &data, Some(MatchPhase::Lobby), players.iter_mut());
             }
         }
     }

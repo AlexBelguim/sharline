@@ -645,7 +645,8 @@ pub fn row(
             display: Display::Grid,
             grid_template_columns: vec![GridTrack::px(230.0), GridTrack::flex(1.0)],
             align_items: AlignItems::Center,
-            min_height: px(min_h),
+            // Taffy adds the bottom rule on top of the grid's stretched track; CSS counts it inside.
+            min_height: px(if border { min_h - 1.0 } else { min_h }),
             border: UiRect::bottom(px(if border { 1.0 } else { 0.0 })),
             flex_shrink: 0.0,
             ..default()

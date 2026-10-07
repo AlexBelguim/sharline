@@ -49,7 +49,7 @@ pub fn build(p: &mut ChildSpawnerCommands, k: &Kit) {
             // ON | THICK only: settings may never hide enemy outlines (the mockup's OFF is left out).
             seg_row(c, k, "ENEMY OUTLINE", None, Ch::EnemyOutline, LATER, true);
             slider_row(c, k, "SCREEN SHAKE", None, Num::ScreenShake, &[]);
-            seg_row(c, k, "DAMAGE FLASH", Some("Red / hex edge flash when hit"), Ch::DamageFlash, LATER, true);
+            seg_row(c, k, "DAMAGE FLASH", Some("Red / hex edge flash when hit"), Ch::DamageFlash, false, true);
             row(c, k, "REDUCE FLASHING", None, false, true, 50.0, |r| switch(r, k, Tg::ReduceFlashing, false));
             seg_row(c, k, "TEXT SIZE", None, Ch::TextSize, false, true);
             // ADS has its own HOLD / TOGGLE on the Mouse & Aim tab.
@@ -211,7 +211,7 @@ mod tests {
                 Seg(Ch::EnemyOutline, LATER),
                 Slider(Num::ScreenShake),
                 field(Num::ScreenShake),
-                Seg(Ch::DamageFlash, LATER),
+                Seg(Ch::DamageFlash, false),
                 Switch(Tg::ReduceFlashing),
                 Seg(Ch::TextSize, false),
                 Seg(Ch::HoldToggle, false),
