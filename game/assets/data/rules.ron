@@ -1,7 +1,8 @@
 // Match rules for team deathmatch on Showhome, and the default loadout.
 (
     tdm: (
-        // Halo arc tiers (loadout-capped) + ammo gear cost must fit: AP's price in this test mode.
+        // Halo arc tiers (loadout-capped) + the gear cost of every magazine must fit: AP's price in this
+        // test mode.
         gear_budget: 12,
         score_limit: 50,          // "TDM - first to 50" (design/ui/mockups/png/01_hud.png)
         time_limit_s: 600.0,      // placeholder: the design does not fix a match length yet
@@ -9,11 +10,20 @@
         spawn_protection_s: 1.5,  // placeholder: named in the net diagram, no value given
         max_players: 10,          // 5 v 5 max on Showhome
     ),
+    // What each mode switches on (user direction, see game/DESIGN_DELTAS.md). Team deathmatch is the
+    // gunplay and netcode test bed: per-region shields and health, but no bleeding and no broken-limb
+    // penalties, and only the high-end items that heal every region or restore every arc at once.
+    // The gun range runs the full extraction rules.
+    rulesets: (
+        tdm: (bleeding: false, injuries: false, regional_items: false),
+        range: (bleeding: true, injuries: true, regional_items: true),
+    ),
     default_loadout: (
         primary: "ar7_mako",
-        ammo: (kind: Standard, tier: 1),
+        // Up to six magazines in slot order, each with its own ammo; slot 1 starts in the gun.
+        // Tap reload takes the next slot in order; hold reload opens the radial to pick one.
+        mags: [(kind: Standard, tier: 1), (kind: Standard, tier: 1), (kind: Standard, tier: 1), (kind: Standard, tier: 1)],
         attachments: ["optic_holo", "mako_stock_standard", "mag_30"],
-        spare_mags: 3,
         armor: "arm_mender_scout",
     ),
 )

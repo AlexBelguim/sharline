@@ -1,7 +1,7 @@
 //! One player's full fixed-tick step (movement + weapon), shared by the host and predicting clients.
 
-use crate::combat::HaloSpec;
-use crate::data::{ArmorStats, GameData, WeightClass};
+use crate::combat::{Bleeding, HaloSpec, Health};
+use crate::data::{ArmorStats, GameData, Ruleset, WeightClass};
 use crate::input::InputFrame;
 use crate::level::Level;
 use crate::movement::{self, MoveEvents, MoveMode, MoveModifiers, MoveState, Stance};
@@ -37,6 +37,18 @@ pub struct Wounds {
     pub tag_slow_s: f32,
     /// Seconds of Volt-pulse slow left.
     pub volt_slow_s: f32,
+}
+
+impl Wounds {
+    /// Bring wounds and bleeding in line with health and the mode's rules. The host calls this after
+    /// anything changes health: without injuries no limb counts as broken (spill still applies), and
+    /// without bleeding no bleed is kept.
+    pub fn sync(&mut self, health: &mut Health, rules: &Ruleset) {
+        self.broken = if rules.injuries { health.broken() } else { ZoneSet::EMPTY };
+        if !rules.bleeding {
+            health.bleeding = Bleeding::default();
+        }
+    }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Default)]
@@ -124,12 +136,36 @@ mod tests {
         let mut ms = MoveState::spawn(Vec3::ZERO, 1.6);
         let mut ws = WeaponState::new(&d, &l.weapon);
         let mut wounds = Wounds::default();
-        let run = InputFrame { movement: Vec2::Y, yaw: 0.0, pitch: 0.0, buttons: Buttons(Buttons::ADS) };
+        let run =
+            InputFrame { movement: Vec2::Y, yaw: 0.0, pitch: 0.0, buttons: Buttons(Buttons::ADS), reload_slot: 0 };
         for _ in 0..90 {
             step(&d, &level, &l, &mut ms, &mut ws, &mut wounds, &run);
         }
         let mako = d.weapon("ar7_mako").unwrap();
         let want = d.movement.speed.jog * mako.move_mult_ads * d.armor.effects(l.weight).move_mult;
         assert!((ms.horizontal_speed() - want).abs() < 0.05, "{} vs {want}", ms.horizontal_speed());
+    }
+
+    #[test]
+    fn team_deathmatch_has_no_injuries_or_bleeding_but_keeps_spill() {
+        let d = GameData::embedded();
+        let shr = d.ammo.resolve(
+            crate::data::WeaponClass::AssaultRifle,
+            crate::data::AmmoChoice { kind: crate::data::AmmoKind::Shrapnel, tier: 1 },
+        );
+        let bleed = shr.unwrap().bleed.unwrap();
+        let spill = &d.weapons.spill_to_torso;
+        for rules in [d.rules.rulesets.tdm, d.rules.rulesets.range] {
+            let mut hp = Health::new(d.armor.zone_hp);
+            let mut wounds = Wounds::default();
+            hp.bleeding.add_stack(crate::Zone::Arms, &bleed);
+            hp.apply(crate::Zone::Legs, 200.0, spill);
+            wounds.sync(&mut hp, &rules);
+            assert!(hp.hp[crate::Zone::Torso] < hp.max[crate::Zone::Torso], "spill applies in every mode");
+            assert_eq!(wounds.broken.contains(crate::Zone::Legs), rules.injuries);
+            assert_eq!(hp.bleeding.is_bleeding(), rules.bleeding);
+        }
+        assert_eq!(d.rules.rulesets.range, Ruleset::FULL, "the range runs the full extraction rules");
+        assert!(!d.rules.rulesets.tdm.regional_items);
     }
 }

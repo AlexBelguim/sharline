@@ -1,7 +1,7 @@
 //! In-match HUD (layout after design/ui/mockups/png/01_hud.png and 02_hud_magcheck.png).
 //!
-//! Hard rule: no exact ammo count anywhere. The weapon panel shows the gun, fire mode, ammo type and how
-//! many spare magazines are in the pouch; rounds are only ever reported as a mag-check estimate.
+//! Hard rule: no exact ammo count anywhere. The weapon panel shows the gun, fire mode, and which magazine
+//! slot (and so which ammo) is in the gun; rounds are only ever reported as a mag-check estimate.
 
 use crate::AppState;
 use crate::client::{Feedback, LocalControl};
@@ -490,9 +490,8 @@ fn update_weapon_panel(
         .into();
     }
     for mut t in &mut detail {
-        // Pouch slots only: how many spare mags still hold rounds, never how many rounds.
-        let pouch: String =
-            (0..lo.0.weapon.spare_mags as usize).map(|i| if i < w.0.loaded_spares() { '#' } else { '.' }).collect();
+        // Which magazine slot is in the gun and its ammo: never how many rounds or magazines are left.
+        let slot = w.0.loaded;
         let action = match w.0.action {
             WeaponAction::Reloading { .. } => "  RELOADING",
             WeaponAction::MagChecking { .. } => "  CHECKING MAG",
@@ -501,8 +500,9 @@ fn update_weapon_panel(
         };
         let atts: Vec<String> = lo.0.weapon.attachments.iter().map(|a| a.replace('_', " ").to_uppercase()).collect();
         t.0 = format!(
-            "{}  |  SPARE MAGS [{pouch}]{action}\n{}\n[T] CHECK MAG  [R] RELOAD  [B] FIRE MODE",
-            lo.0.weapon.ammo.label,
+            "MAG {}  {}{action}\n{}\n[T] CHECK MAG  [R] RELOAD (HOLD: PICK MAG)  [B] FIRE MODE",
+            slot + 1,
+            lo.0.weapon.ammo(slot).label,
             atts.join(" / ")
         );
     }
@@ -512,7 +512,7 @@ fn update_weapon_panel(
     }
     if let Some(card) = card {
         for mut t in &mut card_text {
-            t.0 = card.estimate.label().into();
+            t.0 = format!("{}  ·  MAG {} {}", card.estimate.label(), card.slot + 1, lo.0.weapon.ammo(card.slot).label);
         }
         for (s, mut bg) in &mut segs {
             bg.0 = if s.0 == card.estimate.segment() { INK } else { Color::srgb(0.2, 0.21, 0.24) };

@@ -64,10 +64,14 @@ pub struct Cli {
     pub bot: bool,
     /// Start looking this way (degrees, 0 = north / -Z, 90 = west); the bot then holds this heading.
     pub yaw: Option<f32>,
+    /// Open a menu for screenshots: `reload` (the magazine radial).
+    pub demo_ui: Option<String>,
     /// Loadout overrides until there is a loadout screen (weapon id, ammo like `rip3`, armor preset id,
     /// comma-separated attachment ids). Anything missing uses `rules.ron`'s default loadout.
     pub weapon: Option<String>,
     pub ammo: Option<String>,
+    /// Magazines in slot order, e.g. `std,std,ap2,ap2`.
+    pub mags: Option<String>,
     pub armor: Option<String>,
     pub attach: Option<String>,
 }
@@ -86,8 +90,10 @@ impl Cli {
             exit_after: None,
             bot: false,
             yaw: None,
+            demo_ui: None,
             weapon: None,
             ammo: None,
+            mags: None,
             armor: None,
             attach: None,
         };
@@ -106,15 +112,18 @@ impl Cli {
                 "--exit-after" => cli.exit_after = val().parse().ok(),
                 "--bot" => cli.bot = true,
                 "--yaw" => cli.yaw = val().parse().ok(),
+                "--demo-ui" => cli.demo_ui = Some(val()),
                 "--weapon" => cli.weapon = Some(val()),
                 "--ammo" => cli.ammo = Some(val()),
+                "--mags" => cli.mags = Some(val()),
                 "--armor" => cli.armor = Some(val()),
                 "--attach" => cli.attach = Some(val()),
                 "--help" | "-h" => {
                     println!(
                         "val_etf [--host showhome|range] [--join CODE|IP[:PORT]] [--name NAME] [--port PORT]\n\
                          \x20       [--width W --height H] [--screenshot PATH [--screenshot-after S]] [--exit-after S] [--bot] [--yaw DEG]\n\
-                         \x20       [--weapon ID] [--ammo std|ap1..3|shr1..3|rip1..3|slug1..2] [--armor PRESET] [--attach A,B]"
+                         \x20       [--weapon ID] [--ammo std|ap1..3|rip1..3|slug1..2] [--mags std,ap2,..]\n\
+                         \x20       [--armor PRESET] [--attach A,B]"
                     );
                     std::process::exit(0);
                 }
@@ -153,8 +162,18 @@ pub fn loadout_choice(cli: &Cli, data: &GameData) -> vetf_net::LoadoutChoice {
         None if weapon == d.primary => d.attachments.clone(),
         None => Vec::new(),
     };
-    let ammo = cli.ammo.as_deref().and_then(parse_ammo).unwrap_or(d.ammo);
-    vetf_net::LoadoutChoice { weapon, ammo, attachments, armor: cli.armor.clone().unwrap_or_else(|| d.armor.clone()) }
+    // `--mags` lists the slots in order; `--ammo` loads every default magazine with one ammo.
+    let mags = match (&cli.mags, cli.ammo.as_deref().and_then(parse_ammo)) {
+        (Some(list), _) => parse_mags(list),
+        (None, Some(ammo)) => vec![ammo; d.mags.len()],
+        (None, None) => d.mags.clone(),
+    };
+    vetf_net::LoadoutChoice { weapon, mags, attachments, armor: cli.armor.clone().unwrap_or_else(|| d.armor.clone()) }
+}
+
+/// Parse a magazine list in slot order (`std,ap2,ap2`); unknown entries are skipped, past six dropped.
+pub fn parse_mags(s: &str) -> Vec<vetf_sim::data::AmmoChoice> {
+    s.split(',').filter_map(parse_ammo).take(vetf_sim::weapon::MAX_MAGS).collect()
 }
 
 fn default_name() -> String {
@@ -173,5 +192,8 @@ mod tests {
         assert_eq!(parse_ammo("ap-2"), Some(AmmoChoice { kind: AmmoKind::ArmorPiercing, tier: 2 }));
         assert_eq!(parse_ammo("shrapnel"), Some(AmmoChoice { kind: AmmoKind::Shrapnel, tier: 1 }));
         assert_eq!(parse_ammo("laser"), None);
+        let ap2 = AmmoChoice { kind: AmmoKind::ArmorPiercing, tier: 2 };
+        assert_eq!(parse_mags("std, ap2,laser,ap2"), vec![AmmoChoice::STANDARD, ap2, ap2]);
+        assert_eq!(parse_mags("std,std,std,std,std,std,std").len(), 6);
     }
 }

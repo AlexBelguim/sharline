@@ -13,8 +13,8 @@ Once the design docs and JSON are updated, delete the entry here and in `superse
     The bullet that breaks the arc carries its leftover on to HP.
   - **`pen` multiplies shield damage, per halo tier.** pen 2 means the shield takes twice the bullet's damage;
     below 1 means that tier resists the round. Leftover is converted back as `(shield damage − absorbed) / pen`.
-- **Ammo** is picked per loadout as a **type and a tier** (e.g. AP II) in `assets/data/ammo.ron`. Nothing to sort
-  per round or per magazine.
+- **Ammo** is a **type and a tier** (e.g. AP II) in `assets/data/ammo.ron`, picked **per magazine** (see 5).
+  Nothing to sort per round.
   - **Weapon class** sets the baseline pen per halo tier. SMG Standard only slightly beats T1 and nothing above.
   - **Type and tier** scale pen, damage, flesh damage and limb spill:
     - Standard.
@@ -25,7 +25,8 @@ Once the design docs and JSON are updated, delete the entry here and in `superse
       the shield, and fragments that bleed until treated, after which a residual trickle stays until
       respawn.
   - **Gear budget:** in team deathmatch, AP is paid for with a loadout gear budget (`rules.ron`). Halo arc tiers
-    plus ammo gear cost must fit. In the extraction mode, AP will be expensive or craftable instead.
+    plus the gear cost of **every magazine** must fit. In the extraction mode, AP will be expensive or craftable
+    instead.
 - **Mako:** Standard has pen 1.0 everywhere, so it still matches the design's numbers exactly (tested against the
   design's Python model).
 - **Warden:** loses the 30% bleed-through and gets a high pen instead, tuned to keep its design kill breakpoints.
@@ -59,7 +60,29 @@ Once the design docs and JSON are updated, delete the entry here and in `superse
   full at full speed or in the air. Standing still, the only things moving your aim are the fixed recoil pattern
   and the small base spread.
 
-## 5. Small things that are not changes, but worth knowing
+## 5. Ordered magazines, each with its own ammo
+- **Design:** one magazine type per loadout, and the HUD shows spare magazines in the pouch.
+- **Now (user direction):**
+  - A loadout carries **up to six magazines in slot order**, each loaded with its own ammo (`mags` in
+    `rules.ron`'s default loadout, `LoadoutChoice.mags` on the wire). Slot 1 starts in the gun.
+  - A magazine always goes back to **its own slot**, so players learn where their good rounds sit.
+  - **Tap R:** the next slot in order (wrapping) that still holds rounds. A full magazine ignores a tap.
+  - **Hold R:** the magazine radial opens. Release over a slot (or press 1-6) to load it, even from a full
+    magazine. Spent magazines are dimmed; nothing shows how many rounds the others hold.
+  - The mag check card names the magazine in the gun and its ammo next to the estimate.
+  - The HUD no longer shows a spare-magazine count.
+  - Each shot remembers its magazine slot, so damage uses that magazine's ammo.
+
+## 6. Rulesets per mode
+- **Now (user direction):** `rulesets` in `rules.ron`, replicated in `MatchState.rules`.
+  - **Team deathmatch** (gunplay and netcode test bed): per-region shields and health, but **no status
+    effects**. There is no bleeding, and a limb at 0 HP carries no broken-limb penalty; it still spills damage
+    into the torso. Healing uses only what will be high-end items in the extraction mode: items that heal
+    every region or restore every arc at once.
+  - **Gun range:** the full extraction rules (bleeding, broken limbs, regional items).
+- **Visual impact (UI):** the HUD shows status icons only when the ruleset has them.
+
+## 7. Small things that are not changes, but worth knowing
 - **Port:** the host-game mockup (`design/ui/mockups/png/04b_main_menu_host.png`) shows UDP port 7777, while the
   network diagram uses 47820. The game uses **47820** (`assets/data/net.ron`). The mockup should be updated.
 - **Placeholders:** the TDM time limit and spawn protection length have no design value yet. Both are marked as

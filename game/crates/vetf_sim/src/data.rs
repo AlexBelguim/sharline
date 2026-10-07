@@ -964,7 +964,33 @@ pub struct HitboxSpec {
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct RulesFile {
     pub tdm: TdmRules,
+    pub rulesets: Rulesets,
     pub default_loadout: LoadoutSpec,
+}
+
+/// What a mode switches on. Team deathmatch is the gunplay and netcode test bed: per-region shields and
+/// health, but no status effects, and only the high-end items that heal every region or every arc at once.
+/// The gun range runs the full extraction rules.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+pub struct Ruleset {
+    /// Bleeds (from Shrapnel) tick until treated.
+    pub bleeding: bool,
+    /// A limb at 0 HP is broken: broken legs slow you, broken arms hurt aim and recoil. Off, a limb at 0 HP
+    /// still spills damage into the torso; it just carries no penalty.
+    pub injuries: bool,
+    /// Items that treat one region can be used. Off, only whole-body items.
+    pub regional_items: bool,
+}
+
+impl Ruleset {
+    /// The full rules (extraction mode).
+    pub const FULL: Ruleset = Ruleset { bleeding: true, injuries: true, regional_items: true };
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+pub struct Rulesets {
+    pub tdm: Ruleset,
+    pub range: Ruleset,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -981,9 +1007,9 @@ pub struct TdmRules {
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct LoadoutSpec {
     pub primary: String,
-    pub ammo: AmmoChoice,
+    /// Magazines in slot order (at most six), each with its own ammo. Slot 1 starts in the gun.
+    pub mags: Vec<AmmoChoice>,
     pub attachments: Vec<String>,
-    pub spare_mags: u8,
     pub armor: String,
 }
 
@@ -1176,8 +1202,13 @@ impl GameData {
         let Some(w) = self.weapon(&l.primary) else {
             return bad(format!("default loadout: unknown weapon {}", l.primary));
         };
-        if self.ammo.resolve(w.cls, l.ammo).is_none_or(|a| !a.player_loadout) {
-            return bad(format!("default loadout: {} cannot load {:?}", l.primary, l.ammo));
+        if l.mags.is_empty() || l.mags.len() > crate::weapon::MAX_MAGS {
+            return bad(format!("default loadout: 1..={} magazines", crate::weapon::MAX_MAGS));
+        }
+        for m in &l.mags {
+            if self.ammo.resolve(w.cls, *m).is_none_or(|a| !a.player_loadout) {
+                return bad(format!("default loadout: {} cannot load {m:?}", l.primary));
+            }
         }
         for a in &l.attachments {
             match self.attachment(a) {

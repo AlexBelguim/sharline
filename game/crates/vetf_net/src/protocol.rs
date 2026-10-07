@@ -8,7 +8,7 @@ use lightyear::prelude::*;
 use serde::{Deserialize, Serialize};
 use vetf_sim::Zone;
 use vetf_sim::combat::{HaloState, Health};
-use vetf_sim::data::AmmoChoice;
+use vetf_sim::data::{AmmoChoice, Ruleset};
 use vetf_sim::hitbox::HitClaim;
 use vetf_sim::input::{Buttons, InputFrame};
 use vetf_sim::level::Team;
@@ -17,7 +17,7 @@ use vetf_sim::player::{Loadout, Wounds};
 use vetf_sim::weapon::WeaponState;
 
 /// Bumped whenever the protocol changes; part of the netcode protocol id, so old builds cannot connect.
-pub const PROTOCOL_VERSION: u64 = 1;
+pub const PROTOCOL_VERSION: u64 = 2;
 
 /// netcode.io protocol id shared by host and clients.
 pub fn protocol_id() -> u64 {
@@ -100,6 +100,8 @@ pub struct MatchState {
     pub score_limit: u32,
     pub time_left_s: f32,
     pub phase: MatchPhase,
+    /// What this mode switches on (status effects, regional items). Clients use it for the HUD and menus.
+    pub rules: Ruleset,
 }
 
 // ---------------------------------------------------------------------------------------------- input
@@ -112,6 +114,8 @@ pub struct PlayerInput {
     pub yaw: f32,
     pub pitch: f32,
     pub buttons: u16,
+    /// Reload radial pick: 1..=6, or 0.
+    pub reload_slot: u8,
 }
 
 impl MapEntities for PlayerInput {
@@ -125,11 +129,19 @@ impl PlayerInput {
             yaw: self.yaw,
             pitch: self.pitch,
             buttons: Buttons(self.buttons),
+            reload_slot: self.reload_slot,
         }
     }
 
     pub fn from_frame(f: &InputFrame) -> Self {
-        Self { move_x: f.movement.x, move_y: f.movement.y, yaw: f.yaw, pitch: f.pitch, buttons: f.buttons.0 }
+        Self {
+            move_x: f.movement.x,
+            move_y: f.movement.y,
+            yaw: f.yaw,
+            pitch: f.pitch,
+            buttons: f.buttons.0,
+            reload_slot: f.reload_slot,
+        }
     }
 }
 
@@ -139,7 +151,8 @@ impl PlayerInput {
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq)]
 pub struct LoadoutChoice {
     pub weapon: String,
-    pub ammo: AmmoChoice,
+    /// Magazines in slot order (at most six), each with its own ammo.
+    pub mags: Vec<AmmoChoice>,
     pub attachments: Vec<String>,
     pub armor: String,
 }
@@ -220,8 +233,8 @@ fn move_should_rollback(confirmed: &PlayerMove, predicted: &PlayerMove) -> bool 
 
 fn weapon_should_rollback(confirmed: &PlayerWeapon, predicted: &PlayerWeapon) -> bool {
     let (a, b) = (&confirmed.0, &predicted.0);
-    a.mag != b.mag
-        || a.spares != b.spares
+    a.rounds != b.rounds
+        || a.loaded != b.loaded
         || a.action != b.action
         || a.fire_mode != b.fire_mode
         || a.shot_seq != b.shot_seq
@@ -336,18 +349,34 @@ mod tests {
             name: "KESTREL_YOU".into(),
             loadout: LoadoutChoice {
                 weapon: "ar7_mako".into(),
-                ammo: AmmoChoice::STANDARD,
+                mags: vec![AmmoChoice::STANDARD, AmmoChoice { kind: vetf_sim::data::AmmoKind::ArmorPiercing, tier: 2 }],
                 attachments: vec!["optic_holo".into()],
                 armor: "arm_mender_scout".into(),
             },
             data_fingerprint: d.fingerprint,
         });
         roundtrip(&KillFeed { killer: Some(1), victim: 2, zone: Some(Zone::Head) });
+        roundtrip(&MatchState {
+            mode: MatchMode::Tdm,
+            map: "showhome".into(),
+            score_a: 3,
+            score_b: 4,
+            score_limit: 50,
+            time_left_s: 12.5,
+            phase: MatchPhase::Ended { winner: None },
+            rules: d.rules.rulesets.tdm,
+        });
     }
 
     #[test]
     fn input_frame_roundtrip() {
-        let f = InputFrame { movement: Vec2::new(0.5, -1.0), yaw: 1.0, pitch: -0.2, buttons: Buttons(0b1011) };
+        let f = InputFrame {
+            movement: Vec2::new(0.5, -1.0),
+            yaw: 1.0,
+            pitch: -0.2,
+            buttons: Buttons(0b1011),
+            reload_slot: 3,
+        };
         assert_eq!(PlayerInput::from_frame(&f).frame(), f);
     }
 

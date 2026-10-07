@@ -46,6 +46,8 @@ pub struct InputFrame {
     pub yaw: f32,
     pub pitch: f32,
     pub buttons: Buttons,
+    /// A magazine picked on the reload radial: 1..=6 for that slot, 0 for none. Sent for one tick.
+    pub reload_slot: u8,
 }
 
 impl InputFrame {
@@ -66,6 +68,9 @@ impl InputFrame {
         }
         self.yaw = self.yaw.rem_euclid(std::f32::consts::TAU);
         self.pitch = if self.pitch.is_finite() { self.pitch.clamp(-MAX_PITCH, MAX_PITCH) } else { 0.0 };
+        if self.reload_slot as usize > crate::weapon::MAX_MAGS {
+            self.reload_slot = 0;
+        }
         self
     }
 }
@@ -115,9 +120,16 @@ mod tests {
 
     #[test]
     fn sanitize_clamps() {
-        let f =
-            InputFrame { movement: Vec2::new(5.0, f32::NAN), yaw: -0.5, pitch: 9.0, buttons: Buttons(0) }.sanitized();
+        let f = InputFrame {
+            movement: Vec2::new(5.0, f32::NAN),
+            yaw: -0.5,
+            pitch: 9.0,
+            buttons: Buttons(0),
+            reload_slot: 7,
+        }
+        .sanitized();
         assert_eq!(f.movement, Vec2::ZERO);
+        assert_eq!(f.reload_slot, 0);
         assert!(f.yaw >= 0.0 && f.pitch == MAX_PITCH);
     }
 }

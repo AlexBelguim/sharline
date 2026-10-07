@@ -31,14 +31,18 @@ pub const ADS_AIMED: f32 = 0.9;
 
 // ---------------------------------------------------------------------------------------------- loadout
 
+/// Most magazines a loadout can carry. Each has a fixed slot (1..=6) the player learns.
+pub const MAX_MAGS: usize = 6;
+
 /// A weapon with its attachments resolved: fixed for one life.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct WeaponLoadout {
     pub weapon: u8,
-    pub ammo: AmmoSpec,
+    /// Magazines in slot order, each with its own ammo. Slot 1 (index 0) starts in the gun, and a
+    /// magazine always goes back to its own slot, so players learn where their good rounds sit.
+    pub mags: Vec<AmmoSpec>,
     pub attachments: Vec<String>,
     pub mag_capacity: u16,
-    pub spare_mags: u8,
     pub zoom: f32,
     pub mods: ModTotals,
 }
@@ -74,19 +78,19 @@ impl From<ModifierTotals> for ModTotals {
 }
 
 impl WeaponLoadout {
-    /// Resolve a weapon id plus attachment ids. Attachments that do not fit are ignored; missing
-    /// categories fall back to the weapon's defaults (so every gun always has a magazine).
-    pub fn resolve(
-        data: &GameData,
-        weapon_id: &str,
-        ammo: AmmoChoice,
-        attachments: &[String],
-        spare_mags: u8,
-    ) -> Option<Self> {
+    /// Resolve a weapon id, its magazines (in slot order) and attachment ids. Attachments that do not
+    /// fit are ignored; missing categories fall back to the weapon's defaults (so every gun always has a
+    /// magazine). Ammo the gun cannot load falls back to standard; past [`MAX_MAGS`] are dropped, and
+    /// no magazines at all means one standard magazine.
+    pub fn resolve(data: &GameData, weapon_id: &str, mags: &[AmmoChoice], attachments: &[String]) -> Option<Self> {
         let weapon = data.weapon_index(weapon_id)?;
         let spec = &data.weapons.weapons[weapon];
-        // Ammo this gun cannot load falls back to standard.
-        let ammo = data.ammo_for(spec, ammo).or_else(|| data.ammo_for(spec, AmmoChoice::STANDARD))?;
+        let standard = data.ammo_for(spec, AmmoChoice::STANDARD)?;
+        let mut mags: Vec<AmmoSpec> =
+            mags.iter().take(MAX_MAGS).map(|c| data.ammo_for(spec, *c).unwrap_or_else(|| standard.clone())).collect();
+        if mags.is_empty() {
+            mags.push(standard);
+        }
         let fits = |id: &str| data.attachment(id).filter(|a| a.fits.iter().any(|f| f == weapon_id));
         let mut chosen: Vec<&crate::data::AttachmentSpec> = Vec::new();
         for id in attachments {
@@ -117,10 +121,9 @@ impl WeaponLoadout {
             .unwrap_or(1.0);
         Some(Self {
             weapon: weapon as u8,
-            ammo,
+            mags,
             attachments: chosen.iter().map(|a| a.id.clone()).collect(),
             mag_capacity,
-            spare_mags,
             zoom,
             mods: ModifierTotals::combine(chosen.iter().copied()).into(),
         })
@@ -133,7 +136,17 @@ impl WeaponLoadout {
     /// Resolve the default loadout from rules.ron.
     pub fn default_for(data: &GameData) -> Self {
         let l = &data.rules.default_loadout;
-        Self::resolve(data, &l.primary, l.ammo, &l.attachments, l.spare_mags).expect("valid default loadout")
+        Self::resolve(data, &l.primary, &l.mags, &l.attachments).expect("valid default loadout")
+    }
+
+    /// The ammo in magazine slot `slot` (0-based).
+    pub fn ammo(&self, slot: u8) -> &AmmoSpec {
+        &self.mags[(slot as usize).min(self.mags.len() - 1)]
+    }
+
+    /// Gear-budget points for the ammo: each magazine is priced on its own.
+    pub fn ammo_gear_cost(&self) -> u32 {
+        self.mags.iter().map(|m| m.gear_cost).sum()
     }
 }
 
@@ -206,15 +219,26 @@ pub enum ReloadKind {
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 pub enum WeaponAction {
     Ready,
-    Equipping { left: u16 },
-    Reloading { left: u16, kind: ReloadKind },
-    MagChecking { left: u16 },
+    Equipping {
+        left: u16,
+    },
+    /// Swapping to the magazine in `slot` (0-based).
+    Reloading {
+        left: u16,
+        kind: ReloadKind,
+        slot: u8,
+    },
+    MagChecking {
+        left: u16,
+    },
 }
 
-/// The result card a mag check leaves on the HUD for a few seconds.
+/// The result card a mag check leaves on the HUD for a few seconds: an estimate, and which magazine
+/// (slot, so its ammo) is in the gun.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 pub struct MagCard {
     pub estimate: MagEstimate,
+    pub slot: u8,
     pub left: u16,
 }
 
@@ -224,10 +248,10 @@ pub const MAG_CARD_S: f32 = 3.0;
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct WeaponState {
     pub fire_mode: FireMode,
-    /// Rounds in the inserted magazine. Internal only: never shown.
-    pub mag: u16,
-    /// Rounds in each spare magazine in the pouch.
-    pub spares: Vec<u16>,
+    /// Rounds in each magazine, by slot (see [`WeaponLoadout::mags`]). Internal only: never shown.
+    pub rounds: Vec<u16>,
+    /// The slot (0-based) of the magazine in the gun. The others sit in the pouch.
+    pub loaded: u8,
     pub action: WeaponAction,
     /// Ticks until the next shot is allowed (fire interval / bolt cycle).
     pub cooldown: u16,
@@ -261,6 +285,8 @@ pub struct WeaponEnv {
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct Shot {
     pub seq: u32,
+    /// The magazine slot it came from: its ammo decides the damage.
+    pub ammo_slot: u8,
     /// Spread cone half-angle at the moment of firing (degrees).
     pub spread_deg: f32,
     /// Recoil kick to apply to the view after this shot (degrees, pitch up +, yaw right +).
@@ -285,8 +311,8 @@ impl WeaponState {
         let hz = data.net.tick_hz;
         Self {
             fire_mode: spec.fire_modes.first().copied().unwrap_or(FireMode::Semi),
-            mag: loadout.mag_capacity,
-            spares: vec![loadout.mag_capacity; loadout.spare_mags as usize],
+            rounds: vec![loadout.mag_capacity; loadout.mags.len()],
+            loaded: 0,
             action: WeaponAction::Equipping { left: secs_to_ticks(spec.equip_s, hz) },
             cooldown: 0,
             sprint_lock: 0,
@@ -304,9 +330,27 @@ impl WeaponState {
         self.action == WeaponAction::Ready
     }
 
-    /// How many spare magazines still hold rounds (the HUD may show pouch slots, not round counts).
-    pub fn loaded_spares(&self) -> usize {
-        self.spares.iter().filter(|&&r| r > 0).count()
+    /// Rounds in the magazine in the gun. Internal only: never shown.
+    pub fn mag(&self) -> u16 {
+        self.rounds.get(self.loaded as usize).copied().unwrap_or(0)
+    }
+
+    fn mag_mut(&mut self) -> &mut u16 {
+        let i = self.loaded as usize;
+        &mut self.rounds[i]
+    }
+
+    /// Whether the magazine in `slot` still holds rounds. The reload radial may dim spent magazines
+    /// (you emptied them yourself); it never shows how many rounds are left.
+    pub fn slot_has_rounds(&self, slot: u8) -> bool {
+        self.rounds.get(slot as usize).is_some_and(|r| *r > 0)
+    }
+
+    /// The magazine a tap of reload takes: the next slot after the one in the gun, in slot order
+    /// (wrapping), that still holds rounds.
+    pub fn next_slot(&self) -> Option<u8> {
+        let n = self.rounds.len();
+        (1..n).map(|k| ((self.loaded as usize + k) % n) as u8).find(|s| self.slot_has_rounds(*s))
     }
 
     /// Advance one tick.
@@ -351,11 +395,11 @@ impl WeaponState {
                     self.action = WeaponAction::Ready;
                 }
             }
-            WeaponAction::Reloading { left, kind } => {
+            WeaponAction::Reloading { left, slot, .. } => {
                 *left = left.saturating_sub(1);
                 if *left == 0 {
-                    let kind = *kind;
-                    self.finish_reload(kind);
+                    // The old magazine goes back to its own slot, rounds and all.
+                    self.loaded = *slot;
                     self.action = WeaponAction::Ready;
                     ev.reload_finished = true;
                 }
@@ -367,8 +411,9 @@ impl WeaponState {
                 } else {
                     *left = left.saturating_sub(1);
                     if *left == 0 {
-                        let est = MagEstimate::from_rounds(self.mag, loadout.mag_capacity);
-                        self.card = Some(MagCard { estimate: est, left: secs_to_ticks(MAG_CARD_S, hz) });
+                        let est = MagEstimate::from_rounds(self.mag(), loadout.mag_capacity);
+                        let left = secs_to_ticks(MAG_CARD_S, hz);
+                        self.card = Some(MagCard { estimate: est, slot: self.loaded, left });
                         self.action = WeaponAction::Ready;
                         ev.mag_checked = Some(est);
                     }
@@ -415,14 +460,20 @@ impl WeaponState {
             ev.fire_mode_changed = true;
         }
 
-        // Reload / mag check.
-        if b.pressed(prev, Buttons::RELOAD) && self.mag < loadout.mag_capacity && self.loaded_spares() > 0 {
-            let kind = if self.mag == 0 { ReloadKind::Empty } else { ReloadKind::Tactical };
+        // Reload: a picked slot (reload radial) swaps to that magazine even from a full one; a tap of
+        // reload takes the next slot in order, unless the magazine in the gun is full.
+        let target = match input.reload_slot {
+            0 if b.pressed(prev, Buttons::RELOAD) && self.mag() < loadout.mag_capacity => self.next_slot(),
+            0 => None,
+            k => Some(k - 1).filter(|s| *s != self.loaded && self.slot_has_rounds(*s)),
+        };
+        if let Some(slot) = target {
+            let kind = if self.mag() == 0 { ReloadKind::Empty } else { ReloadKind::Tactical };
             let s = match kind {
                 ReloadKind::Tactical => spec.reload_tactical_s,
                 ReloadKind::Empty => spec.reload_empty_s,
             } * loadout.mods.reload;
-            self.action = WeaponAction::Reloading { left: secs_to_ticks(s, hz).max(1), kind };
+            self.action = WeaponAction::Reloading { left: secs_to_ticks(s, hz).max(1), kind, slot };
             self.ads = 0.0;
             ev.reload_started = Some(kind);
             return ev;
@@ -441,14 +492,14 @@ impl WeaponState {
         if !wants_fire || self.cooldown > 0 || self.sprint_lock > 0 || lowered {
             return ev;
         }
-        if self.mag == 0 {
+        if self.mag() == 0 {
             if b.pressed(prev, Buttons::FIRE) {
                 ev.dry_fire = true;
             }
             return ev;
         }
         let spread_deg = self.spread_deg(data, spec, loadout, env);
-        self.mag -= 1;
+        *self.mag_mut() -= 1;
         self.cooldown = fire_interval_ticks(spec, hz, self.ads >= ADS_AIMED);
         self.burst = self.burst.saturating_add(1);
         self.since_shot = 0;
@@ -460,20 +511,8 @@ impl WeaponState {
         );
         self.bloom_deg = (self.bloom_deg + bloom_add).min(bloom_max.max(self.bloom_deg));
         let (kick_pitch, kick_yaw) = self.recoil_kick(data, spec, loadout, env);
-        ev.shot = Some(Shot { seq: self.shot_seq, spread_deg, kick_pitch, kick_yaw });
+        ev.shot = Some(Shot { seq: self.shot_seq, ammo_slot: self.loaded, spread_deg, kick_pitch, kick_yaw });
         ev
-    }
-
-    fn finish_reload(&mut self, kind: ReloadKind) {
-        // Take the fullest spare; a tactical reload puts the old mag back in the pouch.
-        let Some((i, _)) = self.spares.iter().enumerate().max_by_key(|(_, r)| **r) else {
-            return;
-        };
-        let fresh = self.spares.remove(i);
-        if kind == ReloadKind::Tactical && self.mag > 0 {
-            self.spares.push(self.mag);
-        }
-        self.mag = fresh;
     }
 
     /// True when the next shot is the first of a burst (the recoil pattern has reset).
@@ -598,7 +637,7 @@ mod tests {
 
     fn setup(weapon: &str) -> (GameData, WeaponLoadout, WeaponState) {
         let d = GameData::embedded();
-        let l = WeaponLoadout::resolve(&d, weapon, AmmoChoice::STANDARD, &[], 3).unwrap();
+        let l = WeaponLoadout::resolve(&d, weapon, &[AmmoChoice::STANDARD; 4], &[]).unwrap();
         let mut s = WeaponState::new(&d, &l);
         s.action = WeaponAction::Ready;
         (d, l, s)
@@ -609,7 +648,22 @@ mod tests {
     }
 
     fn input(bits: u16) -> InputFrame {
-        InputFrame { movement: Vec2::ZERO, yaw: 0.0, pitch: 0.0, buttons: Buttons(bits) }
+        InputFrame { movement: Vec2::ZERO, yaw: 0.0, pitch: 0.0, buttons: Buttons(bits), reload_slot: 0 }
+    }
+
+    fn pick(slot: u8) -> InputFrame {
+        InputFrame { reload_slot: slot, ..input(0) }
+    }
+
+    fn run_reload(d: &GameData, l: &WeaponLoadout, s: &mut WeaponState) -> u16 {
+        let mut done = 0;
+        for t in 1..=400 {
+            if s.step(d, l, &input(0), &still()).reload_finished {
+                done = t;
+                break;
+            }
+        }
+        done
     }
 
     #[test]
@@ -624,18 +678,24 @@ mod tests {
     #[test]
     fn default_loadout_fills_categories() {
         let d = GameData::embedded();
-        let l = WeaponLoadout::resolve(&d, "ar7_mako", AmmoChoice::STANDARD, &["mag_45".into(), "optic_3x".into()], 2)
-            .unwrap();
-        assert_eq!(l.ammo.label, "STD");
+        let l =
+            WeaponLoadout::resolve(&d, "ar7_mako", &[AmmoChoice::STANDARD; 2], &["mag_45".into(), "optic_3x".into()])
+                .unwrap();
+        assert_eq!(l.ammo(0).label, "STD");
+        assert_eq!(l.mags.len(), 2);
         assert_eq!(l.mag_capacity, 45);
         assert_eq!(l.zoom, 3.0);
         assert!(l.attachments.contains(&"mako_stock_standard".to_string()));
         assert!(!l.attachments.contains(&"mag_30".to_string()));
         // optics that do not fit are ignored
         let slug = AmmoChoice { kind: crate::data::AmmoKind::Slug, tier: 1 };
-        let l = WeaponLoadout::resolve(&d, "ar7_mako", slug, &["optic_sniper".into()], 2).unwrap();
+        let l = WeaponLoadout::resolve(&d, "ar7_mako", &[slug], &["optic_sniper".into()]).unwrap();
         assert_eq!(l.zoom, 1.25);
-        assert_eq!(l.ammo.choice, AmmoChoice::STANDARD, "ammo the gun cannot load falls back to standard");
+        assert_eq!(l.ammo(0).choice, AmmoChoice::STANDARD, "ammo the gun cannot load falls back to standard");
+        let l = WeaponLoadout::resolve(&d, "ar7_mako", &[], &[]).unwrap();
+        assert_eq!(l.mags.len(), 1, "a gun always has a magazine");
+        let l = WeaponLoadout::resolve(&d, "ar7_mako", &[AmmoChoice::STANDARD; 9], &[]).unwrap();
+        assert_eq!(l.mags.len(), MAX_MAGS);
         WeaponLoadout::default_for(&d);
     }
 
@@ -652,7 +712,7 @@ mod tests {
             }
         }
         assert_eq!(shots, 30, "one magazine, then dry");
-        assert_eq!(s.mag, 0);
+        assert_eq!(s.mag(), 0);
         // 30 shots at 5 ticks each take 145 ticks after the first
         assert_eq!(first, Some(0));
     }
@@ -671,28 +731,63 @@ mod tests {
         for _ in 0..50 {
             s.step(&d, &l, &input(Buttons::FIRE), &still());
         }
-        let left = s.mag;
+        let left = s.mag();
         assert!(left > 0 && left < 30);
         s.step(&d, &l, &input(0), &still());
         let ev = s.step(&d, &l, &input(Buttons::RELOAD), &still());
         assert_eq!(ev.reload_started, Some(ReloadKind::Tactical));
-        let ticks = secs_to_ticks(2.1, 60);
-        let mut done = 0;
-        for t in 1..=ticks {
-            if s.step(&d, &l, &input(0), &still()).reload_finished {
-                done = t;
-            }
-        }
-        assert_eq!(done, ticks);
-        assert_eq!(s.mag, 30);
-        assert_eq!(s.spares.len(), 3);
-        assert!(s.spares.contains(&left));
+        assert_eq!(run_reload(&d, &l, &mut s), secs_to_ticks(2.1, 60));
+        assert_eq!((s.loaded, s.mag()), (1, 30), "a tap takes the next slot");
+        assert_eq!(s.rounds[0], left, "the partial magazine goes back to slot 1");
+    }
+
+    #[test]
+    fn tap_reload_walks_the_slots_in_order_and_skips_spent_ones() {
+        let (d, l, mut s) = setup("ar7_mako");
+        s.rounds = vec![5, 0, 30, 30];
+        s.step(&d, &l, &input(Buttons::RELOAD), &still());
+        run_reload(&d, &l, &mut s);
+        assert_eq!(s.loaded, 2, "slot 2 is spent, so slot 3");
+        s.rounds[2] = 1;
+        s.step(&d, &l, &input(Buttons::RELOAD), &still());
+        run_reload(&d, &l, &mut s);
+        s.step(&d, &l, &input(0), &still());
+        assert_eq!(s.loaded, 3);
+        s.rounds[3] = 0;
+        let ev = s.step(&d, &l, &input(Buttons::RELOAD), &still());
+        assert_eq!(ev.reload_started, Some(ReloadKind::Empty));
+        run_reload(&d, &l, &mut s);
+        assert_eq!((s.loaded, s.mag()), (0, 5), "wraps round to slot 1 and its partial magazine");
+        // a full magazine ignores a tap
+        s.rounds[0] = 30;
+        s.step(&d, &l, &input(0), &still());
+        assert_eq!(s.step(&d, &l, &input(Buttons::RELOAD), &still()).reload_started, None);
+    }
+
+    #[test]
+    fn picking_a_slot_swaps_even_from_a_full_magazine() {
+        let d = GameData::embedded();
+        let ap = AmmoChoice { kind: crate::data::AmmoKind::ArmorPiercing, tier: 2 };
+        let l = WeaponLoadout::resolve(&d, "ar7_mako", &[AmmoChoice::STANDARD, AmmoChoice::STANDARD, ap], &[]).unwrap();
+        let mut s = WeaponState::new(&d, &l);
+        s.action = WeaponAction::Ready;
+        assert_eq!(s.step(&d, &l, &pick(1), &still()).reload_started, None, "already in the gun");
+        assert_eq!(s.step(&d, &l, &pick(9), &still()).reload_started, None, "no such slot");
+        assert_eq!(s.step(&d, &l, &pick(3), &still()).reload_started, Some(ReloadKind::Tactical));
+        run_reload(&d, &l, &mut s);
+        assert_eq!(s.loaded, 2);
+        let shot = s.step(&d, &l, &input(Buttons::FIRE), &still()).shot.unwrap();
+        assert_eq!(shot.ammo_slot, 2);
+        assert_eq!(l.ammo(shot.ammo_slot).label, "AP II");
+        assert_eq!(s.rounds, vec![30, 30, 29]);
+        s.rounds[0] = 0;
+        assert_eq!(s.step(&d, &l, &pick(1), &still()).reload_started, None, "a spent magazine");
     }
 
     #[test]
     fn mag_check_reports_estimate_only() {
         let (d, l, mut s) = setup("ar7_mako");
-        s.mag = 14;
+        s.rounds[0] = 14;
         s.step(&d, &l, &input(Buttons::MAG_CHECK), &still());
         let mut est = None;
         for _ in 0..70 {
@@ -701,7 +796,7 @@ mod tests {
             }
         }
         assert_eq!(est, Some(MagEstimate::AboutHalf));
-        assert_eq!(s.card.map(|c| c.estimate), Some(MagEstimate::AboutHalf));
+        assert_eq!(s.card.map(|c| (c.estimate, c.slot)), Some((MagEstimate::AboutHalf, 0)));
     }
 
     #[test]

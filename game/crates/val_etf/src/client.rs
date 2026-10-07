@@ -4,6 +4,7 @@
 use crate::AppState;
 use crate::config::{Cli, CurrentLevel, Data, level_by_name};
 use crate::net::{NetRequest, Role, Session};
+use crate::radial::{RELOAD_HOLD_S, Radial};
 use crate::shared::LocalShot;
 use bevy::input::mouse::AccumulatedMouseMotion;
 use bevy::prelude::*;
@@ -59,6 +60,12 @@ pub struct LocalControl {
     pub paused: bool,
     /// Short visual camera kick (degrees), decays quickly.
     pub punch: f32,
+    /// Seconds reload has been held (`None` when it is up).
+    pub reload_held_s: Option<f32>,
+    /// The magazine radial, while reload is held long enough.
+    pub reload_radial: Option<Radial>,
+    /// A magazine picked on the radial (1..=6), sent with the next tick's input.
+    pub reload_pick: u8,
 }
 
 impl Default for LocalControl {
@@ -73,6 +80,9 @@ impl Default for LocalControl {
             recoil: ViewRecoil::default(),
             paused: false,
             punch: 0.0,
+            reload_held_s: None,
+            reload_radial: None,
+            reload_pick: 0,
         }
     }
 }
@@ -166,7 +176,9 @@ fn gather_input(
     keys: Res<ButtonInput<KeyCode>>,
     mouse: Res<ButtonInput<MouseButton>>,
     motion: Res<AccumulatedMouseMotion>,
+    time: Res<Time>,
     cli: Res<Cli>,
+    me: Query<&PlayerLoadout, With<Controlled>>,
     mut control: ResMut<LocalControl>,
 ) {
     if cli.bot {
@@ -175,12 +187,18 @@ fn gather_input(
     if control.paused {
         control.movement = Vec2::ZERO;
         control.held = 0;
+        control.reload_held_s = None;
+        control.reload_radial = None;
         return;
     }
-    let ads_scale = if control.held & Buttons::ADS != 0 { 0.6 } else { 1.0 };
-    let s = control.sensitivity * ads_scale;
-    control.yaw = (control.yaw - motion.delta.x * s).rem_euclid(std::f32::consts::TAU);
-    control.pitch = (control.pitch - motion.delta.y * s).clamp(-MAX_PITCH, MAX_PITCH);
+    let mags = me.iter().next().map_or(1, |l| l.0.weapon.mags.len());
+    let tap_reload = reload_input(&mut control, &keys, motion.delta, time.delta_secs(), mags);
+    if control.reload_radial.is_none() {
+        let ads_scale = if control.held & Buttons::ADS != 0 { 0.6 } else { 1.0 };
+        let s = control.sensitivity * ads_scale;
+        control.yaw = (control.yaw - motion.delta.x * s).rem_euclid(std::f32::consts::TAU);
+        control.pitch = (control.pitch - motion.delta.y * s).clamp(-MAX_PITCH, MAX_PITCH);
+    }
 
     let axis = |neg: KeyCode, pos: KeyCode| (keys.pressed(pos) as i32 - keys.pressed(neg) as i32) as f32;
     control.movement = Vec2::new(axis(KeyCode::KeyA, KeyCode::KeyD), axis(KeyCode::KeyS, KeyCode::KeyW));
@@ -197,12 +215,60 @@ fn gather_input(
     set(Buttons::WALK, keys.pressed(KeyCode::AltLeft));
     set(Buttons::FIRE, mouse.pressed(MouseButton::Left));
     set(Buttons::ADS, mouse.pressed(MouseButton::Right));
-    set(Buttons::RELOAD, keys.pressed(KeyCode::KeyR));
     set(Buttons::MAG_CHECK, keys.pressed(KeyCode::KeyT));
     set(Buttons::FIRE_MODE, keys.pressed(KeyCode::KeyB));
     set(Buttons::INTERACT, keys.pressed(KeyCode::KeyF));
     control.latched |= held & !control.held;
     control.held = held;
+    if tap_reload {
+        control.latched |= Buttons::RELOAD;
+    }
+}
+
+/// Reload key: a tap (released before [`RELOAD_HOLD_S`]) reloads the next magazine in slot order; holding
+/// opens the magazine radial, and releasing over a slot picks it (number keys 1-6 pick directly while it is
+/// open). Returns true on a tap.
+fn reload_input(
+    control: &mut LocalControl,
+    keys: &ButtonInput<KeyCode>,
+    mouse_delta: Vec2,
+    dt: f32,
+    mags: usize,
+) -> bool {
+    const DIGITS: [KeyCode; 6] =
+        [KeyCode::Digit1, KeyCode::Digit2, KeyCode::Digit3, KeyCode::Digit4, KeyCode::Digit5, KeyCode::Digit6];
+    if keys.just_pressed(KeyCode::KeyR) {
+        control.reload_held_s = Some(0.0);
+    }
+    if keys.pressed(KeyCode::KeyR)
+        && let Some(held) = &mut control.reload_held_s
+    {
+        *held += dt;
+        if *held >= RELOAD_HOLD_S && control.reload_radial.is_none() {
+            control.reload_radial = Some(Radial::new(mags));
+        }
+        if let Some(radial) = &mut control.reload_radial {
+            radial.steer(mouse_delta);
+            if let Some(i) = DIGITS.iter().take(mags).position(|k| keys.just_pressed(*k)) {
+                control.reload_pick = i as u8 + 1;
+                control.reload_radial = None;
+                control.reload_held_s = None;
+            }
+        }
+    }
+    if !keys.just_released(KeyCode::KeyR) {
+        return false;
+    }
+    let was_held = control.reload_held_s.take().is_some();
+    match control.reload_radial.take() {
+        Some(radial) => {
+            if let Some(i) = radial.selected() {
+                control.reload_pick = i as u8 + 1;
+            }
+            false
+        }
+        None => was_held,
+    }
 }
 
 /// Hand the latest controls to lightyear for this tick.
@@ -217,9 +283,11 @@ fn write_inputs(
             yaw: control.yaw,
             pitch: control.pitch,
             buttons: control.held | control.latched,
+            reload_slot: control.reload_pick,
         };
     }
     control.latched = 0;
+    control.reload_pick = 0;
 }
 
 fn record_smoothing(
@@ -387,6 +455,7 @@ fn automation(
     cli: Res<Cli>,
     time: Res<Time>,
     state: Res<State<AppState>>,
+    me: Query<&PlayerLoadout, With<Controlled>>,
     mut control: ResMut<LocalControl>,
     mut commands: Commands,
     mut taken: Local<bool>,
@@ -428,6 +497,18 @@ fn automation(
         if (t as i32) % 7 == 3 && cli.yaw.is_none() {
             control.held |= Buttons::JUMP;
         }
+        // Tap reload now and then (a full magazine ignores it).
+        if (t as i32) % 5 == 4 {
+            control.latched |= Buttons::RELOAD;
+        }
+    }
+    if cli.demo_ui.as_deref() == Some("reload")
+        && in_game_since.is_some_and(|s| t - s > 1.0)
+        && let Some(lo) = me.iter().next()
+    {
+        let mut radial = Radial::new(lo.0.weapon.mags.len());
+        radial.steer(Vec2::new(40.0, -12.0));
+        control.reload_radial = Some(radial);
     }
     // With --host / --join the screenshot clock starts when the match view appears.
     let clock = if cli.host.is_some() || cli.join.is_some() { in_game_since.map_or(-1.0, |s| t - s) } else { t };

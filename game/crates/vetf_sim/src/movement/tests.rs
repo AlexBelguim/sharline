@@ -15,7 +15,7 @@ fn mods(d: &GameData, wc: WeightClass) -> MoveModifiers {
 }
 
 fn input(mv: Vec2, bits: u16) -> InputFrame {
-    InputFrame { movement: mv, yaw: 0.0, pitch: 0.0, buttons: Buttons(bits) }
+    InputFrame { movement: mv, yaw: 0.0, pitch: 0.0, buttons: Buttons(bits), reload_slot: 0 }
 }
 
 fn run(

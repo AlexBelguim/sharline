@@ -39,17 +39,20 @@ Linux needs the usual Bevy packages: `libasound2-dev libudev-dev libxkbcommon-de
 | LMB | Fire |
 | RMB | Aim (ADS) |
 | B | Fire mode |
-| R | Reload. A tactical reload keeps the partial mag |
+| R | Tap: reload the next magazine in slot order. Hold: magazine radial; release over a slot (or press 1-6) to load it. Magazines keep their slots |
 | T | Mag check. Gives an estimate only; there is no ammo counter anywhere (genre rule) |
 | Tab | Scoreboard and join code |
 | Esc | Pause: resume or leave |
 
 ### Command line (automation and testing)
 `val_etf [--host showhome|range] [--join CODE|IP[:PORT]] [--name NAME] [--port PORT] [--width W --height H]
-[--screenshot PATH --screenshot-after S] [--exit-after S] [--bot] [--yaw DEG]`
+[--screenshot PATH --screenshot-after S] [--exit-after S] [--bot] [--yaw DEG]
+[--weapon ID] [--ammo AMMO | --mags std,ap2,..] [--armor PRESET] [--attach A,B] [--demo-ui reload]`
 
 - `--bot` drives the local player.
 - `--yaw` makes the bot hold a heading and shoot, which is useful for testing hits over the network.
+- `--mags` lists magazines in slot order (up to six); `--ammo` loads every default magazine with one ammo.
+- `--demo-ui reload` opens the magazine radial, for screenshots.
 
 For example, a local two-process test:
 
@@ -90,7 +93,8 @@ The design is a listen server ticking at 60 Hz.
 - Shot claims with lag compensation; hits, kills, kill feed and respawn.
 - TDM score, timer and match end.
 - Per-arc halo shields and per-zone HP with spill.
-- Ammo class × type × tier.
+- Ammo class × type × tier, picked per magazine (up to six ordered magazines).
+- Rulesets: team deathmatch has no bleeding or broken-limb penalties; the range runs the full rules.
 - The full movement set: sprint, slide, jump, jetpack with design max-rise values, mantle, zipline, step-up and
   ramps.
 - Recoil pattern and recovery; ADS behaviour.

@@ -11,6 +11,7 @@ mod config;
 mod hud;
 mod menu;
 mod net;
+mod radial;
 mod render;
 mod server;
 mod shared;
@@ -69,6 +70,7 @@ fn main() -> AppExit {
         client::ClientPlugin,
         render::RenderPlugin,
         hud::HudPlugin,
+        radial::RadialPlugin,
         menu::MenuPlugin,
     ));
     app.run()
