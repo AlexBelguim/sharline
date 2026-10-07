@@ -82,6 +82,10 @@ pub struct Cli {
     pub mags: Option<String>,
     pub armor: Option<String>,
     pub attach: Option<String>,
+    /// `--monitor N`: open the window on monitor N (0-based, left to right). Automated runs (see
+    /// [`Cli::automated`]) default to the first monitor that is not the primary one, so tests stay off
+    /// the user's main screen.
+    pub monitor: Option<usize>,
 }
 
 impl Cli {
@@ -105,6 +109,7 @@ impl Cli {
             mags: None,
             armor: None,
             attach: None,
+            monitor: std::env::var("VETF_TEST_MONITOR").ok().and_then(|v| v.parse().ok()),
         };
         let mut args = std::env::args().skip(1);
         while let Some(a) = args.next() {
@@ -130,6 +135,7 @@ impl Cli {
                 "--mags" => cli.mags = Some(val()),
                 "--armor" => cli.armor = Some(val()),
                 "--attach" => cli.attach = Some(val()),
+                "--monitor" => cli.monitor = val().parse().ok(),
                 "--help" | "-h" => {
                     println!(
                         "val_etf [--host showhome|range] [--join CODE|IP[:PORT]] [--name NAME] [--port PORT]\n\
@@ -140,7 +146,10 @@ impl Cli {
                          \x20                  loadout|loadout-ammo|loadout-attach]\n\
                          \n\
                          --name overrides the name saved from the main menu (EDIT NAME) for this run.\n\
-                         --port sets the HOST GAME port (default: net.ron, 47820)."
+                         --port sets the HOST GAME port (default: net.ron, 47820).
+                         --monitor N opens the window on monitor N (0 = leftmost). Automated runs (--exit-after,
+                         --screenshot, --demo-ui) open on the first non-primary monitor by default
+                         (override with VETF_TEST_MONITOR=N)."
                     );
                     std::process::exit(0);
                 }
@@ -148,6 +157,11 @@ impl Cli {
             }
         }
         cli
+    }
+
+    /// A scripted run (tests, screenshots, demos) rather than someone playing.
+    pub fn automated(&self) -> bool {
+        self.exit_after.is_some() || self.screenshot.is_some() || self.demo_ui.is_some()
     }
 
     /// Any loadout option on the command line (they override the Loadout screen's preset).
@@ -259,6 +273,7 @@ mod tests {
             mags: None,
             armor: None,
             attach: None,
+            monitor: None,
         }
     }
 

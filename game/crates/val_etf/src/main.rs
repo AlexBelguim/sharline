@@ -50,6 +50,9 @@ fn main() -> AppExit {
                     title: "SHARD/LINE (prototype)".into(),
                     resolution: WindowResolution::new(cli.width, cli.height),
                     present_mode: PresentMode::AutoNoVsync,
+                    // Scripted runs start hidden and are moved off the primary monitor first
+                    // (`place_window`), so tests do not flash over the user's main screen.
+                    visible: !(cli.automated() || cli.monitor.is_some()),
                     ..default()
                 }),
                 ..default()
@@ -94,5 +97,50 @@ fn main() -> AppExit {
         settings::SettingsScreenPlugin,
         esc_menu::EscMenuPlugin,
     ));
+    app.add_systems(Update, place_window);
     app.run()
+}
+
+/// Scripted runs (and `--monitor N`) start hidden. Once the monitors are known, move the window to the
+/// requested monitor, or by default to the first one that is not primary, then show it. With a single
+/// monitor it simply appears where the OS puts it.
+fn place_window(
+    cli: Res<Cli>,
+    mut done: Local<bool>,
+    mut frames: Local<u32>,
+    mut windows: Query<&mut Window, With<bevy::window::PrimaryWindow>>,
+    monitors: Query<(Entity, &bevy::window::Monitor, Has<bevy::window::PrimaryMonitor>)>,
+) {
+    if *done {
+        return;
+    }
+    if !(cli.automated() || cli.monitor.is_some()) {
+        *done = true;
+        return;
+    }
+    let Ok(mut window) = windows.single_mut() else { return };
+    *frames += 1;
+    let mut list: Vec<_> = monitors.iter().map(|(e, m, primary)| (e, m.physical_position.x, primary)).collect();
+    if list.is_empty() && *frames < 30 {
+        return; // monitors are spawned by winit during the first frames
+    }
+    list.sort_by_key(|&(_, x, _)| x);
+    let target = match cli.monitor {
+        Some(n) => list.get(n).map(|&(e, _, _)| e),
+        None => list.iter().find(|&&(_, _, primary)| !primary).map(|&(e, _, _)| e),
+    };
+    if let Some(monitor) = target {
+        if let Ok((_, m, primary)) = monitors.get(monitor) {
+            info!(
+                "window on monitor at {:?} ({}x{}{})",
+                m.physical_position,
+                m.physical_width,
+                m.physical_height,
+                if primary { ", primary" } else { "" }
+            );
+        }
+        window.position = bevy::window::WindowPosition::Centered(bevy::window::MonitorSelection::Entity(monitor));
+    }
+    window.visible = true;
+    *done = true;
 }
