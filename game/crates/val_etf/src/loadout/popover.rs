@@ -319,8 +319,15 @@ fn spawn_row(
                             Tone::Neutral => TEXT_MID,
                         };
                         d.spawn((
-                            f.text(delta.text.to_uppercase(), Face::Display, 600, 13.0, color, 0.06),
-                            bevy::text::LineHeight::Px(17.0),
+                            f.text_line(
+                                delta.text.to_uppercase(),
+                                Face::Display,
+                                600,
+                                13.0,
+                                color,
+                                0.06,
+                                bevy::text::LineHeight::Px(17.0),
+                            ),
                             TextLayout::justify(Justify::Right).with_no_wrap(),
                         ));
                     }

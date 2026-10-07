@@ -63,14 +63,24 @@ impl UiFonts {
     }
 
     /// Text in a face, weight, size (px at 1080p), colour and letter spacing (em, like the CSS).
+    /// The line box is the browser's `normal` one ([`css_normal_line`]); [`UiFonts::text_line`] takes another.
+    /// The bundle already holds a `LineHeight`: do not add a second one next to it (a duplicate panics).
     pub fn text(&self, s: impl Into<String>, face: Face, weight: u16, size: f32, color: Color, em: f32) -> impl Bundle {
-        (
-            Text::new(s),
-            self.font(face, weight, size),
-            TextColor(color),
-            LetterSpacing::Px(size * em),
-            LineHeight::Px(css_normal_line(size)),
-        )
+        self.text_line(s, face, weight, size, color, em, LineHeight::Px(css_normal_line(size)))
+    }
+
+    /// [`UiFonts::text`] with its own line height.
+    pub fn text_line(
+        &self,
+        s: impl Into<String>,
+        face: Face,
+        weight: u16,
+        size: f32,
+        color: Color,
+        em: f32,
+        line: LineHeight,
+    ) -> impl Bundle {
+        (Text::new(s), self.font(face, weight, size), TextColor(color), LetterSpacing::Px(size * em), line)
     }
 
     /// `.lbl`: Barlow Condensed 600, 13 px, 0.14 em, upper case, `--text-mid`.
