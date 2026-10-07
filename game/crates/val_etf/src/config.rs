@@ -50,7 +50,7 @@ pub struct Cli {
     pub host: Option<String>,
     /// Join straight away (join code, ip:port or ip).
     pub join: Option<String>,
-    /// `--name`, else `$USER`. The name saved from the main menu wins unless [`Cli::name_given`].
+    /// `--name`, else [`UNNAMED`]. The name saved from the main menu wins unless [`Cli::name_given`].
     pub name: String,
     /// `--name` was given: it overrides the saved profile name for this run.
     pub name_given: bool,
@@ -72,7 +72,8 @@ pub struct Cli {
     /// Loadout screen), `loadout-ammo` (its ammo picker on
     /// MAG 1), `loadout-attach` (its attachment list on the optic slot). The heal and hud ones also hurt
     /// the host's own player. On the main menu: `menu-join` (JOIN GAME, code tab), `menu-join-ip` (direct
-    /// IP tab), `menu-host` (HOST GAME).
+    /// IP tab), `menu-host` (HOST GAME). `first-run`, `first-run-invalid`, `first-run-valid`: the
+    /// first-launch callsign prompt (`first_run.rs`).
     pub demo_ui: Option<String>,
     /// `--esc-at 4,5.5`: press Esc at these seconds after start-up (automated tests of the Esc routing).
     pub esc_at: Vec<f32>,
@@ -183,6 +184,8 @@ impl Cli {
                          \x20 a HiDPI screen), never grab the mouse, do not take the keyboard focus and ignore the\n\
                          \x20 desktop's mouse and keys (--allow-input keeps them); --bot runs do not grab the mouse.\n\
                          --esc-at presses Esc at those seconds after start-up (tests of the Esc routing).
+                         --demo-ui first-run | first-run-invalid | first-run-valid opens the first-launch callsign
+                           prompt (empty, too short, valid); without a saved profile it opens on its own.
                          --camera x,y,z,tx,ty,tz fixes the view camera (world coordinates) for map screenshots."
                     );
                     std::process::exit(0);
@@ -287,8 +290,12 @@ pub fn parse_mags(s: &str) -> Vec<vetf_sim::data::AmmoChoice> {
     s.split(',').filter_map(parse_ammo).take(vetf_sim::weapon::MAX_MAGS).collect()
 }
 
+/// The name shown until the player picks one (the first-launch prompt, EDIT NAME, `--name`). Never the OS
+/// user name: friends would see it in lobbies and the kill feed.
+pub const UNNAMED: &str = "UNKNOWN";
+
 pub fn default_name() -> String {
-    std::env::var("USER").or_else(|_| std::env::var("USERNAME")).map(|u| u.to_uppercase()).unwrap_or("AGENT".into())
+    UNNAMED.into()
 }
 
 #[cfg(test)]

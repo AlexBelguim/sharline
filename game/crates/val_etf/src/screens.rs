@@ -52,6 +52,8 @@ pub enum Screen {
     Settings(SettingsTab),
     Esc,
     Confirm(ConfirmKind),
+    /// The first-launch callsign prompt over the main menu (`first_run.rs`).
+    NamePrompt,
 }
 
 impl Screen {

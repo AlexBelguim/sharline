@@ -10,6 +10,7 @@ mod client;
 mod config;
 mod demo_mode;
 mod esc_menu;
+mod first_run;
 mod hud;
 mod invite;
 mod iroh_transport;
@@ -83,7 +84,7 @@ fn main() -> AppExit {
     app.insert_resource(config::Data(std::sync::Arc::new(data)));
     // The name saved from the main menu, unless --name overrides it for this run.
     let profile = user_config::PlayerProfile::load();
-    let local_name = if cli.name_given { cli.name.clone() } else { profile.name.clone() };
+    let local_name = first_run::starting_name(&cli, &profile);
     let mut session = net::Session::default();
     session.local_name = local_name;
     app.insert_resource(session);
@@ -119,6 +120,8 @@ fn main() -> AppExit {
         esc_menu::EscMenuPlugin,
     ));
     app.add_systems(Update, place_window);
+    // First launch on this machine: ask for a callsign over the main menu.
+    app.add_plugins(first_run::FirstRunPlugin);
     app.run()
 }
 
