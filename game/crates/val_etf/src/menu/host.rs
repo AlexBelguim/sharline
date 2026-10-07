@@ -77,7 +77,9 @@ fn input_box(width: Option<f32>) -> impl Bundle {
             ..default()
         },
         BackgroundColor(K45),
-        BorderColor::all(STROKE_HI),
+        // The visuals system keeps this border (browser-matched, red when invalid).
+        BorderColor::all(super::browser(STROKE_HI)),
+        super::BrowserBlended,
     )
 }
 
@@ -383,7 +385,7 @@ fn visuals(
             continue;
         }
         port_ok = parse_host_port(&f.value).is_some();
-        let want = BorderColor::all(if port_ok { STROKE_HI } else { BAD });
+        let want = BorderColor::all(if port_ok { super::browser(STROKE_HI) } else { BAD });
         if *border != want {
             *border = want;
         }

@@ -53,6 +53,7 @@ impl Plugin for MenuPlugin {
                     (host::keys, join::keys),
                     sync_input_focus,
                     (nav_visuals, ring_visuals, hints, refresh_bound, name_visuals, net_line),
+                    browser_colors,
                 )
                     .chain()
                     .run_if(in_state(AppState::MainMenu)),
@@ -402,12 +403,71 @@ pub(crate) fn browser_shade_stops(stops: &[(f32, f32)], step: f32) -> Vec<(f32, 
 /// A dark translucent fill (a panel) as the browser shows it over the art: the alpha that, blended in
 /// linear light over a mid-grey backdrop, gives the browser's sRGB blend (close for dark and bright art too).
 pub(crate) fn browser_fill_over_art(c: Color) -> Color {
+    browser_blend(c, 120.0 / 255.0)
+}
+
+/// The grey the hub's white hairlines and hover fills sit on: the dark panels (#0C1016 to #10151D).
+const DARK_UI: f32 = 14.0 / 255.0;
+
+/// A translucent colour re-weighted so that Bevy's linear-light blend over a `bg` grey (sRGB 0..1) gives the
+/// browser's sRGB blend. The mockups are CSS; without this every white hairline and hover fill comes out two
+/// to three times brighter (a .09 white stroke over the panels is 35/255 in the browser, 85/255 in Bevy).
+pub(crate) fn browser_blend(c: Color, bg: f32) -> Color {
     let lin = |s: f32| if s <= 0.04045 { s / 12.92 } else { ((s + 0.055) / 1.055).powf(2.4) };
     let s = c.to_srgba();
-    let (a, fill, bg) = (s.alpha, (s.red + s.green + s.blue) / 3.0, 120.0 / 255.0);
+    let (a, fill) = (s.alpha, (s.red + s.green + s.blue) / 3.0);
+    if a >= 1.0 || (lin(fill) - lin(bg)).abs() < 1e-4 {
+        return c;
+    }
     let target = lin(a * fill + (1.0 - a) * bg);
-    let alpha = ((lin(bg) - target) / (lin(bg) - lin(fill))).clamp(0.0, 1.0);
-    c.with_alpha(alpha)
+    c.with_alpha(((target - lin(bg)) / (lin(fill) - lin(bg))).clamp(0.0, 1.0))
+}
+
+/// A light translucent colour (white strokes, hover fills) as the browser shows it over the dark UI;
+/// anything else unchanged.
+pub(crate) fn browser(c: Color) -> Color {
+    let s = c.to_srgba();
+    if s.alpha < 1.0 && (s.red + s.green + s.blue) / 3.0 > 0.5 { browser_blend(c, DARK_UI) } else { c }
+}
+
+/// Marks an entity whose colours [`browser_colors`] has re-weighted.
+#[derive(Component)]
+pub(crate) struct BrowserBlended;
+
+/// Re-weight the light translucent colours (kit strokes, button and row fills, their hover looks) of
+/// everything the menu spawns, so the hairlines read as in the mockups (see [`browser_blend`]).
+#[allow(clippy::type_complexity)]
+fn browser_colors(
+    mut new: Query<
+        (Entity, Option<&mut Looks>, Option<&mut BorderColor>, Option<&mut BackgroundColor>),
+        (Without<BrowserBlended>, Or<(Added<Looks>, Added<BorderColor>, Added<BackgroundColor>)>),
+    >,
+    parents: Query<&ChildOf>,
+    roots: Query<(), With<MenuRoot>>,
+    mut commands: Commands,
+) {
+    for (e, looks, border, bg) in &mut new {
+        if !parents.iter_ancestors(e).any(|a| roots.contains(a)) {
+            continue;
+        }
+        if let Some(mut l) = looks {
+            let l = &mut *l;
+            for look in [&mut l.idle, &mut l.hover, &mut l.on] {
+                look.bg = browser(look.bg);
+                look.border = browser(look.border);
+            }
+        }
+        if let Some(mut b) = border {
+            let b = &mut *b;
+            for side in [&mut b.top, &mut b.right, &mut b.bottom, &mut b.left] {
+                *side = browser(*side);
+            }
+        }
+        if let Some(mut c) = bg {
+            c.0 = browser(c.0);
+        }
+        commands.entity(e).insert(BrowserBlended);
+    }
 }
 
 /// The two shades over the art: dark on the left for the nav and flyout, dark at the bottom for the card
@@ -1184,6 +1244,23 @@ mod tests {
         // At 56 % the CSS alpha is .35: the backdrop keeps (1 - .35) of its sRGB value, i.e. .65^2.2 in linear.
         let at56 = s.iter().find(|x| x.0 == 56.0).unwrap().1;
         assert!(((1.0 - at56) - 0.65f32.powf(2.2)).abs() < 1e-4);
+    }
+
+    #[test]
+    fn white_strokes_blend_like_the_browser() {
+        let lin = |s: f32| if s <= 0.04045 { s / 12.92 } else { ((s + 0.055) / 1.055).powf(2.4) };
+        let srgb = |l: f32| if l <= 0.0031308 { l * 12.92 } else { 1.055 * l.powf(1.0 / 2.4) - 0.055 };
+        for token in [STROKE, STROKE_MID, STROKE_HI, W06, W12] {
+            let a = token.alpha();
+            let b = browser(token).alpha();
+            // Bevy: linear-light blend of the re-weighted white over the dark UI; browser: sRGB blend.
+            let bevy = srgb(b + (1.0 - b) * lin(DARK_UI));
+            let css = DARK_UI + a * (1.0 - DARK_UI);
+            assert!((bevy - css).abs() < 1e-3, "{a}: {bevy} vs {css}");
+            assert!(b < a, "dimmer than the raw alpha");
+        }
+        assert_eq!(browser(TEXT_HI), TEXT_HI, "opaque colours stay");
+        assert_eq!(browser(K45), K45, "dark fills stay");
     }
 
     #[test]

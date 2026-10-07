@@ -155,7 +155,8 @@ pub(super) fn spawn_flyout(r: &mut ChildSpawnerCommands, ctx: &Ctx, recent: &Rec
                             ..default()
                         },
                         BackgroundColor(K45),
-                        BorderColor::all(STROKE_HI),
+                        BorderColor::all(super::browser(STROKE_HI)),
+                        super::BrowserBlended,
                     ),
                     |f| {
                         f.spawn((
@@ -428,7 +429,7 @@ fn visuals(
             continue;
         }
         let bad = error.is_some() && Some(f.id) == error_field;
-        let want = BorderColor::all(if bad { BAD } else { STROKE_HI });
+        let want = BorderColor::all(if bad { BAD } else { super::browser(STROKE_HI) });
         if *border != want {
             *border = want;
         }
