@@ -425,6 +425,7 @@ fn simulate_authoritative(
     mut fx: ServerMultiMessageSender,
     mut local_shots: MessageWriter<LocalShot>,
     mut deaths: MessageWriter<PlayerDied>,
+    mut feedback: ResMut<crate::client::Feedback>,
 ) {
     let Some(level) = level else { return };
     let rules = match_rules(&matches);
@@ -494,7 +495,16 @@ fn simulate_authoritative(
             }
             let dir = shot_direction(frame.yaw, frame.pitch, shot.spread_deg, shot_seed(id.0, shot.seq));
             let range = loadout.0.weapon.spec(&data).max_range_m;
-            let end = origin + dir * level.world.raycast(origin, dir, range).map_or(range, |(d, _)| d);
+            let hit = level.world.raycast(origin, dir, range);
+            let end = origin + dir * hit.map_or(range, |(d, _)| d);
+            // Our own client never receives the shot fx sent to the clients, so the host draws other players'
+            // tracers and bullet holes here (its own shots go through `LocalShot` like everyone's).
+            if !local {
+                feedback.tracers.push((origin, end, 0.0, false));
+                if let Some((_, normal)) = hit {
+                    feedback.impacts.push((end, normal));
+                }
+            }
             if let Some(server) = server {
                 let msg = ShotFx { shooter: id.0, origin, end };
                 if let Err(e) = fx.send::<_, FxChannel>(&msg, server, &NetworkTarget::AllExceptSingle(sp.peer)) {

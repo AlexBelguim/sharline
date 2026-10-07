@@ -546,7 +546,7 @@ struct ImpactAssets {
     material: Handle<StandardMaterial>,
 }
 
-const IMPACT_LIFE_S: f32 = 20.0;
+const IMPACT_LIFE_S: f32 = 30.0;
 const IMPACT_FADE_S: f32 = 1.0;
 const MAX_IMPACTS: usize = 96;
 const IMPACT_SIZE_M: f32 = 0.11;
