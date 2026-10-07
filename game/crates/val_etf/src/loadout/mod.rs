@@ -66,6 +66,7 @@ impl Plugin for LoadoutScreenPlugin {
                     view::refresh,
                     view::move_ghost,
                     view::focus_rows,
+                    view::hotspot_hover,
                     focus::place_ring,
                 )
                     .chain()
@@ -366,7 +367,7 @@ fn open_screen(
     }
     let mut file = LoadoutsFile::load(&data, crate::config::DEFAULT_AGENT);
     let draft = Draft::from_choice(&active.0, &file.attachments, &data);
-    // The edit starts from what the player spawns with; the chip lights up when it matches a preset.
+    // The edit starts from what the player spawns with; it belongs to the preset it equals (else the last one).
     if let Some(i) = file.presets.iter().position(|p| p.loadout == draft.choice()) {
         file.active = i;
     }

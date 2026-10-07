@@ -88,7 +88,6 @@ impl View<'_> {
                 self.st.save_as,
                 self.ctx,
                 d.problems(self.data, self.ctx.budget),
-                self.is_preset_unchanged(),
             )),
             Section::Agents => hash_of(&d.agent),
             Section::Tabs => hash_of(&d.weapon),
@@ -106,11 +105,6 @@ impl View<'_> {
             Section::Popover => hash_of(&(self.st.pop, &d.weapon, parts, &d.mags, d.halo, self.ctx)),
             Section::Ghost => hash_of(&self.st.drag.filter(|g| g.active).map(|g| (g.from, d.mags.get(g.from)))),
         }
-    }
-
-    /// The edit still equals the active preset.
-    fn is_preset_unchanged(&self) -> bool {
-        self.edit.file.presets.get(self.edit.file.active).is_some_and(|p| p.loadout == self.edit.draft.choice())
     }
 
     fn build(&self, s: Section, p: &mut ChildSpawnerCommands) {
@@ -323,6 +317,31 @@ pub fn move_ghost(
     }
 }
 
+/// A preview hotspot (dot and tag) and its dot.
+#[derive(Component)]
+pub struct Hotspot;
+
+#[derive(Component)]
+pub struct HotspotDot {
+    selected: bool,
+}
+
+/// Hovering a hotspot fills its dot (the selected one stays teal).
+pub fn hotspot_hover(
+    spots: Query<(&Interaction, &Children), (Changed<Interaction>, With<Hotspot>)>,
+    mut dots: Query<(&HotspotDot, &mut BackgroundColor)>,
+) {
+    for (i, kids) in &spots {
+        for k in kids.iter() {
+            if let Ok((dot, mut bg)) = dots.get_mut(k)
+                && !dot.selected
+            {
+                bg.0 = if matches!(i, Interaction::Hovered | Interaction::Pressed) { TEXT_HI } else { K40 };
+            }
+        }
+    }
+}
+
 /// Arrow-key focus in the popover (the row looks "on").
 pub fn focus_rows(st: Res<LoadoutUi>, mut rows: Query<(&Act, &mut Active)>) {
     for (a, mut on) in &mut rows {
@@ -368,7 +387,8 @@ impl View<'_> {
         p.spawn(f.role(TextRole::ScreenTitle, "LOADOUT"));
         p.spawn(Node { column_gap: px(6), align_items: AlignItems::Center, ..default() }).with_children(|chips| {
             for i in 0..super::presets::PRESET_COUNT {
-                let on = i == self.edit.file.active && self.is_preset_unchanged();
+                // The preset the edit was loaded from (CONFIRM saves into it).
+                let on = i == self.edit.file.active;
                 chips.spawn((
                     Button,
                     Act::Preset(i),
@@ -761,9 +781,10 @@ impl View<'_> {
                     node.row_gap = px(6);
                 }
             }
-            p.spawn((Button, Act::Slot(hs.slot), node)).with_children(|g| {
+            p.spawn((Button, Act::Slot(hs.slot), Hotspot, node)).with_children(|g| {
                 let (dot_bg, dot_border) = if selected { (TEAL, TEAL) } else { (K40, TEXT_HI) };
                 g.spawn((
+                    HotspotDot { selected },
                     Node {
                         width: px(14),
                         height: px(14),
@@ -1463,7 +1484,12 @@ impl View<'_> {
                     "",
                     format!("sprint {:.1} m/s (base {sprint:.1})", sprint * fx.move_mult),
                 ),
-                ("POWER DRAIN", format!("{}", armor.power_cells), "cells", drain),
+                (
+                    "POWER DRAIN",
+                    format!("{}", armor.power_cells),
+                    if armor.power_cells == 1 { "cell" } else { "cells" },
+                    drain,
+                ),
             ];
             r.spawn(Node {
                 margin: UiRect::top(px(14)),
