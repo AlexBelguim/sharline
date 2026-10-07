@@ -1,0 +1,46 @@
+// Attachment modifiers. Mirrors design/systems/data/attachments_stats.slice.json.
+// Every stat is a multiplier on the base weapon stat; a missing key means 1.0.
+// `zoom` and `capacity` are absolute values, not multipliers.
+(
+    attachments: [
+        // optics
+        (id: "optic_reddot", cat: optic, fits: ["ar7_mako", "vk50_warden"], zoom: Some(1.15), ads_time: Some(0.95), move: Some(1.0)),
+        (id: "optic_holo", cat: optic, fits: ["ar7_mako", "vk50_warden"], zoom: Some(1.25), ads_time: Some(1.0), default_for: ["ar7_mako"]),
+        (id: "optic_3x", cat: optic, fits: ["ar7_mako", "vk50_warden"], zoom: Some(3.0), ads_time: Some(1.15), sway: Some(1.1), ads_move: Some(0.95),
+            other: Some("scope glint >= 40 m")),
+        (id: "optic_sniper", cat: optic, fits: ["vk50_warden"], zoom: Some([6.0, 12.0]), ads_time: Some(1.0), default_for: ["vk50_warden"],
+            other: Some("scope glint >= 25 m; scroll toggles 6x/12x")),
+        (id: "optic_thermal", cat: optic, fits: ["vk50_warden"], zoom: Some(4.0), ads_time: Some(1.2), sway: Some(1.1), move: Some(0.99),
+            other: Some("white-hot view: bodies bright, world desaturated; no glint")),
+        // stocks
+        (id: "mako_stock_standard", cat: stock, fits: ["ar7_mako"], default_for: ["ar7_mako"]),
+        (id: "mako_stock_precision", cat: stock, fits: ["ar7_mako"], ads_time: Some(1.1), recoil_v: Some(0.9), recoil_h: Some(0.9), sway: Some(0.8),
+            move: Some(0.98)),
+        (id: "mako_stock_light", cat: stock, fits: ["ar7_mako"], ads_time: Some(0.88), recoil_v: Some(1.12), recoil_h: Some(1.12), sway: Some(1.15),
+            sprint_to_fire: Some(0.85)),
+        (id: "warden_stock_standard", cat: stock, fits: ["vk50_warden"], default_for: ["vk50_warden"]),
+        (id: "warden_stock_folding", cat: stock, fits: ["vk50_warden"], ads_time: Some(0.9), sway: Some(1.25), move: Some(1.03), recoil_v: Some(1.1)),
+        // magazines
+        (id: "mag_30", cat: mag, fits: ["ar7_mako"], capacity: Some(30), default_for: ["ar7_mako"]),
+        (id: "mag_45", cat: mag, fits: ["ar7_mako"], capacity: Some(45), reload: Some(1.12), ads_time: Some(1.05), move: Some(0.99)),
+        (id: "mag_drum60", cat: mag, fits: ["ar7_mako"], capacity: Some(60), reload: Some(1.35), ads_time: Some(1.12), move: Some(0.97)),
+        (id: "mag_5", cat: mag, fits: ["vk50_warden"], capacity: Some(5), default_for: ["vk50_warden"]),
+        (id: "mag_8", cat: mag, fits: ["vk50_warden"], capacity: Some(8), reload: Some(1.15), ads_time: Some(1.06)),
+        // under-rail
+        (id: "grip_vertical", cat: under, fits: ["ar7_mako"], recoil_v: Some(0.88), ads_time: Some(1.03)),
+        (id: "grip_angled", cat: under, fits: ["ar7_mako"], ads_time: Some(0.92), recoil_h: Some(0.94)),
+        (id: "grip_stub", cat: under, fits: ["ar7_mako"], hip_spread: Some(0.88), sprint_to_fire: Some(0.9), recoil_h: Some(0.95)),
+        (id: "ugl_launcher", cat: under, fits: ["ar7_mako"], ads_time: Some(1.15), sway: Some(1.1), move: Some(0.97),
+            other: Some("40 mm grenade, see UGL table")),
+        (id: "bipod", cat: under, fits: ["vk50_warden"], ads_time: Some(1.06), move: Some(0.99),
+            other: Some("deployed: sway -80%, recoil -40%, look clamp yaw +-35 / pitch +-20 deg, deploy 0.40 s")),
+        // side rail
+        (id: "laser", cat: side, fits: ["ar7_mako", "vk50_warden"], hip_spread: Some(0.8), ads_time: Some(1.02),
+            other: Some("visible red dot always; beam visible <= 25 m; toggle")),
+        (id: "flashlight", cat: side, fits: ["ar7_mako", "vk50_warden"], ads_time: Some(1.02),
+            other: Some("cone 30 deg, 25 m; glare on enemies <= 15 m inside 12 deg; toggle")),
+        // gun shield
+        (id: "shield_front", cat: shield, fits: ["ar7_mako"], ads_time: Some(1.2), move: Some(0.96), sway: Some(1.15), recoil_h: Some(0.95),
+            other: Some("0.32 x 0.26 m plate, 250 HP, blocks bullets only, no repair in a life")),
+    ],
+)

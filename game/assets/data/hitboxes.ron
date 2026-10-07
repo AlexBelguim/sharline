@@ -1,0 +1,15 @@
+// Per-zone hitboxes in player-local space (Bevy axes: +Y up, -Z = the way the player faces, feet at the origin).
+// The boxes are mirror-symmetric, so handedness does not matter here.
+// Front-view sizes come from the range training dummy (design/maps/range/diagrams/layout_data.py, DUMMY_ZONES);
+// depths are placeholders until the character meshes are rigged.
+// Boxes are given standing; crouch and slide scale every y by the stance height ratio (capsule heights).
+(
+    boxes: [
+        (zone: head, center: (0.0, 1.60, 0.0), half: (0.11, 0.13, 0.12)),
+        (zone: torso, center: (0.0, 1.145, 0.0), half: (0.22, 0.325, 0.14)),
+        (zone: arms, center: (-0.29, 1.11, 0.0), half: (0.06, 0.31, 0.07)),
+        (zone: arms, center: (0.29, 1.11, 0.0), half: (0.06, 0.31, 0.07)),
+        (zone: legs, center: (-0.11, 0.41, 0.0), half: (0.075, 0.41, 0.09)),
+        (zone: legs, center: (0.11, 0.41, 0.0), half: (0.075, 0.41, 0.09)),
+    ],
+)

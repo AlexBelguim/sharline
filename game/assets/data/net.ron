@@ -1,0 +1,12 @@
+// Netcode settings (design/systems/diagrams/net_architecture.png).
+(
+    tick_hz: 60,
+    port: 47820,              // game traffic, UDP
+    lan_beacon_port: 47821,   // LAN discovery beacon, UDP
+    snapshot_hz: 30,          // host -> clients replication rate (20 / 30 / 60)
+    max_remote_clients: 9,
+    input_redundancy: 10,     // each input packet repeats the last N ticks to survive loss
+    interpolation_delay_ms: 100,
+    max_rollback_ticks: 20,
+    upnp_lease_s: 7200,
+)

@@ -1,0 +1,527 @@
+//! "Showhome": the small symmetric team deathmatch map, ported from `design/maps/tdm/src/showhome_layout.py`.
+//!
+//! Design frame: x = east (0..72), y = north (0..48), z = up, origin at the south-west corner. The map is
+//! mirror-symmetric about x = 36: the west ("Sage", team A) half is defined once and mirrored to the east
+//! ("Clay", team B) with `x -> 72 - x`; centre elements sit on the axis. Houses are built from the layout's
+//! wall list with every door / window / shutter cut out, so they can be entered and fought through.
+
+use super::{Builder, Dir, FloorPlan, Opening, Rect, WallDef, box_walls, design, design_yaw};
+use crate::level::{Level, SpawnPoint, Team, Zipline};
+use crate::movement::collision::{BrushKind, Look as L};
+
+pub const MAP_W: f32 = 72.0;
+pub const MAP_H: f32 = 48.0;
+/// Mirror axis.
+pub const AXIS_X: f32 = MAP_W / 2.0;
+
+// Heights (the layout's Z table).
+const UF: f32 = 3.2;
+const UF_CEIL: f32 = 6.0;
+const EAVES: f32 = 6.2;
+const RIDGE: f32 = 11.2;
+/// Invisible player-only ceiling over the whole map.
+const CEIL_HARD: f32 = 10.0;
+const KILL_Y: f32 = -10.0;
+/// Upper floor and terrace slabs (the terrace is z 2.95..3.2 in the layout).
+const SLAB: f32 = 0.25;
+/// Rise per metre of the player-clip roof over the gable: about 50 degrees, steeper than the walkable
+/// 46 degrees, so the 45 degree roof cannot be stood on (the design says it is not standable).
+const ROOF_CLIP_PITCH: f32 = 1.2;
+
+/// Sage main house (two floors) and garage footprints.
+const HOUSE: Rect = Rect::new(9.0, 22.0, 21.0, 32.0);
+const GARAGE: Rect = Rect::new(9.0, 16.0, 21.0, 22.0);
+/// W_STAIR: bottom at y = 30.5 on the ground floor, top at y = 25.5 on the upper floor.
+const STAIR: Rect = Rect::new(13.8, 25.5, 15.0, 30.5);
+/// Gable ridge runs east-west at this y.
+const RIDGE_Y: f32 = 27.0;
+
+/// West spawns: x, y, yaw in degrees (0 = facing east). East spawns are mirrored and face west.
+const SPAWNS_W: [(f32, f32, f32); 14] = [
+    (2.5, 15.0, 0.0),
+    (6.5, 15.5, 0.0),
+    (4.5, 19.5, 0.0),
+    (2.5, 26.5, 0.0),
+    (6.5, 25.5, 0.0),
+    (4.5, 33.0, 0.0),
+    (2.5, 42.0, 0.0),
+    (5.5, 42.0, 0.0),
+    (2.5, 45.5, 0.0),
+    (6.0, 45.5, 0.0),
+    (2.5, 2.5, 0.0),
+    (6.0, 2.5, 0.0),
+    (2.5, 6.0, 0.0),
+    (6.0, 5.5, 0.0),
+];
+
+/// Spawn zones (yard, garden, drive), drawn as team-tinted ground.
+const SPAWN_ZONES_W: [Rect; 3] =
+    [Rect::new(1.4, 12.4, 8.6, 35.6), Rect::new(1.4, 41.0, 7.6, 46.6), Rect::new(1.4, 1.4, 8.6, 7.6)];
+
+/// ZL_POSTLINE anchors (x, y, z), pad to pad. The 0.8 m sag is left to the renderer.
+const ZIPLINE: [(f32, f32, f32); 2] = [(25.0, 45.5, 6.3), (47.0, 45.5, 6.3)];
+
+/// Enterable small buildings: footprint, wall top, roof top, wall thickness. Walls are centred on the
+/// footprint edges like the house walls; roofs are flat slabs (the greenhouse dome and studio slope are not
+/// modelled). The office roof is the J_OFFICE perch at z 3.0.
+struct Pod {
+    r: Rect,
+    wall_top: f32,
+    roof_top: f32,
+    t: f32,
+}
+
+const GREENHOUSE: Pod = Pod { r: Rect::new(21.0, 32.0, 26.5, 36.0), wall_top: 2.6, roof_top: 2.8, t: 0.2 };
+const STUDIO: Pod = Pod { r: Rect::new(20.0, 1.0, 26.0, 6.0), wall_top: 2.6, roof_top: 2.8, t: 0.2 };
+const OFFICE: Pod = Pod { r: Rect::new(30.0, 1.0, 42.0, 8.0), wall_top: 2.8, roof_top: 3.0, t: 0.25 };
+
+/// Closed buildings (solid): footprint and height.
+const SHED: (Rect, f32) = (Rect::new(17.0, 43.0, 21.0, 47.0), 2.6);
+const HUB: (Rect, f32) = (Rect::new(34.0, 39.0, 38.0, 44.0), 3.0);
+
+/// A solid box element: footprint, z0, z1, look.
+type El = (Rect, f32, f32, L);
+
+fn el(x0: f32, y0: f32, x1: f32, y1: f32, z0: f32, z1: f32, look: L) -> El {
+    (Rect::new(x0, y0, x1, y1), z0, z1, look)
+}
+
+/// West-side solid elements (mirrored to the east). Circles (tank, mast) use their bounding square.
+fn elements_w() -> Vec<El> {
+    vec![
+        el(0.0, 1.0, 1.0, 47.0, 0.0, 3.0, L::Hedge), // W_HEDGE (boundary)
+        // spawn yard enclosure
+        el(3.5, 35.85, 9.15, 36.15, 0.0, 2.6, L::Wall), // W_YARD_N
+        el(3.5, 11.85, 9.15, 12.15, 0.0, 2.6, L::Wall), // W_YARD_S
+        el(8.85, 32.0, 9.15, 35.85, 0.0, 2.6, L::Wall), // W_YARD_EN
+        el(8.85, 12.15, 9.15, 16.0, 0.0, 2.6, L::Wall), // W_YARD_ES
+        el(3.0, 28.0, 5.5, 30.5, 0.0, 1.0, L::Prop),    // W_HOTTUB
+        el(1.0, 23.0, 4.0, 24.0, 0.0, 2.2, L::Prop),    // W_BBQ
+        // house props
+        el(18.5, 20.7, 20.5, 21.7, UF, UF + 1.2, L::Prop), // W_HEATPUMP (on the terrace)
+        el(10.0, 24.0, 12.0, 26.5, 0.0, 1.0, L::Prop),     // W_ISLAND
+        el(12.6, 16.6, 14.5, 21.0, 0.0, 1.5, L::Vehicle),  // W_GARAGE_CAR
+        el(9.3, 17.0, 10.0, 21.0, 0.0, 1.0, L::Prop),      // W_WORKBENCH
+        el(16.0, 21.3, 20.0, 21.85, 0.0, 2.2, L::Prop),    // W_SHELF
+        el(16.5, 28.6, 19.0, 29.5, 0.0, 0.8, L::Prop),     // W_SOFA
+        el(15.2, 26.0, 15.8, 28.0, UF, UF + 1.2, L::Prop), // W_DRESSER (upper floor)
+        // front lawn
+        el(27.35, 14.4, 27.65, 25.0, 0.0, 1.2, L::Fence), // W_FENCE_FS
+        el(27.35, 27.0, 27.65, 32.0, 0.0, 1.2, L::Fence), // W_FENCE_FN
+        el(23.0, 13.6, 28.2, 14.4, 0.0, 2.0, L::Hedge),   // W_HEDGE_LAWN
+        el(23.0, 18.5, 26.0, 19.5, 0.0, 1.0, L::Prop),    // W_PLANTER_1
+        el(23.0, 29.0, 26.0, 30.0, 0.0, 1.0, L::Prop),    // W_PLANTER_2
+        // patio + garden
+        el(11.9, 35.9, 15.1, 39.1, 0.0, 2.8, L::Metal), // W_TANK (d 3.2)
+        el(3.0, 39.5, 7.0, 40.5, 0.0, 1.0, L::Prop),    // W_BEDS_1
+        el(8.0, 39.0, 11.0, 45.0, 0.0, 2.4, L::Hedge),  // W_ARBOUR
+        el(22.0, 39.5, 25.0, 40.5, 0.0, 1.0, L::Prop),  // W_BEDS_3
+        el(24.75, 45.25, 25.25, 45.75, 0.0, 6.6, L::Metal), // W_PYLON_MAST
+        el(24.0, 44.5, 26.0, 46.5, 3.85, 4.0, L::Metal), // W_PYLON_PAD (J_PAD_W perch)
+        // drive
+        el(3.5, 8.0, 8.0, 8.5, 0.0, 1.0, L::Wall),      // W_LOWWALL
+        el(12.0, 4.0, 15.0, 10.0, 0.0, 2.2, L::Prop),   // W_BINS
+        el(28.2, 10.0, 30.2, 18.0, 0.0, 2.2, L::Metal), // W_LOCKERS
+        // street
+        el(29.8, 30.5, 31.8, 34.1, 0.0, 2.2, L::Vehicle), // W_KERBPOD
+        el(33.2, 22.0, 34.4, 23.2, 0.0, 0.8, L::Prop),    // W_ARMCHAIR
+        el(33.0, 20.2, 34.0, 21.2, 0.0, 1.0, L::Prop),    // W_CRATE
+    ]
+}
+
+/// Elements on the mirror axis (built once).
+fn elements_c() -> Vec<El> {
+    vec![
+        el(0.0, 47.0, 72.0, 48.0, 0.0, 2.4, L::Fence),      // C_NWALL
+        el(0.0, 0.0, 72.0, 1.0, 0.0, 2.4, L::Wall),         // C_SWALL
+        el(34.75, 19.0, 37.25, 27.0, 0.0, 3.2, L::Vehicle), // C_MOVER_BOX (J_MOVER perch)
+        el(34.85, 27.0, 37.15, 29.5, 0.0, 2.4, L::Vehicle), // C_MOVER_CAB
+        el(35.0, 31.0, 37.0, 35.0, 0.0, 2.4, L::Metal),     // C_CHARGER
+        el(35.5, 16.6, 36.5, 17.6, 0.0, 1.0, L::Prop),      // C_CRATE_T
+        el(34.0, 3.0, 38.0, 5.0, 0.0, 1.0, L::Prop),        // C_MODEL (inside the office)
+        el(34.0, 8.0, 38.0, 10.0, 0.0, 2.6, L::Prop),       // C_SHUTTLE
+    ]
+}
+
+/// Sage House walls (layout `_west_walls_and_openings`), plus the walls of the west enterable pods.
+fn walls_w() -> Vec<WallDef> {
+    let (gf, uf, t) = (0.0, UF, 0.3);
+    let mut w = vec![
+        // ground floor exterior + garage partition
+        WallDef::seg(9.0, 16.0, 21.0, 16.0, gf, uf, t),   // W_GF_S
+        WallDef::seg(21.0, 16.0, 21.0, 32.0, gf, uf, t),  // W_GF_E
+        WallDef::seg(9.0, 32.0, 21.0, 32.0, gf, uf, t),   // W_GF_N
+        WallDef::seg(9.0, 16.0, 9.0, 32.0, gf, uf, t),    // W_GF_W
+        WallDef::seg(9.0, 22.0, 21.0, 22.0, gf, uf, 0.2), // W_GF_P
+        // upper floor exterior + partition
+        WallDef::seg(9.0, 22.0, 21.0, 22.0, uf, EAVES, t),  // W_UF_S
+        WallDef::seg(21.0, 22.0, 21.0, 32.0, uf, EAVES, t), // W_UF_E
+        WallDef::seg(9.0, 32.0, 21.0, 32.0, uf, EAVES, t),  // W_UF_N
+        WallDef::seg(9.0, 22.0, 9.0, 32.0, uf, EAVES, t),   // W_UF_W
+        WallDef::seg(15.0, 22.0, 15.0, 32.0, uf, UF_CEIL, 0.2), // W_UF_P
+        // terrace parapets (1.0 m) and privacy screens (2.4 m)
+        WallDef::seg(11.0, 16.0, 21.0, 16.0, uf, uf + 1.0, 0.25).look(L::Trim), // W_TER_PS
+        WallDef::seg(21.0, 16.0, 21.0, 22.0, uf, uf + 1.0, 0.25).look(L::Trim), // W_TER_PE
+        WallDef::seg(9.0, 16.0, 9.0, 22.0, uf, uf + 2.4, 0.25).look(L::Fence),  // W_TER_SW
+        WallDef::seg(9.0, 16.0, 11.0, 16.0, uf, uf + 2.4, 0.25).look(L::Fence), // W_TER_SS
+    ];
+    for p in [&GREENHOUSE, &STUDIO] {
+        w.extend(box_walls(p.r, 0.0, p.wall_top, p.t, L::Wall));
+    }
+    w
+}
+
+/// Every opening on the west side (layout `_west_walls_and_openings`).
+fn openings_w() -> Vec<Opening> {
+    let uf = UF;
+    vec![
+        // ground floor
+        Opening::y(16.0, 12.0, 16.0, 0.0, 1.1), // W_GF_ROLLER (jammed half-open: crouch / slide)
+        Opening::x(21.0, 18.2, 19.8, 0.9, 2.1), // W_GF_GARWIN
+        Opening::x(21.0, 25.0, 27.0, 0.0, 2.4), // W_GF_FRONT (double door)
+        Opening::x(21.0, 29.0, 30.6, 0.9, 2.1), // W_GF_LIVWIN
+        Opening::y(32.0, 17.0, 19.0, 0.0, 2.4), // W_GF_PATIO
+        Opening::y(32.0, 10.0, 11.6, 0.9, 2.1), // W_GF_KITWIN
+        Opening::x(9.0, 29.0, 30.0, 0.0, 2.1),  // W_GF_BACK (to the spawn yard)
+        Opening::y(22.0, 10.0, 11.0, 0.0, 2.1), // W_GF_GARDOOR
+        // upper floor
+        Opening::y(22.0, 10.5, 11.5, uf, uf + 2.1),       // W_UF_TERDOOR
+        Opening::x(21.0, 23.4, 25.0, uf + 1.0, uf + 2.2), // W_UF_WIN_S
+        Opening::x(21.0, 28.6, 30.2, uf + 1.0, uf + 2.2), // W_UF_WIN_N
+        Opening::y(32.0, 17.4, 19.0, uf + 1.0, uf + 2.2), // W_UF_WIN_NF
+        Opening::y(22.0, 17.4, 19.0, uf + 1.0, uf + 2.2), // W_UF_WIN_T
+        Opening::x(9.0, 26.0, 27.6, uf + 1.8, uf + 2.4),  // W_UF_CLR_W1
+        Opening::x(9.0, 29.4, 31.0, uf + 1.8, uf + 2.4),  // W_UF_CLR_W2
+        Opening::y(32.0, 10.0, 11.6, uf + 1.8, uf + 2.4), // W_UF_CLR_N
+        Opening::x(15.0, 23.0, 24.0, uf, uf + 2.1),       // W_UF_PD1
+        Opening::x(15.0, 30.8, 31.8, uf, uf + 2.1),       // W_UF_PD2
+        // small buildings
+        Opening::x(21.0, 34.2, 35.4, 0.0, 2.1), // W_GH_W
+        Opening::y(36.0, 23.0, 24.2, 0.0, 2.1), // W_GH_N
+        Opening::y(32.0, 24.6, 25.8, 0.0, 2.1), // W_GH_S
+        Opening::y(6.0, 21.0, 22.0, 0.0, 2.1),  // W_ST_N
+        Opening::x(26.0, 3.0, 4.0, 0.0, 2.1),   // W_ST_E
+        Opening::y(6.0, 23.4, 25.0, 0.9, 2.1),  // W_ST_WIN
+        Opening::x(30.0, 3.0, 4.2, 0.0, 1.1),   // W_OF_W (office shutter half-open: slide gap)
+        Opening::y(8.0, 31.5, 33.5, 0.9, 2.1),  // W_OF_WIN
+    ]
+}
+
+/// Maps west-side geometry to one side of the map.
+#[derive(Clone, Copy)]
+struct Side {
+    mirror: bool,
+}
+
+impl Side {
+    const WEST: Side = Side { mirror: false };
+    const EAST: Side = Side { mirror: true };
+
+    fn rect(self, r: Rect) -> Rect {
+        if self.mirror { r.mirror_x(AXIS_X) } else { r }
+    }
+
+    fn wall(self, w: WallDef) -> WallDef {
+        if self.mirror { w.mirror_x(AXIS_X) } else { w }
+    }
+
+    fn dir(self, d: Dir) -> Dir {
+        if self.mirror { d.mirror_x() } else { d }
+    }
+
+    fn look(self, l: L) -> L {
+        match (self.mirror, l) {
+            (true, L::TeamA) => L::TeamB,
+            _ => l,
+        }
+    }
+}
+
+/// Builds one house side (west as authored, east mirrored).
+fn half(b: &mut Builder, s: Side, openings: &[Opening]) {
+    // Ground: flush slab with team-tinted spawn zones and floors under the buildings. Built for the west half
+    // (to the axis) and mirrored, so both halves are exact mirror images.
+    let mut g = FloorPlan::new(Rect::new(-2.0, -2.0, AXIS_X, MAP_H + 2.0), L::Ground);
+    for z in SPAWN_ZONES_W {
+        g.patch(z, L::TeamA);
+    }
+    for r in [Rect::new(HOUSE.x0, GARAGE.y0, HOUSE.x1, HOUSE.y1), GREENHOUSE.r, STUDIO.r] {
+        g.patch(r, L::Floor);
+    }
+    g.patch(Rect::new(OFFICE.r.x0, OFFICE.r.y0, AXIS_X, OFFICE.r.y1), L::Floor);
+    for &(r, look) in g.pieces() {
+        b.solid(s.rect(r), -1.0, 0.0, s.look(look));
+    }
+
+    for (r, z0, z1, look) in elements_w() {
+        b.solid(s.rect(r), z0, z1, s.look(look));
+    }
+    // Boundary hedge: a player clip above it up to the hard ceiling.
+    b.clip(s.rect(Rect::new(0.0, 1.0, 1.0, 47.0)), 3.0, CEIL_HARD);
+
+    for w in walls_w() {
+        b.wall(&s.wall(w), openings);
+    }
+
+    // Upper floor slab with the stairwell hole, the terrace on the garage roof, and the stairs.
+    for r in HOUSE.subtract(&STAIR) {
+        b.solid(s.rect(r), UF - SLAB, UF, L::Floor);
+    }
+    b.solid(s.rect(GARAGE), UF - SLAB, UF, L::Floor); // W_TERRACE (standable)
+    b.ramp(s.rect(STAIR), 0.0, UF, s.dir(Dir::South), BrushKind::Solid, L::Floor);
+
+    // Roof: upper-floor ceiling slab at the eaves, the real 45 degree gable (stops bullets), and a steeper
+    // player clip over it so the gable is not standable. Its ridge ends above the hard ceiling.
+    b.solid(s.rect(HOUSE), UF_CEIL, EAVES, L::Roof);
+    let south = Rect::new(HOUSE.x0, HOUSE.y0, HOUSE.x1, RIDGE_Y);
+    let north = Rect::new(HOUSE.x0, RIDGE_Y, HOUSE.x1, HOUSE.y1);
+    b.ramp(s.rect(south), EAVES, RIDGE, s.dir(Dir::North), BrushKind::Solid, L::Roof);
+    b.ramp(s.rect(north), EAVES, RIDGE, s.dir(Dir::South), BrushKind::Solid, L::Roof);
+    let clip = HOUSE.grow(0.15); // over the wall tops too
+    let rise = (RIDGE_Y - clip.y0).max(clip.y1 - RIDGE_Y) * ROOF_CLIP_PITCH;
+    let (cs, cn) = (Rect::new(clip.x0, clip.y0, clip.x1, RIDGE_Y), Rect::new(clip.x0, RIDGE_Y, clip.x1, clip.y1));
+    b.ramp(s.rect(cs), EAVES, EAVES + rise, s.dir(Dir::North), BrushKind::PlayerClip, L::Invisible);
+    b.ramp(s.rect(cn), EAVES, EAVES + rise, s.dir(Dir::South), BrushKind::PlayerClip, L::Invisible);
+
+    // Enterable pods: roof slabs over the walls (walls come from `walls_w`).
+    for p in [&GREENHOUSE, &STUDIO] {
+        b.solid(s.rect(p.r.grow(p.t / 2.0)), p.wall_top, p.roof_top, L::Roof);
+    }
+    solid_building(b, s.rect(SHED.0), SHED.1);
+}
+
+/// Closed building: walls up to just under the top, then a roof cap.
+fn solid_building(b: &mut Builder, r: Rect, h: f32) {
+    b.solid(r, 0.0, h - 0.2, L::Wall);
+    b.solid(r, h - 0.2, h, L::Roof);
+}
+
+fn centre(b: &mut Builder, openings: &[Opening]) {
+    for (r, z0, z1, look) in elements_c() {
+        b.solid(r, z0, z1, look);
+    }
+    // North fence / south wall: clip above them; a clip ceiling over the whole map.
+    b.clip(Rect::new(0.0, 47.0, MAP_W, 48.0), 2.4, CEIL_HARD);
+    b.clip(Rect::new(0.0, 0.0, MAP_W, 1.0), 2.4, CEIL_HARD);
+    b.clip(Rect::new(0.0, 0.0, MAP_W, MAP_H), CEIL_HARD, CEIL_HARD + 1.0);
+    // Sales office: shutters W + E, two street windows; the flat roof is a perch.
+    for w in box_walls(OFFICE.r, 0.0, OFFICE.wall_top, OFFICE.t, L::Wall) {
+        b.wall(&w, openings);
+    }
+    b.solid(OFFICE.r.grow(OFFICE.t / 2.0), OFFICE.wall_top, OFFICE.roof_top, L::Roof);
+    solid_building(b, HUB.0, HUB.1);
+}
+
+/// The Showhome TDM map.
+pub fn showhome() -> Level {
+    let mut openings = openings_w();
+    openings.extend(openings_w().into_iter().map(|o| o.mirror_x(AXIS_X)));
+
+    let mut b = Builder::default();
+    half(&mut b, Side::WEST, &openings);
+    half(&mut b, Side::EAST, &openings);
+    centre(&mut b, &openings);
+
+    let mut spawns = Vec::with_capacity(SPAWNS_W.len() * 2);
+    for &(x, y, yaw) in &SPAWNS_W {
+        spawns.push(SpawnPoint { pos: design(x, y, 0.0), yaw: design_yaw(yaw), team: Some(Team::A) });
+    }
+    for &(x, y, yaw) in &SPAWNS_W {
+        let pos = design(MAP_W - x, y, 0.0);
+        spawns.push(SpawnPoint { pos, yaw: design_yaw(180.0 - yaw), team: Some(Team::B) });
+    }
+    let [a, z] = ZIPLINE;
+    Level {
+        name: "Showhome".into(),
+        world: b.finish(),
+        ziplines: vec![Zipline { a: design(a.0, a.1, a.2), b: design(z.0, z.1, z.2) }],
+        spawns,
+        kill_y: KILL_Y,
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::super::test_util::{HALF, assert_spawns_grounded, surface_below, walk};
+    use super::*;
+    use crate::movement::collision::Brush;
+    use glam::Vec3;
+    use std::f32::consts::{FRAC_PI_2, PI};
+
+    fn mm(v: f32) -> i64 {
+        (v * 1000.0).round() as i64
+    }
+
+    fn key(b: &Brush, mirror: bool) -> String {
+        let (mut min, mut max, mut ramp, mut look) = (b.min, b.max, b.ramp, b.look);
+        if mirror {
+            (min.x, max.x) = (MAP_W - b.max.x, MAP_W - b.min.x);
+            ramp = ramp.map(|r| Vec3::new(-r.x, r.y, r.z));
+            look = Side::EAST.look(look);
+            if b.look == L::TeamB {
+                look = L::TeamA;
+            }
+        }
+        let r = ramp.map(|r| (mm(r.x), mm(r.z)));
+        format!(
+            "{} {} {} {} {} {} {:?} {:?} {:?}",
+            mm(min.x),
+            mm(min.y),
+            mm(min.z),
+            mm(max.x),
+            mm(max.y),
+            mm(max.z),
+            b.kind,
+            look,
+            r
+        )
+    }
+
+    #[test]
+    fn spawns_stand_on_ground() {
+        let l = showhome();
+        assert_spawns_grounded(&l);
+        let a = l.spawns.iter().filter(|s| s.team == Some(Team::A)).count();
+        let b = l.spawns.iter().filter(|s| s.team == Some(Team::B)).count();
+        assert!(a >= 10 && b >= 10, "{a} / {b}");
+        // Sage faces east (+X), Clay faces west (-X).
+        for s in &l.spawns {
+            let fwd = Vec3::new(-s.yaw.sin(), 0.0, -s.yaw.cos());
+            let want = if s.team == Some(Team::A) { Vec3::X } else { Vec3::NEG_X };
+            assert!((fwd - want).length() < 1e-4, "{s:?}");
+        }
+        assert!((l.spawns[0].yaw + FRAC_PI_2).abs() < 1e-6);
+    }
+
+    #[test]
+    fn mirror_symmetric() {
+        let l = showhome();
+        let mut a: Vec<String> = l.world.brushes.iter().map(|b| key(b, false)).collect();
+        let mut b: Vec<String> = l.world.brushes.iter().map(|b| key(b, true)).collect();
+        a.sort();
+        b.sort();
+        assert_eq!(a, b);
+        let zl = l.ziplines[0];
+        assert!((zl.a.x + zl.b.x - MAP_W).abs() < 1e-4 && zl.a.y == zl.b.y && zl.a.z == zl.b.z);
+    }
+
+    #[test]
+    fn brush_budget_and_bounds() {
+        let l = showhome();
+        let n = l.world.brushes.len();
+        assert!(n > 100 && n < 1500, "{n} brushes");
+        assert_eq!(l.kill_y, -10.0);
+        assert_eq!(l.name, "Showhome");
+        // Nobody leaves the map: boxes thrown outward at any height below the hard ceiling are stopped.
+        for z in [0.95, 2.0, 4.0, 7.0, 9.0] {
+            let c = design(36.0, 24.0, z);
+            for (dx, dy) in [(40.0, 0.0), (-40.0, 0.0), (0.0, 30.0), (0.0, -30.0)] {
+                let t = l.world.trace_box(c, c + Vec3::new(dx, 0.0, -dy), HALF);
+                assert!(t.hit(), "escaped at z {z} toward ({dx}, {dy})");
+            }
+        }
+        let c = design(10.0, 40.0, 9.0);
+        assert!(l.world.trace_box(c, c + Vec3::Y * 5.0, HALF).hit(), "hard ceiling");
+    }
+
+    #[test]
+    fn named_sightlines_match_the_design() {
+        let l = showhome();
+        // (name, from, to): every design sightline the analysis marks clear.
+        let lines = [
+            ("Long Garden", (15.2, 37.5, 1.6), (56.8, 37.5, 1.6)),
+            ("Street Long", (32.9, 8.3, 1.6), (32.9, 46.7, 1.6)),
+            ("Window Duel", (21.2, 24.2, 4.8), (50.8, 24.2, 4.8)),
+            ("Terrace Duel", (20.7, 18.0, 4.8), (51.3, 18.0, 4.8)),
+            ("Pylon Duel", (25.6, 45.5, 5.6), (46.4, 45.5, 5.6)),
+            ("Office Roof", (32.5, 7.6, 4.6), (32.5, 46.5, 1.6)),
+            ("Garden Window", (18.2, 32.25, 4.8), (46.4, 45.0, 5.6)),
+        ];
+        for (name, p, q) in lines {
+            let (p, q) = (design(p.0, p.1, p.2), design(q.0, q.1, q.2));
+            assert!(l.world.line_of_sight(p, q), "{name} should be clear");
+        }
+        // Long Garden is 41.6 m in analysis.json.
+        assert!((design(15.2, 37.5, 1.6).distance(design(56.8, 37.5, 1.6)) - 41.6).abs() < 0.05);
+    }
+
+    #[test]
+    fn house_walls_block() {
+        let l = showhome();
+        // Yard -> lawn straight through Sage House at y 26: the west wall has no opening there.
+        let (p, q) = (design(5.0, 26.0, 1.6), design(28.0, 26.0, 1.6));
+        assert!(!l.world.line_of_sight(p, q));
+        let (d, n) = l.world.raycast(p, Vec3::X, 30.0).unwrap();
+        assert!((d - 3.85).abs() < 0.01, "hit the west wall face at x 8.85, got {d}");
+        assert_eq!(n, Vec3::NEG_X);
+        // ... and the mirrored line through Clay House.
+        assert!(!l.world.line_of_sight(design(67.0, 26.0, 1.6), design(44.0, 26.0, 1.6)));
+        // Through the front door, the lawn and the street is open as far as the Mover.
+        assert!(l.world.line_of_sight(design(19.0, 26.0, 1.6), design(34.0, 26.0, 1.6)));
+    }
+
+    #[test]
+    fn front_door_is_passable() {
+        let l = showhome();
+        let (from, to) = (design(19.0, 26.0, HALF.y + 0.02), design(23.0, 26.0, HALF.y + 0.02));
+        let t = l.world.trace_box(from, to, HALF);
+        assert!(!t.hit() && !t.start_solid, "{t:?}");
+        // The real controller walks out of the living room onto the lawn.
+        let end = walk(&l, design(19.0, 26.0, 0.0), design_yaw(0.0), 1.5);
+        assert!(end.x > 23.0 && end.y.abs() < 0.05, "{end:?}");
+    }
+
+    #[test]
+    fn stairs_reach_the_upper_floor() {
+        let l = showhome();
+        // Halfway up the stair (y 28 of 30.5..25.5) the tread is at half the floor height.
+        let h = surface_below(&l, design(14.4, 28.0, 5.0));
+        assert!((h - 1.6).abs() < 0.01, "{h}");
+        // Upper floor, terrace and the Mover top are standable perches at their design heights.
+        assert!((surface_below(&l, design(11.0, 24.0, 5.0)) - UF).abs() < 0.01);
+        assert!((surface_below(&l, design(15.0, 19.0, 5.0)) - UF).abs() < 0.01);
+        assert!((surface_below(&l, design(36.0, 23.0, 9.0)) - 3.2).abs() < 0.01);
+        assert!((surface_below(&l, design(36.0, 4.0, 9.0)) - 3.0).abs() < 0.01);
+        assert!((surface_below(&l, design(24.3, 44.8, 9.0)) - 4.0).abs() < 0.01);
+        // Walk up from the kitchen: start at the stair foot facing south and end on the landing.
+        let end = walk(&l, design(14.4, 31.2, 0.0), design_yaw(-90.0), 3.0);
+        assert!((end.y - UF).abs() < 0.05 && -end.z < 25.5, "{end:?}");
+        assert!((design_yaw(-90.0).abs() - PI).abs() < 1e-5);
+    }
+
+    #[test]
+    fn pods_are_enterable() {
+        let l = showhome();
+        let y = HALF.y + 0.02;
+        let clear = |from: Vec3, to: Vec3, half: Vec3| {
+            let t = l.world.trace_box(from, to, half);
+            !t.hit() && !t.start_solid
+        };
+        // Greenhouse west door from the patio, studio north door from the drive (and their mirrors).
+        for x in [0.0, MAP_W] {
+            let m = |v: f32| (x - v).abs();
+            assert!(clear(design(m(19.5), 34.8, y), design(m(23.0), 34.8, y), HALF), "greenhouse {x}");
+            assert!(clear(design(m(21.5), 7.5, y), design(m(21.5), 4.0, y), HALF), "studio {x}");
+        }
+        // Office shutters are half-open: a slide gets under, standing does not.
+        let slide = Vec3::new(0.32, 0.45, 0.32);
+        assert!(clear(design(28.8, 3.6, 0.47), design(31.5, 3.6, 0.47), slide));
+        assert!(clear(design(43.2, 3.6, 0.47), design(40.5, 3.6, 0.47), slide));
+        assert!(!clear(design(28.8, 3.6, y), design(31.5, 3.6, y), HALF));
+    }
+
+    #[test]
+    fn gable_is_not_standable() {
+        let l = showhome();
+        // Dropping onto the roof (near the eaves: higher up, the clip leaves no room under the hard ceiling)
+        // lands on a slope steeper than the walkable 46 degrees.
+        let c = design(15.0, 22.5, 9.0);
+        let t = l.world.trace_box(c, c - Vec3::Y * 5.0, HALF);
+        assert!(t.hit() && !t.start_solid);
+        assert!(t.normal.y < 46f32.to_radians().cos(), "{:?}", t.normal);
+        // Bullets see the real 45 degree roof under the clip.
+        let (d, n) = l.world.raycast(design(15.0, 24.0, 9.5), Vec3::NEG_Y, 10.0).unwrap();
+        assert!((9.5 - d - (EAVES + 2.0)).abs() < 0.01, "{d}");
+        assert!((n.y - std::f32::consts::FRAC_1_SQRT_2).abs() < 0.01);
+    }
+}

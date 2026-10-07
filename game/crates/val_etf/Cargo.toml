@@ -1,0 +1,15 @@
+[package]
+name = "val_etf"
+description = "The game: host-and-join listen server, gun range and team deathmatch."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+publish.workspace = true
+
+[dependencies]
+vetf_sim.workspace = true
+vetf_net.workspace = true
+bevy = { workspace = true, features = ["default"] }
+lightyear.workspace = true
+serde.workspace = true
+ron.workspace = true
