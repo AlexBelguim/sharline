@@ -106,9 +106,19 @@ pub struct Feedback {
     pub damage: Vec<(Vec3, f32)>,
     /// (killer, victim, headshot, seconds left)
     pub kills: Vec<(String, String, bool, f32)>,
-    /// Tracers to draw: (from, to, seconds left, own shot)
+    /// Tracers in flight: (from, to, seconds since the shot, own shot)
     pub tracers: Vec<(Vec3, Vec3, f32, bool)>,
+    /// New bullet impacts on the level (point, surface normal); `render` turns them into decals.
+    pub impacts: Vec<(Vec3, Vec3)>,
 }
+
+/// A tracer is a short streak flying from the muzzle to the hit (visual only).
+pub const TRACER_SPEED: f32 = 420.0;
+pub const TRACER_LEN: f32 = 5.0;
+
+/// Where our muzzle is in view space (the placeholder viewmodel's barrel tip), at the hip and aimed.
+const MUZZLE_HIP: Vec3 = Vec3::new(0.2, -0.2, -0.84);
+const MUZZLE_ADS: Vec3 = Vec3::new(0.0, -0.075, -0.64);
 
 /// Visual smoothing of the predicted position between fixed ticks.
 #[derive(Component, Default)]
@@ -435,14 +445,14 @@ fn fire_claims(
     session: Res<Session>,
     timeline: Res<LocalTimeline>,
     interp: Option<Res<InterpolationTimeline>>,
-    me: Query<(&PlayerLoadout, &PlayerInfo), With<Controlled>>,
+    me: Query<(&PlayerLoadout, &PlayerInfo, &PlayerWeapon), With<Controlled>>,
     others: Query<(&PlayerId, &PlayerInfo, &PlayerMove, &PlayerLook, &Vitals), Without<Controlled>>,
     mut senders: Query<&mut MessageSender<ShotClaim>, With<Client>>,
     mut control: ResMut<LocalControl>,
     mut feedback: ResMut<Feedback>,
 ) {
     let Some(level) = level else { return };
-    let Some((loadout, my_info)) = me.iter().next() else { return };
+    let Some((loadout, my_info, weapon)) = me.iter().next() else { return };
     let spec = loadout.0.weapon.spec(&data);
     let view_tick = match (&session.role, interp) {
         (Role::Client, Some(i)) if i.is_synced() => i.tick().0 as f32 + i.overstep().to_f32(),
@@ -460,7 +470,8 @@ fn fire_claims(
 
         let dir = shot_direction(s.yaw, s.pitch, s.shot.spread_deg, shot_seed(s.player, s.shot.seq));
         let range = spec.max_range_m;
-        let world_t = level.world.raycast(s.origin, dir, range).map_or(range, |(d, _)| d);
+        let world_hit = level.world.raycast(s.origin, dir, range);
+        let world_t = world_hit.map_or(range, |(d, _)| d);
         let mut best: Option<(u64, vetf_sim::Zone, f32)> = None;
         for (id, info, mv, look, vitals) in &others {
             if vitals.health.dead || (my_info.team.is_some() && info.team == my_info.team) {
@@ -475,8 +486,12 @@ fn fire_claims(
         }
         debug!("local shot {} spread {:.2} hit {:?} (world at {world_t:.1} m)", s.shot.seq, s.shot.spread_deg, best);
         let end_t = best.map_or(world_t, |b| b.2);
-        let muzzle = s.origin + dir * 0.6 + Vec3::new(0.0, -0.12, 0.0);
-        feedback.tracers.push((muzzle, s.origin + dir * end_t, 0.08, true));
+        let view = Quat::from_euler(EulerRot::YXZ, s.yaw, s.pitch, 0.0);
+        let muzzle = s.origin + view * MUZZLE_HIP.lerp(MUZZLE_ADS, weapon.0.ads);
+        feedback.tracers.push((muzzle, s.origin + dir * end_t, 0.0, true));
+        if let (None, Some((d, normal))) = (best, world_hit) {
+            feedback.impacts.push((s.origin + dir * d, normal));
+        }
         if let Some((victim, zone, t)) = best {
             let hit = HitClaim { origin: s.origin, dir, view_tick, zone, point: s.origin + dir * t };
             for mut sender in &mut senders {
@@ -510,6 +525,7 @@ fn receive_feedback(
     mut kills: Query<&mut MessageReceiver<KillFeed>, With<Client>>,
     mut fx: Query<&mut MessageReceiver<ShotFx>, With<Client>>,
     players: Query<(&PlayerId, &PlayerInfo)>,
+    level: Option<Res<CurrentLevel>>,
     mut feedback: ResMut<Feedback>,
 ) {
     let name = |id: u64| {
@@ -535,7 +551,16 @@ fn receive_feedback(
     }
     for mut rx in &mut fx {
         for s in rx.receive() {
-            feedback.tracers.push((s.origin, s.end, 0.08, false));
+            feedback.tracers.push((s.origin, s.end, 0.0, false));
+            // The host sends where the shot met the level; find the surface it hit for the decal.
+            let len = s.origin.distance(s.end);
+            if let Some(level) = &level
+                && len > 0.01
+                && let Some((d, normal)) = level.world.raycast(s.origin, (s.end - s.origin) / len, len + 0.1)
+                && (d - len).abs() < 0.05
+            {
+                feedback.impacts.push((s.origin + (s.end - s.origin) / len * d, normal));
+            }
         }
     }
 }
@@ -556,9 +581,9 @@ fn tick_feedback(time: Res<Time>, mut feedback: ResMut<Feedback>) {
         *t -= dt;
         *t > 0.0
     });
-    feedback.tracers.retain_mut(|(.., t, _)| {
-        *t -= dt;
-        *t > 0.0
+    feedback.tracers.retain_mut(|(from, to, t, _)| {
+        *t += dt;
+        *t * TRACER_SPEED - TRACER_LEN < from.distance(*to)
     });
     if feedback.kills.len() > 5 {
         let n = feedback.kills.len() - 5;
