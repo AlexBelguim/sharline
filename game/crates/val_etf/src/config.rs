@@ -68,13 +68,17 @@ pub struct Cli {
     /// Start looking this way (degrees, 0 = north / -Z, 90 = west); the bot then holds this heading.
     pub yaw: Option<f32>,
     /// Open a menu for screenshots: `reload` (the magazine radial), `heal` / `heal-region` (the heal ring),
-    /// `hud` (wounds and a mag check), `loadout` (the Loadout screen), `loadout-ammo` (its ammo picker on
+    /// `hud` (wounds and a mag check), `board` (the Tab board with the invite's state), `loadout` (the
+    /// Loadout screen), `loadout-ammo` (its ammo picker on
     /// MAG 1), `loadout-attach` (its attachment list on the optic slot). The heal and hud ones also hurt
     /// the host's own player. On the main menu: `menu-join` (JOIN GAME, code tab), `menu-join-ip` (direct
     /// IP tab), `menu-host` (HOST GAME).
     pub demo_ui: Option<String>,
     /// `--esc-at 4,5.5`: press Esc at these seconds after start-up (automated tests of the Esc routing).
     pub esc_at: Vec<f32>,
+    /// `--allow-input`: a screenshot or demo run still takes the desktop's mouse and keys (for driving it
+    /// by hand or with injected input); see [`Cli::ignores_desktop_input`].
+    pub allow_input: bool,
     /// Loadout overrides (weapon id, ammo like `rip3`, armor preset id, comma-separated attachment ids).
     /// Without any of them the Loadout screen's active preset is used; with some, anything missing uses
     /// `rules.ron`'s default loadout.
@@ -90,9 +94,11 @@ pub struct Cli {
     pub monitor: Option<usize>,
 }
 
-impl Cli {
-    pub fn parse() -> Self {
-        let mut cli = Cli {
+/// No options: what a plain `val_etf` run gets (tests build on it with `Cli { .., ..Cli::default() }`, so a
+/// new option never breaks them).
+impl Default for Cli {
+    fn default() -> Self {
+        Cli {
             host: None,
             join: None,
             name: default_name(),
@@ -107,13 +113,21 @@ impl Cli {
             yaw: None,
             demo_ui: None,
             esc_at: Vec::new(),
+            allow_input: false,
             weapon: None,
             ammo: None,
             mags: None,
             armor: None,
             attach: None,
-            monitor: std::env::var("VETF_TEST_MONITOR").ok().and_then(|v| v.parse().ok()),
-        };
+            monitor: None,
+        }
+    }
+}
+
+impl Cli {
+    pub fn parse() -> Self {
+        let mut cli =
+            Cli { monitor: std::env::var("VETF_TEST_MONITOR").ok().and_then(|v| v.parse().ok()), ..Cli::default() };
         let mut args = std::env::args().skip(1);
         while let Some(a) = args.next() {
             let mut val = || args.next().unwrap_or_default();
@@ -134,6 +148,7 @@ impl Cli {
                 "--yaw" => cli.yaw = val().parse().ok(),
                 "--demo-ui" => cli.demo_ui = Some(val()),
                 "--esc-at" => cli.esc_at = val().split(',').filter_map(|t| t.trim().parse().ok()).collect(),
+                "--allow-input" => cli.allow_input = true,
                 "--weapon" => cli.weapon = Some(val()),
                 "--ammo" => cli.ammo = Some(val()),
                 "--mags" => cli.mags = Some(val()),
@@ -146,8 +161,8 @@ impl Cli {
                          \x20       [--width W --height H] [--screenshot PATH [--screenshot-after S]] [--exit-after S] [--bot] [--yaw DEG]\n\
                          \x20       [--weapon ID] [--ammo std|ap1..3|rip1..3|slug1..2] [--mags std,ap2,..]\n\
                          \x20       [--armor PRESET] [--attach A,B]\n\
-                         \x20       [--demo-ui reload|heal|heal-region|hud|menu-join|menu-join-ip|menu-host|\n\
-                         \x20                  loadout|loadout-ammo|loadout-attach] [--esc-at S,S,..]\n\
+                         \x20       [--demo-ui reload|heal|heal-region|hud|board|menu-join|menu-join-ip|menu-host|\n\
+                         \x20                  loadout|loadout-ammo|loadout-attach] [--esc-at S,S,..] [--allow-input]\n\
                          \n\
                          --name overrides the name saved from the main menu (EDIT NAME) for this run.\n\
                          --port sets the HOST GAME port (default: net.ron, 47820).\n\
@@ -155,7 +170,8 @@ impl Cli {
                          \x20 --screenshot, --demo-ui) open on the first non-primary monitor by default\n\
                          \x20 (override with VETF_TEST_MONITOR=N).\n\
                          --screenshot and --demo-ui runs render at scale factor 1 (exactly W x H pixels, also on\n\
-                         \x20 a HiDPI screen) and never grab the mouse; --bot runs do not grab it either.\n\
+                         \x20 a HiDPI screen), never grab the mouse, do not take the keyboard focus and ignore the\n\
+                         \x20 desktop's mouse and keys (--allow-input keeps them); --bot runs do not grab the mouse.\n\
                          --esc-at presses Esc at those seconds after start-up (tests of the Esc routing)."
                     );
                     std::process::exit(0);
@@ -177,6 +193,13 @@ impl Cli {
     /// turns the view nor fires in the match (see also [`Cli::hands_off`]).
     pub fn demo_mode(&self) -> bool {
         self.screenshot.is_some() || self.demo_ui.is_some()
+    }
+
+    /// A demo run that ignores the desktop's mouse and keys (unless `--allow-input`): the window opens
+    /// without taking the keyboard focus, and a click or key press of the user, or the pointer resting over
+    /// the window, changes nothing (no button press, no hover look in the screenshot, no turning or firing).
+    pub fn ignores_desktop_input(&self) -> bool {
+        self.demo_mode() && !self.allow_input
     }
 
     /// Automated runs leave the desktop's mouse alone: the cursor is never grabbed or hidden (demo mode and
@@ -275,28 +298,22 @@ mod tests {
     }
 
     fn cli() -> Cli {
-        Cli {
-            host: None,
-            join: None,
-            name: "T".into(),
-            name_given: false,
-            port: None,
-            width: 1,
-            height: 1,
-            screenshot: None,
-            screenshot_after: 0.0,
-            exit_after: None,
-            bot: false,
-            yaw: None,
-            demo_ui: None,
-            esc_at: Vec::new(),
-            weapon: None,
-            ammo: None,
-            mags: None,
-            armor: None,
-            attach: None,
-            monitor: None,
-        }
+        Cli { name: "T".into(), ..Cli::default() }
+    }
+
+    #[test]
+    fn demo_runs_leave_the_desktop_alone() {
+        let c = cli();
+        assert!(!c.demo_mode() && !c.hands_off() && !c.ignores_desktop_input(), "a normal run plays");
+        let shot = Cli { screenshot: Some("x.png".into()), ..cli() };
+        assert!(shot.demo_mode() && shot.hands_off() && shot.ignores_desktop_input());
+        let demo = Cli { demo_ui: Some("menu-host".into()), ..cli() };
+        assert!(demo.ignores_desktop_input());
+        let driven = Cli { allow_input: true, ..demo };
+        assert!(driven.demo_mode() && driven.hands_off(), "1:1 and never grabbed");
+        assert!(!driven.ignores_desktop_input(), "--allow-input keeps the mouse and keys");
+        let bot = Cli { bot: true, ..cli() };
+        assert!(bot.hands_off() && !bot.demo_mode());
     }
 
     #[test]

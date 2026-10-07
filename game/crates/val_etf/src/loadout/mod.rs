@@ -783,28 +783,7 @@ pub(crate) mod tests {
 
     /// A command line without options.
     pub(crate) fn plain_cli() -> Cli {
-        Cli {
-            host: None,
-            join: None,
-            name: "T".into(),
-            name_given: false,
-            port: None,
-            width: 1,
-            height: 1,
-            screenshot: None,
-            screenshot_after: 0.0,
-            exit_after: None,
-            bot: false,
-            yaw: None,
-            demo_ui: None,
-            esc_at: Vec::new(),
-            weapon: None,
-            ammo: None,
-            mags: None,
-            armor: None,
-            attach: None,
-            monitor: None,
-        }
+        Cli { name: "T".into(), ..Cli::default() }
     }
 
     #[test]

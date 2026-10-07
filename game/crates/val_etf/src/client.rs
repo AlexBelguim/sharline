@@ -224,7 +224,7 @@ fn gather_input(
     let mags = me.map_or(1, |(l, ..)| l.0.weapon.mags.len());
     let kit: Vec<HealOption> = me.map(|(l, it, v)| heal_options(&data, &l.0, &it.0, v)).unwrap_or_default();
     // Screenshot and demo runs ignore the desktop's mouse: it must not turn the view or fire.
-    let (mouse_delta, mouse_on) = if cli.demo_mode() { (Vec2::ZERO, false) } else { (motion.delta, true) };
+    let (mouse_delta, mouse_on) = if cli.ignores_desktop_input() { (Vec2::ZERO, false) } else { (motion.delta, true) };
     heal_input(&mut control, &keys, &mouse, mouse_delta, &kit);
     let tap_reload = control.heal.is_none() && reload_input(&mut control, &keys, mouse_delta, time.delta_secs(), mags);
     if control.heal.is_some() || control.reload_radial.is_some() {

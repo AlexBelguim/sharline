@@ -8,6 +8,7 @@
 
 mod client;
 mod config;
+mod demo_mode;
 mod esc_menu;
 mod hud;
 mod iroh_transport;
@@ -59,6 +60,8 @@ fn main() -> AppExit {
                     // Scripted runs start hidden and are moved off the primary monitor first
                     // (`place_window`), so tests do not flash over the user's main screen.
                     visible: !(cli.automated() || cli.monitor.is_some()),
+                    // A test run must not take the keyboard from whatever the user is typing in.
+                    focused: !cli.ignores_desktop_input(),
                     ..default()
                 }),
                 ..default()
@@ -83,6 +86,13 @@ fn main() -> AppExit {
     session.local_name = local_name;
     app.insert_resource(session);
     app.insert_resource(profile);
+    if cli.ignores_desktop_input() {
+        // The window opens without the keyboard focus; it must still run at full speed.
+        app.insert_resource(bevy::winit::WinitSettings {
+            focused_mode: bevy::winit::UpdateMode::Continuous,
+            unfocused_mode: bevy::winit::UpdateMode::Continuous,
+        });
+    }
     app.insert_resource(cli);
     app.init_state::<AppState>();
     app.add_plugins((
@@ -99,6 +109,7 @@ fn main() -> AppExit {
     // Hub screens over the menu or the match.
     app.add_plugins((
         screens::ScreensPlugin,
+        demo_mode::DemoModePlugin,
         loadout::LoadoutScreenPlugin,
         settings::SettingsScreenPlugin,
         esc_menu::EscMenuPlugin,
