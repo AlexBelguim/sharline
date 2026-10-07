@@ -381,7 +381,12 @@ fn spawn_view_camera(
         ))
         .with_children(|cam| {
             // Placeholder Mako: graphite receiver, bone stock / grip / mag, holo sight with an ice glint.
-            cam.spawn((Viewmodel, Transform::from_xyz(0.17, -0.17, -0.42), Visibility::default())).with_children(|g| {
+            cam.spawn((
+                Viewmodel,
+                Transform::from_xyz(0.2, -0.2, -0.5).with_scale(Vec3::splat(0.6)),
+                Visibility::default(),
+            ))
+            .with_children(|g| {
                 g.spawn((
                     Mesh3d(meshes.add(Cuboid::new(0.05, 0.07, 0.42))),
                     MeshMaterial3d(graphite.clone()),
@@ -441,11 +446,12 @@ fn update_camera(
     }
     let ads = weapon.0.ads;
     for (mut t, mut v) in &mut viewmodel {
-        let hip = Vec3::new(0.17, -0.17, -0.42);
-        let aimed = Vec3::new(0.0, -0.125, -0.32);
+        let hip = Vec3::new(0.2, -0.2, -0.5);
+        let aimed = Vec3::new(0.0, -0.075, -0.3);
         let sprint = if mv.0.sprinting { Vec3::new(0.05, -0.06, 0.04) } else { Vec3::ZERO };
         t.translation = hip.lerp(aimed, ads) + sprint;
         t.rotation = if mv.0.sprinting { Quat::from_rotation_y(0.5) } else { Quat::IDENTITY };
+        t.scale = Vec3::splat(0.6);
         *v = if dead { Visibility::Hidden } else { Visibility::Inherited };
     }
 }

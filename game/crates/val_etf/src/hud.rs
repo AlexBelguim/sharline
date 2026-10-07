@@ -146,13 +146,12 @@ fn spawn_hud(mut commands: Commands) {
     // --- health panel (bottom left)
     let health = commands
         .spawn((
-            abs_node(Some(24.0), None, None, Some(24.0)),
             Node {
                 flex_direction: FlexDirection::Column,
                 padding: UiRect::all(px(14)),
                 row_gap: px(6),
                 width: px(380),
-                ..default()
+                ..abs_node(Some(24.0), None, None, Some(24.0))
             },
             BackgroundColor(PANEL),
             ChildOf(root),
@@ -202,13 +201,12 @@ fn spawn_hud(mut commands: Commands) {
     // --- weapon panel (bottom right)
     let weapon = commands
         .spawn((
-            abs_node(None, Some(24.0), None, Some(24.0)),
             Node {
                 flex_direction: FlexDirection::Column,
                 padding: UiRect::all(px(14)),
                 row_gap: px(6),
                 width: px(400),
-                ..default()
+                ..abs_node(None, Some(24.0), None, Some(24.0))
             },
             BackgroundColor(PANEL),
             ChildOf(root),
@@ -225,13 +223,12 @@ fn spawn_hud(mut commands: Commands) {
     let card = commands
         .spawn((
             MagCardRoot,
-            abs_node(None, Some(24.0), None, Some(150.0)),
             Node {
                 flex_direction: FlexDirection::Column,
                 padding: UiRect::all(px(14)),
                 row_gap: px(6),
                 width: px(400),
-                ..default()
+                ..abs_node(None, Some(24.0), None, Some(150.0))
             },
             BackgroundColor(PANEL),
             Visibility::Hidden,
@@ -258,8 +255,12 @@ fn spawn_hud(mut commands: Commands) {
 
     // --- score (top centre)
     commands.spawn((
-        abs_node(None, None, Some(18.0), None),
-        Node { width: percent(100), justify_content: JustifyContent::Center, column_gap: px(4), ..default() },
+        Node {
+            width: percent(100),
+            justify_content: JustifyContent::Center,
+            column_gap: px(4),
+            ..abs_node(None, None, Some(18.0), None)
+        },
         ChildOf(root),
         children![
             (
@@ -341,8 +342,11 @@ fn spawn_hud(mut commands: Commands) {
     // --- centre banner (death / match end) and pause menu
     commands.spawn((
         CenterBanner,
-        abs_node(None, None, Some(200.0), None),
-        Node { width: percent(100), justify_content: JustifyContent::Center, ..default() },
+        Node {
+            width: percent(100),
+            justify_content: JustifyContent::Center,
+            ..abs_node(None, None, Some(200.0), None)
+        },
         ChildOf(root),
         children![(text("", 30.0, INK), TextLayout::justify(Justify::Center))],
     ));
@@ -424,10 +428,10 @@ fn update_vitals_panel(
         let tiers: Vec<String> = Zone::ALL
             .iter()
             .filter(|z| halo.tiers[**z] > 0)
-            .map(|z| format!("{}{}", &z.label()[..1], halo.tiers[*z]))
+            .map(|z| format!("{} T{}", z.label(), halo.tiers[*z]))
             .collect();
         t.0 = match halo.core {
-            Some(core) => format!("{} {} | {}", core.label(), tiers.join(" "), lo.0.weight.label()),
+            Some(core) => format!("{}  {}  |  {}", core.label(), tiers.join(" "), lo.0.weight.label()),
             None => "NO HALO".into(),
         };
     }
