@@ -2,7 +2,8 @@
 //!
 //! When no profile has been saved yet (`profile.ron` is missing from the config folder), the main menu opens
 //! with a modal over it: CHOOSE YOUR CALLSIGN, a text field with live validation, CONFIRM (Enter does the
-//! same) and a one-click `USE <suggestion>`. Esc does not close it. Confirming saves the profile, so the
+//! same) and a one-click `USE AGENT-nnnn` (a generated callsign, never the OS user name). Esc does not
+//! close it. Confirming saves the profile, so the
 //! prompt never shows again; the name can be changed later with EDIT NAME on the main menu's player card.
 //!
 //! Unattended runs never see it: `--name` (used for that run, not saved), `--host`, `--join`, `--bot`,
@@ -97,18 +98,16 @@ pub fn sanitize_name(raw: &str) -> Option<String> {
     (!name.is_empty()).then(|| name.to_string())
 }
 
-/// The quick option: the OS user name if it makes a valid callsign, else `AGENT-` and four digits of `seed`.
-pub fn suggest_name(os_user: Option<&str>, seed: u32) -> String {
-    os_user
-        .and_then(sanitize_name)
-        .filter(|n| validate_name(n).is_ok())
-        .unwrap_or_else(|| format!("AGENT-{:04}", seed % 10_000))
+/// The quick option: a generated callsign, `AGENT-` and four digits of `seed`. Never the OS user name:
+/// friends would see it.
+pub fn suggest_name(seed: u32) -> String {
+    format!("AGENT-{:04}", seed % 10_000)
 }
 
-/// The OS user name (Windows `USERNAME`, elsewhere `USER`).
-fn os_user() -> Option<String> {
-    let vars = if cfg!(windows) { ["USERNAME", "USER"] } else { ["USER", "USERNAME"] };
-    vars.iter().find_map(|v| std::env::var(v).ok()).filter(|s| !s.trim().is_empty())
+/// The name this run starts with: `--name` for this run, else the saved profile's (which is
+/// [`crate::config::UNNAMED`] until one is chosen).
+pub fn starting_name(cli: &Cli, profile: &PlayerProfile) -> String {
+    if cli.name_given { cli.name.clone() } else { profile.name.clone() }
 }
 
 /// A few varying digits for a generated callsign (no RNG crate needed for this).
@@ -169,7 +168,7 @@ fn decide(cli: Res<Cli>, mut first: ResMut<FirstRun>) {
     *first = FirstRun {
         pending: should_prompt(&cli, PlayerProfile::saved()),
         initial: cli.demo_ui.as_deref().and_then(demo_text).unwrap_or_default().to_string(),
-        suggested: suggest_name(os_user().as_deref(), seed()),
+        suggested: suggest_name(seed()),
     };
 }
 
@@ -641,7 +640,7 @@ mod tests {
 
     #[test]
     fn outside_names_are_sanitised_leniently() {
-        assert_eq!(sanitize_name("Alex Wervik"), Some("ALEX WERVIK".into()));
+        assert_eq!(sanitize_name("Juno Vance"), Some("JUNO VANCE".into()));
         assert_eq!(sanitize_name("jörg"), Some("JRG".into()));
         assert_eq!(sanitize_name("ab"), Some("AB".into()), "a short name saved under older rules survives");
         assert_eq!(sanitize_name("@@ !"), None);
@@ -650,13 +649,27 @@ mod tests {
     }
 
     #[test]
-    fn the_suggestion_is_the_user_name_or_a_generated_callsign() {
-        assert_eq!(suggest_name(Some("alexw"), 7), "ALEXW");
-        assert_eq!(suggest_name(Some("Alex Wervik"), 7), "ALEX WERVIK");
-        assert_eq!(suggest_name(Some("al"), 42), "AGENT-0042", "too short");
-        assert_eq!(suggest_name(Some("!!!"), 1234), "AGENT-1234");
-        assert_eq!(suggest_name(None, 123_456), "AGENT-3456");
-        assert!(validate_name(&suggest_name(None, u32::MAX)).is_ok());
+    fn the_suggestion_is_a_generated_callsign() {
+        assert_eq!(suggest_name(42), "AGENT-0042");
+        assert_eq!(suggest_name(123_456), "AGENT-3456");
+        for seed in [0, 7, 9_999, u32::MAX] {
+            assert!(validate_name(&suggest_name(seed)).is_ok(), "{seed}");
+        }
+    }
+
+    #[test]
+    fn until_a_name_is_chosen_the_player_is_unknown() {
+        // Never the OS user name: friends would see it behind the prompt, in lobbies and the kill feed.
+        assert_eq!(crate::config::default_name(), "UNKNOWN");
+        assert_eq!(PlayerProfile::default().name, "UNKNOWN");
+        assert!(validate_name(crate::config::UNNAMED).is_ok());
+        let unnamed = PlayerProfile::default();
+        let saved = PlayerProfile { name: "KESTREL 7".into() };
+        assert_eq!(starting_name(&cli(), &unnamed), "UNKNOWN", "no profile, no --name");
+        assert_eq!(starting_name(&cli(), &saved), "KESTREL 7", "the saved name wins");
+        let named = Cli { name: "ASH".into(), name_given: true, ..cli() };
+        assert_eq!(starting_name(&named, &saved), "ASH", "--name overrides it for the run");
+        assert_eq!(starting_name(&named, &unnamed), "ASH");
     }
 
     fn cli() -> Cli {

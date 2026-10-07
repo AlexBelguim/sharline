@@ -50,7 +50,7 @@ pub struct Cli {
     pub host: Option<String>,
     /// Join straight away (join code, ip:port or ip).
     pub join: Option<String>,
-    /// `--name`, else `$USER`. The name saved from the main menu wins unless [`Cli::name_given`].
+    /// `--name`, else [`UNNAMED`]. The name saved from the main menu wins unless [`Cli::name_given`].
     pub name: String,
     /// `--name` was given: it overrides the saved profile name for this run.
     pub name_given: bool,
@@ -250,8 +250,12 @@ pub fn parse_mags(s: &str) -> Vec<vetf_sim::data::AmmoChoice> {
     s.split(',').filter_map(parse_ammo).take(vetf_sim::weapon::MAX_MAGS).collect()
 }
 
+/// The name shown until the player picks one (the first-launch prompt, EDIT NAME, `--name`). Never the OS
+/// user name: friends would see it in lobbies and the kill feed.
+pub const UNNAMED: &str = "UNKNOWN";
+
 pub fn default_name() -> String {
-    std::env::var("USER").or_else(|_| std::env::var("USERNAME")).map(|u| u.to_uppercase()).unwrap_or("AGENT".into())
+    UNNAMED.into()
 }
 
 #[cfg(test)]

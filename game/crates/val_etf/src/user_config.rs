@@ -155,9 +155,7 @@ mod tests {
 
         // The player profile: absent on a fresh machine (the first-launch prompt shows), then saved and loaded.
         assert!(!PlayerProfile::saved(), "no profile yet");
-        let os = PlayerProfile::default().name;
-        let fallback = crate::first_run::sanitize_name(&os).unwrap_or(os);
-        assert_eq!(PlayerProfile::load().name, fallback, "the OS user name until one is saved");
+        assert_eq!(PlayerProfile::load().name, "UNKNOWN", "until a name is chosen (never the OS user name)");
         let p = PlayerProfile { name: PlayerProfile::clean_name(" kestrel  7 ").unwrap() };
         save(PlayerProfile::FILE, &p).unwrap();
         assert!(PlayerProfile::saved());
@@ -169,7 +167,7 @@ mod tests {
         std::fs::write(dir.join(PlayerProfile::FILE), "(name: \"ab\")").unwrap();
         assert_eq!(PlayerProfile::load().name, "AB", "a short name saved under the old rules survives");
         std::fs::write(dir.join(PlayerProfile::FILE), "(name: \"!!\")").unwrap();
-        assert_eq!(PlayerProfile::load().name, fallback, "nothing usable: the default name");
+        assert_eq!(PlayerProfile::load().name, "UNKNOWN", "nothing usable: the default name");
         assert!(PlayerProfile::saved(), "but it was saved: no prompt");
         let _ = std::fs::remove_dir_all(&dir);
         unsafe { std::env::remove_var("VETF_CONFIG_DIR") };
