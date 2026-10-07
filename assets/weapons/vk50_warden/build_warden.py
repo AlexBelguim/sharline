@@ -1,15 +1,17 @@
 """VK-50 "WARDEN" heavy-calibre bolt-action sniper -- modular build (base + stocks + magazines).
 
-Re-runnable from scratch. Builds everything procedurally, saves warden.blend and exports
+Re-runnable from scratch. Builds everything procedurally, saves warden.blend and exports (glTF extras + FBX user
+properties carry the moving-part data):
   warden_base.glb/.fbx                       base gun (WARDEN_Root + meshes + socket empties)
-  warden_stock_standard.glb/.fbx             default stock      (origin = stock mount point)
-  warden_stock_folding.glb/.fbx              folding stock      (origin = stock mount point)
-  warden_mag_5.glb/.fbx, warden_mag_8.glb/.fbx  magazines        (origin = mag socket point)
+  WARDEN_stock_standard.glb/.fbx             default stock      (origin = stock mount point)
+  WARDEN_stock_folding.glb/.fbx              folding stock      (origin = stock mount point)
+  WARDEN_mag_5.glb/.fbx, WARDEN_mag_8.glb/.fbx  magazines        (origin = mag socket point)
   warden_default.glb                          base + stock_standard + mag_5 assembled on their sockets
-  sockets.json
+  sockets.json, warden_anim.json              socket positions; moving-part pivots / axes / travels
 
 Run:
-  "C:/Program Files/Blender Foundation/Blender 5.2/blender.exe" -b --factory-startup -P build_warden.py -- [--render none|quick|full]
+  "C:/Program Files/Blender Foundation/Blender 5.2/blender.exe" -b --factory-startup -P build_warden.py -- [--render none|quick|full|fitcheck] [--samples 48] [--no-export]
+  then: python compare.py   (concept comparison, silhouettes, contact sheets; system python + PIL)
 
 Conventions (art/STYLE_GUIDE.md, art/WEAPON_MODULAR_SPEC.md, art/DIRECTION_LOG.md):
   metres, Z up, muzzle -Y, origin = top centre of the pistol grip, bore axis x=0 z=0.075.
@@ -34,11 +36,14 @@ REN = os.path.join(OUT, "renders")
 P = "WARDEN"
 BZ = 0.075            # bore axis height
 RAIL_TOP_Z = 0.1375   # top rail top surface
+HANDLE_Y = 0.096      # bolt-handle root centre (on the shroud, y 0.085..0.107, behind the receiver rear face 0.080)
+BOLT_LIFT_DEG = 60.0  # bolt cycle: lift about the bore axis ...
+BOLT_TRAVEL = 0.130   # ... then slide toward the butt (full 12.7 mm case length); the stocks keep this path clear
 T0 = time.time()
 
 argv = sys.argv[sys.argv.index("--") + 1:] if "--" in sys.argv else []
 ap = argparse.ArgumentParser()
-ap.add_argument("--render", default="none", help="none | quick | full | compare")
+ap.add_argument("--render", default="none", help="none | quick | full | compare | fitcheck")
 ap.add_argument("--samples", type=int, default=48)
 ap.add_argument("--no-export", action="store_true")
 ARGS = ap.parse_args(argv)
@@ -159,8 +164,57 @@ def intersect(obj, other):
     return bc.boolean(obj, other, "INTERSECT")
 
 
+def degen(obj, dist=1e-5):
+    """Collapse the zero-length edges / zero-area faces EXACT booleans leave behind (before bevelling them)."""
+    bm = bmesh.new()
+    bm.from_mesh(obj.data)
+    bmesh.ops.dissolve_degenerate(bm, dist=dist, edges=bm.edges[:])
+    bm.to_mesh(obj.data)
+    bm.free()
+    return obj
+
+
+def wnormals(obj, weight=100):
+    """Face-area weighted normals (keep sharp): big planar faces shade perfectly flat, so the long fan triangles a
+    boolean leaves between slot corners cannot bend the shading into soft diagonal wedges."""
+    m = obj.modifiers.new("WN", "WEIGHTED_NORMAL")
+    m.mode = "FACE_AREA"
+    m.weight = weight
+    m.keep_sharp = True
+    m.thresh = 0.01
+    bc.apply_modifiers(obj)
+    return obj
+
+
+def flat_big_faces(obj, angle=40, min_area=4e-5, crease=4):
+    """Shading clean-up for long boolean-cut panels: every edge sharper than `angle`, AND every edge where a big
+    planar face (> min_area m^2) meets anything bent by more than `crease` degrees, is marked sharp; custom normals
+    are rebuilt with face-area weighted normals. The big faces then shade dead flat even where a bevel corner is
+    twisted (the cause of the soft diagonal wedge the review found between handguard slot columns 3 and 4)."""
+    me = obj.data
+    bm = bmesh.new()
+    bm.from_mesh(me)
+    bm.normal_update()
+    flags = []
+    for e in bm.edges:
+        s = True
+        if len(e.link_faces) == 2:
+            f1, f2 = e.link_faces
+            a = f1.normal.angle(f2.normal, 0.0)
+            big = f1.calc_area() > min_area or f2.calc_area() > min_area
+            s = a > math.radians(angle) or (big and a > math.radians(crease))
+        flags.append(s)
+    bm.free()
+    if me.has_custom_normals:
+        me.normals_split_custom_set([(0.0, 0.0, 0.0)] * len(me.loops))
+    att = me.attributes.get("sharp_edge") or me.attributes.new("sharp_edge", "BOOLEAN", "EDGE")
+    att.data.foreach_set("value", flags)
+    return wnormals(obj)
+
+
 def finish(obj, width, segs=1, angle=30, harden=True):
     """Hard-surface finish: smooth shading + angle-based sharp edges + bevel (harden normals), applied."""
+    degen(obj)
     for p in obj.data.polygons:
         p.use_smooth = True
     obj.data.set_sharp_from_angle(angle=math.radians(angle))
@@ -174,6 +228,41 @@ def finish(obj, width, segs=1, angle=30, harden=True):
         m.miter_outer = "MITER_ARC"
         m.use_clamp_overlap = True
         bc.apply_modifiers(obj)
+        degen(obj)          # clamp-overlap / arc-miter corners can leave zero-area faces (review topology item)
+    return obj
+
+
+def finish_outer(obj, width, segs, inner, angle=30):
+    """finish() variant that bevels only the edges a player can see: edges whose midpoint satisfies inner(co) (inside
+    a hollow shell, e.g. the slot rims on the handguard's inner wall) keep a plain hard corner. Saves the triangles
+    of bevels nobody can see (triangle-budget review item)."""
+    degen(obj)
+    me = obj.data
+    for p in me.polygons:
+        p.use_smooth = True
+    me.set_sharp_from_angle(angle=math.radians(angle))
+    bm = bmesh.new()
+    bm.from_mesh(me)
+    w = []
+    for e in bm.edges:
+        mid = (e.verts[0].co + e.verts[1].co) / 2
+        sharp = len(e.link_faces) == 2 and e.calc_face_angle(0.0) > math.radians(angle)
+        w.append(1.0 if sharp and not inner(mid) else 0.0)
+    bm.free()
+    att = me.attributes.get("bevel_weight_edge") or me.attributes.new("bevel_weight_edge", "FLOAT", "EDGE")
+    att.data.foreach_set("value", w)
+    m = obj.modifiers.new("Bevel", "BEVEL")
+    m.width = width
+    m.segments = segs
+    m.limit_method = "WEIGHT"
+    m.harden_normals = True
+    m.miter_outer = "MITER_ARC"
+    m.use_clamp_overlap = True
+    bc.apply_modifiers(obj)
+    degen(obj)
+    att = obj.data.attributes.get("bevel_weight_edge")
+    if att is not None:
+        obj.data.attributes.remove(att)
     return obj
 
 
@@ -255,22 +344,154 @@ def tris(obj):
 
 
 # ============================================================================================== materials
+TEXDIR = os.path.join(OUT, "textures")
+TILE = {}                         # material name -> metres per texture repeat (see world_uvs)
+
+
+def detail_texture(src_name, mix, size=512):
+    """glTF-safe detail texture: glTF can only do base = factor x texture (no 'mix strength'), so the subtle
+    multiply is baked into the image: linear  t = 1 - mix * (1 - src / src_p99.5).  Written to textures/ and
+    embedded in every export.  The flat palette colour (the material factor) still carries the look."""
+    import numpy as np
+    os.makedirs(TEXDIR, exist_ok=True)
+    nm = f"warden_{src_name}_{int(round(mix * 100)):02d}"
+    path = os.path.join(TEXDIR, nm + ".png")
+    src = bpy.data.images.load(os.path.join(bc.TEXTURES, src_name + ".png"), check_existing=False)
+    src.scale(size, size)
+    px = np.array(src.pixels[:], dtype=np.float32).reshape(size, size, 4)[..., :3]  # sRGB-encoded bytes / 255
+    bpy.data.images.remove(src)
+    lin = np.where(px <= 0.04045, px / 12.92, ((px + 0.055) / 1.055) ** 2.4).mean(axis=2)
+    n = np.clip(lin / np.percentile(lin, 99.5), 0.0, 1.0)
+    t = 1.0 - mix * (1.0 - n)
+    s = np.where(t <= 0.0031308, t * 12.92, 1.055 * np.power(t, 1 / 2.4) - 0.055)
+    img = bpy.data.images.new("_" + nm, size, size, alpha=False)
+    rgba = np.ones((size, size, 4), np.float32)
+    rgba[..., :3] = s[..., None]
+    img.pixels = rgba.ravel()
+    img.filepath_raw = path
+    img.file_format = "PNG"
+    img.save()
+    bpy.data.images.remove(img)
+    out = bpy.data.images.load(path, check_existing=True)
+    out.name = nm
+    return out
+
+
+def wmat(name, color, rough, metal=0.0, tex=None, mix=0.0, tile_m=0.3):
+    """Principled material that exports cleanly to glTF: baseColorFactor = palette colour, optional
+    baseColorTexture = baked detail texture (Mix MULTIPLY with factor 1.0 is what the glTF exporter maps to
+    factor x texture).  Texture tiling (tile_m = metres per texture repeat) is baked into the UVs per face
+    (see world_uvs), not a Mapping node, so no KHR_texture_transform is needed.  Closed meshes only, so
+    backface culling is on (glTF doubleSided false)."""
+    mat = bpy.data.materials.new(name)
+    mat.use_nodes = True
+    nt = mat.node_tree
+    p = next(n for n in nt.nodes if n.type == "BSDF_PRINCIPLED")
+    col4 = (*color, 1.0)
+    p.inputs["Base Color"].default_value = col4
+    p.inputs["Roughness"].default_value = rough
+    p.inputs["Metallic"].default_value = metal
+    if tex:
+        ti = nt.nodes.new("ShaderNodeTexImage")
+        ti.image = detail_texture(tex, mix)
+        mx = nt.nodes.new("ShaderNodeMix")
+        mx.data_type = "RGBA"
+        mx.blend_type = "MULTIPLY"
+        mx.inputs[0].default_value = 1.0
+        mx.inputs[6].default_value = col4
+        nt.links.new(ti.outputs["Color"], mx.inputs[7])
+        nt.links.new(mx.outputs[2], p.inputs["Base Color"])
+    mat.use_backface_culling = True
+    mat.diffuse_color = col4
+    TILE[name] = tile_m          # build-time only (kept off the material so it does not leak into glTF extras)
+    return mat
+
+
 def mats():
-    T = bc.TEXTURES
+    if os.path.isdir(TEXDIR):        # derived textures are rebuilt every run (no stale variants left behind)
+        for fn in os.listdir(TEXDIR):
+            if fn.startswith("warden_") and fn.endswith(".png"):
+                os.remove(os.path.join(TEXDIR, fn))
     return dict(
-        G=bc.material("M_Warden_Graphite", (0.030, 0.033, 0.040), rough=0.55, metal=0.15,
-                      tex=os.path.join(T, "worn_paint.png"), tex_mix=0.5, tex_scale=1.5),
-        GM=bc.material("M_Warden_Gunmetal", (0.11, 0.115, 0.12), rough=0.35, metal=0.85,
-                       tex=os.path.join(T, "brushed_metal.png"), tex_mix=0.3, tex_scale=2.5),
-        S=bc.material("M_Warden_Sand", (0.36, 0.28, 0.18), rough=0.70,
-                      tex=os.path.join(T, "worn_paint.png"), tex_mix=0.3, tex_scale=1.5),
-        SS=bc.material("M_Warden_SandStipple", (0.36, 0.28, 0.18), rough=0.78,
-                       tex=os.path.join(T, "polymer_stipple.png"), tex_mix=0.45, tex_scale=4.0),
-        R=bc.material("M_Warden_Rubber", (0.035, 0.037, 0.045), rough=0.90),
-        # steel-cased 12.7 mm rounds: a lighter, less metallic gunmetal so they read through the mag window
-        C=bc.material("M_Warden_Cartridge", (0.36, 0.34, 0.30), rough=0.38, metal=0.35,
-                      tex=os.path.join(T, "brushed_metal.png"), tex_mix=0.25, tex_scale=2.5),
+        G=wmat("M_Warden_Graphite", (0.030, 0.033, 0.040), 0.55, 0.15, "worn_paint", 0.35, 0.30),
+        GM=wmat("M_Warden_Gunmetal", (0.11, 0.115, 0.12), 0.35, 0.85, "brushed_metal", 0.30, 0.16),
+        S=wmat("M_Warden_Sand", (0.36, 0.28, 0.18), 0.70, 0.0, "worn_paint", 0.30, 0.30),
+        SS=wmat("M_Warden_SandStipple", (0.36, 0.28, 0.18), 0.78, 0.0, "polymer_stipple", 0.50, 0.07),
+        R=wmat("M_Warden_Rubber", (0.035, 0.037, 0.045), 0.90),
+        # steel-cased 12.7 mm rounds: a lighter, less metallic steel so they read through the mag window;
+        # the bullet (ogive) uses gunmetal
+        C=wmat("M_Warden_Cartridge", (0.36, 0.34, 0.30), 0.38, 0.35, "brushed_metal", 0.30, 0.16),
     )
+
+
+def clean_slots(obj):
+    """glTF hygiene: every face gets a real material (faces left on an empty slot by booleans/unions take the
+    object's dominant material), unused/empty slots are dropped, mesh data is named like the object."""
+    me = obj.data
+    old = list(me.materials)
+    count = {}
+    for p in me.polygons:
+        m = old[p.material_index] if p.material_index < len(old) else None
+        if m is not None:
+            count[m.name] = count.get(m.name, 0) + 1
+    if count:
+        primary = bpy.data.materials[max(count, key=count.get)]
+        order, idx = [], []
+        for p in me.polygons:
+            m = old[p.material_index] if p.material_index < len(old) else None
+            m = m or primary
+            if m not in order:
+                order.append(m)
+            idx.append(order.index(m))
+        me.materials.clear()
+        for m in order:
+            me.materials.append(m)
+        me.polygons.foreach_set("material_index", idx)
+    me.name = obj.name
+    return obj
+
+
+def seal(obj):
+    """Close the rare sliver holes an EXACT boolean + bevel can leave (meshes must be closed, the engine
+    backface-culls): merge near-coincident verts of the open edges (< 0.12 mm) and fill any remaining small boundary loops."""
+    bm = bmesh.new()
+    bm.from_mesh(obj.data)
+    nm = [e for e in bm.edges if not e.is_manifold]
+    if nm:
+        bmesh.ops.remove_doubles(bm, verts=list({v for e in nm for v in e.verts}), dist=0.00012)
+        bnd = [e for e in bm.edges if e.is_boundary]
+        if bnd:
+            bmesh.ops.holes_fill(bm, edges=bnd, sides=12)
+        bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
+        bm.to_mesh(obj.data)
+    bm.free()
+    return obj
+
+
+def world_uvs(obj):
+    """One fresh smart-projected UV layer, rescaled to a constant world texel density: 1 UV unit = tile_m metres
+    of the face's material (so wear / brushing / stipple have the same scale on every part and every export)."""
+    me = obj.data
+    while me.uv_layers:
+        me.uv_layers.remove(me.uv_layers[0])
+    me.uv_layers.new(name="UVMap")
+    bc.smart_uv(obj, angle=66, margin=0.01)
+    uv = me.uv_layers.active.data
+    a3 = auv = 0.0
+    for p in me.polygons:
+        a3 += p.area
+        li = list(p.loop_indices)
+        s = 0.0
+        for k in range(len(li)):
+            u0, u1 = uv[li[k]].uv, uv[li[(k + 1) % len(li)]].uv
+            s += u0.x * u1.y - u1.x * u0.y
+        auv += abs(s) / 2
+    k_m = math.sqrt(a3 / auv) if auv > 1e-12 else 1.0      # metres per UV unit after smart project
+    for p in me.polygons:
+        m = me.materials[p.material_index] if me.materials else None
+        f = k_m / TILE.get(m.name, 0.3) if m else k_m / 0.3
+        for li in p.loop_indices:
+            uv[li].uv = uv[li].uv * f
 
 
 # ================================================================================================= rails
@@ -312,8 +533,10 @@ def build_base(M, col):
     cut(rec, cyl("_race", 0.0205, 0.27, (0, -0.050, BZ), "Y", 24))
     # ejection port, shooter's RIGHT (-X)
     cut(rec, prism("_eport", rounded_rect(-0.1075, 0.081, 0.135, 0.040, 0.006), "X", -0.06, -0.010))
-    # bolt-handle notch (-X), open to the rear
-    cut(rec, prism("_notch", [(0.040, 0.078), (0.090, 0.078), (0.090, 0.106), (0.046, 0.106)], "X", -0.06, -0.012))
+    # bolt-handle relief (-X), open to the rear: a shallow stepped seat in front of the handle root. The root itself
+    # sits on the bolt shroud BEHIND the receiver rear face (y > 0.080), so the 60-degree lift happens in free air
+    # (review fix: the old root block sat in a closed-position notch and swept 16 mm into the receiver).
+    cut(rec, prism("_notch", [(0.071, 0.080), (0.090, 0.080), (0.090, 0.108), (0.079, 0.108)], "X", -0.06, -0.027))
     # panel-line grooves, LEFT (+X): stepped line running from the chin up to the rear
     gl = [(-0.305, 0.050), (-0.226, 0.050), (-0.204, 0.068), (0.085, 0.068)]
     cut(rec, prism("_gL", band(gl, 0.0028), "X", 0.0365, 0.05))
@@ -329,6 +552,15 @@ def build_base(M, col):
     btn = cyl("WARDEN_BoltRelease", 0.0055, 0.006, (0.0395, 0.040, 0.0825), "X", 12, GM)
     finish(btn, 0.0012, 1)
     parts.append(btn)
+    # rotary safety lever (LEFT, +X, under the shooter's thumb above the grip); origin at its pivot
+    hub = cyl("_sfh", 0.0068, 0.0045, (0.0412, 0.018, 0.041), "X", 14, GM)
+    finish(hub, 0.0012, 1)
+    pad = prism("_sfp", round_poly(band([(0.018, 0.041), (0.037, 0.0335)], 0.0072), 0.0022, 2), "X", 0.0395,
+                0.0428, GM)
+    finish(pad, 0.0010, 1)
+    saf = join([hub, pad], "WARDEN_Safety")
+    set_origin(saf, (0.039, 0.018, 0.041))
+    parts.append(saf)
 
     # ------------------------------------------------------------------ chassis (lower bed + magwell + chin)
     cha = prism("WARDEN_Chassis", [(0.080, 0.025), (-0.300, 0.025), (-0.300, 0.034), (-0.340, 0.034),
@@ -384,7 +616,11 @@ def build_base(M, col):
     for yc in (-0.405, -0.470, -0.535):
         for sx in (1, -1):
             cut(hg, prism("_st", stadium(sx * 0.0175, yc, 0.007, 0.040, 2), "Z", 0.118, 0.140))
-    finish(hg, 0.0025, 1)
+    # bevel the outer shell only: the rims of the slots on the INNER wall face (x +-0.031, z 0.035 / 0.123) and
+    # the cavity corners stay hard (never seen, ~1k triangles saved)
+    finish_outer(hg, 0.0025, 1, lambda c: abs(c.x) < 0.0318 and 0.0342 < c.z < 0.1238 and c.y > -0.6818)
+    # review fix (soft diagonal wedge between slot columns 3 and 4): big planar faces become their own smooth fans
+    flat_big_faces(hg)
     parts.append(hg)
 
     # handguard clamp screws at the receiver joint (hex heads, both sides)
@@ -499,11 +735,11 @@ def build_base(M, col):
     gpro = [(0.030, 0.094), (0.0225, 0.094), (0.0225, 0.0975), (0.030, 0.0975)]
     cut(bolt, lathe_y("_bg", gpro + [gpro[0]], steps=24))
     smooth(bolt, 35)
-    # handle root block (sits in the notch)
-    root = box("_broot", (0.030, 0.024, 0.022), (-0.020, 0.062, 0.0915), GM)
+    # handle root block on the shroud, behind the receiver rear face (y 0.080): clears the receiver during the lift
+    root = box("_broot", (0.030, 0.022, 0.022), (-0.020, HANDLE_Y, 0.0915), GM)
     finish(root, 0.003, 1)
     # oversized handle arm, angled down/out to the shooter's right
-    p0, p1 = Vector((-0.030, 0.060, 0.092)), Vector((-0.082, 0.074, 0.048))
+    p0, p1 = Vector((-0.030, HANDLE_Y - 0.001, 0.092)), Vector((-0.082, HANDLE_Y + 0.013, 0.048))
     d = p1 - p0
     arm = bc.box("_barm", (0.017, 0.015, d.length + 0.010), loc=(0, 0, 0), smooth=None, mat=GM)
     arm.matrix_basis = Matrix.Translation((p0 + p1) / 2) @ d.to_track_quat("Z", "Y").to_matrix().to_4x4()
@@ -518,7 +754,7 @@ def build_base(M, col):
         a = math.radians(deg)
         kprof.append((R * math.cos(a), R * math.sin(a)))
     kprof += [(0.0125, R * math.sin(math.radians(56))), (0.0080, 0.0205), (0, 0.0205)]
-    knob = lathe_dir("_bknob", kprof, kc, dn, steps=16, mat=GM, angle=32)
+    knob = lathe_dir("_bknob", kprof, kc, dn, steps=20, mat=GM, angle=32)
     bolt = join([bolt, root, arm, knob], "WARDEN_Bolt")
     set_origin(bolt, (0, 0.112, BZ))
 
@@ -535,6 +771,8 @@ def build_base(M, col):
 
 # ================================================================================================ STOCKS
 STOCK_MOUNT = Vector((0, 0.080, BZ))
+KNUCKLE_X = 0.0315    # folding-stock hinge axis: folded, the arm's inner face sits at x 0.045 (clear of the +X safety
+                      # lever at 0.0435 and the receiver side at 0.039)
 
 
 def hinge_block(M, name, fold_knuckle=False):
@@ -551,40 +789,51 @@ def hinge_block(M, name, fold_knuckle=False):
             finish(s, 0.0007, 1)
             bits.append(s)
     if fold_knuckle:
-        kn = cyl("_kn", 0.0085, 0.066, (0.030, 0.111, 0.015), "Z", 16, GM)
+        kn = cyl("_kn", 0.0085, 0.066, (KNUCKLE_X, 0.111, 0.015), "Z", 16, GM)
         finish(kn, 0.0015, 1)
         bits.append(kn)
         for zz in (0.044, -0.014):
-            cap = cyl("_kc", 0.0095, 0.004, (0.030, 0.111, zz), "Z", 16, GM)
+            cap = cyl("_kc", 0.0095, 0.004, (KNUCKLE_X, 0.111, zz), "Z", 16, GM)
             finish(cap, 0.001, 1)
             bits.append(cap)
     return bits
 
 
+BOLT_PATH_Y = 0.112 + BOLT_TRAVEL     # rear face of the open bolt shroud (0.242)
+BEAM_Z = 0.045                        # stock top beam: below the shroud bottom (0.051) all along the bolt path
+UPRIGHT_Z = 0.112                     # top of the rear upright that carries the riser posts (12 mm visible gap)
+RISER_Z0, RISER_Z1 = 0.124, 0.146     # cheek riser underside / top: the lifted handle (max z 0.118 in |x|<0.026) passes under
+
+
 def build_stock_standard(M, col):
+    """Skeleton chassis stock. Review fix: the open bolt (lifted 60 deg, 0.13 m back) sweeps the space above the
+    bore line up to y 0.242, so the top beam stays LOW (z 0.045) back to y 0.238 and the comb rises only in the rear
+    upright behind the bolt path. The cheek riser is carried on two posts on that upright and overhangs forward,
+    high enough that the lifted handle root and arm pass underneath it."""
     G, GM, S, R = M["G"], M["GM"], M["S"], M["R"]
     bits = hinge_block(M, "_hinge")
-    st = prism("_frame", [(0.090, 0.045), (0.122, 0.045), (0.140, 0.080), (0.150, 0.088), (0.282, 0.092),
-                          (0.292, 0.100), (0.292, -0.118), (0.282, -0.126), (0.240, -0.126), (0.100, -0.032),
-                          (0.090, -0.020)], "X", -0.023, 0.023, S)
-    # triangular window with rounded corners
-    tri = [(0.150, 0.054), (0.266, 0.070), (0.266, -0.094)]
+    st = prism("_frame", [(0.090, BEAM_Z), (0.238, BEAM_Z), (0.252, 0.064), (0.252, 0.104), (0.260, UPRIGHT_Z),
+                          (0.284, UPRIGHT_Z), (0.292, 0.104), (0.292, -0.118), (0.282, -0.126), (0.240, -0.126),
+                          (0.100, -0.032), (0.090, -0.020)], "X", -0.023, 0.023, S)
+    # big triangular window with rounded corners (top beam 0.016 thick, rear post 0.024)
+    tri = [(0.142, 0.029), (0.268, 0.029), (0.268, -0.096)]
     chamfered_window(st, round_poly(tri, 0.008, 3), 0.023, 0.0045)
     # lightening pockets on the rear post and the front web (both sides)
     for sx in (1, -1):
-        cut(st, prism("_pp", rounded_rect(0.2805, -0.020, 0.010, 0.120, 0.004, 2), "X", sx * 0.0205, sx * 0.04))
-        cut(st, prism("_pf", round_poly([(0.122, 0.028), (0.138, 0.040), (0.172, 0.000), (0.160, -0.034),
-                                         (0.122, -0.010)], 0.004, 2), "X", sx * 0.0205, sx * 0.04))
+        cut(st, prism("_pp", rounded_rect(0.2805, -0.019, 0.010, 0.118, 0.004, 2), "X", sx * 0.0205, sx * 0.04))
+        cut(st, prism("_pf", round_poly([(0.120, 0.016), (0.130, 0.016), (0.165, -0.020), (0.150, -0.040),
+                                         (0.120, -0.016)], 0.004, 2), "X", sx * 0.0205, sx * 0.04))
     finish(st, 0.005, 2)
     bits.append(st)
-    # riser-height knob (+X) and QD sling cups
-    kb = knurl_cyl("_rk", 0.0085, 0.008, (0.027, 0.215, 0.078), "X", 16, 0.0008, GM)
+    # riser-height knob (+X, on the rear upright) and QD sling cups
+    kb = knurl_cyl("_rk", 0.0085, 0.008, (0.027, 0.272, 0.080), "X", 16, 0.0008, GM)
     finish(kb, 0.001, 1)
     bits.append(kb)
     for sx in (1, -1):
-        qd = cyl("_qd", 0.0065, 0.004, (sx * 0.0235, 0.2805, -0.090), "X", 12, GM)
-        cut(qd, cyl("_qdh", 0.0035, 0.01, (sx * 0.0255, 0.2805, -0.090), "X", 12))
-        finish(qd, 0.0008, 1)
+        # QD sling cup: lathed ring with a socket recess (same look as the old boolean version, ~half the tris)
+        prof = [(0.0, -0.002), (0.0057, -0.002), (0.0065, -0.0012), (0.0065, 0.0012), (0.0057, 0.002),
+                (0.0035, 0.002), (0.0035, 0.0), (0.0, 0.0)]
+        qd = lathe_dir("_qd", prof, (sx * 0.0235, 0.2805, -0.090), (sx, 0, 0), steps=12, mat=GM, angle=40)
         bits.append(qd)
     # recoil pad
     pad = prism("_pad", [(0.290, 0.104), (0.312, 0.100), (0.320, 0.082), (0.320, -0.110), (0.312, -0.126),
@@ -600,20 +849,23 @@ def build_stock_standard(M, col):
     stock = join(bits, "WARDEN_StockStandard")
     set_origin(stock, STOCK_MOUNT)
 
-    # cheek riser (child, slides on its posts) -- origin at the comb top centre between the posts
-    cr = prism("WARDEN_StockStandard_CheekRiser", [(0.150, 0.100), (0.158, 0.128), (0.172, 0.136),
-                                                   (0.276, 0.136), (0.284, 0.128), (0.284, 0.100)],
+    # cheek riser (child, slides up on its posts) -- origin at the upright top centre between the posts.
+    # Posts stand behind the bolt path (y >= 0.256); the pad overhangs forward over the open bolt.
+    z0, z1 = RISER_Z0, RISER_Z1
+    cr = prism("WARDEN_StockStandard_CheekRiser", [(0.160, z0 + 0.004), (0.166, z1 - 0.009), (0.178, z1),
+                                                   (0.280, z1), (0.290, z1 - 0.010), (0.290, z0)],
                "X", -0.020, 0.020, S)
     finish(cr, 0.005, 3)
     posts = []
-    for yp in (0.180, 0.250):
-        p = cyl("_post", 0.005, 0.034, (0, yp, 0.087), "Z", 12, GM)
+    for yp in (0.263, 0.281):
+        p = cyl("_post", 0.005, z0 + 0.004 - 0.100, (0, yp, (0.100 + z0 + 0.004) / 2), "Z", 12, GM)
         finish(p, 0.0008, 1)
         posts.append(p)
     cr = join([cr] + posts, "WARDEN_StockStandard_CheekRiser")
-    set_origin(cr, (0, 0.215, 0.092))
+    set_origin(cr, (0, 0.272, UPRIGHT_Z))
     cr["slide_axis"] = "Z"
-    cr["travel_m"] = [0.0, 0.030]
+    cr["travel_min_m"] = 0.0
+    cr["travel_max_m"] = 0.030
 
     # monopod (child, extends along -Z) -- origin at the housing bottom
     col_ = cyl("_mcol", 0.0095, 0.070, (0, 0.205, -0.150), "Z", 14, GM)
@@ -627,7 +879,8 @@ def build_stock_standard(M, col):
     mono = join([col_, knurl, spike], "WARDEN_StockStandard_Monopod")
     set_origin(mono, (0, 0.205, -0.117))
     mono["slide_axis"] = "Z"
-    mono["travel_m"] = [-0.045, 0.0]
+    mono["travel_min_m"] = -0.045
+    mono["travel_max_m"] = 0.0
 
     for o in (stock, cr, mono):
         bc.link(o, col)
@@ -681,10 +934,12 @@ def offset_poly(pts, d):
 def chamfered_window(obj, poly, half_w, depth):
     """Cut a through-window (side profile polygon, axis X) and a 45-degree chamfer `depth` deep on both faces."""
     cut(obj, prism("_win", poly, "X", -0.06, 0.06))
-    big = offset_poly(poly, depth + 0.004)
+    # the 45-degree hull reaches only 1 mm past the outer face, so it cannot graze the face beside the window
+    # (review fix: depth + 0.004 left a hairline crease and a sliver along the stock top beam)
+    big = offset_poly(poly, depth + 0.001)
     for sx in (1, -1):
         pts = ([(sx * (half_w - depth), y, z) for (y, z) in poly] +
-               [(sx * (half_w + 0.004), y, z) for (y, z) in big])
+               [(sx * (half_w + 0.001), y, z) for (y, z) in big])
         cut(obj, hull("_wch", pts))
     return obj
 
@@ -693,12 +948,13 @@ def build_stock_folding(M, col):
     G, GM, S, R = M["G"], M["GM"], M["S"], M["R"]
     fixed = join(hinge_block(M, "_hingeF", fold_knuckle=True), "WARDEN_StockFolding")
     set_origin(fixed, STOCK_MOUNT)
-    # folding arm: lighter Z-frame skeleton (w 0.036), no riser, no monopod
-    outer = [(0.116, 0.044), (0.128, 0.062), (0.276, 0.066), (0.288, 0.076), (0.288, -0.104), (0.278, -0.114),
-             (0.246, -0.114), (0.128, -0.026), (0.116, -0.016)]
+    # folding arm: lighter Z-frame skeleton (w 0.036), no riser, no monopod. Same review fix as stock_standard:
+    # the top beam stays at z 0.044 under the bolt path and rises only behind the open shroud (y > 0.242).
+    outer = [(0.116, 0.044), (0.240, 0.044), (0.256, 0.068), (0.264, 0.076), (0.288, 0.076), (0.288, -0.104),
+             (0.278, -0.114), (0.246, -0.114), (0.128, -0.026), (0.116, -0.016)]
     fr = prism("_ffr", outer, "X", -0.018, 0.018, S)
-    winA = round_poly([(0.134, 0.046), (0.236, 0.050), (0.134, -0.004)], 0.006)
-    winB = round_poly([(0.272, 0.046), (0.272, -0.094), (0.160, -0.020)], 0.006)
+    winA = round_poly([(0.134, 0.030), (0.216, 0.030), (0.134, -0.011)], 0.006)
+    winB = round_poly([(0.272, 0.030), (0.272, -0.094), (0.164, -0.028)], 0.006)
     chamfered_window(fr, winA, 0.018, 0.0035)
     chamfered_window(fr, winB, 0.018, 0.0035)
     finish(fr, 0.0045, 2)
@@ -706,15 +962,16 @@ def build_stock_folding(M, col):
                           (0.286, -0.120)], "X", -0.022, 0.022, R)
     for zc in (-0.070, -0.030, 0.010, 0.050):
         cut(pad, box("_pg", (0.06, 0.006, 0.0035), (0, 0.3105, zc)))
-    finish(pad, 0.004, 3)
+    finish(pad, 0.004, 2)
     # hinge leaf (graphite) joining the arm to the knuckle on the LEFT (+X)
-    leaf = prism("_leaf", [(0.104, 0.040), (0.132, 0.040), (0.132, -0.012), (0.104, -0.012)], "X", 0.016, 0.0345, G)
+    leaf = prism("_leaf", [(0.104, 0.040), (0.132, 0.040), (0.132, -0.012), (0.104, -0.012)], "X", 0.016,
+                 KNUCKLE_X + 0.0045, G)
     finish(leaf, 0.002, 2)
     core = prism("_fcore", [(0.1155, 0.044), (0.132, 0.044), (0.132, -0.016), (0.1155, -0.016)], "X", -0.017,
                  0.017, G)
     finish(core, 0.002, 2)
     arm = join([fr, pad, leaf, core], "WARDEN_StockFolding_Arm")
-    set_origin(arm, (0.030, 0.111, 0.015))
+    set_origin(arm, (KNUCKLE_X, 0.111, 0.015))
     arm["fold_axis"] = "Z"
     arm["fold_angle_deg"] = -180.0
     arm["note"] = "rotate about local Z by fold_angle_deg: stock swings out to +X and lies along the LEFT side"
@@ -730,37 +987,60 @@ def build_stock_folding(M, col):
 MAG_MOUNT = Vector((0, -0.270, 0.0))
 
 
-def cartridge(name, tip_y, z, steps, mat):
-    """12.7 mm-class cartridge lying along Y, bullet tip toward -Y at tip_y, axis at height z (gun coords)."""
+ROUND_TOP_Z = -0.0075     # axis of the top cartridge: it stands ~3 mm proud of the feed lips
+ROUND_PITCH = 0.021       # single-stack column pitch (case diameter)
+ROUND_TIP_Y = -0.2655     # bullet tip (gun coords); rim at -0.1275
+FEED_LIP_GAP = 0.016      # lip-to-lip gap at the top face (narrower than the 0.021 case: the lips hold it)
+
+
+def cartridge(name, tip_y, z, steps, M, simple=False):
+    """12.7 mm-class cartridge lying along Y, bullet tip toward -Y at tip_y, axis at height z (gun coords).
+    Two materials: gunmetal bullet, light steel case (reads clearly at the feed lips and in the window).
+    simple=True: reduced profile for the rounds that are only ever seen through the window slot."""
     prof = [(0, 0.0), (0.0022, 0.003), (0.0046, 0.012), (0.0062, 0.026), (0.0066, 0.039), (0.0076, 0.039),
             (0.0078, 0.056), (0.0099, 0.066), (0.0105, 0.128), (0.0090, 0.130), (0.0090, 0.1335),
             (0.0104, 0.1345), (0.0104, 0.138), (0, 0.138)]
-    o = lathe_y(name, [(r, tip_y + s) for (r, s) in prof], x=0.0, z=z, steps=steps, mat=mat, angle=40)
+    if simple:
+        prof = [(0, 0.0), (0.0040, 0.009), (0.0062, 0.026), (0.0066, 0.039), (0.0077, 0.040), (0.0099, 0.066),
+                (0.0105, 0.128), (0.0090, 0.131), (0.0104, 0.134), (0.0104, 0.138), (0, 0.138)]
+    o = lathe_y(name, [(r, tip_y + s) for (r, s) in prof], x=0.0, z=z, steps=steps, mat=M["C"], angle=40)
+    o.data.materials.append(M["GM"])
+    for p in o.data.polygons:
+        if p.center.y - tip_y < 0.0385:      # bullet ogive ahead of the case mouth
+            p.material_index = 1
     return o
 
 
 def build_mag(M, col, cap, body_bottom):
     """mag_5 (cap 5, body bottom -0.150) or mag_8 (cap 8, body bottom -0.200). Single-stack 12.7 mm column
-    seen through a vertical window slot on each side; top round at the feed lips. The upper 0.072 m (inside the
-    magwell) is 0.052 wide; below the well the body steps out to 0.056 (seats against the magwell lip)."""
+    seen through a vertical window slot on each side; the top round sits in real feed lips (45-degree lip
+    undercut, FEED_LIP_GAP at the top face) and stands proud of them so it reads when the mag is out. The upper
+    0.072 m (inside the magwell) is 0.052 wide; below the well the body steps out to 0.056."""
     G, GM, S = M["G"], M["GM"], M["S"]
     zb = body_bottom
     fr = 0.006 * (abs(zb) / 0.150)          # front face rakes forward toward the bottom
     body = prism("_mbody", [(-0.270, 0.000), (-0.120, 0.000), (-0.118, zb), (-0.270 - fr, zb)], "X", -0.035,
                  0.035, G)
-    msec = prism("_msec", [(-0.026, 0.010), (0.026, 0.010), (0.026, -0.0725), (0.028, -0.0745), (0.028, zb - 0.01),
-                           (-0.028, zb - 0.01), (-0.028, -0.0745), (-0.026, -0.0725)], "Y", -0.30, -0.10)
+    # section: 6 mm 45-degree chamfer on the top outer edges so the feed lips read as a narrower ridge
+    msec = prism("_msec", [(-0.020, 0.010), (0.020, 0.010), (0.020, 0.0), (0.026, -0.006), (0.026, -0.0725),
+                           (0.028, -0.0745), (0.028, zb - 0.01), (-0.028, zb - 0.01), (-0.028, -0.0745),
+                           (-0.026, -0.0725), (-0.026, -0.006), (-0.020, 0.0)], "Y", -0.30, -0.10)
     intersect(body, msec)
+    y0, y1 = -0.2665, -0.1255               # cartridge column length (+1 mm at the tip, +2 mm at the rim)
     # internal channel for the cartridge column (narrow so the rounds sit right behind the window)
-    cut(body, box("_mch", (0.025, 0.141, abs(zb) - 0.008 - 0.004), (0, -0.196, (-0.004 + zb + 0.008) / 2)))
-    # feed-lip opening on top
-    cut(body, prism("_mfl", stadium(0.0, -0.196, 0.0155, 0.128, 4), "Z", -0.006, 0.01))
+    ch_top, ch_bot = -0.0045, zb + 0.008
+    cut(body, box("_mch", (0.025, y1 - y0, ch_top - ch_bot), (0, (y0 + y1) / 2, (ch_top + ch_bot) / 2)))
+    # feed lips: opening FEED_LIP_GAP wide at the top face, undercut at 45 degrees down to the channel width
+    g = FEED_LIP_GAP / 2
+    lips = prism("_mfl", [(-g, 0.012), (g, 0.012), (g, 0.0), (0.0125, -0.0045), (0.0125, -0.008),
+                          (-0.0125, -0.008), (-0.0125, -0.0045), (-g, 0.0)], "Y", y0, y1)
+    cut(body, lips)
     # window slots both sides (physical mag-check window)
     wz0, wz1 = -0.018, zb + 0.020
     cut(body, prism("_mw", stadium(-0.181, (wz0 + wz1) / 2, 0.023, wz0 - wz1, 4), "X", -0.04, 0.04))
     # rear catch notch
     cut(body, box("_mcn", (0.020, 0.008, 0.010), (0, -0.120, -0.030)))
-    finish(body, 0.003, 1)
+    finish(body, 0.0022, 1)
     # raised ribs flanking the window on the lower (wider) section
     ribs = []
     for sx in (1, -1):
@@ -773,20 +1053,34 @@ def build_mag(M, col, cap, body_bottom):
     cut(base, prism("_mbg", band([(-0.30, zb - 0.009), (-0.09, zb - 0.009)], 0.003), "X", 0.028, 0.04))
     cut(base, prism("_mbg2", band([(-0.30, zb - 0.009), (-0.09, zb - 0.009)], 0.003), "X", -0.04, -0.028))
     finish(base, 0.004, 2)
-    follower_z = -0.011 - 0.021 * (cap - 1) - 0.0105 - 0.0075
-    fol = box("_mfol", (0.023, 0.136, 0.012), (0, -0.197, follower_z), G)
-    finish(fol, 0.0015, 1)
-    mag = join([body] + ribs + [base, fol], f"WARDEN_Mag{cap}")
+    mag = join([body] + ribs + [base], f"WARDEN_Mag{cap}")
     set_origin(mag, MAG_MOUNT)
     bc.link(mag, col)
     mag["part"] = f"mag_{cap}"
     mag["capacity"] = cap
     mag["socket"] = "WARDEN_SOCKET_Mag"
+    # follower: separate child (review fix) so the engine can push it up under the lowest remaining round.
+    # Full mag: its top touches the bottom round. n rounds left: raise it min((cap - n) * travel_per_round_m,
+    # travel_max_m) along local +Z; empty: travel_max_m puts it right under the feed lips.
+    follower_z = ROUND_TOP_Z - ROUND_PITCH * (cap - 1) - 0.0105 - 0.006
+    fol = box(f"WARDEN_Mag{cap}_Follower", (0.0245, 0.136, 0.012), (0, -0.197, follower_z), G)
+    cut(fol, prism("_mfr", [(-0.2655, follower_z + 0.006), (-0.2475, follower_z + 0.006),
+                            (-0.2655, follower_z - 0.001)], "X", -0.02, 0.02))      # nose ramp
+    finish(fol, 0.0015, 1)
+    set_origin(fol, (0, -0.197, follower_z))
+    fol["slide_axis"] = "Z"
+    fol["travel_per_round_m"] = ROUND_PITCH
+    fol["travel_max_m"] = round(ROUND_PITCH * (cap - 1) + 0.010, 4)
+    bc.link(fol, col)
+    bc.parent_keep(fol, mag)
     rounds = []
     for i in range(cap):
         nm = f"WARDEN_Mag{cap}_Round" if i == 0 else f"WARDEN_Mag{cap}_Round_{i + 1:02d}"
-        r = cartridge(nm, -0.2655, -0.011 - 0.021 * i, 12 if i == 0 else 8, M["C"])
-        set_origin(r, (0, -0.1965, -0.011 - 0.021 * i))
+        zc = ROUND_TOP_Z - ROUND_PITCH * i
+        # the top round reads at the feed lips (16 sides); the rest are only seen through the window (8 sides,
+        # simplified profile) -- review fix for the triangle budget
+        r = cartridge(nm, ROUND_TIP_Y, zc, 16 if i == 0 else 8, M, simple=i > 0)
+        set_origin(r, (0, ROUND_TIP_Y + 0.069, zc))
         r["round_index"] = i + 1
         bc.link(r, col)
         bc.parent_keep(r, mag)
@@ -833,9 +1127,20 @@ def build_all():
         bc.parent_keep(o, root)
     trig["pivot_axis"] = "X"
     trig["pull_deg"] = 12.0
-    bolt["note"] = "origin = bolt-axis rear; open = rotate about local Y ~ -60 deg (handle up), then slide +Y 0.13"
-    bolt["lift_deg"] = 60.0
-    bolt["travel_m"] = 0.130
+    trig["note"] = "pull = rotate +12 deg about local +X (blade tip moves rearward); same axis in glTF"
+    # bolt cycle (verified sign): lift = +60 deg about local +Y in Blender (handle swings up from the -X side),
+    # then slide 0.13 m toward the butt (+Y). In glTF/Bevy axes (Y-up, Blender +Y -> glTF -Z) that is
+    # -60 deg about local +Z, then translate -Z 0.13.
+    bolt["lift_axis"] = "+Y (Blender) / -Z (glTF)"
+    bolt["lift_deg"] = BOLT_LIFT_DEG
+    bolt["travel_axis"] = "+Y (Blender) / -Z (glTF)"
+    bolt["travel_m"] = BOLT_TRAVEL
+    bolt["note"] = ("cycle: rotate lift_deg about the bore axis (Blender +Y = glTF -Z; positive = handle swings up from "
+                    "the -X side), then translate travel_m toward the butt; close in reverse. Clear of every stock.")
+    saf = next(o for o in statics if o.name == "WARDEN_Safety")
+    saf["pivot_axis"] = "X"
+    saf["fire_deg"] = -45.0
+    saf["note"] = "SAFE = as modelled (lever points rearward); FIRE = rotate fire_deg about local +X (tip swings down)"
     sockets = {}
     for nm, loc in SOCKETS.items():
         e = bpy.data.objects.new(f"WARDEN_SOCKET_{nm}", None)
@@ -853,7 +1158,11 @@ def build_all():
     m5 = build_mag(M, c_m5, 5, -0.150)
     m8 = build_mag(M, c_m8, 8, -0.200)
 
-    bc.uv_all()
+    for o in list(bpy.data.objects):
+        if o.type == "MESH" and not o.name.startswith("_"):
+            seal(o)
+            clean_slots(o)
+            world_uvs(o)
     return dict(root=root, statics=statics, trig=trig, bolt=bolt, sockets=sockets, ss=ss, sf=sf, m5=m5, m8=m8,
                 cols=dict(base=c_base, ss=c_ss, sf=c_sf, m5=c_m5, m8=c_m8))
 
@@ -874,12 +1183,88 @@ def tri_count(objs):
 
 
 # ================================================================================================= EXPORT
+def export_files(path_noext, objs, glb=True, fbx=True):
+    """Like bc.export_all (same axes / settings) but WITH custom properties: glTF node `extras` and FBX user
+    properties carry the engine-facing animation data (lift_deg, travel_m, pull_deg, round_index, ...).
+    Review fix: bc.export_all does not set export_extras / use_custom_props (tools/ is read-only)."""
+    bpy.ops.object.select_all(action="DESELECT")
+    for o in objs:
+        o.select_set(True)
+    bpy.context.view_layer.objects.active = objs[0]
+    if glb:
+        bpy.ops.export_scene.gltf(filepath=path_noext + ".glb", export_format="GLB", use_selection=True,
+                                  export_apply=True, export_yup=True, export_extras=True)
+    if fbx:
+        bpy.ops.export_scene.fbx(filepath=path_noext + ".fbx", use_selection=True, apply_unit_scale=True,
+                                 apply_scale_options="FBX_SCALE_ALL", axis_forward="-Z", axis_up="Y",
+                                 use_mesh_modifiers=True, add_leaf_bones=False, path_mode="COPY",
+                                 embed_textures=True, use_custom_props=True)
+    log("exported", os.path.basename(path_noext))
+
+
 def export_part(root_obj, path_noext):
     """Export a part whose root object's origin is its mount point: temporarily put it at world origin."""
     mw = root_obj.matrix_world.copy()
     root_obj.matrix_world = Matrix.Identity(4)
-    bc.export_all(path_noext, objs=tree(root_obj), blend=False)
+    bpy.context.view_layer.update()
+    export_files(path_noext, tree(root_obj))
     root_obj.matrix_world = mw
+    bpy.context.view_layer.update()
+
+
+PART_FILES = {"ss": "WARDEN_stock_standard", "sf": "WARDEN_stock_folding", "m5": "WARDEN_mag_5",
+              "m8": "WARDEN_mag_8"}     # <prefix>_<part> (WEAPON_MODULAR_SPEC "Exports"), like MAKO_stock_standard
+
+
+def anim_sidecar(B):
+    """warden_anim.json: every engine-facing moving-part number in one place, in Blender AND glTF/Bevy axes
+    (glTF = Blender (x, z, -y)). The same values ride along as glTF extras / FBX user properties."""
+    bolt, trig = B["bolt"], B["trig"]
+    ss = B["ss"]
+    riser = next(o for o in ss.children if o.name.endswith("CheekRiser"))
+    mono = next(o for o in ss.children if o.name.endswith("Monopod"))
+    arm = B["sf"].children[0]
+
+    def gl(v):
+        return [round(v[0], 5), round(v[2], 5), round(-v[1], 5)]
+
+    def origin(o):
+        return {"blender": [round(c, 5) for c in o.matrix_world.translation], "gltf": gl(o.matrix_world.translation)}
+
+    mags = {}
+    for key in ("m5", "m8"):
+        m = B[key]
+        fol = next(o for o in m.children if o.name.endswith("Follower"))
+        mags[m.name] = {
+            "capacity": m["capacity"],
+            "rounds": sorted([o.name for o in m.children if "_Round" in o.name]),
+            "round_index_rule": "round_index 1 = top round at the feed lips; hide the highest indices first",
+            "follower": fol.name, "follower_axis": {"blender": "+Z", "gltf": "+Y"},
+            "follower_travel_per_round_m": fol["travel_per_round_m"], "follower_travel_max_m": fol["travel_max_m"],
+            "follower_rule": "offset = min((capacity - rounds_left) * travel_per_round_m, travel_max_m)",
+        }
+    data = {
+        "_about": "VK-50 WARDEN moving parts. Origins are pivots; rotations are about the object's local axis.",
+        "axes": "Blender Z-up, muzzle -Y.  glTF/Bevy Y-up, muzzle +Z: (x, y, z)_blender -> (x, z, -y)_gltf",
+        "WARDEN_Bolt": {"origin": origin(bolt), "lift_deg": bolt["lift_deg"],
+                        "lift_axis": {"blender": "+Y", "gltf": "-Z"}, "travel_m": bolt["travel_m"],
+                        "travel_dir": {"blender": "+Y", "gltf": "-Z"},
+                        "sequence": "open: lift, then slide back; close: slide forward, then lower"},
+        "WARDEN_Trigger": {"origin": origin(trig), "pull_deg": trig["pull_deg"],
+                           "axis": {"blender": "+X", "gltf": "+X"}},
+        "WARDEN_Safety": {"fire_deg": -45.0, "axis": {"blender": "+X", "gltf": "+X"}},
+        riser.name: {"slide": {"blender": "+Z", "gltf": "+Y"}, "travel_min_m": riser["travel_min_m"],
+                     "travel_max_m": riser["travel_max_m"]},
+        mono.name: {"slide": {"blender": "+Z", "gltf": "+Y"}, "travel_min_m": mono["travel_min_m"],
+                    "travel_max_m": mono["travel_max_m"]},
+        arm.name: {"origin_rel_stock_mount": {"blender": [round(c, 5) for c in (arm.matrix_world.translation -
+                                                                               B["sf"].matrix_world.translation)]},
+                   "fold_angle_deg": arm["fold_angle_deg"], "axis": {"blender": "+Z", "gltf": "+Y"},
+                   "note": arm["note"]},
+        "magazines": mags,
+    }
+    with open(os.path.join(OUT, "warden_anim.json"), "w") as f:
+        json.dump(data, f, indent=2)
 
 
 def attach(part, socket):
@@ -900,15 +1285,24 @@ def do_exports(B):
     for p, sk in ((B["ss"], "Stock"), (B["sf"], "Stock"), (B["m5"], "Mag"), (B["m8"], "Mag")):
         p.matrix_world = Matrix.Translation(Vector(SOCKETS[sk]))
     bpy.context.view_layer.update()
-    bc.export_all(os.path.join(OUT, "warden_base"), objs=base_objs(B), blend=False)
-    for p, nm in ((B["ss"], "stock_standard"), (B["sf"], "stock_folding"), (B["m5"], "mag_5"), (B["m8"], "mag_8")):
-        export_part(p, os.path.join(OUT, f"warden_{nm}"))
+    # old lower-case part files (pre-review names) are removed so no stale duplicates ship
+    # (Windows is case-insensitive: delete only when the on-disk name really is the old lower-case one, otherwise
+    # the exporter would keep writing into the old-cased file name)
+    on_disk = set(os.listdir(OUT))
+    for nm in ("stock_standard", "stock_folding", "mag_5", "mag_8"):
+        for ext in (".glb", ".fbx"):
+            if f"warden_{nm}{ext}" in on_disk:
+                os.remove(os.path.join(OUT, f"warden_{nm}{ext}"))
+    export_files(os.path.join(OUT, "warden_base"), base_objs(B))
+    for key, fn in PART_FILES.items():
+        export_part(B[key], os.path.join(OUT, fn))
     # assembled default: parts parented to their sockets
     attach(B["ss"], s["Stock"])
     attach(B["m5"], s["Mag"])
     bpy.context.view_layer.update()
-    objs = base_objs(B)
-    bc.export_all(os.path.join(OUT, "warden_default"), objs=objs, fbx=False, blend=False)
+    objs = base_objs(B) + tree(B["ss"]) + tree(B["m5"])
+    export_files(os.path.join(OUT, "warden_default"), objs, fbx=False)
+    anim_sidecar(B)
     # keep the default assembled in the .blend; variants placed on the sockets but hidden
     for p in (B["sf"], B["m8"]):
         for o in tree(p):
@@ -921,6 +1315,7 @@ def do_exports(B):
     for cname in ("WARDEN_Stock_Folding", "WARDEN_Mag_8"):
         vl.children[cname].exclude = True
     bpy.ops.file.pack_all()
+    bpy.context.preferences.filepaths.save_version = 0      # no warden.blend1 backups
     bpy.ops.wm.save_as_mainfile(filepath=os.path.join(OUT, "warden.blend"), compress=True)
     vl.children["WARDEN_Stock_Folding"].exclude = False
     vl.children["WARDEN_Mag_8"].exclude = False
@@ -940,6 +1335,20 @@ def report(B):
             print(f"    {tris(o):>6}  {o.name}")
     for k, v in rows.items():
         print(f"  TRIS {k:<40} {v}")
+    # mesh hygiene: closed (backface-culled in engine), every face has a material, no stray helpers
+    for o in bpy.data.objects:
+        if o.type != "MESH":
+            continue
+        if o.name.startswith("_"):
+            print("  WARN leftover helper mesh", o.name)
+            continue
+        bm = bmesh.new()
+        bm.from_mesh(o.data)
+        nm = sum(1 for e in bm.edges if not e.is_manifold)
+        bm.free()
+        empty = [i for i, m in enumerate(o.data.materials) if m is None]
+        if nm or empty or not o.data.uv_layers:
+            print(f"  WARN {o.name}: non-manifold edges {nm}, empty slots {empty}, uv {len(o.data.uv_layers)}")
     with open(os.path.join(OUT, "_wip", "tris.json"), "w") as f:
         json.dump(rows, f, indent=2)
     return rows
@@ -963,9 +1372,9 @@ def render_world():
         nt.links.new(bg2.outputs[0], mix.inputs[2])
         nt.links.new(mix.outputs[0], out.inputs[0])
     vs = bpy.context.scene.view_settings
-    vs.exposure = -0.35
+    vs.exposure = float(os.environ.get("WARDEN_EXPOSURE", "-0.2"))
     try:
-        vs.look = "AgX - Punchy"
+        vs.look = os.environ.get("WARDEN_LOOK", "AgX - Punchy")
     except TypeError:
         pass
 
@@ -1045,6 +1454,38 @@ def socket_debug(B, objs):
     return paths
 
 
+ATT_DIR = r"F:/git/val etf/assets/weapons/attachments/tactical"
+
+
+def fitcheck(B, default):
+    """Read-only fit check against the shared attachments other agents built (if their exports exist):
+    bipod on _Under, laser_R on _Side_R (-X), flashlight_L on _Side_L (+X). Imported only for these renders;
+    nothing is exported or saved with them."""
+    plan = (("ATT_bipod.glb", "Under"), ("ATT_laser_R.glb", "Side_R"), ("ATT_flashlight_L.glb", "Side_L"))
+    added = []
+    for fn, sk in plan:
+        p = os.path.join(ATT_DIR, fn)
+        if not os.path.exists(p):
+            log("fitcheck: missing", fn)
+            continue
+        before = set(bpy.data.objects)
+        bpy.ops.import_scene.gltf(filepath=p)
+        new = [o for o in bpy.data.objects if o not in before]
+        roots = [o for o in new if o.parent is None or o.parent not in new]
+        for r in roots:
+            r.matrix_world = Matrix.Translation(B["sockets"][sk].matrix_world.translation) @ r.matrix_world
+        added += new
+    bpy.context.view_layer.update()
+    objs = default + [o for o in added if o.type == "MESH"]
+    out = rv("warden_fitcheck", objs, ("right", "left"), margin=1.04)
+    out += rv("warden_fitcheck", objs, ("three_quarter",), margin=0.86, focus=((0, -0.40, -0.03), 0.72))
+    out += rv("warden_fitcheck", objs, ("front",), res=(900, 900), ortho=True, margin=1.0,
+              focus=((0, -0.39, -0.04), 0.22))
+    for o in added:
+        bpy.data.objects.remove(o, do_unlink=True)
+    return out
+
+
 def do_renders(B, mode):
     render_world()
     s = B["sockets"]
@@ -1057,24 +1498,52 @@ def do_renders(B, mode):
     out = []
     if mode in ("quick", "full", "compare"):
         out += rv("warden", default, ("right", "left"), samples=None if mode != "quick" else 24)
-        out += rv("warden", default, ("three_quarter",), samples=None if mode != "quick" else 24, margin=0.92)
+        out += rv("warden", default, ("three_quarter",), samples=None if mode != "quick" else 24, margin=0.86,
+                  focus=((0, -0.40, 0.0), 0.70))
         out += [exact_side(default, "warden_exact_side.png")]
     if mode == "full":
         out += rv("warden", default, (TOP,), res=(1600, 640), rename=["top"])
         out += rv("warden", default, ("front", "back"), res=(900, 900), focus=((0, -0.39, -0.02), 0.22),
                   ortho=True, margin=1.0)
-        out += rv("warden", default, ("three_quarter_back", "low"), margin=0.92)
+        out += rv("warden", default, ("three_quarter_back",), margin=0.86, focus=((0, -0.38, -0.035), 0.82))
+        out += rv("warden", default, ("low",), margin=0.86, focus=((0, -0.40, 0.0), 0.70))
+        # roughly what the player sees: from behind/above the right shoulder, down the rail
+        out += rv("warden", default, ((-0.22, 1.0, 0.40),), res=(1600, 900), lens=40, margin=0.80,
+                  focus=((0, -0.36, 0.06), 0.55), rename=["fpv"])
         # close-ups
         out += rv("warden_cu", default, ((0.9, -0.8, 0.45),), res=(1200, 900), focus=((0, -1.02, BZ), 0.11),
                   rename=["brake"])
         out += rv("warden_cu", default, ((-1.0, 0.55, 0.45),), res=(1200, 900), focus=((-0.04, 0.03, 0.06), 0.13),
                   rename=["bolt"])
+        # bolt cycle (review fix check): lifted in place (handle root rotates behind the receiver, in free air),
+        # then fully open (0.13 m back) -- the shroud stops in front of the stock upright, the handle passes
+        # under the cheek riser. Also checks the pivot/origin and the documented animation signs.
+        bolt = B["bolt"]
+        loc0, rot0 = bolt.location.copy(), bolt.rotation_euler.copy()
+        bolt.rotation_euler[1] = math.radians(bolt["lift_deg"])
+        bpy.context.view_layer.update()
+        out += rv("warden_cu", default, ((-0.6, 1.0, 0.55),), res=(1200, 900), focus=((0, 0.09, 0.09), 0.11),
+                  rename=["bolt_lifted"])
+        bolt.location.y += bolt["travel_m"]
+        bpy.context.view_layer.update()
+        out += rv("warden_cu", default, ((-1.0, 0.55, 0.45),), res=(1200, 900), focus=((-0.02, 0.15, 0.07), 0.20),
+                  rename=["bolt_open"])
+        out += rv("warden_bolt_open", default, ("left",), res=(1400, 900), focus=((0, 0.15, 0.05), 0.21))
+        out += rv("warden_bolt_open", default, ((-0.22, 1.0, 0.40),), res=(1400, 900), lens=40, margin=0.8,
+                  focus=((0, 0.05, 0.08), 0.30), rename=["fpv"])
+        alt0 = base + tree(B["sf"]) + tree(B["m8"])
+        out += rv("warden_bolt_open", alt0, ((-1.0, 0.55, 0.45),), res=(1200, 900), focus=((-0.02, 0.15, 0.05), 0.20),
+                  rename=["folding_stock"])
+        bolt.location, bolt.rotation_euler = loc0, rot0
+        bpy.context.view_layer.update()
         out += rv("warden_cu", default, ((-1.0, -0.25, 0.25),), res=(1400, 900), focus=((0, -0.12, 0.05), 0.20),
                   rename=["receiver_right"])
         out += rv("warden_cu", default, ((1.0, -0.35, 0.3),), res=(1400, 900), focus=((0, -0.12, 0.05), 0.20),
                   rename=["receiver_left"])
         out += rv("warden_cu", default, ((0.8, -0.6, -0.35),), res=(1400, 900), focus=((0, -0.50, 0.06), 0.24),
                   rename=["handguard_under"])
+        out += rv("warden_cu", default, ((0.75, -0.55, -0.45),), res=(1400, 900), focus=((0, -0.16, -0.06), 0.16),
+                  rename=["magwell"])
         # variants: stocks + mags alone
         for key, nm in (("ss", "stock_standard"), ("sf", "stock_folding")):
             objs = tree(B[key])
@@ -1084,6 +1553,22 @@ def do_renders(B, mode):
             objs = tree(B[key])
             out += rv(f"warden_{nm}", objs, ("three_quarter", "right", (0.6, -0.5, 1.0)), res=(900, 1000),
                       margin=1.25, rename=["three_quarter", "right", "top_feedlips"])
+        # mag check with 2 rounds left (rounds 3..5 hidden, follower raised 3 x travel_per_round_m): the follower
+        # sits right under the remaining rounds (review fix), the window shows daylight below it
+        m5 = B["m5"]
+        fol = next(o for o in m5.children if o.name.endswith("Follower"))
+        rounds = sorted([o for o in m5.children if "_Round" in o.name], key=lambda o: o["round_index"])
+        fz = fol.location.z
+        fol.location.z += 3 * fol["travel_per_round_m"]
+        bpy.context.view_layer.update()
+        out += rv("warden_mag_5_check", [m5, fol] + rounds[:2], ("right", (0.6, -0.5, 0.25)), res=(900, 1000),
+                  margin=1.25, rename=["two_left", "two_left_three_quarter"])
+        fol.location.z = fz + fol["travel_max_m"]
+        bpy.context.view_layer.update()
+        out += rv("warden_mag_5_check", [m5, fol], ((0.6, -0.5, 1.0),), res=(900, 1000), margin=1.25,
+                  rename=["empty_top"])
+        fol.location.z = fz
+        bpy.context.view_layer.update()
         # base gun alone (no stock / mag): shows the stock-adapter lug and the empty magwell
         out += rv("warden_base_only", base, ("left", "three_quarter_back", (0.4, 0.9, -0.5)), res=(1600, 900),
                   margin=0.95, rename=["left", "three_quarter_back", "rear_low"])
@@ -1098,6 +1583,9 @@ def do_renders(B, mode):
         out += rv("warden_alt_folded", alt, ("three_quarter", TOP), rename=["three_quarter", "top"])
         arm.rotation_euler[2] = 0
         bpy.context.view_layer.update()
+        out += fitcheck(B, default)
+    if mode == "fitcheck":
+        out += fitcheck(B, default)
     log("rendered", len(out))
     return out
 

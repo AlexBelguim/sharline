@@ -1,0 +1,1626 @@
+{
+ "meshes": {
+  "HALO_Bulwark_Arc_Arms": {
+   "tris": 698,
+   "verts": 1102,
+   "uv_layers": 1,
+   "materials": [
+    "M_HALO_Glass_T1",
+    "M_HALO_Graphite"
+   ],
+   "non_manifold_edges": 1102,
+   "boundary_edges": 1102,
+   "loose_verts": 0,
+   "loose_edges": 0,
+   "zero_area_faces": 0,
+   "islands": 202,
+   "closed_islands": 0,
+   "inverted_closed_islands": 0,
+   "coincident_face_pairs": 0,
+   "bbox_min": [
+    0.0971,
+    -0.1222,
+    -0.0145
+   ],
+   "bbox_max": [
+    0.194,
+    0.1222,
+    0.0166
+   ],
+   "r_min": 0.1325,
+   "r_max": 0.194
+  },
+  "HALO_Bulwark_Arc_Head": {
+   "tris": 854,
+   "verts": 1320,
+   "uv_layers": 1,
+   "materials": [
+    "M_HALO_Glass_T1",
+    "M_HALO_Graphite"
+   ],
+   "non_manifold_edges": 1320,
+   "boundary_edges": 1320,
+   "loose_verts": 0,
+   "loose_edges": 0,
+   "zero_area_faces": 0,
+   "islands": 235,
+   "closed_islands": 0,
+   "inverted_closed_islands": 0,
+   "coincident_face_pairs": 0,
+   "bbox_min": [
+    -0.123,
+    -0.1682,
+    -0.0145
+   ],
+   "bbox_max": [
+    0.123,
+    -0.0978,
+    0.0166
+   ],
+   "r_min": 0.1325,
+   "r_max": 0.194
+  },
+  "HALO_Bulwark_Arc_Legs": {
+   "tris": 696,
+   "verts": 1094,
+   "uv_layers": 1,
+   "materials": [
+    "M_HALO_Glass_T1",
+    "M_HALO_Graphite"
+   ],
+   "non_manifold_edges": 1094,
+   "boundary_edges": 1094,
+   "loose_verts": 0,
+   "loose_edges": 0,
+   "zero_area_faces": 0,
+   "islands": 199,
+   "closed_islands": 0,
+   "inverted_closed_islands": 0,
+   "coincident_face_pairs": 0,
+   "bbox_min": [
+    -0.194,
+    -0.1222,
+    -0.0145
+   ],
+   "bbox_max": [
+    -0.0971,
+    0.1222,
+    0.0166
+   ],
+   "r_min": 0.1325,
+   "r_max": 0.194
+  },
+  "HALO_Bulwark_Arc_Torso": {
+   "tris": 762,
+   "verts": 1176,
+   "uv_layers": 1,
+   "materials": [
+    "M_HALO_Glass_T1",
+    "M_HALO_Graphite"
+   ],
+   "non_manifold_edges": 1176,
+   "boundary_edges": 1176,
+   "loose_verts": 0,
+   "loose_edges": 0,
+   "zero_area_faces": 0,
+   "islands": 207,
+   "closed_islands": 0,
+   "inverted_closed_islands": 0,
+   "coincident_face_pairs": 0,
+   "bbox_min": [
+    -0.123,
+    0.0978,
+    -0.0145
+   ],
+   "bbox_max": [
+    0.123,
+    0.1682,
+    0.0166
+   ],
+   "r_min": 0.1325,
+   "r_max": 0.194
+  },
+  "HALO_Bulwark_Band_Heavy": {
+   "tris": 1212,
+   "verts": 1812,
+   "uv_layers": 1,
+   "materials": [
+    "M_HALO_Graphite",
+    "M_HALO_Gunmetal"
+   ],
+   "non_manifold_edges": 1812,
+   "boundary_edges": 1812,
+   "loose_verts": 0,
+   "loose_edges": 0,
+   "zero_area_faces": 0,
+   "islands": 302,
+   "closed_islands": 0,
+   "inverted_closed_islands": 0,
+   "coincident_face_pairs": 0,
+   "bbox_min": [
+    -0.2477,
+    -0.2155,
+    -0.07
+   ],
+   "bbox_max": [
+    0.2477,
+    0.2155,
+    -0.009
+   ],
+   "r_min": 0.1345,
+   "r_max": 0.2477
+  },
+  "HALO_Bulwark_Band_Medium": {
+   "tris": 400,
+   "verts": 516,
+   "uv_layers": 1,
+   "materials": [
+    "M_HALO_Graphite"
+   ],
+   "non_manifold_edges": 516,
+   "boundary_edges": 516,
+   "loose_verts": 0,
+   "loose_edges": 0,
+   "zero_area_faces": 0,
+   "islands": 60,
+   "closed_islands": 0,
+   "inverted_closed_islands": 0,
+   "coincident_face_pairs": 0,
+   "bbox_min": [
+    -0.2142,
+    -0.1855,
+    -0.035
+   ],
+   "bbox_max": [
+    0.2142,
+    0.1855,
+    -0.004
+   ],
+   "r_min": 0.1355,
+   "r_max": 0.2142
+  },
+  "HALO_Core_Bulwark": {
+   "tris": 708,
+   "verts": 1066,
+   "uv_layers": 1,
+   "materials": [
+    "M_HALO_Glass_T1.005",
+    "M_HALO_Graphite.005",
+    "M_HALO_Bone"
+   ],
+   "non_manifold_edges": 1060,
+   "boundary_edges": 1060,
+   "loose_verts": 0,
+   "loose_edges": 0,
+   "zero_area_faces": 0,
+   "islands": 183,
+   "closed_islands": 0,
+   "inverted_closed_islands": 0,
+   "coincident_face_pairs": 0,
+   "bbox_min": [
+    -0.0537,
+    -0.0465,
+    0.0
+   ],
+   "bbox_max": [
+    0.0537,
+    0.0465,
+    0.063
+   ],
+   "r_min": 0.0,
+   "r_max": 0.0537
+  },
+  "HALO_Core_Mender": {
+   "tris": 2544,
+   "verts": 2990,
+   "uv_layers": 1,
+   "materials": [
+    "M_HALO_Glass_T1.005",
+    "M_HALO_Graphite.005",
+    "M_HALO_Bone"
+   ],
+   "non_manifold_edges": 2984,
+   "boundary_edges": 2984,
+   "loose_verts": 0,
+   "loose_edges": 0,
+   "zero_area_faces": 0,
+   "islands": 230,
+   "closed_islands": 0,
+   "inverted_closed_islands": 0,
+   "coincident_face_pairs": 0,
+   "bbox_min": [
+    -0.0425,
+    -0.0445,
+    0.0
+   ],
+   "bbox_max": [
+    0.0425,
+    0.0445,
+    0.057
+   ],
+   "r_min": 0.0,
+   "r_max": 0.0445
+  },
+  "HALO_Core_Phase": {
+   "tris": 3568,
+   "verts": 3142,
+   "uv_layers": 1,
+   "materials": [
+    "M_HALO_Glass_T1.005",
+    "M_HALO_Graphite.005",
+    "M_HALO_Bone"
+   ],
+   "non_manifold_edges": 2540,
+   "boundary_edges": 2540,
+   "loose_verts": 0,
+   "loose_edges": 0,
+   "zero_area_faces": 0,
+   "islands": 89,
+   "closed_islands": 0,
+   "inverted_closed_islands": 0,
+   "coincident_face_pairs": 0,
+   "bbox_min": [
+    -0.0425,
+    -0.0425,
+    0.0
+   ],
+   "bbox_max": [
+    0.0425,
+    0.041,
+    0.0528
+   ],
+   "r_min": 0.0,
+   "r_max": 0.0425
+  },
+  "HALO_Core_Volt": {
+   "tris": 1212,
+   "verts": 1490,
+   "uv_layers": 1,
+   "materials": [
+    "M_HALO_Glass_T1.005",
+    "M_HALO_Graphite.005",
+    "M_HALO_Bone"
+   ],
+   "non_manifold_edges": 1484,
+   "boundary_edges": 1484,
+   "loose_verts": 0,
+   "loose_edges": 0,
+   "zero_area_faces": 0,
+   "islands": 143,
+   "closed_islands": 0,
+   "inverted_closed_islands": 0,
+   "coincident_face_pairs": 0,
+   "bbox_min": [
+    -0.0405,
+    -0.0425,
+    0.0
+   ],
+   "bbox_max": [
+    0.0405,
+    0.0405,
+    0.059
+   ],
+   "r_min": 0.0,
+   "r_max": 0.0425
+  },
+  "HALO_Mender_Arc_Arms": {
+   "tris": 1204,
+   "verts": 1448,
+   "uv_layers": 1,
+   "materials": [
+    "M_HALO_Glass_T1.001",
+    "M_HALO_Graphite.001"
+   ],
+   "non_manifold_edges": 1448,
+   "boundary_edges": 1448,
+   "loose_verts": 0,
+   "loose_edges": 0,
+   "zero_area_faces": 0,
+   "islands": 122,
+   "closed_islands": 0,
+   "inverted_closed_islands": 0,
+   "coincident_face_pairs": 0,
+   "bbox_min": [
+    0.0984,
+    -0.1275,
+    -0.006
+   ],
+   "bbox_max": [
+    0.182,
+    0.1275,
+    0.0068
+   ],
+   "r_min": 0.1375,
+   "r_max": 0.1825
+  },
+  "HALO_Mender_Arc_Head": {
+   "tris": 1284,
+   "verts": 1576,
+   "uv_layers": 1,
+   "materials": [
+    "M_HALO_Glass_T1.001",
+    "M_HALO_Graphite.001"
+   ],
+   "non_manifold_edges": 1576,
+   "boundary_edges": 1576,
+   "loose_verts": 0,
+   "loose_edges": 0,
+   "zero_area_faces": 0,
+   "islands": 148,
+   "closed_islands": 0,
+   "inverted_closed_islands": 0,
+   "coincident_face_pairs": 0,
+   "bbox_min": [
+    -0.1275,
+    -0.182,
+    -0.006
+   ],
+   "bbox_max": [
+    0.1275,
+    -0.0984,
+    0.0068
+   ],
+   "r_min": 0.1375,
+   "r_max": 0.1825
+  },
+  "HALO_Mender_Arc_Legs": {
+   "tris": 1170,
+   "verts": 1408,
+   "uv_layers": 1,
+   "materials": [
+    "M_HALO_Glass_T1.001",
+    "M_HALO_Graphite.001"
+   ],
+   "non_manifold_edges": 1408,
+   "boundary_edges": 1408,
+   "loose_verts": 0,
+   "loose_edges": 0,
+   "zero_area_faces": 0,
+   "islands": 119,
+   "closed_islands": 0,
+   "inverted_closed_islands": 0,
+   "coincident_face_pairs": 0,
+   "bbox_min": [
+    -0.182,
+    -0.1275,
+    -0.006
+   ],
+   "bbox_max": [
+    -0.0984,
+    0.1275,
+    0.0068
+   ],
+   "r_min": 0.1375,
+   "r_max": 0.1825
+  },
+  "HALO_Mender_Arc_Torso": {
+   "tris": 1208,
+   "verts": 1448,
+   "uv_layers": 1,
+   "materials": [
+    "M_HALO_Glass_T1.001",
+    "M_HALO_Graphite.001"
+   ],
+   "non_manifold_edges": 1448,
+   "boundary_edges": 1448,
+   "loose_verts": 0,
+   "loose_edges": 0,
+   "zero_area_faces": 0,
+   "islands": 120,
+   "closed_islands": 0,
+   "inverted_closed_islands": 0,
+   "coincident_face_pairs": 0,
+   "bbox_min": [
+    -0.1275,
+    0.0984,
+    -0.006
+   ],
+   "bbox_max": [
+    0.1275,
+    0.182,
+    0.0068
+   ],
+   "r_min": 0.1375,
+   "r_max": 0.1825
+  },
+  "HALO_Mender_Band_Heavy": {
+   "tris": 2160,
+   "verts": 2984,
+   "uv_layers": 1,
+   "materials": [
+    "M_HALO_Graphite.001",
+    "M_HALO_Gunmetal.001"
+   ],
+   "non_manifold_edges": 2984,
+   "boundary_edges": 2984,
+   "loose_verts": 0,
+   "loose_edges": 0,
+   "zero_area_faces": 0,
+   "islands": 414,
+   "closed_islands": 0,
+   "inverted_closed_islands": 0,
+   "coincident_face_pairs": 0,
+   "bbox_min": [
+    -0.2214,
+    -0.2285,
+    -0.0545
+   ],
+   "bbox_max": [
+    0.2214,
+    0.2285,
+    0.0055
+   ],
+   "r_min": 0.1405,
+   "r_max": 0.2285
+  },
+  "HALO_Mender_Band_Medium": {
+   "tris": 904,
+   "verts": 1024,
+   "uv_layers": 1,
+   "materials": [
+    "M_HALO_Graphite.001"
+   ],
+   "non_manifold_edges": 1024,
+   "boundary_edges": 1024,
+   "loose_verts": 0,
+   "loose_edges": 0,
+   "zero_area_faces": 0,
+   "islands": 62,
+   "closed_islands": 0,
+   "inverted_closed_islands": 0,
+   "coincident_face_pairs": 0,
+   "bbox_min": [
+    -0.1985,
+    -0.1985,
+    -0.0265
+   ],
+   "bbox_max": [
+    0.1985,
+    0.1985,
+    0.0045
+   ],
+   "r_min": 0.1415,
+   "r_max": 0.2015
+  },
+  "HALO_Phase_Arc_Arms": {
+   "tris": 756,
+   "verts": 774,
+   "uv_layers": 1,
+   "materials": [
+    "M_HALO_Glass_T1.003",
+    "M_HALO_Graphite.003"
+   ],
+   "non_manifold_edges": 672,
+   "boundary_edges": 672,
+   "loose_verts": 0,
+   "loose_edges": 0,
+   "zero_area_faces": 0,
+   "islands": 60,
+   "closed_islands": 0,
+   "inverted_closed_islands": 0,
+   "coincident_face_pairs": 0,
+   "bbox_min": [
+    0.1075,
+    -0.1186,
+    -0.004
+   ],
+   "bbox_max": [
+    0.1685,
+    0.1186,
+    0.0108
+   ],
+   "r_min": 0.1502,
+   "r_max": 0.1698
+  },
+  "HALO_Phase_Arc_Head": {
+   "tris": 900,
+   "verts": 954,
+   "uv_layers": 1,
+   "materials": [
+    "M_HALO_Glass_T1.003",
+    "M_HALO_Graphite.003"
+   ],
+   "non_manifold_edges": 840,
+   "boundary_edges": 840,
+   "loose_verts": 0,
+   "loose_edges": 0,
+   "zero_area_faces": 0,
+   "islands": 86,
+   "closed_islands": 0,
+   "inverted_closed_islands": 0,
+   "coincident_face_pairs": 0,
+   "bbox_min": [
+    -0.1186,
+    -0.1685,
+    -0.004
+   ],
+   "bbox_max": [
+    0.1186,
+    -0.1075,
+    0.0108
+   ],
+   "r_min": 0.1502,
+   "r_max": 0.1698
+  },
+  "HALO_Phase_Arc_Legs": {
+   "tris": 802,
+   "verts": 802,
+   "uv_layers": 1,
+   "materials": [
+    "M_HALO_Glass_T1.003",
+    "M_HALO_Graphite.003"
+   ],
+   "non_manifold_edges": 688,
+   "boundary_edges": 688,
+   "loose_verts": 0,
+   "loose_edges": 0,
+   "zero_area_faces": 0,
+   "islands": 57,
+   "closed_islands": 0,
+   "inverted_closed_islands": 0,
+   "coincident_face_pairs": 0,
+   "bbox_min": [
+    -0.1685,
+    -0.1186,
+    -0.004
+   ],
+   "bbox_max": [
+    -0.1075,
+    0.1186,
+    0.0108
+   ],
+   "r_min": 0.1502,
+   "r_max": 0.1698
+  },
+  "HALO_Phase_Arc_Torso": {
+   "tris": 1036,
+   "verts": 1145,
+   "uv_layers": 1,
+   "materials": [
+    "M_HALO_Glass_T1.003",
+    "M_HALO_Graphite.003"
+   ],
+   "non_manifold_edges": 1032,
+   "boundary_edges": 1032,
+   "loose_verts": 0,
+   "loose_edges": 0,
+   "zero_area_faces": 0,
+   "islands": 111,
+   "closed_islands": 0,
+   "inverted_closed_islands": 0,
+   "coincident_face_pairs": 0,
+   "bbox_min": [
+    -0.1186,
+    0.1075,
+    -0.004
+   ],
+   "bbox_max": [
+    0.1186,
+    0.164,
+    0.0108
+   ],
+   "r_min": 0.1502,
+   "r_max": 0.1698
+  },
+  "HALO_Phase_Band_Heavy": {
+   "tris": 1976,
+   "verts": 2748,
+   "uv_layers": 1,
+   "materials": [
+    "M_HALO_Graphite.003",
+    "M_HALO_Gunmetal.003"
+   ],
+   "non_manifold_edges": 2748,
+   "boundary_edges": 2748,
+   "loose_verts": 0,
+   "loose_edges": 0,
+   "zero_area_faces": 0,
+   "islands": 386,
+   "closed_islands": 0,
+   "inverted_closed_islands": 0,
+   "coincident_face_pairs": 0,
+   "bbox_min": [
+    -0.2087,
+    -0.2158,
+    -0.0525
+   ],
+   "bbox_max": [
+    0.2087,
+    0.1962,
+    0.0075
+   ],
+   "r_min": 0.1532,
+   "r_max": 0.2158
+  },
+  "HALO_Phase_Band_Medium": {
+   "tris": 844,
+   "verts": 974,
+   "uv_layers": 1,
+   "materials": [
+    "M_HALO_Graphite.003"
+   ],
+   "non_manifold_edges": 974,
+   "boundary_edges": 974,
+   "loose_verts": 0,
+   "loose_edges": 0,
+   "zero_area_faces": 0,
+   "islands": 65,
+   "closed_islands": 0,
+   "inverted_closed_islands": 0,
+   "coincident_face_pairs": 0,
+   "bbox_min": [
+    -0.1857,
+    -0.1856,
+    -0.0245
+   ],
+   "bbox_max": [
+    0.1857,
+    0.1777,
+    0.0065
+   ],
+   "r_min": 0.1542,
+   "r_max": 0.1888
+  },
+  "HALO_PowerCell": {
+   "tris": 488,
+   "verts": 653,
+   "uv_layers": 1,
+   "materials": [
+    "M_HALO_Glass_T1.004",
+    "M_HALO_Graphite.004"
+   ],
+   "non_manifold_edges": 630,
+   "boundary_edges": 630,
+   "loose_verts": 0,
+   "loose_edges": 0,
+   "zero_area_faces": 0,
+   "islands": 103,
+   "closed_islands": 0,
+   "inverted_closed_islands": 0,
+   "coincident_face_pairs": 0,
+   "bbox_min": [
+    -0.0555,
+    -0.0126,
+    -0.0126
+   ],
+   "bbox_max": [
+    0.0319,
+    0.0126,
+    0.0126
+   ],
+   "r_min": 0.01,
+   "r_max": 0.0555
+  },
+  "HALO_Shard_A": {
+   "tris": 26,
+   "verts": 52,
+   "uv_layers": 1,
+   "materials": [
+    "M_HALO_Glass_T1.004"
+   ],
+   "non_manifold_edges": 52,
+   "boundary_edges": 52,
+   "loose_verts": 0,
+   "loose_edges": 0,
+   "zero_area_faces": 0,
+   "islands": 13,
+   "closed_islands": 0,
+   "inverted_closed_islands": 0,
+   "coincident_face_pairs": 0,
+   "bbox_min": [
+    -0.015,
+    -0.013,
+    -0.0021
+   ],
+   "bbox_max": [
+    0.015,
+    0.013,
+    0.0037
+   ],
+   "r_min": 0.0015,
+   "r_max": 0.015
+  },
+  "HALO_Shard_B": {
+   "tris": 14,
+   "verts": 32,
+   "uv_layers": 1,
+   "materials": [
+    "M_HALO_Glass_T1.004"
+   ],
+   "non_manifold_edges": 32,
+   "boundary_edges": 32,
+   "loose_verts": 0,
+   "loose_edges": 0,
+   "zero_area_faces": 0,
+   "islands": 9,
+   "closed_islands": 0,
+   "inverted_closed_islands": 0,
+   "coincident_face_pairs": 0,
+   "bbox_min": [
+    0.0,
+    -0.001,
+    -0.0025
+   ],
+   "bbox_max": [
+    0.021,
+    0.0185,
+    0.0043
+   ],
+   "r_min": 0.0,
+   "r_max": 0.021
+  },
+  "HALO_Shard_C": {
+   "tris": 18,
+   "verts": 40,
+   "uv_layers": 1,
+   "materials": [
+    "M_HALO_Glass_T1.004"
+   ],
+   "non_manifold_edges": 40,
+   "boundary_edges": 40,
+   "loose_verts": 0,
+   "loose_edges": 0,
+   "zero_area_faces": 0,
+   "islands": 11,
+   "closed_islands": 0,
+   "inverted_closed_islands": 0,
+   "coincident_face_pairs": 0,
+   "bbox_min": [
+    -0.017,
+    -0.0055,
+    -0.0016
+   ],
+   "bbox_max": [
+    0.019,
+    0.0052,
+    0.0028
+   ],
+   "r_min": 0.0008,
+   "r_max": 0.019
+  },
+  "HALO_TierPip": {
+   "tris": 8,
+   "verts": 24,
+   "uv_layers": 1,
+   "materials": [
+    "M_HALO_Glass_T1.004"
+   ],
+   "non_manifold_edges": 24,
+   "boundary_edges": 24,
+   "loose_verts": 0,
+   "loose_edges": 0,
+   "zero_area_faces": 0,
+   "islands": 8,
+   "closed_islands": 0,
+   "inverted_closed_islands": 0,
+   "coincident_face_pairs": 0,
+   "bbox_min": [
+    -0.0056,
+    -0.003,
+    -0.009
+   ],
+   "bbox_max": [
+    0.0056,
+    0.003,
+    0.009
+   ],
+   "r_min": 0.0,
+   "r_max": 0.0056
+  },
+  "HALO_Volt_Arc_Arms": {
+   "tris": 1146,
+   "verts": 1480,
+   "uv_layers": 1,
+   "materials": [
+    "M_HALO_Glass_T1.002",
+    "M_HALO_Graphite.002"
+   ],
+   "non_manifold_edges": 1480,
+   "boundary_edges": 1480,
+   "loose_verts": 0,
+   "loose_edges": 0,
+   "zero_area_faces": 0,
+   "islands": 167,
+   "closed_islands": 0,
+   "inverted_closed_islands": 0,
+   "coincident_face_pairs": 0,
+   "bbox_min": [
+    0.1056,
+    -0.1212,
+    -0.0115
+   ],
+   "bbox_max": [
+    0.1725,
+    0.1212,
+    0.0435
+   ],
+   "r_min": 0.1475,
+   "r_max": 0.1735
+  },
+  "HALO_Volt_Arc_Head": {
+   "tris": 1242,
+   "verts": 1624,
+   "uv_layers": 1,
+   "materials": [
+    "M_HALO_Glass_T1.002",
+    "M_HALO_Graphite.002"
+   ],
+   "non_manifold_edges": 1624,
+   "boundary_edges": 1624,
+   "loose_verts": 0,
+   "loose_edges": 0,
+   "zero_area_faces": 0,
+   "islands": 193,
+   "closed_islands": 0,
+   "inverted_closed_islands": 0,
+   "coincident_face_pairs": 0,
+   "bbox_min": [
+    -0.1212,
+    -0.1725,
+    -0.0115
+   ],
+   "bbox_max": [
+    0.1212,
+    -0.1056,
+    0.0435
+   ],
+   "r_min": 0.1475,
+   "r_max": 0.1735
+  },
+  "HALO_Volt_Arc_Legs": {
+   "tris": 1208,
+   "verts": 1540,
+   "uv_layers": 1,
+   "materials": [
+    "M_HALO_Glass_T1.002",
+    "M_HALO_Graphite.002"
+   ],
+   "non_manifold_edges": 1540,
+   "boundary_edges": 1540,
+   "loose_verts": 0,
+   "loose_edges": 0,
+   "zero_area_faces": 0,
+   "islands": 166,
+   "closed_islands": 0,
+   "inverted_closed_islands": 0,
+   "coincident_face_pairs": 0,
+   "bbox_min": [
+    -0.1725,
+    -0.1212,
+    -0.0115
+   ],
+   "bbox_max": [
+    -0.1056,
+    0.1212,
+    0.0435
+   ],
+   "r_min": 0.1475,
+   "r_max": 0.1735
+  },
+  "HALO_Volt_Arc_Torso": {
+   "tris": 1198,
+   "verts": 1530,
+   "uv_layers": 1,
+   "materials": [
+    "M_HALO_Glass_T1.002",
+    "M_HALO_Graphite.002"
+   ],
+   "non_manifold_edges": 1530,
+   "boundary_edges": 1530,
+   "loose_verts": 0,
+   "loose_edges": 0,
+   "zero_area_faces": 0,
+   "islands": 166,
+   "closed_islands": 0,
+   "inverted_closed_islands": 0,
+   "coincident_face_pairs": 0,
+   "bbox_min": [
+    -0.1212,
+    0.1056,
+    -0.0115
+   ],
+   "bbox_max": [
+    0.1212,
+    0.1725,
+    0.0435
+   ],
+   "r_min": 0.1475,
+   "r_max": 0.1735
+  },
+  "HALO_Volt_Band_Heavy": {
+   "tris": 2160,
+   "verts": 2984,
+   "uv_layers": 1,
+   "materials": [
+    "M_HALO_Graphite.002",
+    "M_HALO_Gunmetal.002"
+   ],
+   "non_manifold_edges": 2984,
+   "boundary_edges": 2984,
+   "loose_verts": 0,
+   "loose_edges": 0,
+   "zero_area_faces": 0,
+   "islands": 414,
+   "closed_islands": 0,
+   "inverted_closed_islands": 0,
+   "coincident_face_pairs": 0,
+   "bbox_min": [
+    -0.2124,
+    -0.2195,
+    -0.06
+   ],
+   "bbox_max": [
+    0.2124,
+    0.2195,
+    0.0
+   ],
+   "r_min": 0.1505,
+   "r_max": 0.2195
+  },
+  "HALO_Volt_Band_Medium": {
+   "tris": 904,
+   "verts": 1024,
+   "uv_layers": 1,
+   "materials": [
+    "M_HALO_Graphite.002"
+   ],
+   "non_manifold_edges": 1024,
+   "boundary_edges": 1024,
+   "loose_verts": 0,
+   "loose_edges": 0,
+   "zero_area_faces": 0,
+   "islands": 62,
+   "closed_islands": 0,
+   "inverted_closed_islands": 0,
+   "coincident_face_pairs": 0,
+   "bbox_min": [
+    -0.1895,
+    -0.1895,
+    -0.032
+   ],
+   "bbox_max": [
+    0.1895,
+    0.1895,
+    -0.001
+   ],
+   "r_min": 0.1515,
+   "r_max": 0.1925
+  }
+ },
+ "pips": {
+  "positions_blender": [
+   [
+    -0.024,
+    -0.15,
+    0.0245
+   ],
+   [
+    -0.008,
+    -0.15,
+    0.0245
+   ],
+   [
+    0.008,
+    -0.15,
+    0.0245
+   ],
+   [
+    0.024,
+    -0.15,
+    0.0245
+   ]
+  ],
+  "Bulwark": {
+   "gap_mm_pip_bottom_to_arc_below": [
+    2.5,
+    0.5,
+    0.5,
+    2.5
+   ],
+   "pip_intersects_arc": [
+    false,
+    false,
+    false,
+    false
+   ]
+  },
+  "Mender": {
+   "gap_mm_pip_bottom_to_arc_below": [
+    null,
+    11.9,
+    11.9,
+    null
+   ],
+   "pip_intersects_arc": [
+    false,
+    false,
+    false,
+    false
+   ]
+  },
+  "Volt": {
+   "gap_mm_pip_bottom_to_arc_below": [
+    6.48,
+    5.7,
+    5.7,
+    6.48
+   ],
+   "pip_intersects_arc": [
+    false,
+    false,
+    false,
+    false
+   ]
+  },
+  "Phase": {
+   "gap_mm_pip_bottom_to_arc_below": [
+    11.34,
+    null,
+    null,
+    11.34
+   ],
+   "pip_intersects_arc": [
+    false,
+    false,
+    false,
+    false
+   ]
+  }
+ },
+ "cells": {
+  "Bulwark_Light": {
+   "orbit_samples_colliding_of_72": 0,
+   "min_clearance_mm": 9.6
+  },
+  "Bulwark_Medium": {
+   "orbit_samples_colliding_of_72": 0,
+   "min_clearance_mm": 26.1
+  },
+  "Bulwark_Heavy": {
+   "orbit_samples_colliding_of_72": 0,
+   "min_clearance_mm": 23.8
+  },
+  "Mender_Light": {
+   "orbit_samples_colliding_of_72": 0,
+   "min_clearance_mm": 17.6
+  },
+  "Mender_Medium": {
+   "orbit_samples_colliding_of_72": 0,
+   "min_clearance_mm": 33.0
+  },
+  "Mender_Heavy": {
+   "orbit_samples_colliding_of_72": 0,
+   "min_clearance_mm": 48.5
+  },
+  "Volt_Light": {
+   "orbit_samples_colliding_of_72": 0,
+   "min_clearance_mm": 25.2
+  },
+  "Volt_Medium": {
+   "orbit_samples_colliding_of_72": 0,
+   "min_clearance_mm": 43.3
+  },
+  "Volt_Heavy": {
+   "orbit_samples_colliding_of_72": 0,
+   "min_clearance_mm": 61.0
+  },
+  "Phase_Light": {
+   "orbit_samples_colliding_of_72": 0,
+   "min_clearance_mm": 28.3
+  },
+  "Phase_Medium": {
+   "orbit_samples_colliding_of_72": 0,
+   "min_clearance_mm": 44.9
+  },
+  "Phase_Heavy": {
+   "orbit_samples_colliding_of_72": 0,
+   "min_clearance_mm": 62.2
+  }
+ },
+ "vertical": {
+  "Bulwark_Light": {
+   "z_min_mm": -12.3,
+   "z_max_mm": 14.1,
+   "height_mm": 26.4,
+   "outer_diameter_m": 0.33,
+   "clearance_above_head_top_mm": 207.7
+  },
+  "Bulwark_Medium": {
+   "z_min_mm": -35.0,
+   "z_max_mm": 16.6,
+   "height_mm": 51.6,
+   "outer_diameter_m": 0.428,
+   "clearance_above_head_top_mm": 185.0
+  },
+  "Bulwark_Heavy": {
+   "z_min_mm": -84.0,
+   "z_max_mm": 19.9,
+   "height_mm": 103.9,
+   "outer_diameter_m": 0.594,
+   "clearance_above_head_top_mm": 136.0
+  },
+  "Mender_Light": {
+   "z_min_mm": -5.1,
+   "z_max_mm": 5.8,
+   "height_mm": 10.9,
+   "outer_diameter_m": 0.31,
+   "clearance_above_head_top_mm": 214.9
+  },
+  "Mender_Medium": {
+   "z_min_mm": -26.5,
+   "z_max_mm": 6.8,
+   "height_mm": 33.3,
+   "outer_diameter_m": 0.403,
+   "clearance_above_head_top_mm": 193.5
+  },
+  "Mender_Heavy": {
+   "z_min_mm": -65.4,
+   "z_max_mm": 8.2,
+   "height_mm": 73.6,
+   "outer_diameter_m": 0.548,
+   "clearance_above_head_top_mm": 154.6
+  },
+  "Volt_Light": {
+   "z_min_mm": -9.8,
+   "z_max_mm": 37.0,
+   "height_mm": 46.7,
+   "outer_diameter_m": 0.295,
+   "clearance_above_head_top_mm": 210.2
+  },
+  "Volt_Medium": {
+   "z_min_mm": -32.0,
+   "z_max_mm": 43.5,
+   "height_mm": 75.5,
+   "outer_diameter_m": 0.385,
+   "clearance_above_head_top_mm": 188.0
+  },
+  "Volt_Heavy": {
+   "z_min_mm": -72.0,
+   "z_max_mm": 52.2,
+   "height_mm": 124.2,
+   "outer_diameter_m": 0.527,
+   "clearance_above_head_top_mm": 148.0
+  },
+  "Phase_Light": {
+   "z_min_mm": -3.4,
+   "z_max_mm": 9.2,
+   "height_mm": 12.6,
+   "outer_diameter_m": 0.289,
+   "clearance_above_head_top_mm": 216.6
+  },
+  "Phase_Medium": {
+   "z_min_mm": -24.5,
+   "z_max_mm": 10.8,
+   "height_mm": 35.3,
+   "outer_diameter_m": 0.378,
+   "clearance_above_head_top_mm": 195.5
+  },
+  "Phase_Heavy": {
+   "z_min_mm": -63.0,
+   "z_max_mm": 13.0,
+   "height_mm": 76.0,
+   "outer_diameter_m": 0.518,
+   "clearance_above_head_top_mm": 157.0
+  }
+ },
+ "glass_coverage_deg": {
+  "Bulwark_Head": 11,
+  "Bulwark_Arms": 10,
+  "Bulwark_Torso": 11,
+  "Bulwark_Legs": 11,
+  "Mender_Head": 23,
+  "Mender_Arms": 22,
+  "Mender_Torso": 22,
+  "Mender_Legs": 20,
+  "Volt_Head": 29,
+  "Volt_Arms": 28,
+  "Volt_Torso": 29,
+  "Volt_Legs": 29,
+  "Phase_Head": 23,
+  "Phase_Arms": 22,
+  "Phase_Torso": 20,
+  "Phase_Legs": 23
+ },
+ "materials": {
+  "M_HALO_Bone": {
+   "base": [
+    0.55,
+    0.52,
+    0.46
+   ],
+   "alpha": 1.0,
+   "emission": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "emission_strength": 0.0,
+   "rough": 0.6,
+   "metal": 0.0
+  },
+  "M_HALO_Bone.001": {
+   "base": [
+    0.55,
+    0.52,
+    0.46
+   ],
+   "alpha": 1.0,
+   "emission": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "emission_strength": 0.0,
+   "rough": 0.6,
+   "metal": 0.0
+  },
+  "M_HALO_Glass_Off": {
+   "base": [
+    0.02,
+    0.02,
+    0.025
+   ],
+   "alpha": 0.55,
+   "emission": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "emission_strength": 0.0,
+   "rough": 0.08,
+   "metal": 0.0
+  },
+  "M_HALO_Glass_T1": {
+   "base": [
+    0.102,
+    0.106,
+    0.11
+   ],
+   "alpha": 1.0,
+   "emission": [
+    0.924,
+    0.957,
+    1.0
+   ],
+   "emission_strength": 2.208,
+   "rough": 0.25,
+   "metal": 0.0
+  },
+  "M_HALO_Glass_T1.001": {
+   "base": [
+    0.102,
+    0.106,
+    0.11
+   ],
+   "alpha": 1.0,
+   "emission": [
+    0.924,
+    0.957,
+    1.0
+   ],
+   "emission_strength": 2.208,
+   "rough": 0.25,
+   "metal": 0.0
+  },
+  "M_HALO_Glass_T1.002": {
+   "base": [
+    0.102,
+    0.106,
+    0.11
+   ],
+   "alpha": 1.0,
+   "emission": [
+    0.924,
+    0.957,
+    1.0
+   ],
+   "emission_strength": 2.208,
+   "rough": 0.25,
+   "metal": 0.0
+  },
+  "M_HALO_Glass_T1.003": {
+   "base": [
+    0.102,
+    0.106,
+    0.11
+   ],
+   "alpha": 1.0,
+   "emission": [
+    0.924,
+    0.957,
+    1.0
+   ],
+   "emission_strength": 2.208,
+   "rough": 0.25,
+   "metal": 0.0
+  },
+  "M_HALO_Glass_T1.004": {
+   "base": [
+    0.102,
+    0.106,
+    0.11
+   ],
+   "alpha": 1.0,
+   "emission": [
+    0.924,
+    0.957,
+    1.0
+   ],
+   "emission_strength": 2.208,
+   "rough": 0.25,
+   "metal": 0.0
+  },
+  "M_HALO_Glass_T1.005": {
+   "base": [
+    0.102,
+    0.106,
+    0.11
+   ],
+   "alpha": 1.0,
+   "emission": [
+    0.924,
+    0.957,
+    1.0
+   ],
+   "emission_strength": 2.208,
+   "rough": 0.25,
+   "metal": 0.0
+  },
+  "M_HALO_Glass_T1.006": {
+   "base": [
+    0.102,
+    0.106,
+    0.11
+   ],
+   "alpha": 1.0,
+   "emission": [
+    0.924,
+    0.957,
+    1.0
+   ],
+   "emission_strength": 2.208,
+   "rough": 0.25,
+   "metal": 0.0
+  },
+  "M_HALO_Glass_T2": {
+   "base": [
+    0.012,
+    0.054,
+    0.12
+   ],
+   "alpha": 1.0,
+   "emission": [
+    0.1,
+    0.45,
+    1.0
+   ],
+   "emission_strength": 2.4,
+   "rough": 0.25,
+   "metal": 0.0
+  },
+  "M_HALO_Glass_T3": {
+   "base": [
+    0.066,
+    0.018,
+    0.12
+   ],
+   "alpha": 1.0,
+   "emission": [
+    0.55,
+    0.15,
+    1.0
+   ],
+   "emission_strength": 2.4,
+   "rough": 0.25,
+   "metal": 0.0
+  },
+  "M_HALO_Glass_T4": {
+   "base": [
+    0.12,
+    0.074,
+    0.01
+   ],
+   "alpha": 1.0,
+   "emission": [
+    1.0,
+    0.62,
+    0.08
+   ],
+   "emission_strength": 2.4,
+   "rough": 0.25,
+   "metal": 0.0
+  },
+  "M_HALO_Graphite": {
+   "base": [
+    0.03,
+    0.033,
+    0.04
+   ],
+   "alpha": 1.0,
+   "emission": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "emission_strength": 0.0,
+   "rough": 0.55,
+   "metal": 0.15
+  },
+  "M_HALO_Graphite.001": {
+   "base": [
+    0.03,
+    0.033,
+    0.04
+   ],
+   "alpha": 1.0,
+   "emission": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "emission_strength": 0.0,
+   "rough": 0.55,
+   "metal": 0.15
+  },
+  "M_HALO_Graphite.002": {
+   "base": [
+    0.03,
+    0.033,
+    0.04
+   ],
+   "alpha": 1.0,
+   "emission": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "emission_strength": 0.0,
+   "rough": 0.55,
+   "metal": 0.15
+  },
+  "M_HALO_Graphite.003": {
+   "base": [
+    0.03,
+    0.033,
+    0.04
+   ],
+   "alpha": 1.0,
+   "emission": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "emission_strength": 0.0,
+   "rough": 0.55,
+   "metal": 0.15
+  },
+  "M_HALO_Graphite.004": {
+   "base": [
+    0.03,
+    0.033,
+    0.04
+   ],
+   "alpha": 1.0,
+   "emission": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "emission_strength": 0.0,
+   "rough": 0.55,
+   "metal": 0.15
+  },
+  "M_HALO_Graphite.005": {
+   "base": [
+    0.03,
+    0.033,
+    0.04
+   ],
+   "alpha": 1.0,
+   "emission": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "emission_strength": 0.0,
+   "rough": 0.55,
+   "metal": 0.15
+  },
+  "M_HALO_Graphite.006": {
+   "base": [
+    0.03,
+    0.033,
+    0.04
+   ],
+   "alpha": 1.0,
+   "emission": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "emission_strength": 0.0,
+   "rough": 0.55,
+   "metal": 0.15
+  },
+  "M_HALO_Gunmetal": {
+   "base": [
+    0.11,
+    0.115,
+    0.12
+   ],
+   "alpha": 1.0,
+   "emission": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "emission_strength": 0.0,
+   "rough": 0.35,
+   "metal": 0.85
+  },
+  "M_HALO_Gunmetal.001": {
+   "base": [
+    0.11,
+    0.115,
+    0.12
+   ],
+   "alpha": 1.0,
+   "emission": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "emission_strength": 0.0,
+   "rough": 0.35,
+   "metal": 0.85
+  },
+  "M_HALO_Gunmetal.002": {
+   "base": [
+    0.11,
+    0.115,
+    0.12
+   ],
+   "alpha": 1.0,
+   "emission": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "emission_strength": 0.0,
+   "rough": 0.35,
+   "metal": 0.85
+  },
+  "M_HALO_Gunmetal.003": {
+   "base": [
+    0.11,
+    0.115,
+    0.12
+   ],
+   "alpha": 1.0,
+   "emission": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "emission_strength": 0.0,
+   "rough": 0.35,
+   "metal": 0.85
+  },
+  "M_HALO_Gunmetal.004": {
+   "base": [
+    0.11,
+    0.115,
+    0.12
+   ],
+   "alpha": 1.0,
+   "emission": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "emission_strength": 0.0,
+   "rough": 0.35,
+   "metal": 0.85
+  }
+ }
+}

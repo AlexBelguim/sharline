@@ -1,8 +1,8 @@
 {
-  "base": 14810,
-  "stock_standard": 4750,
-  "stock_folding": 3988,
-  "mag_5": 2396,
-  "mag_8": 2972,
-  "default (base+stock_standard+mag_5)": 21956
+  "base": 13928,
+  "stock_standard": 4484,
+  "stock_folding": 3390,
+  "mag_5": 2172,
+  "mag_8": 2604,
+  "default (base+stock_standard+mag_5)": 20584
 }

@@ -1,0 +1,964 @@
+{
+ "topology": {
+  "HALO_Bulwark_Arc_Arms": {
+   "tris": 634,
+   "edges_gt2_faces": 0,
+   "boundary_edges": 0,
+   "inverted_closed_islands": 0,
+   "coincident_face_pairs": 0,
+   "uv_layers": 1
+  },
+  "HALO_Bulwark_Arc_Head": {
+   "tris": 798,
+   "edges_gt2_faces": 0,
+   "boundary_edges": 0,
+   "inverted_closed_islands": 0,
+   "coincident_face_pairs": 0,
+   "uv_layers": 1
+  },
+  "HALO_Bulwark_Arc_Legs": {
+   "tris": 634,
+   "edges_gt2_faces": 0,
+   "boundary_edges": 0,
+   "inverted_closed_islands": 0,
+   "coincident_face_pairs": 0,
+   "uv_layers": 1
+  },
+  "HALO_Bulwark_Arc_Torso": {
+   "tris": 730,
+   "edges_gt2_faces": 0,
+   "boundary_edges": 0,
+   "inverted_closed_islands": 0,
+   "coincident_face_pairs": 0,
+   "uv_layers": 1
+  },
+  "HALO_Bulwark_Band_Heavy": {
+   "tris": 1380,
+   "edges_gt2_faces": 0,
+   "boundary_edges": 0,
+   "inverted_closed_islands": 0,
+   "coincident_face_pairs": 0,
+   "uv_layers": 1
+  },
+  "HALO_Bulwark_Band_Medium": {
+   "tris": 544,
+   "edges_gt2_faces": 0,
+   "boundary_edges": 0,
+   "inverted_closed_islands": 0,
+   "coincident_face_pairs": 0,
+   "uv_layers": 1
+  },
+  "HALO_Bulwark_Far_Frame_Heavy": {
+   "tris": 348,
+   "edges_gt2_faces": 0,
+   "boundary_edges": 0,
+   "inverted_closed_islands": 0,
+   "coincident_face_pairs": 0,
+   "uv_layers": 1
+  },
+  "HALO_Bulwark_Far_Frame_Light": {
+   "tris": 204,
+   "edges_gt2_faces": 0,
+   "boundary_edges": 0,
+   "inverted_closed_islands": 0,
+   "coincident_face_pairs": 0,
+   "uv_layers": 1
+  },
+  "HALO_Bulwark_Far_Frame_Medium": {
+   "tris": 324,
+   "edges_gt2_faces": 0,
+   "boundary_edges": 0,
+   "inverted_closed_islands": 0,
+   "coincident_face_pairs": 0,
+   "uv_layers": 1
+  },
+  "HALO_Bulwark_Far_Glass_Arms": {
+   "tris": 44,
+   "edges_gt2_faces": 0,
+   "boundary_edges": 0,
+   "inverted_closed_islands": 0,
+   "coincident_face_pairs": 0,
+   "uv_layers": 1
+  },
+  "HALO_Bulwark_Far_Glass_Head": {
+   "tris": 60,
+   "edges_gt2_faces": 0,
+   "boundary_edges": 0,
+   "inverted_closed_islands": 0,
+   "coincident_face_pairs": 0,
+   "uv_layers": 1
+  },
+  "HALO_Bulwark_Far_Glass_Legs": {
+   "tris": 44,
+   "edges_gt2_faces": 0,
+   "boundary_edges": 0,
+   "inverted_closed_islands": 0,
+   "coincident_face_pairs": 0,
+   "uv_layers": 1
+  },
+  "HALO_Bulwark_Far_Glass_Torso": {
+   "tris": 60,
+   "edges_gt2_faces": 0,
+   "boundary_edges": 0,
+   "inverted_closed_islands": 0,
+   "coincident_face_pairs": 0,
+   "uv_layers": 1
+  },
+  "HALO_Core_Bulwark": {
+   "tris": 612,
+   "edges_gt2_faces": 0,
+   "boundary_edges": 0,
+   "inverted_closed_islands": 0,
+   "coincident_face_pairs": 0,
+   "uv_layers": 1
+  },
+  "HALO_Core_Mender": {
+   "tris": 944,
+   "edges_gt2_faces": 0,
+   "boundary_edges": 0,
+   "inverted_closed_islands": 0,
+   "coincident_face_pairs": 0,
+   "uv_layers": 1
+  },
+  "HALO_Core_Phase": {
+   "tris": 1036,
+   "edges_gt2_faces": 0,
+   "boundary_edges": 0,
+   "inverted_closed_islands": 0,
+   "coincident_face_pairs": 0,
+   "uv_layers": 1
+  },
+  "HALO_Core_Volt": {
+   "tris": 972,
+   "edges_gt2_faces": 0,
+   "boundary_edges": 0,
+   "inverted_closed_islands": 0,
+   "coincident_face_pairs": 0,
+   "uv_layers": 1
+  },
+  "HALO_Mender_Arc_Arms": {
+   "tris": 864,
+   "edges_gt2_faces": 0,
+   "boundary_edges": 0,
+   "inverted_closed_islands": 0,
+   "coincident_face_pairs": 0,
+   "uv_layers": 1
+  },
+  "HALO_Mender_Arc_Head": {
+   "tris": 1012,
+   "edges_gt2_faces": 0,
+   "boundary_edges": 0,
+   "inverted_closed_islands": 0,
+   "coincident_face_pairs": 0,
+   "uv_layers": 1
+  },
+  "HALO_Mender_Arc_Legs": {
+   "tris": 864,
+   "edges_gt2_faces": 0,
+   "boundary_edges": 0,
+   "inverted_closed_islands": 0,
+   "coincident_face_pairs": 0,
+   "uv_layers": 1
+  },
+  "HALO_Mender_Arc_Torso": {
+   "tris": 868,
+   "edges_gt2_faces": 0,
+   "boundary_edges": 0,
+   "inverted_closed_islands": 0,
+   "coincident_face_pairs": 0,
+   "uv_layers": 1
+  },
+  "HALO_Mender_Band_Heavy": {
+   "tris": 2116,
+   "edges_gt2_faces": 0,
+   "boundary_edges": 0,
+   "inverted_closed_islands": 0,
+   "coincident_face_pairs": 0,
+   "uv_layers": 1
+  },
+  "HALO_Mender_Band_Medium": {
+   "tris": 1024,
+   "edges_gt2_faces": 0,
+   "boundary_edges": 0,
+   "inverted_closed_islands": 0,
+   "coincident_face_pairs": 0,
+   "uv_layers": 1
+  },
+  "HALO_Mender_Far_Frame_Heavy": {
+   "tris": 696,
+   "edges_gt2_faces": 0,
+   "boundary_edges": 0,
+   "inverted_closed_islands": 0,
+   "coincident_face_pairs": 0,
+   "uv_layers": 1
+  },
+  "HALO_Mender_Far_Frame_Light": {
+   "tris": 264,
+   "edges_gt2_faces": 0,
+   "boundary_edges": 0,
+   "inverted_closed_islands": 0,
+   "coincident_face_pairs": 0,
+   "uv_layers": 1
+  },
+  "HALO_Mender_Far_Frame_Medium": {
+   "tris": 624,
+   "edges_gt2_faces": 0,
+   "boundary_edges": 0,
+   "inverted_closed_islands": 0,
+   "coincident_face_pairs": 0,
+   "uv_layers": 1
+  },
+  "HALO_Mender_Far_Glass_Arms": {
+   "tris": 88,
+   "edges_gt2_faces": 0,
+   "boundary_edges": 0,
+   "inverted_closed_islands": 0,
+   "coincident_face_pairs": 0,
+   "uv_layers": 1
+  },
+  "HALO_Mender_Far_Glass_Head": {
+   "tris": 88,
+   "edges_gt2_faces": 0,
+   "boundary_edges": 0,
+   "inverted_closed_islands": 0,
+   "coincident_face_pairs": 0,
+   "uv_layers": 1
+  },
+  "HALO_Mender_Far_Glass_Legs": {
+   "tris": 88,
+   "edges_gt2_faces": 0,
+   "boundary_edges": 0,
+   "inverted_closed_islands": 0,
+   "coincident_face_pairs": 0,
+   "uv_layers": 1
+  },
+  "HALO_Mender_Far_Glass_Torso": {
+   "tris": 88,
+   "edges_gt2_faces": 0,
+   "boundary_edges": 0,
+   "inverted_closed_islands": 0,
+   "coincident_face_pairs": 0,
+   "uv_layers": 1
+  },
+  "HALO_Phase_Arc_Arms": {
+   "tris": 712,
+   "edges_gt2_faces": 0,
+   "boundary_edges": 0,
+   "inverted_closed_islands": 0,
+   "coincident_face_pairs": 0,
+   "uv_layers": 1
+  },
+  "HALO_Phase_Arc_Head": {
+   "tris": 800,
+   "edges_gt2_faces": 0,
+   "boundary_edges": 0,
+   "inverted_closed_islands": 0,
+   "coincident_face_pairs": 0,
+   "uv_layers": 1
+  },
+  "HALO_Phase_Arc_Legs": {
+   "tris": 712,
+   "edges_gt2_faces": 0,
+   "boundary_edges": 0,
+   "inverted_closed_islands": 0,
+   "coincident_face_pairs": 0,
+   "uv_layers": 1
+  },
+  "HALO_Phase_Arc_Torso": {
+   "tris": 832,
+   "edges_gt2_faces": 0,
+   "boundary_edges": 0,
+   "inverted_closed_islands": 0,
+   "coincident_face_pairs": 0,
+   "uv_layers": 1
+  },
+  "HALO_Phase_Band_Heavy": {
+   "tris": 1938,
+   "edges_gt2_faces": 0,
+   "boundary_edges": 0,
+   "inverted_closed_islands": 0,
+   "coincident_face_pairs": 0,
+   "uv_layers": 1
+  },
+  "HALO_Phase_Band_Medium": {
+   "tris": 960,
+   "edges_gt2_faces": 0,
+   "boundary_edges": 0,
+   "inverted_closed_islands": 0,
+   "coincident_face_pairs": 0,
+   "uv_layers": 1
+  },
+  "HALO_Phase_Far_Frame_Heavy": {
+   "tris": 668,
+   "edges_gt2_faces": 0,
+   "boundary_edges": 0,
+   "inverted_closed_islands": 0,
+   "coincident_face_pairs": 0,
+   "uv_layers": 1
+  },
+  "HALO_Phase_Far_Frame_Light": {
+   "tris": 248,
+   "edges_gt2_faces": 0,
+   "boundary_edges": 0,
+   "inverted_closed_islands": 0,
+   "coincident_face_pairs": 0,
+   "uv_layers": 1
+  },
+  "HALO_Phase_Far_Frame_Medium": {
+   "tris": 596,
+   "edges_gt2_faces": 0,
+   "boundary_edges": 0,
+   "inverted_closed_islands": 0,
+   "coincident_face_pairs": 0,
+   "uv_layers": 1
+  },
+  "HALO_Phase_Far_Glass_Arms": {
+   "tris": 68,
+   "edges_gt2_faces": 0,
+   "boundary_edges": 0,
+   "inverted_closed_islands": 0,
+   "coincident_face_pairs": 0,
+   "uv_layers": 1
+  },
+  "HALO_Phase_Far_Glass_Head": {
+   "tris": 68,
+   "edges_gt2_faces": 0,
+   "boundary_edges": 0,
+   "inverted_closed_islands": 0,
+   "coincident_face_pairs": 0,
+   "uv_layers": 1
+  },
+  "HALO_Phase_Far_Glass_Legs": {
+   "tris": 68,
+   "edges_gt2_faces": 0,
+   "boundary_edges": 0,
+   "inverted_closed_islands": 0,
+   "coincident_face_pairs": 0,
+   "uv_layers": 1
+  },
+  "HALO_Phase_Far_Glass_Torso": {
+   "tris": 104,
+   "edges_gt2_faces": 0,
+   "boundary_edges": 0,
+   "inverted_closed_islands": 0,
+   "coincident_face_pairs": 0,
+   "uv_layers": 1
+  },
+  "HALO_PowerCell": {
+   "tris": 488,
+   "edges_gt2_faces": 0,
+   "boundary_edges": 0,
+   "inverted_closed_islands": 0,
+   "coincident_face_pairs": 0,
+   "uv_layers": 1
+  },
+  "HALO_Shard_A": {
+   "tris": 26,
+   "edges_gt2_faces": 0,
+   "boundary_edges": 0,
+   "inverted_closed_islands": 0,
+   "coincident_face_pairs": 0,
+   "uv_layers": 1
+  },
+  "HALO_Shard_B": {
+   "tris": 14,
+   "edges_gt2_faces": 0,
+   "boundary_edges": 0,
+   "inverted_closed_islands": 0,
+   "coincident_face_pairs": 0,
+   "uv_layers": 1
+  },
+  "HALO_Shard_C": {
+   "tris": 18,
+   "edges_gt2_faces": 0,
+   "boundary_edges": 0,
+   "inverted_closed_islands": 0,
+   "coincident_face_pairs": 0,
+   "uv_layers": 1
+  },
+  "HALO_TierPip": {
+   "tris": 8,
+   "edges_gt2_faces": 0,
+   "boundary_edges": 0,
+   "inverted_closed_islands": 0,
+   "coincident_face_pairs": 0,
+   "uv_layers": 1
+  },
+  "HALO_Volt_Arc_Arms": {
+   "tris": 1072,
+   "edges_gt2_faces": 0,
+   "boundary_edges": 0,
+   "inverted_closed_islands": 0,
+   "coincident_face_pairs": 0,
+   "uv_layers": 1
+  },
+  "HALO_Volt_Arc_Head": {
+   "tris": 1136,
+   "edges_gt2_faces": 0,
+   "boundary_edges": 0,
+   "inverted_closed_islands": 0,
+   "coincident_face_pairs": 0,
+   "uv_layers": 1
+  },
+  "HALO_Volt_Arc_Legs": {
+   "tris": 1072,
+   "edges_gt2_faces": 0,
+   "boundary_edges": 0,
+   "inverted_closed_islands": 0,
+   "coincident_face_pairs": 0,
+   "uv_layers": 1
+  },
+  "HALO_Volt_Arc_Torso": {
+   "tris": 1076,
+   "edges_gt2_faces": 0,
+   "boundary_edges": 0,
+   "inverted_closed_islands": 0,
+   "coincident_face_pairs": 0,
+   "uv_layers": 1
+  },
+  "HALO_Volt_Band_Heavy": {
+   "tris": 2116,
+   "edges_gt2_faces": 0,
+   "boundary_edges": 0,
+   "inverted_closed_islands": 0,
+   "coincident_face_pairs": 0,
+   "uv_layers": 1
+  },
+  "HALO_Volt_Band_Medium": {
+   "tris": 1024,
+   "edges_gt2_faces": 0,
+   "boundary_edges": 0,
+   "inverted_closed_islands": 0,
+   "coincident_face_pairs": 0,
+   "uv_layers": 1
+  },
+  "HALO_Volt_Far_Frame_Heavy": {
+   "tris": 684,
+   "edges_gt2_faces": 0,
+   "boundary_edges": 0,
+   "inverted_closed_islands": 0,
+   "coincident_face_pairs": 0,
+   "uv_layers": 1
+  },
+  "HALO_Volt_Far_Frame_Light": {
+   "tris": 252,
+   "edges_gt2_faces": 0,
+   "boundary_edges": 0,
+   "inverted_closed_islands": 0,
+   "coincident_face_pairs": 0,
+   "uv_layers": 1
+  },
+  "HALO_Volt_Far_Frame_Medium": {
+   "tris": 612,
+   "edges_gt2_faces": 0,
+   "boundary_edges": 0,
+   "inverted_closed_islands": 0,
+   "coincident_face_pairs": 0,
+   "uv_layers": 1
+  },
+  "HALO_Volt_Far_Glass_Arms": {
+   "tris": 92,
+   "edges_gt2_faces": 0,
+   "boundary_edges": 0,
+   "inverted_closed_islands": 0,
+   "coincident_face_pairs": 0,
+   "uv_layers": 1
+  },
+  "HALO_Volt_Far_Glass_Head": {
+   "tris": 92,
+   "edges_gt2_faces": 0,
+   "boundary_edges": 0,
+   "inverted_closed_islands": 0,
+   "coincident_face_pairs": 0,
+   "uv_layers": 1
+  },
+  "HALO_Volt_Far_Glass_Legs": {
+   "tris": 92,
+   "edges_gt2_faces": 0,
+   "boundary_edges": 0,
+   "inverted_closed_islands": 0,
+   "coincident_face_pairs": 0,
+   "uv_layers": 1
+  },
+  "HALO_Volt_Far_Glass_Torso": {
+   "tris": 92,
+   "edges_gt2_faces": 0,
+   "boundary_edges": 0,
+   "inverted_closed_islands": 0,
+   "coincident_face_pairs": 0,
+   "uv_layers": 1
+  }
+ },
+ "pips": {
+  "Bulwark": {
+   "gap_mm_pip_bottom_to_arc_below": [
+    0.2,
+    0.2,
+    0.2,
+    0.2
+   ],
+   "pip_intersects_arc": [
+    false,
+    false,
+    false,
+    false
+   ]
+  },
+  "Mender": {
+   "gap_mm_pip_bottom_to_arc_below": [
+    0.3,
+    0.2,
+    0.2,
+    0.3
+   ],
+   "pip_intersects_arc": [
+    false,
+    false,
+    false,
+    false
+   ]
+  },
+  "Volt": {
+   "gap_mm_pip_bottom_to_arc_below": [
+    0.2,
+    0.2,
+    0.2,
+    0.2
+   ],
+   "pip_intersects_arc": [
+    false,
+    false,
+    false,
+    false
+   ]
+  },
+  "Phase": {
+   "gap_mm_pip_bottom_to_arc_below": [
+    0.2,
+    0.2,
+    0.2,
+    0.2
+   ],
+   "pip_intersects_arc": [
+    false,
+    false,
+    false,
+    false
+   ]
+  }
+ },
+ "vertical": {
+  "Bulwark_Light": {
+   "ring_bottom_mm": -16.0,
+   "ring_top_mm": 24.6,
+   "total_height_mm_at_scale": 34.5,
+   "outer_diameter_m_at_scale": 0.339
+  },
+  "Bulwark_Medium": {
+   "ring_bottom_mm": -16.0,
+   "ring_top_mm": 24.6,
+   "band_bottom_mm": -25.2,
+   "band_top_mm": 3.0,
+   "hang_below_ring_mm": 9.2,
+   "total_height_mm_at_scale": 49.8,
+   "outer_diameter_m_at_scale": 0.432
+  },
+  "Bulwark_Heavy": {
+   "ring_bottom_mm": -16.0,
+   "ring_top_mm": 24.6,
+   "band_bottom_mm": -44.2,
+   "band_top_mm": 2.5,
+   "hang_below_ring_mm": 28.2,
+   "total_height_mm_at_scale": 82.6,
+   "outer_diameter_m_at_scale": 0.599
+  },
+  "Mender_Light": {
+   "ring_bottom_mm": -12.5,
+   "ring_top_mm": 15.6,
+   "total_height_mm_at_scale": 23.9,
+   "outer_diameter_m_at_scale": 0.311
+  },
+  "Mender_Medium": {
+   "ring_bottom_mm": -12.5,
+   "ring_top_mm": 15.6,
+   "band_bottom_mm": -22.5,
+   "band_top_mm": -1.0,
+   "hang_below_ring_mm": 10.0,
+   "total_height_mm_at_scale": 38.1,
+   "outer_diameter_m_at_scale": 0.404
+  },
+  "Mender_Heavy": {
+   "ring_bottom_mm": -12.5,
+   "ring_top_mm": 15.6,
+   "band_bottom_mm": -38.5,
+   "band_top_mm": 0.5,
+   "hang_below_ring_mm": 26.0,
+   "total_height_mm_at_scale": 64.9,
+   "outer_diameter_m_at_scale": 0.549
+  },
+  "Volt_Light": {
+   "ring_bottom_mm": -12.5,
+   "ring_top_mm": 43.5,
+   "total_height_mm_at_scale": 47.6,
+   "outer_diameter_m_at_scale": 0.296
+  },
+  "Volt_Medium": {
+   "ring_bottom_mm": -12.5,
+   "ring_top_mm": 43.5,
+   "band_bottom_mm": -22.5,
+   "band_top_mm": 3.5,
+   "hang_below_ring_mm": 10.0,
+   "total_height_mm_at_scale": 66.0,
+   "outer_diameter_m_at_scale": 0.386
+  },
+  "Volt_Heavy": {
+   "ring_bottom_mm": -12.5,
+   "ring_top_mm": 43.5,
+   "band_bottom_mm": -38.5,
+   "band_top_mm": 7.0,
+   "hang_below_ring_mm": 26.0,
+   "total_height_mm_at_scale": 98.4,
+   "outer_diameter_m_at_scale": 0.528
+  },
+  "Phase_Light": {
+   "ring_bottom_mm": -13.2,
+   "ring_top_mm": 39.8,
+   "total_height_mm_at_scale": 45.0,
+   "outer_diameter_m_at_scale": 0.287
+  },
+  "Phase_Medium": {
+   "ring_bottom_mm": -13.2,
+   "ring_top_mm": 39.8,
+   "band_bottom_mm": -23.0,
+   "band_top_mm": 3.0,
+   "hang_below_ring_mm": 9.8,
+   "total_height_mm_at_scale": 62.8,
+   "outer_diameter_m_at_scale": 0.376
+  },
+  "Phase_Heavy": {
+   "ring_bottom_mm": -13.2,
+   "ring_top_mm": 39.8,
+   "band_bottom_mm": -39.0,
+   "band_top_mm": 6.5,
+   "hang_below_ring_mm": 25.8,
+   "total_height_mm_at_scale": 94.6,
+   "outer_diameter_m_at_scale": 0.516
+  }
+ },
+ "cells": {
+  "Bulwark_Light": {
+   "collisions": 0,
+   "min_clearance_mm": 22.7
+  },
+  "Bulwark_Medium": {
+   "collisions": 0,
+   "min_clearance_mm": 46.4
+  },
+  "Bulwark_Heavy": {
+   "collisions": 0,
+   "min_clearance_mm": 61.0
+  },
+  "Mender_Light": {
+   "collisions": 0,
+   "min_clearance_mm": 36.4
+  },
+  "Mender_Medium": {
+   "collisions": 0,
+   "min_clearance_mm": 64.4
+  },
+  "Mender_Heavy": {
+   "collisions": 0,
+   "min_clearance_mm": 95.6
+  },
+  "Volt_Light": {
+   "collisions": 0,
+   "min_clearance_mm": 33.0
+  },
+  "Volt_Medium": {
+   "collisions": 0,
+   "min_clearance_mm": 67.6
+  },
+  "Volt_Heavy": {
+   "collisions": 0,
+   "min_clearance_mm": 95.4
+  },
+  "Phase_Light": {
+   "collisions": 0,
+   "min_clearance_mm": 37.2
+  },
+  "Phase_Medium": {
+   "collisions": 0,
+   "min_clearance_mm": 72.3
+  },
+  "Phase_Heavy": {
+   "collisions": 0,
+   "min_clearance_mm": 99.8
+  }
+ },
+ "cell_view": {
+  "-2deg_Bulwark_Light": {
+   "true_cells": 1,
+   "true_count_fraction": 1.0,
+   "distribution": {
+    "1": 1.0
+   }
+  },
+  "-5deg_Bulwark_Light": {
+   "true_cells": 1,
+   "true_count_fraction": 1.0,
+   "distribution": {
+    "1": 1.0
+   }
+  },
+  "-10deg_Bulwark_Light": {
+   "true_cells": 1,
+   "true_count_fraction": 0.8,
+   "distribution": {
+    "0": 0.2,
+    "1": 0.8
+   }
+  },
+  "-2deg_Bulwark_Medium": {
+   "true_cells": 2,
+   "true_count_fraction": 1.0,
+   "distribution": {
+    "2": 1.0
+   }
+  },
+  "-5deg_Bulwark_Medium": {
+   "true_cells": 2,
+   "true_count_fraction": 1.0,
+   "distribution": {
+    "2": 1.0
+   }
+  },
+  "-10deg_Bulwark_Medium": {
+   "true_cells": 2,
+   "true_count_fraction": 0.6,
+   "distribution": {
+    "1": 0.4,
+    "2": 0.6
+   }
+  },
+  "-2deg_Bulwark_Heavy": {
+   "true_cells": 3,
+   "true_count_fraction": 1.0,
+   "distribution": {
+    "3": 1.0
+   }
+  },
+  "-5deg_Bulwark_Heavy": {
+   "true_cells": 3,
+   "true_count_fraction": 1.0,
+   "distribution": {
+    "3": 1.0
+   }
+  },
+  "-10deg_Bulwark_Heavy": {
+   "true_cells": 3,
+   "true_count_fraction": 0.375,
+   "distribution": {
+    "2": 0.62,
+    "3": 0.38
+   }
+  },
+  "-2deg_Mender_Light": {
+   "true_cells": 1,
+   "true_count_fraction": 1.0,
+   "distribution": {
+    "1": 1.0
+   }
+  },
+  "-5deg_Mender_Light": {
+   "true_cells": 1,
+   "true_count_fraction": 1.0,
+   "distribution": {
+    "1": 1.0
+   }
+  },
+  "-10deg_Mender_Light": {
+   "true_cells": 1,
+   "true_count_fraction": 1.0,
+   "distribution": {
+    "1": 1.0
+   }
+  },
+  "-2deg_Mender_Medium": {
+   "true_cells": 2,
+   "true_count_fraction": 1.0,
+   "distribution": {
+    "2": 1.0
+   }
+  },
+  "-5deg_Mender_Medium": {
+   "true_cells": 2,
+   "true_count_fraction": 1.0,
+   "distribution": {
+    "2": 1.0
+   }
+  },
+  "-10deg_Mender_Medium": {
+   "true_cells": 2,
+   "true_count_fraction": 0.767,
+   "distribution": {
+    "1": 0.23,
+    "2": 0.77
+   }
+  },
+  "-2deg_Mender_Heavy": {
+   "true_cells": 3,
+   "true_count_fraction": 1.0,
+   "distribution": {
+    "3": 1.0
+   }
+  },
+  "-5deg_Mender_Heavy": {
+   "true_cells": 3,
+   "true_count_fraction": 1.0,
+   "distribution": {
+    "3": 1.0
+   }
+  },
+  "-10deg_Mender_Heavy": {
+   "true_cells": 3,
+   "true_count_fraction": 0.5,
+   "distribution": {
+    "2": 0.5,
+    "3": 0.5
+   }
+  },
+  "-2deg_Volt_Light": {
+   "true_cells": 1,
+   "true_count_fraction": 1.0,
+   "distribution": {
+    "1": 1.0
+   }
+  },
+  "-5deg_Volt_Light": {
+   "true_cells": 1,
+   "true_count_fraction": 1.0,
+   "distribution": {
+    "1": 1.0
+   }
+  },
+  "-10deg_Volt_Light": {
+   "true_cells": 1,
+   "true_count_fraction": 0.875,
+   "distribution": {
+    "0": 0.12,
+    "1": 0.88
+   }
+  },
+  "-2deg_Volt_Medium": {
+   "true_cells": 2,
+   "true_count_fraction": 1.0,
+   "distribution": {
+    "2": 1.0
+   }
+  },
+  "-5deg_Volt_Medium": {
+   "true_cells": 2,
+   "true_count_fraction": 1.0,
+   "distribution": {
+    "2": 1.0
+   }
+  },
+  "-10deg_Volt_Medium": {
+   "true_cells": 2,
+   "true_count_fraction": 0.617,
+   "distribution": {
+    "1": 0.38,
+    "2": 0.62
+   }
+  },
+  "-2deg_Volt_Heavy": {
+   "true_cells": 3,
+   "true_count_fraction": 1.0,
+   "distribution": {
+    "3": 1.0
+   }
+  },
+  "-5deg_Volt_Heavy": {
+   "true_cells": 3,
+   "true_count_fraction": 1.0,
+   "distribution": {
+    "3": 1.0
+   }
+  },
+  "-10deg_Volt_Heavy": {
+   "true_cells": 3,
+   "true_count_fraction": 0.45,
+   "distribution": {
+    "2": 0.55,
+    "3": 0.45
+   }
+  },
+  "-2deg_Phase_Light": {
+   "true_cells": 1,
+   "true_count_fraction": 1.0,
+   "distribution": {
+    "1": 1.0
+   }
+  },
+  "-5deg_Phase_Light": {
+   "true_cells": 1,
+   "true_count_fraction": 1.0,
+   "distribution": {
+    "1": 1.0
+   }
+  },
+  "-10deg_Phase_Light": {
+   "true_cells": 1,
+   "true_count_fraction": 0.867,
+   "distribution": {
+    "0": 0.13,
+    "1": 0.87
+   }
+  },
+  "-2deg_Phase_Medium": {
+   "true_cells": 2,
+   "true_count_fraction": 1.0,
+   "distribution": {
+    "2": 1.0
+   }
+  },
+  "-5deg_Phase_Medium": {
+   "true_cells": 2,
+   "true_count_fraction": 1.0,
+   "distribution": {
+    "2": 1.0
+   }
+  },
+  "-10deg_Phase_Medium": {
+   "true_cells": 2,
+   "true_count_fraction": 0.667,
+   "distribution": {
+    "1": 0.33,
+    "2": 0.67
+   }
+  },
+  "-2deg_Phase_Heavy": {
+   "true_cells": 3,
+   "true_count_fraction": 1.0,
+   "distribution": {
+    "3": 1.0
+   }
+  },
+  "-5deg_Phase_Heavy": {
+   "true_cells": 3,
+   "true_count_fraction": 1.0,
+   "distribution": {
+    "3": 1.0
+   }
+  },
+  "-10deg_Phase_Heavy": {
+   "true_cells": 3,
+   "true_count_fraction": 0.5,
+   "distribution": {
+    "2": 0.5,
+    "3": 0.5
+   }
+  }
+ },
+ "problems": []
+}

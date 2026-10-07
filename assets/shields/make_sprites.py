@@ -8,6 +8,8 @@ either alpha-blended or additive (RGB * A).
   hex_hit_flash.png  impact flash: hot core, crisp hex ring, fading honeycomb, 6 corner rays
   crack_overlay.png  impact crack: jagged branching cracks over broken honeycomb cell edges
   shard_sprite.png   one faceted hex-glass shard with a bright rim (for 2D/billboard particles)
+  crack_tile.png     seamless shattered-glass map (opaque greyscale RGB), the emissive map of the
+                     M_HALO_Glass_Broken_T* materials (arc glass UVs run as straight strips along each arc)
 Geometry is drawn at 4x and downsampled (LANCZOS) for crisp anti-aliased edges.
 """
 import math
@@ -195,6 +197,53 @@ def shard_sprite():
     return finish(to_img(rgb), to_img(a), "shard_sprite.png")
 
 
+# --------------------------------------------------------------------------------------------- crack tile
+def crack_tile(seed=11):
+    """Seamless shattered-glass map for M_HALO_Glass_Broken_T* (emissive texture, opaque greyscale RGB).
+    Background 118/255 (= 0.18 linear: the dim broken glow), crack lines white.  Toroidal Voronoi cell edges
+    (big cells + a finer secondary network) give crisp, straight-ish fracture lines that tile in U and V."""
+    rnd = random.Random(seed)
+    n = N * 2                                     # 2x supersampling
+    y, x = np.mgrid[0:n, 0:n].astype(np.float32) / n
+
+    def tdist(a, b):
+        dx = abs(a[0] - b[0])
+        dy = abs(a[1] - b[1])
+        return math.hypot(min(dx, 1 - dx), min(dy, 1 - dy))
+
+    def edges(npts, width):
+        pts = []
+        min_d = 0.55 / math.sqrt(npts)            # spaced seeds: no near-degenerate (smeared) edges
+        while len(pts) < npts:
+            p = (rnd.random(), rnd.random())
+            if all(tdist(p, q) > min_d for q in pts):
+                pts.append(p)
+        d1 = np.full((n, n), 9.0, np.float32)
+        d2 = np.full((n, n), 9.0, np.float32)
+        for px, py in pts:
+            dx = np.abs(x - px)
+            dy = np.abs(y - py)
+            dx = np.minimum(dx, 1.0 - dx)
+            dy = np.minimum(dy, 1.0 - dy)
+            d = np.sqrt(dx * dx + dy * dy)
+            closer = d < d1
+            d2 = np.where(closer, d1, np.minimum(d2, d))
+            d1 = np.where(closer, d, d1)
+        g = d2 - d1                               # 0 on a cell edge
+        return np.clip(1.0 - g / width, 0.0, 1.0) ** 1.5
+    big = edges(6, 0.0105)
+    fine = edges(14, 0.0045) * 0.6
+    crack = np.clip(np.maximum(big, fine), 0, 1)
+    bg = 118.0 / 255.0
+    v = bg + (1.0 - bg) * crack
+    img = to_img(v).resize((N, N), Image.LANCZOS).convert("RGB")
+    os.makedirs(OUT, exist_ok=True)
+    p = os.path.join(OUT, "crack_tile.png")
+    img.save(p)
+    print("wrote", p)
+    return p
+
+
 def preview(paths):
     """Contact sheet on dark + tinted backgrounds (sprites/_preview.png) to check the alpha."""
     tiles = []
@@ -219,3 +268,4 @@ def preview(paths):
 if __name__ == "__main__":
     ps = [hit_flash(), crack_overlay(), shard_sprite()]
     preview(ps)
+    crack_tile()

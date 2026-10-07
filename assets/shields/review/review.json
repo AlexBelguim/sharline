@@ -1,0 +1,122 @@
+{
+ "asset": "HALO shield kit (F:/git/val etf/assets/shields/)",
+ "reviewer_role": "independent senior art director + technical artist",
+ "scores": {
+  "silhouette": 5,
+  "style_consistency": 7,
+  "craftsmanship": 7,
+  "game_readiness": 7,
+  "fidelity_to_brief_and_user_decisions": 6
+ },
+ "verified_good": [
+  "Re-runnable and deterministic: build_halo.py copied to the scratchpad and rebuilt from scratch (--renders none); all 7 export .glb files, halo_kit.glb and armor_catalog.example.json are byte-identical (md5) to the shipped files.",
+  "glTF valid (Khronos Blender I/O 5.2), no images or external URIs, every primitive has NORMAL + TEXCOORD_0, no degenerate triangles, node names = mesh names = spec names, no stray node rotation/scale (glb_report.json).",
+  "Origins at the halo centre, Head arc at glTF +Z (Blender -Y), Arms at +X = the wearer's left; consistent with the game's placeholder (render.rs arc_angle).",
+  "HALO_PIP_1..4 empties exported with extras; FBX re-imports at unit scale with identical bounds.",
+  "Source topology: every island closed with consistent outward normals (0 inverted), apart from the internal glyph and electrode faces noted below (topology_report.json).",
+  "Power cells never touch a ring or band at any orbit phase, for any core or weight (minimum clearance 9.6 mm, checks_report.json).",
+  "Sprites are 512x512 RGBA, pure greyscale (chroma 0), and the alpha never touches the border.",
+  "Catalog arc pools, regen, weight bands, cells and move multipliers match game/assets/data/armor.ron.",
+  "Shape language seen from above: clean, original, clearly tech and not angelic. The four cores and three weights are distinct from 15-40 degrees above."
+ ],
+ "issues": [
+  {
+   "severity": "major",
+   "issue": "In play you cannot tell the core type: at the real viewing angle, 3 of the 4 cores collapse into the same flat bar. The game camera sits 1.6 m high and the halo at about 1.92 m, so enemies see it 1-10 deg from BELOW. At that angle Bulwark, Mender and Phase look identical in colour and in silhouette; only Volt's teeth read. The Phase gap (at the back) hides behind the front arc from every direction, and Mender's two rings lie in one plane, so they merge into one line. Every showcase render (01, 03, 03b, 04) is shot from 15-42 deg ABOVE, so this never showed up.",
+   "evidence": "review/renders/R02_eyelevel_core_read.png (-2 deg, about 10 m: the Bulwark, Mender and Phase rows match in colour, front silhouette and side silhouette); review/renders/R07_ingame_kestrel.png (game vfov 78 deg at 1080p, eye 1.6 m, 5 m and 15 m: every halo reads as a flat plank); review/renders/R01_distance_read_10_25_50m.png (no core difference at 25 or 50 m).",
+   "fix": "Give each core a signature that still reads edge-on at -2 deg. Mender: offset the two rings 12-15 mm in Z (outer ring lower) so edge-on they read as two parallel lines. Phase: add two upward electrode prongs, 25-30 mm tall, either side of the back gap, so the gap shows as a fork above the front arc. Bulwark: make the outer glass facet a vertical wall 25-30 mm tall, with corner posts rising about 8 mm above the ring so the hex corners break the line. Keep Volt's teeth. Add a -2 deg and -8 deg all-core comparison, in colour and as a silhouette, to the standard showcase renders, and iterate until each core can be named from the silhouette."
+  },
+  {
+   "severity": "major",
+   "issue": "Idle Light halos are almost invisible, and their tier colour barely reads. With game-legal coverage (the weight class is the sum of the arc tiers, so a Light halo has at most a sum of 4), a Light halo is mostly dark graphite plus smoked glass. Its lit arc is often the back arc, hidden behind the front one. Light Mender/Phase rings are only 11-13 mm tall, about 0.3 px at 25 m. The builder's lineup (02) shows its 'Light' halo with T2 on all 4 arcs, which the game rule makes Medium (sum 8), so the lineup hides this. This breaks DIRECTION_LOG 7: 'dim when idle but never hides... plus the dimmed tier colour'.",
+   "evidence": "review/renders/R01_distance_read_10_25_50m.png (on the dark background the Light halos, preset arm_phase_runner = T1 torso only, vanish at 25 m and 50 m; their 50 m silhouette is light-grey sub-pixel); review/renders/R07_ingame_kestrel.png (5 m dark scene: the Light halo is 3 white dots); halo_render.py r_weight_lineup uses tier 2 on every arc for all three weights.",
+   "fix": "(a) Add a thin, always-on emissive edge line to every arc carrier as its own material slot (e.g. M_HALO_Edge: a neutral cool white, or the highest-tier colour, at about 0.3 strength), so uncovered arcs still draw the ring outline. (b) Give the Light-sized Mender/Phase rings at least 18-20 mm of vertical thickness, or ship a far LOD (more than 20 m) whose outline has a minimum on-screen thickness. (c) Re-render 02 and 02c with game presets (arm_phase_runner, arm_volt_line, arm_bulwark_assault) next to the uniform-tier versions, and judge readability on both dark and daylight backgrounds."
+  },
+  {
+   "severity": "major",
+   "issue": "At eye level the power-cell count is wrong most of the time, even though DIRECTION_LOG 7 names it as one of the three weight cues. Cells orbit at z = +4 mm, in the ring plane, so the front arc and band hide any cell behind the ring.",
+   "evidence": "review/cell_visibility_report.json (ray test over the full orbit): at -2 deg, Heavy shows only 2 cells for 60-70% of the orbit on every core, Medium shows 1 cell for 43-52%, and the Bulwark Light shows 0 cells for 33%. At -10 deg the Bulwark Heavy shows 2 cells 100% of the time. The builder's own renders/02c_weight_eyelevel_idle.png shows Heavy with 2 cells. Also review/renders/R02_eyelevel_core_read.png.",
+   "fix": "Raise the orbit plane above the ring top: orbit_z about +0.035-0.045 m halo-local (cells orbit at r >= 0.215, outside the Volt teeth, so there is no clash), or tilt the orbit a few degrees. Update WEIGHT orbit_z in halo_lib.py, NOTES.md and the catalog's weight_class_visuals. Then re-run review/review_cell_visibility.py until the true count shows for at least 90% of the orbit at -2 deg and -5 deg."
+  },
+  {
+   "severity": "major",
+   "issue": "Seen from below, every halo is solid graphite with no tier colour and no coverage. The arc glass sits on top of graphite trays, and the Medium/Heavy bands cover the whole underside. With jetpacks and ziplines, players often see each other from below, so the halo then reads only through its cells.",
+   "evidence": "review/renders/R06_underside_and_hud.png (-35 deg: Bulwark M/H, Volt H, Phase L and Mender H are all black rings; only the cells carry colour). review/renders/R03_eyelevel_8deg_idle.png shows the glass already shrinking to a sliver at -8 deg.",
+   "fix": "Run a glass strip along the inner wall and underside of each arc carrier, as part of the glass primitive so tier swaps still apply. Add a lit inner lip on the bands, or 3-4 mm windows through each band's underside that show the arc glass. Check with a -35 deg render."
+  },
+  {
+   "severity": "major",
+   "issue": "A deliverable from the spec is missing: the update section asks for 'one material per tier (T1-T4) plus unlit and broken', with a broken arc showing 'a cracked, dim version until it regens'. The kit has no broken material, and NOTES maps a broken arc to M_HALO_Glass_Off, so a broken T4 arc looks the same as an arc that was never covered.",
+   "evidence": "review/glb_report.json: HALO_Materials.glb contains only Bone, Glass_Off, Glass_T1..T4, Graphite and Gunmetal; NOTES.md 'Arc broken' row; art/HALO_SHIELD_SPEC.md 'Update' section.",
+   "fix": "Add M_HALO_Glass_Broken: the tier colour about 50% desaturated with emissive about 0.25, ideally with crack_overlay.png as an emissive or alpha mask. Lay the arc glass UVs out as a straight strip along the arc so the crack texture maps cleanly. Add a swatch to HALO_Materials.glb, add a broken-arc panel to 03b_per_arc_tiers.png, and update the NOTES table."
+  },
+  {
+   "severity": "major",
+   "issue": "The character showcase breaks the weight rule and disagrees with itself. 04_character_idle is labelled 'BULWARK T3 MEDIUM' with a Medium band and 2 cells, but lights all 4 arcs at T3 (sum 12, Heavy). 04_character_hit lights Head, Torso and Arms (sum 9, still Heavy) with Legs dark, so idle and hit show different armor and the Legs arc seems to switch off when hit. This contradicts DIRECTION_LOG 9 and game/assets/data/armor.ron weight_bands.",
+   "evidence": "renders/04_character_idle_vs_hit.png; halo_render.py r_character(): idle place_halo(..., coverage=None) vs hit place_halo(..., coverage=('Head','Torso','Arms')), both with weight='Medium'.",
+   "fix": "Use one game preset for both states (e.g. arm_volt_line H0 T3 A3 L0 = 6, Medium; or arm_bulwark_assault = 9, Heavy, with the Heavy band and 3 cells). Have place_halo derive the weight from weight_of(arc_tiers) instead of taking it as a parameter, so the reference implementation can never disagree with the game. Re-render 04_*."
+  },
+  {
+   "severity": "minor",
+   "issue": "Tier pips float on 3 of the 4 cores. The shared HALO_PIP_1..4 positions (y -0.150, z +0.0245) only sit on the Bulwark's Head plate.",
+   "evidence": "review/checks_report.json 'pips' (gap from pip bottom down to the arc surface): Mender 11.9 mm, and PIP_1/4 have nothing below them (over the gap between the rings); Phase 11.3 mm, and PIP_2/3 have nothing below them (just inside the ring); Volt 5.7-6.5 mm; Bulwark 0.5-2.5 mm (fine). review/renders/R04_closeups.png, top four panels.",
+   "fix": "Ship per-core empties HALO_<Core>_PIP_1..4 seated on each Head arc, or add a small graphite pip rail to the Mender/Volt/Phase Head arcs under the shared positions. Update place_halo and NOTES."
+  },
+  {
+   "severity": "minor",
+   "issue": "The Heavy band reads as a deep tray or plinth hanging under the ring, not as armor around it. The Bulwark Heavy is 104 mm tall, of which 70 mm hangs below the ring, and 0.59 m across at scale 1.2 (wider than the character's shoulders). In three-quarter views it looks like a floating hex cake tin. The weight concept puts armor slabs around the ring's outer wall instead.",
+   "evidence": "renders/halo_sheet.png, renders/halo_right.png; review/checks_report.json 'vertical' (Bulwark_Heavy z -84..+20 mm, diameter 0.594 m); concepts/halo_concept_weights_v01.png.",
+   "fix": "Move the heavy mass outward and up: slabs flank the ring's outer wall up to ring-top height, and the hang below the ring stays at 30 mm or less. Keep the overall width so the weight read is unchanged. This also helps the underside issue (less occlusion) and the core-read issue (a taller outer wall shows edge-on)."
+  },
+  {
+   "severity": "minor",
+   "issue": "Render cost and LOD. A Heavy Mender or Volt halo is about 8.5k tris and about 20 mesh primitives (4 arcs x 2 + band x 2 + 3 cells x 2 + up to 4 pips), and every material exports doubleSided=true. The 1 mm ticks, bolts and glyphs are sub-pixel beyond about 5 m. Pickup density is uneven: HALO_Core_Phase has 3568 tris and HALO_Core_Mender 2544, against 708 for HALO_Core_Bulwark.",
+   "evidence": "review/glb_report.json (doubleSided true on all 8 materials; per-mesh tris); review/renders/R05_wireframes.png (the Core_Phase revolve is over-dense); review/renders/R07_ingame_kestrel.png (no tick or bolt detail survives at 5 m).",
+   "fix": "Ship one merged far LOD per core and weight (a single mesh of at most about 1.2k tris, glass + graphite only, no ticks, bolts or glyphs). Turn on backface culling for the opaque materials so they export single-sided. Cut the Phase/Mender pickup lathe to 24 steps and the lens profile to 6-8 sides, targeting at most about 1.2k tris each."
+  },
+  {
+   "severity": "minor",
+   "issue": "M_HALO_Glass_Off is alpha BLEND and double-sided, laid over meshes that have interior shells: the tray, lip and ticks embedded in the glass volume, plus internal glyph faces. Through 55% smoked glass those inner surfaces and back faces show, and Bevy will blend them in triangle order. The source also has internal or coincident faces: the Head glyph ring prisms (48 edges with more than 2 faces on every Head arc), the Legs glyph tip (4), and the Phase Torso electrode collar caps (24).",
+   "evidence": "review/glb_report.json (Glass_Off: BLEND, doubleSided true); review/topology_report.json ('>2f' column).",
+   "fix": "Make Glass_Off opaque (very dark, with clearcoat or a fresnel rim) or dithered alpha-mask, and single-sided. Build the Head glyph ring as one welded annulus prism, and do not cap the collar and tip sweeps where they meet in arc_phase."
+  },
+  {
+   "severity": "minor",
+   "issue": "The Mender zone glyph sits too low to see. Its plate sits between the two rings with its top at +3.6 mm (glyph top +5.2 mm), below the ring tops at +6.8 mm, so from any view under about 20 deg it is hidden. The brief asks for a 'tiny raised zone glyph' on each arc.",
+   "evidence": "review/renders/R04_closeups.png 'pips over Mender' (the Head glyph shows only as two grey dashes); halo_parts.py arc_mender _plate_and_glyph(z0=-0.0005, z1=0.0036).",
+   "fix": "Raise the Mender plate into a bridge that sits on top of both rings (top about 1 mm above the ring tops) and put the glyph on it."
+  },
+  {
+   "severity": "minor",
+   "issue": "make_catalog.py copies the gameplay numbers as constants instead of reading them from data. They match armor.ron today, but will drift silently, and CLAUDE.md says gameplay numbers live in data. build_halo.py's docstring still says armor_catalog.example.json and NOTES.md are 'hand-written (not generated)', but the build now generates the catalog.",
+   "evidence": "make_catalog.py lines 18-40 (CAPACITY, ZONE_SHARE, REGEN, WEIGHT_BANDS, WEIGHT); build_halo.py docstring, last line.",
+   "fix": "Parse game/assets/data/armor.ron (or design/systems/data/armors.slice.json) at build time and fail loudly when anything differs. Fix the docstring."
+  }
+ ],
+ "verdict": "Technically this kit is ready for the engine. Rebuilding it from scratch gives byte-identical files, the glTF is valid with exact names and sockets, origins and axes are right, the sprites are clean and the catalog matches the game. Seen from above, the shape language is clean, original and on-style. Readability at the angles players actually see it from is not there yet, so it is not ready to ship as is. At eye level (1-10 deg below) three of the four cores look alike. Light halos with game-legal coverage almost vanish at idle. The cell count is wrong for most of the orbit. From below, the tier colour disappears. Two more fixes are needed: the spec's 'broken' material is missing, and the character showcase breaks the sum-of-tiers weight rule. Verdict: accept the kit as a prototype for engine wiring now, and run one more readability iteration (major items 1-4) before the look is locked. That iteration must be judged from eye-level and from-below renders, not the flattering top-down showcase angles.",
+ "evidence": {
+  "renders": [
+   "review/renders/R01_distance_read_10_25_50m.png",
+   "review/renders/R02_eyelevel_core_read.png",
+   "review/renders/R03_eyelevel_8deg_idle.png",
+   "review/renders/R04_closeups.png",
+   "review/renders/R05_wireframes.png",
+   "review/renders/R06_underside_and_hud.png",
+   "review/renders/R07_ingame_kestrel.png"
+  ],
+  "reports": [
+   "review/glb_report.json",
+   "review/checks_report.json",
+   "review/topology_report.json",
+   "review/cell_visibility_report.json"
+  ],
+  "scripts": [
+   "review/inspect_glb.py",
+   "review/review_checks.py",
+   "review/review_topology.py",
+   "review/review_render.py",
+   "review/review_cell_visibility.py",
+   "review/compose.py"
+  ]
+ }
+}

@@ -1,0 +1,160 @@
+====================================================================================================
+WARDEN_mag_5.glb ver 2 len 577132 file 577132 bin 564576
+ asset {'generator': 'Khronos glTF Blender I/O v5.2.39', 'version': '2.0'} extUsed None extReq None
+   - WARDEN_Mag5 mesh=WARDEN_Mag5 prims=2 extras={"part": "mag_5", "capacity": 5, "socket": "WARDEN_SOCKET_Mag"}
+     - WARDEN_Mag5_Follower t=[0, -0.108, -0.073] mesh=WARDEN_Mag5_Follower prims=1 extras={"slide_axis": "Z", "travel_per_round_m": 0.021, "travel_max_m": 0.094}
+     - WARDEN_Mag5_Round t=[0, -0.0075, -0.0735] mesh=WARDEN_Mag5_Round prims=2 extras={"round_index": 1}
+     - WARDEN_Mag5_Round_02 t=[0, -0.0285, -0.0735] mesh=WARDEN_Mag5_Round_02 prims=2 extras={"round_index": 2}
+     - WARDEN_Mag5_Round_03 t=[0, -0.0495, -0.0735] mesh=WARDEN_Mag5_Round_03 prims=2 extras={"round_index": 3}
+     - WARDEN_Mag5_Round_04 t=[0, -0.0705, -0.0735] mesh=WARDEN_Mag5_Round_04 prims=2 extras={"round_index": 4}
+     - WARDEN_Mag5_Round_05 t=[0, -0.0915, -0.0735] mesh=WARDEN_Mag5_Round_05 prims=2 extras={"round_index": 5}
+  MAT[0] M_Warden_Graphite bcf=[0.03, 0.033, 0.04, 1] tex=True rough=0.550000011920929 metal=0.15000000596046448 ds=False emis=None ext=[] texext=[]
+  MAT[1] M_Warden_Gunmetal bcf=[0.11, 0.115, 0.12, 1] tex=True rough=0.3499999940395355 metal=0.8500000238418579 ds=False emis=None ext=[] texext=[]
+  MAT[2] M_Warden_Cartridge bcf=[0.36, 0.34, 0.3, 1] tex=True rough=0.3799999952316284 metal=0.3499999940395355 ds=False emis=None ext=[] texext=[]
+  MAT[3] M_Warden_Sand bcf=[0.36, 0.28, 0.18, 1] tex=True rough=0.699999988079071 metal=0 ds=False emis=None ext=[] texext=[]
+  IMG[0] warden_worn_paint_35 uri=None bv=4 mime=image/png
+  IMG[1] warden_brushed_metal_30 uri=None bv=9 mime=image/png
+  IMG[2] warden_worn_paint_30 uri=None bv=53 mime=image/png
+  SAMPLER[0] {'magFilter': 9729, 'minFilter': 9987}
+  prims=13 no_mat=0 no_uv=0 no_normal=0 tris(index/3)=2220
+====================================================================================================
+WARDEN_mag_8.glb ver 2 len 602708 file 602708 bin 585520
+ asset {'generator': 'Khronos glTF Blender I/O v5.2.39', 'version': '2.0'} extUsed None extReq None
+   - WARDEN_Mag8 mesh=WARDEN_Mag8 prims=2 extras={"part": "mag_8", "capacity": 8, "socket": "WARDEN_SOCKET_Mag"}
+     - WARDEN_Mag8_Follower t=[0, -0.171, -0.073] mesh=WARDEN_Mag8_Follower prims=1 extras={"slide_axis": "Z", "travel_per_round_m": 0.021, "travel_max_m": 0.157}
+     - WARDEN_Mag8_Round t=[0, -0.0075, -0.0735] mesh=WARDEN_Mag8_Round prims=2 extras={"round_index": 1}
+     - WARDEN_Mag8_Round_02 t=[0, -0.0285, -0.0735] mesh=WARDEN_Mag8_Round_02 prims=2 extras={"round_index": 2}
+     - WARDEN_Mag8_Round_03 t=[0, -0.0495, -0.0735] mesh=WARDEN_Mag8_Round_03 prims=2 extras={"round_index": 3}
+     - WARDEN_Mag8_Round_04 t=[0, -0.0705, -0.0735] mesh=WARDEN_Mag8_Round_04 prims=2 extras={"round_index": 4}
+     - WARDEN_Mag8_Round_05 t=[0, -0.0915, -0.0735] mesh=WARDEN_Mag8_Round_05 prims=2 extras={"round_index": 5}
+     - WARDEN_Mag8_Round_06 t=[0, -0.1125, -0.0735] mesh=WARDEN_Mag8_Round_06 prims=2 extras={"round_index": 6}
+     - WARDEN_Mag8_Round_07 t=[0, -0.1335, -0.0735] mesh=WARDEN_Mag8_Round_07 prims=2 extras={"round_index": 7}
+     - WARDEN_Mag8_Round_08 t=[0, -0.1545, -0.0735] mesh=WARDEN_Mag8_Round_08 prims=2 extras={"round_index": 8}
+  MAT[0] M_Warden_Graphite bcf=[0.03, 0.033, 0.04, 1] tex=True rough=0.550000011920929 metal=0.15000000596046448 ds=False emis=None ext=[] texext=[]
+  MAT[1] M_Warden_Gunmetal bcf=[0.11, 0.115, 0.12, 1] tex=True rough=0.3499999940395355 metal=0.8500000238418579 ds=False emis=None ext=[] texext=[]
+  MAT[2] M_Warden_Cartridge bcf=[0.36, 0.34, 0.3, 1] tex=True rough=0.3799999952316284 metal=0.3499999940395355 ds=False emis=None ext=[] texext=[]
+  MAT[3] M_Warden_Sand bcf=[0.36, 0.28, 0.18, 1] tex=True rough=0.699999988079071 metal=0 ds=False emis=None ext=[] texext=[]
+  IMG[0] warden_worn_paint_35 uri=None bv=4 mime=image/png
+  IMG[1] warden_brushed_metal_30 uri=None bv=9 mime=image/png
+  IMG[2] warden_worn_paint_30 uri=None bv=74 mime=image/png
+  SAMPLER[0] {'magFilter': 9729, 'minFilter': 9987}
+  prims=19 no_mat=0 no_uv=0 no_normal=0 tris(index/3)=2652
+====================================================================================================
+WARDEN_stock_folding.glb ver 2 len 605776 file 605776 bin 599868
+ asset {'generator': 'Khronos glTF Blender I/O v5.2.39', 'version': '2.0'} extUsed None extReq None
+   - WARDEN_StockFolding mesh=WARDEN_StockFolding prims=2 extras={"part": "stock_folding", "socket": "WARDEN_SOCKET_Stock"}
+     - WARDEN_StockFolding_Arm t=[0.03, -0.06, -0.031] mesh=WARDEN_StockFolding_Arm prims=3 extras={"fold_axis": "Z", "fold_angle_deg": -180.0, "note": "rotate about local Z by fold_angle_deg: stock swings out to +X and lies along the LEFT side"}
+  MAT[0] M_Warden_Sand bcf=[0.36, 0.28, 0.18, 1] tex=True rough=0.699999988079071 metal=0 ds=False emis=None ext=[] texext=[]
+  MAT[1] M_Warden_Rubber bcf=[0.035, 0.037, 0.045, 1] tex=False rough=0.8999999761581421 metal=0 ds=False emis=None ext=[] texext=[]
+  MAT[2] M_Warden_Graphite bcf=[0.03, 0.033, 0.04, 1] tex=True rough=0.550000011920929 metal=0.15000000596046448 ds=False emis=None ext=[] texext=[]
+  MAT[3] M_Warden_Gunmetal bcf=[0.11, 0.115, 0.12, 1] tex=True rough=0.3499999940395355 metal=0.8500000238418579 ds=False emis=None ext=[] texext=[]
+  IMG[0] warden_worn_paint_30 uri=None bv=4 mime=image/png
+  IMG[1] warden_worn_paint_35 uri=None bv=13 mime=image/png
+  IMG[2] warden_brushed_metal_30 uri=None bv=22 mime=image/png
+  SAMPLER[0] {'magFilter': 9729, 'minFilter': 9987}
+  prims=5 no_mat=0 no_uv=0 no_normal=0 tris(index/3)=3534
+====================================================================================================
+WARDEN_stock_standard.glb ver 2 len 648952 file 648952 bin 641408
+ asset {'generator': 'Khronos glTF Blender I/O v5.2.39', 'version': '2.0'} extUsed None extReq None
+   - WARDEN_StockStandard mesh=WARDEN_StockStandard prims=4 extras={"part": "stock_standard", "socket": "WARDEN_SOCKET_Stock"}
+     - WARDEN_StockStandard_CheekRiser t=[0, 0.037, -0.192] mesh=WARDEN_StockStandard_CheekRiser prims=2 extras={"slide_axis": "Z", "travel_min_m": 0.0, "travel_max_m": 0.03}
+     - WARDEN_StockStandard_Monopod t=[0, -0.192, -0.125] mesh=WARDEN_StockStandard_Monopod prims=1 extras={"slide_axis": "Z", "travel_min_m": -0.045, "travel_max_m": 0.0}
+  MAT[0] M_Warden_Sand bcf=[0.36, 0.28, 0.18, 1] tex=True rough=0.699999988079071 metal=0 ds=False emis=None ext=[] texext=[]
+  MAT[1] M_Warden_Gunmetal bcf=[0.11, 0.115, 0.12, 1] tex=True rough=0.3499999940395355 metal=0.8500000238418579 ds=False emis=None ext=[] texext=[]
+  MAT[2] M_Warden_Graphite bcf=[0.03, 0.033, 0.04, 1] tex=True rough=0.550000011920929 metal=0.15000000596046448 ds=False emis=None ext=[] texext=[]
+  MAT[3] M_Warden_Rubber bcf=[0.035, 0.037, 0.045, 1] tex=False rough=0.8999999761581421 metal=0 ds=False emis=None ext=[] texext=[]
+  IMG[0] warden_worn_paint_30 uri=None bv=4 mime=image/png
+  IMG[1] warden_brushed_metal_30 uri=None bv=9 mime=image/png
+  IMG[2] warden_worn_paint_35 uri=None bv=18 mime=image/png
+  SAMPLER[0] {'magFilter': 9729, 'minFilter': 9987}
+  prims=7 no_mat=0 no_uv=0 no_normal=0 tris(index/3)=4628
+====================================================================================================
+warden_base.glb ver 2 len 1335860 file 1335860 bin 1316588
+ asset {'generator': 'Khronos glTF Blender I/O v5.2.39', 'version': '2.0'} extUsed None extReq None
+   - WARDEN_Root extras={"weapon": "VK-50 WARDEN", "default_stock": "stock_standard", "default_mag": "mag_5", "default_optic": "optic_sniper", "default_under": "bipod"}
+     - WARDEN_Barrel mesh=WARDEN_Barrel prims=1
+     - WARDEN_Bolt t=[0, 0.075, -0.112] mesh=WARDEN_Bolt prims=1 extras={"lift_axis": "+Y (Blender) / -Z (glTF)", "lift_deg": 60.0, "travel_axis": "+Y (Blender) / -Z (glTF)", "travel_m": 0.13, "note": "cycle: rotate lift_deg about t
+     - WARDEN_BoltRelease mesh=WARDEN_BoltRelease prims=1
+     - WARDEN_Brake mesh=WARDEN_Brake prims=1
+     - WARDEN_BrakeCollar mesh=WARDEN_BrakeCollar prims=1
+     - WARDEN_Chassis mesh=WARDEN_Chassis prims=1
+     - WARDEN_Grip mesh=WARDEN_Grip prims=2
+     - WARDEN_Handguard mesh=WARDEN_Handguard prims=2
+     - WARDEN_MagRelease mesh=WARDEN_MagRelease prims=1
+     - WARDEN_RailBottom mesh=WARDEN_RailBottom prims=1
+     - WARDEN_RailSide_L mesh=WARDEN_RailSide_L prims=1
+     - WARDEN_RailSide_R mesh=WARDEN_RailSide_R prims=1
+     - WARDEN_RailTop mesh=WARDEN_RailTop prims=1
+     - WARDEN_Receiver mesh=WARDEN_Receiver prims=1
+     - WARDEN_Safety t=[0.039, 0.041, -0.018] mesh=WARDEN_Safety prims=1 extras={"pivot_axis": "X", "fire_deg": -45.0, "note": "SAFE = as modelled (lever points rearward); FIRE = rotate fire_deg about local +X (tip swings down)"}
+     - WARDEN_SOCKET_LeftHand t=[0, 0.03, 0.38]
+     - WARDEN_SOCKET_Mag t=[0, 0, 0.27]
+     - WARDEN_SOCKET_Muzzle t=[0, 0.075, 1.1]
+     - WARDEN_SOCKET_Optic t=[0, 0.1375, 0.08]
+     - WARDEN_SOCKET_Side_L t=[0.0455, 0.079, 0.645]
+     - WARDEN_SOCKET_Side_R t=[-0.0455, 0.079, 0.645]
+     - WARDEN_SOCKET_Stock t=[0, 0.075, -0.08]
+     - WARDEN_SOCKET_Under t=[0, 0.0205, 0.6]
+     - WARDEN_Trigger t=[0, 0, 0.054] mesh=WARDEN_Trigger prims=1 extras={"pivot_axis": "X", "pull_deg": 12.0, "note": "pull = rotate +12 deg about local +X (blade tip moves rearward); same axis in glTF"}
+     - WARDEN_TriggerGuard mesh=WARDEN_TriggerGuard prims=1
+  MAT[0] M_Warden_Gunmetal bcf=[0.11, 0.115, 0.12, 1] tex=True rough=0.3499999940395355 metal=0.8500000238418579 ds=False emis=None ext=[] texext=[]
+  MAT[1] M_Warden_Graphite bcf=[0.03, 0.033, 0.04, 1] tex=True rough=0.550000011920929 metal=0.15000000596046448 ds=False emis=None ext=[] texext=[]
+  MAT[2] M_Warden_Sand bcf=[0.36, 0.28, 0.18, 1] tex=True rough=0.699999988079071 metal=0 ds=False emis=None ext=[] texext=[]
+  MAT[3] M_Warden_SandStipple bcf=[0.36, 0.28, 0.18, 1] tex=True rough=0.7799999713897705 metal=0 ds=False emis=None ext=[] texext=[]
+  IMG[0] warden_brushed_metal_30 uri=None bv=4 mime=image/png
+  IMG[1] warden_worn_paint_35 uri=None bv=25 mime=image/png
+  IMG[2] warden_worn_paint_30 uri=None bv=30 mime=image/png
+  IMG[3] warden_polymer_stipple_50 uri=None bv=35 mime=image/png
+  SAMPLER[0] {'magFilter': 9729, 'minFilter': 9987}
+  prims=19 no_mat=0 no_uv=0 no_normal=0 tris(index/3)=13964
+====================================================================================================
+warden_default.glb ver 2 len 1621116 file 1621116 bin 1584380
+ asset {'generator': 'Khronos glTF Blender I/O v5.2.39', 'version': '2.0'} extUsed None extReq None
+   - WARDEN_Root extras={"weapon": "VK-50 WARDEN", "default_stock": "stock_standard", "default_mag": "mag_5", "default_optic": "optic_sniper", "default_under": "bipod"}
+     - WARDEN_Barrel mesh=WARDEN_Barrel prims=1
+     - WARDEN_Bolt t=[0, 0.075, -0.112] mesh=WARDEN_Bolt prims=1 extras={"lift_axis": "+Y (Blender) / -Z (glTF)", "lift_deg": 60.0, "travel_axis": "+Y (Blender) / -Z (glTF)", "travel_m": 0.13, "note": "cycle: rotate lift_deg about t
+     - WARDEN_BoltRelease mesh=WARDEN_BoltRelease prims=1
+     - WARDEN_Brake mesh=WARDEN_Brake prims=1
+     - WARDEN_BrakeCollar mesh=WARDEN_BrakeCollar prims=1
+     - WARDEN_Chassis mesh=WARDEN_Chassis prims=1
+     - WARDEN_Grip mesh=WARDEN_Grip prims=2
+     - WARDEN_Handguard mesh=WARDEN_Handguard prims=2
+     - WARDEN_MagRelease mesh=WARDEN_MagRelease prims=1
+     - WARDEN_RailBottom mesh=WARDEN_RailBottom prims=1
+     - WARDEN_RailSide_L mesh=WARDEN_RailSide_L prims=1
+     - WARDEN_RailSide_R mesh=WARDEN_RailSide_R prims=1
+     - WARDEN_RailTop mesh=WARDEN_RailTop prims=1
+     - WARDEN_Receiver mesh=WARDEN_Receiver prims=1
+     - WARDEN_Safety t=[0.039, 0.041, -0.018] mesh=WARDEN_Safety prims=1 extras={"pivot_axis": "X", "fire_deg": -45.0, "note": "SAFE = as modelled (lever points rearward); FIRE = rotate fire_deg about local +X (tip swings down)"}
+     - WARDEN_SOCKET_LeftHand t=[0, 0.03, 0.38]
+     - WARDEN_SOCKET_Mag t=[0, 0, 0.27]
+       - WARDEN_Mag5 mesh=WARDEN_Mag5 prims=2 extras={"part": "mag_5", "capacity": 5, "socket": "WARDEN_SOCKET_Mag"}
+         - WARDEN_Mag5_Follower t=[0, -0.108, -0.073] mesh=WARDEN_Mag5_Follower prims=1 extras={"slide_axis": "Z", "travel_per_round_m": 0.021, "travel_max_m": 0.094}
+         - WARDEN_Mag5_Round t=[0, -0.0075, -0.0735] mesh=WARDEN_Mag5_Round prims=2 extras={"round_index": 1}
+         - WARDEN_Mag5_Round_02 t=[0, -0.0285, -0.0735] mesh=WARDEN_Mag5_Round_02 prims=2 extras={"round_index": 2}
+         - WARDEN_Mag5_Round_03 t=[0, -0.0495, -0.0735] mesh=WARDEN_Mag5_Round_03 prims=2 extras={"round_index": 3}
+         - WARDEN_Mag5_Round_04 t=[0, -0.0705, -0.0735] mesh=WARDEN_Mag5_Round_04 prims=2 extras={"round_index": 4}
+         - WARDEN_Mag5_Round_05 t=[0, -0.0915, -0.0735] mesh=WARDEN_Mag5_Round_05 prims=2 extras={"round_index": 5}
+     - WARDEN_SOCKET_Muzzle t=[0, 0.075, 1.1]
+     - WARDEN_SOCKET_Optic t=[0, 0.1375, 0.08]
+     - WARDEN_SOCKET_Side_L t=[0.0455, 0.079, 0.645]
+     - WARDEN_SOCKET_Side_R t=[-0.0455, 0.079, 0.645]
+     - WARDEN_SOCKET_Stock t=[0, 0.075, -0.08]
+       - WARDEN_StockStandard mesh=WARDEN_StockStandard prims=4 extras={"part": "stock_standard", "socket": "WARDEN_SOCKET_Stock"}
+         - WARDEN_StockStandard_CheekRiser t=[0, 0.037, -0.192] mesh=WARDEN_StockStandard_CheekRiser prims=2 extras={"slide_axis": "Z", "travel_min_m": 0.0, "travel_max_m": 0.03}
+         - WARDEN_StockStandard_Monopod t=[0, -0.192, -0.125] mesh=WARDEN_StockStandard_Monopod prims=1 extras={"slide_axis": "Z", "travel_min_m": -0.045, "travel_max_m": 0.0}
+     - WARDEN_SOCKET_Under t=[0, 0.0205, 0.6]
+     - WARDEN_Trigger t=[0, 0, 0.054] mesh=WARDEN_Trigger prims=1 extras={"pivot_axis": "X", "pull_deg": 12.0, "note": "pull = rotate +12 deg about local +X (blade tip moves rearward); same axis in glTF"}
+     - WARDEN_TriggerGuard mesh=WARDEN_TriggerGuard prims=1
+  MAT[0] M_Warden_Gunmetal bcf=[0.11, 0.115, 0.12, 1] tex=True rough=0.3499999940395355 metal=0.8500000238418579 ds=False emis=None ext=[] texext=[]
+  MAT[1] M_Warden_Graphite bcf=[0.03, 0.033, 0.04, 1] tex=True rough=0.550000011920929 metal=0.15000000596046448 ds=False emis=None ext=[] texext=[]
+  MAT[2] M_Warden_Sand bcf=[0.36, 0.28, 0.18, 1] tex=True rough=0.699999988079071 metal=0 ds=False emis=None ext=[] texext=[]
+  MAT[3] M_Warden_SandStipple bcf=[0.36, 0.28, 0.18, 1] tex=True rough=0.7799999713897705 metal=0 ds=False emis=None ext=[] texext=[]
+  MAT[4] M_Warden_Cartridge bcf=[0.36, 0.34, 0.3, 1] tex=True rough=0.3799999952316284 metal=0.3499999940395355 ds=False emis=None ext=[] texext=[]
+  MAT[5] M_Warden_Rubber bcf=[0.035, 0.037, 0.045, 1] tex=False rough=0.8999999761581421 metal=0 ds=False emis=None ext=[] texext=[]
+  IMG[0] warden_brushed_metal_30 uri=None bv=4 mime=image/png
+  IMG[1] warden_worn_paint_35 uri=None bv=25 mime=image/png
+  IMG[2] warden_worn_paint_30 uri=None bv=30 mime=image/png
+  IMG[3] warden_polymer_stipple_50 uri=None bv=35 mime=image/png
+  SAMPLER[0] {'magFilter': 9729, 'minFilter': 9987}
+  prims=39 no_mat=0 no_uv=0 no_normal=0 tris(index/3)=20812

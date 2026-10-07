@@ -3,7 +3,9 @@
 Needs renders/warden_exact_side.png (1 px = 1 mm orthographic, transparent background, written by
 build_warden.py --render compare|quick|full). Run with the system python (PIL):
     python compare.py
-Writes renders/warden_compare.png and renders/warden_compare_overlay.png.
+Writes renders/warden_compare.png, renders/warden_compare_overlay.png, renders/warden_silhouette.png and the
+labelled contact sheets renders/warden_contact_sheet.png (assembled gun + close-ups) and
+renders/warden_contact_parts.png (stocks, magazines, base, alt loadout).
 
 Pixel mapping of the exact render (same as art/concepts/warden/profile_sketch.png top panel):
     px_x = (y + 1.19) * 1000      px_y = (0.335 - z) * 1000
@@ -97,9 +99,6 @@ def main():
     print("wrote", out)
 
 
-if __name__ == "__main__":
-    main()
-
 
 def silhouettes():
     """64 / 128 / 256 px wide black silhouettes of the exact side render (BRIEF section 6 read check)."""
@@ -126,5 +125,80 @@ def silhouettes():
     sheet.save(os.path.join(R, "warden_silhouette.png"))
 
 
+
+def sheet(items, out, cols=3, tile=(760, 430), title=None):
+    """Labelled contact sheet: items = [(label, filename in renders/)]; each render letterboxed into a tile."""
+    tw, th = tile
+    lab = 26
+    top = 44 if title else 0
+    rows = (len(items) + cols - 1) // cols
+    im = Image.new("RGB", (cols * tw, top + rows * (th + lab)), (236, 236, 239))
+    d = ImageDraw.Draw(im)
+    if title:
+        d.text((12, 10), title, fill=(15, 15, 20), font=font(24))
+    for i, (label, fn) in enumerate(items):
+        r, c = divmod(i, cols)
+        x0, y0 = c * tw, top + r * (th + lab)
+        p = os.path.join(R, fn)
+        d.text((x0 + 8, y0 + 4), label, fill=(25, 25, 30), font=font(17))
+        if not os.path.exists(p):
+            d.text((x0 + 8, y0 + lab + 8), "(missing) " + fn, fill=(200, 30, 30), font=font(15))
+            continue
+        src = Image.open(p).convert("RGB")
+        s = min(tw / src.width, th / src.height)
+        src = src.resize((max(1, int(src.width * s)), max(1, int(src.height * s))), Image.LANCZOS)
+        im.paste(src, (x0 + (tw - src.width) // 2, y0 + lab + (th - src.height) // 2))
+    im.save(os.path.join(R, out))
+    print("wrote", out)
+
+
+def contact_sheets():
+    sheet([("right side (+X camera = gun's LEFT)", "warden_right.png"),
+           ("left side (-X camera = gun's RIGHT: bolt, port)", "warden_left.png"),
+           ("three-quarter", "warden_three_quarter.png"),
+           ("three-quarter back", "warden_three_quarter_back.png"),
+           ("top (screen-up = -X, shooter's right)", "warden_top.png"),
+           ("low three-quarter", "warden_low.png"),
+           ("front (ortho)", "warden_front.png"),
+           ("back (ortho)", "warden_back.png"),
+           ("close-up: muzzle brake", "warden_cu_brake.png"),
+           ("close-up: bolt + knob (-X), closed", "warden_cu_bolt.png"),
+           ("bolt lifted 60 deg: root turns behind the receiver", "warden_cu_bolt_lifted.png"),
+           ("bolt open (0.13 m): clears stock + riser", "warden_cu_bolt_open.png"),
+           ("bolt open, side (-X camera)", "warden_bolt_open_left.png"),
+           ("bolt open, shooter's view", "warden_bolt_open_fpv.png"),
+           ("close-up: receiver right / ejection port", "warden_cu_receiver_right.png"),
+           ("close-up: receiver left", "warden_cu_receiver_left.png"),
+           ("close-up: handguard underside, rails", "warden_cu_handguard_under.png"),
+           ("close-up: magwell + mag seating", "warden_cu_magwell.png"),
+           ("sockets (debug markers)", "warden_sockets_left.png")],
+          "warden_contact_sheet.png", cols=4, tile=(640, 400),
+          title="VK-50 WARDEN  default loadout (base + stock_standard + mag_5; optic + bipod are separate attachments)")
+    sheet([("stock_standard 3/4", "warden_stock_standard_three_quarter.png"),
+           ("stock_standard right", "warden_stock_standard_right.png"),
+           ("stock_standard 3/4 back", "warden_stock_standard_three_quarter_back.png"),
+           ("stock_folding 3/4", "warden_stock_folding_three_quarter.png"),
+           ("stock_folding right", "warden_stock_folding_right.png"),
+           ("stock_folding 3/4 back", "warden_stock_folding_three_quarter_back.png"),
+           ("mag_5 3/4", "warden_mag_5_three_quarter.png"),
+           ("mag_5 right", "warden_mag_5_right.png"),
+           ("mag_5 feed lips", "warden_mag_5_top_feedlips.png"),
+           ("mag_8 3/4", "warden_mag_8_three_quarter.png"),
+           ("mag_8 right", "warden_mag_8_right.png"),
+           ("mag_8 feed lips", "warden_mag_8_top_feedlips.png"),
+           ("mag_5 check: 2 rounds left, follower raised", "warden_mag_5_check_two_left.png"),
+           ("mag_5 check: 2 left (3/4)", "warden_mag_5_check_two_left_three_quarter.png"),
+           ("mag_5 empty: follower under the lips", "warden_mag_5_check_empty_top.png"),
+           ("base only (no stock / mag)", "warden_base_only_three_quarter_back.png"),
+           ("alt loadout: stock_folding + mag_8", "warden_alt_three_quarter.png"),
+           ("stock_folding folded (top)", "warden_alt_folded_top.png"),
+           ("stock_folding: bolt open clears it", "warden_bolt_open_folding_stock.png"),
+           ("stock_folding folded 3/4", "warden_alt_folded_three_quarter.png")],
+          "warden_contact_parts.png", cols=3, tile=(640, 520),
+          title="VK-50 WARDEN  swappable parts (origin of each part = its socket / mount point)")
+
+
 if __name__ == "__main__":
+    main()
     silhouettes()
+    contact_sheets()

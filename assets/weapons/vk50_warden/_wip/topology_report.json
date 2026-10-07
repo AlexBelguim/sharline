@@ -1,0 +1,728 @@
+{
+ "WARDEN_Barrel": {
+  "tris": 888,
+  "verts": 446,
+  "nonmanifold": 0,
+  "nonmanifold_samples": [],
+  "wire": 0,
+  "degenerate": 0,
+  "ngons": 30,
+  "ngons_gt8": 18,
+  "components": 1,
+  "negative_volume_components": 0,
+  "inconsistent_winding_edges": 0,
+  "uv_layers": 1,
+  "mats": [
+   "M_Warden_Gunmetal"
+  ],
+  "sharp_edges": 396
+ },
+ "WARDEN_Bolt": {
+  "tris": 1252,
+  "verts": 634,
+  "nonmanifold": 0,
+  "nonmanifold_samples": [],
+  "wire": 0,
+  "degenerate": 0,
+  "ngons": 88,
+  "ngons_gt8": 0,
+  "components": 4,
+  "negative_volume_components": 0,
+  "inconsistent_winding_edges": 0,
+  "uv_layers": 1,
+  "mats": [
+   "M_Warden_Gunmetal"
+  ],
+  "sharp_edges": 386
+ },
+ "WARDEN_BoltRelease": {
+  "tris": 124,
+  "verts": 64,
+  "nonmanifold": 0,
+  "nonmanifold_samples": [],
+  "wire": 0,
+  "degenerate": 0,
+  "ngons": 2,
+  "ngons_gt8": 2,
+  "components": 1,
+  "negative_volume_components": 0,
+  "inconsistent_winding_edges": 0,
+  "uv_layers": 1,
+  "mats": [
+   "M_Warden_Gunmetal"
+  ],
+  "sharp_edges": 64
+ },
+ "WARDEN_Brake": {
+  "tris": 1958,
+  "verts": 959,
+  "nonmanifold": 0,
+  "nonmanifold_samples": [],
+  "wire": 0,
+  "degenerate": 0,
+  "ngons": 66,
+  "ngons_gt8": 34,
+  "components": 1,
+  "negative_volume_components": 0,
+  "inconsistent_winding_edges": 0,
+  "uv_layers": 1,
+  "mats": [
+   "M_Warden_Gunmetal"
+  ],
+  "sharp_edges": 950
+ },
+ "WARDEN_BrakeCollar": {
+  "tris": 224,
+  "verts": 114,
+  "nonmanifold": 0,
+  "nonmanifold_samples": [],
+  "wire": 0,
+  "degenerate": 0,
+  "ngons": 0,
+  "ngons_gt8": 0,
+  "components": 1,
+  "negative_volume_components": 0,
+  "inconsistent_winding_edges": 0,
+  "uv_layers": 1,
+  "mats": [
+   "M_Warden_Gunmetal"
+  ],
+  "sharp_edges": 112
+ },
+ "WARDEN_Chassis": {
+  "tris": 1464,
+  "verts": 732,
+  "nonmanifold": 0,
+  "nonmanifold_samples": [],
+  "wire": 0,
+  "degenerate": 0,
+  "ngons": 18,
+  "ngons_gt8": 13,
+  "components": 1,
+  "negative_volume_components": 0,
+  "inconsistent_winding_edges": 0,
+  "uv_layers": 1,
+  "mats": [
+   "M_Warden_Graphite"
+  ],
+  "sharp_edges": 383
+ },
+ "WARDEN_Grip": {
+  "tris": 516,
+  "verts": 264,
+  "nonmanifold": 0,
+  "nonmanifold_samples": [],
+  "wire": 0,
+  "degenerate": 0,
+  "ngons": 6,
+  "ngons_gt8": 2,
+  "components": 3,
+  "negative_volume_components": 0,
+  "inconsistent_winding_edges": 0,
+  "uv_layers": 1,
+  "mats": [
+   "M_Warden_Sand",
+   "M_Warden_SandStipple"
+  ],
+  "sharp_edges": 130
+ },
+ "WARDEN_Handguard": {
+  "tris": 3318,
+  "verts": 1621,
+  "nonmanifold": 0,
+  "nonmanifold_samples": [],
+  "wire": 0,
+  "degenerate": 0,
+  "ngons": 86,
+  "ngons_gt8": 26,
+  "components": 5,
+  "negative_volume_components": 0,
+  "inconsistent_winding_edges": 0,
+  "uv_layers": 1,
+  "mats": [
+   "M_Warden_Graphite",
+   "M_Warden_Gunmetal"
+  ],
+  "sharp_edges": 1758
+ },
+ "WARDEN_Mag5": {
+  "tris": 1160,
+  "verts": 588,
+  "nonmanifold": 0,
+  "nonmanifold_samples": [],
+  "wire": 0,
+  "degenerate": 0,
+  "ngons": 23,
+  "ngons_gt8": 11,
+  "components": 6,
+  "negative_volume_components": 0,
+  "inconsistent_winding_edges": 0,
+  "uv_layers": 1,
+  "mats": [
+   "M_Warden_Graphite",
+   "M_Warden_Sand"
+  ],
+  "sharp_edges": 492
+ },
+ "WARDEN_Mag5_Follower": {
+  "tris": 52,
+  "verts": 28,
+  "nonmanifold": 0,
+  "nonmanifold_samples": [],
+  "wire": 0,
+  "degenerate": 0,
+  "ngons": 2,
+  "ngons_gt8": 0,
+  "components": 1,
+  "negative_volume_components": 0,
+  "inconsistent_winding_edges": 0,
+  "uv_layers": 1,
+  "mats": [
+   "M_Warden_Graphite"
+  ],
+  "sharp_edges": 28
+ },
+ "WARDEN_Mag5_Round": {
+  "tris": 384,
+  "verts": 194,
+  "nonmanifold": 0,
+  "nonmanifold_samples": [],
+  "wire": 0,
+  "degenerate": 0,
+  "ngons": 0,
+  "ngons_gt8": 0,
+  "components": 1,
+  "negative_volume_components": 0,
+  "inconsistent_winding_edges": 0,
+  "uv_layers": 1,
+  "mats": [
+   "M_Warden_Gunmetal",
+   "M_Warden_Cartridge"
+  ],
+  "sharp_edges": 80
+ },
+ "WARDEN_Mag5_Round_02": {
+  "tris": 144,
+  "verts": 74,
+  "nonmanifold": 0,
+  "nonmanifold_samples": [],
+  "wire": 0,
+  "degenerate": 0,
+  "ngons": 0,
+  "ngons_gt8": 0,
+  "components": 1,
+  "negative_volume_components": 0,
+  "inconsistent_winding_edges": 0,
+  "uv_layers": 1,
+  "mats": [
+   "M_Warden_Gunmetal",
+   "M_Warden_Cartridge"
+  ],
+  "sharp_edges": 96
+ },
+ "WARDEN_Mag5_Round_03": {
+  "tris": 144,
+  "verts": 74,
+  "nonmanifold": 0,
+  "nonmanifold_samples": [],
+  "wire": 0,
+  "degenerate": 0,
+  "ngons": 0,
+  "ngons_gt8": 0,
+  "components": 1,
+  "negative_volume_components": 0,
+  "inconsistent_winding_edges": 0,
+  "uv_layers": 1,
+  "mats": [
+   "M_Warden_Gunmetal",
+   "M_Warden_Cartridge"
+  ],
+  "sharp_edges": 96
+ },
+ "WARDEN_Mag5_Round_04": {
+  "tris": 144,
+  "verts": 74,
+  "nonmanifold": 0,
+  "nonmanifold_samples": [],
+  "wire": 0,
+  "degenerate": 0,
+  "ngons": 0,
+  "ngons_gt8": 0,
+  "components": 1,
+  "negative_volume_components": 0,
+  "inconsistent_winding_edges": 0,
+  "uv_layers": 1,
+  "mats": [
+   "M_Warden_Gunmetal",
+   "M_Warden_Cartridge"
+  ],
+  "sharp_edges": 96
+ },
+ "WARDEN_Mag5_Round_05": {
+  "tris": 144,
+  "verts": 74,
+  "nonmanifold": 0,
+  "nonmanifold_samples": [],
+  "wire": 0,
+  "degenerate": 0,
+  "ngons": 0,
+  "ngons_gt8": 0,
+  "components": 1,
+  "negative_volume_components": 0,
+  "inconsistent_winding_edges": 0,
+  "uv_layers": 1,
+  "mats": [
+   "M_Warden_Gunmetal",
+   "M_Warden_Cartridge"
+  ],
+  "sharp_edges": 96
+ },
+ "WARDEN_Mag8": {
+  "tris": 1160,
+  "verts": 588,
+  "nonmanifold": 0,
+  "nonmanifold_samples": [],
+  "wire": 0,
+  "degenerate": 0,
+  "ngons": 23,
+  "ngons_gt8": 11,
+  "components": 6,
+  "negative_volume_components": 0,
+  "inconsistent_winding_edges": 0,
+  "uv_layers": 1,
+  "mats": [
+   "M_Warden_Graphite",
+   "M_Warden_Sand"
+  ],
+  "sharp_edges": 492
+ },
+ "WARDEN_Mag8_Follower": {
+  "tris": 52,
+  "verts": 28,
+  "nonmanifold": 0,
+  "nonmanifold_samples": [],
+  "wire": 0,
+  "degenerate": 0,
+  "ngons": 2,
+  "ngons_gt8": 0,
+  "components": 1,
+  "negative_volume_components": 0,
+  "inconsistent_winding_edges": 0,
+  "uv_layers": 1,
+  "mats": [
+   "M_Warden_Graphite"
+  ],
+  "sharp_edges": 28
+ },
+ "WARDEN_Mag8_Round": {
+  "tris": 384,
+  "verts": 194,
+  "nonmanifold": 0,
+  "nonmanifold_samples": [],
+  "wire": 0,
+  "degenerate": 0,
+  "ngons": 0,
+  "ngons_gt8": 0,
+  "components": 1,
+  "negative_volume_components": 0,
+  "inconsistent_winding_edges": 0,
+  "uv_layers": 1,
+  "mats": [
+   "M_Warden_Gunmetal",
+   "M_Warden_Cartridge"
+  ],
+  "sharp_edges": 80
+ },
+ "WARDEN_Mag8_Round_02": {
+  "tris": 144,
+  "verts": 74,
+  "nonmanifold": 0,
+  "nonmanifold_samples": [],
+  "wire": 0,
+  "degenerate": 0,
+  "ngons": 0,
+  "ngons_gt8": 0,
+  "components": 1,
+  "negative_volume_components": 0,
+  "inconsistent_winding_edges": 0,
+  "uv_layers": 1,
+  "mats": [
+   "M_Warden_Gunmetal",
+   "M_Warden_Cartridge"
+  ],
+  "sharp_edges": 96
+ },
+ "WARDEN_Mag8_Round_03": {
+  "tris": 144,
+  "verts": 74,
+  "nonmanifold": 0,
+  "nonmanifold_samples": [],
+  "wire": 0,
+  "degenerate": 0,
+  "ngons": 0,
+  "ngons_gt8": 0,
+  "components": 1,
+  "negative_volume_components": 0,
+  "inconsistent_winding_edges": 0,
+  "uv_layers": 1,
+  "mats": [
+   "M_Warden_Gunmetal",
+   "M_Warden_Cartridge"
+  ],
+  "sharp_edges": 96
+ },
+ "WARDEN_Mag8_Round_04": {
+  "tris": 144,
+  "verts": 74,
+  "nonmanifold": 0,
+  "nonmanifold_samples": [],
+  "wire": 0,
+  "degenerate": 0,
+  "ngons": 0,
+  "ngons_gt8": 0,
+  "components": 1,
+  "negative_volume_components": 0,
+  "inconsistent_winding_edges": 0,
+  "uv_layers": 1,
+  "mats": [
+   "M_Warden_Gunmetal",
+   "M_Warden_Cartridge"
+  ],
+  "sharp_edges": 96
+ },
+ "WARDEN_Mag8_Round_05": {
+  "tris": 144,
+  "verts": 74,
+  "nonmanifold": 0,
+  "nonmanifold_samples": [],
+  "wire": 0,
+  "degenerate": 0,
+  "ngons": 0,
+  "ngons_gt8": 0,
+  "components": 1,
+  "negative_volume_components": 0,
+  "inconsistent_winding_edges": 0,
+  "uv_layers": 1,
+  "mats": [
+   "M_Warden_Gunmetal",
+   "M_Warden_Cartridge"
+  ],
+  "sharp_edges": 96
+ },
+ "WARDEN_Mag8_Round_06": {
+  "tris": 144,
+  "verts": 74,
+  "nonmanifold": 0,
+  "nonmanifold_samples": [],
+  "wire": 0,
+  "degenerate": 0,
+  "ngons": 0,
+  "ngons_gt8": 0,
+  "components": 1,
+  "negative_volume_components": 0,
+  "inconsistent_winding_edges": 0,
+  "uv_layers": 1,
+  "mats": [
+   "M_Warden_Gunmetal",
+   "M_Warden_Cartridge"
+  ],
+  "sharp_edges": 96
+ },
+ "WARDEN_Mag8_Round_07": {
+  "tris": 144,
+  "verts": 74,
+  "nonmanifold": 0,
+  "nonmanifold_samples": [],
+  "wire": 0,
+  "degenerate": 0,
+  "ngons": 0,
+  "ngons_gt8": 0,
+  "components": 1,
+  "negative_volume_components": 0,
+  "inconsistent_winding_edges": 0,
+  "uv_layers": 1,
+  "mats": [
+   "M_Warden_Gunmetal",
+   "M_Warden_Cartridge"
+  ],
+  "sharp_edges": 96
+ },
+ "WARDEN_Mag8_Round_08": {
+  "tris": 144,
+  "verts": 74,
+  "nonmanifold": 0,
+  "nonmanifold_samples": [],
+  "wire": 0,
+  "degenerate": 0,
+  "ngons": 0,
+  "ngons_gt8": 0,
+  "components": 1,
+  "negative_volume_components": 0,
+  "inconsistent_winding_edges": 0,
+  "uv_layers": 1,
+  "mats": [
+   "M_Warden_Gunmetal",
+   "M_Warden_Cartridge"
+  ],
+  "sharp_edges": 96
+ },
+ "WARDEN_MagRelease": {
+  "tris": 44,
+  "verts": 24,
+  "nonmanifold": 0,
+  "nonmanifold_samples": [],
+  "wire": 0,
+  "degenerate": 0,
+  "ngons": 0,
+  "ngons_gt8": 0,
+  "components": 1,
+  "negative_volume_components": 0,
+  "inconsistent_winding_edges": 0,
+  "uv_layers": 1,
+  "mats": [
+   "M_Warden_Gunmetal"
+  ],
+  "sharp_edges": 24
+ },
+ "WARDEN_RailBottom": {
+  "tris": 204,
+  "verts": 104,
+  "nonmanifold": 0,
+  "nonmanifold_samples": [],
+  "wire": 0,
+  "degenerate": 0,
+  "ngons": 4,
+  "ngons_gt8": 2,
+  "components": 1,
+  "negative_volume_components": 0,
+  "inconsistent_winding_edges": 0,
+  "uv_layers": 1,
+  "mats": [
+   "M_Warden_Graphite"
+  ],
+  "sharp_edges": 156
+ },
+ "WARDEN_RailSide_L": {
+  "tris": 124,
+  "verts": 64,
+  "nonmanifold": 0,
+  "nonmanifold_samples": [],
+  "wire": 0,
+  "degenerate": 0,
+  "ngons": 4,
+  "ngons_gt8": 2,
+  "components": 1,
+  "negative_volume_components": 0,
+  "inconsistent_winding_edges": 0,
+  "uv_layers": 1,
+  "mats": [
+   "M_Warden_Graphite"
+  ],
+  "sharp_edges": 96
+ },
+ "WARDEN_RailSide_R": {
+  "tris": 124,
+  "verts": 64,
+  "nonmanifold": 0,
+  "nonmanifold_samples": [],
+  "wire": 0,
+  "degenerate": 0,
+  "ngons": 4,
+  "ngons_gt8": 2,
+  "components": 1,
+  "negative_volume_components": 0,
+  "inconsistent_winding_edges": 0,
+  "uv_layers": 1,
+  "mats": [
+   "M_Warden_Graphite"
+  ],
+  "sharp_edges": 96
+ },
+ "WARDEN_RailTop": {
+  "tris": 1228,
+  "verts": 616,
+  "nonmanifold": 0,
+  "nonmanifold_samples": [],
+  "wire": 0,
+  "degenerate": 0,
+  "ngons": 4,
+  "ngons_gt8": 2,
+  "components": 1,
+  "negative_volume_components": 0,
+  "inconsistent_winding_edges": 0,
+  "uv_layers": 1,
+  "mats": [
+   "M_Warden_Graphite"
+  ],
+  "sharp_edges": 924
+ },
+ "WARDEN_Receiver": {
+  "tris": 1836,
+  "verts": 918,
+  "nonmanifold": 0,
+  "nonmanifold_samples": [],
+  "wire": 0,
+  "degenerate": 0,
+  "ngons": 33,
+  "ngons_gt8": 16,
+  "components": 1,
+  "negative_volume_components": 0,
+  "inconsistent_winding_edges": 0,
+  "uv_layers": 1,
+  "mats": [
+   "M_Warden_Graphite"
+  ],
+  "sharp_edges": 506
+ },
+ "WARDEN_Safety": {
+  "tris": 216,
+  "verts": 112,
+  "nonmanifold": 0,
+  "nonmanifold_samples": [],
+  "wire": 0,
+  "degenerate": 0,
+  "ngons": 4,
+  "ngons_gt8": 4,
+  "components": 2,
+  "negative_volume_components": 0,
+  "inconsistent_winding_edges": 0,
+  "uv_layers": 1,
+  "mats": [
+   "M_Warden_Gunmetal"
+  ],
+  "sharp_edges": 112
+ },
+ "WARDEN_StockFolding": {
+  "tris": 1016,
+  "verts": 524,
+  "nonmanifold": 0,
+  "nonmanifold_samples": [],
+  "wire": 0,
+  "degenerate": 0,
+  "ngons": 20,
+  "ngons_gt8": 8,
+  "components": 8,
+  "negative_volume_components": 0,
+  "inconsistent_winding_edges": 0,
+  "uv_layers": 1,
+  "mats": [
+   "M_Warden_Graphite",
+   "M_Warden_Gunmetal"
+  ],
+  "sharp_edges": 416
+ },
+ "WARDEN_StockFolding_Arm": {
+  "tris": 2374,
+  "verts": 1191,
+  "nonmanifold": 0,
+  "nonmanifold_samples": [],
+  "wire": 0,
+  "degenerate": 0,
+  "ngons": 32,
+  "ngons_gt8": 8,
+  "components": 4,
+  "negative_volume_components": 0,
+  "inconsistent_winding_edges": 0,
+  "uv_layers": 1,
+  "mats": [
+   "M_Warden_Sand",
+   "M_Warden_Rubber",
+   "M_Warden_Graphite"
+  ],
+  "sharp_edges": 660
+ },
+ "WARDEN_StockStandard": {
+  "tris": 3740,
+  "verts": 1890,
+  "nonmanifold": 0,
+  "nonmanifold_samples": [],
+  "wire": 0,
+  "degenerate": 0,
+  "ngons": 40,
+  "ngons_gt8": 12,
+  "components": 11,
+  "negative_volume_components": 0,
+  "inconsistent_winding_edges": 0,
+  "uv_layers": 1,
+  "mats": [
+   "M_Warden_Graphite",
+   "M_Warden_Gunmetal",
+   "M_Warden_Sand",
+   "M_Warden_Rubber"
+  ],
+  "sharp_edges": 1158
+ },
+ "WARDEN_StockStandard_CheekRiser": {
+  "tris": 484,
+  "verts": 248,
+  "nonmanifold": 0,
+  "nonmanifold_samples": [],
+  "wire": 0,
+  "degenerate": 0,
+  "ngons": 6,
+  "ngons_gt8": 4,
+  "components": 3,
+  "negative_volume_components": 0,
+  "inconsistent_winding_edges": 0,
+  "uv_layers": 1,
+  "mats": [
+   "M_Warden_Sand",
+   "M_Warden_Gunmetal"
+  ],
+  "sharp_edges": 154
+ },
+ "WARDEN_StockStandard_Monopod": {
+  "tris": 260,
+  "verts": 136,
+  "nonmanifold": 0,
+  "nonmanifold_samples": [],
+  "wire": 0,
+  "degenerate": 0,
+  "ngons": 6,
+  "ngons_gt8": 6,
+  "components": 3,
+  "negative_volume_components": 0,
+  "inconsistent_winding_edges": 0,
+  "uv_layers": 1,
+  "mats": [
+   "M_Warden_Gunmetal"
+  ],
+  "sharp_edges": 136
+ },
+ "WARDEN_Trigger": {
+  "tris": 60,
+  "verts": 32,
+  "nonmanifold": 0,
+  "nonmanifold_samples": [],
+  "wire": 0,
+  "degenerate": 0,
+  "ngons": 2,
+  "ngons_gt8": 0,
+  "components": 1,
+  "negative_volume_components": 0,
+  "inconsistent_winding_edges": 0,
+  "uv_layers": 1,
+  "mats": [
+   "M_Warden_Gunmetal"
+  ],
+  "sharp_edges": 32
+ },
+ "WARDEN_TriggerGuard": {
+  "tris": 360,
+  "verts": 182,
+  "nonmanifold": 0,
+  "nonmanifold_samples": [],
+  "wire": 0,
+  "degenerate": 0,
+  "ngons": 2,
+  "ngons_gt8": 2,
+  "components": 1,
+  "negative_volume_components": 0,
+  "inconsistent_winding_edges": 0,
+  "uv_layers": 1,
+  "mats": [
+   "M_Warden_Graphite"
+  ],
+  "sharp_edges": 90
+ }
+}

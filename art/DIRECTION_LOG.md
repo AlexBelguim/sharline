@@ -42,3 +42,11 @@
    all**; only optics carry a small reticle/status glow. Magazine **window slots** (like on the Mako v09
    mag) stay. They are physical, approximate, and useful for a mag-check animation. Model a few visible
    cartridges behind the window so a mag check can show roughly how full it is.
+9. **Per-arc armor tiers and ammo × tier** (decided with the game session; details in `game/DESIGN_DELTAS.md`).
+   Every halo arc (head / torso / arms / legs) has its own tier, colour and shield pool. Weight class = sum of the
+   arc tiers. Ammo is chosen per loadout as a type (Standard / AP / Shrapnel / RIP / Slug) and a tier (I–III), and
+   halo penetration depends on weapon class × type × tier.
+10. **Map themes chosen.** TDM map = **A "Showhome"**: near-future 3D-printed show homes in a half-built suburb,
+    with a delivery truck in the street and a construction crane (`design/maps/tdm/concepts/_candidates/A_showhome_*`).
+    Gun range / hub "The Yard" = **B: Nordic fjord** setting, with the HQ facility by a fjord, snowy mountains,
+    cool light, and the long range running toward a tunnel in the cliff (`design/maps/range/concepts/themeB_*`).

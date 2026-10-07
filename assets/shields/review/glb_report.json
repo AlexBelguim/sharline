@@ -1,0 +1,4550 @@
+{
+ "export\\HALO_Bulwark.glb": {
+  "extensionsUsed": [
+   "KHR_materials_clearcoat",
+   "KHR_materials_emissive_strength",
+   "KHR_materials_specular"
+  ],
+  "images": 0,
+  "external_uris": [],
+  "materials": [
+   {
+    "name": "M_HALO_Glass_T1",
+    "alphaMode": "OPAQUE",
+    "baseColor": [
+     0.102,
+     0.106,
+     0.11,
+     1
+    ],
+    "metal": 0,
+    "rough": 0.25,
+    "emissive": [
+     0.924,
+     0.957,
+     1
+    ],
+    "emissive_strength": 2.20800012779236,
+    "doubleSided": true,
+    "ext": [
+     "KHR_materials_clearcoat",
+     "KHR_materials_emissive_strength"
+    ]
+   },
+   {
+    "name": "M_HALO_Graphite",
+    "alphaMode": "OPAQUE",
+    "baseColor": [
+     0.03,
+     0.033,
+     0.04,
+     1
+    ],
+    "metal": 0.15000000596046448,
+    "rough": 0.550000011920929,
+    "emissive": [
+     0,
+     0,
+     0
+    ],
+    "emissive_strength": null,
+    "doubleSided": true,
+    "ext": [
+     "KHR_materials_specular"
+    ]
+   },
+   {
+    "name": "M_HALO_Gunmetal",
+    "alphaMode": "OPAQUE",
+    "baseColor": [
+     0.11,
+     0.115,
+     0.12,
+     1
+    ],
+    "metal": 0.8500000238418579,
+    "rough": 0.3499999940395355,
+    "emissive": [
+     0,
+     0,
+     0
+    ],
+    "emissive_strength": null,
+    "doubleSided": true,
+    "ext": []
+   }
+  ],
+  "nodes": [
+   {
+    "name": "HALO_Bulwark_Arc_Arms",
+    "T": null,
+    "R": null,
+    "S": null,
+    "extras": {
+     "halo_core": "Bulwark",
+     "halo_zone": "Arms",
+     "halo_slot0": "glass: M_HALO_Glass_T<tier> when covered, M_HALO_Glass_Off when not"
+    },
+    "children": null,
+    "mesh": "HALO_Bulwark_Arc_Arms",
+    "tris": 698,
+    "prims": [
+     {
+      "material": "M_HALO_Glass_T1",
+      "attrs": [
+       "NORMAL",
+       "POSITION",
+       "TEXCOORD_0"
+      ],
+      "tris": 90,
+      "degenerate_tris": 0,
+      "normals_unit": true
+     },
+     {
+      "material": "M_HALO_Graphite",
+      "attrs": [
+       "NORMAL",
+       "POSITION",
+       "TEXCOORD_0"
+      ],
+      "tris": 608,
+      "degenerate_tris": 0,
+      "normals_unit": true
+     }
+    ],
+    "bbox_min": [
+     0.0971,
+     -0.0145,
+     -0.1222
+    ],
+    "bbox_max": [
+     0.194,
+     0.0166,
+     0.1222
+    ]
+   },
+   {
+    "name": "HALO_Bulwark_Arc_Head",
+    "T": null,
+    "R": null,
+    "S": null,
+    "extras": {
+     "halo_core": "Bulwark",
+     "halo_zone": "Head",
+     "halo_slot0": "glass: M_HALO_Glass_T<tier> when covered, M_HALO_Glass_Off when not"
+    },
+    "children": null,
+    "mesh": "HALO_Bulwark_Arc_Head",
+    "tris": 854,
+    "prims": [
+     {
+      "material": "M_HALO_Glass_T1",
+      "attrs": [
+       "NORMAL",
+       "POSITION",
+       "TEXCOORD_0"
+      ],
+      "tris": 206,
+      "degenerate_tris": 0,
+      "normals_unit": true
+     },
+     {
+      "material": "M_HALO_Graphite",
+      "attrs": [
+       "NORMAL",
+       "POSITION",
+       "TEXCOORD_0"
+      ],
+      "tris": 648,
+      "degenerate_tris": 0,
+      "normals_unit": true
+     }
+    ],
+    "bbox_min": [
+     -0.123,
+     -0.0145,
+     0.0978
+    ],
+    "bbox_max": [
+     0.123,
+     0.0166,
+     0.1682
+    ]
+   },
+   {
+    "name": "HALO_Bulwark_Arc_Legs",
+    "T": null,
+    "R": null,
+    "S": null,
+    "extras": {
+     "halo_core": "Bulwark",
+     "halo_zone": "Legs",
+     "halo_slot0": "glass: M_HALO_Glass_T<tier> when covered, M_HALO_Glass_Off when not"
+    },
+    "children": null,
+    "mesh": "HALO_Bulwark_Arc_Legs",
+    "tris": 696,
+    "prims": [
+     {
+      "material": "M_HALO_Glass_T1",
+      "attrs": [
+       "NORMAL",
+       "POSITION",
+       "TEXCOORD_0"
+      ],
+      "tris": 88,
+      "degenerate_tris": 0,
+      "normals_unit": true
+     },
+     {
+      "material": "M_HALO_Graphite",
+      "attrs": [
+       "NORMAL",
+       "POSITION",
+       "TEXCOORD_0"
+      ],
+      "tris": 608,
+      "degenerate_tris": 0,
+      "normals_unit": true
+     }
+    ],
+    "bbox_min": [
+     -0.194,
+     -0.0145,
+     -0.1222
+    ],
+    "bbox_max": [
+     -0.0971,
+     0.0166,
+     0.1222
+    ]
+   },
+   {
+    "name": "HALO_Bulwark_Arc_Torso",
+    "T": null,
+    "R": null,
+    "S": null,
+    "extras": {
+     "halo_core": "Bulwark",
+     "halo_zone": "Torso",
+     "halo_slot0": "glass: M_HALO_Glass_T<tier> when covered, M_HALO_Glass_Off when not"
+    },
+    "children": null,
+    "mesh": "HALO_Bulwark_Arc_Torso",
+    "tris": 762,
+    "prims": [
+     {
+      "material": "M_HALO_Glass_T1",
+      "attrs": [
+       "NORMAL",
+       "POSITION",
+       "TEXCOORD_0"
+      ],
+      "tris": 114,
+      "degenerate_tris": 0,
+      "normals_unit": true
+     },
+     {
+      "material": "M_HALO_Graphite",
+      "attrs": [
+       "NORMAL",
+       "POSITION",
+       "TEXCOORD_0"
+      ],
+      "tris": 648,
+      "degenerate_tris": 0,
+      "normals_unit": true
+     }
+    ],
+    "bbox_min": [
+     -0.123,
+     -0.0145,
+     -0.1682
+    ],
+    "bbox_max": [
+     0.123,
+     0.0166,
+     -0.0978
+    ]
+   },
+   {
+    "name": "HALO_Bulwark_Band_Heavy",
+    "T": null,
+    "R": null,
+    "S": null,
+    "extras": {
+     "halo_core": "Bulwark",
+     "halo_weight": "Heavy"
+    },
+    "children": null,
+    "mesh": "HALO_Bulwark_Band_Heavy",
+    "tris": 1212,
+    "prims": [
+     {
+      "material": "M_HALO_Graphite",
+      "attrs": [
+       "NORMAL",
+       "POSITION",
+       "TEXCOORD_0"
+      ],
+      "tris": 972,
+      "degenerate_tris": 0,
+      "normals_unit": true
+     },
+     {
+      "material": "M_HALO_Gunmetal",
+      "attrs": [
+       "NORMAL",
+       "POSITION",
+       "TEXCOORD_0"
+      ],
+      "tris": 240,
+      "degenerate_tris": 0,
+      "normals_unit": true
+     }
+    ],
+    "bbox_min": [
+     -0.2477,
+     -0.07,
+     -0.2155
+    ],
+    "bbox_max": [
+     0.2477,
+     -0.009,
+     0.2155
+    ]
+   },
+   {
+    "name": "HALO_Bulwark_Band_Medium",
+    "T": null,
+    "R": null,
+    "S": null,
+    "extras": {
+     "halo_core": "Bulwark",
+     "halo_weight": "Medium"
+    },
+    "children": null,
+    "mesh": "HALO_Bulwark_Band_Medium",
+    "tris": 400,
+    "prims": [
+     {
+      "material": "M_HALO_Graphite",
+      "attrs": [
+       "NORMAL",
+       "POSITION",
+       "TEXCOORD_0"
+      ],
+      "tris": 400,
+      "degenerate_tris": 0,
+      "normals_unit": true
+     }
+    ],
+    "bbox_min": [
+     -0.2142,
+     -0.035,
+     -0.1855
+    ],
+    "bbox_max": [
+     0.2142,
+     -0.004,
+     0.1855
+    ]
+   }
+  ]
+ },
+ "export\\HALO_Common.glb": {
+  "extensionsUsed": [
+   "KHR_materials_clearcoat",
+   "KHR_materials_emissive_strength",
+   "KHR_materials_specular"
+  ],
+  "images": 0,
+  "external_uris": [],
+  "materials": [
+   {
+    "name": "M_HALO_Glass_T1",
+    "alphaMode": "OPAQUE",
+    "baseColor": [
+     0.102,
+     0.106,
+     0.11,
+     1
+    ],
+    "metal": 0,
+    "rough": 0.25,
+    "emissive": [
+     0.924,
+     0.957,
+     1
+    ],
+    "emissive_strength": 2.20800012779236,
+    "doubleSided": true,
+    "ext": [
+     "KHR_materials_clearcoat",
+     "KHR_materials_emissive_strength"
+    ]
+   },
+   {
+    "name": "M_HALO_Graphite",
+    "alphaMode": "OPAQUE",
+    "baseColor": [
+     0.03,
+     0.033,
+     0.04,
+     1
+    ],
+    "metal": 0.15000000596046448,
+    "rough": 0.550000011920929,
+    "emissive": [
+     0,
+     0,
+     0
+    ],
+    "emissive_strength": null,
+    "doubleSided": true,
+    "ext": [
+     "KHR_materials_specular"
+    ]
+   }
+  ],
+  "nodes": [
+   {
+    "name": "HALO_PIP_1",
+    "T": [
+     -0.024000000208616257,
+     0.02449999935925007,
+     0.15000000596046448
+    ],
+    "R": null,
+    "S": null,
+    "extras": {
+     "halo_pip_index": 1
+    },
+    "children": null
+   },
+   {
+    "name": "HALO_PIP_2",
+    "T": [
+     -0.00800000037997961,
+     0.02449999935925007,
+     0.15000000596046448
+    ],
+    "R": null,
+    "S": null,
+    "extras": {
+     "halo_pip_index": 2
+    },
+    "children": null
+   },
+   {
+    "name": "HALO_PIP_3",
+    "T": [
+     0.00800000037997961,
+     0.02449999935925007,
+     0.15000000596046448
+    ],
+    "R": null,
+    "S": null,
+    "extras": {
+     "halo_pip_index": 3
+    },
+    "children": null
+   },
+   {
+    "name": "HALO_PIP_4",
+    "T": [
+     0.024000000208616257,
+     0.02449999935925007,
+     0.15000000596046448
+    ],
+    "R": null,
+    "S": null,
+    "extras": {
+     "halo_pip_index": 4
+    },
+    "children": null
+   },
+   {
+    "name": "HALO_PowerCell",
+    "T": null,
+    "R": null,
+    "S": null,
+    "extras": null,
+    "children": null,
+    "mesh": "HALO_PowerCell",
+    "tris": 488,
+    "prims": [
+     {
+      "material": "M_HALO_Glass_T1",
+      "attrs": [
+       "NORMAL",
+       "POSITION",
+       "TEXCOORD_0"
+      ],
+      "tris": 248,
+      "degenerate_tris": 0,
+      "normals_unit": true
+     },
+     {
+      "material": "M_HALO_Graphite",
+      "attrs": [
+       "NORMAL",
+       "POSITION",
+       "TEXCOORD_0"
+      ],
+      "tris": 240,
+      "degenerate_tris": 0,
+      "normals_unit": true
+     }
+    ],
+    "bbox_min": [
+     -0.0555,
+     -0.0126,
+     -0.0126
+    ],
+    "bbox_max": [
+     0.0319,
+     0.0126,
+     0.0126
+    ]
+   },
+   {
+    "name": "HALO_Shard_A",
+    "T": null,
+    "R": null,
+    "S": null,
+    "extras": null,
+    "children": null,
+    "mesh": "HALO_Shard_A",
+    "tris": 26,
+    "prims": [
+     {
+      "material": "M_HALO_Glass_T1",
+      "attrs": [
+       "NORMAL",
+       "POSITION",
+       "TEXCOORD_0"
+      ],
+      "tris": 26,
+      "degenerate_tris": 0,
+      "normals_unit": true
+     }
+    ],
+    "bbox_min": [
+     -0.015,
+     -0.0021,
+     -0.013
+    ],
+    "bbox_max": [
+     0.015,
+     0.0037,
+     0.013
+    ]
+   },
+   {
+    "name": "HALO_Shard_B",
+    "T": null,
+    "R": null,
+    "S": null,
+    "extras": null,
+    "children": null,
+    "mesh": "HALO_Shard_B",
+    "tris": 14,
+    "prims": [
+     {
+      "material": "M_HALO_Glass_T1",
+      "attrs": [
+       "NORMAL",
+       "POSITION",
+       "TEXCOORD_0"
+      ],
+      "tris": 14,
+      "degenerate_tris": 0,
+      "normals_unit": true
+     }
+    ],
+    "bbox_min": [
+     0.0,
+     -0.0025,
+     -0.0185
+    ],
+    "bbox_max": [
+     0.021,
+     0.0043,
+     0.001
+    ]
+   },
+   {
+    "name": "HALO_Shard_C",
+    "T": null,
+    "R": null,
+    "S": null,
+    "extras": null,
+    "children": null,
+    "mesh": "HALO_Shard_C",
+    "tris": 18,
+    "prims": [
+     {
+      "material": "M_HALO_Glass_T1",
+      "attrs": [
+       "NORMAL",
+       "POSITION",
+       "TEXCOORD_0"
+      ],
+      "tris": 18,
+      "degenerate_tris": 0,
+      "normals_unit": true
+     }
+    ],
+    "bbox_min": [
+     -0.017,
+     -0.0016,
+     -0.0052
+    ],
+    "bbox_max": [
+     0.019,
+     0.0028,
+     0.0055
+    ]
+   },
+   {
+    "name": "HALO_TierPip",
+    "T": null,
+    "R": null,
+    "S": null,
+    "extras": null,
+    "children": null,
+    "mesh": "HALO_TierPip",
+    "tris": 8,
+    "prims": [
+     {
+      "material": "M_HALO_Glass_T1",
+      "attrs": [
+       "NORMAL",
+       "POSITION",
+       "TEXCOORD_0"
+      ],
+      "tris": 8,
+      "degenerate_tris": 0,
+      "normals_unit": true
+     }
+    ],
+    "bbox_min": [
+     -0.0056,
+     -0.009,
+     -0.003
+    ],
+    "bbox_max": [
+     0.0056,
+     0.009,
+     0.003
+    ]
+   }
+  ]
+ },
+ "export\\HALO_Materials.glb": {
+  "extensionsUsed": [
+   "KHR_materials_clearcoat",
+   "KHR_materials_emissive_strength",
+   "KHR_materials_specular"
+  ],
+  "images": 0,
+  "external_uris": [],
+  "materials": [
+   {
+    "name": "M_HALO_Bone",
+    "alphaMode": "OPAQUE",
+    "baseColor": [
+     0.55,
+     0.52,
+     0.46,
+     1
+    ],
+    "metal": 0,
+    "rough": 0.6000000238418579,
+    "emissive": [
+     0,
+     0,
+     0
+    ],
+    "emissive_strength": null,
+    "doubleSided": true,
+    "ext": []
+   },
+   {
+    "name": "M_HALO_Glass_Off",
+    "alphaMode": "BLEND",
+    "baseColor": [
+     0.02,
+     0.02,
+     0.025,
+     0.55
+    ],
+    "metal": 0,
+    "rough": 0.07999999821186066,
+    "emissive": [
+     0,
+     0,
+     0
+    ],
+    "emissive_strength": null,
+    "doubleSided": true,
+    "ext": [
+     "KHR_materials_clearcoat",
+     "KHR_materials_specular"
+    ]
+   },
+   {
+    "name": "M_HALO_Glass_T1",
+    "alphaMode": "OPAQUE",
+    "baseColor": [
+     0.102,
+     0.106,
+     0.11,
+     1
+    ],
+    "metal": 0,
+    "rough": 0.25,
+    "emissive": [
+     0.924,
+     0.957,
+     1
+    ],
+    "emissive_strength": 2.20800012779236,
+    "doubleSided": true,
+    "ext": [
+     "KHR_materials_clearcoat",
+     "KHR_materials_emissive_strength"
+    ]
+   },
+   {
+    "name": "M_HALO_Glass_T2",
+    "alphaMode": "OPAQUE",
+    "baseColor": [
+     0.012,
+     0.054,
+     0.12,
+     1
+    ],
+    "metal": 0,
+    "rough": 0.25,
+    "emissive": [
+     0.1,
+     0.45,
+     1
+    ],
+    "emissive_strength": 2.4000000953674316,
+    "doubleSided": true,
+    "ext": [
+     "KHR_materials_clearcoat",
+     "KHR_materials_emissive_strength"
+    ]
+   },
+   {
+    "name": "M_HALO_Glass_T3",
+    "alphaMode": "OPAQUE",
+    "baseColor": [
+     0.066,
+     0.018,
+     0.12,
+     1
+    ],
+    "metal": 0,
+    "rough": 0.25,
+    "emissive": [
+     0.55,
+     0.15,
+     1
+    ],
+    "emissive_strength": 2.4000000953674316,
+    "doubleSided": true,
+    "ext": [
+     "KHR_materials_clearcoat",
+     "KHR_materials_emissive_strength"
+    ]
+   },
+   {
+    "name": "M_HALO_Glass_T4",
+    "alphaMode": "OPAQUE",
+    "baseColor": [
+     0.12,
+     0.074,
+     0.01,
+     1
+    ],
+    "metal": 0,
+    "rough": 0.25,
+    "emissive": [
+     1,
+     0.62,
+     0.08
+    ],
+    "emissive_strength": 2.4000000953674316,
+    "doubleSided": true,
+    "ext": [
+     "KHR_materials_clearcoat",
+     "KHR_materials_emissive_strength"
+    ]
+   },
+   {
+    "name": "M_HALO_Graphite",
+    "alphaMode": "OPAQUE",
+    "baseColor": [
+     0.03,
+     0.033,
+     0.04,
+     1
+    ],
+    "metal": 0.15000000596046448,
+    "rough": 0.550000011920929,
+    "emissive": [
+     0,
+     0,
+     0
+    ],
+    "emissive_strength": null,
+    "doubleSided": true,
+    "ext": [
+     "KHR_materials_specular"
+    ]
+   },
+   {
+    "name": "M_HALO_Gunmetal",
+    "alphaMode": "OPAQUE",
+    "baseColor": [
+     0.11,
+     0.115,
+     0.12,
+     1
+    ],
+    "metal": 0.8500000238418579,
+    "rough": 0.3499999940395355,
+    "emissive": [
+     0,
+     0,
+     0
+    ],
+    "emissive_strength": null,
+    "doubleSided": true,
+    "ext": []
+   }
+  ],
+  "nodes": [
+   {
+    "name": "HALO_Swatch_Bone",
+    "T": [
+     0.675000011920929,
+     0,
+     -0.5
+    ],
+    "R": null,
+    "S": null,
+    "extras": null,
+    "children": null,
+    "mesh": "HALO_Swatch_Bone",
+    "tris": 12,
+    "prims": [
+     {
+      "material": "M_HALO_Bone",
+      "attrs": [
+       "NORMAL",
+       "POSITION",
+       "TEXCOORD_0"
+      ],
+      "tris": 12,
+      "degenerate_tris": 0,
+      "normals_unit": true
+     }
+    ],
+    "bbox_min": [
+     -0.01,
+     -0.01,
+     -0.001
+    ],
+    "bbox_max": [
+     0.01,
+     0.01,
+     0.001
+    ]
+   },
+   {
+    "name": "HALO_Swatch_Glass_Off",
+    "T": [
+     0.6000000238418579,
+     0,
+     -0.5
+    ],
+    "R": null,
+    "S": null,
+    "extras": null,
+    "children": null,
+    "mesh": "HALO_Swatch_Glass_Off",
+    "tris": 12,
+    "prims": [
+     {
+      "material": "M_HALO_Glass_Off",
+      "attrs": [
+       "NORMAL",
+       "POSITION",
+       "TEXCOORD_0"
+      ],
+      "tris": 12,
+      "degenerate_tris": 0,
+      "normals_unit": true
+     }
+    ],
+    "bbox_min": [
+     -0.01,
+     -0.01,
+     -0.001
+    ],
+    "bbox_max": [
+     0.01,
+     0.01,
+     0.001
+    ]
+   },
+   {
+    "name": "HALO_Swatch_Glass_T1",
+    "T": [
+     0.5,
+     0,
+     -0.5
+    ],
+    "R": null,
+    "S": null,
+    "extras": null,
+    "children": null,
+    "mesh": "HALO_Swatch_Glass_T1",
+    "tris": 12,
+    "prims": [
+     {
+      "material": "M_HALO_Glass_T1",
+      "attrs": [
+       "NORMAL",
+       "POSITION",
+       "TEXCOORD_0"
+      ],
+      "tris": 12,
+      "degenerate_tris": 0,
+      "normals_unit": true
+     }
+    ],
+    "bbox_min": [
+     -0.01,
+     -0.01,
+     -0.001
+    ],
+    "bbox_max": [
+     0.01,
+     0.01,
+     0.001
+    ]
+   },
+   {
+    "name": "HALO_Swatch_Glass_T2",
+    "T": [
+     0.5249999761581421,
+     0,
+     -0.5
+    ],
+    "R": null,
+    "S": null,
+    "extras": null,
+    "children": null,
+    "mesh": "HALO_Swatch_Glass_T2",
+    "tris": 12,
+    "prims": [
+     {
+      "material": "M_HALO_Glass_T2",
+      "attrs": [
+       "NORMAL",
+       "POSITION",
+       "TEXCOORD_0"
+      ],
+      "tris": 12,
+      "degenerate_tris": 0,
+      "normals_unit": true
+     }
+    ],
+    "bbox_min": [
+     -0.01,
+     -0.01,
+     -0.001
+    ],
+    "bbox_max": [
+     0.01,
+     0.01,
+     0.001
+    ]
+   },
+   {
+    "name": "HALO_Swatch_Glass_T3",
+    "T": [
+     0.550000011920929,
+     0,
+     -0.5
+    ],
+    "R": null,
+    "S": null,
+    "extras": null,
+    "children": null,
+    "mesh": "HALO_Swatch_Glass_T3",
+    "tris": 12,
+    "prims": [
+     {
+      "material": "M_HALO_Glass_T3",
+      "attrs": [
+       "NORMAL",
+       "POSITION",
+       "TEXCOORD_0"
+      ],
+      "tris": 12,
+      "degenerate_tris": 0,
+      "normals_unit": true
+     }
+    ],
+    "bbox_min": [
+     -0.01,
+     -0.01,
+     -0.001
+    ],
+    "bbox_max": [
+     0.01,
+     0.01,
+     0.001
+    ]
+   },
+   {
+    "name": "HALO_Swatch_Glass_T4",
+    "T": [
+     0.574999988079071,
+     0,
+     -0.5
+    ],
+    "R": null,
+    "S": null,
+    "extras": null,
+    "children": null,
+    "mesh": "HALO_Swatch_Glass_T4",
+    "tris": 12,
+    "prims": [
+     {
+      "material": "M_HALO_Glass_T4",
+      "attrs": [
+       "NORMAL",
+       "POSITION",
+       "TEXCOORD_0"
+      ],
+      "tris": 12,
+      "degenerate_tris": 0,
+      "normals_unit": true
+     }
+    ],
+    "bbox_min": [
+     -0.01,
+     -0.01,
+     -0.001
+    ],
+    "bbox_max": [
+     0.01,
+     0.01,
+     0.001
+    ]
+   },
+   {
+    "name": "HALO_Swatch_Graphite",
+    "T": [
+     0.625,
+     0,
+     -0.5
+    ],
+    "R": null,
+    "S": null,
+    "extras": null,
+    "children": null,
+    "mesh": "HALO_Swatch_Graphite",
+    "tris": 12,
+    "prims": [
+     {
+      "material": "M_HALO_Graphite",
+      "attrs": [
+       "NORMAL",
+       "POSITION",
+       "TEXCOORD_0"
+      ],
+      "tris": 12,
+      "degenerate_tris": 0,
+      "normals_unit": true
+     }
+    ],
+    "bbox_min": [
+     -0.01,
+     -0.01,
+     -0.001
+    ],
+    "bbox_max": [
+     0.01,
+     0.01,
+     0.001
+    ]
+   },
+   {
+    "name": "HALO_Swatch_Gunmetal",
+    "T": [
+     0.6499999761581421,
+     0,
+     -0.5
+    ],
+    "R": null,
+    "S": null,
+    "extras": null,
+    "children": null,
+    "mesh": "HALO_Swatch_Gunmetal",
+    "tris": 12,
+    "prims": [
+     {
+      "material": "M_HALO_Gunmetal",
+      "attrs": [
+       "NORMAL",
+       "POSITION",
+       "TEXCOORD_0"
+      ],
+      "tris": 12,
+      "degenerate_tris": 0,
+      "normals_unit": true
+     }
+    ],
+    "bbox_min": [
+     -0.01,
+     -0.01,
+     -0.001
+    ],
+    "bbox_max": [
+     0.01,
+     0.01,
+     0.001
+    ]
+   }
+  ]
+ },
+ "export\\HALO_Mender.glb": {
+  "extensionsUsed": [
+   "KHR_materials_clearcoat",
+   "KHR_materials_emissive_strength",
+   "KHR_materials_specular"
+  ],
+  "images": 0,
+  "external_uris": [],
+  "materials": [
+   {
+    "name": "M_HALO_Glass_T1",
+    "alphaMode": "OPAQUE",
+    "baseColor": [
+     0.102,
+     0.106,
+     0.11,
+     1
+    ],
+    "metal": 0,
+    "rough": 0.25,
+    "emissive": [
+     0.924,
+     0.957,
+     1
+    ],
+    "emissive_strength": 2.20800012779236,
+    "doubleSided": true,
+    "ext": [
+     "KHR_materials_clearcoat",
+     "KHR_materials_emissive_strength"
+    ]
+   },
+   {
+    "name": "M_HALO_Graphite",
+    "alphaMode": "OPAQUE",
+    "baseColor": [
+     0.03,
+     0.033,
+     0.04,
+     1
+    ],
+    "metal": 0.15000000596046448,
+    "rough": 0.550000011920929,
+    "emissive": [
+     0,
+     0,
+     0
+    ],
+    "emissive_strength": null,
+    "doubleSided": true,
+    "ext": [
+     "KHR_materials_specular"
+    ]
+   },
+   {
+    "name": "M_HALO_Gunmetal",
+    "alphaMode": "OPAQUE",
+    "baseColor": [
+     0.11,
+     0.115,
+     0.12,
+     1
+    ],
+    "metal": 0.8500000238418579,
+    "rough": 0.3499999940395355,
+    "emissive": [
+     0,
+     0,
+     0
+    ],
+    "emissive_strength": null,
+    "doubleSided": true,
+    "ext": []
+   }
+  ],
+  "nodes": [
+   {
+    "name": "HALO_Mender_Arc_Arms",
+    "T": null,
+    "R": null,
+    "S": null,
+    "extras": {
+     "halo_core": "Mender",
+     "halo_zone": "Arms",
+     "halo_slot0": "glass: M_HALO_Glass_T<tier> when covered, M_HALO_Glass_Off when not"
+    },
+    "children": null,
+    "mesh": "HALO_Mender_Arc_Arms",
+    "tris": 1204,
+    "prims": [
+     {
+      "material": "M_HALO_Glass_T1",
+      "attrs": [
+       "NORMAL",
+       "POSITION",
+       "TEXCOORD_0"
+      ],
+      "tris": 592,
+      "degenerate_tris": 0,
+      "normals_unit": true
+     },
+     {
+      "material": "M_HALO_Graphite",
+      "attrs": [
+       "NORMAL",
+       "POSITION",
+       "TEXCOORD_0"
+      ],
+      "tris": 612,
+      "degenerate_tris": 0,
+      "normals_unit": true
+     }
+    ],
+    "bbox_min": [
+     0.0984,
+     -0.006,
+     -0.1275
+    ],
+    "bbox_max": [
+     0.182,
+     0.0068,
+     0.1275
+    ]
+   },
+   {
+    "name": "HALO_Mender_Arc_Head",
+    "T": null,
+    "R": null,
+    "S": null,
+    "extras": {
+     "halo_core": "Mender",
+     "halo_zone": "Head",
+     "halo_slot0": "glass: M_HALO_Glass_T<tier> when covered, M_HALO_Glass_Off when not"
+    },
+    "children": null,
+    "mesh": "HALO_Mender_Arc_Head",
+    "tris": 1284,
+    "prims": [
+     {
+      "material": "M_HALO_Glass_T1",
+      "attrs": [
+       "NORMAL",
+       "POSITION",
+       "TEXCOORD_0"
+      ],
+      "tris": 688,
+      "degenerate_tris": 0,
+      "normals_unit": true
+     },
+     {
+      "material": "M_HALO_Graphite",
+      "attrs": [
+       "NORMAL",
+       "POSITION",
+       "TEXCOORD_0"
+      ],
+      "tris": 596,
+      "degenerate_tris": 0,
+      "normals_unit": true
+     }
+    ],
+    "bbox_min": [
+     -0.1275,
+     -0.006,
+     0.0984
+    ],
+    "bbox_max": [
+     0.1275,
+     0.0068,
+     0.182
+    ]
+   },
+   {
+    "name": "HALO_Mender_Arc_Legs",
+    "T": null,
+    "R": null,
+    "S": null,
+    "extras": {
+     "halo_core": "Mender",
+     "halo_zone": "Legs",
+     "halo_slot0": "glass: M_HALO_Glass_T<tier> when covered, M_HALO_Glass_Off when not"
+    },
+    "children": null,
+    "mesh": "HALO_Mender_Arc_Legs",
+    "tris": 1170,
+    "prims": [
+     {
+      "material": "M_HALO_Glass_T1",
+      "attrs": [
+       "NORMAL",
+       "POSITION",
+       "TEXCOORD_0"
+      ],
+      "tris": 590,
+      "degenerate_tris": 0,
+      "normals_unit": true
+     },
+     {
+      "material": "M_HALO_Graphite",
+      "attrs": [
+       "NORMAL",
+       "POSITION",
+       "TEXCOORD_0"
+      ],
+      "tris": 580,
+      "degenerate_tris": 0,
+      "normals_unit": true
+     }
+    ],
+    "bbox_min": [
+     -0.182,
+     -0.006,
+     -0.1275
+    ],
+    "bbox_max": [
+     -0.0984,
+     0.0068,
+     0.1275
+    ]
+   },
+   {
+    "name": "HALO_Mender_Arc_Torso",
+    "T": null,
+    "R": null,
+    "S": null,
+    "extras": {
+     "halo_core": "Mender",
+     "halo_zone": "Torso",
+     "halo_slot0": "glass: M_HALO_Glass_T<tier> when covered, M_HALO_Glass_Off when not"
+    },
+    "children": null,
+    "mesh": "HALO_Mender_Arc_Torso",
+    "tris": 1208,
+    "prims": [
+     {
+      "material": "M_HALO_Glass_T1",
+      "attrs": [
+       "NORMAL",
+       "POSITION",
+       "TEXCOORD_0"
+      ],
+      "tris": 596,
+      "degenerate_tris": 0,
+      "normals_unit": true
+     },
+     {
+      "material": "M_HALO_Graphite",
+      "attrs": [
+       "NORMAL",
+       "POSITION",
+       "TEXCOORD_0"
+      ],
+      "tris": 612,
+      "degenerate_tris": 0,
+      "normals_unit": true
+     }
+    ],
+    "bbox_min": [
+     -0.1275,
+     -0.006,
+     -0.182
+    ],
+    "bbox_max": [
+     0.1275,
+     0.0068,
+     -0.0984
+    ]
+   },
+   {
+    "name": "HALO_Mender_Band_Heavy",
+    "T": null,
+    "R": null,
+    "S": null,
+    "extras": {
+     "halo_core": "Mender",
+     "halo_weight": "Heavy"
+    },
+    "children": null,
+    "mesh": "HALO_Mender_Band_Heavy",
+    "tris": 2160,
+    "prims": [
+     {
+      "material": "M_HALO_Graphite",
+      "attrs": [
+       "NORMAL",
+       "POSITION",
+       "TEXCOORD_0"
+      ],
+      "tris": 1760,
+      "degenerate_tris": 0,
+      "normals_unit": true
+     },
+     {
+      "material": "M_HALO_Gunmetal",
+      "attrs": [
+       "NORMAL",
+       "POSITION",
+       "TEXCOORD_0"
+      ],
+      "tris": 400,
+      "degenerate_tris": 0,
+      "normals_unit": true
+     }
+    ],
+    "bbox_min": [
+     -0.2214,
+     -0.0545,
+     -0.2285
+    ],
+    "bbox_max": [
+     0.2214,
+     0.0055,
+     0.2285
+    ]
+   },
+   {
+    "name": "HALO_Mender_Band_Medium",
+    "T": null,
+    "R": null,
+    "S": null,
+    "extras": {
+     "halo_core": "Mender",
+     "halo_weight": "Medium"
+    },
+    "children": null,
+    "mesh": "HALO_Mender_Band_Medium",
+    "tris": 904,
+    "prims": [
+     {
+      "material": "M_HALO_Graphite",
+      "attrs": [
+       "NORMAL",
+       "POSITION",
+       "TEXCOORD_0"
+      ],
+      "tris": 904,
+      "degenerate_tris": 0,
+      "normals_unit": true
+     }
+    ],
+    "bbox_min": [
+     -0.1985,
+     -0.0265,
+     -0.1985
+    ],
+    "bbox_max": [
+     0.1985,
+     0.0045,
+     0.1985
+    ]
+   }
+  ]
+ },
+ "export\\HALO_Phase.glb": {
+  "extensionsUsed": [
+   "KHR_materials_clearcoat",
+   "KHR_materials_emissive_strength",
+   "KHR_materials_specular"
+  ],
+  "images": 0,
+  "external_uris": [],
+  "materials": [
+   {
+    "name": "M_HALO_Glass_T1",
+    "alphaMode": "OPAQUE",
+    "baseColor": [
+     0.102,
+     0.106,
+     0.11,
+     1
+    ],
+    "metal": 0,
+    "rough": 0.25,
+    "emissive": [
+     0.924,
+     0.957,
+     1
+    ],
+    "emissive_strength": 2.20800012779236,
+    "doubleSided": true,
+    "ext": [
+     "KHR_materials_clearcoat",
+     "KHR_materials_emissive_strength"
+    ]
+   },
+   {
+    "name": "M_HALO_Graphite",
+    "alphaMode": "OPAQUE",
+    "baseColor": [
+     0.03,
+     0.033,
+     0.04,
+     1
+    ],
+    "metal": 0.15000000596046448,
+    "rough": 0.550000011920929,
+    "emissive": [
+     0,
+     0,
+     0
+    ],
+    "emissive_strength": null,
+    "doubleSided": true,
+    "ext": [
+     "KHR_materials_specular"
+    ]
+   },
+   {
+    "name": "M_HALO_Gunmetal",
+    "alphaMode": "OPAQUE",
+    "baseColor": [
+     0.11,
+     0.115,
+     0.12,
+     1
+    ],
+    "metal": 0.8500000238418579,
+    "rough": 0.3499999940395355,
+    "emissive": [
+     0,
+     0,
+     0
+    ],
+    "emissive_strength": null,
+    "doubleSided": true,
+    "ext": []
+   }
+  ],
+  "nodes": [
+   {
+    "name": "HALO_Phase_Arc_Arms",
+    "T": null,
+    "R": null,
+    "S": null,
+    "extras": {
+     "halo_core": "Phase",
+     "halo_zone": "Arms",
+     "halo_slot0": "glass: M_HALO_Glass_T<tier> when covered, M_HALO_Glass_Off when not"
+    },
+    "children": null,
+    "mesh": "HALO_Phase_Arc_Arms",
+    "tris": 756,
+    "prims": [
+     {
+      "material": "M_HALO_Glass_T1",
+      "attrs": [
+       "NORMAL",
+       "POSITION",
+       "TEXCOORD_0"
+      ],
+      "tris": 476,
+      "degenerate_tris": 0,
+      "normals_unit": true
+     },
+     {
+      "material": "M_HALO_Graphite",
+      "attrs": [
+       "NORMAL",
+       "POSITION",
+       "TEXCOORD_0"
+      ],
+      "tris": 280,
+      "degenerate_tris": 0,
+      "normals_unit": true
+     }
+    ],
+    "bbox_min": [
+     0.1075,
+     -0.004,
+     -0.1186
+    ],
+    "bbox_max": [
+     0.1685,
+     0.0108,
+     0.1186
+    ]
+   },
+   {
+    "name": "HALO_Phase_Arc_Head",
+    "T": null,
+    "R": null,
+    "S": null,
+    "extras": {
+     "halo_core": "Phase",
+     "halo_zone": "Head",
+     "halo_slot0": "glass: M_HALO_Glass_T<tier> when covered, M_HALO_Glass_Off when not"
+    },
+    "children": null,
+    "mesh": "HALO_Phase_Arc_Head",
+    "tris": 900,
+    "prims": [
+     {
+      "material": "M_HALO_Glass_T1",
+      "attrs": [
+       "NORMAL",
+       "POSITION",
+       "TEXCOORD_0"
+      ],
+      "tris": 572,
+      "degenerate_tris": 0,
+      "normals_unit": true
+     },
+     {
+      "material": "M_HALO_Graphite",
+      "attrs": [
+       "NORMAL",
+       "POSITION",
+       "TEXCOORD_0"
+      ],
+      "tris": 328,
+      "degenerate_tris": 0,
+      "normals_unit": true
+     }
+    ],
+    "bbox_min": [
+     -0.1186,
+     -0.004,
+     0.1075
+    ],
+    "bbox_max": [
+     0.1186,
+     0.0108,
+     0.1685
+    ]
+   },
+   {
+    "name": "HALO_Phase_Arc_Legs",
+    "T": null,
+    "R": null,
+    "S": null,
+    "extras": {
+     "halo_core": "Phase",
+     "halo_zone": "Legs",
+     "halo_slot0": "glass: M_HALO_Glass_T<tier> when covered, M_HALO_Glass_Off when not"
+    },
+    "children": null,
+    "mesh": "HALO_Phase_Arc_Legs",
+    "tris": 802,
+    "prims": [
+     {
+      "material": "M_HALO_Glass_T1",
+      "attrs": [
+       "NORMAL",
+       "POSITION",
+       "TEXCOORD_0"
+      ],
+      "tris": 474,
+      "degenerate_tris": 0,
+      "normals_unit": true
+     },
+     {
+      "material": "M_HALO_Graphite",
+      "attrs": [
+       "NORMAL",
+       "POSITION",
+       "TEXCOORD_0"
+      ],
+      "tris": 328,
+      "degenerate_tris": 0,
+      "normals_unit": true
+     }
+    ],
+    "bbox_min": [
+     -0.1685,
+     -0.004,
+     -0.1186
+    ],
+    "bbox_max": [
+     -0.1075,
+     0.0108,
+     0.1186
+    ]
+   },
+   {
+    "name": "HALO_Phase_Arc_Torso",
+    "T": null,
+    "R": null,
+    "S": null,
+    "extras": {
+     "halo_core": "Phase",
+     "halo_zone": "Torso",
+     "halo_slot0": "glass: M_HALO_Glass_T<tier> when covered, M_HALO_Glass_Off when not"
+    },
+    "children": null,
+    "mesh": "HALO_Phase_Arc_Torso",
+    "tris": 1036,
+    "prims": [
+     {
+      "material": "M_HALO_Glass_T1",
+      "attrs": [
+       "NORMAL",
+       "POSITION",
+       "TEXCOORD_0"
+      ],
+      "tris": 384,
+      "degenerate_tris": 0,
+      "normals_unit": true
+     },
+     {
+      "material": "M_HALO_Graphite",
+      "attrs": [
+       "NORMAL",
+       "POSITION",
+       "TEXCOORD_0"
+      ],
+      "tris": 652,
+      "degenerate_tris": 0,
+      "normals_unit": true
+     }
+    ],
+    "bbox_min": [
+     -0.1186,
+     -0.004,
+     -0.164
+    ],
+    "bbox_max": [
+     0.1186,
+     0.0108,
+     -0.1075
+    ]
+   },
+   {
+    "name": "HALO_Phase_Band_Heavy",
+    "T": null,
+    "R": null,
+    "S": null,
+    "extras": {
+     "halo_core": "Phase",
+     "halo_weight": "Heavy"
+    },
+    "children": null,
+    "mesh": "HALO_Phase_Band_Heavy",
+    "tris": 1976,
+    "prims": [
+     {
+      "material": "M_HALO_Graphite",
+      "attrs": [
+       "NORMAL",
+       "POSITION",
+       "TEXCOORD_0"
+      ],
+      "tris": 1616,
+      "degenerate_tris": 0,
+      "normals_unit": true
+     },
+     {
+      "material": "M_HALO_Gunmetal",
+      "attrs": [
+       "NORMAL",
+       "POSITION",
+       "TEXCOORD_0"
+      ],
+      "tris": 360,
+      "degenerate_tris": 0,
+      "normals_unit": true
+     }
+    ],
+    "bbox_min": [
+     -0.2087,
+     -0.0525,
+     -0.1962
+    ],
+    "bbox_max": [
+     0.2087,
+     0.0075,
+     0.2158
+    ]
+   },
+   {
+    "name": "HALO_Phase_Band_Medium",
+    "T": null,
+    "R": null,
+    "S": null,
+    "extras": {
+     "halo_core": "Phase",
+     "halo_weight": "Medium"
+    },
+    "children": null,
+    "mesh": "HALO_Phase_Band_Medium",
+    "tris": 844,
+    "prims": [
+     {
+      "material": "M_HALO_Graphite",
+      "attrs": [
+       "NORMAL",
+       "POSITION",
+       "TEXCOORD_0"
+      ],
+      "tris": 844,
+      "degenerate_tris": 0,
+      "normals_unit": true
+     }
+    ],
+    "bbox_min": [
+     -0.1857,
+     -0.0245,
+     -0.1777
+    ],
+    "bbox_max": [
+     0.1857,
+     0.0065,
+     0.1856
+    ]
+   }
+  ]
+ },
+ "export\\HALO_Pickups.glb": {
+  "extensionsUsed": [
+   "KHR_materials_clearcoat",
+   "KHR_materials_emissive_strength",
+   "KHR_materials_specular"
+  ],
+  "images": 0,
+  "external_uris": [],
+  "materials": [
+   {
+    "name": "M_HALO_Glass_T1",
+    "alphaMode": "OPAQUE",
+    "baseColor": [
+     0.102,
+     0.106,
+     0.11,
+     1
+    ],
+    "metal": 0,
+    "rough": 0.25,
+    "emissive": [
+     0.924,
+     0.957,
+     1
+    ],
+    "emissive_strength": 2.20800012779236,
+    "doubleSided": true,
+    "ext": [
+     "KHR_materials_clearcoat",
+     "KHR_materials_emissive_strength"
+    ]
+   },
+   {
+    "name": "M_HALO_Graphite",
+    "alphaMode": "OPAQUE",
+    "baseColor": [
+     0.03,
+     0.033,
+     0.04,
+     1
+    ],
+    "metal": 0.15000000596046448,
+    "rough": 0.550000011920929,
+    "emissive": [
+     0,
+     0,
+     0
+    ],
+    "emissive_strength": null,
+    "doubleSided": true,
+    "ext": [
+     "KHR_materials_specular"
+    ]
+   },
+   {
+    "name": "M_HALO_Bone",
+    "alphaMode": "OPAQUE",
+    "baseColor": [
+     0.55,
+     0.52,
+     0.46,
+     1
+    ],
+    "metal": 0,
+    "rough": 0.6000000238418579,
+    "emissive": [
+     0,
+     0,
+     0
+    ],
+    "emissive_strength": null,
+    "doubleSided": true,
+    "ext": []
+   }
+  ],
+  "nodes": [
+   {
+    "name": "HALO_Core_Bulwark",
+    "T": null,
+    "R": null,
+    "S": null,
+    "extras": {
+     "halo_core": "Bulwark",
+     "halo_slot0": "window glass: M_HALO_Glass_T<tier>"
+    },
+    "children": null,
+    "mesh": "HALO_Core_Bulwark",
+    "tris": 708,
+    "prims": [
+     {
+      "material": "M_HALO_Glass_T1",
+      "attrs": [
+       "NORMAL",
+       "POSITION",
+       "TEXCOORD_0"
+      ],
+      "tris": 252,
+      "degenerate_tris": 0,
+      "normals_unit": true
+     },
+     {
+      "material": "M_HALO_Graphite",
+      "attrs": [
+       "NORMAL",
+       "POSITION",
+       "TEXCOORD_0"
+      ],
+      "tris": 408,
+      "degenerate_tris": 0,
+      "normals_unit": true
+     },
+     {
+      "material": "M_HALO_Bone",
+      "attrs": [
+       "NORMAL",
+       "POSITION",
+       "TEXCOORD_0"
+      ],
+      "tris": 48,
+      "degenerate_tris": 0,
+      "normals_unit": true
+     }
+    ],
+    "bbox_min": [
+     -0.0537,
+     0.0,
+     -0.0465
+    ],
+    "bbox_max": [
+     0.0537,
+     0.063,
+     0.0465
+    ]
+   },
+   {
+    "name": "HALO_Core_Mender",
+    "T": null,
+    "R": null,
+    "S": null,
+    "extras": {
+     "halo_core": "Mender",
+     "halo_slot0": "window glass: M_HALO_Glass_T<tier>"
+    },
+    "children": null,
+    "mesh": "HALO_Core_Mender",
+    "tris": 2544,
+    "prims": [
+     {
+      "material": "M_HALO_Glass_T1",
+      "attrs": [
+       "NORMAL",
+       "POSITION",
+       "TEXCOORD_0"
+      ],
+      "tris": 1640,
+      "degenerate_tris": 0,
+      "normals_unit": true
+     },
+     {
+      "material": "M_HALO_Graphite",
+      "attrs": [
+       "NORMAL",
+       "POSITION",
+       "TEXCOORD_0"
+      ],
+      "tris": 744,
+      "degenerate_tris": 0,
+      "normals_unit": true
+     },
+     {
+      "material": "M_HALO_Bone",
+      "attrs": [
+       "NORMAL",
+       "POSITION",
+       "TEXCOORD_0"
+      ],
+      "tris": 160,
+      "degenerate_tris": 0,
+      "normals_unit": true
+     }
+    ],
+    "bbox_min": [
+     -0.0425,
+     0.0,
+     -0.0445
+    ],
+    "bbox_max": [
+     0.0425,
+     0.057,
+     0.0445
+    ]
+   },
+   {
+    "name": "HALO_Core_Phase",
+    "T": null,
+    "R": null,
+    "S": null,
+    "extras": {
+     "halo_core": "Phase",
+     "halo_slot0": "window glass: M_HALO_Glass_T<tier>"
+    },
+    "children": null,
+    "mesh": "HALO_Core_Phase",
+    "tris": 3568,
+    "prims": [
+     {
+      "material": "M_HALO_Glass_T1",
+      "attrs": [
+       "NORMAL",
+       "POSITION",
+       "TEXCOORD_0"
+      ],
+      "tris": 2416,
+      "degenerate_tris": 0,
+      "normals_unit": true
+     },
+     {
+      "material": "M_HALO_Graphite",
+      "attrs": [
+       "NORMAL",
+       "POSITION",
+       "TEXCOORD_0"
+      ],
+      "tris": 1024,
+      "degenerate_tris": 0,
+      "normals_unit": true
+     },
+     {
+      "material": "M_HALO_Bone",
+      "attrs": [
+       "NORMAL",
+       "POSITION",
+       "TEXCOORD_0"
+      ],
+      "tris": 128,
+      "degenerate_tris": 0,
+      "normals_unit": true
+     }
+    ],
+    "bbox_min": [
+     -0.0425,
+     0.0,
+     -0.041
+    ],
+    "bbox_max": [
+     0.0425,
+     0.0528,
+     0.0425
+    ]
+   },
+   {
+    "name": "HALO_Core_Volt",
+    "T": null,
+    "R": null,
+    "S": null,
+    "extras": {
+     "halo_core": "Volt",
+     "halo_slot0": "window glass: M_HALO_Glass_T<tier>"
+    },
+    "children": null,
+    "mesh": "HALO_Core_Volt",
+    "tris": 1212,
+    "prims": [
+     {
+      "material": "M_HALO_Glass_T1",
+      "attrs": [
+       "NORMAL",
+       "POSITION",
+       "TEXCOORD_0"
+      ],
+      "tris": 660,
+      "degenerate_tris": 0,
+      "normals_unit": true
+     },
+     {
+      "material": "M_HALO_Graphite",
+      "attrs": [
+       "NORMAL",
+       "POSITION",
+       "TEXCOORD_0"
+      ],
+      "tris": 392,
+      "degenerate_tris": 0,
+      "normals_unit": true
+     },
+     {
+      "material": "M_HALO_Bone",
+      "attrs": [
+       "NORMAL",
+       "POSITION",
+       "TEXCOORD_0"
+      ],
+      "tris": 160,
+      "degenerate_tris": 0,
+      "normals_unit": true
+     }
+    ],
+    "bbox_min": [
+     -0.0405,
+     0.0,
+     -0.0405
+    ],
+    "bbox_max": [
+     0.0405,
+     0.059,
+     0.0425
+    ]
+   }
+  ]
+ },
+ "export\\HALO_Volt.glb": {
+  "extensionsUsed": [
+   "KHR_materials_clearcoat",
+   "KHR_materials_emissive_strength",
+   "KHR_materials_specular"
+  ],
+  "images": 0,
+  "external_uris": [],
+  "materials": [
+   {
+    "name": "M_HALO_Glass_T1",
+    "alphaMode": "OPAQUE",
+    "baseColor": [
+     0.102,
+     0.106,
+     0.11,
+     1
+    ],
+    "metal": 0,
+    "rough": 0.25,
+    "emissive": [
+     0.924,
+     0.957,
+     1
+    ],
+    "emissive_strength": 2.20800012779236,
+    "doubleSided": true,
+    "ext": [
+     "KHR_materials_clearcoat",
+     "KHR_materials_emissive_strength"
+    ]
+   },
+   {
+    "name": "M_HALO_Graphite",
+    "alphaMode": "OPAQUE",
+    "baseColor": [
+     0.03,
+     0.033,
+     0.04,
+     1
+    ],
+    "metal": 0.15000000596046448,
+    "rough": 0.550000011920929,
+    "emissive": [
+     0,
+     0,
+     0
+    ],
+    "emissive_strength": null,
+    "doubleSided": true,
+    "ext": [
+     "KHR_materials_specular"
+    ]
+   },
+   {
+    "name": "M_HALO_Gunmetal",
+    "alphaMode": "OPAQUE",
+    "baseColor": [
+     0.11,
+     0.115,
+     0.12,
+     1
+    ],
+    "metal": 0.8500000238418579,
+    "rough": 0.3499999940395355,
+    "emissive": [
+     0,
+     0,
+     0
+    ],
+    "emissive_strength": null,
+    "doubleSided": true,
+    "ext": []
+   }
+  ],
+  "nodes": [
+   {
+    "name": "HALO_Volt_Arc_Arms",
+    "T": null,
+    "R": null,
+    "S": null,
+    "extras": {
+     "halo_core": "Volt",
+     "halo_zone": "Arms",
+     "halo_slot0": "glass: M_HALO_Glass_T<tier> when covered, M_HALO_Glass_Off when not"
+    },
+    "children": null,
+    "mesh": "HALO_Volt_Arc_Arms",
+    "tris": 1146,
+    "prims": [
+     {
+      "material": "M_HALO_Glass_T1",
+      "attrs": [
+       "NORMAL",
+       "POSITION",
+       "TEXCOORD_0"
+      ],
+      "tris": 242,
+      "degenerate_tris": 0,
+      "normals_unit": true
+     },
+     {
+      "material": "M_HALO_Graphite",
+      "attrs": [
+       "NORMAL",
+       "POSITION",
+       "TEXCOORD_0"
+      ],
+      "tris": 904,
+      "degenerate_tris": 0,
+      "normals_unit": true
+     }
+    ],
+    "bbox_min": [
+     0.1056,
+     -0.0115,
+     -0.1212
+    ],
+    "bbox_max": [
+     0.1725,
+     0.0435,
+     0.1212
+    ]
+   },
+   {
+    "name": "HALO_Volt_Arc_Head",
+    "T": null,
+    "R": null,
+    "S": null,
+    "extras": {
+     "halo_core": "Volt",
+     "halo_zone": "Head",
+     "halo_slot0": "glass: M_HALO_Glass_T<tier> when covered, M_HALO_Glass_Off when not"
+    },
+    "children": null,
+    "mesh": "HALO_Volt_Arc_Head",
+    "tris": 1242,
+    "prims": [
+     {
+      "material": "M_HALO_Glass_T1",
+      "attrs": [
+       "NORMAL",
+       "POSITION",
+       "TEXCOORD_0"
+      ],
+      "tris": 338,
+      "degenerate_tris": 0,
+      "normals_unit": true
+     },
+     {
+      "material": "M_HALO_Graphite",
+      "attrs": [
+       "NORMAL",
+       "POSITION",
+       "TEXCOORD_0"
+      ],
+      "tris": 904,
+      "degenerate_tris": 0,
+      "normals_unit": true
+     }
+    ],
+    "bbox_min": [
+     -0.1212,
+     -0.0115,
+     0.1056
+    ],
+    "bbox_max": [
+     0.1212,
+     0.0435,
+     0.1725
+    ]
+   },
+   {
+    "name": "HALO_Volt_Arc_Legs",
+    "T": null,
+    "R": null,
+    "S": null,
+    "extras": {
+     "halo_core": "Volt",
+     "halo_zone": "Legs",
+     "halo_slot0": "glass: M_HALO_Glass_T<tier> when covered, M_HALO_Glass_Off when not"
+    },
+    "children": null,
+    "mesh": "HALO_Volt_Arc_Legs",
+    "tris": 1208,
+    "prims": [
+     {
+      "material": "M_HALO_Glass_T1",
+      "attrs": [
+       "NORMAL",
+       "POSITION",
+       "TEXCOORD_0"
+      ],
+      "tris": 240,
+      "degenerate_tris": 0,
+      "normals_unit": true
+     },
+     {
+      "material": "M_HALO_Graphite",
+      "attrs": [
+       "NORMAL",
+       "POSITION",
+       "TEXCOORD_0"
+      ],
+      "tris": 968,
+      "degenerate_tris": 0,
+      "normals_unit": true
+     }
+    ],
+    "bbox_min": [
+     -0.1725,
+     -0.0115,
+     -0.1212
+    ],
+    "bbox_max": [
+     -0.1056,
+     0.0435,
+     0.1212
+    ]
+   },
+   {
+    "name": "HALO_Volt_Arc_Torso",
+    "T": null,
+    "R": null,
+    "S": null,
+    "extras": {
+     "halo_core": "Volt",
+     "halo_zone": "Torso",
+     "halo_slot0": "glass: M_HALO_Glass_T<tier> when covered, M_HALO_Glass_Off when not"
+    },
+    "children": null,
+    "mesh": "HALO_Volt_Arc_Torso",
+    "tris": 1198,
+    "prims": [
+     {
+      "material": "M_HALO_Glass_T1",
+      "attrs": [
+       "NORMAL",
+       "POSITION",
+       "TEXCOORD_0"
+      ],
+      "tris": 246,
+      "degenerate_tris": 0,
+      "normals_unit": true
+     },
+     {
+      "material": "M_HALO_Graphite",
+      "attrs": [
+       "NORMAL",
+       "POSITION",
+       "TEXCOORD_0"
+      ],
+      "tris": 952,
+      "degenerate_tris": 0,
+      "normals_unit": true
+     }
+    ],
+    "bbox_min": [
+     -0.1212,
+     -0.0115,
+     -0.1725
+    ],
+    "bbox_max": [
+     0.1212,
+     0.0435,
+     -0.1056
+    ]
+   },
+   {
+    "name": "HALO_Volt_Band_Heavy",
+    "T": null,
+    "R": null,
+    "S": null,
+    "extras": {
+     "halo_core": "Volt",
+     "halo_weight": "Heavy"
+    },
+    "children": null,
+    "mesh": "HALO_Volt_Band_Heavy",
+    "tris": 2160,
+    "prims": [
+     {
+      "material": "M_HALO_Graphite",
+      "attrs": [
+       "NORMAL",
+       "POSITION",
+       "TEXCOORD_0"
+      ],
+      "tris": 1760,
+      "degenerate_tris": 0,
+      "normals_unit": true
+     },
+     {
+      "material": "M_HALO_Gunmetal",
+      "attrs": [
+       "NORMAL",
+       "POSITION",
+       "TEXCOORD_0"
+      ],
+      "tris": 400,
+      "degenerate_tris": 0,
+      "normals_unit": true
+     }
+    ],
+    "bbox_min": [
+     -0.2124,
+     -0.06,
+     -0.2195
+    ],
+    "bbox_max": [
+     0.2124,
+     0.0,
+     0.2195
+    ]
+   },
+   {
+    "name": "HALO_Volt_Band_Medium",
+    "T": null,
+    "R": null,
+    "S": null,
+    "extras": {
+     "halo_core": "Volt",
+     "halo_weight": "Medium"
+    },
+    "children": null,
+    "mesh": "HALO_Volt_Band_Medium",
+    "tris": 904,
+    "prims": [
+     {
+      "material": "M_HALO_Graphite",
+      "attrs": [
+       "NORMAL",
+       "POSITION",
+       "TEXCOORD_0"
+      ],
+      "tris": 904,
+      "degenerate_tris": 0,
+      "normals_unit": true
+     }
+    ],
+    "bbox_min": [
+     -0.1895,
+     -0.032,
+     -0.1895
+    ],
+    "bbox_max": [
+     0.1895,
+     -0.001,
+     0.1895
+    ]
+   }
+  ]
+ },
+ "halo_kit.glb": {
+  "extensionsUsed": [
+   "KHR_materials_clearcoat",
+   "KHR_materials_emissive_strength",
+   "KHR_materials_specular"
+  ],
+  "images": 0,
+  "external_uris": [],
+  "materials": [
+   {
+    "name": "M_HALO_Glass_T1",
+    "alphaMode": "OPAQUE",
+    "baseColor": [
+     0.102,
+     0.106,
+     0.11,
+     1
+    ],
+    "metal": 0,
+    "rough": 0.25,
+    "emissive": [
+     0.924,
+     0.957,
+     1
+    ],
+    "emissive_strength": 2.20800012779236,
+    "doubleSided": true,
+    "ext": [
+     "KHR_materials_clearcoat",
+     "KHR_materials_emissive_strength"
+    ]
+   },
+   {
+    "name": "M_HALO_Graphite",
+    "alphaMode": "OPAQUE",
+    "baseColor": [
+     0.03,
+     0.033,
+     0.04,
+     1
+    ],
+    "metal": 0.15000000596046448,
+    "rough": 0.550000011920929,
+    "emissive": [
+     0,
+     0,
+     0
+    ],
+    "emissive_strength": null,
+    "doubleSided": true,
+    "ext": [
+     "KHR_materials_specular"
+    ]
+   },
+   {
+    "name": "M_HALO_Gunmetal",
+    "alphaMode": "OPAQUE",
+    "baseColor": [
+     0.11,
+     0.115,
+     0.12,
+     1
+    ],
+    "metal": 0.8500000238418579,
+    "rough": 0.3499999940395355,
+    "emissive": [
+     0,
+     0,
+     0
+    ],
+    "emissive_strength": null,
+    "doubleSided": true,
+    "ext": []
+   },
+   {
+    "name": "M_HALO_Bone",
+    "alphaMode": "OPAQUE",
+    "baseColor": [
+     0.55,
+     0.52,
+     0.46,
+     1
+    ],
+    "metal": 0,
+    "rough": 0.6000000238418579,
+    "emissive": [
+     0,
+     0,
+     0
+    ],
+    "emissive_strength": null,
+    "doubleSided": true,
+    "ext": []
+   },
+   {
+    "name": "M_HALO_Glass_Off",
+    "alphaMode": "BLEND",
+    "baseColor": [
+     0.02,
+     0.02,
+     0.025,
+     0.55
+    ],
+    "metal": 0,
+    "rough": 0.07999999821186066,
+    "emissive": [
+     0,
+     0,
+     0
+    ],
+    "emissive_strength": null,
+    "doubleSided": true,
+    "ext": [
+     "KHR_materials_clearcoat",
+     "KHR_materials_specular"
+    ]
+   },
+   {
+    "name": "M_HALO_Glass_T2",
+    "alphaMode": "OPAQUE",
+    "baseColor": [
+     0.012,
+     0.054,
+     0.12,
+     1
+    ],
+    "metal": 0,
+    "rough": 0.25,
+    "emissive": [
+     0.1,
+     0.45,
+     1
+    ],
+    "emissive_strength": 2.4000000953674316,
+    "doubleSided": true,
+    "ext": [
+     "KHR_materials_clearcoat",
+     "KHR_materials_emissive_strength"
+    ]
+   },
+   {
+    "name": "M_HALO_Glass_T3",
+    "alphaMode": "OPAQUE",
+    "baseColor": [
+     0.066,
+     0.018,
+     0.12,
+     1
+    ],
+    "metal": 0,
+    "rough": 0.25,
+    "emissive": [
+     0.55,
+     0.15,
+     1
+    ],
+    "emissive_strength": 2.4000000953674316,
+    "doubleSided": true,
+    "ext": [
+     "KHR_materials_clearcoat",
+     "KHR_materials_emissive_strength"
+    ]
+   },
+   {
+    "name": "M_HALO_Glass_T4",
+    "alphaMode": "OPAQUE",
+    "baseColor": [
+     0.12,
+     0.074,
+     0.01,
+     1
+    ],
+    "metal": 0,
+    "rough": 0.25,
+    "emissive": [
+     1,
+     0.62,
+     0.08
+    ],
+    "emissive_strength": 2.4000000953674316,
+    "doubleSided": true,
+    "ext": [
+     "KHR_materials_clearcoat",
+     "KHR_materials_emissive_strength"
+    ]
+   }
+  ],
+  "nodes": [
+   {
+    "name": "HALO_Bulwark_Arc_Arms",
+    "T": null,
+    "R": null,
+    "S": null,
+    "extras": {
+     "halo_core": "Bulwark",
+     "halo_zone": "Arms",
+     "halo_slot0": "glass: M_HALO_Glass_T<tier> when covered, M_HALO_Glass_Off when not"
+    },
+    "children": null,
+    "mesh": "HALO_Bulwark_Arc_Arms",
+    "tris": 698,
+    "prims": [
+     {
+      "material": "M_HALO_Glass_T1",
+      "attrs": [
+       "NORMAL",
+       "POSITION",
+       "TEXCOORD_0"
+      ],
+      "tris": 90,
+      "degenerate_tris": 0,
+      "normals_unit": true
+     },
+     {
+      "material": "M_HALO_Graphite",
+      "attrs": [
+       "NORMAL",
+       "POSITION",
+       "TEXCOORD_0"
+      ],
+      "tris": 608,
+      "degenerate_tris": 0,
+      "normals_unit": true
+     }
+    ],
+    "bbox_min": [
+     0.0971,
+     -0.0145,
+     -0.1222
+    ],
+    "bbox_max": [
+     0.194,
+     0.0166,
+     0.1222
+    ]
+   },
+   {
+    "name": "HALO_Bulwark_Arc_Head",
+    "T": null,
+    "R": null,
+    "S": null,
+    "extras": {
+     "halo_core": "Bulwark",
+     "halo_zone": "Head",
+     "halo_slot0": "glass: M_HALO_Glass_T<tier> when covered, M_HALO_Glass_Off when not"
+    },
+    "children": null,
+    "mesh": "HALO_Bulwark_Arc_Head",
+    "tris": 854,
+    "prims": [
+     {
+      "material": "M_HALO_Glass_T1",
+      "attrs": [
+       "NORMAL",
+       "POSITION",
+       "TEXCOORD_0"
+      ],
+      "tris": 206,
+      "degenerate_tris": 0,
+      "normals_unit": true
+     },
+     {
+      "material": "M_HALO_Graphite",
+      "attrs": [
+       "NORMAL",
+       "POSITION",
+       "TEXCOORD_0"
+      ],
+      "tris": 648,
+      "degenerate_tris": 0,
+      "normals_unit": true
+     }
+    ],
+    "bbox_min": [
+     -0.123,
+     -0.0145,
+     0.0978
+    ],
+    "bbox_max": [
+     0.123,
+     0.0166,
+     0.1682
+    ]
+   },
+   {
+    "name": "HALO_Bulwark_Arc_Legs",
+    "T": null,
+    "R": null,
+    "S": null,
+    "extras": {
+     "halo_core": "Bulwark",
+     "halo_zone": "Legs",
+     "halo_slot0": "glass: M_HALO_Glass_T<tier> when covered, M_HALO_Glass_Off when not"
+    },
+    "children": null,
+    "mesh": "HALO_Bulwark_Arc_Legs",
+    "tris": 696,
+    "prims": [
+     {
+      "material": "M_HALO_Glass_T1",
+      "attrs": [
+       "NORMAL",
+       "POSITION",
+       "TEXCOORD_0"
+      ],
+      "tris": 88,
+      "degenerate_tris": 0,
+      "normals_unit": true
+     },
+     {
+      "material": "M_HALO_Graphite",
+      "attrs": [
+       "NORMAL",
+       "POSITION",
+       "TEXCOORD_0"
+      ],
+      "tris": 608,
+      "degenerate_tris": 0,
+      "normals_unit": true
+     }
+    ],
+    "bbox_min": [
+     -0.194,
+     -0.0145,
+     -0.1222
+    ],
+    "bbox_max": [
+     -0.0971,
+     0.0166,
+     0.1222
+    ]
+   },
+   {
+    "name": "HALO_Bulwark_Arc_Torso",
+    "T": null,
+    "R": null,
+    "S": null,
+    "extras": {
+     "halo_core": "Bulwark",
+     "halo_zone": "Torso",
+     "halo_slot0": "glass: M_HALO_Glass_T<tier> when covered, M_HALO_Glass_Off when not"
+    },
+    "children": null,
+    "mesh": "HALO_Bulwark_Arc_Torso",
+    "tris": 762,
+    "prims": [
+     {
+      "material": "M_HALO_Glass_T1",
+      "attrs": [
+       "NORMAL",
+       "POSITION",
+       "TEXCOORD_0"
+      ],
+      "tris": 114,
+      "degenerate_tris": 0,
+      "normals_unit": true
+     },
+     {
+      "material": "M_HALO_Graphite",
+      "attrs": [
+       "NORMAL",
+       "POSITION",
+       "TEXCOORD_0"
+      ],
+      "tris": 648,
+      "degenerate_tris": 0,
+      "normals_unit": true
+     }
+    ],
+    "bbox_min": [
+     -0.123,
+     -0.0145,
+     -0.1682
+    ],
+    "bbox_max": [
+     0.123,
+     0.0166,
+     -0.0978
+    ]
+   },
+   {
+    "name": "HALO_Bulwark_Band_Heavy",
+    "T": null,
+    "R": null,
+    "S": null,
+    "extras": {
+     "halo_core": "Bulwark",
+     "halo_weight": "Heavy"
+    },
+    "children": null,
+    "mesh": "HALO_Bulwark_Band_Heavy",
+    "tris": 1212,
+    "prims": [
+     {
+      "material": "M_HALO_Graphite",
+      "attrs": [
+       "NORMAL",
+       "POSITION",
+       "TEXCOORD_0"
+      ],
+      "tris": 972,
+      "degenerate_tris": 0,
+      "normals_unit": true
+     },
+     {
+      "material": "M_HALO_Gunmetal",
+      "attrs": [
+       "NORMAL",
+       "POSITION",
+       "TEXCOORD_0"
+      ],
+      "tris": 240,
+      "degenerate_tris": 0,
+      "normals_unit": true
+     }
+    ],
+    "bbox_min": [
+     -0.2477,
+     -0.07,
+     -0.2155
+    ],
+    "bbox_max": [
+     0.2477,
+     -0.009,
+     0.2155
+    ]
+   },
+   {
+    "name": "HALO_Bulwark_Band_Medium",
+    "T": null,
+    "R": null,
+    "S": null,
+    "extras": {
+     "halo_core": "Bulwark",
+     "halo_weight": "Medium"
+    },
+    "children": null,
+    "mesh": "HALO_Bulwark_Band_Medium",
+    "tris": 400,
+    "prims": [
+     {
+      "material": "M_HALO_Graphite",
+      "attrs": [
+       "NORMAL",
+       "POSITION",
+       "TEXCOORD_0"
+      ],
+      "tris": 400,
+      "degenerate_tris": 0,
+      "normals_unit": true
+     }
+    ],
+    "bbox_min": [
+     -0.2142,
+     -0.035,
+     -0.1855
+    ],
+    "bbox_max": [
+     0.2142,
+     -0.004,
+     0.1855
+    ]
+   },
+   {
+    "name": "HALO_Core_Bulwark",
+    "T": null,
+    "R": null,
+    "S": null,
+    "extras": {
+     "halo_core": "Bulwark",
+     "halo_slot0": "window glass: M_HALO_Glass_T<tier>"
+    },
+    "children": null,
+    "mesh": "HALO_Core_Bulwark",
+    "tris": 708,
+    "prims": [
+     {
+      "material": "M_HALO_Glass_T1",
+      "attrs": [
+       "NORMAL",
+       "POSITION",
+       "TEXCOORD_0"
+      ],
+      "tris": 252,
+      "degenerate_tris": 0,
+      "normals_unit": true
+     },
+     {
+      "material": "M_HALO_Graphite",
+      "attrs": [
+       "NORMAL",
+       "POSITION",
+       "TEXCOORD_0"
+      ],
+      "tris": 408,
+      "degenerate_tris": 0,
+      "normals_unit": true
+     },
+     {
+      "material": "M_HALO_Bone",
+      "attrs": [
+       "NORMAL",
+       "POSITION",
+       "TEXCOORD_0"
+      ],
+      "tris": 48,
+      "degenerate_tris": 0,
+      "normals_unit": true
+     }
+    ],
+    "bbox_min": [
+     -0.0537,
+     0.0,
+     -0.0465
+    ],
+    "bbox_max": [
+     0.0537,
+     0.063,
+     0.0465
+    ]
+   },
+   {
+    "name": "HALO_Core_Mender",
+    "T": null,
+    "R": null,
+    "S": null,
+    "extras": {
+     "halo_core": "Mender",
+     "halo_slot0": "window glass: M_HALO_Glass_T<tier>"
+    },
+    "children": null,
+    "mesh": "HALO_Core_Mender",
+    "tris": 2544,
+    "prims": [
+     {
+      "material": "M_HALO_Glass_T1",
+      "attrs": [
+       "NORMAL",
+       "POSITION",
+       "TEXCOORD_0"
+      ],
+      "tris": 1640,
+      "degenerate_tris": 0,
+      "normals_unit": true
+     },
+     {
+      "material": "M_HALO_Graphite",
+      "attrs": [
+       "NORMAL",
+       "POSITION",
+       "TEXCOORD_0"
+      ],
+      "tris": 744,
+      "degenerate_tris": 0,
+      "normals_unit": true
+     },
+     {
+      "material": "M_HALO_Bone",
+      "attrs": [
+       "NORMAL",
+       "POSITION",
+       "TEXCOORD_0"
+      ],
+      "tris": 160,
+      "degenerate_tris": 0,
+      "normals_unit": true
+     }
+    ],
+    "bbox_min": [
+     -0.0425,
+     0.0,
+     -0.0445
+    ],
+    "bbox_max": [
+     0.0425,
+     0.057,
+     0.0445
+    ]
+   },
+   {
+    "name": "HALO_Core_Phase",
+    "T": null,
+    "R": null,
+    "S": null,
+    "extras": {
+     "halo_core": "Phase",
+     "halo_slot0": "window glass: M_HALO_Glass_T<tier>"
+    },
+    "children": null,
+    "mesh": "HALO_Core_Phase",
+    "tris": 3568,
+    "prims": [
+     {
+      "material": "M_HALO_Glass_T1",
+      "attrs": [
+       "NORMAL",
+       "POSITION",
+       "TEXCOORD_0"
+      ],
+      "tris": 2416,
+      "degenerate_tris": 0,
+      "normals_unit": true
+     },
+     {
+      "material": "M_HALO_Graphite",
+      "attrs": [
+       "NORMAL",
+       "POSITION",
+       "TEXCOORD_0"
+      ],
+      "tris": 1024,
+      "degenerate_tris": 0,
+      "normals_unit": true
+     },
+     {
+      "material": "M_HALO_Bone",
+      "attrs": [
+       "NORMAL",
+       "POSITION",
+       "TEXCOORD_0"
+      ],
+      "tris": 128,
+      "degenerate_tris": 0,
+      "normals_unit": true
+     }
+    ],
+    "bbox_min": [
+     -0.0425,
+     0.0,
+     -0.041
+    ],
+    "bbox_max": [
+     0.0425,
+     0.0528,
+     0.0425
+    ]
+   },
+   {
+    "name": "HALO_Core_Volt",
+    "T": null,
+    "R": null,
+    "S": null,
+    "extras": {
+     "halo_core": "Volt",
+     "halo_slot0": "window glass: M_HALO_Glass_T<tier>"
+    },
+    "children": null,
+    "mesh": "HALO_Core_Volt",
+    "tris": 1212,
+    "prims": [
+     {
+      "material": "M_HALO_Glass_T1",
+      "attrs": [
+       "NORMAL",
+       "POSITION",
+       "TEXCOORD_0"
+      ],
+      "tris": 660,
+      "degenerate_tris": 0,
+      "normals_unit": true
+     },
+     {
+      "material": "M_HALO_Graphite",
+      "attrs": [
+       "NORMAL",
+       "POSITION",
+       "TEXCOORD_0"
+      ],
+      "tris": 392,
+      "degenerate_tris": 0,
+      "normals_unit": true
+     },
+     {
+      "material": "M_HALO_Bone",
+      "attrs": [
+       "NORMAL",
+       "POSITION",
+       "TEXCOORD_0"
+      ],
+      "tris": 160,
+      "degenerate_tris": 0,
+      "normals_unit": true
+     }
+    ],
+    "bbox_min": [
+     -0.0405,
+     0.0,
+     -0.0405
+    ],
+    "bbox_max": [
+     0.0405,
+     0.059,
+     0.0425
+    ]
+   },
+   {
+    "name": "HALO_Mender_Arc_Arms",
+    "T": null,
+    "R": null,
+    "S": null,
+    "extras": {
+     "halo_core": "Mender",
+     "halo_zone": "Arms",
+     "halo_slot0": "glass: M_HALO_Glass_T<tier> when covered, M_HALO_Glass_Off when not"
+    },
+    "children": null,
+    "mesh": "HALO_Mender_Arc_Arms",
+    "tris": 1204,
+    "prims": [
+     {
+      "material": "M_HALO_Glass_T1",
+      "attrs": [
+       "NORMAL",
+       "POSITION",
+       "TEXCOORD_0"
+      ],
+      "tris": 592,
+      "degenerate_tris": 0,
+      "normals_unit": true
+     },
+     {
+      "material": "M_HALO_Graphite",
+      "attrs": [
+       "NORMAL",
+       "POSITION",
+       "TEXCOORD_0"
+      ],
+      "tris": 612,
+      "degenerate_tris": 0,
+      "normals_unit": true
+     }
+    ],
+    "bbox_min": [
+     0.0984,
+     -0.006,
+     -0.1275
+    ],
+    "bbox_max": [
+     0.182,
+     0.0068,
+     0.1275
+    ]
+   },
+   {
+    "name": "HALO_Mender_Arc_Head",
+    "T": null,
+    "R": null,
+    "S": null,
+    "extras": {
+     "halo_core": "Mender",
+     "halo_zone": "Head",
+     "halo_slot0": "glass: M_HALO_Glass_T<tier> when covered, M_HALO_Glass_Off when not"
+    },
+    "children": null,
+    "mesh": "HALO_Mender_Arc_Head",
+    "tris": 1284,
+    "prims": [
+     {
+      "material": "M_HALO_Glass_T1",
+      "attrs": [
+       "NORMAL",
+       "POSITION",
+       "TEXCOORD_0"
+      ],
+      "tris": 688,
+      "degenerate_tris": 0,
+      "normals_unit": true
+     },
+     {
+      "material": "M_HALO_Graphite",
+      "attrs": [
+       "NORMAL",
+       "POSITION",
+       "TEXCOORD_0"
+      ],
+      "tris": 596,
+      "degenerate_tris": 0,
+      "normals_unit": true
+     }
+    ],
+    "bbox_min": [
+     -0.1275,
+     -0.006,
+     0.0984
+    ],
+    "bbox_max": [
+     0.1275,
+     0.0068,
+     0.182
+    ]
+   },
+   {
+    "name": "HALO_Mender_Arc_Legs",
+    "T": null,
+    "R": null,
+    "S": null,
+    "extras": {
+     "halo_core": "Mender",
+     "halo_zone": "Legs",
+     "halo_slot0": "glass: M_HALO_Glass_T<tier> when covered, M_HALO_Glass_Off when not"
+    },
+    "children": null,
+    "mesh": "HALO_Mender_Arc_Legs",
+    "tris": 1170,
+    "prims": [
+     {
+      "material": "M_HALO_Glass_T1",
+      "attrs": [
+       "NORMAL",
+       "POSITION",
+       "TEXCOORD_0"
+      ],
+      "tris": 590,
+      "degenerate_tris": 0,
+      "normals_unit": true
+     },
+     {
+      "material": "M_HALO_Graphite",
+      "attrs": [
+       "NORMAL",
+       "POSITION",
+       "TEXCOORD_0"
+      ],
+      "tris": 580,
+      "degenerate_tris": 0,
+      "normals_unit": true
+     }
+    ],
+    "bbox_min": [
+     -0.182,
+     -0.006,
+     -0.1275
+    ],
+    "bbox_max": [
+     -0.0984,
+     0.0068,
+     0.1275
+    ]
+   },
+   {
+    "name": "HALO_Mender_Arc_Torso",
+    "T": null,
+    "R": null,
+    "S": null,
+    "extras": {
+     "halo_core": "Mender",
+     "halo_zone": "Torso",
+     "halo_slot0": "glass: M_HALO_Glass_T<tier> when covered, M_HALO_Glass_Off when not"
+    },
+    "children": null,
+    "mesh": "HALO_Mender_Arc_Torso",
+    "tris": 1208,
+    "prims": [
+     {
+      "material": "M_HALO_Glass_T1",
+      "attrs": [
+       "NORMAL",
+       "POSITION",
+       "TEXCOORD_0"
+      ],
+      "tris": 596,
+      "degenerate_tris": 0,
+      "normals_unit": true
+     },
+     {
+      "material": "M_HALO_Graphite",
+      "attrs": [
+       "NORMAL",
+       "POSITION",
+       "TEXCOORD_0"
+      ],
+      "tris": 612,
+      "degenerate_tris": 0,
+      "normals_unit": true
+     }
+    ],
+    "bbox_min": [
+     -0.1275,
+     -0.006,
+     -0.182
+    ],
+    "bbox_max": [
+     0.1275,
+     0.0068,
+     -0.0984
+    ]
+   },
+   {
+    "name": "HALO_Mender_Band_Heavy",
+    "T": null,
+    "R": null,
+    "S": null,
+    "extras": {
+     "halo_core": "Mender",
+     "halo_weight": "Heavy"
+    },
+    "children": null,
+    "mesh": "HALO_Mender_Band_Heavy",
+    "tris": 2160,
+    "prims": [
+     {
+      "material": "M_HALO_Graphite",
+      "attrs": [
+       "NORMAL",
+       "POSITION",
+       "TEXCOORD_0"
+      ],
+      "tris": 1760,
+      "degenerate_tris": 0,
+      "normals_unit": true
+     },
+     {
+      "material": "M_HALO_Gunmetal",
+      "attrs": [
+       "NORMAL",
+       "POSITION",
+       "TEXCOORD_0"
+      ],
+      "tris": 400,
+      "degenerate_tris": 0,
+      "normals_unit": true
+     }
+    ],
+    "bbox_min": [
+     -0.2214,
+     -0.0545,
+     -0.2285
+    ],
+    "bbox_max": [
+     0.2214,
+     0.0055,
+     0.2285
+    ]
+   },
+   {
+    "name": "HALO_Mender_Band_Medium",
+    "T": null,
+    "R": null,
+    "S": null,
+    "extras": {
+     "halo_core": "Mender",
+     "halo_weight": "Medium"
+    },
+    "children": null,
+    "mesh": "HALO_Mender_Band_Medium",
+    "tris": 904,
+    "prims": [
+     {
+      "material": "M_HALO_Graphite",
+      "attrs": [
+       "NORMAL",
+       "POSITION",
+       "TEXCOORD_0"
+      ],
+      "tris": 904,
+      "degenerate_tris": 0,
+      "normals_unit": true
+     }
+    ],
+    "bbox_min": [
+     -0.1985,
+     -0.0265,
+     -0.1985
+    ],
+    "bbox_max": [
+     0.1985,
+     0.0045,
+     0.1985
+    ]
+   },
+   {
+    "name": "HALO_Phase_Arc_Arms",
+    "T": null,
+    "R": null,
+    "S": null,
+    "extras": {
+     "halo_core": "Phase",
+     "halo_zone": "Arms",
+     "halo_slot0": "glass: M_HALO_Glass_T<tier> when covered, M_HALO_Glass_Off when not"
+    },
+    "children": null,
+    "mesh": "HALO_Phase_Arc_Arms",
+    "tris": 756,
+    "prims": [
+     {
+      "material": "M_HALO_Glass_T1",
+      "attrs": [
+       "NORMAL",
+       "POSITION",
+       "TEXCOORD_0"
+      ],
+      "tris": 476,
+      "degenerate_tris": 0,
+      "normals_unit": true
+     },
+     {
+      "material": "M_HALO_Graphite",
+      "attrs": [
+       "NORMAL",
+       "POSITION",
+       "TEXCOORD_0"
+      ],
+      "tris": 280,
+      "degenerate_tris": 0,
+      "normals_unit": true
+     }
+    ],
+    "bbox_min": [
+     0.1075,
+     -0.004,
+     -0.1186
+    ],
+    "bbox_max": [
+     0.1685,
+     0.0108,
+     0.1186
+    ]
+   },
+   {
+    "name": "HALO_Phase_Arc_Head",
+    "T": null,
+    "R": null,
+    "S": null,
+    "extras": {
+     "halo_core": "Phase",
+     "halo_zone": "Head",
+     "halo_slot0": "glass: M_HALO_Glass_T<tier> when covered, M_HALO_Glass_Off when not"
+    },
+    "children": null,
+    "mesh": "HALO_Phase_Arc_Head",
+    "tris": 900,
+    "prims": [
+     {
+      "material": "M_HALO_Glass_T1",
+      "attrs": [
+       "NORMAL",
+       "POSITION",
+       "TEXCOORD_0"
+      ],
+      "tris": 572,
+      "degenerate_tris": 0,
+      "normals_unit": true
+     },
+     {
+      "material": "M_HALO_Graphite",
+      "attrs": [
+       "NORMAL",
+       "POSITION",
+       "TEXCOORD_0"
+      ],
+      "tris": 328,
+      "degenerate_tris": 0,
+      "normals_unit": true
+     }
+    ],
+    "bbox_min": [
+     -0.1186,
+     -0.004,
+     0.1075
+    ],
+    "bbox_max": [
+     0.1186,
+     0.0108,
+     0.1685
+    ]
+   },
+   {
+    "name": "HALO_Phase_Arc_Legs",
+    "T": null,
+    "R": null,
+    "S": null,
+    "extras": {
+     "halo_core": "Phase",
+     "halo_zone": "Legs",
+     "halo_slot0": "glass: M_HALO_Glass_T<tier> when covered, M_HALO_Glass_Off when not"
+    },
+    "children": null,
+    "mesh": "HALO_Phase_Arc_Legs",
+    "tris": 802,
+    "prims": [
+     {
+      "material": "M_HALO_Glass_T1",
+      "attrs": [
+       "NORMAL",
+       "POSITION",
+       "TEXCOORD_0"
+      ],
+      "tris": 474,
+      "degenerate_tris": 0,
+      "normals_unit": true
+     },
+     {
+      "material": "M_HALO_Graphite",
+      "attrs": [
+       "NORMAL",
+       "POSITION",
+       "TEXCOORD_0"
+      ],
+      "tris": 328,
+      "degenerate_tris": 0,
+      "normals_unit": true
+     }
+    ],
+    "bbox_min": [
+     -0.1685,
+     -0.004,
+     -0.1186
+    ],
+    "bbox_max": [
+     -0.1075,
+     0.0108,
+     0.1186
+    ]
+   },
+   {
+    "name": "HALO_Phase_Arc_Torso",
+    "T": null,
+    "R": null,
+    "S": null,
+    "extras": {
+     "halo_core": "Phase",
+     "halo_zone": "Torso",
+     "halo_slot0": "glass: M_HALO_Glass_T<tier> when covered, M_HALO_Glass_Off when not"
+    },
+    "children": null,
+    "mesh": "HALO_Phase_Arc_Torso",
+    "tris": 1036,
+    "prims": [
+     {
+      "material": "M_HALO_Glass_T1",
+      "attrs": [
+       "NORMAL",
+       "POSITION",
+       "TEXCOORD_0"
+      ],
+      "tris": 384,
+      "degenerate_tris": 0,
+      "normals_unit": true
+     },
+     {
+      "material": "M_HALO_Graphite",
+      "attrs": [
+       "NORMAL",
+       "POSITION",
+       "TEXCOORD_0"
+      ],
+      "tris": 652,
+      "degenerate_tris": 0,
+      "normals_unit": true
+     }
+    ],
+    "bbox_min": [
+     -0.1186,
+     -0.004,
+     -0.164
+    ],
+    "bbox_max": [
+     0.1186,
+     0.0108,
+     -0.1075
+    ]
+   },
+   {
+    "name": "HALO_Phase_Band_Heavy",
+    "T": null,
+    "R": null,
+    "S": null,
+    "extras": {
+     "halo_core": "Phase",
+     "halo_weight": "Heavy"
+    },
+    "children": null,
+    "mesh": "HALO_Phase_Band_Heavy",
+    "tris": 1976,
+    "prims": [
+     {
+      "material": "M_HALO_Graphite",
+      "attrs": [
+       "NORMAL",
+       "POSITION",
+       "TEXCOORD_0"
+      ],
+      "tris": 1616,
+      "degenerate_tris": 0,
+      "normals_unit": true
+     },
+     {
+      "material": "M_HALO_Gunmetal",
+      "attrs": [
+       "NORMAL",
+       "POSITION",
+       "TEXCOORD_0"
+      ],
+      "tris": 360,
+      "degenerate_tris": 0,
+      "normals_unit": true
+     }
+    ],
+    "bbox_min": [
+     -0.2087,
+     -0.0525,
+     -0.1962
+    ],
+    "bbox_max": [
+     0.2087,
+     0.0075,
+     0.2158
+    ]
+   },
+   {
+    "name": "HALO_Phase_Band_Medium",
+    "T": null,
+    "R": null,
+    "S": null,
+    "extras": {
+     "halo_core": "Phase",
+     "halo_weight": "Medium"
+    },
+    "children": null,
+    "mesh": "HALO_Phase_Band_Medium",
+    "tris": 844,
+    "prims": [
+     {
+      "material": "M_HALO_Graphite",
+      "attrs": [
+       "NORMAL",
+       "POSITION",
+       "TEXCOORD_0"
+      ],
+      "tris": 844,
+      "degenerate_tris": 0,
+      "normals_unit": true
+     }
+    ],
+    "bbox_min": [
+     -0.1857,
+     -0.0245,
+     -0.1777
+    ],
+    "bbox_max": [
+     0.1857,
+     0.0065,
+     0.1856
+    ]
+   },
+   {
+    "name": "HALO_PIP_1",
+    "T": [
+     -0.024000000208616257,
+     0.02449999935925007,
+     0.15000000596046448
+    ],
+    "R": null,
+    "S": null,
+    "extras": {
+     "halo_pip_index": 1
+    },
+    "children": null
+   },
+   {
+    "name": "HALO_PIP_2",
+    "T": [
+     -0.00800000037997961,
+     0.02449999935925007,
+     0.15000000596046448
+    ],
+    "R": null,
+    "S": null,
+    "extras": {
+     "halo_pip_index": 2
+    },
+    "children": null
+   },
+   {
+    "name": "HALO_PIP_3",
+    "T": [
+     0.00800000037997961,
+     0.02449999935925007,
+     0.15000000596046448
+    ],
+    "R": null,
+    "S": null,
+    "extras": {
+     "halo_pip_index": 3
+    },
+    "children": null
+   },
+   {
+    "name": "HALO_PIP_4",
+    "T": [
+     0.024000000208616257,
+     0.02449999935925007,
+     0.15000000596046448
+    ],
+    "R": null,
+    "S": null,
+    "extras": {
+     "halo_pip_index": 4
+    },
+    "children": null
+   },
+   {
+    "name": "HALO_PowerCell",
+    "T": null,
+    "R": null,
+    "S": null,
+    "extras": null,
+    "children": null,
+    "mesh": "HALO_PowerCell",
+    "tris": 488,
+    "prims": [
+     {
+      "material": "M_HALO_Glass_T1",
+      "attrs": [
+       "NORMAL",
+       "POSITION",
+       "TEXCOORD_0"
+      ],
+      "tris": 248,
+      "degenerate_tris": 0,
+      "normals_unit": true
+     },
+     {
+      "material": "M_HALO_Graphite",
+      "attrs": [
+       "NORMAL",
+       "POSITION",
+       "TEXCOORD_0"
+      ],
+      "tris": 240,
+      "degenerate_tris": 0,
+      "normals_unit": true
+     }
+    ],
+    "bbox_min": [
+     -0.0555,
+     -0.0126,
+     -0.0126
+    ],
+    "bbox_max": [
+     0.0319,
+     0.0126,
+     0.0126
+    ]
+   },
+   {
+    "name": "HALO_Shard_A",
+    "T": null,
+    "R": null,
+    "S": null,
+    "extras": null,
+    "children": null,
+    "mesh": "HALO_Shard_A",
+    "tris": 26,
+    "prims": [
+     {
+      "material": "M_HALO_Glass_T1",
+      "attrs": [
+       "NORMAL",
+       "POSITION",
+       "TEXCOORD_0"
+      ],
+      "tris": 26,
+      "degenerate_tris": 0,
+      "normals_unit": true
+     }
+    ],
+    "bbox_min": [
+     -0.015,
+     -0.0021,
+     -0.013
+    ],
+    "bbox_max": [
+     0.015,
+     0.0037,
+     0.013
+    ]
+   },
+   {
+    "name": "HALO_Shard_B",
+    "T": null,
+    "R": null,
+    "S": null,
+    "extras": null,
+    "children": null,
+    "mesh": "HALO_Shard_B",
+    "tris": 14,
+    "prims": [
+     {
+      "material": "M_HALO_Glass_T1",
+      "attrs": [
+       "NORMAL",
+       "POSITION",
+       "TEXCOORD_0"
+      ],
+      "tris": 14,
+      "degenerate_tris": 0,
+      "normals_unit": true
+     }
+    ],
+    "bbox_min": [
+     0.0,
+     -0.0025,
+     -0.0185
+    ],
+    "bbox_max": [
+     0.021,
+     0.0043,
+     0.001
+    ]
+   },
+   {
+    "name": "HALO_Shard_C",
+    "T": null,
+    "R": null,
+    "S": null,
+    "extras": null,
+    "children": null,
+    "mesh": "HALO_Shard_C",
+    "tris": 18,
+    "prims": [
+     {
+      "material": "M_HALO_Glass_T1",
+      "attrs": [
+       "NORMAL",
+       "POSITION",
+       "TEXCOORD_0"
+      ],
+      "tris": 18,
+      "degenerate_tris": 0,
+      "normals_unit": true
+     }
+    ],
+    "bbox_min": [
+     -0.017,
+     -0.0016,
+     -0.0052
+    ],
+    "bbox_max": [
+     0.019,
+     0.0028,
+     0.0055
+    ]
+   },
+   {
+    "name": "HALO_Swatch_Bone",
+    "T": [
+     0.675000011920929,
+     0,
+     -0.5
+    ],
+    "R": null,
+    "S": null,
+    "extras": null,
+    "children": null,
+    "mesh": "HALO_Swatch_Bone",
+    "tris": 12,
+    "prims": [
+     {
+      "material": "M_HALO_Bone",
+      "attrs": [
+       "NORMAL",
+       "POSITION",
+       "TEXCOORD_0"
+      ],
+      "tris": 12,
+      "degenerate_tris": 0,
+      "normals_unit": true
+     }
+    ],
+    "bbox_min": [
+     -0.01,
+     -0.01,
+     -0.001
+    ],
+    "bbox_max": [
+     0.01,
+     0.01,
+     0.001
+    ]
+   },
+   {
+    "name": "HALO_Swatch_Glass_Off",
+    "T": [
+     0.6000000238418579,
+     0,
+     -0.5
+    ],
+    "R": null,
+    "S": null,
+    "extras": null,
+    "children": null,
+    "mesh": "HALO_Swatch_Glass_Off",
+    "tris": 12,
+    "prims": [
+     {
+      "material": "M_HALO_Glass_Off",
+      "attrs": [
+       "NORMAL",
+       "POSITION",
+       "TEXCOORD_0"
+      ],
+      "tris": 12,
+      "degenerate_tris": 0,
+      "normals_unit": true
+     }
+    ],
+    "bbox_min": [
+     -0.01,
+     -0.01,
+     -0.001
+    ],
+    "bbox_max": [
+     0.01,
+     0.01,
+     0.001
+    ]
+   },
+   {
+    "name": "HALO_Swatch_Glass_T1",
+    "T": [
+     0.5,
+     0,
+     -0.5
+    ],
+    "R": null,
+    "S": null,
+    "extras": null,
+    "children": null,
+    "mesh": "HALO_Swatch_Glass_T1",
+    "tris": 12,
+    "prims": [
+     {
+      "material": "M_HALO_Glass_T1",
+      "attrs": [
+       "NORMAL",
+       "POSITION",
+       "TEXCOORD_0"
+      ],
+      "tris": 12,
+      "degenerate_tris": 0,
+      "normals_unit": true
+     }
+    ],
+    "bbox_min": [
+     -0.01,
+     -0.01,
+     -0.001
+    ],
+    "bbox_max": [
+     0.01,
+     0.01,
+     0.001
+    ]
+   },
+   {
+    "name": "HALO_Swatch_Glass_T2",
+    "T": [
+     0.5249999761581421,
+     0,
+     -0.5
+    ],
+    "R": null,
+    "S": null,
+    "extras": null,
+    "children": null,
+    "mesh": "HALO_Swatch_Glass_T2",
+    "tris": 12,
+    "prims": [
+     {
+      "material": "M_HALO_Glass_T2",
+      "attrs": [
+       "NORMAL",
+       "POSITION",
+       "TEXCOORD_0"
+      ],
+      "tris": 12,
+      "degenerate_tris": 0,
+      "normals_unit": true
+     }
+    ],
+    "bbox_min": [
+     -0.01,
+     -0.01,
+     -0.001
+    ],
+    "bbox_max": [
+     0.01,
+     0.01,
+     0.001
+    ]
+   },
+   {
+    "name": "HALO_Swatch_Glass_T3",
+    "T": [
+     0.550000011920929,
+     0,
+     -0.5
+    ],
+    "R": null,
+    "S": null,
+    "extras": null,
+    "children": null,
+    "mesh": "HALO_Swatch_Glass_T3",
+    "tris": 12,
+    "prims": [
+     {
+      "material": "M_HALO_Glass_T3",
+      "attrs": [
+       "NORMAL",
+       "POSITION",
+       "TEXCOORD_0"
+      ],
+      "tris": 12,
+      "degenerate_tris": 0,
+      "normals_unit": true
+     }
+    ],
+    "bbox_min": [
+     -0.01,
+     -0.01,
+     -0.001
+    ],
+    "bbox_max": [
+     0.01,
+     0.01,
+     0.001
+    ]
+   },
+   {
+    "name": "HALO_Swatch_Glass_T4",
+    "T": [
+     0.574999988079071,
+     0,
+     -0.5
+    ],
+    "R": null,
+    "S": null,
+    "extras": null,
+    "children": null,
+    "mesh": "HALO_Swatch_Glass_T4",
+    "tris": 12,
+    "prims": [
+     {
+      "material": "M_HALO_Glass_T4",
+      "attrs": [
+       "NORMAL",
+       "POSITION",
+       "TEXCOORD_0"
+      ],
+      "tris": 12,
+      "degenerate_tris": 0,
+      "normals_unit": true
+     }
+    ],
+    "bbox_min": [
+     -0.01,
+     -0.01,
+     -0.001
+    ],
+    "bbox_max": [
+     0.01,
+     0.01,
+     0.001
+    ]
+   },
+   {
+    "name": "HALO_Swatch_Graphite",
+    "T": [
+     0.625,
+     0,
+     -0.5
+    ],
+    "R": null,
+    "S": null,
+    "extras": null,
+    "children": null,
+    "mesh": "HALO_Swatch_Graphite",
+    "tris": 12,
+    "prims": [
+     {
+      "material": "M_HALO_Graphite",
+      "attrs": [
+       "NORMAL",
+       "POSITION",
+       "TEXCOORD_0"
+      ],
+      "tris": 12,
+      "degenerate_tris": 0,
+      "normals_unit": true
+     }
+    ],
+    "bbox_min": [
+     -0.01,
+     -0.01,
+     -0.001
+    ],
+    "bbox_max": [
+     0.01,
+     0.01,
+     0.001
+    ]
+   },
+   {
+    "name": "HALO_Swatch_Gunmetal",
+    "T": [
+     0.6499999761581421,
+     0,
+     -0.5
+    ],
+    "R": null,
+    "S": null,
+    "extras": null,
+    "children": null,
+    "mesh": "HALO_Swatch_Gunmetal",
+    "tris": 12,
+    "prims": [
+     {
+      "material": "M_HALO_Gunmetal",
+      "attrs": [
+       "NORMAL",
+       "POSITION",
+       "TEXCOORD_0"
+      ],
+      "tris": 12,
+      "degenerate_tris": 0,
+      "normals_unit": true
+     }
+    ],
+    "bbox_min": [
+     -0.01,
+     -0.01,
+     -0.001
+    ],
+    "bbox_max": [
+     0.01,
+     0.01,
+     0.001
+    ]
+   },
+   {
+    "name": "HALO_TierPip",
+    "T": null,
+    "R": null,
+    "S": null,
+    "extras": null,
+    "children": null,
+    "mesh": "HALO_TierPip",
+    "tris": 8,
+    "prims": [
+     {
+      "material": "M_HALO_Glass_T1",
+      "attrs": [
+       "NORMAL",
+       "POSITION",
+       "TEXCOORD_0"
+      ],
+      "tris": 8,
+      "degenerate_tris": 0,
+      "normals_unit": true
+     }
+    ],
+    "bbox_min": [
+     -0.0056,
+     -0.009,
+     -0.003
+    ],
+    "bbox_max": [
+     0.0056,
+     0.009,
+     0.003
+    ]
+   },
+   {
+    "name": "HALO_Volt_Arc_Arms",
+    "T": null,
+    "R": null,
+    "S": null,
+    "extras": {
+     "halo_core": "Volt",
+     "halo_zone": "Arms",
+     "halo_slot0": "glass: M_HALO_Glass_T<tier> when covered, M_HALO_Glass_Off when not"
+    },
+    "children": null,
+    "mesh": "HALO_Volt_Arc_Arms",
+    "tris": 1146,
+    "prims": [
+     {
+      "material": "M_HALO_Glass_T1",
+      "attrs": [
+       "NORMAL",
+       "POSITION",
+       "TEXCOORD_0"
+      ],
+      "tris": 242,
+      "degenerate_tris": 0,
+      "normals_unit": true
+     },
+     {
+      "material": "M_HALO_Graphite",
+      "attrs": [
+       "NORMAL",
+       "POSITION",
+       "TEXCOORD_0"
+      ],
+      "tris": 904,
+      "degenerate_tris": 0,
+      "normals_unit": true
+     }
+    ],
+    "bbox_min": [
+     0.1056,
+     -0.0115,
+     -0.1212
+    ],
+    "bbox_max": [
+     0.1725,
+     0.0435,
+     0.1212
+    ]
+   },
+   {
+    "name": "HALO_Volt_Arc_Head",
+    "T": null,
+    "R": null,
+    "S": null,
+    "extras": {
+     "halo_core": "Volt",
+     "halo_zone": "Head",
+     "halo_slot0": "glass: M_HALO_Glass_T<tier> when covered, M_HALO_Glass_Off when not"
+    },
+    "children": null,
+    "mesh": "HALO_Volt_Arc_Head",
+    "tris": 1242,
+    "prims": [
+     {
+      "material": "M_HALO_Glass_T1",
+      "attrs": [
+       "NORMAL",
+       "POSITION",
+       "TEXCOORD_0"
+      ],
+      "tris": 338,
+      "degenerate_tris": 0,
+      "normals_unit": true
+     },
+     {
+      "material": "M_HALO_Graphite",
+      "attrs": [
+       "NORMAL",
+       "POSITION",
+       "TEXCOORD_0"
+      ],
+      "tris": 904,
+      "degenerate_tris": 0,
+      "normals_unit": true
+     }
+    ],
+    "bbox_min": [
+     -0.1212,
+     -0.0115,
+     0.1056
+    ],
+    "bbox_max": [
+     0.1212,
+     0.0435,
+     0.1725
+    ]
+   },
+   {
+    "name": "HALO_Volt_Arc_Legs",
+    "T": null,
+    "R": null,
+    "S": null,
+    "extras": {
+     "halo_core": "Volt",
+     "halo_zone": "Legs",
+     "halo_slot0": "glass: M_HALO_Glass_T<tier> when covered, M_HALO_Glass_Off when not"
+    },
+    "children": null,
+    "mesh": "HALO_Volt_Arc_Legs",
+    "tris": 1208,
+    "prims": [
+     {
+      "material": "M_HALO_Glass_T1",
+      "attrs": [
+       "NORMAL",
+       "POSITION",
+       "TEXCOORD_0"
+      ],
+      "tris": 240,
+      "degenerate_tris": 0,
+      "normals_unit": true
+     },
+     {
+      "material": "M_HALO_Graphite",
+      "attrs": [
+       "NORMAL",
+       "POSITION",
+       "TEXCOORD_0"
+      ],
+      "tris": 968,
+      "degenerate_tris": 0,
+      "normals_unit": true
+     }
+    ],
+    "bbox_min": [
+     -0.1725,
+     -0.0115,
+     -0.1212
+    ],
+    "bbox_max": [
+     -0.1056,
+     0.0435,
+     0.1212
+    ]
+   },
+   {
+    "name": "HALO_Volt_Arc_Torso",
+    "T": null,
+    "R": null,
+    "S": null,
+    "extras": {
+     "halo_core": "Volt",
+     "halo_zone": "Torso",
+     "halo_slot0": "glass: M_HALO_Glass_T<tier> when covered, M_HALO_Glass_Off when not"
+    },
+    "children": null,
+    "mesh": "HALO_Volt_Arc_Torso",
+    "tris": 1198,
+    "prims": [
+     {
+      "material": "M_HALO_Glass_T1",
+      "attrs": [
+       "NORMAL",
+       "POSITION",
+       "TEXCOORD_0"
+      ],
+      "tris": 246,
+      "degenerate_tris": 0,
+      "normals_unit": true
+     },
+     {
+      "material": "M_HALO_Graphite",
+      "attrs": [
+       "NORMAL",
+       "POSITION",
+       "TEXCOORD_0"
+      ],
+      "tris": 952,
+      "degenerate_tris": 0,
+      "normals_unit": true
+     }
+    ],
+    "bbox_min": [
+     -0.1212,
+     -0.0115,
+     -0.1725
+    ],
+    "bbox_max": [
+     0.1212,
+     0.0435,
+     -0.1056
+    ]
+   },
+   {
+    "name": "HALO_Volt_Band_Heavy",
+    "T": null,
+    "R": null,
+    "S": null,
+    "extras": {
+     "halo_core": "Volt",
+     "halo_weight": "Heavy"
+    },
+    "children": null,
+    "mesh": "HALO_Volt_Band_Heavy",
+    "tris": 2160,
+    "prims": [
+     {
+      "material": "M_HALO_Graphite",
+      "attrs": [
+       "NORMAL",
+       "POSITION",
+       "TEXCOORD_0"
+      ],
+      "tris": 1760,
+      "degenerate_tris": 0,
+      "normals_unit": true
+     },
+     {
+      "material": "M_HALO_Gunmetal",
+      "attrs": [
+       "NORMAL",
+       "POSITION",
+       "TEXCOORD_0"
+      ],
+      "tris": 400,
+      "degenerate_tris": 0,
+      "normals_unit": true
+     }
+    ],
+    "bbox_min": [
+     -0.2124,
+     -0.06,
+     -0.2195
+    ],
+    "bbox_max": [
+     0.2124,
+     0.0,
+     0.2195
+    ]
+   },
+   {
+    "name": "HALO_Volt_Band_Medium",
+    "T": null,
+    "R": null,
+    "S": null,
+    "extras": {
+     "halo_core": "Volt",
+     "halo_weight": "Medium"
+    },
+    "children": null,
+    "mesh": "HALO_Volt_Band_Medium",
+    "tris": 904,
+    "prims": [
+     {
+      "material": "M_HALO_Graphite",
+      "attrs": [
+       "NORMAL",
+       "POSITION",
+       "TEXCOORD_0"
+      ],
+      "tris": 904,
+      "degenerate_tris": 0,
+      "normals_unit": true
+     }
+    ],
+    "bbox_min": [
+     -0.1895,
+     -0.032,
+     -0.1895
+    ],
+    "bbox_max": [
+     0.1895,
+     -0.001,
+     0.1895
+    ]
+   }
+  ]
+ }
+}

@@ -1,0 +1,343 @@
+F:\git\val etf\assets\weapons\vk50_warden\build_warden.py:387: DeprecationWarning: 'Material.use_nodes' is expected to be removed in Blender 6.0
+  mat.use_nodes = True
+F:\git\val etf\assets\weapons\vk50_warden\build_warden.py:387: DeprecationWarning: 'Material.use_nodes' is expected to be removed in Blender 6.0
+  mat.use_nodes = True
+[warden    1.0s] building base
+[warden    3.1s] building stocks
+[warden    3.6s] building mags
+[warden    4.5s] built
+      3740  WARDEN_StockStandard
+      3318  WARDEN_Handguard
+      1958  WARDEN_Brake
+      1836  WARDEN_Receiver
+      1464  WARDEN_Chassis
+      1252  WARDEN_Bolt
+      1228  WARDEN_RailTop
+      1160  WARDEN_Mag5
+       888  WARDEN_Barrel
+       516  WARDEN_Grip
+       484  WARDEN_StockStandard_CheekRiser
+       384  WARDEN_Mag5_Round
+       360  WARDEN_TriggerGuard
+       260  WARDEN_StockStandard_Monopod
+       224  WARDEN_BrakeCollar
+       216  WARDEN_Safety
+       204  WARDEN_RailBottom
+       144  WARDEN_Mag5_Round_02
+       144  WARDEN_Mag5_Round_03
+       144  WARDEN_Mag5_Round_04
+       144  WARDEN_Mag5_Round_05
+       124  WARDEN_BoltRelease
+       124  WARDEN_RailSide_R
+       124  WARDEN_RailSide_L
+        60  WARDEN_Trigger
+        52  WARDEN_Mag5_Follower
+        44  WARDEN_MagRelease
+  TRIS base                                     13940
+  TRIS stock_standard                           4484
+  TRIS stock_folding                            3390
+  TRIS mag_5                                    2172
+  TRIS mag_8                                    2604
+  TRIS default (base+stock_standard+mag_5)      20596
+INFO Draco is available, use library at C:\Program Files\Blender Foundation\Blender 5.2\5.2\scripts\addons_core\io_scene_gltf2\bf_intern_draco_bridge.dll
+INFO MeshOptimizer is available, use library at C:\Program Files\Blender Foundation\Blender 5.2\5.2\scripts\addons_core\io_scene_gltf2\bf_intern_meshopt_bridge.dll
+09:37:24 | INFO: Starting glTF 2.0 export
+09:37:24 | INFO: Extracting primitive: WARDEN_Barrel
+09:37:24 | INFO: Primitives created: 1
+09:37:24 | INFO: Extracting primitive: WARDEN_Bolt
+09:37:24 | INFO: Primitives created: 1
+09:37:24 | INFO: Extracting primitive: WARDEN_BoltRelease
+09:37:24 | INFO: Primitives created: 1
+09:37:24 | INFO: Extracting primitive: WARDEN_Brake
+09:37:24 | INFO: Primitives created: 1
+09:37:24 | INFO: Extracting primitive: WARDEN_BrakeCollar
+09:37:24 | INFO: Primitives created: 1
+09:37:24 | INFO: Extracting primitive: WARDEN_Chassis
+09:37:24 | INFO: Primitives created: 1
+09:37:24 | INFO: Extracting primitive: WARDEN_Grip
+09:37:24 | INFO: Primitives created: 2
+09:37:24 | INFO: Extracting primitive: WARDEN_Handguard
+09:37:24 | INFO: Primitives created: 2
+09:37:24 | INFO: Extracting primitive: WARDEN_MagRelease
+09:37:24 | INFO: Primitives created: 1
+09:37:24 | INFO: Extracting primitive: WARDEN_RailBottom
+09:37:24 | INFO: Primitives created: 1
+09:37:24 | INFO: Extracting primitive: WARDEN_RailSide_L
+09:37:24 | INFO: Primitives created: 1
+09:37:24 | INFO: Extracting primitive: WARDEN_RailSide_R
+09:37:24 | INFO: Primitives created: 1
+09:37:24 | INFO: Extracting primitive: WARDEN_RailTop
+09:37:24 | INFO: Primitives created: 1
+09:37:24 | INFO: Extracting primitive: WARDEN_Receiver
+09:37:24 | INFO: Primitives created: 1
+09:37:24 | INFO: Extracting primitive: WARDEN_Safety
+09:37:24 | INFO: Primitives created: 1
+09:37:24 | INFO: Extracting primitive: WARDEN_Trigger
+09:37:24 | INFO: Primitives created: 1
+09:37:24 | INFO: Extracting primitive: WARDEN_TriggerGuard
+09:37:24 | INFO: Primitives created: 1
+09:37:24 | INFO: Finished glTF 2.0 export in 0.06784772872924805 s
+
+
+FBX export starting... 'F:/git/val etf/assets/weapons/vk50_warden\\warden_base.fbx'
+export finished in 0.0416 sec.
+[warden    4.9s] exported warden_base
+09:37:24 | INFO: Starting glTF 2.0 export
+09:37:24 | INFO: Extracting primitive: WARDEN_StockStandard
+09:37:24 | INFO: Primitives created: 4
+09:37:24 | INFO: Extracting primitive: WARDEN_StockStandard_CheekRiser
+09:37:24 | INFO: Primitives created: 2
+09:37:24 | INFO: Extracting primitive: WARDEN_StockStandard_Monopod
+09:37:24 | INFO: Primitives created: 1
+09:37:24 | INFO: Finished glTF 2.0 export in 0.026660442352294922 s
+
+
+FBX export starting... 'F:/git/val etf/assets/weapons/vk50_warden\\WARDEN_stock_standard.fbx'
+export finished in 0.0123 sec.
+[warden    5.0s] exported WARDEN_stock_standard
+09:37:24 | INFO: Starting glTF 2.0 export
+09:37:24 | INFO: Extracting primitive: WARDEN_StockFolding
+09:37:24 | INFO: Primitives created: 2
+09:37:24 | INFO: Extracting primitive: WARDEN_StockFolding_Arm
+09:37:24 | INFO: Primitives created: 3
+09:37:24 | INFO: Finished glTF 2.0 export in 0.0235440731048584 s
+
+
+FBX export starting... 'F:/git/val etf/assets/weapons/vk50_warden\\WARDEN_stock_folding.fbx'
+export finished in 0.0144 sec.
+[warden    5.0s] exported WARDEN_stock_folding
+09:37:24 | INFO: Starting glTF 2.0 export
+09:37:24 | INFO: Extracting primitive: WARDEN_Mag5
+09:37:24 | INFO: Primitives created: 2
+09:37:24 | INFO: Extracting primitive: WARDEN_Mag5_Follower
+09:37:24 | INFO: Primitives created: 1
+09:37:24 | INFO: Extracting primitive: WARDEN_Mag5_Round
+09:37:24 | INFO: Primitives created: 2
+09:37:24 | INFO: Extracting primitive: WARDEN_Mag5_Round_02
+09:37:24 | INFO: Primitives created: 2
+09:37:24 | INFO: Extracting primitive: WARDEN_Mag5_Round_03
+09:37:24 | INFO: Primitives created: 2
+09:37:24 | INFO: Extracting primitive: WARDEN_Mag5_Round_04
+09:37:24 | INFO: Primitives created: 2
+09:37:24 | INFO: Extracting primitive: WARDEN_Mag5_Round_05
+09:37:24 | INFO: Primitives created: 2
+09:37:24 | INFO: Finished glTF 2.0 export in 0.027353525161743164 s
+
+
+FBX export starting... 'F:/git/val etf/assets/weapons/vk50_warden\\WARDEN_mag_5.fbx'
+export finished in 0.0157 sec.
+[warden    5.1s] exported WARDEN_mag_5
+09:37:24 | INFO: Starting glTF 2.0 export
+09:37:24 | INFO: Extracting primitive: WARDEN_Mag8
+09:37:24 | INFO: Primitives created: 2
+09:37:24 | INFO: Extracting primitive: WARDEN_Mag8_Follower
+09:37:24 | INFO: Primitives created: 1
+09:37:24 | INFO: Extracting primitive: WARDEN_Mag8_Round
+09:37:24 | INFO: Primitives created: 2
+09:37:24 | INFO: Extracting primitive: WARDEN_Mag8_Round_02
+09:37:24 | INFO: Primitives created: 2
+09:37:24 | INFO: Extracting primitive: WARDEN_Mag8_Round_03
+09:37:24 | INFO: Primitives created: 2
+09:37:24 | INFO: Extracting primitive: WARDEN_Mag8_Round_04
+09:37:24 | INFO: Primitives created: 2
+09:37:24 | INFO: Extracting primitive: WARDEN_Mag8_Round_05
+09:37:24 | INFO: Primitives created: 2
+09:37:24 | INFO: Extracting primitive: WARDEN_Mag8_Round_06
+09:37:24 | INFO: Primitives created: 2
+09:37:24 | INFO: Extracting primitive: WARDEN_Mag8_Round_07
+09:37:24 | INFO: Primitives created: 2
+09:37:24 | INFO: Extracting primitive: WARDEN_Mag8_Round_08
+09:37:24 | INFO: Primitives created: 2
+09:37:24 | INFO: Finished glTF 2.0 export in 0.034873247146606445 s
+
+
+FBX export starting... 'F:/git/val etf/assets/weapons/vk50_warden\\WARDEN_mag_8.fbx'
+export finished in 0.0212 sec.
+[warden    5.1s] exported WARDEN_mag_8
+09:37:24 | INFO: Starting glTF 2.0 export
+09:37:24 | INFO: Extracting primitive: WARDEN_Barrel
+09:37:24 | INFO: Primitives created: 1
+09:37:24 | INFO: Extracting primitive: WARDEN_Bolt
+09:37:24 | INFO: Primitives created: 1
+09:37:24 | INFO: Extracting primitive: WARDEN_BoltRelease
+09:37:24 | INFO: Primitives created: 1
+09:37:24 | INFO: Extracting primitive: WARDEN_Brake
+09:37:24 | INFO: Primitives created: 1
+09:37:24 | INFO: Extracting primitive: WARDEN_BrakeCollar
+09:37:24 | INFO: Primitives created: 1
+09:37:24 | INFO: Extracting primitive: WARDEN_Chassis
+09:37:24 | INFO: Primitives created: 1
+09:37:24 | INFO: Extracting primitive: WARDEN_Grip
+09:37:24 | INFO: Primitives created: 2
+09:37:24 | INFO: Extracting primitive: WARDEN_Handguard
+09:37:24 | INFO: Primitives created: 2
+09:37:24 | INFO: Extracting primitive: WARDEN_MagRelease
+09:37:24 | INFO: Primitives created: 1
+09:37:24 | INFO: Extracting primitive: WARDEN_RailBottom
+09:37:24 | INFO: Primitives created: 1
+09:37:24 | INFO: Extracting primitive: WARDEN_RailSide_L
+09:37:24 | INFO: Primitives created: 1
+09:37:24 | INFO: Extracting primitive: WARDEN_RailSide_R
+09:37:24 | INFO: Primitives created: 1
+09:37:24 | INFO: Extracting primitive: WARDEN_RailTop
+09:37:24 | INFO: Primitives created: 1
+09:37:24 | INFO: Extracting primitive: WARDEN_Receiver
+09:37:24 | INFO: Primitives created: 1
+09:37:24 | INFO: Extracting primitive: WARDEN_Safety
+09:37:24 | INFO: Primitives created: 1
+09:37:24 | INFO: Extracting primitive: WARDEN_Mag5
+09:37:24 | INFO: Primitives created: 2
+09:37:24 | INFO: Extracting primitive: WARDEN_Mag5_Follower
+09:37:24 | INFO: Primitives created: 1
+09:37:25 | INFO: Extracting primitive: WARDEN_Mag5_Round
+09:37:25 | INFO: Primitives created: 2
+09:37:25 | INFO: Extracting primitive: WARDEN_Mag5_Round_02
+09:37:25 | INFO: Primitives created: 2
+09:37:25 | INFO: Extracting primitive: WARDEN_Mag5_Round_03
+09:37:25 | INFO: Primitives created: 2
+09:37:25 | INFO: Extracting primitive: WARDEN_Mag5_Round_04
+09:37:25 | INFO: Primitives created: 2
+09:37:25 | INFO: Extracting primitive: WARDEN_Mag5_Round_05
+09:37:25 | INFO: Primitives created: 2
+09:37:25 | INFO: Extracting primitive: WARDEN_StockStandard
+09:37:25 | INFO: Primitives created: 4
+09:37:25 | INFO: Extracting primitive: WARDEN_StockStandard_CheekRiser
+09:37:25 | INFO: Primitives created: 2
+09:37:25 | INFO: Extracting primitive: WARDEN_StockStandard_Monopod
+09:37:25 | INFO: Primitives created: 1
+09:37:25 | INFO: Extracting primitive: WARDEN_Trigger
+09:37:25 | INFO: Primitives created: 1
+09:37:25 | INFO: Extracting primitive: WARDEN_TriggerGuard
+09:37:25 | INFO: Primitives created: 1
+09:37:25 | INFO: Finished glTF 2.0 export in 0.09286904335021973 s
+
+[warden    5.2s] exported warden_default
+Info: Packed 4 file(s)
+Info: Saved as "warden.blend"
+[warden    5.3s] saved blend + exports
+00:06.782  cycles           | WARNING HIPEW initialization failed: Error opening HIP dynamic library
+00:11.188  render           | Saved: 'F:\git\val etf\assets\weapons\vk50_warden\renders\warden_right.png'
+00:16.344  render           | Saved: 'F:\git\val etf\assets\weapons\vk50_warden\renders\warden_left.png'
+00:22.250  render           | Saved: 'F:\git\val etf\assets\weapons\vk50_warden\renders\warden_three_quarter.png'
+00:27.360  render           | Saved: 'F:\git\val etf\assets\weapons\vk50_warden\renders\warden_exact_side.png'
+00:33.469  render           | Saved: 'F:\git\val etf\assets\weapons\vk50_warden\renders\warden_v0.0_0.0_1.0.png'
+00:37.329  render           | Saved: 'F:\git\val etf\assets\weapons\vk50_warden\renders\warden_front.png'
+00:40.125  render           | Saved: 'F:\git\val etf\assets\weapons\vk50_warden\renders\warden_back.png'
+00:44.344  render           | Saved: 'F:\git\val etf\assets\weapons\vk50_warden\renders\warden_three_quarter_back.png'
+00:48.438  render           | Saved: 'F:\git\val etf\assets\weapons\vk50_warden\renders\warden_low.png'
+00:52.985  render           | Saved: 'F:\git\val etf\assets\weapons\vk50_warden\renders\warden_v-0.22_1.0_0.4.png'
+00:56.469  render           | Saved: 'F:\git\val etf\assets\weapons\vk50_warden\renders\warden_cu_v0.9_-0.8_0.45.png'
+01:02.000  render           | Saved: 'F:\git\val etf\assets\weapons\vk50_warden\renders\warden_cu_v-1.0_0.55_0.45.png'
+01:06.610  render           | Saved: 'F:\git\val etf\assets\weapons\vk50_warden\renders\warden_cu_v-0.6_1.0_0.55.png'
+01:12.032  render           | Saved: 'F:\git\val etf\assets\weapons\vk50_warden\renders\warden_cu_v-1.0_0.55_0.45.png'
+01:17.172  render           | Saved: 'F:\git\val etf\assets\weapons\vk50_warden\renders\warden_bolt_open_left.png'
+01:22.485  render           | Saved: 'F:\git\val etf\assets\weapons\vk50_warden\renders\warden_bolt_open_v-0.22_1.0_0.4.png'
+01:26.750  render           | Saved: 'F:\git\val etf\assets\weapons\vk50_warden\renders\warden_bolt_open_v-1.0_0.55_0.45.png'
+01:33.547  render           | Saved: 'F:\git\val etf\assets\weapons\vk50_warden\renders\warden_cu_v-1.0_-0.25_0.25.png'
+01:37.672  render           | Saved: 'F:\git\val etf\assets\weapons\vk50_warden\renders\warden_cu_v1.0_-0.35_0.3.png'
+01:41.688  render           | Saved: 'F:\git\val etf\assets\weapons\vk50_warden\renders\warden_cu_v0.8_-0.6_-0.35.png'
+01:45.922  render           | Saved: 'F:\git\val etf\assets\weapons\vk50_warden\renders\warden_cu_v0.75_-0.55_-0.45.png'
+01:49.204  render           | Saved: 'F:\git\val etf\assets\weapons\vk50_warden\renders\warden_stock_standard_three_quarter.png'
+01:52.500  render           | Saved: 'F:\git\val etf\assets\weapons\vk50_warden\renders\warden_stock_standard_right.png'
+01:55.985  render           | Saved: 'F:\git\val etf\assets\weapons\vk50_warden\renders\warden_stock_standard_left.png'
+02:01.657  render           | Saved: 'F:\git\val etf\assets\weapons\vk50_warden\renders\warden_stock_standard_three_quarter_back.png'
+02:08.110  render           | Saved: 'F:\git\val etf\assets\weapons\vk50_warden\renders\warden_stock_folding_three_quarter.png'
+02:14.297  render           | Saved: 'F:\git\val etf\assets\weapons\vk50_warden\renders\warden_stock_folding_right.png'
+02:20.704  render           | Saved: 'F:\git\val etf\assets\weapons\vk50_warden\renders\warden_stock_folding_left.png'
+02:28.063  render           | Saved: 'F:\git\val etf\assets\weapons\vk50_warden\renders\warden_stock_folding_three_quarter_back.png'
+02:32.688  render           | Saved: 'F:\git\val etf\assets\weapons\vk50_warden\renders\warden_mag_5_three_quarter.png'
+02:37.032  render           | Saved: 'F:\git\val etf\assets\weapons\vk50_warden\renders\warden_mag_5_right.png'
+02:41.563  render           | Saved: 'F:\git\val etf\assets\weapons\vk50_warden\renders\warden_mag_5_v0.6_-0.5_1.0.png'
+02:46.454  render           | Saved: 'F:\git\val etf\assets\weapons\vk50_warden\renders\warden_mag_8_three_quarter.png'
+02:51.235  render           | Saved: 'F:\git\val etf\assets\weapons\vk50_warden\renders\warden_mag_8_right.png'
+02:55.625  render           | Saved: 'F:\git\val etf\assets\weapons\vk50_warden\renders\warden_mag_8_v0.6_-0.5_1.0.png'
+03:01.391  render           | Saved: 'F:\git\val etf\assets\weapons\vk50_warden\renders\warden_mag_5_check_right.png'
+03:07.922  render           | Saved: 'F:\git\val etf\assets\weapons\vk50_warden\renders\warden_mag_5_check_v0.6_-0.5_0.25.png'
+03:15.172  render           | Saved: 'F:\git\val etf\assets\weapons\vk50_warden\renders\warden_mag_5_check_v0.6_-0.5_1.0.png'
+03:24.907  render           | Saved: 'F:\git\val etf\assets\weapons\vk50_warden\renders\warden_base_only_left.png'
+03:36.579  render           | Saved: 'F:\git\val etf\assets\weapons\vk50_warden\renders\warden_base_only_three_quarter_back.png'
+03:46.547  render           | Saved: 'F:\git\val etf\assets\weapons\vk50_warden\renders\warden_base_only_v0.4_0.9_-0.5.png'
+03:56.266  render           | Saved: 'F:\git\val etf\assets\weapons\vk50_warden\renders\warden_sockets_left.png'
+04:05.500  render           | Saved: 'F:\git\val etf\assets\weapons\vk50_warden\renders\warden_sockets_right.png'
+04:13.735  render           | Saved: 'F:\git\val etf\assets\weapons\vk50_warden\renders\warden_sockets_v0.0_0.0_1.0.png'
+04:21.594  render           | Saved: 'F:\git\val etf\assets\weapons\vk50_warden\renders\warden_sockets_v0.7_-1.0_-0.4.png'
+04:30.579  render           | Saved: 'F:\git\val etf\assets\weapons\vk50_warden\renders\warden_alt_right.png'
+04:38.641  render           | Saved: 'F:\git\val etf\assets\weapons\vk50_warden\renders\warden_alt_three_quarter.png'
+04:46.032  render           | Saved: 'F:\git\val etf\assets\weapons\vk50_warden\renders\warden_alt_folded_three_quarter.png'
+04:54.688  render           | Saved: 'F:\git\val etf\assets\weapons\vk50_warden\renders\warden_alt_folded_v0.0_0.0_1.0.png'
+rendered F:\git\val etf\assets\weapons\vk50_warden\renders\warden_right.png
+rendered F:\git\val etf\assets\weapons\vk50_warden\renders\warden_left.png
+rendered F:\git\val etf\assets\weapons\vk50_warden\renders\warden_three_quarter.png
+rendered F:\git\val etf\assets\weapons\vk50_warden\renders\warden_v0.0_0.0_1.0.png
+rendered F:\git\val etf\assets\weapons\vk50_warden\renders\warden_front.png
+rendered F:\git\val etf\assets\weapons\vk50_warden\renders\warden_back.png
+rendered F:\git\val etf\assets\weapons\vk50_warden\renders\warden_three_quarter_back.png
+rendered F:\git\val etf\assets\weapons\vk50_warden\renders\warden_low.png
+rendered F:\git\val etf\assets\weapons\vk50_warden\renders\warden_v-0.22_1.0_0.4.png
+rendered F:\git\val etf\assets\weapons\vk50_warden\renders\warden_cu_v0.9_-0.8_0.45.png
+rendered F:\git\val etf\assets\weapons\vk50_warden\renders\warden_cu_v-1.0_0.55_0.45.png
+rendered F:\git\val etf\assets\weapons\vk50_warden\renders\warden_cu_v-0.6_1.0_0.55.png
+rendered F:\git\val etf\assets\weapons\vk50_warden\renders\warden_cu_v-1.0_0.55_0.45.png
+rendered F:\git\val etf\assets\weapons\vk50_warden\renders\warden_bolt_open_left.png
+rendered F:\git\val etf\assets\weapons\vk50_warden\renders\warden_bolt_open_v-0.22_1.0_0.4.png
+rendered F:\git\val etf\assets\weapons\vk50_warden\renders\warden_bolt_open_v-1.0_0.55_0.45.png
+rendered F:\git\val etf\assets\weapons\vk50_warden\renders\warden_cu_v-1.0_-0.25_0.25.png
+rendered F:\git\val etf\assets\weapons\vk50_warden\renders\warden_cu_v1.0_-0.35_0.3.png
+rendered F:\git\val etf\assets\weapons\vk50_warden\renders\warden_cu_v0.8_-0.6_-0.35.png
+rendered F:\git\val etf\assets\weapons\vk50_warden\renders\warden_cu_v0.75_-0.55_-0.45.png
+rendered F:\git\val etf\assets\weapons\vk50_warden\renders\warden_stock_standard_three_quarter.png
+rendered F:\git\val etf\assets\weapons\vk50_warden\renders\warden_stock_standard_right.png
+rendered F:\git\val etf\assets\weapons\vk50_warden\renders\warden_stock_standard_left.png
+rendered F:\git\val etf\assets\weapons\vk50_warden\renders\warden_stock_standard_three_quarter_back.png
+rendered F:\git\val etf\assets\weapons\vk50_warden\renders\warden_stock_folding_three_quarter.png
+rendered F:\git\val etf\assets\weapons\vk50_warden\renders\warden_stock_folding_right.png
+rendered F:\git\val etf\assets\weapons\vk50_warden\renders\warden_stock_folding_left.png
+rendered F:\git\val etf\assets\weapons\vk50_warden\renders\warden_stock_folding_three_quarter_back.png
+rendered F:\git\val etf\assets\weapons\vk50_warden\renders\warden_mag_5_three_quarter.png
+rendered F:\git\val etf\assets\weapons\vk50_warden\renders\warden_mag_5_right.png
+rendered F:\git\val etf\assets\weapons\vk50_warden\renders\warden_mag_5_v0.6_-0.5_1.0.png
+rendered F:\git\val etf\assets\weapons\vk50_warden\renders\warden_mag_8_three_quarter.png
+rendered F:\git\val etf\assets\weapons\vk50_warden\renders\warden_mag_8_right.png
+rendered F:\git\val etf\assets\weapons\vk50_warden\renders\warden_mag_8_v0.6_-0.5_1.0.png
+rendered F:\git\val etf\assets\weapons\vk50_warden\renders\warden_mag_5_check_right.png
+rendered F:\git\val etf\assets\weapons\vk50_warden\renders\warden_mag_5_check_v0.6_-0.5_0.25.png
+rendered F:\git\val etf\assets\weapons\vk50_warden\renders\warden_mag_5_check_v0.6_-0.5_1.0.png
+rendered F:\git\val etf\assets\weapons\vk50_warden\renders\warden_base_only_left.png
+rendered F:\git\val etf\assets\weapons\vk50_warden\renders\warden_base_only_three_quarter_back.png
+rendered F:\git\val etf\assets\weapons\vk50_warden\renders\warden_base_only_v0.4_0.9_-0.5.png
+rendered F:\git\val etf\assets\weapons\vk50_warden\renders\warden_sockets_left.png
+rendered F:\git\val etf\assets\weapons\vk50_warden\renders\warden_sockets_right.png
+rendered F:\git\val etf\assets\weapons\vk50_warden\renders\warden_sockets_v0.0_0.0_1.0.png
+rendered F:\git\val etf\assets\weapons\vk50_warden\renders\warden_sockets_v0.7_-1.0_-0.4.png
+rendered F:\git\val etf\assets\weapons\vk50_warden\renders\warden_alt_right.png
+rendered F:\git\val etf\assets\weapons\vk50_warden\renders\warden_alt_three_quarter.png
+rendered F:\git\val etf\assets\weapons\vk50_warden\renders\warden_alt_folded_three_quarter.png
+rendered F:\git\val etf\assets\weapons\vk50_warden\renders\warden_alt_folded_v0.0_0.0_1.0.png
+09:42:13 | INFO: Data are loaded, start creating Blender stuff
+09:42:13 | INFO: Blender create Mesh node ATT_bipod
+09:42:13 | INFO: Blender create Mesh node ATT_bipod_Leg_L
+09:42:13 | INFO: Blender create Mesh node ATT_bipod_LegLower_L
+09:42:13 | INFO: Blender create Mesh node ATT_bipod_Leg_R
+09:42:13 | INFO: Blender create Mesh node ATT_bipod_LegLower_R
+09:42:13 | INFO: glTF import finished in 0.04s
+09:42:13 | INFO: Data are loaded, start creating Blender stuff
+09:42:13 | INFO: Blender create Mesh node ATT_laser_R
+09:42:13 | INFO: Blender create Mesh node ATT_laser_R_Emitter
+09:42:13 | INFO: glTF import finished in 0.05s
+09:42:13 | INFO: Data are loaded, start creating Blender stuff
+09:42:13 | INFO: Blender create Mesh node ATT_flashlight_L
+09:42:13 | INFO: Blender create Mesh node ATT_flashlight_L_Lens
+09:42:13 | INFO: glTF import finished in 0.05s
+05:02.875  render           | Saved: 'F:\git\val etf\assets\weapons\vk50_warden\renders\warden_fitcheck_right.png'
+05:10.704  render           | Saved: 'F:\git\val etf\assets\weapons\vk50_warden\renders\warden_fitcheck_left.png'
+05:16.516  render           | Saved: 'F:\git\val etf\assets\weapons\vk50_warden\renders\warden_fitcheck_three_quarter.png'
+05:21.469  render           | Saved: 'F:\git\val etf\assets\weapons\vk50_warden\renders\warden_fitcheck_front.png'
+rendered F:\git\val etf\assets\weapons\vk50_warden\renders\warden_fitcheck_right.png
+rendered F:\git\val etf\assets\weapons\vk50_warden\renders\warden_fitcheck_left.png
+rendered F:\git\val etf\assets\weapons\vk50_warden\renders\warden_fitcheck_three_quarter.png
+rendered F:\git\val etf\assets\weapons\vk50_warden\renders\warden_fitcheck_front.png
+[warden  320.0s] rendered 53
+[warden  320.0s] done
+Blender 5.2.0 LTS (hash fbe6228777e7 built 2026-07-14 01:35:40)
+
+Blender quit

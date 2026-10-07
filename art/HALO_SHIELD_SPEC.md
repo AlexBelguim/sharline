@@ -27,6 +27,18 @@ T3 violet (0.55, 0.15, 1.0) · T4 gold (1.0, 0.62, 0.08). Unlit arc: dark smoked
 | **Volt** | **Notched / crown** ring with short upward teeth | Medium capacity, punishes melee range | When it breaks, a shock pulse slows nearby enemies |
 | **Phase** | Smooth **round** ring with a gap opposite the front | Light, low drain | Resistance to slow and bleed status |
 
+## Update (user direction via the game session, see `game/DESIGN_DELTAS.md`)
+**Each arc has its own tier and its own shield pool.** A torso arc can break while the head or leg arc holds.
+- Colour **each arc separately** with its own tier colour. There is no single colour for the whole ring. An arc that
+  is not covered stays dark, smoked glass. A broken arc (pool at 0) shows a cracked, dim version until it regens.
+- **Weight class** = sum of the arc tiers (with uniform tiers this equals tier × covered zones). It still drives
+  halo scale, the outer weight band and the number of power cells, so the Light / Medium / Heavy silhouette rule
+  is unchanged.
+- Tier pips: show the **highest** arc tier (1–4 pips). The exact per-arc tiers are readable by colour at mid range.
+- Loadouts cap leg arcs at T2. Higher leg protection is rare loot.
+- Engine: arcs are separate meshes, so every arc gets its own tier material or tint. Ship one material per tier
+  (T1–T4) plus `unlit` and `broken`.
+
 ## Readability layers (user decision)
 Like gear in EFT, players must always be able to judge **how heavy an enemy is** before deciding to
 engage. The fine details reveal themselves on hit or scan.

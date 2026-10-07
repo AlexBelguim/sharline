@@ -1,0 +1,129 @@
+{
+  "_about": "VK-50 WARDEN moving parts. Origins are pivots; rotations are about the object's local axis.",
+  "axes": "Blender Z-up, muzzle -Y.  glTF/Bevy Y-up, muzzle +Z: (x, y, z)_blender -> (x, z, -y)_gltf",
+  "WARDEN_Bolt": {
+    "origin": {
+      "blender": [
+        0.0,
+        0.112,
+        0.075
+      ],
+      "gltf": [
+        0.0,
+        0.075,
+        -0.112
+      ]
+    },
+    "lift_deg": 60.0,
+    "lift_axis": {
+      "blender": "+Y",
+      "gltf": "-Z"
+    },
+    "travel_m": 0.13,
+    "travel_dir": {
+      "blender": "+Y",
+      "gltf": "-Z"
+    },
+    "sequence": "open: lift, then slide back; close: slide forward, then lower"
+  },
+  "WARDEN_Trigger": {
+    "origin": {
+      "blender": [
+        0.0,
+        -0.054,
+        0.0
+      ],
+      "gltf": [
+        0.0,
+        0.0,
+        0.054
+      ]
+    },
+    "pull_deg": 12.0,
+    "axis": {
+      "blender": "+X",
+      "gltf": "+X"
+    }
+  },
+  "WARDEN_Safety": {
+    "fire_deg": -45.0,
+    "axis": {
+      "blender": "+X",
+      "gltf": "+X"
+    }
+  },
+  "WARDEN_StockStandard_CheekRiser": {
+    "slide": {
+      "blender": "+Z",
+      "gltf": "+Y"
+    },
+    "travel_min_m": 0.0,
+    "travel_max_m": 0.03
+  },
+  "WARDEN_StockStandard_Monopod": {
+    "slide": {
+      "blender": "+Z",
+      "gltf": "+Y"
+    },
+    "travel_min_m": -0.045,
+    "travel_max_m": 0.0
+  },
+  "WARDEN_StockFolding_Arm": {
+    "origin_rel_stock_mount": {
+      "blender": [
+        0.0315,
+        0.031,
+        -0.06
+      ]
+    },
+    "fold_angle_deg": -180.0,
+    "axis": {
+      "blender": "+Z",
+      "gltf": "+Y"
+    },
+    "note": "rotate about local Z by fold_angle_deg: stock swings out to +X and lies along the LEFT side"
+  },
+  "magazines": {
+    "WARDEN_Mag5": {
+      "capacity": 5,
+      "rounds": [
+        "WARDEN_Mag5_Round",
+        "WARDEN_Mag5_Round_02",
+        "WARDEN_Mag5_Round_03",
+        "WARDEN_Mag5_Round_04",
+        "WARDEN_Mag5_Round_05"
+      ],
+      "round_index_rule": "round_index 1 = top round at the feed lips; hide the highest indices first",
+      "follower": "WARDEN_Mag5_Follower",
+      "follower_axis": {
+        "blender": "+Z",
+        "gltf": "+Y"
+      },
+      "follower_travel_per_round_m": 0.021,
+      "follower_travel_max_m": 0.094,
+      "follower_rule": "offset = min((capacity - rounds_left) * travel_per_round_m, travel_max_m)"
+    },
+    "WARDEN_Mag8": {
+      "capacity": 8,
+      "rounds": [
+        "WARDEN_Mag8_Round",
+        "WARDEN_Mag8_Round_02",
+        "WARDEN_Mag8_Round_03",
+        "WARDEN_Mag8_Round_04",
+        "WARDEN_Mag8_Round_05",
+        "WARDEN_Mag8_Round_06",
+        "WARDEN_Mag8_Round_07",
+        "WARDEN_Mag8_Round_08"
+      ],
+      "round_index_rule": "round_index 1 = top round at the feed lips; hide the highest indices first",
+      "follower": "WARDEN_Mag8_Follower",
+      "follower_axis": {
+        "blender": "+Z",
+        "gltf": "+Y"
+      },
+      "follower_travel_per_round_m": 0.021,
+      "follower_travel_max_m": 0.157,
+      "follower_rule": "offset = min((capacity - rounds_left) * travel_per_round_m, travel_max_m)"
+    }
+  }
+}

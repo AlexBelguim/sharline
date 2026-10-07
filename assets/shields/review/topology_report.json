@@ -1,0 +1,563 @@
+{
+ "HALO_Bulwark_Arc_Arms": {
+  "islands": 20,
+  "closed": 20,
+  "open": 0,
+  "inverted": 0,
+  "nonmanifold_edges": 0,
+  "boundary_edges": 0,
+  "edges_more_than_2_faces": 0,
+  "tiny_faces": 0,
+  "ngons": 36,
+  "faces": 286,
+  "uv": 1,
+  "mats": [
+   "M_HALO_Glass_T1",
+   "M_HALO_Graphite"
+  ]
+ },
+ "HALO_Bulwark_Arc_Head": {
+  "islands": 19,
+  "closed": 18,
+  "open": 1,
+  "inverted": 0,
+  "nonmanifold_edges": 48,
+  "boundary_edges": 0,
+  "edges_more_than_2_faces": 48,
+  "tiny_faces": 0,
+  "ngons": 36,
+  "faces": 364,
+  "uv": 1,
+  "mats": [
+   "M_HALO_Glass_T1",
+   "M_HALO_Graphite"
+  ]
+ },
+ "HALO_Bulwark_Arc_Legs": {
+  "islands": 19,
+  "closed": 18,
+  "open": 1,
+  "inverted": 0,
+  "nonmanifold_edges": 4,
+  "boundary_edges": 0,
+  "edges_more_than_2_faces": 4,
+  "tiny_faces": 0,
+  "ngons": 36,
+  "faces": 285,
+  "uv": 1,
+  "mats": [
+   "M_HALO_Glass_T1",
+   "M_HALO_Graphite"
+  ]
+ },
+ "HALO_Bulwark_Arc_Torso": {
+  "islands": 19,
+  "closed": 19,
+  "open": 0,
+  "inverted": 0,
+  "nonmanifold_edges": 0,
+  "boundary_edges": 0,
+  "edges_more_than_2_faces": 0,
+  "tiny_faces": 0,
+  "ngons": 38,
+  "faces": 314,
+  "uv": 1,
+  "mats": [
+   "M_HALO_Glass_T1",
+   "M_HALO_Graphite"
+  ]
+ },
+ "HALO_Bulwark_Band_Heavy": {
+  "islands": 31,
+  "closed": 31,
+  "open": 0,
+  "inverted": 0,
+  "nonmanifold_edges": 0,
+  "boundary_edges": 0,
+  "edges_more_than_2_faces": 0,
+  "tiny_faces": 0,
+  "ngons": 48,
+  "faces": 540,
+  "uv": 1,
+  "mats": [
+   "M_HALO_Graphite",
+   "M_HALO_Gunmetal"
+  ]
+ },
+ "HALO_Bulwark_Band_Medium": {
+  "islands": 5,
+  "closed": 5,
+  "open": 0,
+  "inverted": 0,
+  "nonmanifold_edges": 0,
+  "boundary_edges": 0,
+  "edges_more_than_2_faces": 0,
+  "tiny_faces": 0,
+  "ngons": 8,
+  "faces": 196,
+  "uv": 1,
+  "mats": [
+   "M_HALO_Graphite",
+   "M_HALO_Gunmetal"
+  ]
+ },
+ "HALO_Core_Bulwark": {
+  "islands": 12,
+  "closed": 12,
+  "open": 0,
+  "inverted": 0,
+  "nonmanifold_edges": 0,
+  "boundary_edges": 0,
+  "edges_more_than_2_faces": 0,
+  "tiny_faces": 0,
+  "ngons": 18,
+  "faces": 354,
+  "uv": 1,
+  "mats": [
+   "M_HALO_Glass_T1",
+   "M_HALO_Graphite",
+   "M_HALO_Bone"
+  ]
+ },
+ "HALO_Core_Mender": {
+  "islands": 15,
+  "closed": 15,
+  "open": 0,
+  "inverted": 0,
+  "nonmanifold_edges": 0,
+  "boundary_edges": 0,
+  "edges_more_than_2_faces": 0,
+  "tiny_faces": 0,
+  "ngons": 20,
+  "faces": 1332,
+  "uv": 1,
+  "mats": [
+   "M_HALO_Glass_T1",
+   "M_HALO_Graphite",
+   "M_HALO_Bone"
+  ]
+ },
+ "HALO_Core_Phase": {
+  "islands": 7,
+  "closed": 7,
+  "open": 0,
+  "inverted": 0,
+  "nonmanifold_edges": 0,
+  "boundary_edges": 0,
+  "edges_more_than_2_faces": 0,
+  "tiny_faces": 0,
+  "ngons": 8,
+  "faces": 1846,
+  "uv": 1,
+  "mats": [
+   "M_HALO_Glass_T1",
+   "M_HALO_Graphite",
+   "M_HALO_Bone"
+  ]
+ },
+ "HALO_Core_Volt": {
+  "islands": 18,
+  "closed": 18,
+  "open": 0,
+  "inverted": 0,
+  "nonmanifold_edges": 0,
+  "boundary_edges": 0,
+  "edges_more_than_2_faces": 0,
+  "tiny_faces": 0,
+  "ngons": 18,
+  "faces": 700,
+  "uv": 1,
+  "mats": [
+   "M_HALO_Glass_T1",
+   "M_HALO_Graphite",
+   "M_HALO_Bone"
+  ]
+ },
+ "HALO_Mender_Arc_Arms": {
+  "islands": 11,
+  "closed": 11,
+  "open": 0,
+  "inverted": 0,
+  "nonmanifold_edges": 0,
+  "boundary_edges": 0,
+  "edges_more_than_2_faces": 0,
+  "tiny_faces": 0,
+  "ngons": 18,
+  "faces": 570,
+  "uv": 1,
+  "mats": [
+   "M_HALO_Glass_T1",
+   "M_HALO_Graphite"
+  ]
+ },
+ "HALO_Mender_Arc_Head": {
+  "islands": 10,
+  "closed": 9,
+  "open": 1,
+  "inverted": 0,
+  "nonmanifold_edges": 48,
+  "boundary_edges": 0,
+  "edges_more_than_2_faces": 48,
+  "tiny_faces": 0,
+  "ngons": 18,
+  "faces": 610,
+  "uv": 1,
+  "mats": [
+   "M_HALO_Glass_T1",
+   "M_HALO_Graphite"
+  ]
+ },
+ "HALO_Mender_Arc_Legs": {
+  "islands": 10,
+  "closed": 9,
+  "open": 1,
+  "inverted": 0,
+  "nonmanifold_edges": 4,
+  "boundary_edges": 0,
+  "edges_more_than_2_faces": 4,
+  "tiny_faces": 0,
+  "ngons": 18,
+  "faces": 553,
+  "uv": 1,
+  "mats": [
+   "M_HALO_Glass_T1",
+   "M_HALO_Graphite"
+  ]
+ },
+ "HALO_Mender_Arc_Torso": {
+  "islands": 10,
+  "closed": 10,
+  "open": 0,
+  "inverted": 0,
+  "nonmanifold_edges": 0,
+  "boundary_edges": 0,
+  "edges_more_than_2_faces": 0,
+  "tiny_faces": 0,
+  "ngons": 20,
+  "faces": 568,
+  "uv": 1,
+  "mats": [
+   "M_HALO_Glass_T1",
+   "M_HALO_Graphite"
+  ]
+ },
+ "HALO_Mender_Band_Heavy": {
+  "islands": 51,
+  "closed": 51,
+  "open": 0,
+  "inverted": 0,
+  "nonmanifold_edges": 0,
+  "boundary_edges": 0,
+  "edges_more_than_2_faces": 0,
+  "tiny_faces": 0,
+  "ngons": 80,
+  "faces": 1000,
+  "uv": 1,
+  "mats": [
+   "M_HALO_Graphite",
+   "M_HALO_Gunmetal"
+  ]
+ },
+ "HALO_Mender_Band_Medium": {
+  "islands": 5,
+  "closed": 5,
+  "open": 0,
+  "inverted": 0,
+  "nonmanifold_edges": 0,
+  "boundary_edges": 0,
+  "edges_more_than_2_faces": 0,
+  "tiny_faces": 0,
+  "ngons": 8,
+  "faces": 448,
+  "uv": 1,
+  "mats": [
+   "M_HALO_Graphite",
+   "M_HALO_Gunmetal"
+  ]
+ },
+ "HALO_Phase_Arc_Arms": {
+  "islands": 7,
+  "closed": 7,
+  "open": 0,
+  "inverted": 0,
+  "nonmanifold_edges": 0,
+  "boundary_edges": 0,
+  "edges_more_than_2_faces": 0,
+  "tiny_faces": 0,
+  "ngons": 8,
+  "faces": 350,
+  "uv": 1,
+  "mats": [
+   "M_HALO_Glass_T1",
+   "M_HALO_Graphite"
+  ]
+ },
+ "HALO_Phase_Arc_Head": {
+  "islands": 6,
+  "closed": 5,
+  "open": 1,
+  "inverted": 0,
+  "nonmanifold_edges": 48,
+  "boundary_edges": 0,
+  "edges_more_than_2_faces": 48,
+  "tiny_faces": 0,
+  "ngons": 8,
+  "faces": 422,
+  "uv": 1,
+  "mats": [
+   "M_HALO_Glass_T1",
+   "M_HALO_Graphite"
+  ]
+ },
+ "HALO_Phase_Arc_Legs": {
+  "islands": 6,
+  "closed": 5,
+  "open": 1,
+  "inverted": 0,
+  "nonmanifold_edges": 4,
+  "boundary_edges": 0,
+  "edges_more_than_2_faces": 4,
+  "tiny_faces": 0,
+  "ngons": 8,
+  "faces": 373,
+  "uv": 1,
+  "mats": [
+   "M_HALO_Glass_T1",
+   "M_HALO_Graphite"
+  ]
+ },
+ "HALO_Phase_Arc_Torso": {
+  "islands": 12,
+  "closed": 10,
+  "open": 2,
+  "inverted": 0,
+  "nonmanifold_edges": 24,
+  "boundary_edges": 0,
+  "edges_more_than_2_faces": 24,
+  "tiny_faces": 0,
+  "ngons": 22,
+  "faces": 446,
+  "uv": 1,
+  "mats": [
+   "M_HALO_Glass_T1",
+   "M_HALO_Graphite"
+  ]
+ },
+ "HALO_Phase_Band_Heavy": {
+  "islands": 47,
+  "closed": 47,
+  "open": 0,
+  "inverted": 0,
+  "nonmanifold_edges": 0,
+  "boundary_edges": 0,
+  "edges_more_than_2_faces": 0,
+  "tiny_faces": 0,
+  "ngons": 76,
+  "faces": 914,
+  "uv": 1,
+  "mats": [
+   "M_HALO_Graphite",
+   "M_HALO_Gunmetal"
+  ]
+ },
+ "HALO_Phase_Band_Medium": {
+  "islands": 5,
+  "closed": 5,
+  "open": 0,
+  "inverted": 0,
+  "nonmanifold_edges": 0,
+  "boundary_edges": 0,
+  "edges_more_than_2_faces": 0,
+  "tiny_faces": 0,
+  "ngons": 10,
+  "faces": 415,
+  "uv": 1,
+  "mats": [
+   "M_HALO_Graphite",
+   "M_HALO_Gunmetal"
+  ]
+ },
+ "HALO_PowerCell": {
+  "islands": 5,
+  "closed": 5,
+  "open": 0,
+  "inverted": 0,
+  "nonmanifold_edges": 0,
+  "boundary_edges": 0,
+  "edges_more_than_2_faces": 0,
+  "tiny_faces": 0,
+  "ngons": 2,
+  "faces": 269,
+  "uv": 1,
+  "mats": [
+   "M_HALO_Glass_T1",
+   "M_HALO_Graphite"
+  ]
+ },
+ "HALO_Shard_A": {
+  "islands": 1,
+  "closed": 1,
+  "open": 0,
+  "inverted": 0,
+  "nonmanifold_edges": 0,
+  "boundary_edges": 0,
+  "edges_more_than_2_faces": 0,
+  "tiny_faces": 0,
+  "ngons": 1,
+  "faces": 15,
+  "uv": 1,
+  "mats": [
+   "M_HALO_Glass_T1"
+  ]
+ },
+ "HALO_Shard_B": {
+  "islands": 1,
+  "closed": 1,
+  "open": 0,
+  "inverted": 0,
+  "nonmanifold_edges": 0,
+  "boundary_edges": 0,
+  "edges_more_than_2_faces": 0,
+  "tiny_faces": 0,
+  "ngons": 0,
+  "faces": 9,
+  "uv": 1,
+  "mats": [
+   "M_HALO_Glass_T1"
+  ]
+ },
+ "HALO_Shard_C": {
+  "islands": 1,
+  "closed": 1,
+  "open": 0,
+  "inverted": 0,
+  "nonmanifold_edges": 0,
+  "boundary_edges": 0,
+  "edges_more_than_2_faces": 0,
+  "tiny_faces": 0,
+  "ngons": 1,
+  "faces": 11,
+  "uv": 1,
+  "mats": [
+   "M_HALO_Glass_T1"
+  ]
+ },
+ "HALO_TierPip": {
+  "islands": 1,
+  "closed": 1,
+  "open": 0,
+  "inverted": 0,
+  "nonmanifold_edges": 0,
+  "boundary_edges": 0,
+  "edges_more_than_2_faces": 0,
+  "tiny_faces": 0,
+  "ngons": 0,
+  "faces": 8,
+  "uv": 1,
+  "mats": [
+   "M_HALO_Glass_T1"
+  ]
+ },
+ "HALO_Volt_Arc_Arms": {
+  "islands": 18,
+  "closed": 18,
+  "open": 0,
+  "inverted": 0,
+  "nonmanifold_edges": 0,
+  "boundary_edges": 0,
+  "edges_more_than_2_faces": 0,
+  "tiny_faces": 0,
+  "ngons": 32,
+  "faces": 530,
+  "uv": 1,
+  "mats": [
+   "M_HALO_Glass_T1",
+   "M_HALO_Graphite"
+  ]
+ },
+ "HALO_Volt_Arc_Head": {
+  "islands": 17,
+  "closed": 16,
+  "open": 1,
+  "inverted": 0,
+  "nonmanifold_edges": 48,
+  "boundary_edges": 0,
+  "edges_more_than_2_faces": 48,
+  "tiny_faces": 0,
+  "ngons": 32,
+  "faces": 578,
+  "uv": 1,
+  "mats": [
+   "M_HALO_Glass_T1",
+   "M_HALO_Graphite"
+  ]
+ },
+ "HALO_Volt_Arc_Legs": {
+  "islands": 17,
+  "closed": 16,
+  "open": 1,
+  "inverted": 0,
+  "nonmanifold_edges": 4,
+  "boundary_edges": 0,
+  "edges_more_than_2_faces": 4,
+  "tiny_faces": 0,
+  "ngons": 32,
+  "faces": 561,
+  "uv": 1,
+  "mats": [
+   "M_HALO_Glass_T1",
+   "M_HALO_Graphite"
+  ]
+ },
+ "HALO_Volt_Arc_Torso": {
+  "islands": 17,
+  "closed": 17,
+  "open": 0,
+  "inverted": 0,
+  "nonmanifold_edges": 0,
+  "boundary_edges": 0,
+  "edges_more_than_2_faces": 0,
+  "tiny_faces": 0,
+  "ngons": 34,
+  "faces": 552,
+  "uv": 1,
+  "mats": [
+   "M_HALO_Glass_T1",
+   "M_HALO_Graphite"
+  ]
+ },
+ "HALO_Volt_Band_Heavy": {
+  "islands": 51,
+  "closed": 51,
+  "open": 0,
+  "inverted": 0,
+  "nonmanifold_edges": 0,
+  "boundary_edges": 0,
+  "edges_more_than_2_faces": 0,
+  "tiny_faces": 0,
+  "ngons": 80,
+  "faces": 1000,
+  "uv": 1,
+  "mats": [
+   "M_HALO_Graphite",
+   "M_HALO_Gunmetal"
+  ]
+ },
+ "HALO_Volt_Band_Medium": {
+  "islands": 5,
+  "closed": 5,
+  "open": 0,
+  "inverted": 0,
+  "nonmanifold_edges": 0,
+  "boundary_edges": 0,
+  "edges_more_than_2_faces": 0,
+  "tiny_faces": 0,
+  "ngons": 8,
+  "faces": 448,
+  "uv": 1,
+  "mats": [
+   "M_HALO_Graphite",
+   "M_HALO_Gunmetal"
+  ]
+ }
+}
