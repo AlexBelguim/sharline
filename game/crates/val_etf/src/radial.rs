@@ -71,6 +71,43 @@ impl HealMenu {
     }
 }
 
+/// What each heal-ring option allows right now: the item's scope, whether it can be picked (any left and
+/// it would do something), and which regions (in [`REGION_ORDER`]) it would help. The ring dims what is not
+/// allowed and a click on a dimmed option does nothing.
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct HealOption {
+    pub scope: ItemScope,
+    pub left: u8,
+    pub enabled: bool,
+    pub regions: [bool; 4],
+}
+
+/// The heal ring's options for a player. Without vitals (not replicated yet) everything counts as useful.
+pub fn heal_options(
+    data: &vetf_sim::GameData,
+    loadout: &vetf_sim::player::Loadout,
+    items: &vetf_sim::items::ItemState,
+    vitals: Option<&Vitals>,
+) -> Vec<HealOption> {
+    loadout
+        .kit
+        .iter()
+        .enumerate()
+        .map(|(i, k)| {
+            let spec = data.items.spec(k);
+            let helps =
+                |zone: Option<Zone>| vitals.is_none_or(|v| would_help(spec, zone, &v.health, &v.halo, &loadout.halo));
+            let regions = REGION_ORDER.map(|z| spec.scope == ItemScope::Region && helps(Some(z)));
+            let useful = match spec.scope {
+                ItemScope::Body => helps(None),
+                ItemScope::Region => regions.iter().any(|r| *r),
+            };
+            let left = items.count(i as u8);
+            HealOption { scope: spec.scope, left, enabled: left > 0 && useful, regions }
+        })
+        .collect()
+}
+
 /// Regions on the second ring, clockwise from the top: head up, legs down.
 pub const REGION_ORDER: [Zone; 4] = [Zone::Head, Zone::Torso, Zone::Legs, Zone::Arms];
 
@@ -269,27 +306,17 @@ fn fill_rings(
         return;
     }
     let Some(menu) = control.heal else { return };
-    let helps = |slot: usize, zone: Option<Zone>| {
-        let spec = data.items.spec(&lo.0.kit[slot]);
-        vitals.is_none_or(|v| would_help(spec, zone, &v.health, &v.halo, &lo.0.halo))
-    };
+    let heal = heal_options(&data, &lo.0, &items.0, vitals);
     let options =
         lo.0.kit
             .iter()
-            .enumerate()
-            .map(|(i, k)| {
-                let spec = data.items.spec(k);
-                let left = items.0.count(i as u8);
-                // A region item is worth opening if it helps any region.
-                let useful = match spec.scope {
-                    ItemScope::Body => helps(i, None),
-                    ItemScope::Region => REGION_ORDER.iter().any(|z| helps(i, Some(*z))),
-                };
-                let scope = if spec.scope == ItemScope::Body { "ALL" } else { "REGION" };
+            .zip(&heal)
+            .map(|(k, h)| {
+                let scope = if h.scope == ItemScope::Body { "ALL" } else { "REGION" };
                 RingOption {
-                    key: spec.label.clone(),
-                    label: format!("x{left}  {scope}"),
-                    enabled: left > 0 && useful,
+                    key: data.items.spec(k).label.clone(),
+                    label: format!("x{}  {scope}", h.left),
+                    enabled: h.enabled,
                     current: false,
                 }
             })
@@ -305,11 +332,12 @@ fn fill_rings(
         focus: menu.item,
         ..default()
     });
-    let Some(item) = menu.item else { return };
+    let Some(item) = menu.item.filter(|i| *i < heal.len()) else { return };
     let spec = data.items.spec(&lo.0.kit[item]);
     let options = REGION_ORDER
         .iter()
-        .map(|z| {
+        .enumerate()
+        .map(|(r, z)| {
             let label = match vitals {
                 Some(v) if spec.shield_frac > 0.0 && spec.heal_hp <= 0.0 => {
                     if lo.0.halo.tiers[*z] == 0 {
@@ -322,7 +350,7 @@ fn fill_rings(
                 Some(v) => format!("{:.0}/{:.0}", v.health.hp[*z].max(0.0), v.health.max[*z]),
                 None => String::new(),
             };
-            RingOption { key: z.label().into(), label, enabled: helps(item, Some(*z)), current: false }
+            RingOption { key: z.label().into(), label, enabled: heal[item].regions[r], current: false }
         })
         .collect();
     view.layers.push(RingLayer {

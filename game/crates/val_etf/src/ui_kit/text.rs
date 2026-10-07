@@ -96,13 +96,7 @@ impl UiFonts {
     /// A text entity in a role, in another colour.
     pub fn role_color(&self, role: TextRole, s: impl Into<String>, color: Color) -> impl Bundle {
         let r = role.spec();
-        (
-            Text::new(role.case(s)),
-            self.role_font(role),
-            TextColor(color),
-            LetterSpacing::Px(r.size * r.em),
-            r.line,
-        )
+        (Text::new(role.case(s)), self.role_font(role), TextColor(color), LetterSpacing::Px(r.size * r.em), r.line)
     }
 }
 

@@ -279,7 +279,8 @@ pub struct WeaponEnv {
     /// Horizontal speed / jog speed.
     pub speed_frac: f32,
     pub broken_arms: bool,
-    /// An item is in hand (or was put away this tick): the gun is down like when sprinting, and no reload.
+    /// An item is in hand (or was put away this tick, unless a reload put it away): the gun is down like
+    /// when sprinting, and no reload.
     pub hands_busy: bool,
 }
 

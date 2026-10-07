@@ -117,7 +117,11 @@ fn apply_looks(
             looks.idle
         };
         if disabled {
-            look = Look::new(fade(look.bg, DISABLED_ALPHA), fade(look.border, DISABLED_ALPHA), fade(look.ink, DISABLED_ALPHA));
+            look = Look::new(
+                fade(look.bg, DISABLED_ALPHA),
+                fade(look.border, DISABLED_ALPHA),
+                fade(look.ink, DISABLED_ALPHA),
+            );
         }
         if let Ok((bg, border)) = boxes.get_mut(entity) {
             if let Some(mut bg) = bg {

@@ -294,7 +294,10 @@ pub fn hint(fonts: &UiFonts, keys: &[&str], label: &str) -> impl Bundle {
 /// A row of hints, 22 px apart.
 pub fn hint_row(node: Node, fonts: &UiFonts, hints: &[(&[&str], &str)]) -> impl Bundle {
     let items: Vec<_> = hints.iter().map(|(keys, label)| hint(fonts, keys, label)).collect();
-    (Node { column_gap: px(22), align_items: AlignItems::Center, ..node }, Children::spawn(SpawnIter(items.into_iter())))
+    (
+        Node { column_gap: px(22), align_items: AlignItems::Center, ..node },
+        Children::spawn(SpawnIter(items.into_iter())),
+    )
 }
 
 // ---------------------------------------------------------------------------------------------- nav rows
@@ -346,7 +349,11 @@ pub fn nav_row(fonts: &UiFonts, label: &str, right: &str, size: NavSize, looks: 
                 Visibility::Hidden,
             ),
             (fonts.role_color(role, label, looks.idle.ink), Ink),
-            fonts.role_color(TextRole::NavSmall, right, if looks.idle.ink == ENEMY { fade(ENEMY, 0.7) } else { TEXT_LOW }),
+            fonts.role_color(
+                TextRole::NavSmall,
+                right,
+                if looks.idle.ink == ENEMY { fade(ENEMY, 0.7) } else { TEXT_LOW }
+            ),
         ],
     )
 }
@@ -452,15 +459,33 @@ pub fn stepper(fonts: &UiFonts, value: i32, min: i32, max: i32, step: i32) -> im
         BorderColor::all(STROKE_HI),
         StepperValue { value, min, max, step },
         children![
-            (Button, StepperButton(-1), step_cell(40.0), children![(fonts.role_color(TextRole::Stepper, "−", TEXT_MID), Ink)], NAV),
+            (
+                Button,
+                StepperButton(-1),
+                step_cell(40.0),
+                children![(fonts.role_color(TextRole::Stepper, "−", TEXT_MID), Ink)],
+                NAV
+            ),
             (step_cell(72.0), children![(StepperText, fonts.role(TextRole::Stepper, value.to_string()))]),
-            (Button, StepperButton(1), step_cell(40.0), children![(fonts.role_color(TextRole::Stepper, "+", TEXT_MID), Ink)], NAV),
+            (
+                Button,
+                StepperButton(1),
+                step_cell(40.0),
+                children![(fonts.role_color(TextRole::Stepper, "+", TEXT_MID), Ink)],
+                NAV
+            ),
         ],
     )
 }
 
 fn step_cell(w: f32) -> Node {
-    Node { width: px(w), height: percent(100), align_items: AlignItems::Center, justify_content: JustifyContent::Center, ..default() }
+    Node {
+        width: px(w),
+        height: percent(100),
+        align_items: AlignItems::Center,
+        justify_content: JustifyContent::Center,
+        ..default()
+    }
 }
 
 #[derive(Component, Debug, Clone, Copy, PartialEq, Eq)]
@@ -482,12 +507,7 @@ pub fn switch(on: bool) -> impl Bundle {
     (
         Button,
         Switch(on),
-        Node {
-            width: px(46),
-            height: px(24),
-            border_radius: BorderRadius::all(px(12)),
-            ..default()
-        },
+        Node { width: px(46), height: px(24), border_radius: BorderRadius::all(px(12)), ..default() },
         BackgroundColor(if on { ALLY } else { W14 }),
         children![(
             SwitchKnob,
@@ -523,7 +543,13 @@ pub fn tag(fonts: &UiFonts, label: &str, bg: Color, xs: bool) -> impl Bundle {
 }
 
 /// A magazine chip: slot number and short ammo label in the ammo colour. Never a round count.
-pub fn mag_chip(fonts: &UiFonts, slot: usize, label: &str, kind: vetf_sim::data::AmmoKind, in_gun: bool) -> impl Bundle {
+pub fn mag_chip(
+    fonts: &UiFonts,
+    slot: usize,
+    label: &str,
+    kind: vetf_sim::data::AmmoKind,
+    in_gun: bool,
+) -> impl Bundle {
     (
         Node {
             height: px(22),
@@ -552,9 +578,14 @@ pub fn cost_text(cost: u32, over: bool) -> String {
 pub fn tier_pips(images: &UiImages, tier: u8) -> impl Bundle {
     let c = tier_color(tier);
     let pips: Vec<_> = (0..tier.max(1))
-        .map(|_| (ImageNode::new(images.shape(Shape::Pip)).with_color(c), Node { width: px(9), height: px(10), ..default() }))
+        .map(|_| {
+            (ImageNode::new(images.shape(Shape::Pip)).with_color(c), Node { width: px(9), height: px(10), ..default() })
+        })
         .collect();
-    (Node { column_gap: px(3), align_items: AlignItems::Center, ..default() }, Children::spawn(SpawnIter(pips.into_iter())))
+    (
+        Node { column_gap: px(3), align_items: AlignItems::Center, ..default() },
+        Children::spawn(SpawnIter(pips.into_iter())),
+    )
 }
 
 /// The arc chip: four pips (head, torso, arms, legs), each in its own arc's tier colour. Unlit arcs get
@@ -570,7 +601,10 @@ pub fn arc_chip(images: &UiImages, tiers: vetf_sim::ZoneTable<u8>) -> impl Bundl
             )
         })
         .collect();
-    (Node { column_gap: px(0), align_items: AlignItems::Center, ..default() }, Children::spawn(SpawnIter(pips.into_iter())))
+    (
+        Node { column_gap: px(0), align_items: AlignItems::Center, ..default() },
+        Children::spawn(SpawnIter(pips.into_iter())),
+    )
 }
 
 /// Ammo-tier pips: up to three 5x10 pips in the ammo colour, the rest W12. Standard shows none.
@@ -584,15 +618,23 @@ pub fn ammo_pips(images: &UiImages, kind: vetf_sim::data::AmmoKind, tier: u8, ma
             )
         })
         .collect();
-    (Node { column_gap: px(3), align_items: AlignItems::Center, ..default() }, Children::spawn(SpawnIter(pips.into_iter())))
+    (
+        Node { column_gap: px(3), align_items: AlignItems::Center, ..default() },
+        Children::spawn(SpawnIter(pips.into_iter())),
+    )
 }
 
 /// Weight squares: three 7x7 squares; 0-3 lit = None / Light / Medium / Heavy.
 pub fn weight_squares(lit: u8) -> impl Bundle {
     let sq: Vec<_> = (0..3)
-        .map(|i| (Node { width: px(7), height: px(7), ..default() }, BackgroundColor(if i < lit { TEXT_HI } else { W20 })))
+        .map(|i| {
+            (Node { width: px(7), height: px(7), ..default() }, BackgroundColor(if i < lit { TEXT_HI } else { W20 }))
+        })
         .collect();
-    (Node { column_gap: px(2), align_items: AlignItems::Center, ..default() }, Children::spawn(SpawnIter(sq.into_iter())))
+    (
+        Node { column_gap: px(2), align_items: AlignItems::Center, ..default() },
+        Children::spawn(SpawnIter(sq.into_iter())),
+    )
 }
 
 /// How many weight squares a class lights.

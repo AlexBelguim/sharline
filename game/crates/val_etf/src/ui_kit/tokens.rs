@@ -8,7 +8,12 @@ pub const fn hex(rgb: u32) -> Color {
 }
 
 pub const fn hexa(rgb: u32, a: f32) -> Color {
-    Color::srgba(((rgb >> 16) & 0xff) as f32 / 255.0, ((rgb >> 8) & 0xff) as f32 / 255.0, (rgb & 0xff) as f32 / 255.0, a)
+    Color::srgba(
+        ((rgb >> 16) & 0xff) as f32 / 255.0,
+        ((rgb >> 8) & 0xff) as f32 / 255.0,
+        (rgb & 0xff) as f32 / 255.0,
+        a,
+    )
 }
 
 /// White at an alpha (the mockups' `rgba(255,255,255,a)` ladder).

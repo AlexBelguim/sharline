@@ -4,7 +4,7 @@
 use crate::AppState;
 use crate::config::{Cli, CurrentLevel, Data, level_by_name};
 use crate::net::{NetRequest, Role, Session};
-use crate::radial::{HealMenu, REGION_ORDER, RELOAD_HOLD_S, Radial};
+use crate::radial::{HealMenu, HealOption, REGION_ORDER, RELOAD_HOLD_S, Radial, heal_options};
 use crate::shared::LocalShot;
 use bevy::input::mouse::AccumulatedMouseMotion;
 use bevy::prelude::*;
@@ -174,8 +174,11 @@ fn toggle_pause(
     mut cursor: Query<&mut CursorOptions, With<PrimaryWindow>>,
 ) {
     if keys.just_pressed(KeyCode::Escape) {
-        // Esc closes an open ring menu first.
-        if control.heal.take().is_some() || control.reload_radial.take().is_some() {
+        // Esc closes an open ring menu first (and forgets a reload hold, so it does not reopen).
+        let heal = control.heal.take().is_some();
+        let radial = control.reload_radial.take().is_some();
+        if heal || radial {
+            control.reload_held_s = None;
             control.mouse_block = true;
             return;
         }
@@ -195,7 +198,7 @@ fn gather_input(
     time: Res<Time>,
     cli: Res<Cli>,
     data: Res<Data>,
-    me: Query<(&PlayerLoadout, &PlayerItems), With<Controlled>>,
+    me: Query<(&PlayerLoadout, &PlayerItems, Option<&Vitals>), With<Controlled>>,
     mut control: ResMut<LocalControl>,
 ) {
     if cli.bot {
@@ -210,13 +213,14 @@ fn gather_input(
         return;
     }
     let me = me.iter().next();
-    let mags = me.map_or(1, |(l, _)| l.0.weapon.mags.len());
-    // Per kit slot: whole-body or region item, and whether any are left.
-    let kit: Vec<(ItemScope, bool)> = me
-        .map(|(l, it)| {
-            l.0.kit.iter().enumerate().map(|(i, k)| (data.items.spec(k).scope, it.0.count(i as u8) > 0)).collect()
-        })
-        .unwrap_or_default();
+    // No ring menus while dead.
+    if me.is_some_and(|(.., v)| v.is_some_and(|v| v.health.dead)) {
+        control.heal = None;
+        control.reload_radial = None;
+        control.reload_held_s = None;
+    }
+    let mags = me.map_or(1, |(l, ..)| l.0.weapon.mags.len());
+    let kit: Vec<HealOption> = me.map(|(l, it, v)| heal_options(&data, &l.0, &it.0, v)).unwrap_or_default();
     heal_input(&mut control, &keys, &mouse, motion.delta, &kit);
     let tap_reload = control.heal.is_none() && reload_input(&mut control, &keys, motion.delta, time.delta_secs(), mags);
     if control.heal.is_some() || control.reload_radial.is_some() {
@@ -259,12 +263,13 @@ fn gather_input(
 
 /// Heal ring (H toggles it). Click an item: a whole-body item is used at once; a region item opens a second
 /// ring of regions around it, where a click picks the region. Right click steps back; Esc or H closes.
+/// Dimmed options (none left, or nothing to treat) ignore clicks.
 fn heal_input(
     control: &mut LocalControl,
     keys: &ButtonInput<KeyCode>,
     mouse: &ButtonInput<MouseButton>,
     mouse_delta: Vec2,
-    kit: &[(ItemScope, bool)],
+    kit: &[HealOption],
 ) {
     if keys.just_pressed(KeyCode::KeyH) {
         control.heal = match control.heal {
@@ -292,11 +297,8 @@ fn heal_input(
     match menu.item {
         None => {
             let Some(i) = menu.ring.selected() else { return };
-            let Some(&(scope, any_left)) = kit.get(i) else { return };
-            if !any_left {
-                return;
-            }
-            match scope {
+            let Some(opt) = kit.get(i).filter(|o| o.enabled) else { return };
+            match opt.scope {
                 ItemScope::Body => {
                     control.item_pick = encode_pick(i as u8, None);
                     control.heal = None;
@@ -309,6 +311,9 @@ fn heal_input(
         }
         Some(i) => {
             let Some(r) = menu.regions.selected() else { return };
+            if !kit.get(i).is_some_and(|o| o.regions[r]) {
+                return;
+            }
             control.item_pick = encode_pick(i as u8, Some(REGION_ORDER[r]));
             control.heal = None;
         }
@@ -361,11 +366,17 @@ fn reload_input(
     }
 }
 
-/// Hand the latest controls to lightyear for this tick.
+/// Hand the latest controls to lightyear for this tick. Not during rollback replays: they read inputs from
+/// lightyear's buffer, and consuming the one-tick pulses (tap reload, radial and heal picks) there would
+/// lose them.
 fn write_inputs(
+    rollback: Option<Res<Rollback>>,
     mut control: ResMut<LocalControl>,
     mut inputs: Query<&mut ActionState<PlayerInput>, With<InputMarker<PlayerInput>>>,
 ) {
+    if rollback.is_some() {
+        return;
+    }
     for mut a in &mut inputs {
         a.0 = PlayerInput {
             move_x: control.movement.x,

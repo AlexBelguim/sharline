@@ -94,6 +94,8 @@ pub fn spawn_match(commands: &mut Commands, data: &GameData, map: &str) {
             rules: if range { data.rules.rulesets.range } else { data.rules.rulesets.tdm },
         },
         Replicate::to_clients(NetworkTarget::All),
+        // A session that ends must not leave its mode and rules to the next one.
+        DespawnOnEnter(crate::AppState::MainMenu),
     ));
 }
 

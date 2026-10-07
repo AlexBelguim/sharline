@@ -197,6 +197,9 @@ fn warden_matches_the_design_model() {
     }
 }
 
+/// (armor preset, gun class, magazines as (type, tier), expected gear cost)
+type GearRow<'a> = (&'a str, WeaponClass, &'a [(AmmoKind, u8)], u32);
+
 /// Team-deathmatch gear: capped halo tiers plus every magazine's gear cost, against `tdm.gear_budget`.
 #[test]
 fn gear_budget_per_magazine() {
@@ -205,12 +208,11 @@ fn gear_budget_per_magazine() {
     assert_eq!(budget, 13);
     let ar = WeaponClass::AssaultRifle;
     let cost = |armor: &str, class: WeaponClass, mags: &[(AmmoKind, u8)]| {
-        capped(&d, armor).gear_cost
-            + mags.iter().map(|(k, t)| ammo(&d, class, *k, *t).gear_cost).sum::<u32>()
+        capped(&d, armor).gear_cost + mags.iter().map(|(k, t)| ammo(&d, class, *k, *t).gear_cost).sum::<u32>()
     };
     use AmmoKind::{ArmorPiercing as Ap, Rip, Standard as Std};
     #[rustfmt::skip]
-    let table: &[(&str, WeaponClass, &[(AmmoKind, u8)], u32)] = &[
+    let table: &[GearRow] = &[
         ("arm_mender_scout", ar, &[(Std, 1); 4], 4),
         ("arm_bulwark_jugg", ar, &[(Std, 1)], 13),
         ("arm_bulwark_jugg", ar, &[(Ap, 1)], 15),

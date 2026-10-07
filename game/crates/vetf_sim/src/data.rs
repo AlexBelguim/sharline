@@ -1259,7 +1259,13 @@ impl GameData {
                 }
             }
         }
-        for i in &self.items.items {
+        if !(self.items.use_move_mult > 0.0 && self.items.use_move_mult <= 1.0) {
+            return bad("items use_move_mult must be within (0, 1]".into());
+        }
+        for (n, i) in self.items.items.iter().enumerate() {
+            if self.items.items[..n].iter().any(|o| o.id == i.id) {
+                return bad(format!("item {}: duplicate id", i.id));
+            }
             if i.use_s <= 0.0 || !(0.0..=1.0).contains(&i.shield_frac) || i.heal_hp < 0.0 {
                 return bad(format!("item {}: use_s > 0, heal_hp >= 0, shield_frac within 0..1", i.id));
             }

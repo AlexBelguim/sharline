@@ -1,7 +1,7 @@
-// Healing items (user direction, see game/DESIGN_DELTAS.md 8). The design has no item numbers yet, so
+// Healing items (user direction, see game/DESIGN_DELTAS.md 7). The design has no item numbers yet, so
 // every value here is a PLACEHOLDER to tune.
 //
-// Items are used from the heal ring (hold H):
+// Items are used from the heal ring (H):
 //   scope Body   -> treats every region at once. High-end in the extraction mode, and the only kind in
 //                   team deathmatch (rulesets in rules.ron).
 //   scope Region -> pick the item, then the region on a second ring around it.

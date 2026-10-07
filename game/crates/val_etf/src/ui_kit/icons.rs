@@ -204,7 +204,8 @@ pub enum Art {
 }
 
 impl Art {
-    pub const ALL: [Art; 5] = [Art::MenuKestrel, Art::KestrelPortrait, Art::SolacePortrait, Art::HudStreet, Art::MakoDark];
+    pub const ALL: [Art; 5] =
+        [Art::MenuKestrel, Art::KestrelPortrait, Art::SolacePortrait, Art::HudStreet, Art::MakoDark];
 
     pub fn file(self) -> &'static str {
         match self {

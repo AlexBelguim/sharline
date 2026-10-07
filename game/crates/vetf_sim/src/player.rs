@@ -130,7 +130,10 @@ pub fn step(
     let lowered = env.sprinting || env.mode == MoveMode::Mantle;
     let hands_free = matches!(ws.action, WeaponAction::Ready | WeaponAction::MagChecking { .. });
     let item_ev = items.step(&data.items, &loadout.kit, &input, hands_free, lowered, data.net.tick_hz);
-    env.hands_busy = items.using.is_some() || item_ev.cancelled || item_ev.finished.is_some();
+    // The gun stays down while an item is in hand and on the tick it is put away, except when a reload
+    // cancelled it: that one-tick request must reach the weapon, or it would be lost.
+    let reload_request = input.buttons.held(crate::input::Buttons::RELOAD) || input.reload_slot != 0;
+    env.hands_busy = items.using.is_some() || item_ev.finished.is_some() || (item_ev.cancelled && !reload_request);
     let weapon = ws.step(data, &loadout.weapon, &input, &env);
     wounds.tag_slow_s = (wounds.tag_slow_s - dt).max(0.0);
     wounds.volt_slow_s = (wounds.volt_slow_s - dt).max(0.0);
@@ -210,6 +213,37 @@ mod tests {
         let first = (1..60)
             .find(|_| step(&d, &level, &l, &mut ms, &mut ws, &mut items, &mut wounds, &fire).weapon.shot.is_some());
         assert_eq!(first, Some(up as i32));
+    }
+
+    #[test]
+    fn a_reload_during_an_item_cancels_it_and_reloads() {
+        let d = GameData::embedded();
+        let mut level = Level::default();
+        level.world.push(Brush::cuboid(
+            Vec3::splat(-100.0).with_y(-1.0),
+            Vec3::splat(100.0).with_y(0.0),
+            BrushKind::Solid,
+        ));
+        let l = Loadout::default_for(&d, Mode::Tdm);
+        for (bits, slot, want_slot) in [(0, 3, 2), (Buttons::RELOAD, 0, 1)] {
+            let mut ms = MoveState::spawn(Vec3::ZERO, 1.6);
+            let mut ws = WeaponState::new(&d, &l.weapon);
+            ws.action = WeaponAction::Ready;
+            ws.rounds[0] = 10;
+            let mut items = ItemState::new(&l.kit);
+            let mut wounds = Wounds::default();
+            let idle = InputFrame::default();
+            let (use_item, use_zone) = crate::items::encode_pick(0, None);
+            step(&d, &level, &l, &mut ms, &mut ws, &mut items, &mut wounds, &InputFrame { use_item, use_zone, ..idle });
+            for _ in 0..30 {
+                step(&d, &level, &l, &mut ms, &mut ws, &mut items, &mut wounds, &idle);
+            }
+            let reload = InputFrame { buttons: Buttons(bits), reload_slot: slot, ..idle };
+            let ev = step(&d, &level, &l, &mut ms, &mut ws, &mut items, &mut wounds, &reload);
+            assert!(ev.items.cancelled, "{bits} {slot}");
+            assert!(ev.weapon.reload_started.is_some(), "the reload is not lost ({bits} {slot})");
+            assert!(matches!(ws.action, WeaponAction::Reloading { slot, .. } if slot == want_slot), "{:?}", ws.action);
+        }
     }
 
     #[test]

@@ -64,7 +64,8 @@ pub struct Cli {
     pub bot: bool,
     /// Start looking this way (degrees, 0 = north / -Z, 90 = west); the bot then holds this heading.
     pub yaw: Option<f32>,
-    /// Open a menu for screenshots: `reload` (the magazine radial).
+    /// Open a menu for screenshots: `reload` (the magazine radial), `heal` / `heal-region` (the heal ring),
+    /// `hud` (wounds and a mag check). The heal and hud ones also hurt the host's own player.
     pub demo_ui: Option<String>,
     /// Loadout overrides until there is a loadout screen (weapon id, ammo like `rip3`, armor preset id,
     /// comma-separated attachment ids). Anything missing uses `rules.ron`'s default loadout.
@@ -123,7 +124,7 @@ impl Cli {
                         "val_etf [--host showhome|range] [--join CODE|IP[:PORT]] [--name NAME] [--port PORT]\n\
                          \x20       [--width W --height H] [--screenshot PATH [--screenshot-after S]] [--exit-after S] [--bot] [--yaw DEG]\n\
                          \x20       [--weapon ID] [--ammo std|ap1..3|rip1..3|slug1..2] [--mags std,ap2,..]\n\
-                         \x20       [--armor PRESET] [--attach A,B]"
+                         \x20       [--armor PRESET] [--attach A,B] [--demo-ui reload|heal|heal-region|hud]"
                     );
                     std::process::exit(0);
                 }

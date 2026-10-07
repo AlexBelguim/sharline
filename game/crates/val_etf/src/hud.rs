@@ -582,7 +582,10 @@ fn update_vitals(
         node.width = percent(seg_fill(v.halo.shield[f.0], halo.capacity[f.0], f.1) * 100.0);
         bg.0 = kit::tier_color(halo.tiers[f.0]);
     }
-    let healing = items.and_then(|i| i.0.using).map(|u| (u.zone, data.items.spec(&lo.0.kit[u.slot as usize]).scope));
+    let healing = items
+        .filter(|_| !v.health.dead)
+        .and_then(|i| i.0.using)
+        .and_then(|u| Some((u.zone, data.items.spec(lo.0.kit.get(u.slot as usize)?).scope)));
     for (label, mut c) in &mut labels {
         c.0 = if v.health.hp[label.0] <= 0.0 { kit::HP_CRIT } else { kit::TEXT_MID };
     }
@@ -645,7 +648,7 @@ fn update_mag_card(
 /// item, checking the mag, or a fire-mode change.
 #[allow(clippy::type_complexity, clippy::too_many_arguments)]
 fn update_action(
-    me: Query<(&PlayerWeapon, &PlayerLoadout, Option<&PlayerItems>), With<Controlled>>,
+    me: Query<(&PlayerWeapon, &PlayerLoadout, Option<&PlayerItems>, &Vitals), With<Controlled>>,
     data: Res<Data>,
     time: Res<Time>,
     mut last_mode: Local<Option<FireMode>>,
@@ -655,9 +658,11 @@ fn update_action(
     mut track: Query<&mut Visibility, (With<ActionTrack>, Without<ActionRoot>)>,
     mut fill: Query<(&mut Node, &mut BackgroundColor), (With<ActionFill>, Without<ActionRoot>)>,
 ) {
-    let Some((w, lo, items)) = me.iter().next() else { return };
+    let Some((w, lo, items, v)) = me.iter().next() else { return };
     let spec = lo.0.weapon.spec(&data);
     let hz = data.net.tick_hz;
+    // The dead are not simulated: their last action would stay frozen on screen.
+    let items = items.filter(|_| !v.health.dead);
     if last_mode.is_some_and(|m| m != w.0.fire_mode) {
         *toast = TOAST_S;
     }
@@ -670,7 +675,7 @@ fn update_action(
         Some((format!("{}{zone}", item.label), Some(progress(u.left, u.total)), kit::HEAL))
     } else {
         match w.0.action {
-            WeaponAction::Reloading { left, kind, slot } => {
+            WeaponAction::Reloading { left, kind, slot } if !v.health.dead => {
                 let s = match kind {
                     ReloadKind::Tactical => spec.reload_tactical_s,
                     ReloadKind::Empty => spec.reload_empty_s,
@@ -679,10 +684,11 @@ fn update_action(
                 let label = format!("RELOADING  /  MAG {}  {}", slot + 1, lo.0.weapon.ammo(slot).label);
                 Some((label, Some(progress(left, total)), kit::TEXT_HI))
             }
-            WeaponAction::MagChecking { left } => {
+            WeaponAction::MagChecking { left } if !v.health.dead => {
                 let total = secs_to_ticks(spec.mag_check_s, hz).max(1);
                 Some(("CHECKING MAG".into(), Some(progress(left, total)), kit::TEXT_HI))
             }
+            _ if v.health.dead => None,
             _ if *toast > 0.0 => {
                 let mode = match w.0.fire_mode {
                     FireMode::Auto => "AUTO",
@@ -879,9 +885,13 @@ fn update_overlays(
             }
             lines.push(String::new());
         }
-        for team in [info.team, info.team.map(Team::other), None] {
+        let teams = match info.team {
+            Some(t) => vec![Some(t), Some(t.other())],
+            None => vec![None],
+        };
+        for team in teams {
             let mut rows: Vec<_> = players.iter().filter(|(i, _)| i.team == team).collect();
-            if rows.is_empty() || (team.is_none() && info.team.is_some()) {
+            if rows.is_empty() {
                 continue;
             }
             rows.sort_by_key(|(_, s)| std::cmp::Reverse(s.kills));
