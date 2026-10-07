@@ -9,7 +9,7 @@ publish.workspace = true
 [dependencies]
 vetf_sim.workspace = true
 vetf_net.workspace = true
-bevy = { workspace = true, features = ["default"] }
+bevy = { workspace = true, features = ["default", "jpeg"] }
 lightyear.workspace = true
 serde.workspace = true
 ron.workspace = true
