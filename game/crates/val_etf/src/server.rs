@@ -34,7 +34,7 @@ impl Plugin for ServerPlugin {
             .add_observer(on_link_lost)
             .add_systems(
                 Update,
-                (receive_hellos, receive_loadout_updates, receive_claims, demo_wounds).run_if(is_hosting),
+                (receive_hellos, receive_loadout_updates, receive_claims, demo_wounds, measure_ping).run_if(is_hosting),
             )
             .add_systems(FixedUpdate, simulate_authoritative.in_set(SimSystems::Simulate).run_if(is_hosting))
             .add_systems(
@@ -44,6 +44,23 @@ impl Plugin for ServerPlugin {
                     .in_set(SimSystems::Resolve)
                     .run_if(is_hosting),
             );
+    }
+}
+
+/// Each player's ping, from their link's round-trip time, twice a second (the host's own player has none).
+fn measure_ping(
+    time: Res<Time>,
+    mut next: Local<f32>,
+    links: Query<&lightyear::prelude::Link>,
+    mut players: Query<(&ServerPlayer, &mut PlayerNet)>,
+) {
+    if time.elapsed_secs() < *next {
+        return;
+    }
+    *next = time.elapsed_secs() + 0.5;
+    for (p, mut net) in &mut players {
+        let ms = if p.peer.is_local() { 0 } else { links.get(p.link).map_or(0, |l| l.stats.rtt.as_millis()) };
+        net.set_if_neq(PlayerNet { ping_ms: ms.min(u16::MAX as u128) as u16 });
     }
 }
 
@@ -167,6 +184,7 @@ fn on_link_connected(
             fresh_vitals(&data, &loadout),
             PlayerLoadout(loadout),
             Score::default(),
+            PlayerNet::default(),
             ServerPlayer {
                 link: trigger.entity,
                 peer,

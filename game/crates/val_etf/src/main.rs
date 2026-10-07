@@ -20,6 +20,7 @@ mod menu;
 mod net;
 mod radial;
 mod render;
+mod scoreboard;
 mod screens;
 mod server;
 mod settings;
@@ -110,6 +111,7 @@ fn main() -> AppExit {
         ui_kit::UiKitPlugin,
         menu::MenuPlugin,
         map_materials::MapMaterialsPlugin,
+        scoreboard::ScoreboardPlugin,
     ));
     // Hub screens over the menu or the match.
     app.add_plugins((

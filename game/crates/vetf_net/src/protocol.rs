@@ -82,6 +82,13 @@ pub struct Score {
     pub deaths: u16,
 }
 
+/// The player's connection as the host measures it (the host's own player: 0).
+#[derive(Component, Serialize, Deserialize, Clone, Copy, Debug, PartialEq, Eq, Default)]
+pub struct PlayerNet {
+    /// Round-trip time to the host, in milliseconds.
+    pub ping_ms: u16,
+}
+
 pub use vetf_sim::data::Mode as MatchMode;
 
 #[derive(Serialize, Deserialize, Clone, Copy, Debug, PartialEq, Eq)]
@@ -304,6 +311,7 @@ impl Plugin for ProtocolPlugin {
         app.component::<PlayerLoadout>().replicate();
         app.component::<Vitals>().replicate();
         app.component::<Score>().replicate();
+        app.component::<PlayerNet>().replicate();
         app.component::<MatchState>().replicate();
 
         app.add_channel::<ReliableChannel>(ChannelSettings {

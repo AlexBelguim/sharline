@@ -873,8 +873,6 @@ fn update_overlays(
     control: Res<LocalControl>,
     session: Res<Session>,
     data: Res<Data>,
-    cli: Res<crate::config::Cli>,
-    keys: Res<ButtonInput<KeyCode>>,
     banner: Query<&Children, With<CenterBanner>>,
     mut texts: Query<&mut Text, Without<ScoreboardText>>,
     mut pause: Query<&mut Visibility, (With<PauseRoot>, Without<PauseOnly>)>,
@@ -901,9 +899,9 @@ fn update_overlays(
             }
         }
     }
-    // `--demo-ui board` holds Tab for screenshots (the invite's state on the board).
-    let show_board = control.paused || keys.pressed(KeyCode::Tab) || cli.demo_ui.as_deref() == Some("board");
-    // Holding Tab shows the board (with the invite's state) on its own; pausing adds the title and buttons.
+    // The pause overlay keeps the invite's state and a short list until the ESC menu replaces it; holding
+    // Tab shows the scoreboard (`scoreboard.rs`).
+    let show_board = control.paused;
     let shown = |on: bool| if on { Visibility::Inherited } else { Visibility::Hidden };
     for mut vis in &mut pause {
         vis.set_if_neq(shown(show_board));
