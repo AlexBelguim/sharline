@@ -902,7 +902,7 @@ fn nav_actions(
 fn nav_visuals(
     state: Res<MenuState>,
     mut rows: Query<(&NavRow, &mut Active)>,
-    mut diamonds: Query<(&SubDiamond, &mut BackgroundColor, &mut BorderColor)>,
+    mut diamonds: Query<(&SubDiamond, &mut BackgroundColor, &mut BorderColor, &mut Node), Without<Flyout>>,
     mut flyouts: Query<(&Flyout, &mut Node)>,
 ) {
     if !state.is_changed() {
@@ -922,10 +922,18 @@ fn nav_visuals(
             on.0 = want;
         }
     }
-    for (d, mut bg, mut border) in &mut diamonds {
+    for (d, mut bg, mut border, mut node) in &mut diamonds {
         let on = d.0 == state.sub;
         bg.0 = if on { TEXT_HI } else { Color::NONE };
         *border = BorderColor::all(if on { TEXT_HI } else { TEXT_LOW });
+        // The mockup's hollow diamond is a ::before pseudo-element, which the page's `* { box-sizing:
+        // border-box }` does not reach: 10 px plus its 1 px border, so it is 12 px and its label sits 2 px
+        // further right.
+        let size = px(if on { 10 } else { 12 });
+        if node.width != size {
+            node.width = size;
+            node.height = size;
+        }
     }
     for (f, mut node) in &mut flyouts {
         node.display = if f.0 == state.sub { Display::Flex } else { Display::None };
@@ -980,7 +988,7 @@ fn hints(
                             BorderColor::all(STROKE_HI),
                             children![(
                                 ImageNode::new(images.shape(Shape::KeyUpDown)).with_color(TEXT_HI),
-                                Node { width: px(12), height: px(12), ..default() },
+                                Node { width: px(12), height: px(16), ..default() },
                             )],
                         ));
                     } else {
