@@ -2,6 +2,14 @@
 //! HUD & accessibility) over one shared frame. Opens over the main menu or the match
 //! (`Screen::Settings(tab)`); values persist in the user's config folder.
 
+#![allow(dead_code)]
+
+mod bindings;
+mod model;
+
+pub use bindings::*;
+pub use model::*;
+
 use bevy::prelude::*;
 
 pub struct SettingsScreenPlugin;
