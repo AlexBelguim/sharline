@@ -194,10 +194,11 @@ fn on_client_connected(
     mut senders: Query<&mut MessageSender<Hello>, With<Client>>,
     session: Res<Session>,
     data: Res<Data>,
+    active: Option<Res<crate::loadout::ActiveLoadout>>,
     cli: Res<Cli>,
 ) {
     let Ok(mut sender) = senders.get_mut(trigger.entity) else { return };
-    let loadout = crate::config::loadout_choice(&cli, &data);
+    let loadout = active.map(|a| a.0.clone()).unwrap_or_else(|| crate::config::loadout_choice(&cli, &data));
     info!("asking for loadout {loadout:?}");
     sender.send::<ReliableChannel>(Hello {
         name: session.local_name.clone(),
