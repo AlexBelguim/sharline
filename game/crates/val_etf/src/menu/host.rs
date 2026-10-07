@@ -15,12 +15,13 @@ pub(super) fn plugin(app: &mut App) {
     app.add_systems(Update, (settings_from_widgets, visuals).chain().run_if(in_state(AppState::MainMenu)));
 }
 
-/// WHO CAN JOIN's segments, in order. LAN ONLY waits for the LAN beacon.
+/// WHO CAN JOIN's segments, in order: an internet invite (Iroh), LAN only and direct IP (both plain UDP
+/// at ip:port, no Iroh). LAN ONLY has no discovery list yet; friends type the LAN address.
 const ACCESS: [(JoinAccess, &str); 3] =
     [(JoinAccess::JoinCode, "Join code"), (JoinAccess::LanOnly, "LAN only"), (JoinAccess::DirectIp, "Direct IP")];
 
-fn access_enabled(a: JoinAccess) -> bool {
-    a != JoinAccess::LanOnly
+fn access_enabled(_: JoinAccess) -> bool {
+    true
 }
 
 /// Keyboard order (the disabled password is skipped).
@@ -50,6 +51,10 @@ pub(super) struct CreateBtn;
 
 #[derive(Component)]
 pub(super) struct PortHelp;
+
+/// WHO CAN JOIN's explanation (follows the selected option).
+#[derive(Component)]
+pub(super) struct AccessHelp;
 
 #[derive(Component)]
 pub(super) struct HostError;
@@ -132,34 +137,47 @@ pub(super) fn spawn_flyout(
                     max_chars: HostSettings::LOBBY_NAME_MAX,
                     filter: Some(lobby_char),
                     initial: if host.lobby_name.is_empty() { default_name } else { host.lobby_name.clone() },
+                    display: None,
                 },
                 input_box(None),
                 |_| {},
             );
 
-            g.spawn(fonts.lbl("Who can join"));
+            // The label stays centred on the toggle (as in the mockup); the explanation hangs below it.
             g.spawn((
-                AccessToggle,
-                SegValue(access),
-                FocusRing(Focus::Host(HostItem::Access)),
-                ring(),
-                Node { height: px(36), border: UiRect::all(px(1)), ..default() },
-                BorderColor::all(STROKE_HI),
-            ))
-            .with_children(|t| {
-                for (i, (a, label)) in ACCESS.iter().enumerate() {
-                    let mut seg = t.spawn((
-                        segment(fonts, label, TOGGLE, 34.0, false),
-                        SegOption(i),
-                        FocusTarget(Focus::Host(HostItem::Access)),
-                    ));
-                    if i == access {
-                        seg.insert(Active(true));
+                fonts.lbl("Who can join"),
+                Node { align_self: AlignSelf::Start, margin: UiRect::top(px(10)), ..default() },
+            ));
+            g.spawn(Node { flex_direction: FlexDirection::Column, ..default() }).with_children(|col| {
+                col.spawn((
+                    AccessToggle,
+                    SegValue(access),
+                    FocusRing(Focus::Host(HostItem::Access)),
+                    ring(),
+                    Node { height: px(36), border: UiRect::all(px(1)), ..default() },
+                    BorderColor::all(STROKE_HI),
+                ))
+                .with_children(|t| {
+                    for (i, (a, label)) in ACCESS.iter().enumerate() {
+                        let mut seg = t.spawn((
+                            segment(fonts, label, TOGGLE, 34.0, false),
+                            SegOption(i),
+                            FocusTarget(Focus::Host(HostItem::Access)),
+                        ));
+                        if i == access {
+                            seg.insert(Active(true));
+                        }
+                        if !access_enabled(*a) {
+                            seg.insert(Disabled);
+                        }
                     }
-                    if !access_enabled(*a) {
-                        seg.insert(Disabled);
-                    }
-                }
+                });
+                // Two lines tall for every option, so switching never moves the rows below.
+                col.spawn((
+                    AccessHelp,
+                    fonts.role(TextRole::Help, copy::access_help(host.access, host.port)),
+                    Node { margin: UiRect::top(px(6)), min_height: px(37.7), ..default() },
+                ));
             });
 
             g.spawn(fonts.lbl("Max players"));
@@ -187,6 +205,7 @@ pub(super) fn spawn_flyout(
                         max_chars: 5,
                         filter: Some(port_char),
                         initial: host.port.to_string(),
+                        display: None,
                     },
                     input_box(Some(136.0)),
                     |_| {},
@@ -363,6 +382,7 @@ fn settings_from_widgets(
 #[allow(clippy::type_complexity)]
 fn visuals(
     session: Res<Session>,
+    host: Res<HostSettings>,
     mut fields: Query<(&Field, &mut BorderColor)>,
     steppers: Query<(&StepperValue, &Children), (With<MaxStepper>, Changed<StepperValue>)>,
     cells: Query<&Children>,
@@ -372,6 +392,7 @@ fn visuals(
         Query<&mut Text, With<StepperText>>,
         Query<(&mut Text, &mut TextColor), With<PortHelp>>,
         Query<(&mut Text, &mut Node), With<HostError>>,
+        Query<&mut Text, With<AccessHelp>>,
     )>,
     mut commands: Commands,
 ) {
@@ -421,6 +442,14 @@ fn visuals(
             }
         }
     }
+    if host.is_changed() {
+        let help = copy::access_help(host.access, host.port);
+        for mut t in &mut texts.p3() {
+            if t.0 != help {
+                t.0.clone_from(&help);
+            }
+        }
+    }
     // A hosting error (port in use) shows under the action row.
     let msg = session.status.as_deref().filter(|_| session.host_error).unwrap_or_default();
     for (mut t, mut n) in &mut texts.p2() {
@@ -443,8 +472,9 @@ mod tests {
         assert_eq!(step(HostItem::Name, 1), HostItem::Access);
         assert_eq!(step(HostItem::Name, -1), HostItem::Create);
         assert_eq!(step(HostItem::Create, 1), HostItem::Name);
-        assert_eq!(step_access(0, 1), 2, "LAN ONLY is disabled until the LAN beacon exists");
-        assert_eq!(step_access(2, -1), 0);
-        assert_eq!(step_access(2, 1), 2);
+        assert_eq!(step_access(0, 1), 1, "LAN ONLY hosts without an internet invite");
+        assert_eq!(step_access(2, -1), 1);
+        assert_eq!(step_access(2, 1), 2, "no wrap");
+        assert_eq!(step_access(0, -1), 0);
     }
 }

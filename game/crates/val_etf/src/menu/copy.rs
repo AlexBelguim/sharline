@@ -197,25 +197,44 @@ pub fn create_help(score_limit: u32) -> String {
 
 pub const HOST_INTRO: &str =
     "You play and host at the same time (listen server). If you leave, the match ends for everyone.";
+/// WHO CAN JOIN's explanation under the toggle, per option (two lines at most in the 392 px column).
+pub fn access_help(access: crate::net::JoinAccess, port: u16) -> String {
+    use crate::net::JoinAccess::*;
+    match access {
+        JoinCode => "Internet invite: friends paste your SL1 invite (F6 copies it in the match). No port \
+                     forwarding; ready a few seconds after hosting."
+            .into(),
+        LanOnly => "No internet invite. Friends on your network join with your LAN address (ip:port), \
+                    shown in the match."
+            .into(),
+        DirectIp => format!(
+            "No internet invite. Friends join with your public IP and port: forward UDP {port}, or \
+             share a VPN."
+        ),
+    }
+}
+
 pub const PORT_HELP: &str = "UDP. Only needed for Direct IP (port-forward).";
 pub const PORT_ERROR: &str = "Port must be 1024–65535.";
 pub const PASSWORD_PLACEHOLDER: &str = "optional · not available yet";
-pub const CODE_LABEL: &str = "Code from your host";
-pub const CODE_PLACEHOLDER: &str = "Paste host invite";
-pub const CODE_HELP: &str = "Paste the host's SL1 invite. Connects over the internet without port forwarding.";
+pub const CODE_LABEL: &str = "Invite from your host";
+/// The invite's shape as the field shows a pasted one (the mockup's sample is an old 8-character code).
+pub const CODE_PLACEHOLDER: &str = "SL1-XXXX…XXXX";
+pub const CODE_HELP: &str = "Paste the host's SL1 invite (they copy it with F6 or COPY INVITE). Works over the \
+                                 internet without port forwarding. Old LAN codes work here too.";
 pub const IP_LABEL: &str = "Host address";
 /// The spec's "192.168.1.20 or 192.168.1.20:47820" does not fit beside PASTE at 30 px; the help explains :port.
 pub const IP_PLACEHOLDER: &str = "192.168.1.20:47820";
 pub const LAN_NOT_BUILT: &str =
-    "LAN discovery isn't built yet. Ask the host for their join code (TAB or ESC in their match shows it).";
+    "LAN discovery isn't built yet. Ask the host for their invite or LAN address (TAB in their match shows it).";
 pub const RECENT_EMPTY: &str = "Games you join show up here.";
-pub const EMPTY_JOIN: &str = "Type a join code or address first.";
+pub const EMPTY_JOIN: &str = "Paste an invite or type an address first.";
 
 /// DIRECT IP help (the default port comes from net.ron).
 pub fn ip_help(port: u16) -> String {
     format!(
-        "IPv4 address, with :port if the host changed it (default {port}). Over the internet the host must forward \
-         UDP {port}, or you both join a VPN mesh (Tailscale, ZeroTier, Radmin) and use their VPN address."
+        "IPv4 address, with :port if it is not {port}. For a host on your network or VPN, or one who forwarded \
+         UDP {port}; anyone else sends you an SL1 invite (JOIN CODE)."
     )
 }
 

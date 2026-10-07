@@ -34,6 +34,9 @@ pub(crate) struct FieldSpec {
     pub max_chars: usize,
     pub filter: Option<fn(char) -> bool>,
     pub initial: String,
+    /// Draw this instead of the value when it returns Some (caret at the end): a pasted SL1 invite is
+    /// shown short, "SL1-3A38…DC49".
+    pub display: Option<fn(&str) -> Option<String>>,
 }
 
 /// On the field's box: the entities of its parts and the last value seen.
@@ -43,6 +46,7 @@ pub(crate) struct Field {
     pub editable: Entity,
     upper: bool,
     spacing: f32,
+    display: Option<fn(&str) -> Option<String>>,
     before: Entity,
     after: Entity,
     caret_holder: Entity,
@@ -159,6 +163,7 @@ pub(crate) fn spawn_field(
         editable,
         upper: r.upper,
         spacing,
+        display: spec.display,
         before,
         after,
         caret_holder,
@@ -214,9 +219,14 @@ fn mirror_fields(
             f.value = value.clone();
             f.focused_since = now;
         }
-        let display = if f.upper { value.to_uppercase() } else { value.clone() };
-        let cursor = ed.editor().raw_selection().focus().index();
-        let parts = split_at_cursor(&value, &display, cursor);
+        let parts = match f.display.and_then(|d| d(&value)) {
+            Some(short) => (short, String::new()),
+            None => {
+                let display = if f.upper { value.to_uppercase() } else { value.clone() };
+                let cursor = ed.editor().raw_selection().focus().index();
+                split_at_cursor(&value, &display, cursor)
+            }
+        };
         if parts != f.shown {
             if let Ok(mut t) = texts.get_mut(f.before) {
                 t.0.clone_from(&parts.0);

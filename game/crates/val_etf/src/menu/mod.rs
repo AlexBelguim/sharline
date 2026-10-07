@@ -514,6 +514,7 @@ fn player_card(r: &mut ChildSpawnerCommands, ctx: &Ctx, session: &Session) {
                     max_chars: PlayerProfile::MAX_NAME,
                     filter: Some(PlayerProfile::name_char_ok),
                     initial: session.local_name.clone(),
+                    display: None,
                 };
                 let edit = field::spawn_field(
                     line,
@@ -618,8 +619,9 @@ fn demo_ui(
             state.sub = Sub::Join;
             state.tab = JoinTab::Code;
             state.focus = Focus::Join(JoinItem::Input);
-            // A real-format code (the mockup's sample is the old 8-character format).
-            let code = vetf_net::JoinCode::encode(std::net::SocketAddrV4::new([192, 168, 1, 40].into(), 47820));
+            // A real-format SL1 internet invite (the field shows it short); the mockup's sample is an old
+            // 8-character code.
+            let code = crate::iroh_transport::invite(iroh::SecretKey::from_bytes(&[0x3A; 32]).public());
             for (id, mut ed) in &mut editors {
                 if id.0 == FieldId::JoinCode {
                     field::set_value(&mut ed, &code);
