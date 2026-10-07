@@ -48,7 +48,11 @@ impl ViewRecoil {
         self.since_shot += dt;
         let (frac, delay, rate) = match &spec.recoil {
             RecoilSpec::Pattern(p) => (p.recover_frac, p.recover_delay_s, p.recover_deg_per_s),
-            RecoilSpec::Kick(k) => (k.recover_frac, 0.0, k.kick_pitch_deg * k.recover_frac / k.recover_s.max(1e-3)),
+            RecoilSpec::Kick(k) => (
+                k.recover_frac,
+                0.0,
+                k.kick_pitch_deg * k.recover_frac / k.recover_s.max(1e-3),
+            ),
         };
         if self.since_shot < delay {
             return 0.0;

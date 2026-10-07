@@ -1,5 +1,10 @@
-// Weapon stats for the slice. Mirrors design/systems/data/weapons.slice.json
-// (the design data is the source of truth; `cargo test -p vetf_sim` fails if these drift).
+// Weapon stats for the slice. Mirrors design/systems/data/weapons.slice.json (the design data is the
+// source of truth; `cargo test -p vetf_sim` fails if these drift), except where the user changed the
+// direction since (listed in game/DESIGN_DELTAS.md):
+//   - halo penetration comes from the ammo (weapon class x ammo type x tier, ammo.ron), not `shield_pierce`;
+//   - aiming lowers the fire rate (`ads_rpm_mult`) and the recoil (`recoil.ads_mult`);
+//   - an aimed first shot ignores the airborne penalty and slight movement (`ads_first_shot`);
+//   - bloom only builds up while moving, so standing still you fight the learnable pattern alone.
 // Angles in degrees, distances in metres, times in seconds.
 (
     tick_hz: 60,
@@ -14,8 +19,9 @@
             min_damage: 27.0,
             max_range_m: 300.0,
             zone_mult: (head: 1.3, torso: 1.0, arms: 0.8, legs: 0.85),
-            shield_pierce: 0.0,
             rpm: 720.0,
+            ads_rpm_mult: 0.85,
+            ads_first_shot: Some((air_accurate: true, move_tolerance_frac: 0.35)),
             fire_modes: [auto, semi],
             mag_default: "mag_30",
             reload_tactical_s: 2.1,
@@ -48,7 +54,7 @@
             ),
             recoil: (
                 pattern: "mako_recoil_pattern",
-                ads_mult: 0.85,
+                ads_mult: 0.7,
                 hip_mult: 1.0,
                 crouch_mult: 0.9,
                 reset_after_s: 0.3,
@@ -68,8 +74,8 @@
             min_damage: 140.0,
             max_range_m: 500.0,
             zone_mult: (head: 2.0, torso: 1.0, arms: 0.8, legs: 0.85),
-            shield_pierce: 0.3,
             rpm: 48.0,
+            ads_rpm_mult: 1.0,
             bolt_cycle_s: Some(1.25),
             fire_modes: [bolt],
             mag_default: "mag_5",

@@ -1,0 +1,68 @@
+// Ammo (user direction, see game/DESIGN_DELTAS.md). Deliberately low-maintenance: a loadout picks ONE
+// ammo for its gun as a type and a tier (e.g. AP II). There is no per-round or per-magazine sorting.
+//
+// How a round is built:
+//   * the weapon class sets the baseline penetration through a halo arc of tier 1..4;
+//   * the ammo type shifts the split between halo and HP damage;
+//   * the ammo tier (I-III) scales the type's speciality.
+//
+// For a hit on a covered arc of halo tier t:
+//   pen      = clamp(class.pen[t] * pen_mult + pen_add, 0, max_pen)    fraction that skips the shield
+//   shield  <- (raw - raw * pen) * shield_mult                          damage dealt to the arc
+//   HP      <- (raw * pen + unabsorbed rest) * flesh_mult
+// On an uncovered zone the whole round hits HP: raw * flesh_mult.
+(
+    max_pen: 0.95,
+    classes: {
+        // User example: SMG rounds only slightly pierce T1 and do nothing against T2+.
+        smg: (pen: (0.10, 0.0, 0.0, 0.0)),
+        light_assault: (pen: (0.15, 0.03, 0.0, 0.0)),
+        assault_rifle: (pen: (0.20, 0.05, 0.0, 0.0)),
+        heavy_assault: (pen: (0.30, 0.12, 0.04, 0.0)),
+        shotgun: (pen: (0.05, 0.0, 0.0, 0.0)),
+        // The design's Warden pierce (0.30) is kept as the T3 value.
+        bolt_sniper: (pen: (0.60, 0.45, 0.30, 0.15)),
+    },
+    types: {
+        Standard: (
+            label: "STD",
+            tiers: [(pen_mult: 1.0, pen_add: 0.0, shield_mult: 1.0, flesh_mult: 1.0)],
+        ),
+        // High penetration: pierces halo arcs, a little less damage.
+        ArmorPiercing: (
+            label: "AP",
+            tiers: [
+                (pen_mult: 1.0, pen_add: 0.08, shield_mult: 1.0, flesh_mult: 0.95),
+                (pen_mult: 1.0, pen_add: 0.15, shield_mult: 1.0, flesh_mult: 0.92),
+                (pen_mult: 1.0, pen_add: 0.22, shield_mult: 1.0, flesh_mult: 0.9),
+            ],
+        ),
+        // Fragmenting rounds: shred shields fast, never pierce.
+        Shrapnel: (
+            label: "SHR",
+            tiers: [
+                (pen_mult: 0.0, pen_add: 0.0, shield_mult: 1.15, flesh_mult: 0.95),
+                (pen_mult: 0.0, pen_add: 0.0, shield_mult: 1.25, flesh_mult: 0.95),
+                (pen_mult: 0.0, pen_add: 0.0, shield_mult: 1.35, flesh_mult: 0.95),
+            ],
+        ),
+        // Expanding rounds: brutal on unshielded zones, poor against shields.
+        Rip: (
+            label: "RIP",
+            tiers: [
+                (pen_mult: 0.0, pen_add: 0.0, shield_mult: 0.85, flesh_mult: 1.12),
+                (pen_mult: 0.0, pen_add: 0.0, shield_mult: 0.8, flesh_mult: 1.2),
+                (pen_mult: 0.0, pen_add: 0.0, shield_mult: 0.75, flesh_mult: 1.28),
+            ],
+        ),
+        // Shotgun only: one heavy projectile instead of a pellet spread (pellets come with the shotgun).
+        Slug: (
+            label: "SLUG",
+            only: [shotgun],
+            tiers: [
+                (pen_mult: 1.0, pen_add: 0.1, shield_mult: 1.0, flesh_mult: 1.0),
+                (pen_mult: 1.0, pen_add: 0.18, shield_mult: 1.0, flesh_mult: 1.0),
+            ],
+        ),
+    },
+)

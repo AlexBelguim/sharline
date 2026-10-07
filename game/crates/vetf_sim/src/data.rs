@@ -13,9 +13,15 @@ use std::path::{Path, PathBuf};
 #[derive(Debug, thiserror::Error)]
 pub enum DataError {
     #[error("cannot read {path}: {source}")]
-    Io { path: PathBuf, source: std::io::Error },
+    Io {
+        path: PathBuf,
+        source: std::io::Error,
+    },
     #[error("cannot parse {file}: {source}")]
-    Parse { file: String, source: ron::error::SpannedError },
+    Parse {
+        file: String,
+        source: Box<ron::error::SpannedError>,
+    },
     #[error("invalid data: {0}")]
     Invalid(String),
 }
@@ -46,10 +52,14 @@ impl SpillToTorso {
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum WeaponClass {
+    Smg,
+    LightAssault,
     AssaultRifle,
+    HeavyAssault,
+    Shotgun,
     BoltSniper,
 }
 
@@ -79,9 +89,13 @@ pub struct WeaponSpec {
     pub min_damage: f32,
     pub max_range_m: f32,
     pub zone_mult: ZoneTable<f32>,
-    /// Fraction of raw damage that ignores the halo and goes straight to zone HP.
-    pub shield_pierce: f32,
     pub rpm: f32,
+    /// Fire rate multiplier while aiming down sights.
+    #[serde(default = "one")]
+    pub ads_rpm_mult: f32,
+    /// Aimed first shots stay accurate in the air and while moving slightly.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub ads_first_shot: Option<AdsFirstShot>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub bolt_cycle_s: Option<f32>,
     pub fire_modes: Vec<FireMode>,
@@ -102,6 +116,123 @@ pub struct WeaponSpec {
     pub recoil: RecoilSpec,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub scope: Option<ScopeSpec>,
+}
+
+fn one() -> f32 {
+    1.0
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
+pub struct AdsFirstShot {
+    /// The airborne / jetpack spread penalty does not apply.
+    pub air_accurate: bool,
+    /// Moving up to this fraction of jog speed still counts as standing still.
+    pub move_tolerance_frac: f32,
+}
+
+/// Ammo is picked per loadout as a type and a tier; the weapon class sets the baseline.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct AmmoFile {
+    pub max_pen: f32,
+    pub classes: BTreeMap<WeaponClass, AmmoClassSpec>,
+    pub types: BTreeMap<AmmoKind, AmmoTypeSpec>,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct AmmoClassSpec {
+    /// Baseline fraction of damage that passes through a halo arc of tier 1..4.
+    pub pen: [f32; 4],
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord, Serialize, Deserialize)]
+pub enum AmmoKind {
+    Standard,
+    ArmorPiercing,
+    Shrapnel,
+    Rip,
+    Slug,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct AmmoTypeSpec {
+    pub label: String,
+    /// Weapon classes that can load this type (empty = all).
+    #[serde(default)]
+    pub only: Vec<WeaponClass>,
+    /// Ammo tiers I, II, III (some types have fewer).
+    pub tiers: Vec<AmmoTierSpec>,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
+pub struct AmmoTierSpec {
+    pub pen_mult: f32,
+    pub pen_add: f32,
+    pub shield_mult: f32,
+    pub flesh_mult: f32,
+}
+
+/// What a loadout loads: e.g. `AmmoChoice { kind: ArmorPiercing, tier: 2 }` = AP II.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
+pub struct AmmoChoice {
+    pub kind: AmmoKind,
+    pub tier: u8,
+}
+
+impl AmmoChoice {
+    pub const STANDARD: AmmoChoice = AmmoChoice {
+        kind: AmmoKind::Standard,
+        tier: 1,
+    };
+}
+
+/// A resolved round for one weapon class.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct AmmoSpec {
+    pub choice: AmmoChoice,
+    pub label: String,
+    /// Fraction of damage that passes through a halo arc of tier 1..4 straight to zone HP.
+    pub pen: [f32; 4],
+    /// Multiplier on damage dealt to a halo arc.
+    pub shield_mult: f32,
+    /// Multiplier on damage dealt to zone HP.
+    pub flesh_mult: f32,
+}
+
+impl AmmoSpec {
+    pub fn pen_for_tier(&self, tier: u8) -> f32 {
+        match tier {
+            0 => 1.0,
+            t => self.pen[(t.min(4) - 1) as usize],
+        }
+    }
+}
+
+const ROMAN: [&str; 4] = ["I", "II", "III", "IV"];
+
+impl AmmoFile {
+    pub fn resolve(&self, class: WeaponClass, choice: AmmoChoice) -> Option<AmmoSpec> {
+        let base = self.classes.get(&class)?;
+        let ty = self.types.get(&choice.kind)?;
+        if !ty.only.is_empty() && !ty.only.contains(&class) {
+            return None;
+        }
+        let tier = ty.tiers.get((choice.tier as usize).checked_sub(1)?)?;
+        let pen = base
+            .pen
+            .map(|p| (p * tier.pen_mult + tier.pen_add).clamp(0.0, self.max_pen));
+        let label = if ty.tiers.len() > 1 {
+            format!("{} {}", ty.label, ROMAN[(choice.tier as usize - 1).min(3)])
+        } else {
+            ty.label.clone()
+        };
+        Some(AmmoSpec {
+            choice,
+            label,
+            pen,
+            shield_mult: tier.shield_mult,
+            flesh_mult: tier.flesh_mult,
+        })
+    }
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -281,23 +412,29 @@ pub struct RegenSpec {
 pub struct ArmorFile {
     pub zone_hp: ZoneTable<f32>,
     pub weight_effects: BTreeMap<WeightClass, WeightEffects>,
-    pub capacity: BTreeMap<Core, [f32; 4]>,
+    /// Capacity of one arc per core, indexed by tier 1..4.
+    pub capacity: BTreeMap<Core, Vec<f32>>,
+    /// Each arc's share of the core capacity.
+    pub zone_capacity_share: ZoneTable<f32>,
     pub regen: BTreeMap<Core, RegenSpec>,
     pub weight_bands: Vec<(WeightClass, u32, u32)>,
+    /// Highest tier a loadout may put on each arc.
+    pub loadout_tier_caps: ZoneTable<u8>,
     pub status_effects: BTreeMap<Core, String>,
     pub presets: Vec<ArmorPreset>,
 }
 
+/// An armor: one core type, and a tier (0 = uncovered) per halo arc.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct ArmorPreset {
     pub id: String,
     pub name: String,
     pub core: Option<Core>,
-    pub tier: u8,
-    pub coverage: Vec<Zone>,
+    pub tiers: ZoneTable<u8>,
 }
 
-/// A fully resolved armor (halo). Serialises like a design `presets` record.
+/// A fully resolved armor (halo). The first fields serialise like a design `presets` record
+/// (`tier` = highest arc tier, `coverage` = arcs with a tier, `capacity` = all arcs together).
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct ArmorStats {
     pub id: String,
@@ -305,6 +442,8 @@ pub struct ArmorStats {
     pub core: Option<Core>,
     pub tier: u8,
     pub coverage: Vec<Zone>,
+    pub tiers: ZoneTable<u8>,
+    pub arc_capacity: ZoneTable<f32>,
     pub weight_class: WeightClass,
     pub power_cells: u8,
     pub move_speed_mult: f32,
@@ -336,12 +475,11 @@ impl ArmorStats {
 }
 
 impl ArmorFile {
-    /// Protection score (tier x covered zones) mapped through the weight bands.
-    pub fn weight_class(&self, tier: u8, zones: u32) -> WeightClass {
-        if tier == 0 || zones == 0 {
+    /// Protection score (sum of arc tiers) mapped through the weight bands.
+    pub fn weight_class(&self, score: u32) -> WeightClass {
+        if score == 0 {
             return WeightClass::None;
         }
-        let score = tier as u32 * zones;
         self.weight_bands
             .iter()
             .find(|(_, lo, hi)| (*lo..=*hi).contains(&score))
@@ -357,31 +495,50 @@ impl ArmorFile {
         self.presets.iter().find(|p| p.id == id)
     }
 
+    pub fn arc_capacity(&self, core: Core, tier: u8, zone: Zone) -> f32 {
+        if tier == 0 {
+            return 0.0;
+        }
+        let table = &self.capacity[&core];
+        table[(tier.min(4) as usize - 1).min(table.len() - 1)] * self.zone_capacity_share[zone]
+    }
+
     pub fn resolve(&self, preset: &ArmorPreset) -> ArmorStats {
-        let zones = ZoneSet::from_zones(&preset.coverage).len();
-        let wc = self.weight_class(preset.tier, zones);
+        let tiers = if preset.core.is_some() {
+            preset.tiers
+        } else {
+            ZoneTable::default()
+        };
+        let score: u32 = tiers.iter().map(|(_, t)| *t as u32).sum();
+        let wc = self.weight_class(score);
         let fx = self.effects(wc);
+        let arc_capacity =
+            tiers.map(|z, t| preset.core.map_or(0.0, |c| self.arc_capacity(c, *t, z)));
         let mut stats = ArmorStats {
             id: preset.id.clone(),
             name: preset.name.clone(),
             core: preset.core,
-            tier: preset.tier,
-            coverage: preset.coverage.clone(),
+            tier: tiers.iter().map(|(_, t)| *t).max().unwrap_or(0),
+            coverage: tiers
+                .iter()
+                .filter(|(_, t)| **t > 0)
+                .map(|(z, _)| z)
+                .collect(),
+            tiers,
+            arc_capacity,
             weight_class: wc,
             power_cells: fx.cells,
             move_speed_mult: fx.move_mult,
             energy_drain_per_min: fx.energy_per_min,
-            gear_cost: preset.tier as u32 * zones,
-            capacity: 0.0,
+            gear_cost: score,
+            capacity: arc_capacity.iter().map(|(_, c)| *c).sum(),
             regen_delay_s: None,
             regen_delay_after_break_s: None,
             regen_per_s: None,
             status_effect: None,
         };
         if let Some(core) = preset.core {
-            let tier_idx = (preset.tier.clamp(1, 4) - 1) as usize;
             let regen = self.regen[&core];
-            stats.capacity = self.capacity[&core][tier_idx];
             stats.regen_delay_s = Some(regen.delay_s);
             stats.regen_delay_after_break_s = Some(regen.delay_after_break_s);
             stats.regen_per_s = Some(regen.rate_per_s);
@@ -662,7 +819,11 @@ pub struct JetpackSpec {
 impl JetpackSpec {
     /// Fade band for a weight class (no halo uses the Light band).
     pub fn fade_band(&self, wc: WeightClass) -> (f32, f32) {
-        let wc = if wc == WeightClass::None { WeightClass::Light } else { wc };
+        let wc = if wc == WeightClass::None {
+            WeightClass::Light
+        } else {
+            wc
+        };
         self.fade_band_m.get(&wc).copied().unwrap_or((4.0, 5.0))
     }
 }
@@ -777,6 +938,7 @@ pub struct TdmRules {
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct LoadoutSpec {
     pub primary: String,
+    pub ammo: AmmoChoice,
     pub attachments: Vec<String>,
     pub spare_mags: u8,
     pub armor: String,
@@ -801,6 +963,7 @@ pub struct NetSpec {
 #[derive(Debug, Clone, PartialEq)]
 pub struct GameData {
     pub weapons: WeaponsFile,
+    pub ammo: AmmoFile,
     pub recoil_patterns: BTreeMap<String, RecoilPattern>,
     pub armor: ArmorFile,
     pub attachments: AttachmentsFile,
@@ -813,8 +976,9 @@ pub struct GameData {
     pub fingerprint: u64,
 }
 
-const FILES: [&str; 9] = [
+const FILES: [&str; 10] = [
     "weapons.ron",
+    "ammo.ron",
     "recoil_patterns.ron",
     "armor.ron",
     "attachments.ron",
@@ -831,8 +995,9 @@ macro_rules! embedded {
     };
 }
 
-const EMBEDDED: [(&str, &str); 9] = [
+const EMBEDDED: [(&str, &str); 10] = [
     embedded!("weapons.ron"),
+    embedded!("ammo.ron"),
     embedded!("recoil_patterns.ron"),
     embedded!("armor.ron"),
     embedded!("attachments.ron"),
@@ -844,18 +1009,27 @@ const EMBEDDED: [(&str, &str); 9] = [
 ];
 
 fn parse<T: serde::de::DeserializeOwned>(file: &str, text: &str) -> Result<T, DataError> {
-    ron::from_str(text).map_err(|source| DataError::Parse { file: file.to_owned(), source })
+    ron::from_str(text).map_err(|source| DataError::Parse {
+        file: file.to_owned(),
+        source: Box::new(source),
+    })
 }
 
 fn fnv1a(hash: u64, bytes: &[u8]) -> u64 {
-    bytes.iter().fold(hash, |h, b| (h ^ *b as u64).wrapping_mul(0x100_0000_01b3))
+    bytes
+        .iter()
+        .fold(hash, |h, b| (h ^ *b as u64).wrapping_mul(0x100_0000_01b3))
 }
 
 impl GameData {
     /// The data compiled into the binary (always valid; checked by tests).
     pub fn embedded() -> Self {
         Self::from_sources(|name| {
-            Ok(EMBEDDED.iter().find(|(n, _)| *n == name).map(|(_, t)| t.to_string()).unwrap_or_default())
+            Ok(EMBEDDED
+                .iter()
+                .find(|(n, _)| *n == name)
+                .map(|(_, t)| t.to_string())
+                .unwrap_or_default())
         })
         .expect("embedded game data is valid")
     }
@@ -868,7 +1042,9 @@ impl GameData {
         })
     }
 
-    pub fn from_sources(mut read: impl FnMut(&str) -> Result<String, DataError>) -> Result<Self, DataError> {
+    pub fn from_sources(
+        mut read: impl FnMut(&str) -> Result<String, DataError>,
+    ) -> Result<Self, DataError> {
         let mut texts = Vec::with_capacity(FILES.len());
         let mut fingerprint = 0xcbf2_9ce4_8422_2325_u64;
         for name in FILES {
@@ -878,14 +1054,15 @@ impl GameData {
         }
         let data = GameData {
             weapons: parse(FILES[0], &texts[0])?,
-            recoil_patterns: parse(FILES[1], &texts[1])?,
-            armor: parse(FILES[2], &texts[2])?,
-            attachments: parse(FILES[3], &texts[3])?,
-            movement: parse(FILES[4], &texts[4])?,
-            combat: parse(FILES[5], &texts[5])?,
-            hitboxes: parse(FILES[6], &texts[6])?,
-            rules: parse(FILES[7], &texts[7])?,
-            net: parse(FILES[8], &texts[8])?,
+            ammo: parse(FILES[1], &texts[1])?,
+            recoil_patterns: parse(FILES[2], &texts[2])?,
+            armor: parse(FILES[3], &texts[3])?,
+            attachments: parse(FILES[4], &texts[4])?,
+            movement: parse(FILES[5], &texts[5])?,
+            combat: parse(FILES[6], &texts[6])?,
+            hitboxes: parse(FILES[7], &texts[7])?,
+            rules: parse(FILES[8], &texts[8])?,
+            net: parse(FILES[9], &texts[9])?,
             fingerprint,
         };
         data.validate()?;
@@ -897,19 +1074,30 @@ impl GameData {
         let bad = |m: String| Err(DataError::Invalid(m));
         for w in &self.weapons.weapons {
             if w.falloff.is_empty() || w.falloff.windows(2).any(|p| p[1].0 <= p[0].0) {
-                return bad(format!("{}: falloff ranges must be strictly increasing", w.id));
+                return bad(format!(
+                    "{}: falloff ranges must be strictly increasing",
+                    w.id
+                ));
             }
             if w.rpm <= 0.0 {
                 return bad(format!("{}: rpm must be positive", w.id));
             }
-            if let RecoilSpec::Pattern(p) = &w.recoil {
-                if !self.recoil_patterns.contains_key(&p.pattern) {
-                    return bad(format!("{}: unknown recoil pattern {}", w.id, p.pattern));
-                }
+            if let RecoilSpec::Pattern(p) = &w.recoil
+                && !self.recoil_patterns.contains_key(&p.pattern)
+            {
+                return bad(format!("{}: unknown recoil pattern {}", w.id, p.pattern));
+            }
+            if self.ammo.resolve(w.cls, AmmoChoice::STANDARD).is_none() {
+                return bad(format!("{}: no ammo class entry for {:?}", w.id, w.cls));
             }
             match self.attachment(&w.mag_default) {
                 Some(m) if m.cat == AttachmentCategory::Mag && m.capacity.is_some() => {}
-                _ => return bad(format!("{}: mag_default {} is not a magazine", w.id, w.mag_default)),
+                _ => {
+                    return bad(format!(
+                        "{}: mag_default {} is not a magazine",
+                        w.id, w.mag_default
+                    ));
+                }
             }
         }
         for p in self.recoil_patterns.values() {
@@ -917,24 +1105,54 @@ impl GameData {
                 return bad("recoil pattern loop_from_index out of range".into());
             }
         }
-        for wc in [WeightClass::None, WeightClass::Light, WeightClass::Medium, WeightClass::Heavy] {
+        for wc in [
+            WeightClass::None,
+            WeightClass::Light,
+            WeightClass::Medium,
+            WeightClass::Heavy,
+        ] {
             if !self.armor.weight_effects.contains_key(&wc) {
                 return bad(format!("armor: missing weight_effects for {wc:?}"));
             }
         }
         for core in Core::ALL {
-            if !self.armor.capacity.contains_key(&core) || !self.armor.regen.contains_key(&core) {
-                return bad(format!("armor: missing capacity/regen for {core:?}"));
+            let cap_ok = self.armor.capacity.get(&core).is_some_and(|c| c.len() == 4);
+            if !cap_ok || !self.armor.regen.contains_key(&core) {
+                return bad(format!(
+                    "armor: need 4 capacities and a regen entry for {core:?}"
+                ));
             }
         }
         for p in &self.armor.presets {
-            if p.core.is_some() != (p.tier > 0) || p.tier > 4 {
-                return bad(format!("{}: tier must be 1-4 with a core, 0 without", p.id));
+            let any = p.tiers.iter().any(|(_, t)| *t > 0);
+            if p.core.is_some() != any || p.tiers.iter().any(|(_, t)| *t > 4) {
+                return bad(format!(
+                    "{}: arc tiers must be 0-4, with a core exactly when any arc is covered",
+                    p.id
+                ));
+            }
+        }
+        for (class, c) in &self.ammo.classes {
+            if c.pen.iter().any(|p| !(0.0..=1.0).contains(p)) {
+                return bad(format!(
+                    "ammo class {class:?}: penetration must be within 0..1"
+                ));
+            }
+        }
+        for (kind, t) in &self.ammo.types {
+            if t.tiers.is_empty() || t.tiers.len() > 3 {
+                return bad(format!("ammo type {kind:?}: needs 1 to 3 tiers"));
             }
         }
         let l = &self.rules.default_loadout;
-        if self.weapon(&l.primary).is_none() {
+        let Some(w) = self.weapon(&l.primary) else {
             return bad(format!("default loadout: unknown weapon {}", l.primary));
+        };
+        if self.ammo.resolve(w.cls, l.ammo).is_none() {
+            return bad(format!(
+                "default loadout: {} cannot load {:?}",
+                l.primary, l.ammo
+            ));
         }
         for a in &l.attachments {
             match self.attachment(a) {
@@ -958,6 +1176,11 @@ impl GameData {
 
     pub fn weapon_index(&self, id: &str) -> Option<usize> {
         self.weapons.weapons.iter().position(|w| w.id == id)
+    }
+
+    /// Resolve an ammo choice for a weapon (None if that gun cannot load it).
+    pub fn ammo_for(&self, weapon: &WeaponSpec, choice: AmmoChoice) -> Option<AmmoSpec> {
+        self.ammo.resolve(weapon.cls, choice)
     }
 
     pub fn attachment(&self, id: &str) -> Option<&AttachmentSpec> {
@@ -1007,11 +1230,11 @@ mod tests {
     #[test]
     fn weight_class_bands() {
         let a = &GameData::embedded().armor;
-        assert_eq!(a.weight_class(0, 3), WeightClass::None);
-        assert_eq!(a.weight_class(1, 4), WeightClass::Light);
-        assert_eq!(a.weight_class(2, 3), WeightClass::Medium);
-        assert_eq!(a.weight_class(3, 3), WeightClass::Heavy);
-        assert_eq!(a.weight_class(4, 4), WeightClass::Heavy);
+        assert_eq!(a.weight_class(0), WeightClass::None);
+        assert_eq!(a.weight_class(4), WeightClass::Light);
+        assert_eq!(a.weight_class(6), WeightClass::Medium);
+        assert_eq!(a.weight_class(9), WeightClass::Heavy);
+        assert_eq!(a.weight_class(16), WeightClass::Heavy);
     }
 
     #[test]
@@ -1024,6 +1247,86 @@ mod tests {
         assert!((t.recoil_v - 0.9 * 0.88).abs() < 1e-6);
         assert!((t.ads_time - 1.1 * 1.03).abs() < 1e-6);
         assert_eq!(t.hip_spread, 1.0);
+    }
+
+    #[test]
+    fn per_section_armor_resolves() {
+        let d = GameData::embedded();
+        let v = d.armor.resolve_id("arm_bulwark_vanguard").unwrap();
+        assert_eq!(v.tiers.torso, 4);
+        assert_eq!(v.arc_capacity.torso, 165.0);
+        assert!((v.arc_capacity.head - 100.0 * 0.6).abs() < 1e-4);
+        assert!((v.arc_capacity.legs - 65.0 * 0.6).abs() < 1e-4);
+        assert_eq!(v.gear_cost, 2 + 4 + 2 + 1);
+        assert_eq!(v.weight_class, WeightClass::Heavy);
+        assert_eq!(
+            v.coverage,
+            vec![Zone::Head, Zone::Torso, Zone::Arms, Zone::Legs]
+        );
+        let none = d.armor.resolve_id("arm_none").unwrap();
+        assert_eq!(none.weight_class, WeightClass::None);
+        assert_eq!(none.capacity, 0.0);
+    }
+
+    #[test]
+    fn smg_standard_only_slightly_pierces_t1() {
+        let d = GameData::embedded();
+        let smg = d
+            .ammo
+            .resolve(WeaponClass::Smg, AmmoChoice::STANDARD)
+            .unwrap();
+        assert!(smg.pen_for_tier(1) > 0.0 && smg.pen_for_tier(1) <= 0.15);
+        assert_eq!(smg.pen_for_tier(2), 0.0);
+        assert_eq!(smg.pen_for_tier(4), 0.0);
+        assert_eq!(smg.pen_for_tier(0), 1.0);
+        assert_eq!(smg.label, "STD");
+    }
+
+    #[test]
+    fn ap_tiers_pierce_more() {
+        let d = GameData::embedded();
+        let ap = |t| {
+            d.ammo
+                .resolve(
+                    WeaponClass::AssaultRifle,
+                    AmmoChoice {
+                        kind: AmmoKind::ArmorPiercing,
+                        tier: t,
+                    },
+                )
+                .unwrap()
+        };
+        assert!(ap(1).pen[2] < ap(2).pen[2] && ap(2).pen[2] < ap(3).pen[2]);
+        assert_eq!(ap(2).label, "AP II");
+        assert!(
+            d.ammo
+                .resolve(
+                    WeaponClass::AssaultRifle,
+                    AmmoChoice {
+                        kind: AmmoKind::ArmorPiercing,
+                        tier: 4
+                    }
+                )
+                .is_none()
+        );
+    }
+
+    #[test]
+    fn slugs_are_shotgun_only() {
+        let d = GameData::embedded();
+        let slug = AmmoChoice {
+            kind: AmmoKind::Slug,
+            tier: 1,
+        };
+        assert!(d.ammo.resolve(WeaponClass::Shotgun, slug).is_some());
+        assert!(d.ammo.resolve(WeaponClass::AssaultRifle, slug).is_none());
+    }
+
+    #[test]
+    fn sniper_standard_keeps_design_t3_pierce() {
+        let d = GameData::embedded();
+        let w = d.weapon("vk50_warden").unwrap();
+        assert_eq!(d.ammo_for(w, AmmoChoice::STANDARD).unwrap().pen[2], 0.3);
     }
 
     #[test]

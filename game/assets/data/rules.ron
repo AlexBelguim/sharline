@@ -9,6 +9,7 @@
     ),
     default_loadout: (
         primary: "ar7_mako",
+        ammo: (kind: Standard, tier: 1),
         attachments: ["optic_holo", "mako_stock_standard", "mag_30"],
         spare_mags: 3,
         armor: "arm_mender_scout",
