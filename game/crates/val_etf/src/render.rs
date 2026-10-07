@@ -3,7 +3,7 @@
 
 use crate::AppState;
 use crate::client::{Feedback, LocalControl, Smoothed};
-use crate::config::CurrentLevel;
+use crate::config::{CurrentLevel, Data};
 use bevy::asset::RenderAssetUsages;
 use bevy::mesh::{Indices, PrimitiveTopology};
 use bevy::prelude::*;
@@ -12,7 +12,7 @@ use std::collections::HashMap;
 use std::f32::consts::{FRAC_PI_2, PI, TAU};
 use vetf_net::*;
 use vetf_sim::Zone;
-use vetf_sim::data::WeightClass;
+use vetf_sim::data::{WeaponClass, WeightClass};
 use vetf_sim::level::Team;
 use vetf_sim::movement::Stance;
 use vetf_sim::movement::collision::{Brush, Look};
@@ -28,7 +28,7 @@ impl Plugin for RenderPlugin {
             .add_systems(OnEnter(AppState::MainMenu), setup_menu_camera)
             .add_systems(
                 Update,
-                (attach_player_visuals, update_player_visuals, update_camera, draw_tracers)
+                (attach_player_visuals, update_player_visuals, sync_viewmodel, update_camera, draw_tracers)
                     .run_if(in_state(AppState::InGame)),
             );
     }
@@ -42,8 +42,9 @@ struct MenuCamera;
 #[derive(Component)]
 pub struct ViewCamera;
 
+/// The first-person gun; remembers which weapon class its parts were built for.
 #[derive(Component)]
-struct Viewmodel;
+struct Viewmodel(Option<WeaponClass>);
 
 #[derive(Component)]
 struct PlayerVisual;
@@ -346,26 +347,7 @@ fn update_player_visuals(
     }
 }
 
-fn spawn_view_camera(
-    mut commands: Commands,
-    mut meshes: ResMut<Assets<Mesh>>,
-    mut materials: ResMut<Assets<StandardMaterial>>,
-) {
-    let bone = materials.add(StandardMaterial {
-        base_color: Color::srgb(0.78, 0.74, 0.66),
-        perceptual_roughness: 0.6,
-        ..default()
-    });
-    let graphite = materials.add(StandardMaterial {
-        base_color: Color::srgb(0.10, 0.105, 0.12),
-        perceptual_roughness: 0.5,
-        ..default()
-    });
-    let glint = materials.add(StandardMaterial {
-        base_color: Color::BLACK,
-        emissive: LinearRgba::rgb(0.45, 0.85, 1.0) * 3.0,
-        ..default()
-    });
+fn spawn_view_camera(mut commands: Commands) {
     commands
         .spawn((
             ViewCamera,
@@ -380,50 +362,109 @@ fn spawn_view_camera(
             DespawnOnExit(AppState::InGame),
         ))
         .with_children(|cam| {
-            // Placeholder Mako: graphite receiver, bone stock / grip / mag, holo sight with an ice glint.
             cam.spawn((
-                Viewmodel,
+                Viewmodel(None),
                 Transform::from_xyz(0.2, -0.2, -0.5).with_scale(Vec3::splat(0.6)),
                 Visibility::default(),
-            ))
-            .with_children(|g| {
-                g.spawn((
-                    Mesh3d(meshes.add(Cuboid::new(0.05, 0.07, 0.42))),
-                    MeshMaterial3d(graphite.clone()),
-                    Transform::default(),
-                ));
-                g.spawn((
-                    Mesh3d(meshes.add(Cuboid::new(0.045, 0.05, 0.36))),
-                    MeshMaterial3d(graphite.clone()),
-                    Transform::from_xyz(0.0, 0.0, -0.38),
-                ));
-                g.spawn((
-                    Mesh3d(meshes.add(Cuboid::new(0.04, 0.11, 0.05))),
-                    MeshMaterial3d(bone.clone()),
-                    Transform::from_xyz(0.0, -0.08, -0.02),
-                ));
-                g.spawn((
-                    Mesh3d(meshes.add(Cuboid::new(0.04, 0.13, 0.06))),
-                    MeshMaterial3d(bone.clone()),
-                    Transform::from_xyz(0.0, -0.09, 0.1),
-                ));
-                g.spawn((
-                    Mesh3d(meshes.add(Cuboid::new(0.045, 0.06, 0.2))),
-                    MeshMaterial3d(bone.clone()),
-                    Transform::from_xyz(0.0, -0.01, 0.28),
-                ));
-                g.spawn((
-                    Mesh3d(meshes.add(Cuboid::new(0.05, 0.05, 0.08))),
-                    MeshMaterial3d(bone.clone()),
-                    Transform::from_xyz(0.0, 0.06, -0.02),
-                ));
-                g.spawn((
-                    Mesh3d(meshes.add(Cuboid::new(0.012, 0.012, 0.004))),
-                    MeshMaterial3d(glint),
-                    Transform::from_xyz(0.0, 0.065, -0.062),
-                ));
-            });
+            ));
         });
+}
+
+/// Placeholder viewmodel parts per weapon class: (size, offset, material) in gun space (muzzle toward -Z,
+/// origin at the grip). Palette from the art bible: graphite receivers, bone furniture, an ice optic glint.
+fn viewmodel_parts(class: WeaponClass) -> Vec<(Vec3, Vec3, Part)> {
+    use Part::*;
+    let v = Vec3::new;
+    match class {
+        WeaponClass::Smg | WeaponClass::LightAssault => vec![
+            (v(0.05, 0.075, 0.26), v(0.0, 0.0, -0.04), Graphite), // compact receiver
+            (v(0.035, 0.035, 0.14), v(0.0, 0.005, -0.23), Graphite), // short barrel + shroud
+            (v(0.04, 0.10, 0.05), v(0.0, -0.08, 0.02), Bone),     // grip
+            (v(0.035, 0.16, 0.045), v(0.0, -0.11, -0.1), Bone),   // straight mag
+            (v(0.03, 0.05, 0.16), v(0.0, -0.005, 0.17), Bone),    // stub stock
+            (v(0.035, 0.035, 0.04), v(0.0, 0.055, -0.06), Graphite), // red dot body
+            (v(0.008, 0.008, 0.004), v(0.0, 0.058, -0.08), Glint),
+        ],
+        WeaponClass::BoltSniper => vec![
+            (v(0.055, 0.075, 0.48), v(0.0, 0.0, -0.02), Graphite),
+            (v(0.03, 0.03, 0.62), v(0.0, 0.01, -0.55), Graphite),
+            (v(0.04, 0.11, 0.05), v(0.0, -0.08, 0.02), Sand),
+            (v(0.035, 0.08, 0.06), v(0.0, -0.07, -0.12), Graphite),
+            (v(0.045, 0.09, 0.26), v(0.0, -0.02, 0.32), Sand),
+            (v(0.045, 0.045, 0.30), v(0.0, 0.075, -0.05), Graphite), // scope tube
+            (v(0.012, 0.012, 0.004), v(0.0, 0.075, 0.102), Glint),
+        ],
+        _ => vec![
+            (v(0.05, 0.07, 0.42), v(0.0, 0.0, 0.0), Graphite),
+            (v(0.045, 0.05, 0.36), v(0.0, 0.0, -0.38), Graphite),
+            (v(0.04, 0.11, 0.05), v(0.0, -0.08, -0.02), Bone),
+            (v(0.04, 0.13, 0.06), v(0.0, -0.09, 0.1), Bone),
+            (v(0.045, 0.06, 0.2), v(0.0, -0.01, 0.28), Bone),
+            (v(0.05, 0.05, 0.08), v(0.0, 0.06, -0.02), Bone),
+            (v(0.012, 0.012, 0.004), v(0.0, 0.065, -0.062), Glint),
+        ],
+    }
+}
+
+#[derive(Clone, Copy)]
+enum Part {
+    Graphite,
+    Bone,
+    Sand,
+    Glint,
+}
+
+/// Build (or rebuild) the viewmodel when our weapon class changes.
+fn sync_viewmodel(
+    mut commands: Commands,
+    data: Res<Data>,
+    me: Query<&PlayerLoadout, With<Controlled>>,
+    mut viewmodel: Query<(Entity, &mut Viewmodel)>,
+    mut meshes: ResMut<Assets<Mesh>>,
+    mut materials: ResMut<Assets<StandardMaterial>>,
+) {
+    let Some(loadout) = me.iter().next() else { return };
+    let class = loadout.0.weapon.spec(&data).cls;
+    for (e, mut vm) in &mut viewmodel {
+        if vm.0 == Some(class) {
+            continue;
+        }
+        vm.0 = Some(class);
+        commands.entity(e).despawn_children();
+        let mut mat = |p: Part| {
+            let m = match p {
+                Part::Graphite => StandardMaterial {
+                    base_color: Color::srgb(0.10, 0.105, 0.12),
+                    perceptual_roughness: 0.5,
+                    ..default()
+                },
+                Part::Bone => StandardMaterial {
+                    base_color: Color::srgb(0.78, 0.74, 0.66),
+                    perceptual_roughness: 0.6,
+                    ..default()
+                },
+                Part::Sand => StandardMaterial {
+                    base_color: Color::srgb(0.55, 0.45, 0.32),
+                    perceptual_roughness: 0.7,
+                    ..default()
+                },
+                Part::Glint => StandardMaterial {
+                    base_color: Color::BLACK,
+                    emissive: LinearRgba::rgb(0.45, 0.85, 1.0) * 3.0,
+                    ..default()
+                },
+            };
+            materials.add(m)
+        };
+        for (size, offset, part) in viewmodel_parts(class) {
+            commands.spawn((
+                Mesh3d(meshes.add(Cuboid::from_size(size))),
+                MeshMaterial3d(mat(part)),
+                Transform::from_translation(offset),
+                ChildOf(e),
+            ));
+        }
+    }
 }
 
 #[allow(clippy::type_complexity)]
