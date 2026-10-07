@@ -113,10 +113,7 @@ impl Plugin for ScreensPlugin {
     fn build(&self, app: &mut App) {
         app.init_resource::<Screens>()
             .init_resource::<EscPress>()
-            .configure_sets(
-                Update,
-                (EscSystems::Read, EscSystems::Top, EscSystems::Back, EscSystems::Base).chain(),
-            )
+            .configure_sets(Update, (EscSystems::Read, EscSystems::Top, EscSystems::Back, EscSystems::Base).chain())
             .add_systems(Update, (read_esc.in_set(EscSystems::Read), back_on_esc.in_set(EscSystems::Back)))
             .add_systems(Update, scripted_esc.after(read_esc).in_set(EscSystems::Read).run_if(resource_exists::<Cli>))
             .add_systems(Update, despawn_closed)
