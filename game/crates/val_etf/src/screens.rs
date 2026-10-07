@@ -4,11 +4,20 @@
 //!
 //! Each screen module watches the stack: it spawns its root when its screen becomes the top and despawns it
 //! when its screen leaves the stack (see [`Screens::top`] and [`ScreenRoot`]). Esc pops the top screen.
+//!
+//! **Cursor and match input** are derived, never set by a screen: [`apply_cursor`] frees the pointer on the
+//! menus, over any open screen and while the match is paused, and locks it in play (see [`cursor_free`]);
+//! the match takes no look / move / fire input while a screen is open. Closing a screen therefore gives
+//! back exactly what the screen below it (or the match) needs.
 
 // The screen modules fill this in; until then parts of the API are unused.
 #![allow(dead_code)]
 
+use crate::AppState;
+use crate::client::LocalControl;
+use crate::config::Cli;
 use bevy::prelude::*;
+use bevy::window::{CursorGrabMode, CursorOptions, PrimaryWindow};
 
 /// Settings tabs (the rail on the left of the Settings screen).
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default)]
@@ -98,6 +107,7 @@ impl Plugin for ScreensPlugin {
     fn build(&self, app: &mut App) {
         app.init_resource::<Screens>()
             .add_systems(Update, despawn_closed)
+            .add_systems(PostUpdate, apply_cursor.run_if(resource_exists::<Cli>))
             .add_systems(OnEnter(crate::AppState::MainMenu), clear_stack)
             .add_systems(OnEnter(crate::AppState::InGame), clear_stack);
     }
@@ -119,6 +129,36 @@ fn despawn_closed(screens: Res<Screens>, roots: Query<(Entity, &ScreenRoot)>, mu
     }
 }
 
+/// The pointer is free (shown, not grabbed) on the menus, over any open screen and while the match is
+/// paused, and locked while playing. Hands-off runs (screenshots, demos, the bot) never grab it.
+pub fn cursor_free(in_match: bool, screen_open: bool, paused: bool, hands_off: bool) -> bool {
+    hands_off || !in_match || screen_open || paused
+}
+
+/// The one system that sets [`CursorOptions`]: screens and the match never touch the cursor themselves, so
+/// whatever closes, the state below it comes back on its own.
+fn apply_cursor(
+    state: Res<State<AppState>>,
+    screens: Res<Screens>,
+    control: Option<Res<LocalControl>>,
+    cli: Res<Cli>,
+    mut cursor: Query<&mut CursorOptions, With<PrimaryWindow>>,
+) {
+    let free = cursor_free(
+        *state.get() == AppState::InGame,
+        !screens.is_empty(),
+        control.is_some_and(|c| c.paused),
+        cli.hands_off(),
+    );
+    let (visible, grab) = if free { (true, CursorGrabMode::None) } else { (false, CursorGrabMode::Locked) };
+    for mut c in &mut cursor {
+        if c.visible != visible || c.grab_mode != grab {
+            c.visible = visible;
+            c.grab_mode = grab;
+        }
+    }
+}
+
 /// Run condition: `s` (of its kind) is the top screen.
 pub fn screen_on_top(s: Screen) -> impl Fn(Res<Screens>) -> bool + Clone {
     move |screens: Res<Screens>| screens.top().is_some_and(|t| t.same_kind(s))
@@ -127,6 +167,15 @@ pub fn screen_on_top(s: Screen) -> impl Fn(Res<Screens>) -> bool + Clone {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn the_cursor_is_only_locked_in_play() {
+        assert!(!cursor_free(true, false, false, false), "playing: locked");
+        assert!(cursor_free(true, true, false, false), "a screen over the match frees it");
+        assert!(cursor_free(true, false, true, false), "paused");
+        assert!(cursor_free(false, false, false, false), "menus");
+        assert!(cursor_free(true, false, false, true), "screenshot, demo and bot runs never grab it");
+    }
 
     #[test]
     fn the_stack_returns_to_the_opener() {

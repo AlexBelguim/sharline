@@ -953,24 +953,18 @@ fn update_damage_indicators(
     }
 }
 
+/// The pause overlay's buttons (the cursor follows `paused`, see `screens::apply_cursor`).
 fn pause_buttons(
     q: Query<(&Interaction, &PauseButton), Changed<Interaction>>,
     mut control: ResMut<LocalControl>,
     mut requests: MessageWriter<NetRequest>,
-    mut cursor: Query<&mut bevy::window::CursorOptions, With<bevy::window::PrimaryWindow>>,
 ) {
     for (i, b) in &q {
         if *i != Interaction::Pressed {
             continue;
         }
         match b {
-            PauseButton::Resume => {
-                control.paused = false;
-                for mut c in &mut cursor {
-                    c.visible = false;
-                    c.grab_mode = bevy::window::CursorGrabMode::Locked;
-                }
-            }
+            PauseButton::Resume => control.paused = false,
             PauseButton::Leave => {
                 control.paused = false;
                 requests.write(NetRequest::Leave { reason: None });

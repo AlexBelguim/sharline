@@ -80,7 +80,13 @@ After mockups 04 / 04b (`design/ui/mockups`). The left nav has **PLAY** (with **
 - `--mags` lists magazines in slot order (up to six); `--ammo` loads every default magazine with one ammo.
 - `--demo-ui reload|heal|heal-region` opens a ring menu for screenshots (the heal ones also hurt the host's player).
 - `--demo-ui menu-join|menu-join-ip|menu-host` opens the main menu's JOIN GAME (code or direct IP tab) or HOST
-  GAME flyout with its field focused, for screenshots.
+  GAME flyout with its field focused, for screenshots. `--demo-ui loadout|loadout-ammo|loadout-attach` opens the
+  Loadout screen (over the match with `--host`).
+- **Screenshot and demo runs** (`--screenshot` or `--demo-ui`) ignore the desktop's display scale: the window
+  renders at scale factor 1, so `--width 1920 --height 1080` gives exactly a 1920x1080 image, also on a HiDPI
+  screen (a normal run follows Windows scaling, so 1600x900 at 200 % is a 3200x1800 window). They never grab or
+  hide the mouse cursor, and the mouse does not turn the view or fire in the match, so a test run cannot
+  capture your mouse. `--bot` runs do not grab the cursor either. Always pass `--exit-after` in automated runs.
 
 For example, a local two-process test:
 

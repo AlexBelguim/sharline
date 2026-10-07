@@ -41,13 +41,19 @@ fn main() -> AppExit {
     let data = config::load_game_data();
     let tick = Duration::from_secs_f64(1.0 / data.net.tick_hz as f64);
 
+    // Screenshot and demo runs ignore the desktop's display scale, so W x H is the image size in pixels
+    // (on a 200 % Windows display a 1920x1080 request would otherwise make a 3840x2160 window).
+    let mut resolution = WindowResolution::new(cli.width, cli.height);
+    if cli.demo_mode() {
+        resolution = resolution.with_scale_factor_override(1.0);
+    }
     let mut app = App::new();
     app.add_plugins(
         DefaultPlugins
             .set(WindowPlugin {
                 primary_window: Some(Window {
                     title: "SHARD/LINE (prototype)".into(),
-                    resolution: WindowResolution::new(cli.width, cli.height),
+                    resolution,
                     present_mode: PresentMode::AutoNoVsync,
                     ..default()
                 }),

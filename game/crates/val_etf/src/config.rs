@@ -140,7 +140,9 @@ impl Cli {
                          \x20                  loadout|loadout-ammo|loadout-attach]\n\
                          \n\
                          --name overrides the name saved from the main menu (EDIT NAME) for this run.\n\
-                         --port sets the HOST GAME port (default: net.ron, 47820)."
+                         --port sets the HOST GAME port (default: net.ron, 47820).\n\
+                         --screenshot and --demo-ui runs render at scale factor 1 (exactly W x H pixels, also on\n\
+                         \x20 a HiDPI screen) and never grab the mouse; --bot runs do not grab it either."
                     );
                     std::process::exit(0);
                 }
@@ -148,6 +150,19 @@ impl Cli {
             }
         }
         cli
+    }
+
+    /// A screenshot or demo run (`--screenshot`, `--demo-ui`): the window renders at scale factor 1, so
+    /// `--width 1920 --height 1080` gives a 1920x1080 image on a HiDPI screen too, and the mouse neither
+    /// turns the view nor fires in the match (see also [`Cli::hands_off`]).
+    pub fn demo_mode(&self) -> bool {
+        self.screenshot.is_some() || self.demo_ui.is_some()
+    }
+
+    /// Automated runs leave the desktop's mouse alone: the cursor is never grabbed or hidden (demo mode and
+    /// `--bot`).
+    pub fn hands_off(&self) -> bool {
+        self.demo_mode() || self.bot
     }
 
     /// Any loadout option on the command line (they override the Loadout screen's preset).

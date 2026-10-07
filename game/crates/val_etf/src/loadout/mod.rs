@@ -32,7 +32,7 @@ use bevy::input_focus::{FocusCause, InputFocus};
 use bevy::prelude::*;
 use bevy::text::{EditableText, TextEdit};
 use bevy::ui::RelativeCursorPosition;
-use bevy::window::{CursorGrabMode, CursorOptions, PrimaryWindow};
+use bevy::window::PrimaryWindow;
 use halo::HaloImages;
 use lightyear::prelude::*;
 use std::hash::{Hash, Hasher};
@@ -51,7 +51,7 @@ impl Plugin for LoadoutScreenPlugin {
         app.insert_resource(LoadoutUiData::load())
             .init_resource::<LoadoutUi>()
             .add_systems(Startup, (init_active_loadout, load_halo_images))
-            .add_systems(Update, (demo_open, open_screen, free_cursor_in_match).chain())
+            .add_systems(Update, (demo_open, open_screen).chain())
             .add_systems(
                 Update,
                 (
@@ -375,47 +375,6 @@ fn open_screen(
     *ui = LoadoutUi::default();
     let depth = screens.iter().position(|s| s.same_kind(Screen::Loadout)).unwrap_or(0) as i32;
     view::spawn_root(&mut commands, 100 + depth * 10);
-}
-
-/// Over a running match the cursor is free and the player's input is off while the screen is open. When the
-/// screen paused the game itself and closes with nothing under it, play resumes (a screen under it, such as
-/// the ESC menu, keeps its own pause).
-fn free_cursor_in_match(
-    screens: Res<Screens>,
-    state: Res<State<AppState>>,
-    mut cursor: Query<&mut CursorOptions, With<PrimaryWindow>>,
-    mut control: Option<ResMut<crate::client::LocalControl>>,
-    mut paused_here: Local<bool>,
-) {
-    let on_top = screens.top().is_some_and(|t| t.same_kind(Screen::Loadout));
-    if *state.get() != AppState::InGame {
-        *paused_here = false;
-        return;
-    }
-    let Some(control) = control.as_mut() else { return };
-    if !on_top {
-        if *paused_here && !screens.contains(Screen::Loadout) {
-            *paused_here = false;
-            if screens.is_empty() && control.paused {
-                control.paused = false;
-                for mut c in &mut cursor {
-                    c.visible = false;
-                    c.grab_mode = CursorGrabMode::Locked;
-                }
-            }
-        }
-        return;
-    }
-    for mut c in &mut cursor {
-        if !c.visible || c.grab_mode != CursorGrabMode::None {
-            c.visible = true;
-            c.grab_mode = CursorGrabMode::None;
-        }
-    }
-    if !control.paused {
-        control.paused = true;
-        *paused_here = true;
-    }
 }
 
 // ---------------------------------------------------------------------------------------------- actions
