@@ -90,12 +90,15 @@ pub(super) fn spawn_flyout(r: &mut ChildSpawnerCommands, ctx: &Ctx, recent: &Rec
                 width: px(620),
                 flex_direction: FlexDirection::Column,
                 padding: UiRect { left: px(28), right: px(28), top: px(26), bottom: px(24) },
-                ..abs(Some(540.0), None, Some(300.0), None)
+                ..default()
             },
         ),
+        // Clicks inside the modal stay in it (the backdrop around it closes it).
+        bevy::ui::FocusPolicy::Block,
     ))
     .with_children(|p| {
         p.spawn(fonts.role(TextRole::FlyoutTitle, "Join game"));
+        super::close_button(p, fonts);
         p.spawn((
             FocusRing(Focus::Join(JoinItem::Tabs)),
             ring(),

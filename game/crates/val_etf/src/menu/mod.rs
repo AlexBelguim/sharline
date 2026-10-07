@@ -3,9 +3,9 @@
 //! the PLAY flyout on the right of the nav (`host.rs`, `join.rs`), the player card, the agent tag, the key
 //! hints and the version / network line.
 //!
-//! Focus has two zones, the nav and the open flyout. Up / Down move in the nav (moving onto HOST GAME or
-//! JOIN GAME also opens it), Enter or Right enters the flyout, Tab / Up / Down move inside it and Esc goes
-//! back to the nav. Text fields get the keyboard through Bevy's `InputFocus` (see `field.rs`).
+//! HOST GAME and JOIN GAME open as a modal over the dimmed menu, only when picked (a click, or Enter / Right
+//! on the row); Esc, the CLOSE key cap or a click on the backdrop closes it. Focus has two zones, the nav
+//! and the open modal: Up / Down move in the nav, Tab / Up / Down move inside the modal. Text fields get the keyboard through Bevy's `InputFocus` (see `field.rs`).
 
 mod copy;
 mod field;
@@ -178,6 +178,8 @@ pub(crate) struct MenuState {
     /// Draw the focus ring: the last move was by keyboard.
     pub focus_visible: bool,
     pub selected_recent: Option<usize>,
+    /// The HOST GAME / JOIN GAME modal (`sub`) is open.
+    pub open: bool,
     /// Where focus goes back to after editing the name.
     pub before_edit: Focus,
 }
@@ -190,6 +192,7 @@ impl Default for MenuState {
             focus: Focus::Nav(NavItem::Play),
             focus_visible: false,
             selected_recent: None,
+            open: false,
             before_edit: Focus::Nav(NavItem::Play),
         }
     }
@@ -197,6 +200,12 @@ impl Default for MenuState {
 
 impl MenuState {
     /// The text field that has the keyboard, if focus is on one.
+    /// Close the modal, back to its nav row.
+    fn close_modal(&mut self) {
+        self.open = false;
+        self.focus = Focus::Nav(NavItem::sub(self.sub));
+    }
+
     pub fn focused_field(&self) -> Option<FieldId> {
         match self.focus {
             Focus::Host(HostItem::Name) => Some(FieldId::LobbyName),
@@ -207,8 +216,9 @@ impl MenuState {
         }
     }
 
-    /// The flyout's first stop.
+    /// Open the modal on its first stop.
     fn enter_flyout(&mut self) {
+        self.open = true;
         self.focus = match self.sub {
             Sub::Host => Focus::Host(HostItem::Name),
             Sub::Join if self.tab == JoinTab::Lan => Focus::Join(JoinItem::Tabs),
@@ -230,6 +240,7 @@ pub(crate) enum MenuAction {
     EditName,
     SaveName,
     CancelName,
+    CloseModal,
 }
 
 // ---------------------------------------------------------------------------------------------- markers
@@ -254,6 +265,10 @@ struct NavRow(NavItem);
 
 #[derive(Component, Debug, Clone, Copy)]
 struct SubDiamond(Sub);
+
+/// The dimmed layer the HOST GAME / JOIN GAME modal sits on.
+#[derive(Component)]
+struct ModalLayer;
 
 /// A PLAY flyout panel.
 #[derive(Component, Debug, Clone, Copy)]
@@ -290,6 +305,19 @@ enum Bound {
     Halo,
 }
 
+/// ESC CLOSE in the modal's top-right corner (clickable, like the backdrop).
+pub(crate) fn close_button(p: &mut ChildSpawnerCommands, fonts: &UiFonts) {
+    p.spawn((
+        Button,
+        Click(MenuAction::CloseModal),
+        Node { column_gap: px(7), align_items: AlignItems::Center, ..abs(None, Some(24.0), Some(26.0), None) },
+    ))
+    .with_children(|b| {
+        b.spawn(keycap(fonts, "Esc", KeyStyle::Ghost, 20.0));
+        b.spawn(fonts.role(TextRole::Hint, "Close"));
+    });
+}
+
 /// The keyboard focus ring (teal, 2 px, 2 px out).
 pub(crate) fn ring() -> Outline {
     Outline::new(px(2), px(2), Color::NONE)
@@ -301,14 +329,17 @@ fn enter_menu(mut state: ResMut<MenuState>, session: Res<Session>) {
     state.focus = Focus::Nav(NavItem::Play);
     state.focus_visible = false;
     state.selected_recent = None;
+    state.open = false;
     if session.host_error {
         state.sub = Sub::Host;
+        state.enter_flyout();
     } else if session.status.is_some() {
         // Show why we are back (disconnected, timed out) where the player rejoins.
         state.sub = Sub::Join;
         if state.tab == JoinTab::Lan {
             state.tab = JoinTab::Code;
         }
+        state.enter_flyout();
     }
 }
 
@@ -336,12 +367,33 @@ fn spawn_menu(
             r.spawn(shade());
             logo(r, &fonts);
             nav(r, &fonts);
-            host::spawn_flyout(r, &ctx, &host, &session, &state);
-            join::spawn_flyout(r, &ctx, &recent, &state);
             player_card(r, &ctx, &session);
             agent_tag(r, &ctx);
+            version(r, &fonts);
+            // HOST GAME / JOIN GAME: a modal over the dimmed menu; a click on the backdrop closes it.
+            r.spawn((
+                ModalLayer,
+                Button,
+                Click(MenuAction::CloseModal),
+                ZIndex(10),
+                Node {
+                    display: if state.open { Display::Flex } else { Display::None },
+                    width: percent(100),
+                    height: percent(100),
+                    justify_content: JustifyContent::Center,
+                    align_items: AlignItems::Center,
+                    ..abs(Some(0.0), None, Some(0.0), None)
+                },
+                BackgroundColor(MODAL_BACKDROP),
+            ))
+            .with_children(|m| {
+                host::spawn_flyout(m, &ctx, &host, &session, &state);
+                join::spawn_flyout(m, &ctx, &recent, &state);
+            });
+            // The key hints stay readable over the backdrop.
             r.spawn((
                 HintRow(None),
+                ZIndex(20),
                 Node {
                     justify_content: JustifyContent::Center,
                     align_items: AlignItems::Center,
@@ -349,7 +401,6 @@ fn spawn_menu(
                     ..abs(Some(0.0), Some(0.0), None, Some(28.0))
                 },
             ));
-            version(r, &fonts);
         });
 }
 
@@ -618,6 +669,7 @@ fn demo_ui(
         "menu-join" => {
             state.sub = Sub::Join;
             state.tab = JoinTab::Code;
+            state.open = true;
             state.focus = Focus::Join(JoinItem::Input);
             // A real-format SL1 internet invite (the field shows it short); the mockup's sample is an old
             // 8-character code.
@@ -631,10 +683,12 @@ fn demo_ui(
         "menu-join-ip" => {
             state.sub = Sub::Join;
             state.tab = JoinTab::Ip;
+            state.open = true;
             state.focus = Focus::Join(JoinItem::Input);
         }
         "menu-host" => {
             state.sub = Sub::Host;
+            state.open = true;
             state.focus = Focus::Host(HostItem::Name);
         }
         _ => {}
@@ -652,14 +706,12 @@ fn follow_status(session: Res<Session>, mut state: ResMut<MenuState>, mut last: 
         return;
     }
     let sub = if session.host_error { Sub::Host } else { Sub::Join };
-    if state.sub != sub {
-        state.sub = sub;
-        if matches!(state.focus, Focus::Host(_) | Focus::Join(_)) {
-            state.focus = Focus::Nav(NavItem::sub(sub));
-        }
-    }
     if sub == Sub::Join && state.tab == JoinTab::Lan {
         state.tab = JoinTab::Code;
+    }
+    if state.sub != sub || !state.open {
+        state.sub = sub;
+        state.enter_flyout();
     }
 }
 
@@ -783,7 +835,7 @@ fn keyboard(
             if next || prev {
                 let item = item.step(delta);
                 state.focus = Focus::Nav(item);
-                // Moving onto a sub-item opens its flyout (live preview).
+                // Moving onto a sub-item picks it (its diamond); Enter opens it.
                 match item {
                     NavItem::Host => state.sub = Sub::Host,
                     NavItem::Join => state.sub = Sub::Join,
@@ -795,7 +847,7 @@ fn keyboard(
         }
         Focus::Host(item) => {
             if esc {
-                state.focus = Focus::Nav(NavItem::Host);
+                state.close_modal();
             } else if next || prev {
                 state.focus = Focus::Host(host::step(item, delta));
             } else if enter {
@@ -805,7 +857,7 @@ fn keyboard(
         Focus::Join(item) => {
             let rows = join::visible_rows(&recent);
             if esc {
-                state.focus = Focus::Nav(NavItem::Join);
+                state.close_modal();
             } else if next || prev {
                 state.focus = Focus::Join(join::step(item, delta, state.tab, rows));
             } else if enter {
@@ -891,6 +943,7 @@ fn nav_actions(
                 state.focus = state.before_edit;
             }
             MenuAction::CancelName => state.focus = state.before_edit,
+            MenuAction::CloseModal => state.close_modal(),
             _ => {}
         }
     }
@@ -903,7 +956,8 @@ fn nav_visuals(
     state: Res<MenuState>,
     mut rows: Query<(&NavRow, &mut Active)>,
     mut diamonds: Query<(&SubDiamond, &mut BackgroundColor, &mut BorderColor, &mut Node), Without<Flyout>>,
-    mut flyouts: Query<(&Flyout, &mut Node)>,
+    mut flyouts: Query<(&Flyout, &mut Node), Without<ModalLayer>>,
+    mut layer: Query<&mut Node, (With<ModalLayer>, Without<Flyout>, Without<SubDiamond>)>,
 ) {
     if !state.is_changed() {
         return;
@@ -937,6 +991,9 @@ fn nav_visuals(
     }
     for (f, mut node) in &mut flyouts {
         node.display = if f.0 == state.sub { Display::Flex } else { Display::None };
+    }
+    for mut node in &mut layer {
+        node.display = if state.open { Display::Flex } else { Display::None };
     }
 }
 
