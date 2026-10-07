@@ -329,7 +329,9 @@ fn simulate_authoritative(
             let end = origin + dir * level.world.raycast(origin, dir, range).map_or(range, |(d, _)| d);
             if let Some(server) = server {
                 let msg = ShotFx { shooter: id.0, origin, end };
-                let _ = fx.send::<_, FxChannel>(&msg, server, &NetworkTarget::AllExceptSingle(sp.peer));
+                if let Err(e) = fx.send::<_, FxChannel>(&msg, server, &NetworkTarget::AllExceptSingle(sp.peer)) {
+                    warn!("shot fx not sent: {e:?}");
+                }
             }
             if local {
                 local_shots.write(LocalShot { shot, player: id.0, origin, yaw: frame.yaw, pitch: frame.pitch });
@@ -491,7 +493,9 @@ fn handle_deaths(
         }
         if let Some(server) = server.iter().next() {
             let msg = KillFeed { killer: killer_id, victim: victim_id, zone: d.zone };
-            let _ = feed.send::<_, ReliableChannel>(&msg, server, &NetworkTarget::All);
+            if let Err(e) = feed.send::<_, ReliableChannel>(&msg, server, &NetworkTarget::All) {
+                warn!("kill feed not sent: {e:?}");
+            }
         }
     }
 }

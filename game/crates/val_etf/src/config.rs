@@ -54,7 +54,8 @@ pub struct Cli {
     pub port: Option<u16>,
     pub width: u32,
     pub height: u32,
-    /// Save a screenshot of the window after `screenshot_after` seconds.
+    /// Save a screenshot after `screenshot_after` seconds (counted from entering the match when
+    /// `--host` / `--join` is given, from start-up otherwise).
     pub screenshot: Option<PathBuf>,
     pub screenshot_after: f32,
     /// Quit after this many seconds (for automated runs).

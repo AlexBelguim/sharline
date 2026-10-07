@@ -317,35 +317,40 @@ fn recoil_recovery(
     control.punch = (control.punch - dt * 2.0).max(0.0);
 }
 
-#[allow(clippy::type_complexity)]
+/// Host feedback. Each receiver gets its own query: lightyear inserts a `MessageReceiver<M>` only once the
+/// first `M` arrives, so one query over all four would match nothing until every type had been received.
+#[allow(clippy::too_many_arguments)]
 fn receive_feedback(
-    mut clients: Query<
-        (
-            &mut MessageReceiver<HitConfirm>,
-            &mut MessageReceiver<DamageTaken>,
-            &mut MessageReceiver<KillFeed>,
-            &mut MessageReceiver<ShotFx>,
-        ),
-        With<Client>,
-    >,
+    mut hits: Query<&mut MessageReceiver<HitConfirm>, With<Client>>,
+    mut damage: Query<&mut MessageReceiver<DamageTaken>, With<Client>>,
+    mut kills: Query<&mut MessageReceiver<KillFeed>, With<Client>>,
+    mut fx: Query<&mut MessageReceiver<ShotFx>, With<Client>>,
     players: Query<(&PlayerId, &PlayerInfo)>,
     mut feedback: ResMut<Feedback>,
 ) {
     let name = |id: u64| {
         players.iter().find(|(p, _)| p.0 == id).map(|(_, i)| i.name.clone()).unwrap_or_else(|| format!("{id:x}"))
     };
-    for (mut hits, mut damage, mut kills, mut fx) in &mut clients {
-        for h in hits.receive() {
+    for mut rx in &mut hits {
+        for h in rx.receive() {
+            debug!("hit confirmed: {:?} {:?}", h.zone, h.kind);
             feedback.hit_marker = Some((h.kind, 0.25));
         }
-        for d in damage.receive() {
+    }
+    for mut rx in &mut damage {
+        for d in rx.receive() {
             feedback.damage.push((d.from, 1.2));
         }
-        for k in kills.receive() {
+    }
+    for mut rx in &mut kills {
+        for k in rx.receive() {
+            debug!("kill feed: {:?} -> {:x}", k.killer, k.victim);
             let killer = k.killer.map(name).unwrap_or_default();
             feedback.kills.push((killer, name(k.victim), k.zone == Some(vetf_sim::Zone::Head), 6.0));
         }
-        for s in fx.receive() {
+    }
+    for mut rx in &mut fx {
+        for s in rx.receive() {
             feedback.tracers.push((s.origin, s.end, 0.08, false));
         }
     }
@@ -385,10 +390,18 @@ fn automation(
     mut control: ResMut<LocalControl>,
     mut commands: Commands,
     mut taken: Local<bool>,
+    mut in_game_since: Local<Option<f32>>,
     mut exit: MessageWriter<AppExit>,
 ) {
     let t = time.elapsed_secs();
+    if *state.get() != AppState::InGame {
+        *in_game_since = None;
+    }
+    if *state.get() == AppState::InGame {
+        in_game_since.get_or_insert(t);
+    }
     if cli.bot && *state.get() == AppState::InGame {
+        let since = t - in_game_since.unwrap_or(t);
         // Wander, look around and fire short bursts.
         let phase = (t * 0.5) as i32 % 4;
         control.movement = match phase {
@@ -400,7 +413,8 @@ fn automation(
         match cli.yaw {
             // Hold a heading and strafe (aim tests): only side-to-side movement.
             Some(yaw) => {
-                control.movement = Vec2::new((t * 1.5).sin() * 0.15, 0.0);
+                // Close in for the first few seconds, then hold position and strafe a little.
+                control.movement = if since < 3.5 { Vec2::Y } else { Vec2::new((t * 1.5).sin() * 0.15, 0.0) };
                 control.yaw = yaw.to_radians();
                 control.pitch = -0.01;
             }
@@ -409,14 +423,16 @@ fn automation(
                 control.pitch = (t * 1.3).sin() * 0.08;
             }
         }
-        let firing = (t * 2.0) as i32 % 3 == 0;
+        let firing = (t * 2.0) as i32 % 3 == 0 && (cli.yaw.is_none() || since > 3.5);
         control.held = if firing { Buttons::FIRE } else { 0 };
         if (t as i32) % 7 == 3 && cli.yaw.is_none() {
             control.held |= Buttons::JUMP;
         }
     }
+    // With --host / --join the screenshot clock starts when the match view appears.
+    let clock = if cli.host.is_some() || cli.join.is_some() { in_game_since.map_or(-1.0, |s| t - s) } else { t };
     if let Some(path) = &cli.screenshot {
-        if !*taken && t >= cli.screenshot_after {
+        if !*taken && clock >= cli.screenshot_after {
             *taken = true;
             info!("saving screenshot to {}", path.display());
             commands.spawn(Screenshot::primary_window()).observe(save_to_disk(path.clone()));
