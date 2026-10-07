@@ -97,7 +97,7 @@ pub fn loadout_line(choice: &LoadoutChoice, s: &LoadoutSummary, data: &GameData)
     let is_default = choice.weapon == d.primary
         && choice.mags == d.mags
         && choice.attachments == d.attachments
-        && choice.armor == d.armor;
+        && choice.halo == crate::config::halo_from_armor(&d.armor, data);
     let name = if is_default { "Default loadout" } else { "Custom loadout" };
     let attachments: Vec<String> = choice.attachments.iter().map(|a| attachment_short(a, data)).collect();
     let weapon = if attachments.is_empty() {
@@ -106,9 +106,18 @@ pub fn loadout_line(choice: &LoadoutChoice, s: &LoadoutSummary, data: &GameData)
         format!("{} ({})", s.weapon_name, attachments.join(", "))
     };
     let arcs = arcs_short(&s.tiers);
-    let halo =
-        if s.core.is_none() || arcs.is_empty() { "No halo".to_string() } else { format!("{} {arcs}", s.armor_name) };
+    // The halo is custom now (a core and a tier per arc): name the core, then the arcs.
+    let halo = match s.core {
+        Some(core) if !arcs.is_empty() => format!("{} {arcs}", title_case(core.label())),
+        _ => "No halo".to_string(),
+    };
     format!("{name} · {weapon} · {halo}")
+}
+
+/// "MENDER" -> "Mender".
+fn title_case(s: &str) -> String {
+    let mut c = s.chars();
+    c.next().map_or(String::new(), |f| f.to_uppercase().chain(c.flat_map(|ch| ch.to_lowercase())).collect())
 }
 
 /// The MAGS line: six slots in order, each the short ammo label and type, or None for an unused slot.
@@ -217,7 +226,8 @@ mod tests {
             weapon: l.primary.clone(),
             mags: l.mags.clone(),
             attachments: l.attachments.clone(),
-            armor: l.armor.clone(),
+            halo: crate::config::halo_from_armor(&l.armor, d),
+            agent: crate::config::DEFAULT_AGENT.into(),
         }
     }
 
@@ -226,10 +236,7 @@ mod tests {
         let d = GameData::embedded();
         let c = default_choice(&d);
         let s = summary(&c, &d);
-        assert_eq!(
-            loadout_line(&c, &s, &d),
-            "Default loadout · AR-7 Mako (holo, std stock, 30 mag) · Mender Scout H2 T2"
-        );
+        assert_eq!(loadout_line(&c, &s, &d), "Default loadout · AR-7 Mako (holo, std stock, 30 mag) · Mender H2 T2");
         let slots = mag_slots(&s);
         assert_eq!(slots.iter().filter(|m| m.is_some()).count(), c.mags.len());
         assert_eq!(slots[0], Some(("STD".into(), AmmoKind::Standard)));
@@ -243,7 +250,11 @@ mod tests {
     fn other_loadouts_and_no_halo() {
         let d = GameData::embedded();
         let ap2 = AmmoChoice { kind: AmmoKind::ArmorPiercing, tier: 2 };
-        let c = LoadoutChoice { armor: "arm_none".into(), mags: vec![ap2, AmmoChoice::STANDARD], ..default_choice(&d) };
+        let c = LoadoutChoice {
+            halo: crate::config::halo_from_armor("arm_none", &d),
+            mags: vec![ap2, AmmoChoice::STANDARD],
+            ..default_choice(&d)
+        };
         let s = summary(&c, &d);
         assert!(loadout_line(&c, &s, &d).starts_with("Custom loadout · "));
         assert!(loadout_line(&c, &s, &d).ends_with(" · No halo"));

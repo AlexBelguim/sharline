@@ -927,7 +927,16 @@ mod tests {
     #[test]
     fn frame_limit_options_include_the_monitor() {
         let o = frame_limit_options(&[60, 144, 240], Some(165));
-        assert_eq!(o, vec![FrameLimit::Fps(60), FrameLimit::Fps(144), FrameLimit::Fps(165), FrameLimit::Fps(240), FrameLimit::Off]);
+        assert_eq!(
+            o,
+            vec![
+                FrameLimit::Fps(60),
+                FrameLimit::Fps(144),
+                FrameLimit::Fps(165),
+                FrameLimit::Fps(240),
+                FrameLimit::Off
+            ]
+        );
         assert_eq!(frame_limit_index(&o, FrameLimit::Monitor, Some(165)), 2);
         let o = frame_limit_options(&[60, 144, 240], None);
         assert_eq!(o.len(), 4);

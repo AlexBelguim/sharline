@@ -7,7 +7,10 @@
 mod bindings;
 mod model;
 
+// Used by the tabs (work in progress: controls.rs and keybinds.rs are not wired in yet).
+#[allow(unused_imports)]
 pub use bindings::*;
+#[allow(unused_imports)]
 pub use model::*;
 
 use bevy::prelude::*;

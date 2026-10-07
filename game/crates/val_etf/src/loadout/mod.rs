@@ -827,6 +827,7 @@ pub(crate) mod tests {
             host: None,
             join: None,
             name: "T".into(),
+            name_given: false,
             port: None,
             width: 1,
             height: 1,

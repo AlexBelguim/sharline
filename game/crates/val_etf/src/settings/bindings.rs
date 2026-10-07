@@ -263,7 +263,10 @@ impl Binding {
         match id {
             "WheelUp" => Some(Binding::WheelUp),
             "WheelDown" => Some(Binding::WheelDown),
-            _ => id.strip_prefix("MouseOther").and_then(|n| n.parse().ok()).map(|n| Binding::Mouse(MouseButton::Other(n))),
+            _ => id
+                .strip_prefix("MouseOther")
+                .and_then(|n| n.parse().ok())
+                .map(|n| Binding::Mouse(MouseButton::Other(n))),
         }
     }
 
