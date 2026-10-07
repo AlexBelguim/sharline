@@ -50,7 +50,10 @@ pub struct Cli {
     pub host: Option<String>,
     /// Join straight away (join code, ip:port or ip).
     pub join: Option<String>,
+    /// `--name`, else `$USER`. The name saved from the main menu wins unless [`Cli::name_given`].
     pub name: String,
+    /// `--name` was given: it overrides the saved profile name for this run.
+    pub name_given: bool,
     pub port: Option<u16>,
     pub width: u32,
     pub height: u32,
@@ -65,7 +68,8 @@ pub struct Cli {
     /// Start looking this way (degrees, 0 = north / -Z, 90 = west); the bot then holds this heading.
     pub yaw: Option<f32>,
     /// Open a menu for screenshots: `reload` (the magazine radial), `heal` / `heal-region` (the heal ring),
-    /// `hud` (wounds and a mag check). The heal and hud ones also hurt the host's own player.
+    /// `hud` (wounds and a mag check). The heal and hud ones also hurt the host's own player. On the main
+    /// menu: `menu-join` (JOIN GAME, code tab), `menu-join-ip` (direct IP tab), `menu-host` (HOST GAME).
     pub demo_ui: Option<String>,
     /// Loadout overrides until there is a loadout screen (weapon id, ammo like `rip3`, armor preset id,
     /// comma-separated attachment ids). Anything missing uses `rules.ron`'s default loadout.
@@ -83,6 +87,7 @@ impl Cli {
             host: None,
             join: None,
             name: default_name(),
+            name_given: false,
             port: None,
             width: 1600,
             height: 900,
@@ -104,7 +109,10 @@ impl Cli {
             match a.as_str() {
                 "--host" => cli.host = Some(val()),
                 "--join" => cli.join = Some(val()),
-                "--name" => cli.name = val(),
+                "--name" => {
+                    cli.name = val();
+                    cli.name_given = true;
+                }
                 "--port" => cli.port = val().parse().ok(),
                 "--width" => cli.width = val().parse().unwrap_or(cli.width),
                 "--height" => cli.height = val().parse().unwrap_or(cli.height),
@@ -124,7 +132,11 @@ impl Cli {
                         "val_etf [--host showhome|range] [--join CODE|IP[:PORT]] [--name NAME] [--port PORT]\n\
                          \x20       [--width W --height H] [--screenshot PATH [--screenshot-after S]] [--exit-after S] [--bot] [--yaw DEG]\n\
                          \x20       [--weapon ID] [--ammo std|ap1..3|rip1..3|slug1..2] [--mags std,ap2,..]\n\
-                         \x20       [--armor PRESET] [--attach A,B] [--demo-ui reload|heal|heal-region|hud]"
+                         \x20       [--armor PRESET] [--attach A,B]\n\
+                         \x20       [--demo-ui reload|heal|heal-region|hud|menu-join|menu-join-ip|menu-host]\n\
+                         \n\
+                         --name overrides the name saved from the main menu (EDIT NAME) for this run.\n\
+                         --port sets the HOST GAME port (default: net.ron, 47820)."
                     );
                     std::process::exit(0);
                 }

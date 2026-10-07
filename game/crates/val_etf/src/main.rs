@@ -66,7 +66,11 @@ fn main() -> AppExit {
     ));
     app.add_plugins(vetf_net::ProtocolPlugin { input_redundancy: data.net.input_redundancy as u16 });
     app.insert_resource(config::Data(std::sync::Arc::new(data)));
-    app.insert_resource(net::Session { local_name: cli.name.clone(), ..Default::default() });
+    // The name saved from the main menu, unless --name overrides it for this run.
+    let profile = user_config::PlayerProfile::load();
+    let local_name = if cli.name_given { cli.name.clone() } else { profile.name.clone() };
+    app.insert_resource(net::Session { local_name, ..Default::default() });
+    app.insert_resource(profile);
     app.insert_resource(cli);
     app.init_state::<AppState>();
     app.add_plugins((
