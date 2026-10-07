@@ -4,6 +4,7 @@
 use crate::AppState;
 use crate::client::{Feedback, LocalControl, Smoothed, TRACER_LEN, TRACER_SPEED};
 use crate::config::{CurrentLevel, Data};
+use crate::settings::{MouseSettings, Settings, vertical_fov, zoomed_fov};
 use bevy::asset::RenderAssetUsages;
 use bevy::mesh::{Indices, PrimitiveTopology};
 use bevy::prelude::*;
@@ -54,6 +55,10 @@ pub struct ViewCamera;
 /// The first-person gun; remembers which weapon class its parts were built for.
 #[derive(Component)]
 struct Viewmodel(Option<WeaponClass>);
+
+/// Between the view camera and the viewmodel: squeezes the gun across the view (see [`viewmodel_lens`]).
+#[derive(Component)]
+struct ViewmodelLens;
 
 #[derive(Component)]
 struct PlayerVisual;
@@ -412,12 +417,42 @@ fn update_player_visuals(
     }
 }
 
-fn spawn_view_camera(mut commands: Commands) {
+/// How far the optic has zoomed at an ADS blend (0 hip .. 1 aimed): 1 at the hip, the optic's zoom aimed.
+pub fn ads_zoom(zoom: f32, ads: f32) -> f32 {
+    1.0 + (zoom.max(1.0) - 1.0) * ads.clamp(0.0, 1.0)
+}
+
+/// The view camera's vertical FOV (degrees): the player's FOV (horizontal at 16:9; Bevy keeps the vertical
+/// one, so wider screens see more), narrowed by the optic as the gun comes up so that ADS sensitivity has a
+/// focal length to match.
+pub fn camera_fov(mouse: &MouseSettings, zoom: f32, ads: f32) -> f32 {
+    zoomed_fov(vertical_fov(mouse.fov_h), ads_zoom(zoom, ads))
+}
+
+/// The viewmodel has no camera of its own. Instead it is squeezed across the view (view-space x and y, by
+/// this factor) so it looks drawn with its own vertical FOV `vm_fov` whatever the world camera's `cam_fov`
+/// (zoom included): the gun keeps its size on screen. Depth is untouched.
+pub fn viewmodel_lens(cam_fov: f32, vm_fov: f32) -> f32 {
+    (cam_fov.to_radians() * 0.5).tan() / (vm_fov.clamp(1.0, 179.0).to_radians() * 0.5).tan()
+}
+
+fn lens_scale(lens: f32) -> Vec3 {
+    Vec3::new(lens, lens, 1.0)
+}
+
+/// The visual camera kick (degrees) after the screen-shake setting (percent). The recoil itself turns the
+/// view in `client` and is never scaled.
+pub fn visual_punch(punch_deg: f32, shake_percent: f32) -> f32 {
+    punch_deg * (shake_percent / 100.0).clamp(0.0, 1.0)
+}
+
+fn spawn_view_camera(mut commands: Commands, settings: Res<Settings>) {
+    let fov = camera_fov(&settings.mouse, 1.0, 0.0);
     commands
         .spawn((
             ViewCamera,
             Camera3d::default(),
-            Projection::from(PerspectiveProjection { fov: 78f32.to_radians(), near: 0.03, ..default() }),
+            Projection::from(PerspectiveProjection { fov: fov.to_radians(), near: 0.03, ..default() }),
             DistanceFog {
                 color: Color::srgb(0.66, 0.76, 0.86),
                 falloff: FogFalloff::Linear { start: 80.0, end: 420.0 },
@@ -427,7 +462,8 @@ fn spawn_view_camera(mut commands: Commands) {
             DespawnOnExit(AppState::InGame),
         ))
         .with_children(|cam| {
-            cam.spawn((
+            let lens = viewmodel_lens(fov, settings.mouse.viewmodel_fov);
+            cam.spawn((ViewmodelLens, Transform::from_scale(lens_scale(lens)), Visibility::default())).with_child((
                 Viewmodel(None),
                 Transform::from_translation(VIEWMODEL_HIP).with_scale(Vec3::splat(VIEWMODEL_SCALE)),
                 Visibility::default(),
@@ -440,15 +476,16 @@ const VIEWMODEL_HIP: Vec3 = Vec3::new(0.2, -0.2, -0.5);
 const VIEWMODEL_ADS: Vec3 = Vec3::new(0.0, -0.075, -0.3);
 const VIEWMODEL_SCALE: f32 = 0.6;
 
-/// The viewmodel's muzzle in view space (camera-local, -Z forward) at an ADS blend `ads` (0 hip .. 1 aimed):
-/// own tracers start here, so they come out of the gun on screen instead of hanging under the crosshair.
-pub fn viewmodel_muzzle(class: WeaponClass, ads: f32) -> Vec3 {
+/// The viewmodel's muzzle in view space (camera-local, -Z forward) at an ADS blend `ads` (0 hip .. 1 aimed),
+/// through the viewmodel `lens`: own tracers start here, so they come out of the gun on screen instead of
+/// hanging under the crosshair.
+pub fn viewmodel_muzzle(class: WeaponClass, ads: f32, lens: f32) -> Vec3 {
     let tip = viewmodel_parts(class)
         .into_iter()
         .map(|(size, offset, _)| offset - Vec3::Z * size.z * 0.5)
         .min_by(|a, b| a.z.total_cmp(&b.z))
         .unwrap_or(Vec3::ZERO);
-    VIEWMODEL_HIP.lerp(VIEWMODEL_ADS, ads.clamp(0.0, 1.0)) + tip * VIEWMODEL_SCALE
+    (VIEWMODEL_HIP.lerp(VIEWMODEL_ADS, ads.clamp(0.0, 1.0)) + tip * VIEWMODEL_SCALE) * lens_scale(lens)
 }
 
 /// Placeholder viewmodel parts per weapon class: (size, offset, material) in gun space (muzzle toward -Z,
@@ -548,32 +585,63 @@ fn sync_viewmodel(
     }
 }
 
+/// The view follows our player; its FOV follows the settings and the optic's zoom, the gun's lens keeps the
+/// viewmodel FOV, and the visual kick follows the screen-shake setting (all applied every frame, so a
+/// changed setting shows at once).
 #[allow(clippy::type_complexity)]
 fn update_camera(
     cli: Res<crate::config::Cli>,
     control: Res<LocalControl>,
+    settings: Res<Settings>,
     fixed: Res<Time<Fixed>>,
-    me: Query<(&PlayerMove, Option<&Smoothed>, &PlayerWeapon, &Vitals), With<Controlled>>,
-    mut camera: Query<&mut Transform, (With<ViewCamera>, Without<Viewmodel>)>,
+    me: Query<(&PlayerMove, Option<&Smoothed>, &PlayerWeapon, &PlayerLoadout, &Vitals), With<Controlled>>,
+    mut camera: Query<
+        (&mut Transform, &mut Projection),
+        (With<ViewCamera>, Without<Viewmodel>, Without<ViewmodelLens>),
+    >,
+    mut lens: Query<&mut Transform, (With<ViewmodelLens>, Without<Viewmodel>)>,
     mut viewmodel: Query<(&mut Transform, &mut Visibility), With<Viewmodel>>,
+    mut logged: Local<Option<(f32, f32)>>,
 ) {
-    let Some((mv, smoothed, weapon, vitals)) = me.iter().next() else { return };
+    let Some((mv, smoothed, weapon, loadout, vitals)) = me.iter().next() else { return };
+    let m = &settings.mouse;
+    if *logged != Some((m.fov_h, m.viewmodel_fov)) {
+        *logged = Some((m.fov_h, m.viewmodel_fov));
+        info!(
+            "view: {} deg horizontal FOV = {:.1} deg vertical, viewmodel {} deg",
+            m.fov_h,
+            vertical_fov(m.fov_h),
+            m.viewmodel_fov
+        );
+    }
+    let ads = weapon.0.ads;
+    let fov = camera_fov(m, loadout.0.weapon.zoom, ads);
+    for (_, mut projection) in &mut camera {
+        let want = fov.to_radians();
+        let stale = matches!(&*projection, Projection::Perspective(p) if (p.fov - want).abs() > 1e-6);
+        if stale && let Projection::Perspective(p) = &mut *projection {
+            p.fov = want;
+        }
+    }
+    for mut t in &mut lens {
+        t.scale = lens_scale(viewmodel_lens(fov, m.viewmodel_fov));
+    }
     let alpha = fixed.overstep_fraction();
     let feet = smoothed.map_or(mv.0.pos, |s| s.prev.lerp(s.curr, alpha));
     let dead = vitals.health.dead;
     let eye = if dead { feet + Vec3::Y * 3.0 } else { feet + Vec3::Y * mv.0.eye };
     if let Some((at, target)) = cli.camera {
-        for mut t in &mut camera {
+        for (mut t, _) in &mut camera {
             *t = Transform::from_translation(at).looking_at(target, Vec3::Y);
         }
         return;
     }
-    for mut t in &mut camera {
+    for (mut t, _) in &mut camera {
         t.translation = eye;
-        let pitch = if dead { -0.6 } else { control.pitch + control.punch.to_radians() };
+        let punch = visual_punch(control.punch, settings.hud.screen_shake);
+        let pitch = if dead { -0.6 } else { control.pitch + punch.to_radians() };
         t.rotation = Quat::from_euler(EulerRot::YXZ, control.yaw, pitch, 0.0);
     }
-    let ads = weapon.0.ads;
     for (mut t, mut v) in &mut viewmodel {
         let sprint = if mv.0.sprinting { Vec3::new(0.05, -0.06, 0.04) } else { Vec3::ZERO };
         t.translation = VIEWMODEL_HIP.lerp(VIEWMODEL_ADS, ads) + sprint;
@@ -717,10 +785,51 @@ mod tests {
     #[test]
     fn tracers_leave_the_viewmodel_muzzle() {
         for class in [WeaponClass::Smg, WeaponClass::AssaultRifle, WeaponClass::BoltSniper] {
-            let hip = viewmodel_muzzle(class, 0.0);
+            let hip = viewmodel_muzzle(class, 0.0, 1.0);
             assert!(hip.x > 0.15 && hip.y < -0.15 && hip.z < -0.6, "{class:?} hip muzzle {hip}");
-            let ads = viewmodel_muzzle(class, 1.0);
+            let ads = viewmodel_muzzle(class, 1.0, 1.0);
             assert!(ads.x.abs() < 0.01 && ads.y < 0.0 && ads.z < -0.4, "{class:?} aimed muzzle {ads}");
+            // through a lens the muzzle moves across the view, never in depth
+            let squeezed = viewmodel_muzzle(class, 0.0, 0.5);
+            assert_eq!(squeezed, Vec3::new(hip.x * 0.5, hip.y * 0.5, hip.z));
         }
+    }
+
+    /// Where a view-space point lands on screen (normalised device units) through a vertical FOV in degrees.
+    fn on_screen(p: Vec3, fov: f32) -> Vec2 {
+        Vec2::new(p.x, p.y) / (-p.z * (fov.to_radians() * 0.5).tan())
+    }
+
+    /// The FOV setting is horizontal at 16:9; aiming narrows it by the optic's zoom, and the viewmodel lens
+    /// keeps the gun where a camera with the viewmodel FOV would draw it, at any camera FOV.
+    #[test]
+    fn fov_zoom_and_viewmodel_lens() {
+        let mut mouse = Settings::default().mouse;
+        mouse.fov_h = 103.0;
+        assert!((camera_fov(&mouse, 3.0, 0.0) - 70.5).abs() < 0.1, "hip: the 16:9 vertical FOV");
+        assert_eq!(camera_fov(&mouse, 1.0, 1.0), camera_fov(&mouse, 1.0, 0.0), "no optic, no zoom");
+        let aimed = camera_fov(&mouse, 3.0, 1.0);
+        let ratio = (aimed.to_radians() * 0.5).tan() / (70.5f32.to_radians() * 0.5).tan();
+        assert!((ratio - 1.0 / 3.0).abs() < 0.01, "a 3x optic triples the focal length ({aimed})");
+        assert!(camera_fov(&mouse, 3.0, 0.5) < camera_fov(&mouse, 3.0, 0.0), "zooms in as the gun comes up");
+        mouse.fov_h = 80.0;
+        assert!(camera_fov(&mouse, 1.0, 0.0) < 70.5, "a smaller FOV setting narrows the camera");
+        assert_eq!(ads_zoom(0.5, 1.0), 1.0, "a zoom below 1 never widens the view");
+
+        let muzzle = viewmodel_muzzle(WeaponClass::AssaultRifle, 0.0, 1.0);
+        let want = on_screen(muzzle, 68.0);
+        for cam in [70.5, 50.0, 26.0] {
+            let got = on_screen(viewmodel_muzzle(WeaponClass::AssaultRifle, 0.0, viewmodel_lens(cam, 68.0)), cam);
+            assert!((got - want).length() < 1e-4, "{cam}: {got} vs {want}");
+        }
+        assert!((viewmodel_lens(68.0, 68.0) - 1.0).abs() < 1e-6);
+    }
+
+    #[test]
+    fn screen_shake_scales_only_the_visual_kick() {
+        assert_eq!(visual_punch(2.0, 100.0), 2.0);
+        assert!((visual_punch(2.0, 60.0) - 1.2).abs() < 1e-6);
+        assert_eq!(visual_punch(2.0, 0.0), 0.0);
+        assert_eq!(visual_punch(2.0, 250.0), 2.0, "never more than the full kick");
     }
 }

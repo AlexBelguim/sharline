@@ -1,6 +1,7 @@
-//! Quick ring menus: the magazine radial (hold R) and the heal ring (H). While one is open, mouse movement
-//! steers a pointer instead of the view; the sector the pointer is in is the selection. Option 1 sits at
-//! the top and the rest follow clockwise, so the same slot is always in the same direction.
+//! Quick ring menus: the magazine radial (hold Reload for the Gameplay tab's radial hold time) and the heal
+//! ring (Heal); `client` reads their keys from the key map. While one is open, mouse movement steers a
+//! pointer instead of the view; the sector the pointer is in is the selection. Option 1 sits at the top and
+//! the rest follow clockwise, so the same slot is always in the same direction.
 
 use crate::AppState;
 use crate::client::LocalControl;
@@ -12,8 +13,6 @@ use vetf_net::{PlayerItems, PlayerLoadout, PlayerWeapon, Vitals};
 use vetf_sim::Zone;
 use vetf_sim::items::{ItemScope, would_help};
 
-/// Seconds reload must be held before the magazine radial opens (a shorter tap reloads the next slot).
-pub const RELOAD_HOLD_S: f32 = 0.2;
 /// How far (in mouse counts) the pointer must move off the centre to select anything.
 pub const DEADZONE: f32 = 18.0;
 /// The pointer is clamped to this radius, so turning back towards another slot is quick.

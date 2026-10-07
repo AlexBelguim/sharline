@@ -1,12 +1,15 @@
-//! The scoreboard (hold Tab in a match; hub spec 06, mockup 07): mode, map, score target, time left and
-//! host; the team score; one row per player (your team on top) with halo, kills, deaths and ping; and the
-//! server card. It is pinned while a finished match waits to restart. No ammo information, ever.
+//! The scoreboard (hold the Scoreboard key, Tab by default, in a match; hub spec 06, mockup 07): mode, map,
+//! score target, time left and host; the team score; one row per player (your team on top) with halo,
+//! kills, deaths and ping; and the server card. It is pinned while a finished match waits to restart. No
+//! ammo information, ever.
 
 use crate::AppState;
+use crate::client::BindDevices;
 use crate::config::{Cli, Data};
 use crate::invite::JoinInfo;
 use crate::net::{Role, Session};
 use crate::screens::Screens;
+use crate::settings::{Action, Settings};
 use crate::ui_kit::*;
 use bevy::prelude::*;
 use lightyear::prelude::Controlled;
@@ -67,16 +70,18 @@ fn spawn(mut commands: Commands) {
     ));
 }
 
-/// Shown while Tab is held (not under a hub screen), and pinned when the match has ended.
+/// Shown while the Scoreboard key is held (not under a hub screen), and pinned when the match has ended.
 fn show(
-    keys: Res<ButtonInput<KeyCode>>,
+    mut devices: BindDevices,
+    settings: Res<Settings>,
     cli: Res<Cli>,
     screens: Res<Screens>,
     matches: Query<&MatchState>,
     mut root: Query<&mut Visibility, With<BoardRoot>>,
 ) {
     let ended = matches.iter().next().is_some_and(|m| matches!(m.phase, MatchPhase::Ended { .. }));
-    let held = keys.pressed(KeyCode::Tab) || cli.demo_ui.as_deref() == Some("board");
+    let held =
+        settings.keybinds.pressed(Action::Scoreboard, &devices.read()) || cli.demo_ui.as_deref() == Some("board");
     let on = screens.is_empty() && (held || ended);
     for mut vis in &mut root {
         vis.set_if_neq(if on { Visibility::Inherited } else { Visibility::Hidden });
