@@ -4,10 +4,13 @@
 use crate::AppState;
 use crate::config::{Cli, CurrentLevel, Data, level_by_name};
 use crate::net::{NetRequest, Role, Session};
-use crate::radial::{HealMenu, HealOption, REGION_ORDER, RELOAD_HOLD_S, Radial, heal_options};
+use crate::radial::{HealMenu, HealOption, REGION_ORDER, Radial, heal_options};
+use crate::render::{ads_zoom, camera_fov, viewmodel_lens, viewmodel_muzzle};
 use crate::screens::{EscPress, EscSystems, Screens};
+use crate::settings::{Action, BindInput, HoldToggle, Keybinds, RadialPick, Settings, rad_per_count};
 use crate::shared::LocalShot;
-use bevy::input::mouse::AccumulatedMouseMotion;
+use bevy::ecs::system::SystemParam;
+use bevy::input::mouse::{AccumulatedMouseMotion, AccumulatedMouseScroll};
 use bevy::prelude::*;
 use bevy::render::view::screenshot::{Screenshot, save_to_disk};
 use bevy::window::WindowFocused;
@@ -16,11 +19,12 @@ use lightyear::prelude::input::native::{ActionState, InputMarker};
 use lightyear::prelude::*;
 use std::sync::Arc;
 use vetf_net::*;
+use vetf_sim::data::AttachmentCategory;
 use vetf_sim::hitbox::{self, HitClaim, Pose};
 use vetf_sim::input::{Buttons, MAX_PITCH};
 use vetf_sim::items::{ItemScope, encode_pick};
 use vetf_sim::recoil::ViewRecoil;
-use vetf_sim::weapon::{shot_direction, shot_seed};
+use vetf_sim::weapon::{WeaponLoadout, shot_direction, shot_seed};
 
 pub struct ClientPlugin;
 
@@ -64,7 +68,8 @@ pub struct LocalControl {
     pub held: u16,
     /// Presses since the last fixed tick, so a short tap is never lost between ticks.
     pub latched: u16,
-    pub sensitivity: f32,
+    /// Sprint, crouch and aim while they are set to TOGGLE.
+    pub toggles: Toggles,
     pub recoil: ViewRecoil,
     pub paused: bool,
     /// Short visual camera kick (degrees), decays quickly.
@@ -92,7 +97,7 @@ impl Default for LocalControl {
             movement: Vec2::ZERO,
             held: 0,
             latched: 0,
-            sensitivity: 0.0022,
+            toggles: Toggles::default(),
             recoil: ViewRecoil::default(),
             paused: false,
             punch: 0.0,
@@ -167,8 +172,7 @@ fn reset_control(mut control: ResMut<LocalControl>, me: Query<&PlayerLook, With<
     let yaw = cli.yaw.map_or(look.yaw, f32::to_radians);
     // A mouse button still held from the menu click that started the match (GUN RANGE, CREATE LOBBY) must
     // not fire the first shot: buttons stay off until released.
-    *control =
-        LocalControl { yaw, pitch: look.pitch, sensitivity: control.sensitivity, mouse_block: true, ..default() };
+    *control = LocalControl { yaw, pitch: look.pitch, mouse_block: true, ..default() };
 }
 
 /// The click that focuses the window again must not fire or aim: mouse buttons stay off until released.
@@ -194,25 +198,130 @@ fn esc_in_match(mut esc: ResMut<EscPress>, mut control: ResMut<LocalControl>) {
     }
 }
 
-/// Keyboard + mouse into [`LocalControl`] (every frame, before the fixed ticks). Nothing reaches the match
-/// while it is paused or a hub screen is open over it.
+/// The input devices as the key map reads them ([`BindInput`]). Screenshot and demo runs ignore the desktop's
+/// wheel here (`demo_mode` already clears their keys and mouse buttons).
+#[derive(SystemParam)]
+pub struct BindDevices<'w, 's> {
+    keys: Res<'w, ButtonInput<KeyCode>>,
+    mouse: Res<'w, ButtonInput<MouseButton>>,
+    scroll: Res<'w, AccumulatedMouseScroll>,
+    cli: Res<'w, Cli>,
+    wheel_prev: Local<'s, f32>,
+}
+
+impl BindDevices<'_, '_> {
+    /// This frame's input. Read it once per frame: it remembers the wheel for the next frame's presses.
+    pub fn read(&mut self) -> BindInput<'_> {
+        let wheel = if self.cli.ignores_desktop_input() { 0.0 } else { self.scroll.delta.y };
+        let wheel_prev = std::mem::replace(&mut *self.wheel_prev, wheel);
+        BindInput { keys: &self.keys, mouse: &self.mouse, wheel, wheel_prev }
+    }
+}
+
+/// Sprint, crouch and aim while set to TOGGLE: each stays on until pressed again (see [`hold_buttons`]).
+#[derive(Debug, Clone, Copy, PartialEq, Default)]
+pub struct Toggles {
+    pub sprint: bool,
+    pub crouch: bool,
+    pub ads: bool,
+    /// Forward input on the last frame (a toggled sprint ends when it stops).
+    pub forward: bool,
+}
+
+/// A button in HOLD or TOGGLE mode: HOLD follows the key, TOGGLE flips `on` with each press.
+pub fn hold_or_toggle(mode: HoldToggle, on: &mut bool, held: bool, pressed: bool) -> bool {
+    match mode {
+        HoldToggle::Hold => {
+            *on = false;
+            held
+        }
+        HoldToggle::Toggle => {
+            if pressed {
+                *on = !*on;
+            }
+            *on
+        }
+    }
+}
+
+/// This frame's sprint, crouch, walk and aim keys as (held, just pressed), and whether there is forward input.
+#[derive(Debug, Clone, Copy, PartialEq, Default)]
+pub struct HoldKeys {
+    pub sprint: (bool, bool),
+    pub crouch: (bool, bool),
+    pub ads: (bool, bool),
+    pub walk: bool,
+    pub forward: bool,
+}
+
+/// Sprint, crouch and aim for this frame, with sprint and crouch in `stance` mode (HUD tab) and aim in `aim`
+/// mode (Mouse & Aim tab). A toggled sprint ends when forward input stops or crouch is pressed (a slide);
+/// pressing sprint stands a toggled crouch up and lowers a toggled aim. Auto-sprint sprints on any forward
+/// input unless walk is held.
+pub fn hold_buttons(stance: HoldToggle, aim: HoldToggle, auto_sprint: bool, t: &mut Toggles, k: HoldKeys) -> [bool; 3] {
+    if (t.forward && !k.forward) || k.crouch.1 {
+        t.sprint = false;
+    }
+    if k.sprint.1 {
+        t.crouch = false;
+        t.ads = false;
+    }
+    t.forward = k.forward;
+    let sprint = hold_or_toggle(stance, &mut t.sprint, k.sprint.0, k.sprint.1) || (auto_sprint && k.forward && !k.walk);
+    let crouch = hold_or_toggle(stance, &mut t.crouch, k.crouch.0, k.crouch.1);
+    let ads = hold_or_toggle(aim, &mut t.ads, k.ads.0, k.ads.1);
+    [sprint, crouch, ads]
+}
+
+/// The optic on a weapon, if it has one.
+pub fn optic_of<'a>(data: &vetf_sim::GameData, weapon: &'a WeaponLoadout) -> Option<&'a str> {
+    weapon
+        .attachments
+        .iter()
+        .find(|a| data.attachment(a).is_some_and(|s| s.cat == AttachmentCategory::Optic))
+        .map(String::as_str)
+}
+
+/// View rotation (radians) per mouse count: the turn distance at the mouse's DPI, moving to the optic's ADS
+/// sensitivity as the gun comes up (`ads` 0 hip .. 1 aimed). The focal-length part follows the camera's zoom
+/// through the blend (`render::camera_fov`); the per-optic multiplier blends in linearly.
+pub fn look_per_count(settings: &Settings, optic: Option<&str>, zoom: f32, ads: f32) -> f32 {
+    let ads = ads.clamp(0.0, 1.0);
+    let mult = optic.map_or(1.0, |o| settings.optic_mult(o));
+    rad_per_count(settings.mouse.cm_per_360, settings.mouse.dpi)
+        * settings.ads_factor(None, ads_zoom(zoom, ads))
+        * (1.0 + (mult - 1.0) * ads)
+}
+
+/// Keyboard + mouse into [`LocalControl`] through the player's key map and settings (every frame, before the
+/// fixed ticks, so a changed setting applies at once). Nothing reaches the match while it is paused or a hub
+/// screen is open over it.
 fn gather_input(
-    keys: Res<ButtonInput<KeyCode>>,
-    mouse: Res<ButtonInput<MouseButton>>,
+    mut devices: BindDevices,
     motion: Res<AccumulatedMouseMotion>,
     time: Res<Time>,
     cli: Res<Cli>,
     data: Res<Data>,
+    settings: Res<Settings>,
     screens: Res<Screens>,
-    me: Query<(&PlayerLoadout, &PlayerItems, Option<&Vitals>), With<Controlled>>,
+    me: Query<(&PlayerLoadout, &PlayerItems, Option<&Vitals>, Option<&PlayerWeapon>), With<Controlled>>,
     mut control: ResMut<LocalControl>,
+    mut logged: Local<Option<(f32, u32)>>,
 ) {
     if cli.bot {
         return;
     }
+    let input = devices.read();
+    let (kb, m, g) = (&settings.keybinds, &settings.mouse, &settings.gameplay);
+    if *logged != Some((m.cm_per_360, m.dpi)) {
+        *logged = Some((m.cm_per_360, m.dpi));
+        let deg = rad_per_count(m.cm_per_360, m.dpi).to_degrees();
+        info!("look: {} cm/360 at {} DPI = {deg:.4} deg per count", m.cm_per_360, m.dpi);
+    }
     if control.paused || !screens.is_empty() {
         control.movement = Vec2::ZERO;
         control.held = 0;
+        control.toggles = Toggles::default();
         control.reload_held_s = None;
         control.reload_radial = None;
         control.heal = None;
@@ -221,67 +330,82 @@ fn gather_input(
         return;
     }
     let me = me.iter().next();
-    // No ring menus while dead.
-    if me.is_some_and(|(.., v)| v.is_some_and(|v| v.health.dead)) {
+    // No ring menus while dead, and toggles come back off.
+    if me.is_some_and(|(_, _, v, _)| v.is_some_and(|v| v.health.dead)) {
         control.heal = None;
         control.reload_radial = None;
         control.reload_held_s = None;
+        control.toggles = Toggles::default();
     }
     let mags = me.map_or(1, |(l, ..)| l.0.weapon.mags.len());
-    let kit: Vec<HealOption> = me.map(|(l, it, v)| heal_options(&data, &l.0, &it.0, v)).unwrap_or_default();
-    // Screenshot and demo runs ignore the desktop's mouse: it must not turn the view or fire.
-    let (mouse_delta, mouse_on) = if cli.ignores_desktop_input() { (Vec2::ZERO, false) } else { (motion.delta, true) };
-    heal_input(&mut control, &keys, &mouse, mouse_delta, &kit);
-    let tap_reload = control.heal.is_none() && reload_input(&mut control, &keys, mouse_delta, time.delta_secs(), mags);
-    if control.heal.is_some() || control.reload_radial.is_some() {
+    let kit: Vec<HealOption> = me.map(|(l, it, v, _)| heal_options(&data, &l.0, &it.0, v)).unwrap_or_default();
+    // Screenshot and demo runs ignore the desktop's mouse: it must not turn the view.
+    let mouse_delta = if cli.ignores_desktop_input() { Vec2::ZERO } else { motion.delta };
+    heal_input(&mut control, kb, &input, mouse_delta, &kit);
+    let dt = time.delta_secs();
+    let tap_reload = control.heal.is_none()
+        && reload_input(&mut control, kb, &input, mouse_delta, dt, mags, g.radial_hold_s, g.radial_pick);
+    let ring_open = control.heal.is_some() || control.reload_radial.is_some();
+    if ring_open {
         control.mouse_block = true;
-    } else if !mouse.pressed(MouseButton::Left) && !mouse.pressed(MouseButton::Right) {
+        control.toggles.ads = false;
+    } else if !kb.pressed(Action::Fire, &input) && !kb.pressed(Action::Ads, &input) {
         control.mouse_block = false;
     }
-    if control.reload_radial.is_none() && control.heal.is_none() {
-        let ads_scale = if control.held & Buttons::ADS != 0 { 0.6 } else { 1.0 };
-        let s = control.sensitivity * ads_scale;
+    if !ring_open {
+        let (optic, zoom) = me.map_or((None, 1.0), |(l, ..)| (optic_of(&data, &l.0.weapon), l.0.weapon.zoom));
+        let ads = me.and_then(|(.., w)| w).map_or(0.0, |w| w.0.ads);
+        let s = look_per_count(&settings, optic, zoom, ads);
+        let dy = if m.invert_y { -mouse_delta.y } else { mouse_delta.y };
         control.yaw = (control.yaw - mouse_delta.x * s).rem_euclid(std::f32::consts::TAU);
-        control.pitch = (control.pitch - mouse_delta.y * s).clamp(-MAX_PITCH, MAX_PITCH);
+        control.pitch = (control.pitch - dy * s).clamp(-MAX_PITCH, MAX_PITCH);
     }
 
-    let axis = |neg: KeyCode, pos: KeyCode| (keys.pressed(pos) as i32 - keys.pressed(neg) as i32) as f32;
-    control.movement = Vec2::new(axis(KeyCode::KeyA, KeyCode::KeyD), axis(KeyCode::KeyS, KeyCode::KeyW));
-
-    let mut held = 0u16;
-    let mut set = |bit: u16, on: bool| {
-        if on {
-            held |= bit;
-        }
+    let held = |a: Action| kb.pressed(a, &input);
+    let pressed = |a: Action| kb.just_pressed(a, &input);
+    let axis = |neg: Action, pos: Action| (held(pos) as i32 - held(neg) as i32) as f32;
+    control.movement =
+        Vec2::new(axis(Action::MoveLeft, Action::MoveRight), axis(Action::MoveBack, Action::MoveForward));
+    // Fire and aim stay off after a ring menu or a focus click until they are released.
+    let free = !control.mouse_block;
+    let keys = HoldKeys {
+        sprint: (held(Action::Sprint), pressed(Action::Sprint)),
+        crouch: (held(Action::Crouch), pressed(Action::Crouch)),
+        ads: (free && held(Action::Ads), free && pressed(Action::Ads)),
+        walk: held(Action::Walk),
+        forward: control.movement.y > 0.0,
     };
-    set(Buttons::JUMP, keys.pressed(KeyCode::Space));
-    set(Buttons::CROUCH, keys.pressed(KeyCode::ControlLeft) || keys.pressed(KeyCode::KeyC));
-    set(Buttons::SPRINT, keys.pressed(KeyCode::ShiftLeft));
-    set(Buttons::WALK, keys.pressed(KeyCode::AltLeft));
-    let mouse_free = mouse_on && !control.mouse_block;
-    set(Buttons::FIRE, mouse_free && mouse.pressed(MouseButton::Left));
-    set(Buttons::ADS, mouse_free && mouse.pressed(MouseButton::Right));
-    set(Buttons::MAG_CHECK, keys.pressed(KeyCode::KeyT));
-    set(Buttons::FIRE_MODE, keys.pressed(KeyCode::KeyB));
-    set(Buttons::INTERACT, keys.pressed(KeyCode::KeyF));
-    control.latched |= held & !control.held;
-    control.held = held;
+    let [sprint, crouch, ads] =
+        hold_buttons(settings.hud.hold_toggle, m.ads_input, g.auto_sprint, &mut control.toggles, keys);
+
+    let mut bits = 0u16;
+    for (bit, on) in [
+        (Buttons::JUMP, held(Action::Jump)),
+        (Buttons::CROUCH, crouch),
+        (Buttons::SPRINT, sprint),
+        (Buttons::WALK, held(Action::Walk)),
+        (Buttons::FIRE, free && held(Action::Fire)),
+        (Buttons::ADS, ads),
+        (Buttons::MAG_CHECK, held(Action::MagCheck)),
+        (Buttons::FIRE_MODE, held(Action::FireMode)),
+        (Buttons::INTERACT, held(Action::Interact)),
+    ] {
+        if on {
+            bits |= bit;
+        }
+    }
+    control.latched |= bits & !control.held;
+    control.held = bits;
     if tap_reload {
         control.latched |= Buttons::RELOAD;
     }
 }
 
-/// Heal ring (H toggles it). Click an item: a whole-body item is used at once; a region item opens a second
-/// ring of regions around it, where a click picks the region. Right click steps back; Esc or H closes.
-/// Dimmed options (none left, or nothing to treat) ignore clicks.
-fn heal_input(
-    control: &mut LocalControl,
-    keys: &ButtonInput<KeyCode>,
-    mouse: &ButtonInput<MouseButton>,
-    mouse_delta: Vec2,
-    kit: &[HealOption],
-) {
-    if keys.just_pressed(KeyCode::KeyH) {
+/// Heal ring (the Heal key toggles it). Fire on an item: a whole-body item is used at once; a region item
+/// opens a second ring of regions around it, where Fire picks the region. Aim steps back; Esc or Heal
+/// closes. Dimmed options (none left, or nothing to treat) ignore Fire.
+fn heal_input(control: &mut LocalControl, kb: &Keybinds, input: &BindInput, mouse_delta: Vec2, kit: &[HealOption]) {
+    if kb.just_pressed(Action::Heal, input) {
         control.heal = match control.heal {
             Some(_) => None,
             None if !kit.is_empty() => Some(HealMenu::new(kit.len())),
@@ -295,13 +419,13 @@ fn heal_input(
         None => menu.ring.steer(mouse_delta),
         Some(_) => menu.regions.steer(mouse_delta),
     }
-    if mouse.just_pressed(MouseButton::Right) {
+    if kb.just_pressed(Action::Ads, input) {
         if menu.item.take().is_none() {
             control.heal = None;
         }
         return;
     }
-    if !mouse.just_pressed(MouseButton::Left) {
+    if !kb.just_pressed(Action::Fire, input) {
         return;
     }
     match menu.item {
@@ -330,49 +454,63 @@ fn heal_input(
     }
 }
 
-/// Reload key: a tap (released before [`RELOAD_HOLD_S`]) reloads the next magazine in slot order; holding
-/// opens the magazine radial, and releasing over a slot picks it (number keys 1-6 pick directly while it is
-/// open). Returns true on a tap.
+/// Reload key: a tap (released before `hold_s`, the Gameplay tab's radial hold time) reloads the next
+/// magazine in slot order; holding opens the magazine radial. With RELEASE pick, releasing over a slot picks
+/// it; with CLICK pick the ring stays open after the release until Fire picks the slot under the pointer (Aim
+/// or another reload press closes it). Number keys 1-6 pick directly while it is open. Returns true on a tap.
 fn reload_input(
     control: &mut LocalControl,
-    keys: &ButtonInput<KeyCode>,
+    kb: &Keybinds,
+    input: &BindInput,
     mouse_delta: Vec2,
     dt: f32,
     mags: usize,
+    hold_s: f32,
+    pick: RadialPick,
 ) -> bool {
     const DIGITS: [KeyCode; 6] =
         [KeyCode::Digit1, KeyCode::Digit2, KeyCode::Digit3, KeyCode::Digit4, KeyCode::Digit5, KeyCode::Digit6];
-    if keys.just_pressed(KeyCode::KeyR) {
+    if kb.just_pressed(Action::Reload, input) {
+        // A ring that CLICK pick left open: the next press closes it.
+        if control.reload_radial.take().is_some() {
+            control.reload_held_s = None;
+            return false;
+        }
         control.reload_held_s = Some(0.0);
     }
-    if keys.pressed(KeyCode::KeyR)
+    if kb.pressed(Action::Reload, input)
         && let Some(held) = &mut control.reload_held_s
     {
         *held += dt;
-        if *held >= RELOAD_HOLD_S && control.reload_radial.is_none() {
+        if *held >= hold_s && control.reload_radial.is_none() {
             control.reload_radial = Some(Radial::new(mags));
         }
-        if let Some(radial) = &mut control.reload_radial {
-            radial.steer(mouse_delta);
-            if let Some(i) = DIGITS.iter().take(mags).position(|k| keys.just_pressed(*k)) {
-                control.reload_pick = i as u8 + 1;
-                control.reload_radial = None;
-                control.reload_held_s = None;
-            }
+    }
+    if let Some(radial) = &mut control.reload_radial {
+        radial.steer(mouse_delta);
+        let click = pick == RadialPick::Click;
+        let digit = DIGITS.iter().take(mags).position(|k| input.keys.just_pressed(*k));
+        let slot = digit.or(radial.selected().filter(|_| click && kb.just_pressed(Action::Fire, input)));
+        if slot.is_some() || (click && kb.just_pressed(Action::Ads, input)) {
+            control.reload_pick = slot.map_or(0, |i| i as u8 + 1);
+            control.reload_radial = None;
+            control.reload_held_s = None;
         }
     }
-    if !keys.just_released(KeyCode::KeyR) {
+    if !kb.just_released(Action::Reload, input) {
         return false;
     }
     let was_held = control.reload_held_s.take().is_some();
-    match control.reload_radial.take() {
-        Some(radial) => {
+    match (pick, control.reload_radial) {
+        (_, None) => was_held,
+        (RadialPick::Click, Some(_)) => false,
+        (RadialPick::Release, Some(radial)) => {
             if let Some(i) = radial.selected() {
                 control.reload_pick = i as u8 + 1;
             }
+            control.reload_radial = None;
             false
         }
-        None => was_held,
     }
 }
 
@@ -429,6 +567,7 @@ fn record_smoothing(
 fn fire_claims(
     mut shots: MessageReader<LocalShot>,
     data: Res<Data>,
+    settings: Res<Settings>,
     level: Option<Res<CurrentLevel>>,
     session: Res<Session>,
     timeline: Res<LocalTimeline>,
@@ -477,8 +616,9 @@ fn fire_claims(
         let end_t = best.map_or(world_t, |b| b.2);
         // From the viewmodel's muzzle (lower right on screen), not from under the eye: a tracer from a point
         // straight below the camera drew a vertical line hanging under the crosshair (playtest 2026-10-07).
-        let muzzle =
-            s.origin + vetf_sim::input::view_rotation(s.yaw, s.pitch) * crate::render::viewmodel_muzzle(spec.cls, ads);
+        let lens =
+            viewmodel_lens(camera_fov(&settings.mouse, loadout.0.weapon.zoom, ads), settings.mouse.viewmodel_fov);
+        let muzzle = s.origin + vetf_sim::input::view_rotation(s.yaw, s.pitch) * viewmodel_muzzle(spec.cls, ads, lens);
         feedback.tracers.push((muzzle, s.origin + dir * end_t, 0.0, true));
         if let (None, Some((d, normal))) = (best, world_hit) {
             feedback.impacts.push((s.origin + dir * d, normal));
@@ -651,6 +791,8 @@ fn automation(
                 *demo_checked = true;
                 control.latched |= Buttons::MAG_CHECK;
             }
+            // Aimed down sights: the optic's zoom and the viewmodel through it.
+            "ads" => control.latched |= Buttons::ADS,
             "heal" | "heal-region" => {
                 let mut menu = HealMenu::new(lo.0.kit.len());
                 menu.ring.steer(Vec2::new(30.0, -40.0));
@@ -675,5 +817,197 @@ fn automation(
     }
     if cli.exit_after.is_some_and(|e| t >= e) {
         exit.write(AppExit::Success);
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::settings::{AdsScaling, Binding};
+    use std::f32::consts::{PI, TAU};
+
+    fn near(a: f32, b: f32) -> bool {
+        (a - b).abs() <= 1e-5 * b.abs()
+    }
+
+    #[test]
+    fn hold_follows_the_key_and_toggle_flips_on_each_press() {
+        let mut on = false;
+        assert!(hold_or_toggle(HoldToggle::Hold, &mut on, true, true));
+        assert!(!hold_or_toggle(HoldToggle::Hold, &mut on, false, false));
+        assert!(hold_or_toggle(HoldToggle::Toggle, &mut on, true, true), "pressed: on");
+        assert!(hold_or_toggle(HoldToggle::Toggle, &mut on, false, false), "released: still on");
+        assert!(!hold_or_toggle(HoldToggle::Toggle, &mut on, true, true), "pressed again: off");
+        on = true;
+        hold_or_toggle(HoldToggle::Hold, &mut on, false, false);
+        assert!(!on, "switching to HOLD forgets a toggle");
+    }
+
+    #[test]
+    fn toggled_sprint_crouch_and_aim() {
+        use HoldToggle::{Hold, Toggle};
+        let mut t = Toggles::default();
+        let frame = |t: &mut Toggles, k: HoldKeys| hold_buttons(Toggle, Toggle, false, t, k);
+        let fwd = HoldKeys { forward: true, ..default() };
+        // sprint stays on after the key is let go, until forward input stops
+        assert!(frame(&mut t, HoldKeys { sprint: (true, true), ..fwd })[0]);
+        assert!(frame(&mut t, fwd)[0]);
+        assert!(!frame(&mut t, HoldKeys::default())[0], "stopped: sprint ends");
+        assert!(!frame(&mut t, fwd)[0], "and stays off when moving again");
+        // crouch (a slide) ends a toggled sprint; sprint stands a toggled crouch up and lowers a toggled aim
+        frame(&mut t, HoldKeys { sprint: (true, true), ..fwd });
+        let [sprint, crouch, _] = frame(&mut t, HoldKeys { crouch: (true, true), ..fwd });
+        assert!(!sprint && crouch);
+        assert_eq!(frame(&mut t, fwd), [false, true, false], "crouch stays on");
+        frame(&mut t, HoldKeys { ads: (true, true), ..fwd });
+        assert_eq!(frame(&mut t, fwd), [false, true, true], "aim stays on");
+        assert_eq!(frame(&mut t, HoldKeys { sprint: (true, true), ..fwd }), [true, false, false]);
+        // HOLD follows the keys; auto-sprint runs on forward input unless walking
+        let mut t = Toggles::default();
+        let crouching = HoldKeys { crouch: (true, false), ..fwd };
+        assert_eq!(hold_buttons(Hold, Hold, false, &mut t, crouching), [false, true, false]);
+        assert!(hold_buttons(Hold, Hold, true, &mut t, fwd)[0], "auto-sprint");
+        let walking = HoldKeys { walk: true, ..fwd };
+        assert!(!hold_buttons(Hold, Hold, true, &mut t, walking)[0], "walk beats auto-sprint");
+        assert!(!hold_buttons(Hold, Hold, true, &mut t, HoldKeys::default())[0], "standing still");
+    }
+
+    #[test]
+    fn look_speed_is_the_turn_distance_and_the_optics_ads_factor() {
+        let mut s = Settings::default();
+        s.mouse.cm_per_360 = 40.8;
+        s.mouse.dpi = 800;
+        s.mouse.ads_scaling = AdsScaling::MatchFocal;
+        let hip = rad_per_count(40.8, 800);
+        assert!(near(look_per_count(&s, Some("optic_3x"), 3.0, 0.0), hip), "hip fire ignores the optic");
+        // one turn of the mouse (40.8 cm at 800 DPI) is one turn of the view
+        let counts = 40.8 / 2.54 * 800.0;
+        assert!((look_per_count(&s, None, 1.0, 0.0) * counts - TAU).abs() < 1e-3);
+        s.mouse.optic_mult.insert("optic_3x".into(), 0.9);
+        let aimed = look_per_count(&s, Some("optic_3x"), 3.0, 1.0);
+        assert!(near(aimed, hip * s.ads_factor(Some("optic_3x"), 3.0)), "fully aimed: the ADS factor");
+        assert!((aimed / hip - 0.3).abs() < 1e-3, "1/3 for the zoom times the 0.9 multiplier");
+        let half = look_per_count(&s, Some("optic_3x"), 3.0, 0.5);
+        assert!(half < hip && half > aimed, "slows down as the gun comes up");
+        s.mouse.ads_scaling = AdsScaling::SameCm;
+        assert!(near(look_per_count(&s, Some("optic_3x"), 3.0, 1.0), hip * 0.9));
+        assert!(near(look_per_count(&s, None, 1.0, 1.0), hip), "iron sights at SAME CM/360");
+        s.mouse.cm_per_360 = 20.4;
+        assert!(near(look_per_count(&s, None, 1.0, 0.0), 2.0 * hip), "half the distance, twice the turn");
+    }
+
+    fn bind_input<'a>(keys: &'a ButtonInput<KeyCode>, mouse: &'a ButtonInput<MouseButton>) -> BindInput<'a> {
+        BindInput { keys, mouse, wheel: 0.0, wheel_prev: 0.0 }
+    }
+
+    /// Hold the reload key for `frames` frames of 50 ms (steering on the last one), then release it.
+    fn hold_reload(c: &mut LocalControl, kb: &Keybinds, steer: Vec2, hold_s: f32, pick: RadialPick) -> bool {
+        let (mut keys, mouse) = (ButtonInput::<KeyCode>::default(), ButtonInput::<MouseButton>::default());
+        keys.press(KeyCode::KeyR);
+        let frames = 6;
+        for f in 0..frames {
+            let delta = if f == frames - 1 { steer } else { Vec2::ZERO };
+            reload_input(c, kb, &bind_input(&keys, &mouse), delta, 0.05, 6, hold_s, pick);
+            keys.clear();
+        }
+        keys.release(KeyCode::KeyR);
+        reload_input(c, kb, &bind_input(&keys, &mouse), Vec2::ZERO, 0.05, 6, hold_s, pick)
+    }
+
+    #[test]
+    fn the_radial_hold_time_and_pick_mode_come_from_the_settings() {
+        let kb = Settings::default().keybinds;
+        let up = Vec2::new(0.0, -50.0);
+        // 0.3 s is a tap with a 0.5 s hold time, and opens the ring with 0.2 s (released over slot 1)
+        let mut c = LocalControl::default();
+        assert!(hold_reload(&mut c, &kb, up, 0.5, RadialPick::Release), "a tap reloads");
+        assert!(c.reload_radial.is_none() && c.reload_pick == 0);
+        let mut c = LocalControl::default();
+        assert!(!hold_reload(&mut c, &kb, up, 0.2, RadialPick::Release));
+        assert_eq!(c.reload_pick, 1, "released over the top slot");
+        assert!(c.reload_radial.is_none());
+        // CLICK: the ring stays open after the release and Fire picks
+        let mut c = LocalControl::default();
+        assert!(!hold_reload(&mut c, &kb, Vec2::new(50.0, 30.0), 0.2, RadialPick::Click));
+        assert!(c.reload_radial.is_some() && c.reload_pick == 0, "still open, nothing picked");
+        let (keys, mut mouse) = (ButtonInput::<KeyCode>::default(), ButtonInput::<MouseButton>::default());
+        mouse.press(MouseButton::Left);
+        reload_input(&mut c, &kb, &bind_input(&keys, &mouse), Vec2::ZERO, 0.05, 6, 0.2, RadialPick::Click);
+        assert_eq!((c.reload_pick, c.reload_radial), (3, None), "Fire picks the slot under the pointer");
+        // a rebound reload key: R does nothing any more
+        let mut kb = kb;
+        kb.set(Action::Reload, 0, Some(Binding::Key(KeyCode::KeyG)));
+        let mut c = LocalControl::default();
+        assert!(!hold_reload(&mut c, &kb, up, 0.2, RadialPick::Release));
+        assert!(c.reload_pick == 0 && c.reload_held_s.is_none());
+    }
+
+    /// A test app around [`gather_input`], with no player.
+    fn input_app() -> App {
+        let mut app = App::new();
+        app.init_resource::<ButtonInput<KeyCode>>()
+            .init_resource::<ButtonInput<MouseButton>>()
+            .init_resource::<AccumulatedMouseMotion>()
+            .init_resource::<AccumulatedMouseScroll>()
+            .init_resource::<Time>()
+            .init_resource::<Screens>()
+            .init_resource::<LocalControl>()
+            .insert_resource(Cli::default())
+            .insert_resource(Data(Arc::new(vetf_sim::GameData::embedded())))
+            .insert_resource(Settings::default())
+            .add_systems(Update, gather_input);
+        app
+    }
+
+    /// One frame with these keys down and this mouse motion: the held buttons, movement, and the yaw and
+    /// pitch it turned.
+    fn frame(app: &mut App, press: &[KeyCode], motion: Vec2) -> (u16, Vec2, f32, f32) {
+        let (yaw, pitch) = {
+            let c = app.world().resource::<LocalControl>();
+            (c.yaw, c.pitch)
+        };
+        for k in press {
+            app.world_mut().resource_mut::<ButtonInput<KeyCode>>().press(*k);
+        }
+        app.world_mut().resource_mut::<AccumulatedMouseMotion>().delta = motion;
+        app.update();
+        let mut keys = app.world_mut().resource_mut::<ButtonInput<KeyCode>>();
+        keys.release_all();
+        keys.clear();
+        let c = app.world().resource::<LocalControl>();
+        (c.held, c.movement, (c.yaw - yaw + PI).rem_euclid(TAU) - PI, c.pitch - pitch)
+    }
+
+    #[test]
+    fn the_key_map_and_look_settings_reach_the_input() {
+        let mut app = input_app();
+        let (held, movement, ..) = frame(&mut app, &[KeyCode::KeyW, KeyCode::Space], Vec2::ZERO);
+        assert_eq!(movement, Vec2::Y);
+        assert_ne!(held & Buttons::JUMP, 0, "Space jumps by default");
+        // rebound keys: the old ones do nothing, the new ones work
+        let mut s = app.world_mut().resource_mut::<Settings>();
+        s.keybinds.set(Action::Jump, 0, Some(Binding::Key(KeyCode::KeyJ)));
+        s.keybinds.set(Action::MoveForward, 0, Some(Binding::Key(KeyCode::ArrowUp)));
+        let (held, movement, ..) = frame(&mut app, &[KeyCode::Space, KeyCode::KeyW], Vec2::ZERO);
+        assert_eq!((held & Buttons::JUMP, movement), (0, Vec2::ZERO));
+        let (held, movement, ..) = frame(&mut app, &[KeyCode::KeyJ, KeyCode::ArrowUp], Vec2::ZERO);
+        assert_ne!(held & Buttons::JUMP, 0);
+        assert_eq!(movement, Vec2::Y);
+        // look: the turn distance and invert Y apply on the next frame (yaw wraps at a full turn, so it is
+        // only good to f32 precision there)
+        let per = rad_per_count(40.8, 800);
+        let turned = |got: f32, want: f32| (got - want).abs() < 2e-6;
+        let (.., yaw, pitch) = frame(&mut app, &[], Vec2::new(10.0, 5.0));
+        assert!(turned(yaw, -10.0 * per) && turned(pitch, -5.0 * per), "{yaw} {pitch}");
+        let mut s = app.world_mut().resource_mut::<Settings>();
+        s.mouse.cm_per_360 = 20.4;
+        s.mouse.invert_y = true;
+        let (.., yaw, pitch) = frame(&mut app, &[], Vec2::new(10.0, 5.0));
+        assert!(turned(yaw, -20.0 * per) && turned(pitch, 10.0 * per), "{yaw} {pitch}");
+        // toggle crouch stays on after a tap, until the next tap (of either crouch key)
+        app.world_mut().resource_mut::<Settings>().hud.hold_toggle = HoldToggle::Toggle;
+        assert_ne!(frame(&mut app, &[KeyCode::ControlLeft], Vec2::ZERO).0 & Buttons::CROUCH, 0);
+        assert_ne!(frame(&mut app, &[], Vec2::ZERO).0 & Buttons::CROUCH, 0, "still crouched");
+        assert_eq!(frame(&mut app, &[KeyCode::KeyC], Vec2::ZERO).0 & Buttons::CROUCH, 0);
     }
 }
