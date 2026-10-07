@@ -9,6 +9,7 @@
 mod client;
 mod config;
 mod esc_menu;
+mod first_run;
 mod hud;
 mod iroh_transport;
 mod loadout;
@@ -104,6 +105,8 @@ fn main() -> AppExit {
         esc_menu::EscMenuPlugin,
     ));
     app.add_systems(Update, place_window);
+    // First launch on this machine: ask for a callsign over the main menu.
+    app.add_plugins(first_run::FirstRunPlugin);
     app.run()
 }
 

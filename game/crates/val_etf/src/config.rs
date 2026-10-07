@@ -71,7 +71,8 @@ pub struct Cli {
     /// `hud` (wounds and a mag check), `loadout` (the Loadout screen), `loadout-ammo` (its ammo picker on
     /// MAG 1), `loadout-attach` (its attachment list on the optic slot). The heal and hud ones also hurt
     /// the host's own player. On the main menu: `menu-join` (JOIN GAME, code tab), `menu-join-ip` (direct
-    /// IP tab), `menu-host` (HOST GAME).
+    /// IP tab), `menu-host` (HOST GAME). `first-run`, `first-run-invalid`, `first-run-valid`: the
+    /// first-launch callsign prompt (`first_run.rs`).
     pub demo_ui: Option<String>,
     /// Loadout overrides (weapon id, ammo like `rip3`, armor preset id, comma-separated attachment ids).
     /// Without any of them the Loadout screen's active preset is used; with some, anything missing uses
@@ -146,6 +147,8 @@ impl Cli {
                          \x20                  loadout|loadout-ammo|loadout-attach]\n\
                          \n\
                          --name overrides the name saved from the main menu (EDIT NAME) for this run.\n\
+                         --demo-ui first-run | first-run-invalid | first-run-valid opens the first-launch callsign\n\
+                         \x20 prompt (empty, too short, valid); without a saved profile it opens on its own.\n\
                          --port sets the HOST GAME port (default: net.ron, 47820).\n\
                          --screenshot and --demo-ui runs render at scale factor 1 (exactly W x H pixels, also on\n\
                          \x20 a HiDPI screen) and never grab the mouse; --bot runs do not grab it either.\n\

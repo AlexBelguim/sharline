@@ -71,22 +71,27 @@ impl PlayerProfile {
     /// The host keeps at most 16 characters of a name.
     pub const MAX_NAME: usize = 16;
 
-    /// Characters a player name may use: A-Z, 0-9, `_` and `-` (lower case is upper-cased).
+    /// Characters a player name may use: letters, digits, space, `-`, `_` and `.` (the rules live in
+    /// [`crate::first_run`]).
     pub fn name_char_ok(c: char) -> bool {
-        c.is_ascii_alphanumeric() || c == '_' || c == '-'
+        crate::first_run::name_char_ok(c)
     }
 
-    /// A name as the game keeps it: allowed characters only, upper case, at most 16 (None if nothing is left).
+    /// A typed name as the game keeps it (trimmed, upper case, 3-16 characters), or None if it breaks the
+    /// rules ([`crate::first_run::validate_name`] says why).
     pub fn clean_name(s: &str) -> Option<String> {
-        let name: String =
-            s.chars().filter(|c| Self::name_char_ok(*c)).take(Self::MAX_NAME).collect::<String>().to_uppercase();
-        (!name.is_empty()).then_some(name)
+        crate::first_run::validate_name(s).ok()
     }
 
-    /// The saved profile, with its name cleaned (a broken or empty name falls back to the default).
+    /// A profile has been saved on this machine (the first-launch name prompt has been answered).
+    pub fn saved() -> bool {
+        config_dir().join(Self::FILE).is_file()
+    }
+
+    /// The saved profile, with its name sanitised (a broken or empty name falls back to the default).
     pub fn load() -> Self {
         let mut p: Self = load_or_default(Self::FILE);
-        p.name = Self::clean_name(&p.name).unwrap_or_else(|| Self::default().name);
+        p.name = crate::first_run::sanitize_name(&p.name).unwrap_or_else(|| Self::default().name);
         p
     }
 }
@@ -147,6 +152,25 @@ mod tests {
         assert_eq!(load_or_default::<Probe>("probe.ron"), p);
         std::fs::write(dir.join("probe.ron"), "not ron").unwrap();
         assert_eq!(load_or_default::<Probe>("probe.ron"), Probe::default(), "a broken file gives defaults");
+
+        // The player profile: absent on a fresh machine (the first-launch prompt shows), then saved and loaded.
+        assert!(!PlayerProfile::saved(), "no profile yet");
+        let os = PlayerProfile::default().name;
+        let fallback = crate::first_run::sanitize_name(&os).unwrap_or(os);
+        assert_eq!(PlayerProfile::load().name, fallback, "the OS user name until one is saved");
+        let p = PlayerProfile { name: PlayerProfile::clean_name(" kestrel  7 ").unwrap() };
+        save(PlayerProfile::FILE, &p).unwrap();
+        assert!(PlayerProfile::saved());
+        assert_eq!(PlayerProfile::load(), p);
+        assert_eq!(PlayerProfile::load().name, "KESTREL 7");
+        // Hand-edited or older files are sanitised, not thrown away.
+        std::fs::write(dir.join(PlayerProfile::FILE), "(name: \"  odd  name!! \")").unwrap();
+        assert_eq!(PlayerProfile::load().name, "ODD NAME");
+        std::fs::write(dir.join(PlayerProfile::FILE), "(name: \"ab\")").unwrap();
+        assert_eq!(PlayerProfile::load().name, "AB", "a short name saved under the old rules survives");
+        std::fs::write(dir.join(PlayerProfile::FILE), "(name: \"!!\")").unwrap();
+        assert_eq!(PlayerProfile::load().name, fallback, "nothing usable: the default name");
+        assert!(PlayerProfile::saved(), "but it was saved: no prompt");
         let _ = std::fs::remove_dir_all(&dir);
         unsafe { std::env::remove_var("VETF_CONFIG_DIR") };
     }
@@ -154,9 +178,10 @@ mod tests {
     #[test]
     fn player_names_are_cleaned_like_the_host_keeps_them() {
         assert_eq!(PlayerProfile::clean_name("kestrel_you"), Some("KESTREL_YOU".into()));
-        assert_eq!(PlayerProfile::clean_name("a.b c-d"), Some("ABC-D".into()));
-        assert_eq!(PlayerProfile::clean_name("ABCDEFGHIJKLMNOPQRST").map(|n| n.len()), Some(16));
-        assert_eq!(PlayerProfile::clean_name(" .. "), None);
+        assert_eq!(PlayerProfile::clean_name(" a.b  c-d "), Some("A.B C-D".into()));
+        assert_eq!(PlayerProfile::clean_name("ABCDEFGHIJKLMNOPQRST"), None, "over 16");
+        assert_eq!(PlayerProfile::clean_name(" .. "), None, "under 3");
+        assert_eq!(PlayerProfile::clean_name("ash!"), None, "not allowed");
     }
 
     #[test]
