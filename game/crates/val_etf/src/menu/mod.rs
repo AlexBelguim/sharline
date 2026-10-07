@@ -16,7 +16,7 @@ use crate::AppState;
 use crate::config::{Cli, Data};
 use crate::loadout::{ActiveLoadout, summary};
 use crate::net::{HostSettings, NetRequest, Session};
-use crate::screens::{Screen, Screens, SettingsTab};
+use crate::screens::{EscPress, EscSystems, Screen, Screens, SettingsTab};
 use crate::ui_kit::*;
 use crate::user_config::{PlayerProfile, RecentServers};
 use bevy::input_focus::{FocusCause, InputFocus};
@@ -48,12 +48,12 @@ impl Plugin for MenuPlugin {
                     follow_status,
                     follow_clicked_field,
                     clicks,
-                    keyboard,
+                    // The base under the screen stack: it only gets Esc while no screen is open.
+                    keyboard.in_set(EscSystems::Base),
                     (nav_actions, host::actions, join::actions),
                     (host::keys, join::keys),
                     sync_input_focus,
                     (nav_visuals, ring_visuals, hints, refresh_bound, name_visuals, net_line),
-                    browser_colors,
                 )
                     .chain()
                     .run_if(in_state(AppState::MainMenu)),
@@ -382,99 +382,12 @@ fn backdrop(r: &mut ChildSpawnerCommands, images: &UiImages) {
 const SHADE_X: [(f32, f32); 4] = [(0.0, 0.96), (30.0, 0.88), (56.0, 0.35), (72.0, 0.0)];
 const SHADE_Y: [(f32, f32); 2] = [(0.0, 0.85), (26.0, 0.0)];
 
-/// Browsers blend in sRGB, Bevy in linear light, so a dark overlay of alpha `a` darkens less in Bevy. Over
-/// any backdrop, `1 - (1 - a)^2.2` in linear light gives what `a` gives in the browser (a dark overlay
-/// scales the backdrop; sRGB is close to a 2.2 power curve). The stops are resampled every `step` %, so the
-/// curve holds between the CSS stops too.
-pub(crate) fn browser_shade_stops(stops: &[(f32, f32)], step: f32) -> Vec<(f32, f32)> {
-    let css_alpha = |t: f32| {
-        let i = stops.iter().rposition(|(p, _)| *p <= t).unwrap_or(0);
-        match (stops.get(i), stops.get(i + 1)) {
-            (Some((p0, a0)), Some((p1, a1))) => a0 + (a1 - a0) * ((t - p0) / (p1 - p0)).clamp(0.0, 1.0),
-            (Some((_, a)), None) => *a,
-            _ => 0.0,
-        }
-    };
-    let end = stops.last().map_or(0.0, |s| s.0);
-    let n = (end / step).ceil() as usize;
-    (0..=n).map(|k| (k as f32 * step).min(end)).map(|t| (t, 1.0 - (1.0 - css_alpha(t)).powf(2.2))).collect()
-}
-
-/// A dark translucent fill (a panel) as the browser shows it over the art: the alpha that, blended in
-/// linear light over a mid-grey backdrop, gives the browser's sRGB blend (close for dark and bright art too).
-pub(crate) fn browser_fill_over_art(c: Color) -> Color {
-    browser_blend(c, 120.0 / 255.0)
-}
-
-/// The grey the hub's white hairlines and hover fills sit on: the dark panels (#0C1016 to #10151D).
-const DARK_UI: f32 = 14.0 / 255.0;
-
-/// A translucent colour re-weighted so that Bevy's linear-light blend over a `bg` grey (sRGB 0..1) gives the
-/// browser's sRGB blend. The mockups are CSS; without this every white hairline and hover fill comes out two
-/// to three times brighter (a .09 white stroke over the panels is 35/255 in the browser, 85/255 in Bevy).
-pub(crate) fn browser_blend(c: Color, bg: f32) -> Color {
-    let lin = |s: f32| if s <= 0.04045 { s / 12.92 } else { ((s + 0.055) / 1.055).powf(2.4) };
-    let s = c.to_srgba();
-    let (a, fill) = (s.alpha, (s.red + s.green + s.blue) / 3.0);
-    if a >= 1.0 || (lin(fill) - lin(bg)).abs() < 1e-4 {
-        return c;
-    }
-    let target = lin(a * fill + (1.0 - a) * bg);
-    c.with_alpha(((target - lin(bg)) / (lin(fill) - lin(bg))).clamp(0.0, 1.0))
-}
-
-/// A light translucent colour (white strokes, hover fills) as the browser shows it over the dark UI;
-/// anything else unchanged.
-pub(crate) fn browser(c: Color) -> Color {
-    let s = c.to_srgba();
-    if s.alpha < 1.0 && (s.red + s.green + s.blue) / 3.0 > 0.5 { browser_blend(c, DARK_UI) } else { c }
-}
-
-/// Marks an entity whose colours [`browser_colors`] has re-weighted.
-#[derive(Component)]
-pub(crate) struct BrowserBlended;
-
-/// Re-weight the light translucent colours (kit strokes, button and row fills, their hover looks) of
-/// everything the menu spawns, so the hairlines read as in the mockups (see [`browser_blend`]).
-#[allow(clippy::type_complexity)]
-fn browser_colors(
-    mut new: Query<
-        (Entity, Option<&mut Looks>, Option<&mut BorderColor>, Option<&mut BackgroundColor>),
-        (Without<BrowserBlended>, Or<(Added<Looks>, Added<BorderColor>, Added<BackgroundColor>)>),
-    >,
-    parents: Query<&ChildOf>,
-    roots: Query<(), With<MenuRoot>>,
-    mut commands: Commands,
-) {
-    for (e, looks, border, bg) in &mut new {
-        if !parents.iter_ancestors(e).any(|a| roots.contains(a)) {
-            continue;
-        }
-        if let Some(mut l) = looks {
-            let l = &mut *l;
-            for look in [&mut l.idle, &mut l.hover, &mut l.on] {
-                look.bg = browser(look.bg);
-                look.border = browser(look.border);
-            }
-        }
-        if let Some(mut b) = border {
-            let b = &mut *b;
-            for side in [&mut b.top, &mut b.right, &mut b.bottom, &mut b.left] {
-                *side = browser(*side);
-            }
-        }
-        if let Some(mut c) = bg {
-            c.0 = browser(c.0);
-        }
-        commands.entity(e).insert(BrowserBlended);
-    }
-}
-
 /// The two shades over the art: dark on the left for the nav and flyout, dark at the bottom for the card
 /// and hints.
 fn shade() -> impl Bundle {
+    // A dark shade over the art: the kit converts the CSS alphas (resampled, so the curve holds between stops).
     let stops = |s: &[(f32, f32)]| {
-        browser_shade_stops(s, 2.0).into_iter().map(|(t, a)| ColorStop::new(hexa(INK, a), percent(t))).collect()
+        scrim_stops(s, 2.0).into_iter().map(|(t, a)| ColorStop::new(hexa_exact(INK, a), percent(t))).collect()
     };
     let horizontal = LinearGradient::to_right(stops(&SHADE_X)).in_color_space(InterpolationColorSpace::Srgba);
     let bottom = LinearGradient::to_top(stops(&SHADE_Y)).in_color_space(InterpolationColorSpace::Srgba);
@@ -829,13 +742,15 @@ fn clicks(
 /// Keyboard: ↑↓ select, Enter confirm, Esc back, Tab / Shift+Tab inside a flyout.
 fn keyboard(
     keys: Res<ButtonInput<KeyCode>>,
+    mut esc_press: ResMut<EscPress>,
     mut state: ResMut<MenuState>,
     mut actions: MessageWriter<MenuAction>,
     recent: Res<RecentServers>,
     screens: Res<Screens>,
     mut live: Local<bool>,
 ) {
-    // Not while an overlay is open, nor on the frame it closes (its Esc must not reach the menu).
+    // Not while an overlay is open, nor on the frame it closes (the Enter or click that closed it must
+    // not act on the menu too; Esc cannot, the screen stack used it).
     let open = screens.is_empty();
     let was_open = std::mem::replace(&mut *live, open);
     if !open || !was_open {
@@ -846,7 +761,8 @@ fn keyboard(
     let next = keys.just_pressed(KeyCode::ArrowDown) || (tab && !shift);
     let prev = keys.just_pressed(KeyCode::ArrowUp) || (tab && shift);
     let enter = keys.any_just_pressed([KeyCode::Enter, KeyCode::NumpadEnter]);
-    let esc = keys.just_pressed(KeyCode::Escape);
+    // The menu is the last stop for Esc (name edit: cancel; flyout: back to the nav; nav: nothing).
+    let esc = esc_press.take();
     let right = keys.just_pressed(KeyCode::ArrowRight);
     if !(next || prev || enter || esc || right) {
         return;
@@ -1233,41 +1149,6 @@ mod tests {
         assert_eq!(NavItem::Quit.step(1), NavItem::Play);
         assert_eq!(NavItem::Join.top(), NavItem::Play);
         assert_eq!(NavItem::Settings.top(), NavItem::Settings);
-    }
-
-    #[test]
-    fn the_shade_matches_browser_blending() {
-        let s = browser_shade_stops(&SHADE_X, 2.0);
-        assert_eq!(s.first().map(|x| x.0), Some(0.0));
-        assert_eq!(s.last(), Some(&(72.0, 0.0)), "clear from 72 %");
-        assert!(s.windows(2).all(|w| w[1].1 <= w[0].1 + 1e-6), "never gets darker to the right");
-        // At 56 % the CSS alpha is .35: the backdrop keeps (1 - .35) of its sRGB value, i.e. .65^2.2 in linear.
-        let at56 = s.iter().find(|x| x.0 == 56.0).unwrap().1;
-        assert!(((1.0 - at56) - 0.65f32.powf(2.2)).abs() < 1e-4);
-    }
-
-    #[test]
-    fn white_strokes_blend_like_the_browser() {
-        let lin = |s: f32| if s <= 0.04045 { s / 12.92 } else { ((s + 0.055) / 1.055).powf(2.4) };
-        let srgb = |l: f32| if l <= 0.0031308 { l * 12.92 } else { 1.055 * l.powf(1.0 / 2.4) - 0.055 };
-        for token in [STROKE, STROKE_MID, STROKE_HI, W06, W12] {
-            let a = token.alpha();
-            let b = browser(token).alpha();
-            // Bevy: linear-light blend of the re-weighted white over the dark UI; browser: sRGB blend.
-            let bevy = srgb(b + (1.0 - b) * lin(DARK_UI));
-            let css = DARK_UI + a * (1.0 - DARK_UI);
-            assert!((bevy - css).abs() < 1e-3, "{a}: {bevy} vs {css}");
-            assert!(b < a, "dimmer than the raw alpha");
-        }
-        assert_eq!(browser(TEXT_HI), TEXT_HI, "opaque colours stay");
-        assert_eq!(browser(K45), K45, "dark fills stay");
-    }
-
-    #[test]
-    fn panels_over_the_art_blend_like_the_browser() {
-        let a = browser_fill_over_art(PANEL_HI).alpha();
-        assert!(a > 0.82 && a < 0.97, "{a}");
-        assert_eq!(browser_fill_over_art(BG0).alpha(), 1.0, "opaque stays opaque");
     }
 
     #[test]

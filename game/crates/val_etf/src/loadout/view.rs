@@ -356,24 +356,24 @@ pub fn focus_rows(st: Res<LoadoutUi>, mut rows: Query<(&Act, &mut Active)>) {
 
 // ---------------------------------------------------------------------------------------------- looks
 
-/// Slot and magazine cards: header ink TEXT_MID, open = TEAL.
+/// Slot and magazine cards: header ink TEXT_MID, open = TEAL. (Borders on fills: `white_on`, see the kit.)
 const CARD: Looks = Looks::new(
-    Look::new(W03, STROKE_MID, TEXT_MID),
-    Look::new(W06, STROKE_HI, TEXT_MID),
+    Look::new(W03, white_on(0.16, 0.03), TEXT_MID),
+    Look::new(W06, white_on(0.32, 0.06), TEXT_MID),
     Look::new(hexa(0x00DACE, 0.08), TEAL, TEAL),
 );
 
 /// Weapon tabs.
 const TAB: Looks = Looks::new(
-    Look::new(W03, STROKE_MID, TEXT_MID),
-    Look::new(W06, STROKE_HI, TEXT_MID),
+    Look::new(W03, white_on(0.16, 0.03), TEXT_MID),
+    Look::new(W06, white_on(0.32, 0.06), TEXT_MID),
     Look::new(W07, TEXT_HI, TEXT_HI),
 );
 
 fn tier_looks(c: Color) -> Looks {
     Looks::new(
         Look::new(Color::NONE, STROKE_MID, c),
-        Look::new(W06, STROKE_HI, c),
+        Look::new(W06, white_on(0.32, 0.06), c),
         Look::new(translucent(c, 0.08), c, c),
     )
 }
@@ -1185,8 +1185,8 @@ impl View<'_> {
             for core in [Core::Bulwark, Core::Mender, Core::Volt, Core::Phase] {
                 let on = core == halo.core;
                 let looks = Looks::new(
-                    Look::new(W03, STROKE_MID, TEXT_MID),
-                    Look::new(W03, STROKE_HI, TEXT_MID),
+                    Look::new(W03, white_on(0.16, 0.03), TEXT_MID),
+                    Look::new(W03, white_on(0.32, 0.03), TEXT_MID),
                     Look::new(translucent(accent, 0.08), accent, TEXT_HI),
                 );
                 row.spawn((
@@ -1356,7 +1356,11 @@ impl View<'_> {
                                     if covered { translucent(c, 0.6) } else { STROKE_MID },
                                     TEXT_HI,
                                 ),
-                                Look::new(if covered { translucent(c, 0.08) } else { W06 }, STROKE_HI, TEXT_HI),
+                                Look::new(
+                                    if covered { translucent(c, 0.08) } else { W06 },
+                                    if covered { STROKE_HI } else { white_on(0.32, 0.06) },
+                                    TEXT_HI,
+                                ),
                                 Look::new(translucent(c, 0.08), c, TEXT_HI),
                             ),
                             Outline::new(px(if selected { 2.0 } else { 0.0 }), px(0), TEAL),
