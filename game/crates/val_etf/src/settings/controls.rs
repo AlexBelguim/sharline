@@ -3,7 +3,10 @@
 //! they are used; the `sync_*` systems redraw every control from the value, so resets and presets show at once.
 
 use super::model::*;
-use crate::ui_kit::{self as kit, Active, Disabled, Face, Ink, Looks, SegOption, SegValue, Switch, SwitchKnob, TextRole, UiFonts, UiImages};
+use crate::ui_kit::{
+    self as kit, Active, Disabled, Face, Ink, Looks, SegOption, SegValue, Switch, SwitchKnob, TextRole, UiFonts,
+    UiImages,
+};
 use crate::user_config::PlayerProfile;
 use bevy::ecs::hierarchy::ChildSpawnerCommands;
 use bevy::input::mouse::AccumulatedMouseScroll;
@@ -183,9 +186,9 @@ pub fn get_num(s: &Settings, ui: &UiState, d: &SettingsData, k: Num) -> f32 {
     match k {
         Num::Dpi => s.mouse.dpi as f32,
         Num::Cm => s.mouse.cm_per_360,
-        Num::ImportSens => ui.import_sens.unwrap_or_else(|| {
-            sens_for(s.mouse.cm_per_360, s.mouse.dpi, d.import_yaw.of(s.mouse.import_game))
-        }),
+        Num::ImportSens => ui
+            .import_sens
+            .unwrap_or_else(|| sens_for(s.mouse.cm_per_360, s.mouse.dpi, d.import_yaw.of(s.mouse.import_game))),
         Num::Optic(i) => optic_ids(d, i).first().map_or(1.0, |o| s.optic_mult(o)),
         Num::FovH => s.mouse.fov_h,
         Num::ViewmodelFov => s.mouse.viewmodel_fov,
@@ -344,7 +347,7 @@ pub fn set_choice(s: &mut Settings, ui: &mut UiState, d: &SettingsData, c: Ch, i
         Ch::Bloom => v.bloom = Bloom::from_index(i),
         Ch::Particles => v.particles = Particles::from_index(i),
         Ch::OutputDevice => {}
-        Ch::Mix => s.audio.mix = Mix::from_index(i),
+        Ch::Mix => s.audio.mix = super::model::Mix::from_index(i),
         Ch::LowMag => s.audio.low_mag_cue = i == 1,
         Ch::Ultrawide => h.ultrawide = Ultrawide::from_index(i),
         Ch::HealthNumbers => h.health_numbers = HealthNumbers::from_index(i),
@@ -397,7 +400,7 @@ pub fn choice_labels(ui: &UiState, d: &SettingsData, c: Ch, s: &Settings) -> Vec
         Ch::Bloom => l(Bloom::LABELS),
         Ch::Particles => l(Particles::LABELS),
         Ch::OutputDevice => vec![s.audio.output_device.clone()],
-        Ch::Mix => l(Mix::LABELS),
+        Ch::Mix => l(super::model::Mix::LABELS),
         Ch::LowMag | Ch::DamageNumbers => l(&["OFF", "ON"]),
         Ch::Ultrawide => l(Ultrawide::LABELS),
         Ch::HealthNumbers => l(HealthNumbers::LABELS),
@@ -559,7 +562,8 @@ pub fn glyph_text(
     let mut sym = TextFont::from_font_size(r.size * 0.92).with_font(k.symbols.clone());
     sym.font_size = FontSize::Px(r.size * 0.92);
     let runs = glyph_runs(s);
-    let mut e = p.spawn((Text::new(""), font.clone(), TextColor(color), LetterSpacing::Px(r.size * r.em), r.line, extra));
+    let mut e =
+        p.spawn((Text::new(""), font.clone(), TextColor(color), LetterSpacing::Px(r.size * r.em), r.line, extra));
     e.with_children(|c| {
         for (txt, is_sym) in runs {
             if is_sym {
@@ -699,14 +703,7 @@ pub fn seg(p: &mut ChildSpawnerCommands, k: &Kit, c: Ch, dim: bool, off: &[usize
 }
 
 /// A slider bound to a number: `width` px (or flex 1), tick labels at values.
-pub fn slider(
-    p: &mut ChildSpawnerCommands,
-    k: &Kit,
-    n: Num,
-    width: Option<f32>,
-    ticks: &[(f32, &str)],
-    dim: bool,
-) {
+pub fn slider(p: &mut ChildSpawnerCommands, k: &Kit, n: Num, width: Option<f32>, ticks: &[(f32, &str)], dim: bool) {
     let r = range(k.data, n);
     let frac = r.frac(get_num(k.s, k.ui, k.data, n));
     let mut hit = p.spawn((
@@ -762,7 +759,12 @@ pub fn slider(
                     t.spawn((
                         text_as(k.fonts, TextRole::Tick, *label, dimc(kit::TEXT_LOW, dim)),
                         TextLayout::no_wrap(),
-                        Node { position_type: PositionType::Absolute, top: px(10), left: percent(r.frac(*v) * 100.0), ..default() },
+                        Node {
+                            position_type: PositionType::Absolute,
+                            top: px(10),
+                            left: percent(r.frac(*v) * 100.0),
+                            ..default()
+                        },
                         UiTransform::from_translation(Val2::percent(-50.0, 0.0)),
                     ));
                 }
@@ -797,7 +799,12 @@ pub fn field(p: &mut ChildSpawnerCommands, k: &Kit, kind: FieldKind, width: f32,
                 node,
                 BackgroundColor(dimc(kit::K35, true)),
                 BorderColor::all(dimc(kit::STROKE_HI, true)),
-                children![(Text::new(text), font, TextColor(dimc(kit::TEXT_HI, true)), LineHeight::RelativeToFont(1.2))],
+                children![(
+                    Text::new(text),
+                    font,
+                    TextColor(dimc(kit::TEXT_HI, true)),
+                    LineHeight::RelativeToFont(1.2)
+                )],
             ))
             .id();
     }
@@ -1207,9 +1214,7 @@ pub fn dropdown_input(
                     ChildOf(list),
                     children![
                         (text_as(&fonts, TextRole::Select, label.clone(), looks.idle.ink), Ink),
-                        (
-                            kit::icon(&images, kit::Icon::Check, 14.0, if on { kit::TEXT_HI } else { Color::NONE }),
-                        ),
+                        (kit::icon(&images, kit::Icon::Check, 14.0, if on { kit::TEXT_HI } else { Color::NONE }),),
                     ],
                 ));
             }

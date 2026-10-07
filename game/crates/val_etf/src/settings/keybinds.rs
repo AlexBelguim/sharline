@@ -5,12 +5,12 @@
 use super::bindings::{Action, Binding};
 use super::controls::{Kit, glyph_runs, text_as};
 use super::model::{Settings, move_label};
-use crate::ui_kit::{self as kit, Face, NodeImageMode, Shape, TextRole};
+use crate::ui_kit::{self as kit, Face, Shape, TextRole};
 use bevy::ecs::hierarchy::ChildSpawnerCommands;
 use bevy::input::mouse::AccumulatedMouseScroll;
 use bevy::prelude::*;
 use bevy::text::LetterSpacing;
-use bevy::ui::widget::NodeImageMode as _;
+use bevy::ui::widget::NodeImageMode;
 
 /// What a key cap rebinds.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -91,7 +91,13 @@ const RIGHT: &[Row] = &[
 /// Build the tab's two cards into the pane.
 pub fn build(p: &mut ChildSpawnerCommands, k: &Kit) {
     super::controls::card(p, 1.05, 14.0, Node::default(), |c| {
-        super::controls::h2(c, k, "KEYBOARD & MOUSE", Some(("CLICK A KEY TO REBIND · BACKSPACE CLEARS · ESC CANCELS", None)), 0.0);
+        super::controls::h2(
+            c,
+            k,
+            "KEYBOARD & MOUSE",
+            Some(("CLICK A KEY TO REBIND · BACKSPACE CLEARS · ESC CANCELS", None)),
+            0.0,
+        );
         table(c, k, LEFT, [352.0, 158.0, 116.0]);
     });
     super::controls::card(p, 1.0, 0.0, Node::default(), |c| {
@@ -111,7 +117,7 @@ pub fn build(p: &mut ChildSpawnerCommands, k: &Kit) {
     });
 }
 
-fn grid(cols: [f32; 3]) -> Vec<GridTrack> {
+fn grid(cols: [f32; 3]) -> Vec<RepeatedGridTrack> {
     vec![GridTrack::px(cols[0]), GridTrack::px(cols[1]), GridTrack::px(cols[2]), GridTrack::flex(1.0)]
 }
 
@@ -174,36 +180,46 @@ fn action_row(
     ))
     .with_children(|r| {
         // action name (+ LATER, + conflict note)
-        r.spawn(Node { padding: UiRect::horizontal(px(10)), align_items: AlignItems::Center, column_gap: px(8), ..default() })
-            .with_children(|c| {
-                let role = TextRole::TableCell;
-                let ink = if later { kit::TEXT_MID } else { kit::TEXT };
-                let note_font = k.fonts.role_font(TextRole::Note);
-                c.spawn(text_as(k.fonts, role, label, ink)).with_children(|s| {
-                    for a in actions {
-                        s.spawn((TextSpan::new(""), note_font.clone(), TextColor(kit::WARN), ConflictNote(*a)));
-                    }
-                });
-                if later {
-                    c.spawn(k.fonts.micro("LATER"));
+        r.spawn(Node {
+            padding: UiRect::horizontal(px(10)),
+            align_items: AlignItems::Center,
+            column_gap: px(8),
+            ..default()
+        })
+        .with_children(|c| {
+            let role = TextRole::TableCell;
+            let ink = if later { kit::TEXT_MID } else { kit::TEXT };
+            let note_font = k.fonts.role_font(TextRole::Note);
+            c.spawn(text_as(k.fonts, role, label, ink)).with_children(|s| {
+                for a in actions {
+                    s.spawn((TextSpan::new(""), note_font.clone(), TextColor(kit::WARN), ConflictNote(*a)));
                 }
             });
+            if later {
+                c.spawn(k.fonts.micro("LATER"));
+            }
+        });
         // primary and secondary
         for slot in 0..2 {
-            r.spawn(Node { padding: UiRect::horizontal(px(10)), column_gap: px(4), align_items: AlignItems::Center, ..default() })
-                .with_children(|c| {
-                    if let Some((cap, ink)) = fixed {
-                        if slot == 0 {
-                            static_cap(c, k, cap, ink);
-                        }
-                    } else if is_move {
-                        key_cap(c, k, CapTarget::Move(slot));
-                    } else {
-                        for a in actions {
-                            key_cap(c, k, CapTarget::Action(*a, slot));
-                        }
+            r.spawn(Node {
+                padding: UiRect::horizontal(px(10)),
+                column_gap: px(4),
+                align_items: AlignItems::Center,
+                ..default()
+            })
+            .with_children(|c| {
+                if let Some((cap, ink)) = fixed {
+                    if slot == 0 {
+                        static_cap(c, k, cap, ink);
                     }
-                });
+                } else if is_move {
+                    key_cap(c, k, CapTarget::Move(slot));
+                } else {
+                    for a in actions {
+                        key_cap(c, k, CapTarget::Action(*a, slot));
+                    }
+                }
+            });
         }
         // gamepad (a reference only: the game reads no gamepad yet)
         r.spawn(Node { padding: UiRect::horizontal(px(10)), ..default() }).with_children(|c| {
@@ -400,13 +416,13 @@ pub fn capture(
         got = Some(None);
     }
     if got.is_none()
-        && let Some(k) = keys.get_just_pressed().copied().find(|k| Binding::is_bindable_key(*k))
+        && let Some(k) = { keys.get_just_pressed().copied().find(|k| Binding::is_bindable_key(*k)) }
     {
         keys.clear_just_pressed(k);
         got = Some(Some(Binding::Key(k)));
     }
     if got.is_none()
-        && let Some(m) = mouse.get_just_pressed().copied().next()
+        && let Some(m) = { mouse.get_just_pressed().copied().next() }
     {
         // A click on another cap moves the listening there (the UI handles it); anything else binds.
         let on_other_cap = caps.iter().any(|(c, i)| c.target != target && *i != Interaction::None);
