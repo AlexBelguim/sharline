@@ -878,8 +878,22 @@ fn update_overlays(
     }
     if show_board {
         let mut lines = vec![];
+        if session.role == crate::net::Role::Host && session.join_code.is_none() {
+            if let Some(error) = &session.internet_error {
+                lines.push(format!("INTERNET INVITE UNAVAILABLE\n{error}"));
+                if let Some(addr) = session.lan_addr {
+                    lines.push(format!("LAN / DIRECT IP: {addr}"));
+                }
+            } else {
+                lines.push("PREPARING INTERNET INVITE...".into());
+            }
+        }
         if let Some(code) = &session.join_code {
-            lines.push(format!("JOIN CODE  {code}"));
+            if code.starts_with("SL1-") {
+                lines.push("INTERNET INVITE READY - F6 TO COPY".into());
+            } else {
+                lines.push(format!("JOIN CODE  {code}"));
+            }
             if let Some(addr) = session.lan_addr {
                 lines.push(format!("(LAN {addr})"));
             }

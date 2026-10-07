@@ -1,7 +1,7 @@
 # SHARD/LINE: game code (`game/`)
 
-Rust + Bevy 0.19 + lightyear 0.30, as chosen in `design/systems` (network diagram). It is a host-and-join
-listen server: whoever hosts runs the server and plays in the same process, and friends join over UDP.
+Rust 1.91+ + Bevy 0.19 + lightyear 0.30, as chosen in `design/systems` (network diagram). It is a host-and-join
+listen server: whoever hosts runs the server and plays in the same process, and friends join through Iroh or direct UDP.
 
 ![main menu](screenshots/main_menu.png)
 
@@ -23,12 +23,10 @@ After mockups 04 / 04b (`design/ui/mockups`). The left nav has **PLAY** (with **
   `--port`) and password (shown, not available yet). **CREATE LOBBY** starts team deathmatch on Showhome until
   the lobby screen exists. A busy port is reported in the panel.
 - **GUN RANGE** hosts the range the same way, so friends can join it.
-- **PLAY > JOIN GAME:** **JOIN CODE** (e.g. `6000-105E-PC`) or **DIRECT IP** (`192.168.1.20` or `ip:port`).
-  Both take either: the code is only your host's address and port, there is no relay. **PASTE** (or Ctrl+V)
-  fills the field from the clipboard; this needs Bevy's `system_clipboard` feature, which is not enabled yet,
-  so for now it only sees text copied inside the game.
-  **RECENT** lists the last three games you joined (click to fill, double-click or Enter to join).
-  **ON YOUR NETWORK** needs the LAN beacon, which is not built yet. Connection problems show under the field.
+- **PLAY > JOIN GAME:** paste an `SL1-...` internet invite or a direct `ip:port` address.
+  Legacy short LAN codes are also accepted. **PASTE** and Ctrl+V use the system clipboard.
+  **RECENT** lists the last three games joined. **ON YOUR NETWORK** discovery is not built yet.
+  Connection problems show under the field.
 - **Player card:** your name (**EDIT NAME**: A-Z, 0-9, `_`, `-`, up to 16), the loadout, the six magazine
   slots in order and the team-deathmatch gear cost against the budget (**OVER BUDGET** means the host will
   give you the default loadout).
@@ -38,15 +36,47 @@ After mockups 04 / 04b (`design/ui/mockups`). The left nav has **PLAY** (with **
   `VETF_CONFIG_DIR` overrides): the name (`profile.ron`) and the recent games (`recent.ron`).
 
 ### Hosting and joining
-- Hosting (HOST GAME or GUN RANGE) listens on **UDP 47820** unless you change the port.
-  Hold **Tab** (or press **Esc**) to see the **join code**, e.g. `6000-105E-PC`, which encodes your address and
-  port.
-- Joining: paste the join code, or type an IP (`192.168.1.20`) or `ip:port`.
-- How a friend reaches you, per the network design:
-  - **LAN:** works as is.
-  - **Internet:** forward UDP 47820 on your router to your PC. Automatic UPnP is not built yet.
-  - **No port forwarding:** use a VPN mesh such as Tailscale, ZeroTier or Radmin. Share your VPN IP, or the
-    join code shown while the VPN address is your route.
+
+**Internet play (default):** choose HOST GAME with WHO CAN JOIN set to **Join code**.
+The host runs the match; Iroh connects friends directly where possible and uses public relays when
+necessary. Nobody needs Tailscale, a Steam account, or manual port forwarding.
+
+1. Host a match or the gun range. Allow up to 30 seconds for the internet invite to become ready.
+2. Hold Tab or press Esc to see the invite status, then press **F6** to copy the invite.
+3. Send that invite to friends. They paste it in JOIN GAME and select JOIN LOBBY.
+4. Invites start with `SL1-` and are valid only while that hosting session is running.
+   Restarting hosting creates a new identity/invite. Recent entries for old sessions will no longer connect.
+
+System clipboard support is enabled, including Ctrl+V and the PASTE button.
+The public Iroh discovery and relay services need internet access and are rate-limited, with no uptime
+guarantee. A relayed connection can have higher latency. If the host leaves, the match ends.
+
+**Direct IP / LAN:** select Direct IP or LAN only when hosting to avoid starting Iroh.
+Friends can still enter `ip:port` or the old short address code. The default is UDP 47820.
+Internet direct-IP connections still require a publicly reachable port or a VPN.
+The LAN discovery list is not implemented, and LAN only is not a firewall/access-control boundary.
+
+**Transport:** Iroh runs on a separate worker and carries unreliable QUIC datagrams. Loopback sockets
+adapt these to Lightyear's existing netcode transport, one socket per remote peer. Bounded fragmentation
+preserves packet boundaries without adding reliable-stream head-of-line blocking. Leaving stops the
+worker and releases its sockets. Gameplay authority, prediction and replication remain in Lightyear.
+This adapter can also carry a future headless server's packets; headless hosting and persistent
+extraction inventories are not implemented by this change.
+
+Optional environment variables (set before launching):
+- `VETF_IROH_RELAY_ONLY=1`: disable direct IP transport to test relay fallback.
+- `VETF_IROH_RELAY_URL=https://relay.example.com`: use your own Iroh-compatible relay.
+  Endpoint-ID discovery still uses the public Iroh discovery service.
+
+Validation:
+```sh
+cargo test --workspace
+# Opt-in public-infrastructure smoke test; normal tests do not need public relays:
+cargo test -p val_etf public_invite_roundtrip_and_shutdown -- --ignored --nocapture
+# Run the same test with VETF_IROH_RELAY_ONLY=1 to check the relay path.
+```
+
+A real friend on a different network should still confirm gameplay and latency before a release.
 
 ### Controls
 
@@ -64,7 +94,8 @@ After mockups 04 / 04b (`design/ui/mockups`). The left nav has **PLAY** (with **
 | R | Tap: reload the next magazine in slot order. Hold: magazine radial; release over a slot (or press 1-6) to load it. Magazines keep their slots |
 | H | Heal ring: click an item; a region item opens a second ring to pick the region. Right click steps back |
 | T | Mag check. Gives an estimate only; there is no ammo counter anywhere (genre rule) |
-| Tab | Scoreboard and join code |
+| Tab | Scoreboard and invite status |
+| F6 | Copy the host's invite to the system clipboard |
 | Esc | Pause: resume or leave |
 
 ### Command line (automation and testing)

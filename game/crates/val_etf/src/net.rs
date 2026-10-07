@@ -1,11 +1,11 @@
 //! Hosting and joining: lightyear server / client entities and the connection lifecycle.
 //!
-//! Host = listen server: a netcode + UDP server entity plus a local "HostClient" linked to it in the same
-//! app (no socket for the host's own player). Join = a netcode + UDP client entity dialling the address
-//! from a join code.
+//! Internet invites use an Iroh datagram bridge around the existing netcode/UDP transport.
+//! The host's player uses an in-process link; direct IP and legacy LAN codes still use UDP.
 
 use crate::AppState;
 use crate::config::{Cli, CurrentLevel, Data, level_by_name};
+use crate::iroh_transport::{self, Bridge, Event as InternetEvent};
 use crate::user_config::{RecentServer, RecentServers};
 use bevy::prelude::*;
 use lightyear::netcode::client_plugin::NetcodeConfig as ClientNetcodeConfig;
@@ -28,7 +28,7 @@ impl Plugin for NetPlugin {
             .insert_resource(crate::user_config::load_or_default::<RecentServers>(RecentServers::FILE))
             .init_resource::<RecentPending>()
             .add_message::<NetRequest>()
-            .add_systems(Update, handle_requests)
+            .add_systems(Update, (poll_internet, handle_requests, copy_invite).chain())
             .add_systems(Startup, auto_start)
             .add_systems(OnEnter(AppState::InGame), arm_recent)
             .add_systems(Update, record_recent.run_if(in_state(AppState::InGame)))
@@ -37,9 +37,8 @@ impl Plugin for NetPlugin {
     }
 }
 
-/// Who may join a hosted game (the HOST GAME panel's WHO CAN JOIN). A join code is only the host's address
-/// and port, with no relay, so JOIN CODE and DIRECT IP reach the same hosts; the choice decides what the
-/// lobby, scoreboard and ESC menu show (the code or ip:port). LAN ONLY needs the LAN beacon (not built).
+/// Join-code hosting enables Iroh discovery and relay fallback. Direct-IP and LAN modes
+/// keep the UDP path and do not contact Iroh services. LAN discovery is not built yet.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
 pub enum JoinAccess {
     #[default]
@@ -151,6 +150,9 @@ pub fn is_lan_ip(ip: IpAddr) -> bool {
 /// What to store for a typed join text: a canonical join code, or "ip:port" (`by_ip`). None if it does
 /// not parse.
 pub fn canonical_join_text(text: &str, default_port: u16) -> Option<(String, bool)> {
+    if let Some(id) = iroh_transport::parse_invite(text) {
+        return Some((iroh_transport::invite(id), false));
+    }
     if let Some(addr) = JoinCode::decode(text.trim()) {
         return Some((JoinCode::encode(addr), false));
     }
@@ -169,10 +171,13 @@ pub enum Role {
 #[derive(Resource, Default)]
 pub struct Session {
     pub role: Role,
+    internet: Option<Bridge>,
     pub server: Option<Entity>,
     pub client: Option<Entity>,
     /// Shown in the lobby / scoreboard so friends can join.
     pub join_code: Option<String>,
+    /// Internet setup failures do not interrupt offline practice or existing LAN players.
+    pub internet_error: Option<String>,
     pub lan_addr: Option<SocketAddr>,
     /// Last connection problem, shown on the main menu.
     pub status: Option<String>,
@@ -223,6 +228,17 @@ fn handle_requests(
                     continue;
                 }
                 let max_players = host.max_players.clamp(2, max_players_cap(&data));
+                session.internet_error = None;
+                if host.access == JoinAccess::JoinCode {
+                    match Bridge::host(port, netcode_max_clients(max_players)) {
+                        Ok(bridge) => session.internet = Some(bridge),
+                        Err(e) => {
+                            session.status = Some(format!("Cannot start internet hosting: {e}"));
+                            session.host_error = true;
+                            continue;
+                        }
+                    }
+                }
                 let level = level_by_name(map);
                 info!("hosting {} on UDP {port} for up to {max_players} players", level.name);
                 commands.insert_resource(CurrentLevel(Arc::new(level)));
@@ -252,10 +268,14 @@ fn handle_requests(
                 session.server = Some(server);
                 session.client = Some(client);
                 session.lan_addr = lan;
-                session.join_code = lan.and_then(|a| match a {
-                    SocketAddr::V4(v4) => Some(JoinCode::encode(v4)),
-                    _ => None,
-                });
+                session.join_code = if host.access == JoinAccess::JoinCode {
+                    None
+                } else {
+                    lan.and_then(|a| match a {
+                        SocketAddr::V4(v4) => Some(JoinCode::encode(v4)),
+                        _ => None,
+                    })
+                };
                 session.status = None;
                 session.host_error = false;
                 session.lobby_name = Some(host.lobby_name_for(&session.local_name));
@@ -271,7 +291,22 @@ fn handle_requests(
                     continue;
                 }
                 session.host_error = false;
-                let Some(server_addr) = JoinCode::parse(address, data.net.port) else {
+                let internet_id = iroh_transport::parse_invite(address);
+                let server_addr = if let Some(id) = internet_id {
+                    match Bridge::join(id) {
+                        Ok((bridge, addr)) => {
+                            session.internet = Some(bridge);
+                            Some(addr)
+                        }
+                        Err(e) => {
+                            session.status = Some(format!("Cannot start internet join: {e}"));
+                            continue;
+                        }
+                    }
+                } else {
+                    JoinCode::parse(address, data.net.port)
+                };
+                let Some(server_addr) = server_addr else {
                     session.status = Some(format!("\"{}\" is not a join code or address.", address.trim()));
                     continue;
                 };
@@ -283,10 +318,15 @@ fn handle_requests(
                     private_key: vetf_net::PRIVATE_KEY,
                     protocol_id: vetf_net::protocol_id(),
                 };
-                let config = ClientNetcodeConfig { client_timeout_secs: 5, token_expire_secs: -1, ..default() };
+                let config = ClientNetcodeConfig {
+                    client_timeout_secs: if internet_id.is_some() { 45 } else { 5 },
+                    token_expire_secs: -1,
+                    ..default()
+                };
                 let netcode = match NetcodeClient::new(auth, config) {
                     Ok(n) => n,
                     Err(e) => {
+                        session.internet = None;
                         session.status = Some(format!("cannot create a connection: {e:?}"));
                         continue;
                     }
@@ -308,10 +348,16 @@ fn handle_requests(
                 session.role = Role::Client;
                 session.client = Some(client);
                 session.join_code = Some(address.clone());
-                session.status = Some(format!("connecting to {server_addr}..."));
+                session.status = Some(if internet_id.is_some() {
+                    "Connecting to internet host...".into()
+                } else {
+                    format!("connecting to {server_addr}...")
+                });
                 next.set(AppState::Connecting);
             }
             NetRequest::Leave { reason } => {
+                session.internet = None;
+                session.internet_error = None;
                 if let Some(server) = session.server.take() {
                     commands.trigger(Stop { entity: server });
                     commands.entity(server).try_despawn();
@@ -453,6 +499,42 @@ fn random_client_id() -> u64 {
     vetf_sim::rng::SplitMix::from_parts(&[nanos as u64, std::process::id() as u64]).next_u64().max(1)
 }
 
+/// Network work stays off the render thread; only lifecycle events cross into Bevy.
+fn poll_internet(mut session: ResMut<Session>, mut requests: MessageWriter<NetRequest>) {
+    while let Some(event) = session.internet.as_ref().and_then(Bridge::poll) {
+        match event {
+            InternetEvent::Ready(invite) => {
+                info!("Internet invite: {invite}");
+                session.join_code = Some(invite);
+            }
+            InternetEvent::Failed(error) => {
+                warn!("{error}");
+                if session.role == Role::Host {
+                    session.internet_error = Some(error);
+                    session.internet = None;
+                } else {
+                    requests.write(NetRequest::Leave { reason: Some(error) });
+                }
+                break;
+            }
+        }
+    }
+}
+
+fn copy_invite(
+    keys: Res<ButtonInput<KeyCode>>,
+    session: Res<Session>,
+    clipboard: Option<ResMut<bevy::clipboard::Clipboard>>,
+) {
+    if session.role == Role::Host
+        && keys.just_pressed(KeyCode::F6)
+        && let (Some(invite), Some(mut clipboard)) = (&session.join_code, clipboard)
+        && let Err(e) = clipboard.set_text(invite.clone())
+    {
+        warn!("Cannot copy invite: {e}");
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -515,6 +597,8 @@ mod tests {
         assert_eq!(canonical_join_text(&code.to_lowercase().replace('-', ""), 47820), Some((code, false)));
         assert_eq!(canonical_join_text("192.168.1.40", 47820), Some(("192.168.1.40:47820".into(), true)));
         assert_eq!(canonical_join_text("nope", 47820), None);
+        let invite = iroh_transport::invite(iroh::SecretKey::from_bytes(&[8; 32]).public());
+        assert_eq!(canonical_join_text(&invite.to_lowercase(), 47820), Some((invite, false)));
     }
 
     #[test]

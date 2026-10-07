@@ -5,7 +5,7 @@ members = ["crates/vetf_sim", "crates/vetf_net", "crates/val_etf"]
 [workspace.package]
 version = "0.1.0"
 edition = "2024"
-rust-version = "1.89"
+rust-version = "1.91"
 publish = false
 
 [workspace.dependencies]

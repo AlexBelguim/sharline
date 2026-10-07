@@ -140,7 +140,7 @@ pub(super) fn spawn_flyout(r: &mut ChildSpawnerCommands, ctx: &Ctx, recent: &Rec
                         tnum: true,
                         placeholder: placeholder.to_string(),
                         // "255.255.255.255:65535"
-                        max_chars: 21,
+                        max_chars: 80,
                         filter: Some(join_char),
                         initial: String::new(),
                     },

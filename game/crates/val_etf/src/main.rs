@@ -10,6 +10,7 @@ mod client;
 mod config;
 mod esc_menu;
 mod hud;
+mod iroh_transport;
 mod loadout;
 mod menu;
 mod net;
@@ -69,7 +70,9 @@ fn main() -> AppExit {
     // The name saved from the main menu, unless --name overrides it for this run.
     let profile = user_config::PlayerProfile::load();
     let local_name = if cli.name_given { cli.name.clone() } else { profile.name.clone() };
-    app.insert_resource(net::Session { local_name, ..Default::default() });
+    let mut session = net::Session::default();
+    session.local_name = local_name;
+    app.insert_resource(session);
     app.insert_resource(profile);
     app.insert_resource(cli);
     app.init_state::<AppState>();

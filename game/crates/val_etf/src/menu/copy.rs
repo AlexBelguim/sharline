@@ -181,7 +181,13 @@ pub fn recent_subline(map: &str, address: &str, by_ip: bool, last_joined: u64, n
         let ago = if days == 1 { "1 day ago".to_string() } else { format!("{days} days ago") };
         return format!("{mode} · last seen {ago}");
     }
-    if by_ip { format!("{label} · {address}") } else { format!("{label} · code {address}") }
+    if crate::iroh_transport::parse_invite(address).is_some() {
+        format!("{label} · internet invite (session only)")
+    } else if by_ip {
+        format!("{label} · {address}")
+    } else {
+        format!("{label} · code {address}")
+    }
 }
 
 /// CREATE LOBBY's help while it starts the match directly (phase 1, before the lobby screen).
@@ -195,9 +201,8 @@ pub const PORT_HELP: &str = "UDP. Only needed for Direct IP (port-forward).";
 pub const PORT_ERROR: &str = "Port must be 1024–65535.";
 pub const PASSWORD_PLACEHOLDER: &str = "optional · not available yet";
 pub const CODE_LABEL: &str = "Code from your host";
-pub const CODE_PLACEHOLDER: &str = "XXXX-XXXX-XX";
-pub const CODE_HELP: &str = "10 characters, not case-sensitive, dashes optional. The code holds the host's address and \
-                             port, so an IP address works here too.";
+pub const CODE_PLACEHOLDER: &str = "Paste host invite";
+pub const CODE_HELP: &str = "Paste the host's SL1 invite. Connects over the internet without port forwarding.";
 pub const IP_LABEL: &str = "Host address";
 /// The spec's "192.168.1.20 or 192.168.1.20:47820" does not fit beside PASTE at 30 px; the help explains :port.
 pub const IP_PLACEHOLDER: &str = "192.168.1.20:47820";
