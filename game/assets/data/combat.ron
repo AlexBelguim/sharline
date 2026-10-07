@@ -1,0 +1,28 @@
+// Combat rules that are not weapon or armor stats. Values come from the design diagrams
+// (design/systems/diagrams/damage_flow.png and net_architecture.png).
+(
+    // HP hits briefly slow the victim ("tagging") and punch their aim.
+    wounded: (
+        tag_slow_frac: 0.25,
+        tag_slow_s: 0.4,
+        aim_punch_hp_deg: 0.6,
+        aim_punch_shield_deg: 0.2,
+    ),
+    // Bulwark core: flinch taken while the shield is up.
+    bulwark_flinch_mult: 0.5,
+    // Volt core: shock pulse when the shield breaks.
+    volt_pulse: (radius_m: 4.0, slow_frac: 0.3, duration_s: 1.5),
+    // A zone at 0 HP is broken until the player is healed or respawns.
+    broken_arms: (sway_mult: 2.0, ads_time_mult: 1.3, recoil_mult: 1.25),
+    broken_legs: (move_mult: 0.7),
+    // Host-side checks on a client's shot claim.
+    shot_validation: (
+        history_s: 0.5,
+        max_rewind_s: 0.2,
+        hitbox_inflate_m: 0.15,
+        hitbox_inflate_per_speed_s: 0.03,
+        // Extra angle allowed between the claimed ray and the host's copy of the shooter's aim,
+        // on top of the weapon's current spread (covers recoil and input timing).
+        aim_tolerance_deg: 6.0,
+    ),
+)

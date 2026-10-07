@@ -1,0 +1,16 @@
+[package]
+name = "vetf_sim"
+description = "Engine-free gameplay simulation: data, damage, halo shields, weapons, movement."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+publish.workspace = true
+
+[dependencies]
+glam.workspace = true
+serde.workspace = true
+ron.workspace = true
+thiserror.workspace = true
+
+[dev-dependencies]
+serde_json.workspace = true

@@ -1,0 +1,42 @@
+// Health zones and halo shields. Mirrors design/systems/data/armors.slice.json.
+// Presets list only the inputs (core, tier, coverage); weight class, capacity, regen and the movement
+// penalties are derived in code from the tables below, and a test checks the result against the design.
+(
+    zone_hp: (head: 45.0, torso: 120.0, arms: 70.0, legs: 85.0),
+    weight_effects: {
+        None: (move: 1.0, accel: 1.0, fuel: 1.0, slide_boost: 2.0, mantle: 1.0, energy_per_min: 0.0, cells: 0),
+        Light: (move: 1.0, accel: 1.0, fuel: 1.0, slide_boost: 2.0, mantle: 1.0, energy_per_min: 2.0, cells: 1),
+        Medium: (move: 0.95, accel: 0.95, fuel: 0.9, slide_boost: 1.7, mantle: 1.1, energy_per_min: 4.0, cells: 2),
+        Heavy: (move: 0.88, accel: 0.85, fuel: 0.75, slide_boost: 1.3, mantle: 1.25, energy_per_min: 8.0, cells: 3),
+    },
+    // Shield capacity per core, indexed by tier 1..4.
+    capacity: {
+        Bulwark: [65.0, 100.0, 130.0, 165.0],
+        Volt: [50.0, 75.0, 100.0, 125.0],
+        Mender: [40.0, 60.0, 80.0, 100.0],
+        Phase: [35.0, 55.0, 70.0, 90.0],
+    },
+    regen: {
+        Bulwark: (delay_s: 5.0, delay_after_break_s: 8.0, rate_per_s: 10.0),
+        Volt: (delay_s: 4.0, delay_after_break_s: 7.0, rate_per_s: 15.0),
+        Mender: (delay_s: 2.5, delay_after_break_s: 5.0, rate_per_s: 20.0),
+        Phase: (delay_s: 3.5, delay_after_break_s: 6.0, rate_per_s: 15.0),
+    },
+    // Protection score = tier x covered zones.
+    weight_bands: [(Light, 1, 4), (Medium, 5, 8), (Heavy, 9, 16)],
+    status_effects: {
+        Bulwark: "flinch (aim punch) taken -50% while shield > 0",
+        Mender: "fast out-of-combat regen (see regen table)",
+        Volt: "on break: shock pulse r=4 m, enemies slowed 30% for 1.5 s",
+        Phase: "immune to slow effects (Volt pulse, tagging slow)",
+    },
+    presets: [
+        (id: "arm_none", name: "No halo", core: None, tier: 0, coverage: []),
+        (id: "arm_phase_runner", name: "Phase Runner", core: Some(Phase), tier: 1, coverage: [torso]),
+        (id: "arm_phase_ghost", name: "Phase Ghost", core: Some(Phase), tier: 4, coverage: [head]),
+        (id: "arm_mender_scout", name: "Mender Scout", core: Some(Mender), tier: 2, coverage: [head, torso]),
+        (id: "arm_volt_line", name: "Volt Line", core: Some(Volt), tier: 3, coverage: [torso, arms]),
+        (id: "arm_bulwark_assault", name: "Bulwark Assault", core: Some(Bulwark), tier: 3, coverage: [head, torso, arms]),
+        (id: "arm_bulwark_jugg", name: "Bulwark Juggernaut", core: Some(Bulwark), tier: 4, coverage: [head, torso, arms, legs]),
+    ],
+)

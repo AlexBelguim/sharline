@@ -1,0 +1,39 @@
+// Learnable view-kick patterns. Mirrors design/systems/data/mako_recoil_pattern.json.
+// Each kick is the view rotation (degrees, pitch up +, yaw right +) applied after shot `after_shot`.
+// Past the last kick, the pattern loops from `loop_from_index` (0-based) for extended magazines.
+{
+    "mako_recoil_pattern": (
+        loop_from_index: 20,
+        kicks: [
+            (after_shot: 1, pitch: 0.55, yaw: 0.0),
+            (after_shot: 2, pitch: 0.6, yaw: 0.02),
+            (after_shot: 3, pitch: 0.62, yaw: -0.03),
+            (after_shot: 4, pitch: 0.58, yaw: 0.04),
+            (after_shot: 5, pitch: 0.52, yaw: 0.08),
+            (after_shot: 6, pitch: 0.45, yaw: 0.12),
+            (after_shot: 7, pitch: 0.38, yaw: 0.15),
+            (after_shot: 8, pitch: 0.3, yaw: 0.18),
+            (after_shot: 9, pitch: 0.22, yaw: 0.2),
+            (after_shot: 10, pitch: 0.15, yaw: 0.22),
+            (after_shot: 11, pitch: 0.1, yaw: 0.18),
+            (after_shot: 12, pitch: 0.08, yaw: 0.1),
+            (after_shot: 13, pitch: 0.06, yaw: -0.05),
+            (after_shot: 14, pitch: 0.05, yaw: -0.18),
+            (after_shot: 15, pitch: 0.05, yaw: -0.25),
+            (after_shot: 16, pitch: 0.04, yaw: -0.28),
+            (after_shot: 17, pitch: 0.04, yaw: -0.28),
+            (after_shot: 18, pitch: 0.04, yaw: -0.25),
+            (after_shot: 19, pitch: 0.03, yaw: -0.2),
+            (after_shot: 20, pitch: 0.03, yaw: -0.12),
+            (after_shot: 21, pitch: 0.03, yaw: 0.0),
+            (after_shot: 22, pitch: 0.03, yaw: 0.1),
+            (after_shot: 23, pitch: 0.03, yaw: 0.18),
+            (after_shot: 24, pitch: 0.03, yaw: 0.22),
+            (after_shot: 25, pitch: 0.03, yaw: 0.22),
+            (after_shot: 26, pitch: 0.03, yaw: 0.18),
+            (after_shot: 27, pitch: 0.03, yaw: 0.1),
+            (after_shot: 28, pitch: 0.02, yaw: 0.0),
+            (after_shot: 29, pitch: 0.02, yaw: -0.1),
+        ],
+    ),
+}

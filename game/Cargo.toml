@@ -1,0 +1,43 @@
+[workspace]
+resolver = "3"
+members = ["crates/vetf_sim", "crates/vetf_net", "crates/val_etf"]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.89"
+publish = false
+
+[workspace.dependencies]
+vetf_sim = { path = "crates/vetf_sim" }
+vetf_net = { path = "crates/vetf_net" }
+
+# Engine + netcode, as chosen in design/systems (net_architecture): Bevy 0.19 + lightyear 0.30.
+bevy = { version = "0.19.1", default-features = false }
+lightyear = { version = "0.30.1", default-features = false, features = [
+  "std",
+  "client",
+  "server",
+  "replication",
+  "prediction",
+  "interpolation",
+  "netcode",
+  "udp",
+  "input_native",
+] }
+
+glam = { version = "0.32", features = ["serde"] }
+serde = { version = "1", features = ["derive"] }
+ron = "0.12"
+serde_json = "1"
+thiserror = "2"
+
+[profile.dev]
+opt-level = 1
+
+# Engine crates are slow in debug; optimise dependencies even in dev builds.
+[profile.dev.package."*"]
+opt-level = 3
+
+[profile.release]
+codegen-units = 4
