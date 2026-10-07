@@ -11,6 +11,7 @@ mod config;
 mod demo_mode;
 mod esc_menu;
 mod hud;
+mod invite;
 mod iroh_transport;
 mod loadout;
 mod menu;
@@ -98,6 +99,7 @@ fn main() -> AppExit {
     app.add_plugins((
         shared::SharedPlugin,
         net::NetPlugin,
+        invite::InvitePlugin,
         server::ServerPlugin,
         client::ClientPlugin,
         render::RenderPlugin,
