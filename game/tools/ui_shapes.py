@@ -37,8 +37,12 @@ def supersample(w, h, draw_fn, scale=4):
 
 
 def pip(w, h, body_w, skew_deg, name):
-    """A tier pip: a body_w x h parallelogram leaning like '/' (2x size)."""
-    shift = math.tan(math.radians(skew_deg)) * h / 2
+    """A tier pip: a body_w x h parallelogram leaning like '/' (2x size).
+
+    CSS skewX(a) moves a point by tan(a) * y (y down from the centre), so skewX(-14deg) shifts the top to
+    the right: the top edge moves by -tan(a) * h / 2.
+    """
+    shift = -math.tan(math.radians(skew_deg)) * h / 2
 
     def d(dr, s):
         cx = w / 2
