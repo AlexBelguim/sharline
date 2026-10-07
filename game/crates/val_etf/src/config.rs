@@ -177,7 +177,7 @@ pub fn parse_mags(s: &str) -> Vec<vetf_sim::data::AmmoChoice> {
     s.split(',').filter_map(parse_ammo).take(vetf_sim::weapon::MAX_MAGS).collect()
 }
 
-fn default_name() -> String {
+pub fn default_name() -> String {
     std::env::var("USER").or_else(|_| std::env::var("USERNAME")).map(|u| u.to_uppercase()).unwrap_or("AGENT".into())
 }
 

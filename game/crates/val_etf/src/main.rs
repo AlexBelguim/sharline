@@ -8,14 +8,19 @@
 
 mod client;
 mod config;
+mod esc_menu;
 mod hud;
+mod loadout;
 mod menu;
 mod net;
 mod radial;
 mod render;
+mod screens;
 mod server;
+mod settings;
 mod shared;
 mod ui_kit;
+mod user_config;
 
 use bevy::prelude::*;
 use bevy::window::{PresentMode, WindowResolution};
@@ -74,6 +79,13 @@ fn main() -> AppExit {
         radial::RadialPlugin,
         ui_kit::UiKitPlugin,
         menu::MenuPlugin,
+    ));
+    // Hub screens over the menu or the match.
+    app.add_plugins((
+        screens::ScreensPlugin,
+        loadout::LoadoutScreenPlugin,
+        settings::SettingsScreenPlugin,
+        esc_menu::EscMenuPlugin,
     ));
     app.run()
 }
