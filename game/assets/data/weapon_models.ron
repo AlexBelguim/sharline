@@ -1,0 +1,64 @@
+// Weapon models for the renderer (src/weapon_models.rs): which GLB files make each gun and which socket each
+// attachment snaps onto. Copies of the Blender exports in assets/weapons/ (art/WEAPON_MODULAR_SPEC.md).
+// Paths are under game/assets/. A socket is the node "<prefix>_SOCKET_<socket>" in the gun's base GLB, and a
+// part's root goes on it with no turn. Guns without a row here (the Skink) keep their placeholder boxes.
+//
+// Poses use view axes, in metres and degrees: +X right, +Y up, -Z ahead of the eye. They place the grip (the
+// gun's origin), and the gun is turned so its muzzle points ahead.
+(
+    guns: [
+        (
+            weapon: "ar7_mako",
+            prefix: "MAKO",
+            base: "models/weapons/mako/mako_base.glb",
+            // From the hip: low on the right, muzzle turned in toward the centre and canted a little.
+            hip: (pos: (0.16, -0.205, -0.32), yaw: 4.0, pitch: 2.0, roll: -5.0),
+            // Aimed with no optic (the Mako has no iron sights): the eye this high over the optic socket and
+            // this far behind it, so the bare rail sits centred under the aim point.
+            no_optic_eye: (height: 0.07, behind: 0.16),
+            // Third person: the grip in the right hand, in player space (+X right, -Z ahead, feet at 0).
+            hand: (0.2, 1.28, -0.24),
+        ),
+        (
+            weapon: "vk50_warden",
+            prefix: "WARDEN",
+            base: "models/weapons/warden/warden_base.glb",
+            hip: (pos: (0.16, -0.215, -0.3), yaw: 2.5, pitch: 1.5, roll: -5.0),
+            no_optic_eye: (height: 0.07, behind: 0.2),
+            hand: (0.2, 1.28, -0.22),
+        ),
+    ],
+    // `id` is the gameplay id (attachments.ron). `scope`: a magnified optic seen through the scope view when
+    // aimed (its eyepiece is a lens, not a window).
+    parts: [
+        // optics
+        (id: "optic_reddot", file: "models/weapons/optics/ATT_optic_reddot.glb", socket: "Optic"),
+        (id: "optic_holo", file: "models/weapons/optics/ATT_optic_holo.glb", socket: "Optic"),
+        (id: "optic_3x", file: "models/weapons/optics/ATT_optic_3x.glb", socket: "Optic", scope: true),
+        (id: "optic_sniper", file: "models/weapons/optics/ATT_optic_sniper.glb", socket: "Optic", scope: true),
+        (id: "optic_thermal", file: "models/weapons/optics/ATT_optic_thermal.glb", socket: "Optic", scope: true),
+        // stocks
+        (id: "mako_stock_standard", file: "models/weapons/mako/MAKO_stock_standard.glb", socket: "Stock"),
+        (id: "mako_stock_precision", file: "models/weapons/mako/MAKO_stock_precision.glb", socket: "Stock"),
+        (id: "mako_stock_light", file: "models/weapons/mako/MAKO_stock_light.glb", socket: "Stock"),
+        (id: "warden_stock_standard", file: "models/weapons/warden/warden_stock_standard.glb", socket: "Stock"),
+        (id: "warden_stock_folding", file: "models/weapons/warden/warden_stock_folding.glb", socket: "Stock"),
+        // magazines
+        (id: "mag_30", file: "models/weapons/mako/MAKO_mag_30.glb", socket: "Mag"),
+        (id: "mag_45", file: "models/weapons/mako/MAKO_mag_45.glb", socket: "Mag"),
+        (id: "mag_drum60", file: "models/weapons/mako/MAKO_mag_drum60.glb", socket: "Mag"),
+        (id: "mag_5", file: "models/weapons/warden/warden_mag_5.glb", socket: "Mag"),
+        (id: "mag_8", file: "models/weapons/warden/warden_mag_8.glb", socket: "Mag"),
+        // under-rail
+        (id: "grip_vertical", file: "models/weapons/tactical/ATT_grip_vertical.glb", socket: "Under"),
+        (id: "grip_angled", file: "models/weapons/tactical/ATT_grip_angled.glb", socket: "Under"),
+        (id: "grip_stub", file: "models/weapons/tactical/ATT_grip_stub.glb", socket: "Under"),
+        (id: "ugl_launcher", file: "models/weapons/tactical/ATT_ugl_launcher.glb", socket: "Under"),
+        (id: "bipod", file: "models/weapons/tactical/ATT_bipod.glb", socket: "Under"),
+        // side rail: the shooter's right (the _R export; ATT_*_L would go on Side_L)
+        (id: "laser", file: "models/weapons/tactical/ATT_laser_R.glb", socket: "Side_R"),
+        (id: "flashlight", file: "models/weapons/tactical/ATT_flashlight_R.glb", socket: "Side_R"),
+        // gun shield (the Mako's Shield socket)
+        (id: "shield_front", file: "models/weapons/tactical/ATT_shield_front.glb", socket: "Shield"),
+    ],
+)

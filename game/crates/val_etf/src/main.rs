@@ -29,6 +29,7 @@ mod shared;
 mod ui_kit;
 mod user_config;
 mod video;
+mod weapon_models;
 
 use bevy::prelude::*;
 use bevy::window::{PresentMode, WindowResolution};
@@ -117,6 +118,7 @@ fn main() -> AppExit {
         scoreboard::ScoreboardPlugin,
         lobby::LobbyPlugin,
         video::VideoPlugin,
+        weapon_models::WeaponModelsPlugin,
     ));
     // Hub screens over the menu or the match.
     app.add_plugins((

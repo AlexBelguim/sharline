@@ -5,7 +5,7 @@ use crate::AppState;
 use crate::config::{Cli, CurrentLevel, Data, level_by_name};
 use crate::net::{NetRequest, Role, Session};
 use crate::radial::{HealMenu, HealOption, REGION_ORDER, Radial, heal_options};
-use crate::render::{ads_zoom, camera_fov, viewmodel_lens, viewmodel_muzzle};
+use crate::render::{ViewmodelRig, ads_zoom, camera_fov, viewmodel_lens, viewmodel_muzzle};
 use crate::screens::{EscPress, EscSystems, Screens};
 use crate::settings::{Action, BindInput, HoldToggle, Keybinds, RadialPick, Settings, rad_per_count};
 use crate::shared::LocalShot;
@@ -579,6 +579,7 @@ fn fire_claims(
     mut shots: MessageReader<LocalShot>,
     data: Res<Data>,
     settings: Res<Settings>,
+    rig: Res<ViewmodelRig>,
     level: Option<Res<CurrentLevel>>,
     session: Res<Session>,
     timeline: Res<LocalTimeline>,
@@ -629,7 +630,7 @@ fn fire_claims(
         // straight below the camera drew a vertical line hanging under the crosshair (playtest 2026-10-07).
         let lens =
             viewmodel_lens(camera_fov(&settings.mouse, loadout.0.weapon.zoom, ads), settings.mouse.viewmodel_fov);
-        let muzzle = s.origin + vetf_sim::input::view_rotation(s.yaw, s.pitch) * viewmodel_muzzle(spec.cls, ads, lens);
+        let muzzle = s.origin + vetf_sim::input::view_rotation(s.yaw, s.pitch) * viewmodel_muzzle(&rig, ads, lens);
         feedback.tracers.push((muzzle, s.origin + dir * end_t, 0.0, true));
         if let (None, Some((d, normal))) = (best, world_hit) {
             feedback.impacts.push((s.origin + dir * d, normal));

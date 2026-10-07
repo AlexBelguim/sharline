@@ -154,6 +154,7 @@ val_etf --join 127.0.0.1:47820 --name JOINER --bot --yaw 90
 | `crates/vetf_net` | The lightyear protocol: replicated components, `PlayerInput`, messages (`Hello`, `ShotClaim`, `HitConfirm`, `DamageTaken`, `KillFeed`, `ShotFx`), channels, and join codes. |
 | `crates/val_etf` | The game binary: menu, hosting and joining, the host authority (`server.rs`), the local player (`client.rs`), the shared predicted simulation (`shared.rs`), blockout rendering and the HUD. |
 | `assets/fonts` | Barlow and Barlow Condensed (SIL OFL, see `OFL.txt`), the mockups' fonts, compiled into the binary. |
+| `assets/models/weapons` | The Mako and Warden, their stocks and magazines, and the optics and tactical attachments: copies of the Blender exports in the repository's `assets/weapons/` (Git LFS). `assets/data/weapon_models.ron` maps each gun and attachment id to its file and socket, and holds the first-person hip poses (`weapon_models.rs`). The Skink has no model yet and keeps placeholder boxes. |
 | `assets/data/*.ron` | **Every gameplay number.** They are loaded at start-up, so you can tune without rebuilding; the build also has a copy compiled in. `cargo test` fails if they drift from `design/systems/data/*.json`, except for the deliberate changes in [DESIGN_DELTAS.md](DESIGN_DELTAS.md). |
 
 ### Netcode model

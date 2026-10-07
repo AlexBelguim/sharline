@@ -9534,6 +9534,7 @@ dependencies = [
  "lightyear",
  "ron",
  "serde",
+ "serde_json",
  "tokio",
  "vetf_net",
  "vetf_sim",

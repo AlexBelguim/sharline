@@ -1,11 +1,13 @@
 //! Blockout rendering: level brushes, lighting, first-person camera + viewmodel, other players with their
-//! halos, and tracers. Placeholder art until the glTF assets are wired in.
+//! halos and guns, and tracers. The guns are the glTF models (`weapon_models`); the rest is placeholder art.
 
 use crate::AppState;
 use crate::client::{Feedback, LocalControl, Smoothed, TRACER_LEN, TRACER_SPEED};
 use crate::config::{CurrentLevel, Data};
 use crate::settings::{MouseSettings, Settings, vertical_fov, zoomed_fov};
+use crate::weapon_models::{GunLook, WeaponModels, face_ahead};
 use bevy::asset::RenderAssetUsages;
+use bevy::light::NotShadowCaster;
 use bevy::mesh::{Indices, PrimitiveTopology};
 use bevy::prelude::*;
 use lightyear::prelude::*;
@@ -24,6 +26,7 @@ impl Plugin for RenderPlugin {
     fn build(&self, app: &mut App) {
         app.insert_resource(ClearColor(Color::srgb(0.62, 0.74, 0.86)))
             .insert_resource(GlobalAmbientLight { color: Color::srgb(0.9, 0.92, 1.0), brightness: 900.0, ..default() })
+            .init_resource::<ViewmodelRig>()
             .add_systems(Startup, setup_menu_camera)
             .add_systems(Startup, load_impact_assets)
             .add_systems(OnEnter(AppState::InGame), (spawn_level, spawn_view_camera))
@@ -32,6 +35,7 @@ impl Plugin for RenderPlugin {
                 Update,
                 (
                     attach_player_visuals,
+                    sync_held_guns,
                     update_player_visuals,
                     sync_viewmodel,
                     update_camera,
@@ -52,9 +56,20 @@ struct MenuCamera;
 #[derive(Component)]
 pub struct ViewCamera;
 
-/// The first-person gun; remembers which weapon class its parts were built for.
+/// The first-person gun; remembers what it was built as.
 #[derive(Component)]
-struct Viewmodel(Option<WeaponClass>);
+struct Viewmodel(Option<GunLook>);
+
+/// A third-person player's gun, in the right hand; remembers what it was built as and where the hand is.
+#[derive(Component)]
+struct HeldGun {
+    look: Option<GunLook>,
+    hand: Vec3,
+}
+
+/// Where a gun without a model is held (player space), and the box that stands in for it.
+const HELD_PLACEHOLDER: Vec3 = Vec3::new(0.22, 1.35, -0.35);
+const HELD_PLACEHOLDER_SIZE: Vec3 = Vec3::new(0.07, 0.1, 0.7);
 
 /// Between the view camera and the viewmodel: squeezes the gun across the view (see [`viewmodel_lens`]).
 #[derive(Component)]
@@ -326,7 +341,6 @@ fn attach_player_visuals(
         let body_mat =
             materials.add(StandardMaterial { base_color: team.darker(0.25), perceptual_roughness: 0.7, ..default() });
         let head_mat = materials.add(StandardMaterial { base_color: Color::srgb(0.62, 0.48, 0.40), ..default() });
-        let gun_mat = materials.add(StandardMaterial { base_color: Color::srgb(0.08, 0.085, 0.10), ..default() });
         let halo = loadout.0.halo;
         let scale = match loadout.0.weight {
             WeightClass::Heavy => 1.2,
@@ -351,11 +365,11 @@ fn attach_player_visuals(
                 MeshMaterial3d(head_mat),
                 Transform::from_xyz(0.0, 1.6, 0.0),
             ));
+            // The gun is built by `sync_held_guns` (and rebuilt when the loadout changes).
             p.spawn((
-                BodyPart,
-                Mesh3d(meshes.add(Cuboid::new(0.07, 0.1, 0.7))),
-                MeshMaterial3d(gun_mat),
-                Transform::from_xyz(0.22, 1.35, -0.35),
+                HeldGun { look: None, hand: HELD_PLACEHOLDER },
+                Transform::from_translation(HELD_PLACEHOLDER),
+                Visibility::default(),
             ));
             for zone in Zone::ALL {
                 let tier = halo.tiers[zone];
@@ -384,6 +398,51 @@ fn attach_player_visuals(
     }
 }
 
+/// Builds (or rebuilds) each other player's gun from their loadout: the model at real scale with its
+/// attachments, gripped in the right hand, or a box for a gun without a model.
+fn sync_held_guns(
+    mut commands: Commands,
+    data: Res<Data>,
+    models: Res<WeaponModels>,
+    players: Query<(&PlayerLoadout, &Children), With<PlayerVisual>>,
+    mut held: Query<(Entity, &mut HeldGun)>,
+    mut meshes: ResMut<Assets<Mesh>>,
+    mut materials: ResMut<Assets<StandardMaterial>>,
+    mut box_material: Local<Option<Handle<StandardMaterial>>>,
+) {
+    for (loadout, children) in &players {
+        let look = models.look(&data, &loadout.0.weapon);
+        let mut iter = held.iter_many_mut(children);
+        while let Some((e, mut gun)) = iter.fetch_next() {
+            if gun.look.as_ref() == Some(&look) {
+                continue;
+            }
+            commands.entity(e).despawn_children();
+            match &look {
+                GunLook::Model(key) => {
+                    gun.hand = models.hand(key);
+                    models.spawn(&mut commands, e, key, Transform::from_rotation(face_ahead()), false);
+                }
+                GunLook::Boxes(_) => {
+                    gun.hand = HELD_PLACEHOLDER;
+                    let material = box_material
+                        .get_or_insert_with(|| {
+                            materials.add(StandardMaterial { base_color: Color::srgb(0.08, 0.085, 0.10), ..default() })
+                        })
+                        .clone();
+                    commands.spawn((
+                        BodyPart,
+                        Mesh3d(meshes.add(Cuboid::from_size(HELD_PLACEHOLDER_SIZE))),
+                        MeshMaterial3d(material),
+                        ChildOf(e),
+                    ));
+                }
+            }
+            gun.look = Some(look.clone());
+        }
+    }
+}
+
 #[allow(clippy::type_complexity)]
 fn update_player_visuals(
     mut players: Query<
@@ -400,11 +459,13 @@ fn update_player_visuals(
         With<PlayerVisual>,
     >,
     mut arcs: Query<(&HaloArc, &mut Visibility), Without<PlayerVisual>>,
+    mut guns: Query<(&HeldGun, &mut Transform), Without<PlayerVisual>>,
 ) {
     for (mv, look, vitals, loadout, mut t, mut vis, children, mine) in &mut players {
+        let squash = if mv.0.stance == Stance::Stand { 1.0 } else { 0.68 };
         t.translation = mv.0.pos;
         t.rotation = Quat::from_rotation_y(look.yaw);
-        t.scale = Vec3::new(1.0, if mv.0.stance == Stance::Stand { 1.0 } else { 0.68 }, 1.0);
+        t.scale = Vec3::new(1.0, squash, 1.0);
         // Our own body never shows (it can get visuals if it arrived a frame before `Controlled` did).
         *vis = if vitals.health.dead || mine { Visibility::Hidden } else { Visibility::Inherited };
         for child in children.iter() {
@@ -412,6 +473,12 @@ fn update_player_visuals(
                 // A broken arc goes dark (it flares back when it regenerates).
                 let up = loadout.0.halo.tiers[arc.0] == 0 || vitals.halo.shield[arc.0] > 0.0;
                 *v = if up { Visibility::Inherited } else { Visibility::Hidden };
+            }
+            // The gun points where they look; it lowers with a crouch without being squashed.
+            if let Ok((gun, mut g)) = guns.get_mut(child) {
+                *g = Transform::from_translation(gun.hand)
+                    .with_rotation(Quat::from_rotation_x(look.pitch))
+                    .with_scale(Vec3::new(1.0, 1.0 / squash, 1.0));
             }
         }
     }
@@ -465,27 +532,67 @@ fn spawn_view_camera(mut commands: Commands, settings: Res<Settings>) {
             let lens = viewmodel_lens(fov, settings.mouse.viewmodel_fov);
             cam.spawn((ViewmodelLens, Transform::from_scale(lens_scale(lens)), Visibility::default())).with_child((
                 Viewmodel(None),
-                Transform::from_translation(VIEWMODEL_HIP).with_scale(Vec3::splat(VIEWMODEL_SCALE)),
+                ViewmodelRig::default().hip,
                 Visibility::default(),
             ));
         });
 }
 
-/// Where the viewmodel sits in view space (camera-local, -Z forward): from the hip and aimed down sights.
+/// Where the placeholder viewmodel sits in view space (camera-local, -Z forward): from the hip and aimed.
 const VIEWMODEL_HIP: Vec3 = Vec3::new(0.2, -0.2, -0.5);
 const VIEWMODEL_ADS: Vec3 = Vec3::new(0.0, -0.075, -0.3);
 const VIEWMODEL_SCALE: f32 = 0.6;
 
+/// The first-person gun's pose in view space (camera-local, -Z forward) from the hip and aimed, and its muzzle
+/// in gun space. A gun model's comes from its sockets (`weapon_models::first_person_rig`); a gun without one
+/// uses the placeholder boxes'.
+#[derive(Resource, Clone, Copy, Debug, PartialEq)]
+pub struct ViewmodelRig {
+    pub hip: Transform,
+    pub ads: Transform,
+    pub muzzle: Vec3,
+    /// A magnified optic: fully aimed, the scope view replaces the gun (`weapon_models::scoped`).
+    pub scope: bool,
+}
+
+impl ViewmodelRig {
+    pub fn placeholder(class: WeaponClass) -> Self {
+        let muzzle = viewmodel_parts(class)
+            .into_iter()
+            .map(|(size, offset, _)| offset - Vec3::Z * size.z * 0.5)
+            .min_by(|a, b| a.z.total_cmp(&b.z))
+            .unwrap_or(Vec3::ZERO);
+        let scale = Vec3::splat(VIEWMODEL_SCALE);
+        ViewmodelRig {
+            hip: Transform::from_translation(VIEWMODEL_HIP).with_scale(scale),
+            ads: Transform::from_translation(VIEWMODEL_ADS).with_scale(scale),
+            muzzle,
+            scope: false,
+        }
+    }
+
+    /// The pose at an ADS blend `ads` (0 hip .. 1 aimed).
+    pub fn pose(&self, ads: f32) -> Transform {
+        let a = ads.clamp(0.0, 1.0);
+        Transform {
+            translation: self.hip.translation.lerp(self.ads.translation, a),
+            rotation: self.hip.rotation.slerp(self.ads.rotation, a),
+            scale: self.hip.scale.lerp(self.ads.scale, a),
+        }
+    }
+}
+
+impl Default for ViewmodelRig {
+    fn default() -> Self {
+        Self::placeholder(WeaponClass::AssaultRifle)
+    }
+}
+
 /// The viewmodel's muzzle in view space (camera-local, -Z forward) at an ADS blend `ads` (0 hip .. 1 aimed),
 /// through the viewmodel `lens`: own tracers start here, so they come out of the gun on screen instead of
 /// hanging under the crosshair.
-pub fn viewmodel_muzzle(class: WeaponClass, ads: f32, lens: f32) -> Vec3 {
-    let tip = viewmodel_parts(class)
-        .into_iter()
-        .map(|(size, offset, _)| offset - Vec3::Z * size.z * 0.5)
-        .min_by(|a, b| a.z.total_cmp(&b.z))
-        .unwrap_or(Vec3::ZERO);
-    (VIEWMODEL_HIP.lerp(VIEWMODEL_ADS, ads.clamp(0.0, 1.0)) + tip * VIEWMODEL_SCALE) * lens_scale(lens)
+pub fn viewmodel_muzzle(rig: &ViewmodelRig, ads: f32, lens: f32) -> Vec3 {
+    rig.pose(ads).transform_point(rig.muzzle) * lens_scale(lens)
 }
 
 /// Placeholder viewmodel parts per weapon class: (size, offset, material) in gun space (muzzle toward -Z,
@@ -532,23 +639,35 @@ enum Part {
     Glint,
 }
 
-/// Build (or rebuild) the viewmodel when our weapon class changes.
+/// Build (or rebuild) the viewmodel when our gun changes: its model with the loadout's attachments, or the
+/// placeholder boxes for a gun without one (and until the model's files have loaded).
 fn sync_viewmodel(
     mut commands: Commands,
     data: Res<Data>,
+    models: Res<WeaponModels>,
     me: Query<&PlayerLoadout, With<Controlled>>,
     mut viewmodel: Query<(Entity, &mut Viewmodel)>,
+    mut rig: ResMut<ViewmodelRig>,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
 ) {
     let Some(loadout) = me.iter().next() else { return };
-    let class = loadout.0.weapon.spec(&data).cls;
+    let look = models.look(&data, &loadout.0.weapon);
     for (e, mut vm) in &mut viewmodel {
-        if vm.0 == Some(class) {
+        if vm.0.as_ref() == Some(&look) {
             continue;
         }
-        vm.0 = Some(class);
+        vm.0 = Some(look.clone());
         commands.entity(e).despawn_children();
+        let class = match &look {
+            GunLook::Model(key) => {
+                *rig = models.rig(key).unwrap_or_default();
+                models.spawn(&mut commands, e, key, Transform::IDENTITY, true);
+                continue;
+            }
+            GunLook::Boxes(class) => *class,
+        };
+        *rig = ViewmodelRig::placeholder(class);
         let mut mat = |p: Part| {
             let m = match p {
                 Part::Graphite => StandardMaterial {
@@ -579,6 +698,7 @@ fn sync_viewmodel(
                 Mesh3d(meshes.add(Cuboid::from_size(size))),
                 MeshMaterial3d(mat(part)),
                 Transform::from_translation(offset),
+                NotShadowCaster,
                 ChildOf(e),
             ));
         }
@@ -594,6 +714,7 @@ fn update_camera(
     control: Res<LocalControl>,
     settings: Res<Settings>,
     fixed: Res<Time<Fixed>>,
+    rig: Res<ViewmodelRig>,
     me: Query<(&PlayerMove, Option<&Smoothed>, &PlayerWeapon, &PlayerLoadout, &Vitals), With<Controlled>>,
     mut camera: Query<
         (&mut Transform, &mut Projection),
@@ -634,6 +755,10 @@ fn update_camera(
         for (mut t, _) in &mut camera {
             *t = Transform::from_translation(at).looking_at(target, Vec3::Y);
         }
+        // A fixed camera (map and third-person shots) shows no gun of its own.
+        for (_, mut v) in &mut viewmodel {
+            *v = Visibility::Hidden;
+        }
         return;
     }
     for (mut t, _) in &mut camera {
@@ -643,11 +768,14 @@ fn update_camera(
         t.rotation = Quat::from_euler(EulerRot::YXZ, control.yaw, pitch, 0.0);
     }
     for (mut t, mut v) in &mut viewmodel {
-        let sprint = if mv.0.sprinting { Vec3::new(0.05, -0.06, 0.04) } else { Vec3::ZERO };
-        t.translation = VIEWMODEL_HIP.lerp(VIEWMODEL_ADS, ads) + sprint;
-        t.rotation = if mv.0.sprinting { Quat::from_rotation_y(0.5) } else { Quat::IDENTITY };
-        t.scale = Vec3::splat(VIEWMODEL_SCALE);
-        *v = if dead { Visibility::Hidden } else { Visibility::Inherited };
+        *t = rig.pose(ads);
+        if mv.0.sprinting {
+            t.translation += Vec3::new(0.05, -0.06, 0.04);
+            t.rotation = Quat::from_rotation_y(0.5) * t.rotation;
+        }
+        // Through a magnified optic the scope view takes over from the gun.
+        let hidden = dead || crate::weapon_models::scoped(&rig, ads);
+        *v = if hidden { Visibility::Hidden } else { Visibility::Inherited };
     }
 }
 
@@ -780,19 +908,52 @@ mod tests {
         assert!((span - 46.0).abs() < 1e-4, "{span}");
     }
 
+    /// A Mako rig from its real socket places (mako_base.glb, ATT_optic_holo.glb).
+    fn mako_rig() -> ViewmodelRig {
+        use crate::weapon_models::{Layout, ModelData, RawNode, first_person_rig};
+        let node = |name: &str, t: Vec3, extras: Option<&str>| RawNode {
+            name: name.into(),
+            transform: Transform::from_translation(t),
+            children: Vec::new(),
+            extras: extras.map(str::to_string),
+        };
+        let base = Layout::from_nodes(&[
+            node("MAKO_SOCKET_Optic", Vec3::new(0.0, 0.084, 0.0855), None),
+            node("MAKO_SOCKET_Muzzle", Vec3::new(0.0, 0.05, 0.565), None),
+        ]);
+        let holo = Layout::from_nodes(&[node(
+            "ATT_optic_holo_SOCKET_ADS",
+            Vec3::new(0.0, 0.045, -0.0294),
+            Some(r#"{"eye_relief_m": 0.0541}"#),
+        )]);
+        let row = ModelData::embedded().guns.iter().find(|g| g.weapon == "ar7_mako").unwrap();
+        first_person_rig(row, &base, Some((&holo, false))).unwrap()
+    }
+
     /// Own tracers start at the gun on screen: right of and below the crosshair from the hip, in front of the
-    /// camera, and on the centre line when aimed.
+    /// camera, and on the centre line when aimed. The Mako's comes from its muzzle socket; the Skink keeps its
+    /// placeholder boxes.
     #[test]
     fn tracers_leave_the_viewmodel_muzzle() {
-        for class in [WeaponClass::Smg, WeaponClass::AssaultRifle, WeaponClass::BoltSniper] {
-            let hip = viewmodel_muzzle(class, 0.0, 1.0);
-            assert!(hip.x > 0.15 && hip.y < -0.15 && hip.z < -0.6, "{class:?} hip muzzle {hip}");
-            let ads = viewmodel_muzzle(class, 1.0, 1.0);
-            assert!(ads.x.abs() < 0.01 && ads.y < 0.0 && ads.z < -0.4, "{class:?} aimed muzzle {ads}");
+        let rigs = [
+            ("mako model", mako_rig()),
+            ("skink boxes", ViewmodelRig::placeholder(WeaponClass::Smg)),
+            ("rifle boxes", ViewmodelRig::placeholder(WeaponClass::AssaultRifle)),
+        ];
+        for (what, rig) in rigs {
+            let hip = viewmodel_muzzle(&rig, 0.0, 1.0);
+            assert!(hip.x > 0.1 && hip.y < -0.1 && hip.z < -0.5, "{what} hip muzzle {hip}");
+            let ads = viewmodel_muzzle(&rig, 1.0, 1.0);
+            assert!(ads.x.abs() < 0.01 && ads.y < 0.0 && ads.z < -0.4, "{what} aimed muzzle {ads}");
             // through a lens the muzzle moves across the view, never in depth
-            let squeezed = viewmodel_muzzle(class, 0.0, 0.5);
-            assert_eq!(squeezed, Vec3::new(hip.x * 0.5, hip.y * 0.5, hip.z));
+            let squeezed = viewmodel_muzzle(&rig, 0.0, 0.5);
+            assert!((squeezed - Vec3::new(hip.x * 0.5, hip.y * 0.5, hip.z)).length() < 1e-6, "{what}");
         }
+        // Aimed, the Mako's muzzle socket (0.565 m ahead of the grip) is ahead of the eye point by its distance
+        // from the holo's eye point (the optic socket, back to the ADS socket, back by the eye relief).
+        let aimed = viewmodel_muzzle(&mako_rig(), 1.0, 1.0);
+        assert!((aimed.z + (0.565 - (0.0855 - 0.0294 - 0.0541))).abs() < 1e-4, "{aimed}");
+        assert!((aimed.y + (0.084 + 0.045 - 0.05)).abs() < 1e-4, "the bore under the sight line: {aimed}");
     }
 
     /// Where a view-space point lands on screen (normalised device units) through a vertical FOV in degrees.
@@ -816,10 +977,11 @@ mod tests {
         assert!(camera_fov(&mouse, 1.0, 0.0) < 70.5, "a smaller FOV setting narrows the camera");
         assert_eq!(ads_zoom(0.5, 1.0), 1.0, "a zoom below 1 never widens the view");
 
-        let muzzle = viewmodel_muzzle(WeaponClass::AssaultRifle, 0.0, 1.0);
+        let rig = mako_rig();
+        let muzzle = viewmodel_muzzle(&rig, 0.0, 1.0);
         let want = on_screen(muzzle, 68.0);
         for cam in [70.5, 50.0, 26.0] {
-            let got = on_screen(viewmodel_muzzle(WeaponClass::AssaultRifle, 0.0, viewmodel_lens(cam, 68.0)), cam);
+            let got = on_screen(viewmodel_muzzle(&rig, 0.0, viewmodel_lens(cam, 68.0)), cam);
             assert!((got - want).length() < 1e-4, "{cam}: {got} vs {want}");
         }
         assert!((viewmodel_lens(68.0, 68.0) - 1.0).abs() < 1e-6);
