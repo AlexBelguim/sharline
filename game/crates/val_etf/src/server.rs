@@ -34,7 +34,15 @@ impl Plugin for ServerPlugin {
             .add_observer(on_link_lost)
             .add_systems(
                 Update,
-                (receive_hellos, receive_loadout_updates, receive_claims, demo_wounds, measure_ping).run_if(is_hosting),
+                (
+                    receive_hellos,
+                    receive_loadout_updates,
+                    receive_lobby_actions,
+                    receive_claims,
+                    demo_wounds,
+                    measure_ping,
+                )
+                    .run_if(is_hosting),
             )
             .add_systems(FixedUpdate, simulate_authoritative.in_set(SimSystems::Simulate).run_if(is_hosting))
             .add_systems(
@@ -60,7 +68,7 @@ fn measure_ping(
     *next = time.elapsed_secs() + 0.5;
     for (p, mut net) in &mut players {
         let ms = if p.peer.is_local() { 0 } else { links.get(p.link).map_or(0, |l| l.stats.rtt.as_millis()) };
-        net.set_if_neq(PlayerNet { ping_ms: ms.min(u16::MAX as u128) as u16 });
+        net.set_if_neq(PlayerNet { ping_ms: ms.min(u16::MAX as u128) as u16, ..*net });
     }
 }
 
@@ -101,7 +109,16 @@ const CLAIM_WAIT_TICKS: u32 = 30;
 /// Seconds between the end of a match and the next one.
 const INTERMISSION_S: f32 = 8.0;
 
-pub fn spawn_match(commands: &mut Commands, data: &GameData, map: &str) {
+/// The match entity. A team deathmatch starts in the lobby unless `lobby` is false (`--live`); the range
+/// is always live.
+pub fn spawn_match(
+    commands: &mut Commands,
+    data: &GameData,
+    map: &str,
+    lobby_name: String,
+    max_players: u32,
+    lobby: bool,
+) {
     let range = map.eq_ignore_ascii_case("range");
     commands.spawn((
         Name::new("Match"),
@@ -112,7 +129,9 @@ pub fn spawn_match(commands: &mut Commands, data: &GameData, map: &str) {
             score_b: 0,
             score_limit: data.rules.tdm.score_limit,
             time_left_s: data.rules.tdm.time_limit_s,
-            phase: MatchPhase::Live,
+            phase: if lobby && !range { MatchPhase::Lobby } else { MatchPhase::Live },
+            lobby_name,
+            max_players,
             rules: if range { data.rules.rulesets.range } else { data.rules.rulesets.tdm },
         },
         Replicate::to_clients(NetworkTarget::All),
@@ -374,6 +393,80 @@ fn receive_loadout_updates(
     }
 }
 
+/// Lobby actions (see [`LobbyAction`]); anything outside the lobby is ignored.
+fn receive_lobby_actions(
+    mut links: Query<(Entity, &mut MessageReceiver<LobbyAction>), With<ClientOf>>,
+    mut players: Query<(&mut PlayerInfo, &mut PlayerNet, &mut Vitals, &mut Score, &ServerPlayer)>,
+    mut matches: Query<&mut MatchState>,
+    data: Res<Data>,
+) {
+    let Some(mut m) = matches.iter_mut().next() else { return };
+    for (link, mut rx) in &mut links {
+        let actions: Vec<LobbyAction> = rx.receive().collect();
+        for action in actions {
+            if m.phase != MatchPhase::Lobby {
+                continue;
+            }
+            let Some(team) = players.iter().find(|p| p.4.link == link).map(|p| p.0.team) else { continue };
+            let free = |to: Team, players: &Query<(&mut PlayerInfo, &mut PlayerNet, &mut Vitals, &mut Score, &ServerPlayer)>| {
+                (players.iter().filter(|p| p.0.team == Some(to)).count() as u32) < (m.max_players / 2).max(1)
+            };
+            match action {
+                LobbyAction::Ready(ready) => {
+                    for (_, mut net, .., p) in &mut players {
+                        if p.link == link {
+                            net.ready = ready;
+                        }
+                    }
+                }
+                LobbyAction::SwitchTeam => {
+                    let Some(to) = team.map(Team::other).filter(|t| free(*t, &players)) else { continue };
+                    for (mut info, mut net, mut v, _, p) in &mut players {
+                        if p.link == link {
+                            info!("{} switches to team {to:?}", info.name);
+                            info.team = Some(to);
+                            net.ready = false;
+                            // Respawn on the new side.
+                            v.health.dead = true;
+                            v.respawn_s = 0.0;
+                        }
+                    }
+                }
+                LobbyAction::Start => {
+                    if players.iter().any(|p| p.4.link == link && p.4.peer.is_local()) {
+                        info!("the host starts the match");
+                        reset_match(
+                            &mut m,
+                            &data,
+                            MatchPhase::Live,
+                            players.iter_mut().map(|(_, n, v, s, _)| (n, v, s)),
+                        );
+                    }
+                }
+            }
+        }
+    }
+}
+
+/// A fresh match in `phase`: scores, clock, everyone's score and ready state, and everyone respawns.
+fn reset_match<'a>(
+    m: &mut MatchState,
+    data: &GameData,
+    phase: MatchPhase,
+    players: impl Iterator<Item = (Mut<'a, PlayerNet>, Mut<'a, Vitals>, Mut<'a, Score>)>,
+) {
+    m.score_a = 0;
+    m.score_b = 0;
+    m.time_left_s = data.rules.tdm.time_limit_s;
+    m.phase = phase;
+    for (mut net, mut v, mut s) in players {
+        *s = Score::default();
+        net.ready = false;
+        v.health.dead = true;
+        v.respawn_s = 0.0;
+    }
+}
+
 /// `--demo-ui heal*|hud`: hurt the host's own player once, so the HUD and the heal ring have something
 /// to show in screenshots.
 fn demo_wounds(
@@ -558,6 +651,11 @@ fn resolve_claims(
     mut deaths: MessageWriter<PlayerDied>,
 ) {
     let Some(level) = level else { return };
+    // No damage in the lobby (bots, a held trigger): claims are dropped.
+    if matches.iter().next().is_some_and(|m| m.phase == MatchPhase::Lobby) {
+        pending.0.clear();
+        return;
+    }
     let rules = match_rules(&matches);
     let tick = timeline.tick().0;
     let mut keep = Vec::new();
@@ -756,7 +854,7 @@ fn respawn_players(
 fn run_match(
     data: Res<Data>,
     mut matches: Query<&mut MatchState>,
-    mut players: Query<(&mut Vitals, &mut Score)>,
+    mut players: Query<(&mut PlayerNet, &mut Vitals, &mut Score)>,
     mut intermission: Local<f32>,
 ) {
     let Some(mut m) = matches.iter_mut().next() else { return };
@@ -765,6 +863,8 @@ fn run_match(
     }
     let dt = data.tick_dt();
     match m.phase {
+        // The clock waits for the host's START MATCH.
+        MatchPhase::Lobby => {}
         MatchPhase::Live => {
             m.time_left_s = (m.time_left_s - dt).max(0.0);
             let limit = m.score_limit;
@@ -782,15 +882,8 @@ fn run_match(
         MatchPhase::Ended { .. } => {
             *intermission -= dt;
             if *intermission <= 0.0 {
-                m.score_a = 0;
-                m.score_b = 0;
-                m.time_left_s = data.rules.tdm.time_limit_s;
-                m.phase = MatchPhase::Live;
-                for (mut v, mut s) in &mut players {
-                    *s = Score::default();
-                    v.health.dead = true;
-                    v.respawn_s = 0.0;
-                }
+                // Back to the lobby: teams, loadouts and READY for the next one.
+                reset_match(&mut m, &data, MatchPhase::Lobby, players.iter_mut());
             }
         }
     }

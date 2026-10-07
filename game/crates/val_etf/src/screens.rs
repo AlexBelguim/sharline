@@ -54,6 +54,8 @@ pub enum Screen {
     Confirm(ConfirmKind),
     /// The first-launch callsign prompt over the main menu (`first_run.rs`).
     NamePrompt,
+    /// The room before a team deathmatch (`lobby.rs`), open while the match is in `MatchPhase::Lobby`.
+    Lobby,
 }
 
 impl Screen {
@@ -94,6 +96,13 @@ impl Screens {
     pub fn replace_top(&mut self, s: Screen) {
         self.0.pop();
         self.0.push(s);
+    }
+
+    /// Close `s` (of its kind) and every screen opened over it.
+    pub fn close(&mut self, s: Screen) {
+        if let Some(i) = self.0.iter().position(|x| x.same_kind(s)) {
+            self.0.truncate(i);
+        }
     }
 
     pub fn clear(&mut self) {

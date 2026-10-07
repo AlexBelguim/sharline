@@ -907,7 +907,7 @@ fn nav_actions(
             }
             MenuAction::Nav(NavItem::GunRange) => {
                 state.focus = Focus::Nav(NavItem::GunRange);
-                requests.write(NetRequest::Host { map: "range".into() });
+                requests.write(NetRequest::Host { map: "range".into(), lobby: false });
             }
             MenuAction::Nav(NavItem::Loadout) => {
                 state.focus = Focus::Nav(NavItem::Loadout);

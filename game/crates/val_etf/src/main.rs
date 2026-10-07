@@ -15,6 +15,7 @@ mod hud;
 mod invite;
 mod iroh_transport;
 mod loadout;
+mod lobby;
 mod map_materials;
 mod menu;
 mod net;
@@ -113,6 +114,7 @@ fn main() -> AppExit {
         menu::MenuPlugin,
         map_materials::MapMaterialsPlugin,
         scoreboard::ScoreboardPlugin,
+        lobby::LobbyPlugin,
     ));
     // Hub screens over the menu or the match.
     app.add_plugins((

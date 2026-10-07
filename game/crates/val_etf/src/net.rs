@@ -194,14 +194,23 @@ pub struct Session {
 /// Requests from the menu (or the command line).
 #[derive(Message, Debug, Clone)]
 pub enum NetRequest {
-    Host { map: String },
-    Join { address: String },
-    Leave { reason: Option<String> },
+    /// `lobby`: a team deathmatch opens in the lobby (false: straight into the match, `--live`).
+    Host {
+        map: String,
+        lobby: bool,
+    },
+    Join {
+        address: String,
+    },
+    Leave {
+        reason: Option<String>,
+    },
 }
 
 fn auto_start(cli: Res<Cli>, mut requests: MessageWriter<NetRequest>) {
     if let Some(map) = &cli.host {
-        requests.write(NetRequest::Host { map: if map.is_empty() { "showhome".into() } else { map.clone() } });
+        let map = if map.is_empty() { "showhome".into() } else { map.clone() };
+        requests.write(NetRequest::Host { map, lobby: !cli.live });
     } else if let Some(address) = &cli.join {
         requests.write(NetRequest::Join { address: address.clone() });
     }
@@ -219,7 +228,7 @@ fn handle_requests(
 ) {
     for req in requests.read() {
         match req {
-            NetRequest::Host { map } => {
+            NetRequest::Host { map, lobby } => {
                 if session.role != Role::Offline {
                     continue;
                 }
@@ -281,7 +290,8 @@ fn handle_requests(
                 if let Some(addr) = &session.join_code {
                     info!("friends join at {addr}");
                 }
-                crate::server::spawn_match(&mut commands, &data, map);
+                let lobby_name = session.lobby_name.clone().unwrap_or_default();
+                crate::server::spawn_match(&mut commands, &data, map, lobby_name, host.max_players, *lobby);
                 next.set(AppState::Connecting);
             }
             NetRequest::Join { address } => {

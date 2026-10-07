@@ -82,19 +82,25 @@ pub struct Score {
     pub deaths: u16,
 }
 
-/// The player's connection as the host measures it (the host's own player: 0).
+/// The player's connection as the host measures it, and their lobby state.
 #[derive(Component, Serialize, Deserialize, Clone, Copy, Debug, PartialEq, Eq, Default)]
 pub struct PlayerNet {
-    /// Round-trip time to the host, in milliseconds.
+    /// Round-trip time to the host, in milliseconds (the host's own player: 0).
     pub ping_ms: u16,
+    /// READY in the lobby (cleared when the match starts or the player switches team).
+    pub ready: bool,
 }
 
 pub use vetf_sim::data::Mode as MatchMode;
 
 #[derive(Serialize, Deserialize, Clone, Copy, Debug, PartialEq, Eq)]
 pub enum MatchPhase {
+    /// Before a match: players pick loadouts, switch teams and ready up; the host starts it.
+    Lobby,
     Live,
-    Ended { winner: Option<Team> },
+    Ended {
+        winner: Option<Team>,
+    },
 }
 
 /// One replicated entity per match.
@@ -107,8 +113,21 @@ pub struct MatchState {
     pub score_limit: u32,
     pub time_left_s: f32,
     pub phase: MatchPhase,
+    /// The host's lobby name (HOST GAME), shown in the lobby.
+    pub lobby_name: String,
+    /// Players including the host (HOST GAME's MAX PLAYERS): half of it per team.
+    pub max_players: u32,
     /// What this mode switches on (status effects, regional items). Clients use it for the HUD and menus.
     pub rules: Ruleset,
+}
+
+/// What a player does in the lobby. The host checks each one: only in the lobby, a team switch only to a
+/// team with a free slot, and only the host's own player can start the match.
+#[derive(Serialize, Deserialize, Clone, Copy, Debug, PartialEq, Eq)]
+pub enum LobbyAction {
+    Ready(bool),
+    SwitchTeam,
+    Start,
 }
 
 // ---------------------------------------------------------------------------------------------- input
@@ -330,6 +349,7 @@ impl Plugin for ProtocolPlugin {
         // One direction per message type (in host mode both ends share one receiver per type).
         app.register_message::<Hello>().add_direction(NetworkDirection::ClientToServer);
         app.register_message::<LoadoutUpdate>().add_direction(NetworkDirection::ClientToServer);
+        app.register_message::<LobbyAction>().add_direction(NetworkDirection::ClientToServer);
         app.register_message::<ShotClaim>().add_direction(NetworkDirection::ClientToServer);
         app.register_message::<HitConfirm>().add_direction(NetworkDirection::ServerToClient);
         app.register_message::<DamageTaken>().add_direction(NetworkDirection::ServerToClient);
@@ -396,8 +416,17 @@ mod tests {
             score_limit: 50,
             time_left_s: 12.5,
             phase: MatchPhase::Ended { winner: None },
+            lobby_name: "ASH'S GAME".into(),
+            max_players: 10,
             rules: d.rules.rulesets.tdm,
         });
+        // The lobby: its phase, READY and the actions players send.
+        roundtrip(&MatchPhase::Lobby);
+        roundtrip(&PlayerNet { ping_ms: 48, ready: true });
+        for action in [LobbyAction::Ready(true), LobbyAction::Ready(false), LobbyAction::SwitchTeam, LobbyAction::Start]
+        {
+            roundtrip(&action);
+        }
     }
 
     /// The Loadout screen's output: six ordered magazines with mixed ammo, a mixed-tier custom halo and

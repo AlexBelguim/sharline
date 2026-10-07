@@ -264,7 +264,7 @@ pub(super) fn actions(
 ) {
     for action in actions.read() {
         if *action == MenuAction::CreateLobby && !create.iter().any(|disabled| disabled) {
-            requests.write(NetRequest::Host { map: "showhome".into() });
+            requests.write(NetRequest::Host { map: "showhome".into(), lobby: true });
         }
     }
 }

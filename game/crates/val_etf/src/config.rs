@@ -77,6 +77,8 @@ pub fn level_by_name(name: &str) -> Level {
 pub struct Cli {
     /// Host straight away on this map.
     pub host: Option<String>,
+    /// `--live`: `--host showhome` skips the lobby and starts the match at once (tests, screenshots).
+    pub live: bool,
     /// Join straight away (join code, ip:port or ip).
     pub join: Option<String>,
     /// `--name`, else [`UNNAMED`]. The name saved from the main menu wins unless [`Cli::name_given`].
@@ -133,6 +135,7 @@ impl Default for Cli {
     fn default() -> Self {
         Cli {
             host: None,
+            live: false,
             join: None,
             name: default_name(),
             name_given: false,
@@ -167,6 +170,7 @@ impl Cli {
             let mut val = || args.next().unwrap_or_default();
             match a.as_str() {
                 "--host" => cli.host = Some(val()),
+                "--live" => cli.live = true,
                 "--join" => cli.join = Some(val()),
                 "--name" => {
                     cli.name = val();
@@ -197,7 +201,7 @@ impl Cli {
                 }
                 "--help" | "-h" => {
                     println!(
-                        "val_etf [--host showhome|range] [--join CODE|IP[:PORT]] [--name NAME] [--port PORT]\n\
+                        "val_etf [--host showhome|range [--live]] [--join CODE|IP[:PORT]] [--name NAME] [--port PORT]\n\
                          \x20       [--width W --height H] [--screenshot PATH [--screenshot-after S]] [--exit-after S] [--bot] [--yaw DEG]\n\
                          \x20       [--weapon ID] [--ammo std|ap1..3|rip1..3|slug1..2] [--mags std,ap2,..]\n\
                          \x20       [--armor PRESET] [--attach A,B]\n\
@@ -212,9 +216,12 @@ impl Cli {
                          --screenshot and --demo-ui runs render at scale factor 1 (exactly W x H pixels, also on\n\
                          \x20 a HiDPI screen), never grab the mouse, do not take the keyboard focus and ignore the\n\
                          \x20 desktop's mouse and keys (--allow-input keeps them); --bot runs do not grab the mouse.\n\
-                         --esc-at presses Esc at those seconds after start-up (tests of the Esc routing).
-                         --demo-ui first-run | first-run-invalid | first-run-valid opens the first-launch callsign
-                           prompt (empty, too short, valid); without a saved profile it opens on its own.
+                         --esc-at presses Esc at those seconds after start-up (tests of the Esc routing).\n\
+                         --host showhome opens the lobby; --live starts the match at once.\n\
+                         --demo-ui lobby-ready | lobby-switch | lobby-start presses READY, SWITCH TEAM then READY, or\n\
+                         \x20 READY then START MATCH in the lobby (tests of the lobby over the network).\n\
+                         --demo-ui first-run | first-run-invalid | first-run-valid opens the first-launch callsign\n\
+                         \x20 prompt (empty, too short, valid); without a saved profile it opens on its own.\n\
                          --camera x,y,z,tx,ty,tz fixes the view camera (world coordinates) for map screenshots."
                     );
                     std::process::exit(0);
