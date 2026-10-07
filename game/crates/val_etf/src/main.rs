@@ -12,6 +12,7 @@ mod esc_menu;
 mod hud;
 mod iroh_transport;
 mod loadout;
+mod map_materials;
 mod menu;
 mod net;
 mod radial;
@@ -89,6 +90,7 @@ fn main() -> AppExit {
         radial::RadialPlugin,
         ui_kit::UiKitPlugin,
         menu::MenuPlugin,
+        map_materials::MapMaterialsPlugin,
     ));
     // Hub screens over the menu or the match.
     app.add_plugins((

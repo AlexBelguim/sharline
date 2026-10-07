@@ -91,6 +91,11 @@ fn look_color(look: Look) -> (Color, f32) {
         Look::TeamB => Color::srgb(0.93, 0.38, 0.32),
         Look::Accent => Color::srgb(0.95, 0.74, 0.22),
         Look::Target => Color::srgb(0.86, 0.86, 0.84),
+        Look::Asphalt => Color::srgb_u8(112, 105, 106),
+        Look::Paving => Color::srgb_u8(175, 162, 154),
+        Look::Gravel => Color::srgb_u8(173, 153, 137),
+        Look::CladSage => Color::srgb_u8(145, 153, 114),
+        Look::CladClay => Color::srgb_u8(207, 134, 96),
         Look::Invisible => Color::NONE,
     };
     let rough = match look {
@@ -104,9 +109,12 @@ fn look_color(look: Look) -> (Color, f32) {
 fn spawn_level(
     mut commands: Commands,
     level: Res<CurrentLevel>,
+    textures: Option<Res<crate::map_materials::ShowhomeMaterials>>,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
 ) {
+    let showhome = level.name.eq_ignore_ascii_case("showhome");
+    let textures = textures.filter(|_| showhome);
     let mut mats: HashMap<Look, Handle<StandardMaterial>> = HashMap::new();
     let mut mat = |look: Look, materials: &mut Assets<StandardMaterial>| {
         mats.entry(look)
@@ -137,13 +145,23 @@ fn spawn_level(
             continue;
         }
         let center = (b.min + b.max) * 0.5;
-        let mesh = match b.ramp {
-            Some(dir) => meshes.add(wedge_mesh(b, dir)),
-            None => meshes.add(Cuboid::from_size(b.max - b.min)),
+        let mut mesh = match b.ramp {
+            Some(dir) => wedge_mesh(b, dir),
+            None => Mesh::from(Cuboid::from_size(b.max - b.min)),
+        };
+        let material = match textures.as_ref().and_then(|t| t.get(b.look)) {
+            Some(textured) => {
+                world_uvs(&mut mesh, center);
+                if let Err(e) = mesh.generate_tangents() {
+                    warn!("no tangents for a {:?} brush: {e}", b.look);
+                }
+                textured
+            }
+            None => mat(b.look, &mut materials),
         };
         commands.spawn((
-            Mesh3d(mesh),
-            MeshMaterial3d(mat(b.look, &mut materials)),
+            Mesh3d(meshes.add(mesh)),
+            MeshMaterial3d(material),
             Transform::from_translation(center),
             ChildOf(root),
         ));
@@ -160,11 +178,39 @@ fn spawn_level(
             ChildOf(root),
         ));
     }
+    // Showhome's textures are balanced for the concept's warm late-afternoon sun (textures README).
+    let sun = if showhome { Color::linear_rgb(1.0, 0.84, 0.66) } else { Color::WHITE };
     commands.spawn((
-        DirectionalLight { illuminance: 9000.0, shadow_maps_enabled: true, ..default() },
+        DirectionalLight { color: sun, illuminance: 9000.0, shadow_maps_enabled: true, ..default() },
         Transform::from_xyz(30.0, 60.0, 20.0).looking_at(Vec3::new(36.0, 0.0, -24.0), Vec3::Y),
         DespawnOnExit(AppState::InGame),
     ));
+}
+
+/// Texture coordinates in metres from the world position (`offset` = the mesh's translation), projected per face:
+/// floors and tops use x / z, every other face runs U along its horizontal edge and V down its slope (so image
+/// top = up on walls, and toward the ridge on roofs). Materials scale them to their repeat.
+fn world_uvs(mesh: &mut Mesh, offset: Vec3) {
+    let (Some(positions), Some(normals)) = (
+        mesh.attribute(Mesh::ATTRIBUTE_POSITION).and_then(|a| a.as_float3()),
+        mesh.attribute(Mesh::ATTRIBUTE_NORMAL).and_then(|a| a.as_float3()),
+    ) else {
+        return;
+    };
+    let uvs: Vec<[f32; 2]> = positions
+        .iter()
+        .zip(normals)
+        .map(|(p, n)| {
+            let (p, n) = (Vec3::from(*p) + offset, Vec3::from(*n));
+            if n.y.abs() > 0.9 {
+                return [p.x, p.z];
+            }
+            let along = Vec3::Y.cross(n).normalize_or_zero();
+            let up = n.cross(along);
+            [p.dot(along), -p.dot(up)]
+        })
+        .collect();
+    mesh.insert_attribute(Mesh::ATTRIBUTE_UV_0, uvs);
 }
 
 /// A ramp's wedge, built rising along +X and rotated to its rise direction.
@@ -488,6 +534,7 @@ fn sync_viewmodel(
 
 #[allow(clippy::type_complexity)]
 fn update_camera(
+    cli: Res<crate::config::Cli>,
     control: Res<LocalControl>,
     fixed: Res<Time<Fixed>>,
     me: Query<(&PlayerMove, Option<&Smoothed>, &PlayerWeapon, &Vitals), With<Controlled>>,
@@ -499,6 +546,12 @@ fn update_camera(
     let feet = smoothed.map_or(mv.0.pos, |s| s.prev.lerp(s.curr, alpha));
     let dead = vitals.health.dead;
     let eye = if dead { feet + Vec3::Y * 3.0 } else { feet + Vec3::Y * mv.0.eye };
+    if let Some((at, target)) = cli.camera {
+        for mut t in &mut camera {
+            *t = Transform::from_translation(at).looking_at(target, Vec3::Y);
+        }
+        return;
+    }
     for mut t in &mut camera {
         t.translation = eye;
         let pitch = if dead { -0.6 } else { control.pitch + control.punch.to_radians() };
@@ -613,5 +666,35 @@ fn age_impacts(mut commands: Commands, time: Res<Time>, mut impacts: Query<(Enti
         } else if left < IMPACT_FADE_S {
             t.scale = Vec3::splat(left / IMPACT_FADE_S);
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    /// World-space UVs in metres: walls run U along the face and V down from the top, floors use x / z.
+    #[test]
+    fn world_uvs_are_metres_in_world_space() {
+        let mut mesh = Mesh::from(Cuboid::from_size(Vec3::new(1.0, 3.0, 46.0)));
+        world_uvs(&mut mesh, Vec3::new(0.5, 1.5, -24.0));
+        let p = mesh.attribute(Mesh::ATTRIBUTE_POSITION).unwrap().as_float3().unwrap().to_vec();
+        let n = mesh.attribute(Mesh::ATTRIBUTE_NORMAL).unwrap().as_float3().unwrap().to_vec();
+        let Some(bevy::mesh::VertexAttributeValues::Float32x2(uv)) = mesh.attribute(Mesh::ATTRIBUTE_UV_0) else {
+            panic!("no uvs");
+        };
+        for i in 0..p.len() {
+            let world = Vec3::from(p[i]) + Vec3::new(0.5, 1.5, -24.0);
+            match n[i] {
+                [1.0, 0.0, 0.0] => assert_eq!(uv[i], [-world.z, -world.y]),
+                [0.0, 0.0, 1.0] => assert_eq!(uv[i], [world.x, -world.y]),
+                [0.0, 1.0, 0.0] => assert_eq!(uv[i], [world.x, world.z]),
+                _ => {}
+            }
+        }
+        // The long face spans its 46 m in U (not 0..1), so textures tile instead of stretching.
+        let east: Vec<f32> = (0..p.len()).filter(|&i| n[i] == [1.0, 0.0, 0.0]).map(|i| uv[i][0]).collect();
+        let span = east.iter().cloned().fold(f32::MIN, f32::max) - east.iter().cloned().fold(f32::MAX, f32::min);
+        assert!((span - 46.0).abs() < 1e-4, "{span}");
     }
 }

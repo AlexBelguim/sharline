@@ -153,12 +153,12 @@ fn walls_w() -> Vec<WallDef> {
         WallDef::seg(9.0, 32.0, 21.0, 32.0, gf, uf, t),   // W_GF_N
         WallDef::seg(9.0, 16.0, 9.0, 32.0, gf, uf, t),    // W_GF_W
         WallDef::seg(9.0, 22.0, 21.0, 22.0, gf, uf, 0.2), // W_GF_P
-        // upper floor exterior + partition
-        WallDef::seg(9.0, 22.0, 21.0, 22.0, uf, EAVES, t),  // W_UF_S
-        WallDef::seg(21.0, 22.0, 21.0, 32.0, uf, EAVES, t), // W_UF_E
-        WallDef::seg(9.0, 32.0, 21.0, 32.0, uf, EAVES, t),  // W_UF_N
-        WallDef::seg(9.0, 22.0, 9.0, 32.0, uf, EAVES, t),   // W_UF_W
-        WallDef::seg(15.0, 22.0, 15.0, 32.0, uf, UF_CEIL, 0.2), // W_UF_P
+        // upper floor exterior (fibre-cement cladding over the printed ground floor) + partition
+        WallDef::seg(9.0, 22.0, 21.0, 22.0, uf, EAVES, t).look(L::CladSage), // W_UF_S
+        WallDef::seg(21.0, 22.0, 21.0, 32.0, uf, EAVES, t).look(L::CladSage), // W_UF_E
+        WallDef::seg(9.0, 32.0, 21.0, 32.0, uf, EAVES, t).look(L::CladSage), // W_UF_N
+        WallDef::seg(9.0, 22.0, 9.0, 32.0, uf, EAVES, t).look(L::CladSage),  // W_UF_W
+        WallDef::seg(15.0, 22.0, 15.0, 32.0, uf, UF_CEIL, 0.2),              // W_UF_P
         // terrace parapets (1.0 m) and privacy screens (2.4 m)
         WallDef::seg(11.0, 16.0, 21.0, 16.0, uf, uf + 1.0, 0.25).look(L::Trim), // W_TER_PS
         WallDef::seg(21.0, 16.0, 21.0, 22.0, uf, uf + 1.0, 0.25).look(L::Trim), // W_TER_PE
@@ -222,16 +222,21 @@ impl Side {
     }
 
     fn wall(self, w: WallDef) -> WallDef {
-        if self.mirror { w.mirror_x(AXIS_X) } else { w }
+        let look = self.look(w.look);
+        if self.mirror { w.mirror_x(AXIS_X).look(look) } else { w }
     }
 
     fn dir(self, d: Dir) -> Dir {
         if self.mirror { d.mirror_x() } else { d }
     }
 
+    /// The east side swaps the team tint and the house colour.
     fn look(self, l: L) -> L {
         match (self.mirror, l) {
             (true, L::TeamA) => L::TeamB,
+            (true, L::TeamB) => L::TeamA,
+            (true, L::CladSage) => L::CladClay,
+            (true, L::CladClay) => L::CladSage,
             _ => l,
         }
     }
@@ -241,7 +246,13 @@ impl Side {
 fn half(b: &mut Builder, s: Side, openings: &[Opening]) {
     // Ground: flush slab with team-tinted spawn zones and floors under the buildings. Built for the west half
     // (to the axis) and mirrored, so both halves are exact mirror images.
+    // Lawn everywhere, then the street, the sidewalk, the gravel drive, the patio and the front path.
     let mut g = FloorPlan::new(Rect::new(-2.0, -2.0, AXIS_X, MAP_H + 2.0), L::Ground);
+    g.patch(Rect::new(29.5, -2.0, AXIS_X, MAP_H + 2.0), L::Asphalt);
+    g.patch(Rect::new(27.65, -2.0, 29.5, MAP_H + 2.0), L::Paving);
+    g.patch(Rect::new(8.6, 1.0, 27.65, 13.6), L::Gravel);
+    g.patch(Rect::new(9.0, 32.0, 21.0, 36.0), L::Paving);
+    g.patch(Rect::new(21.0, 25.0, 27.65, 27.0), L::Paving);
     for z in SPAWN_ZONES_W {
         g.patch(z, L::TeamA);
     }

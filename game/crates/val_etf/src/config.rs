@@ -86,6 +86,9 @@ pub struct Cli {
     /// [`Cli::automated`]) default to the first monitor that is not the primary one, so tests stay off
     /// the user's main screen.
     pub monitor: Option<usize>,
+    /// `--camera x,y,z,tx,ty,tz`: a fixed view camera at (x, y, z) looking at (tx, ty, tz), Bevy world
+    /// coordinates, for map screenshots.
+    pub camera: Option<(Vec3, Vec3)>,
 }
 
 impl Cli {
@@ -110,6 +113,7 @@ impl Cli {
             armor: None,
             attach: None,
             monitor: std::env::var("VETF_TEST_MONITOR").ok().and_then(|v| v.parse().ok()),
+            camera: None,
         };
         let mut args = std::env::args().skip(1);
         while let Some(a) = args.next() {
@@ -136,6 +140,12 @@ impl Cli {
                 "--armor" => cli.armor = Some(val()),
                 "--attach" => cli.attach = Some(val()),
                 "--monitor" => cli.monitor = val().parse().ok(),
+                "--camera" => {
+                    let n: Vec<f32> = val().split(',').filter_map(|x| x.trim().parse().ok()).collect();
+                    if n.len() == 6 {
+                        cli.camera = Some((Vec3::new(n[0], n[1], n[2]), Vec3::new(n[3], n[4], n[5])));
+                    }
+                }
                 "--help" | "-h" => {
                     println!(
                         "val_etf [--host showhome|range] [--join CODE|IP[:PORT]] [--name NAME] [--port PORT]\n\
@@ -149,7 +159,8 @@ impl Cli {
                          --port sets the HOST GAME port (default: net.ron, 47820).
                          --monitor N opens the window on monitor N (0 = leftmost). Automated runs (--exit-after,
                          --screenshot, --demo-ui) open on the first non-primary monitor by default
-                         (override with VETF_TEST_MONITOR=N)."
+                         (override with VETF_TEST_MONITOR=N).
+                         --camera x,y,z,tx,ty,tz fixes the view camera (world coordinates) for map screenshots."
                     );
                     std::process::exit(0);
                 }
@@ -274,6 +285,7 @@ mod tests {
             armor: None,
             attach: None,
             monitor: None,
+            camera: None,
         }
     }
 

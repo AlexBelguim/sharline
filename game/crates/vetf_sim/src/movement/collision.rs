@@ -49,6 +49,14 @@ pub enum Look {
     TeamB,
     Accent,
     Target,
+    /// Street and car-park surface.
+    Asphalt,
+    /// Pavements, front paths, patios.
+    Paving,
+    Gravel,
+    /// Fibre-cement cladding in the west (Sage) and east (Clay) house colours.
+    CladSage,
+    CladClay,
     /// Not drawn (player clips, invisible bounds).
     Invisible,
 }

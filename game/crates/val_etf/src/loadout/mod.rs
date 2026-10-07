@@ -843,6 +843,7 @@ pub(crate) mod tests {
             armor: None,
             attach: None,
             monitor: None,
+            camera: None,
         }
     }
 
