@@ -932,13 +932,19 @@ impl View<'_> {
                 }
                 card.insert((Button, Act::Mag(i), Focusable, RelativeCursorPosition::default(), looks, Active(on)));
             } else {
-                card.insert(BoxShadow(vec![ShadowStyle {
-                    color: K50,
-                    x_offset: px(0),
-                    y_offset: px(8),
-                    spread_radius: px(0),
-                    blur_radius: px(24),
-                }]));
+                // The dragged copy: a card at .9 over the strip, so it stays readable (Bevy has no group
+                // opacity; the CSS card's .03 fill would let the card under it show through).
+                card.insert((
+                    BackgroundColor(hexa(0x10151D, 0.9)),
+                    BorderColor::all(STROKE_HI),
+                    BoxShadow(vec![ShadowStyle {
+                        color: K50,
+                        x_offset: px(0),
+                        y_offset: px(8),
+                        spread_radius: px(0),
+                        blur_radius: px(12),
+                    }]),
+                ));
             }
             card.with_children(|c| {
                 c.spawn(Node { column_gap: px(6), align_items: AlignItems::Center, ..default() }).with_children(|h| {
@@ -1247,7 +1253,7 @@ impl View<'_> {
                         BackgroundColor(c),
                         UiTransform::from_rotation(Rot2::degrees(45.0)),
                         BoxShadow(vec![ShadowStyle {
-                            color: c,
+                            color: translucent(c, 0.55),
                             x_offset: px(0),
                             y_offset: px(0),
                             spread_radius: px(0),
@@ -1383,15 +1389,16 @@ impl View<'_> {
             w.spawn(col_header(f, "WHAT OTHERS SEE", "READABILITY LAYERS", TextRole::H2Small, 6.0));
             w.spawn(Node { flex_direction: FlexDirection::Column, row_gap: px(7), ..default() }).with_children(|g| {
                 for (k, line) in ["ALWAYS", "ON HIT", "ON SCAN"].iter().zip(see) {
-                    // Top-aligned: the 12 px label sits 1 px lower so it shares the 13 px line's baseline.
+                    // One 16 px line per row (fixed, so text measuring cannot stretch it); the 12 px label sits
+                    // 1 px lower so it shares the 13 px line's baseline.
                     g.spawn((
-                        Node::default(),
+                        Node { height: px(16), ..default() },
                         children![
                             (
                                 f.text(*k, Face::Display, 600, 12.0, TEXT_MID, 0.14),
                                 Node { width: px(86), flex_shrink: 0.0, margin: UiRect::top(px(1)), ..default() },
                             ),
-                            (f.text(line, Face::Body, 400, 13.0, TEXT, 0.0), Node { flex_grow: 1.0, ..default() }),
+                            (f.text(line, Face::Body, 400, 13.0, TEXT, 0.0), TextLayout::no_wrap()),
                         ],
                     ));
                 }

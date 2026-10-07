@@ -86,10 +86,28 @@ fn init_active_loadout(mut commands: Commands, cli: Res<Cli>, data: Res<Data>) {
     let choice = if cli.has_loadout_overrides() {
         crate::config::loadout_choice(&cli, &data)
     } else {
-        let file = LoadoutsFile::load(&data, crate::config::DEFAULT_AGENT);
-        file.presets[file.active].loadout.clone()
+        preset_choice(&LoadoutsFile::load(&data, crate::config::DEFAULT_AGENT), &data, &cli)
     };
     commands.insert_resource(ActiveLoadout(choice));
+}
+
+/// The active preset, cleaned up like the screen would (unknown parts dropped, caps applied); a preset the
+/// host would refuse in team deathmatch (saved over budget with + SAVE AS) gives the default loadout.
+fn preset_choice(file: &LoadoutsFile, data: &GameData, cli: &Cli) -> LoadoutChoice {
+    let preset = &file.presets[file.active.min(file.presets.len().saturating_sub(1))].loadout;
+    let draft = Draft::from_choice(preset, &file.attachments, data);
+    if draft.problems(data, gear_budget(data, MatchMode::Tdm)).is_empty() {
+        draft.choice()
+    } else {
+        warn!(
+            "loadout preset {} cannot be used in team deathmatch; using the default loadout",
+            file.label(file.active)
+        );
+        crate::config::loadout_choice(
+            &Cli { weapon: None, ammo: None, mags: None, armor: None, attach: None, ..cli.clone() },
+            data,
+        )
+    }
 }
 
 fn load_halo_images(mut commands: Commands, assets: Res<AssetServer>) {
@@ -358,14 +376,33 @@ fn open_screen(
     view::spawn_root(&mut commands, 100 + depth * 10);
 }
 
-/// Over a running match the cursor is free and the player's input is off while the screen is open.
+/// Over a running match the cursor is free and the player's input is off while the screen is open. When the
+/// screen paused the game itself and closes with nothing under it, play resumes (a screen under it, such as
+/// the ESC menu, keeps its own pause).
 fn free_cursor_in_match(
     screens: Res<Screens>,
     state: Res<State<AppState>>,
     mut cursor: Query<&mut CursorOptions, With<PrimaryWindow>>,
     mut control: Option<ResMut<crate::client::LocalControl>>,
+    mut paused_here: Local<bool>,
 ) {
-    if *state.get() != AppState::InGame || !screens.top().is_some_and(|t| t.same_kind(Screen::Loadout)) {
+    let on_top = screens.top().is_some_and(|t| t.same_kind(Screen::Loadout));
+    if *state.get() != AppState::InGame {
+        *paused_here = false;
+        return;
+    }
+    let Some(control) = control.as_mut() else { return };
+    if !on_top {
+        if *paused_here && !screens.contains(Screen::Loadout) {
+            *paused_here = false;
+            if screens.is_empty() && control.paused {
+                control.paused = false;
+                for mut c in &mut cursor {
+                    c.visible = false;
+                    c.grab_mode = CursorGrabMode::Locked;
+                }
+            }
+        }
         return;
     }
     for mut c in &mut cursor {
@@ -374,10 +411,9 @@ fn free_cursor_in_match(
             c.grab_mode = CursorGrabMode::None;
         }
     }
-    if let Some(control) = control.as_mut()
-        && !control.paused
-    {
+    if !control.paused {
         control.paused = true;
+        *paused_here = true;
     }
 }
 
@@ -830,6 +866,20 @@ pub(crate) mod tests {
         let ap = AmmoChoice { kind: AmmoKind::ArmorPiercing, tier: 3 };
         let c = LoadoutChoice { mags: vec![ap; 6], ..c };
         assert!(summary(&c, &d).gear_cost > s.gear_budget, "six AP III magazines are over budget");
+    }
+
+    #[test]
+    fn an_over_budget_preset_is_not_used_at_start_up() {
+        let d = GameData::embedded();
+        let mut file = LoadoutsFile::default();
+        file.repair(&d, "kestrel");
+        file.active = 2;
+        let cli = plain_cli();
+        assert_eq!(preset_choice(&file, &d, &cli), file.presets[2].loadout, "C · MEDIC is valid");
+        let ap3 = AmmoChoice { kind: AmmoKind::ArmorPiercing, tier: 3 };
+        file.presets[2].loadout.mags = vec![ap3; 4];
+        let fallback = preset_choice(&file, &d, &cli);
+        assert_eq!(fallback, crate::config::loadout_choice(&cli, &d));
     }
 
     #[test]
