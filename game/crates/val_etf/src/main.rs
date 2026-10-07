@@ -3,6 +3,9 @@
 //! One binary does everything: the main menu can host (listen server: server + local player in one app)
 //! or join a friend's game. See `game/README.md` for controls and command-line options.
 
+// Bevy systems take their dependencies as parameters and filter with tuple types.
+#![allow(clippy::too_many_arguments, clippy::type_complexity)]
+
 mod client;
 mod config;
 mod hud;
@@ -56,6 +59,7 @@ fn main() -> AppExit {
     ));
     app.add_plugins(vetf_net::ProtocolPlugin { input_redundancy: data.net.input_redundancy as u16 });
     app.insert_resource(config::Data(std::sync::Arc::new(data)));
+    app.insert_resource(net::Session { local_name: cli.name.clone(), ..Default::default() });
     app.insert_resource(cli);
     app.init_state::<AppState>();
     app.add_plugins((

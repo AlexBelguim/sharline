@@ -283,10 +283,10 @@ fn fire_claims(
                 continue;
             }
             let pose = Pose { pos: mv.0.pos, yaw: look.yaw, stance: mv.0.stance };
-            if let Some((zone, t)) = hitbox::raycast(&data, &pose, s.origin, dir, world_t) {
-                if best.is_none_or(|b| t < b.2) {
-                    best = Some((id.0, zone, t));
-                }
+            if let Some((zone, t)) = hitbox::raycast(&data, &pose, s.origin, dir, world_t)
+                && best.is_none_or(|b| t < b.2)
+            {
+                best = Some((id.0, zone, t));
             }
         }
         debug!("local shot {} spread {:.2} hit {:?} (world at {world_t:.1} m)", s.shot.seq, s.shot.spread_deg, best);
@@ -431,12 +431,13 @@ fn automation(
     }
     // With --host / --join the screenshot clock starts when the match view appears.
     let clock = if cli.host.is_some() || cli.join.is_some() { in_game_since.map_or(-1.0, |s| t - s) } else { t };
-    if let Some(path) = &cli.screenshot {
-        if !*taken && clock >= cli.screenshot_after {
-            *taken = true;
-            info!("saving screenshot to {}", path.display());
-            commands.spawn(Screenshot::primary_window()).observe(save_to_disk(path.clone()));
-        }
+    if let Some(path) = &cli.screenshot
+        && !*taken
+        && clock >= cli.screenshot_after
+    {
+        *taken = true;
+        info!("saving screenshot to {}", path.display());
+        commands.spawn(Screenshot::primary_window()).observe(save_to_disk(path.clone()));
     }
     if cli.exit_after.is_some_and(|e| t >= e) {
         exit.write(AppExit::Success);

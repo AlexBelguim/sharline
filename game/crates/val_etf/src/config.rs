@@ -18,11 +18,11 @@ pub struct CurrentLevel(pub Arc<Level>);
 /// into the binary.
 pub fn load_game_data() -> GameData {
     let mut candidates = vec![PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../assets/data")];
-    if let Ok(exe) = std::env::current_exe() {
-        if let Some(dir) = exe.parent() {
-            candidates.push(dir.join("assets/data"));
-            candidates.push(dir.join("../../assets/data"));
-        }
+    if let Ok(exe) = std::env::current_exe()
+        && let Some(dir) = exe.parent()
+    {
+        candidates.push(dir.join("assets/data"));
+        candidates.push(dir.join("../../assets/data"));
     }
     for dir in candidates.into_iter().filter(|d| d.is_dir()) {
         match GameData::load_dir(&dir) {

@@ -60,8 +60,7 @@ pub enum NetRequest {
     Leave { reason: Option<String> },
 }
 
-fn auto_start(cli: Res<Cli>, mut requests: MessageWriter<NetRequest>, mut session: ResMut<Session>) {
-    session.local_name = cli.name.clone();
+fn auto_start(cli: Res<Cli>, mut requests: MessageWriter<NetRequest>) {
     if let Some(map) = &cli.host {
         requests.write(NetRequest::Host { map: if map.is_empty() { "showhome".into() } else { map.clone() } });
     } else if let Some(address) = &cli.join {

@@ -476,18 +476,20 @@ fn handle_deaths(
         mv.0.vel = Vec3::ZERO;
         let (victim_id, victim_team) = (vid.0, vinfo.team);
         let mut killer_id = None;
-        if let Some(k) = d.killer.filter(|k| *k != d.victim) {
-            if let Ok((kid, kinfo, _, mut kscore, _)) = players.get_mut(k) {
-                kscore.kills += 1;
-                killer_id = Some(kid.0);
-                if let Some(mut m) = matches.iter_mut().next() {
-                    if m.mode == MatchMode::Tdm && m.phase == MatchPhase::Live && kinfo.team != victim_team {
-                        match kinfo.team {
-                            Some(Team::A) => m.score_a += 1,
-                            Some(Team::B) => m.score_b += 1,
-                            None => {}
-                        }
-                    }
+        if let Some(k) = d.killer.filter(|k| *k != d.victim)
+            && let Ok((kid, kinfo, _, mut kscore, _)) = players.get_mut(k)
+        {
+            kscore.kills += 1;
+            killer_id = Some(kid.0);
+            if let Some(mut m) = matches.iter_mut().next()
+                && m.mode == MatchMode::Tdm
+                && m.phase == MatchPhase::Live
+                && kinfo.team != victim_team
+            {
+                match kinfo.team {
+                    Some(Team::A) => m.score_a += 1,
+                    Some(Team::B) => m.score_b += 1,
+                    None => {}
                 }
             }
         }
