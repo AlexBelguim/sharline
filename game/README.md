@@ -15,11 +15,33 @@ cargo test --workspace                  # gameplay math, design-data sync, netco
 
 Linux needs the usual Bevy packages: `libasound2-dev libudev-dev libxkbcommon-dev libwayland-dev`.
 
+### Main menu
+After mockups 04 / 04b (`design/ui/mockups`). The left nav has **PLAY** (with **HOST GAME** and **JOIN GAME**),
+**GUN RANGE**, **LOADOUT**, **SETTINGS** and **QUIT**; the PLAY flyout opens to its right.
+
+- **PLAY > HOST GAME:** lobby name, who can join, max players (even, 2-10), port (default **UDP 47820**, or
+  `--port`) and password (shown, not available yet). **CREATE LOBBY** starts team deathmatch on Showhome until
+  the lobby screen exists. A busy port is reported in the panel.
+- **GUN RANGE** hosts the range the same way, so friends can join it.
+- **PLAY > JOIN GAME:** **JOIN CODE** (e.g. `6000-105E-PC`) or **DIRECT IP** (`192.168.1.20` or `ip:port`).
+  Both take either: the code is only your host's address and port, there is no relay. **PASTE** (or Ctrl+V)
+  fills the field from the clipboard; this needs Bevy's `system_clipboard` feature, which is not enabled yet,
+  so for now it only sees text copied inside the game.
+  **RECENT** lists the last three games you joined (click to fill, double-click or Enter to join).
+  **ON YOUR NETWORK** needs the LAN beacon, which is not built yet. Connection problems show under the field.
+- **Player card:** your name (**EDIT NAME**: A-Z, 0-9, `_`, `-`, up to 16), the loadout, the six magazine
+  slots in order and the team-deathmatch gear cost against the budget (**OVER BUDGET** means the host will
+  give you the default loadout).
+- **Keys:** ↑↓ select (moving onto HOST GAME / JOIN GAME opens it), Enter confirm (or → into the flyout),
+  Tab / Shift+Tab or ↑↓ inside a flyout, ←→ on a toggle, stepper or the tabs, Esc back to the nav.
+- **Saved per user** (in `~/.config/shardline`, `%APPDATA%\shardline` or `~/Library/Application Support/shardline`;
+  `VETF_CONFIG_DIR` overrides): the name (`profile.ron`) and the recent games (`recent.ron`).
+
 ### Hosting and joining
-- **Host Game** (Showhome team deathmatch) or **Gun Range** from the menu hosts on **UDP 47820**.
+- Hosting (HOST GAME or GUN RANGE) listens on **UDP 47820** unless you change the port.
   Hold **Tab** (or press **Esc**) to see the **join code**, e.g. `6000-105E-PC`, which encodes your address and
   port.
-- **Join Game:** paste the join code, or type an IP (`192.168.1.20`) or `ip:port`.
+- Joining: paste the join code, or type an IP (`192.168.1.20`) or `ip:port`.
 - How a friend reaches you, per the network design:
   - **LAN:** works as is.
   - **Internet:** forward UDP 47820 on your router to your PC. Automatic UPnP is not built yet.
@@ -48,12 +70,17 @@ Linux needs the usual Bevy packages: `libasound2-dev libudev-dev libxkbcommon-de
 ### Command line (automation and testing)
 `val_etf [--host showhome|range] [--join CODE|IP[:PORT]] [--name NAME] [--port PORT] [--width W --height H]
 [--screenshot PATH --screenshot-after S] [--exit-after S] [--bot] [--yaw DEG]
-[--weapon ID] [--ammo AMMO | --mags std,ap2,..] [--armor PRESET] [--attach A,B] [--demo-ui reload|heal|heal-region]`
+[--weapon ID] [--ammo AMMO | --mags std,ap2,..] [--armor PRESET] [--attach A,B]
+[--demo-ui reload|heal|heal-region|hud|menu-join|menu-join-ip|menu-host]`
 
+- `--name` overrides the name saved from the main menu, for this run only.
+- `--port` sets HOST GAME's port (and so `--host`'s).
 - `--bot` drives the local player.
 - `--yaw` makes the bot hold a heading and shoot, which is useful for testing hits over the network.
 - `--mags` lists magazines in slot order (up to six); `--ammo` loads every default magazine with one ammo.
 - `--demo-ui reload|heal|heal-region` opens a ring menu for screenshots (the heal ones also hurt the host's player).
+- `--demo-ui menu-join|menu-join-ip|menu-host` opens the main menu's JOIN GAME (code or direct IP tab) or HOST
+  GAME flyout with its field focused, for screenshots.
 
 For example, a local two-process test:
 
@@ -107,8 +134,9 @@ The design is a listen server ticking at 60 Hz.
 
 **Not done yet:**
 - Lobby, loadout and settings screens. Everyone spawns with the default loadout from `rules.ron`, although
-  `Hello` already carries a loadout choice.
-- UPnP and the LAN beacon.
+  `Hello` already carries a loadout choice. Until the lobby exists, CREATE LOBBY starts the match directly.
+- UPnP and the LAN beacon (JOIN GAME's ON YOUR NETWORK tab, HOST GAME's LAN ONLY).
+- Lobby passwords, and lobby names and player counts for other players (RECENT shows `—` for ping and players).
 - Range targets and aim-lab modes. `maps::range_targets()` exists, but nothing spawns from it yet.
 - Character abilities (Kestrel scan, Solace heal) and energy drain.
 - Warden sway and hold-breath, the bipod, aim punch, and Bulwark flinch reduction.
