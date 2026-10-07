@@ -14,6 +14,7 @@ use vetf_sim::GameData;
 use vetf_sim::Zone;
 use vetf_sim::combat::{HaloState, Health, resolve_hit};
 use vetf_sim::data::{Core, Ruleset};
+use vetf_sim::gear::{gear_budget, gear_cost};
 use vetf_sim::hitbox::{FiredShot, Pose, PoseHistory, Verdict, validate_claim};
 use vetf_sim::input::view_dir;
 use vetf_sim::items::{self, ItemState};
@@ -30,7 +31,10 @@ impl Plugin for ServerPlugin {
             .add_message::<PlayerDied>()
             .add_observer(on_new_link)
             .add_observer(on_link_connected)
-            .add_systems(Update, (receive_hellos, receive_claims, demo_wounds).run_if(is_hosting))
+            .add_systems(
+                Update,
+                (receive_hellos, receive_loadout_updates, receive_claims, demo_wounds).run_if(is_hosting),
+            )
             .add_systems(FixedUpdate, simulate_authoritative.in_set(SimSystems::Simulate).run_if(is_hosting))
             .add_systems(
                 FixedUpdate,
@@ -205,22 +209,26 @@ fn pick_spawn(level: &Level, team: Option<Team>, enemies: &[Vec3]) -> SpawnPoint
 #[derive(Debug, Clone, PartialEq)]
 pub enum LoadoutError {
     UnknownWeapon,
-    UnknownArmor,
+    /// An attachment that does not exist or does not fit the gun, or two in one category.
+    Attachment,
+    /// A halo arc above its loadout tier cap.
+    TierCap,
     /// A magazine's ammo cannot be loaded by that gun, or it is NPC-only.
     Ammo,
     /// No magazines, or more than six.
     MagCount,
-    /// Halo arc tiers plus the magazines' gear cost exceed the gear budget.
+    /// Halo arc tiers plus the magazines' gear cost exceed the mode's gear budget.
     OverBudget {
         cost: u32,
         budget: u32,
     },
 }
 
-/// Build a loadout from a client's choice: loadout tier caps on the halo arcs, players' ammo only, one to
-/// six magazines, and the team-deathmatch gear budget (arc tiers + every magazine's gear cost). The
-/// healing kit comes from the mode, not the client.
-fn loadout_from_choice(data: &GameData, choice: &LoadoutChoice, mode: MatchMode) -> Result<Loadout, LoadoutError> {
+/// Build a loadout from a client's choice (the Loadout screen checks the same rules before CONFIRM):
+/// attachments that fit the gun (one per category), halo arcs within the loadout tier caps, players' ammo
+/// only, one to six magazines, and the mode's gear budget (arc tiers + every magazine's gear cost, see
+/// `vetf_sim::gear`; the gun range has none). The healing kit comes from the mode, not the client.
+pub fn loadout_from_choice(data: &GameData, choice: &LoadoutChoice, mode: MatchMode) -> Result<Loadout, LoadoutError> {
     let spec = data.weapon(&choice.weapon).ok_or(LoadoutError::UnknownWeapon)?;
     if choice.mags.is_empty() || choice.mags.len() > MAX_MAGS {
         return Err(LoadoutError::MagCount);
@@ -228,17 +236,26 @@ fn loadout_from_choice(data: &GameData, choice: &LoadoutChoice, mode: MatchMode)
     for m in &choice.mags {
         data.ammo_for(spec, *m).filter(|a| a.player_loadout).ok_or(LoadoutError::Ammo)?;
     }
+    let mut cats = Vec::new();
+    for id in &choice.attachments {
+        let a = data.attachment(id).filter(|a| a.fits.contains(&choice.weapon)).ok_or(LoadoutError::Attachment)?;
+        if cats.contains(&a.cat) {
+            return Err(LoadoutError::Attachment);
+        }
+        cats.push(a.cat);
+    }
+    if !choice.halo.within_caps(data.armor.loadout_tier_caps) {
+        return Err(LoadoutError::TierCap);
+    }
     let weapon = WeaponLoadout::resolve(data, &choice.weapon, &choice.mags, &choice.attachments)
         .ok_or(LoadoutError::UnknownWeapon)?;
-    let mut preset = data.armor.preset(&choice.armor).ok_or(LoadoutError::UnknownArmor)?.clone();
-    let caps = data.armor.loadout_tier_caps;
-    preset.tiers = preset.tiers.map(|z, t| (*t).min(caps[z]));
-    let armor = data.armor.resolve(&preset);
-    let cost = armor.gear_cost + weapon.ammo_gear_cost();
-    let budget = data.rules.tdm.gear_budget;
-    if cost > budget {
+    let cost = gear_cost(data, spec, &choice.halo, &choice.mags).total();
+    if let Some(budget) = gear_budget(data, mode)
+        && cost > budget
+    {
         return Err(LoadoutError::OverBudget { cost, budget });
     }
+    let armor = data.armor.resolve_halo(&choice.halo);
     Ok(Loadout::new(weapon, &armor, data.items.kit(mode)))
 }
 
@@ -292,9 +309,35 @@ fn receive_hellos(
                     *v = fresh_vitals(&data, &l);
                     mv.0.fuel = loadout_fuel(&data, &l);
                     *lo = PlayerLoadout(l);
-                }
-                if lo.0.armor_id == hello.loadout.armor || loadout_from_choice(&data, &hello.loadout, mode).is_ok() {
+                    // Kept for every respawn (a LoadoutUpdate replaces it).
                     sp.choice = Some(hello.loadout.clone());
+                }
+            }
+        }
+    }
+}
+
+/// A player changed their loadout on the Loadout screen during the match: check it now, apply it at their
+/// next spawn (the current life keeps its gear).
+fn receive_loadout_updates(
+    mut links: Query<(Entity, &mut MessageReceiver<LoadoutUpdate>), With<ClientOf>>,
+    mut players: Query<(&PlayerInfo, &mut ServerPlayer)>,
+    matches: Query<&MatchState>,
+    data: Res<Data>,
+) {
+    let mode = match_mode(&matches);
+    for (link, mut rx) in &mut links {
+        for update in rx.receive() {
+            for (info, mut sp) in &mut players {
+                if sp.link != link {
+                    continue;
+                }
+                match loadout_from_choice(&data, &update.loadout, mode) {
+                    Ok(_) => {
+                        info!("{}: new loadout for the next spawn", info.name);
+                        sp.choice = Some(update.loadout.clone());
+                    }
+                    Err(e) => warn!("{}: loadout update {:?} refused ({e:?})", info.name, update.loadout),
                 }
             }
         }
@@ -711,7 +754,9 @@ fn run_match(
 #[cfg(test)]
 mod tests {
     use super::*;
+    use vetf_sim::ZoneTable;
     use vetf_sim::data::{AmmoChoice, AmmoKind};
+    use vetf_sim::gear::HaloChoice;
 
     #[test]
     fn spawn_picks_far_from_enemies() {
@@ -727,6 +772,11 @@ mod tests {
     /// Team deathmatch (the gear budget's mode).
     fn loadout_from_choice(d: &GameData, c: &LoadoutChoice) -> Result<Loadout, LoadoutError> {
         super::loadout_from_choice(d, c, MatchMode::Tdm)
+    }
+
+    /// A preset's halo, capped like the Loadout screen and the command line do.
+    fn halo(d: &GameData, armor: &str) -> HaloChoice {
+        HaloChoice::from_preset(d.armor.preset(armor).unwrap()).capped(d.armor.loadout_tier_caps)
     }
 
     #[test]
@@ -745,16 +795,70 @@ mod tests {
     }
 
     fn mags(weapon: &str, mags: &[AmmoChoice], armor: &str) -> LoadoutChoice {
-        LoadoutChoice { weapon: weapon.into(), mags: mags.to_vec(), attachments: vec![], armor: armor.into() }
+        let d = GameData::embedded();
+        LoadoutChoice {
+            weapon: weapon.into(),
+            mags: mags.to_vec(),
+            attachments: vec![],
+            halo: halo(&d, armor),
+            agent: "kestrel".into(),
+        }
     }
 
     #[test]
-    fn loadout_choice_caps_leg_tier() {
+    fn halo_arcs_must_stay_within_the_tier_caps() {
         let mut d = GameData::embedded();
         d.rules.tdm.gear_budget = 100; // only the caps matter here
-        let l = loadout_from_choice(&d, &choice("ar7_mako", AmmoChoice::STANDARD, "arm_bulwark_jugg")).unwrap();
+        let capped = choice("ar7_mako", AmmoChoice::STANDARD, "arm_bulwark_jugg");
+        let l = loadout_from_choice(&d, &capped).unwrap();
         assert_eq!(l.halo.tiers.legs, d.armor.loadout_tier_caps.legs);
         assert_eq!(l.halo.tiers.torso, 4);
+        // the uncapped rare-loot halo is refused, not silently capped
+        let raw = LoadoutChoice {
+            halo: HaloChoice::from_preset(d.armor.preset("arm_bulwark_jugg").unwrap()),
+            ..capped.clone()
+        };
+        assert_eq!(loadout_from_choice(&d, &raw).err(), Some(LoadoutError::TierCap));
+    }
+
+    #[test]
+    fn a_custom_mixed_tier_halo_is_resolved_per_arc() {
+        let d = GameData::embedded();
+        let mut c = choice("ar7_mako", AmmoChoice::STANDARD, "arm_none");
+        c.halo = HaloChoice { core: Core::Volt, tiers: ZoneTable { head: 1, torso: 3, arms: 0, legs: 2 } };
+        let l = loadout_from_choice(&d, &c).unwrap();
+        assert_eq!(l.halo.tiers, c.halo.tiers);
+        assert_eq!(l.halo.core, Some(Core::Volt));
+        assert_eq!(l.weight, d.armor.weight_class(6));
+        // no arcs: no halo, whatever the core
+        c.halo.tiers = ZoneTable::splat(0);
+        let l = loadout_from_choice(&d, &c).unwrap();
+        assert_eq!((l.halo.core, l.weight), (None, vetf_sim::data::WeightClass::None));
+    }
+
+    #[test]
+    fn attachments_must_fit_the_gun_once_per_category() {
+        let d = GameData::embedded();
+        let mut c = choice("ar7_mako", AmmoChoice::STANDARD, "arm_none");
+        c.attachments = vec!["optic_reddot".into(), "grip_angled".into(), "laser".into()];
+        let l = loadout_from_choice(&d, &c).unwrap();
+        assert!(l.weapon.attachments.contains(&"grip_angled".to_string()));
+        assert!(l.weapon.attachments.contains(&"mako_stock_standard".to_string()), "defaults fill the rest");
+        c.attachments = vec!["bipod".into()];
+        assert_eq!(loadout_from_choice(&d, &c).err(), Some(LoadoutError::Attachment), "a Warden part");
+        c.attachments = vec!["optic_reddot".into(), "optic_holo".into()];
+        assert_eq!(loadout_from_choice(&d, &c).err(), Some(LoadoutError::Attachment), "two optics");
+        c.attachments = vec!["nope".into()];
+        assert_eq!(loadout_from_choice(&d, &c).err(), Some(LoadoutError::Attachment));
+    }
+
+    #[test]
+    fn the_gun_range_has_no_gear_budget() {
+        let d = GameData::embedded();
+        let ap3 = AmmoChoice { kind: AmmoKind::ArmorPiercing, tier: 3 };
+        let c = mags("ar7_mako", &[ap3; 6], "arm_bulwark_assault");
+        assert!(matches!(loadout_from_choice(&d, &c), Err(LoadoutError::OverBudget { .. })));
+        assert!(super::loadout_from_choice(&d, &c, MatchMode::Range).is_ok());
     }
 
     #[test]
@@ -767,6 +871,10 @@ mod tests {
         // the default loadout fits
         let def = &d.rules.default_loadout;
         assert!(loadout_from_choice(&d, &mags(&def.primary, &def.mags, &def.armor)).is_ok());
+        // the host prices a loadout exactly like the Loadout screen's RESULT panel (the shared function)
+        let c = mags("ar7_mako", &[ap1, ap3], "arm_mender_scout");
+        let shared = gear_cost(&d, d.weapon("ar7_mako").unwrap(), &c.halo, &c.mags).total();
+        assert_eq!(shared, 4 + d.ammo.resolve(vetf_sim::data::WeaponClass::AssaultRifle, ap3).unwrap().gear_cost + 2);
         // every magazine is priced: one AP mag costs its tier's price, two cost twice that
         let price = |m: &[AmmoChoice]| match loadout_from_choice(&d, &mags("ar7_mako", m, "arm_none")) {
             Ok(l) => l.weapon.ammo_gear_cost(),

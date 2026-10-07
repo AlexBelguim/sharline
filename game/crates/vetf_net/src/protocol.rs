@@ -9,6 +9,7 @@ use serde::{Deserialize, Serialize};
 use vetf_sim::Zone;
 use vetf_sim::combat::{HaloState, Health};
 use vetf_sim::data::{AmmoChoice, Ruleset};
+use vetf_sim::gear::HaloChoice;
 use vetf_sim::hitbox::HitClaim;
 use vetf_sim::input::{Buttons, InputFrame};
 use vetf_sim::items::ItemState;
@@ -18,7 +19,7 @@ use vetf_sim::player::{Loadout, Wounds};
 use vetf_sim::weapon::WeaponState;
 
 /// Bumped whenever the protocol changes; part of the netcode protocol id, so old builds cannot connect.
-pub const PROTOCOL_VERSION: u64 = 3;
+pub const PROTOCOL_VERSION: u64 = 4;
 
 /// netcode.io protocol id shared by host and clients.
 pub fn protocol_id() -> u64 {
@@ -157,10 +158,21 @@ impl PlayerInput {
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq)]
 pub struct LoadoutChoice {
     pub weapon: String,
-    /// Magazines in slot order (at most six), each with its own ammo.
+    /// Magazines in slot order: one to six, no gaps, each with its own ammo. Slot 1 starts in the gun, and
+    /// a slot's index is its position on the reload wheel.
     pub mags: Vec<AmmoChoice>,
+    /// Attachment ids, at most one per category; categories left out use the weapon's defaults.
     pub attachments: Vec<String>,
-    pub armor: String,
+    /// The halo: one core and a tier per arc, within the armor data's loadout tier caps.
+    pub halo: HaloChoice,
+    /// Agent id (cosmetic for now: agents have no abilities in this build).
+    pub agent: String,
+}
+
+/// Client -> host: a new loadout from the Loadout screen during a match, applied at the next spawn.
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq)]
+pub struct LoadoutUpdate {
+    pub loadout: LoadoutChoice,
 }
 
 /// Client -> host, after connecting.
@@ -309,6 +321,7 @@ impl Plugin for ProtocolPlugin {
 
         // One direction per message type (in host mode both ends share one receiver per type).
         app.register_message::<Hello>().add_direction(NetworkDirection::ClientToServer);
+        app.register_message::<LoadoutUpdate>().add_direction(NetworkDirection::ClientToServer);
         app.register_message::<ShotClaim>().add_direction(NetworkDirection::ClientToServer);
         app.register_message::<HitConfirm>().add_direction(NetworkDirection::ServerToClient);
         app.register_message::<DamageTaken>().add_direction(NetworkDirection::ServerToClient);
@@ -357,16 +370,15 @@ mod tests {
                 point: Vec3::new(0.0, 1.6, -10.0),
             },
         });
-        roundtrip(&Hello {
-            name: "KESTREL_YOU".into(),
-            loadout: LoadoutChoice {
-                weapon: "ar7_mako".into(),
-                mags: vec![AmmoChoice::STANDARD, AmmoChoice { kind: vetf_sim::data::AmmoKind::ArmorPiercing, tier: 2 }],
-                attachments: vec!["optic_holo".into()],
-                armor: "arm_mender_scout".into(),
-            },
-            data_fingerprint: d.fingerprint,
-        });
+        let choice = LoadoutChoice {
+            weapon: "ar7_mako".into(),
+            mags: vec![AmmoChoice::STANDARD, AmmoChoice { kind: vetf_sim::data::AmmoKind::ArmorPiercing, tier: 2 }],
+            attachments: vec!["optic_holo".into()],
+            halo: HaloChoice::from_preset(d.armor.preset("arm_mender_scout").unwrap()),
+            agent: "kestrel".into(),
+        };
+        roundtrip(&Hello { name: "KESTREL_YOU".into(), loadout: choice.clone(), data_fingerprint: d.fingerprint });
+        roundtrip(&LoadoutUpdate { loadout: choice });
         roundtrip(&KillFeed { killer: Some(1), victim: 2, zone: Some(Zone::Head) });
         roundtrip(&MatchState {
             mode: MatchMode::Tdm,
@@ -378,6 +390,29 @@ mod tests {
             phase: MatchPhase::Ended { winner: None },
             rules: d.rules.rulesets.tdm,
         });
+    }
+
+    /// The Loadout screen's output: six ordered magazines with mixed ammo, a mixed-tier custom halo and
+    /// the agent survive the wire (ron here; lightyear's binary serde uses the same derive).
+    #[test]
+    fn loadout_choice_with_six_mags_and_a_custom_halo_roundtrips() {
+        use vetf_sim::ZoneTable;
+        use vetf_sim::data::{AmmoKind, Core};
+        let ap = |tier| AmmoChoice { kind: AmmoKind::ArmorPiercing, tier };
+        let choice = LoadoutChoice {
+            weapon: "sk9_skink".into(),
+            mags: vec![ap(2), AmmoChoice::STANDARD, AmmoChoice { kind: AmmoKind::Rip, tier: 3 }, ap(1), ap(3), ap(2)],
+            attachments: vec!["optic_reddot".into(), "skink_mag_60".into(), "laser".into()],
+            halo: HaloChoice { core: Core::Phase, tiers: ZoneTable { head: 3, torso: 1, arms: 0, legs: 2 } },
+            agent: "solace".into(),
+        };
+        roundtrip(&LoadoutUpdate { loadout: choice.clone() });
+        let text = ron::to_string(&choice).unwrap();
+        let back: LoadoutChoice = ron::from_str(&text).unwrap();
+        assert_eq!(back.mags.len(), 6);
+        assert_eq!(back.mags[2], AmmoChoice { kind: AmmoKind::Rip, tier: 3 }, "slot order is kept");
+        assert_eq!(back.halo.tiers.legs, 2);
+        assert_eq!(protocol_id() ^ 0x5641_4c5f_4554_4600, PROTOCOL_VERSION);
     }
 
     #[test]

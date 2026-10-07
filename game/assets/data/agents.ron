@@ -1,0 +1,38 @@
+// Agents of the Loadout screen. Cosmetic for now: this build has no abilities, so picking an agent only
+// changes the agent id a loadout carries. Display copy (Kestrel's is from the mockup; Solace's is a
+// placeholder until design writes her kit). `portrait` is a file in game/assets/ui/img, `icon` an icon in
+// game/assets/ui/icons (file stem).
+(
+    agents: [
+        (
+            id: "kestrel",
+            name: "KESTREL",
+            role: "RECON · MOBILITY",
+            accent: teal,
+            portrait: "kestrel_portrait.jpg",
+            abilities: [
+                (key: "Q", name: "GRAPPLE LINE", meta: "2 CHARGES", icon: "grapple",
+                    text: "Fire a line up to 25 m and reel in. Hooks onto any ledge or zipline cable."),
+                (key: "E", name: "EYEPIECE SCAN", meta: "35 S", icon: "scan",
+                    text: "40 m cone. Marks enemies for 4 s and reveals their halo: core, tier, coverage, shield, power."),
+                (key: "X", name: "WIDE SWEEP", meta: "7 POINTS", icon: "kes-ult",
+                    text: "Placeholder ultimate: 3 scan pulses across the whole map."),
+            ],
+        ),
+        (
+            id: "solace",
+            name: "SOLACE",
+            role: "MEDIC · SUPPORT",
+            accent: coral,
+            portrait: "solace_portrait.jpg",
+            abilities: [
+                (key: "Q", name: "MEND DRONE", meta: "1 CHARGE", icon: "drone",
+                    text: "Placeholder: a drone that follows an ally and patches their wounds."),
+                (key: "E", name: "HALO PULSE", meta: "30 S", icon: "pulse",
+                    text: "Placeholder: a burst that refills the halo arcs of allies close by."),
+                (key: "X", name: "SANCTUARY", meta: "8 POINTS", icon: "sol-ult",
+                    text: "Placeholder ultimate: a field that heals everyone standing in it."),
+            ],
+        ),
+    ],
+)
