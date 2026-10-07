@@ -16,7 +16,7 @@ use crate::AppState;
 use crate::config::{Cli, Data};
 use crate::loadout::{ActiveLoadout, summary};
 use crate::net::{HostSettings, NetRequest, Session};
-use crate::screens::{Screen, Screens, SettingsTab};
+use crate::screens::{EscPress, EscSystems, Screen, Screens, SettingsTab};
 use crate::ui_kit::*;
 use crate::user_config::{PlayerProfile, RecentServers};
 use bevy::input_focus::{FocusCause, InputFocus};
@@ -48,7 +48,8 @@ impl Plugin for MenuPlugin {
                     follow_status,
                     follow_clicked_field,
                     clicks,
-                    keyboard,
+                    // The base under the screen stack: it only gets Esc while no screen is open.
+                    keyboard.in_set(EscSystems::Base),
                     (nav_actions, host::actions, join::actions),
                     (host::keys, join::keys),
                     sync_input_focus,
@@ -829,13 +830,15 @@ fn clicks(
 /// Keyboard: ↑↓ select, Enter confirm, Esc back, Tab / Shift+Tab inside a flyout.
 fn keyboard(
     keys: Res<ButtonInput<KeyCode>>,
+    mut esc_press: ResMut<EscPress>,
     mut state: ResMut<MenuState>,
     mut actions: MessageWriter<MenuAction>,
     recent: Res<RecentServers>,
     screens: Res<Screens>,
     mut live: Local<bool>,
 ) {
-    // Not while an overlay is open, nor on the frame it closes (its Esc must not reach the menu).
+    // Not while an overlay is open, nor on the frame it closes (the Enter or click that closed it must
+    // not act on the menu too; Esc cannot, the screen stack used it).
     let open = screens.is_empty();
     let was_open = std::mem::replace(&mut *live, open);
     if !open || !was_open {
@@ -846,7 +849,8 @@ fn keyboard(
     let next = keys.just_pressed(KeyCode::ArrowDown) || (tab && !shift);
     let prev = keys.just_pressed(KeyCode::ArrowUp) || (tab && shift);
     let enter = keys.any_just_pressed([KeyCode::Enter, KeyCode::NumpadEnter]);
-    let esc = keys.just_pressed(KeyCode::Escape);
+    // The menu is the last stop for Esc (name edit: cancel; flyout: back to the nav; nav: nothing).
+    let esc = esc_press.take();
     let right = keys.just_pressed(KeyCode::ArrowRight);
     if !(next || prev || enter || esc || right) {
         return;

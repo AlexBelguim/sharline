@@ -7,7 +7,7 @@
 //! - [`ActiveLoadout`] is what this player asks the host for (sent in `Hello`, applied at each spawn).
 //!   CONFIRM updates it and saves it into the active preset (`loadouts.ron`).
 //! - [`summary`] formats it for the main menu's player card and the ESC menu.
-//! - Open the screen with `Screens::push(Screen::Loadout)`; Esc or BACK pops it.
+//! - Open the screen with `Screens::push(Screen::Loadout)`; Esc (after the popover) or BACK pops it.
 
 mod focus;
 mod halo;
@@ -26,7 +26,7 @@ pub use text::{ammo_short, halo_name, tier_label};
 use crate::AppState;
 use crate::config::{Cli, Data};
 use crate::net::Session;
-use crate::screens::{Screen, ScreenRoot, Screens, screen_on_top};
+use crate::screens::{EscPress, EscSystems, Screen, ScreenRoot, Screens, screen_on_top};
 use crate::ui_kit::*;
 use bevy::input_focus::{FocusCause, InputFocus};
 use bevy::prelude::*;
@@ -59,6 +59,7 @@ impl Plugin for LoadoutScreenPlugin {
                     presses,
                     mag_release,
                     right_click,
+                    esc.in_set(EscSystems::Top),
                     keys,
                     save_as_field,
                     hover_rows,
@@ -615,29 +616,29 @@ fn right_click(
     }
 }
 
-/// Keyboard: Esc (popover, then the name field, then BACK), 1-3 presets, R reset, arrows in the popover,
-/// Shift+arrows move a magazine.
+/// Esc closes the + SAVE AS name field, else the popover. With neither open it is left to the stack's
+/// default BACK (`screens::back_on_esc`), which pops the screen and so discards unconfirmed edits.
+fn esc(mut esc: ResMut<EscPress>, mut ui: ResMut<LoadoutUi>) {
+    if !(ui.save_as || ui.pop.is_some()) || !esc.take() {
+        return;
+    }
+    if ui.save_as {
+        ui.save_as = false;
+    } else {
+        ui.close_pop();
+    }
+}
+
+/// Keyboard: 1-3 presets, R reset, arrows in the popover, Shift+arrows move a magazine (Esc: [`esc`]).
 #[allow(clippy::too_many_arguments)]
 fn keys(
-    mut keys: ResMut<ButtonInput<KeyCode>>,
+    keys: Res<ButtonInput<KeyCode>>,
     mut edit: ResMut<LoadoutEdit>,
     mut ui: ResMut<LoadoutUi>,
-    mut screens: ResMut<Screens>,
     data: Res<Data>,
     ui_data: Res<LoadoutUiData>,
     cards: Query<(&Act, &Interaction)>,
 ) {
-    if keys.just_pressed(KeyCode::Escape) {
-        keys.clear_just_pressed(KeyCode::Escape);
-        if ui.save_as {
-            ui.save_as = false;
-        } else if ui.pop.is_some() {
-            ui.close_pop();
-        } else {
-            screens.pop();
-        }
-        return;
-    }
     if ui.save_as {
         return;
     }
@@ -796,6 +797,7 @@ pub(crate) mod tests {
             bot: false,
             yaw: None,
             demo_ui: None,
+            esc_at: Vec::new(),
             weapon: None,
             ammo: None,
             mags: None,

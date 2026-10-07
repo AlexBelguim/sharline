@@ -39,6 +39,40 @@ from `design/` because of the user's direction.
 6. **Wave 3:** lobby (`05_*.md`): replicated lobby state, ready, teams, chat, START MATCH; CREATE LOBBY goes there.
 7. Review the merged diff (bugs + mockup fidelity) and fix findings.
 
+## Conventions for screens
+Hub screens (Loadout, Settings, the ESC menu, modals, later the lobby and death recap) live on the screen stack in
+`crates/val_etf/src/screens.rs`. The main menu and the match are the base under it (`AppState`).
+
+- **Opening and closing:** `Screens::push(Screen::X)` opens over the current top (return to opener);
+  `Screens::pop()` closes the top. Spawn your root (with `ScreenRoot(Screen::X)`) when your screen becomes the top;
+  `despawn_closed` removes it when it leaves the stack. Z-order: `GlobalZIndex(100 + 10 × stack depth)`.
+- **Esc: one press, one owner.** Never read `KeyCode::Escape` (a test fails if any module but `screens.rs` does).
+  Take the press from the `EscPress` resource with `esc.take()`, which returns true once per press, from a system
+  in the right `EscSystems` set. The sets run in this order in `Update`:
+  1. `EscSystems::Read`: the key goes into `EscPress` (also `--esc-at`, below).
+  2. `EscSystems::Top`: the top screen's own handler, gated with `.run_if(screen_on_top(Screen::X))`. Close the
+     innermost open layer first (a listening key cap, an edited field, a popover, a dropdown). Take Esc only when
+     you have such a layer, or when leaving needs work (Settings saving, a confirm). Example: `loadout::esc`.
+  3. `EscSystems::Back`: `back_on_esc` pops the top screen when nobody in `Top` took the press. This is the default
+     BACK, so a screen with nothing to close needs no Esc code: the ESC menu's Esc = RESUME and a modal's Esc =
+     CANCEL come for free.
+  4. `EscSystems::Base`: the base, which only ever sees Esc while no screen is open: `menu::keyboard` (name edit,
+     then flyout back to the nav) and `client::esc_in_match` (a ring menu first, then the pause overlay).
+  Inside a chain, put just the handler in the set: `(…, esc.in_set(EscSystems::Top), keys, …).chain()`.
+- **Cursor and match input are derived, never set by a screen.** `screens::apply_cursor` (PostUpdate) is the only
+  system that writes `CursorOptions`: free on the menus, over any open screen and while `LocalControl.paused`,
+  locked in play, never grabbed in hands-off runs (`Cli::hands_off`). `client::gather_input` takes no input while
+  a screen is open. So when a screen closes, the screen below (or the match) gets its own state back without any
+  bookkeeping. Do not toggle `LocalControl.paused` from a screen.
+- **The ESC menu (wave 2):** in `client::esc_in_match`, replace the `paused` toggle with
+  `screens.push(Screen::Esc)` (after the ring-menu check) and retire the legacy pause overlay in `hud.rs`
+  (`PauseRoot`, `pause_buttons`). RESUME = `screens.pop()`. Loadout and Settings opened from it return to it.
+- **Mouse after a click that changes screens:** `LocalControl.mouse_block` keeps the mouse buttons off until they
+  are released (set on entering the match, while paused or under a screen, and when the window regains focus), so
+  the click on CONFIRM, RESUME or CREATE LOBBY never fires a shot.
+- **Demo runs:** add a `--demo-ui <screen>` value that opens your screen (see `loadout::demo_open`), and check
+  Esc with `--esc-at S,S,..` (Esc presses at those seconds after start-up).
+
 ## Working notes
 - Build: `cd game && cargo build -p val_etf`, `cargo test --workspace`, `cargo clippy --workspace --all-targets`
   (keep both warning-free and green).

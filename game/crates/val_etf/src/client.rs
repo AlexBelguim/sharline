@@ -4,7 +4,7 @@
 use crate::AppState;
 use crate::config::{Cli, CurrentLevel, Data, level_by_name};
 use crate::net::{NetRequest, Role, Session};
-use crate::screens::Screens;
+use crate::screens::{EscPress, EscSystems, Screens};
 use crate::radial::{HealMenu, HealOption, REGION_ORDER, RELOAD_HOLD_S, Radial, heal_options};
 use crate::shared::LocalShot;
 use bevy::input::mouse::AccumulatedMouseMotion;
@@ -39,7 +39,15 @@ impl Plugin for ClientPlugin {
             .add_systems(OnEnter(AppState::InGame), reset_control)
             .add_systems(
                 Update,
-                (block_mouse_on_focus, toggle_pause, fire_claims, recoil_recovery, receive_feedback, tick_feedback)
+                (
+                    block_mouse_on_focus,
+                    // The base under the screen stack: it only gets Esc while no screen is open.
+                    esc_in_match.in_set(EscSystems::Base),
+                    fire_claims,
+                    recoil_recovery,
+                    receive_feedback,
+                    tick_feedback,
+                )
                     .chain()
                     .run_if(in_state(AppState::InGame)),
             )
@@ -164,9 +172,10 @@ fn block_mouse_on_focus(mut focus: MessageReader<WindowFocused>, mut control: Re
     }
 }
 
-/// Esc in the match (the cursor follows `paused`, see `screens::apply_cursor`).
-fn toggle_pause(keys: Res<ButtonInput<KeyCode>>, mut control: ResMut<LocalControl>) {
-    if keys.just_pressed(KeyCode::Escape) {
+/// Esc in the match, when no hub screen is open (`screens::EscSystems::Base`): it closes an open ring menu,
+/// else toggles the pause overlay. The cursor follows `paused` (`screens::apply_cursor`).
+fn esc_in_match(mut esc: ResMut<EscPress>, mut control: ResMut<LocalControl>) {
+    if esc.take() {
         // Esc closes an open ring menu first (and forgets a reload hold, so it does not reopen).
         let heal = control.heal.take().is_some();
         let radial = control.reload_radial.take().is_some();
