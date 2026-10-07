@@ -154,7 +154,14 @@ pub enum AmmoKind {
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct AmmoTypeSpec {
+    /// Short label (chips, the reload wheel): `STD`, `AP`; the tier numeral is added for multi-tier types.
     pub label: String,
+    /// Long name for the Loadout screen (`STANDARD`, `AP`); empty = the label.
+    #[serde(default, skip_serializing_if = "String::is_empty")]
+    pub name: String,
+    /// One line for the Loadout screen's ammo picker.
+    #[serde(default, skip_serializing_if = "String::is_empty")]
+    pub blurb: String,
     /// Weapon classes that can load this type (empty = all).
     #[serde(default)]
     pub only: Vec<WeaponClass>,
@@ -259,7 +266,20 @@ impl AmmoSpec {
 
 const ROMAN: [&str; 4] = ["I", "II", "III", "IV"];
 
+/// A tier as a roman numeral (1 = I).
+pub fn roman(tier: u8) -> &'static str {
+    ROMAN[(tier.clamp(1, 4) - 1) as usize]
+}
+
 impl AmmoFile {
+    /// The long name of an ammo choice: `STANDARD`, `AP II`, `SLUG I` (the numeral only for types with more
+    /// than one tier).
+    pub fn long_name(&self, choice: AmmoChoice) -> Option<String> {
+        let ty = self.types.get(&choice.kind)?;
+        let base = if ty.name.is_empty() { &ty.label } else { &ty.name };
+        Some(if ty.tiers.len() > 1 { format!("{base} {}", roman(choice.tier)) } else { base.clone() })
+    }
+
     pub fn resolve(&self, class: WeaponClass, choice: AmmoChoice) -> Option<AmmoSpec> {
         let base = self.classes.get(&class)?;
         let ty = self.types.get(&choice.kind)?;
@@ -268,11 +288,7 @@ impl AmmoFile {
         }
         let tier = ty.tiers.get((choice.tier as usize).checked_sub(1)?)?;
         let pen = base.pen.map(|p| (p * tier.pen_mult).max(0.0));
-        let label = if ty.tiers.len() > 1 {
-            format!("{} {}", ty.label, ROMAN[(choice.tier as usize - 1).min(3)])
-        } else {
-            ty.label.clone()
-        };
+        let label = if ty.tiers.len() > 1 { format!("{} {}", ty.label, roman(choice.tier)) } else { ty.label.clone() };
         Some(AmmoSpec {
             choice,
             label,
@@ -476,6 +492,9 @@ pub struct ArmorFile {
     pub loadout_tier_caps: ZoneTable<u8>,
     pub status_effects: BTreeMap<Core, String>,
     pub presets: Vec<ArmorPreset>,
+    /// One line per core for the Loadout screen's core cards.
+    #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
+    pub core_blurbs: BTreeMap<Core, String>,
 }
 
 /// An armor: one core type, and a tier (0 = uncovered) per halo arc.
@@ -599,7 +618,7 @@ impl ArmorFile {
 
 // ---------------------------------------------------------------------------------------------- attachments
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum AttachmentCategory {
     Optic,
@@ -608,6 +627,29 @@ pub enum AttachmentCategory {
     Under,
     Side,
     Shield,
+}
+
+impl AttachmentCategory {
+    /// Slot order on the Loadout screen.
+    pub const ALL: [AttachmentCategory; 6] = [
+        AttachmentCategory::Optic,
+        AttachmentCategory::Stock,
+        AttachmentCategory::Mag,
+        AttachmentCategory::Under,
+        AttachmentCategory::Side,
+        AttachmentCategory::Shield,
+    ];
+
+    pub fn label(self) -> &'static str {
+        match self {
+            AttachmentCategory::Optic => "OPTIC",
+            AttachmentCategory::Stock => "STOCK",
+            AttachmentCategory::Mag => "MAG",
+            AttachmentCategory::Under => "UNDER",
+            AttachmentCategory::Side => "SIDE",
+            AttachmentCategory::Shield => "SHIELD",
+        }
+    }
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -620,6 +662,15 @@ pub enum Zoom {
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct AttachmentsFile {
     pub attachments: Vec<AttachmentSpec>,
+    /// Categories a loadout may leave empty (the Loadout screen offers NONE); the others always hold a part.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub optional: Vec<AttachmentCategory>,
+}
+
+impl AttachmentsFile {
+    pub fn is_optional(&self, cat: AttachmentCategory) -> bool {
+        self.optional.contains(&cat)
+    }
 }
 
 /// Every modifier is a multiplier on the base weapon stat; `None` means 1.0.
@@ -651,6 +702,15 @@ pub struct AttachmentSpec {
     pub id: String,
     pub cat: AttachmentCategory,
     pub fits: Vec<String>,
+    /// Display name (`ANGLED GRIP`, `30-RND STANAG`); empty = the id.
+    #[serde(default, skip_serializing_if = "String::is_empty")]
+    pub name: String,
+    /// Short name for tight spots (the preview hotspot tags); empty = the name.
+    #[serde(default, skip_serializing_if = "String::is_empty")]
+    pub short: String,
+    /// One line for the Loadout screen's attachment list.
+    #[serde(default, skip_serializing_if = "String::is_empty")]
+    pub blurb: String,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub zoom: Option<Zoom>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -681,6 +741,16 @@ pub struct AttachmentSpec {
 }
 
 impl AttachmentSpec {
+    /// The display name (the id when the data has none).
+    pub fn display_name(&self) -> &str {
+        if self.name.is_empty() { &self.id } else { &self.name }
+    }
+
+    /// The short display name.
+    pub fn short_name(&self) -> &str {
+        if self.short.is_empty() { self.display_name() } else { &self.short }
+    }
+
     pub fn modifiers(&self) -> Modifiers {
         Modifiers {
             ads_time: self.ads_time,

@@ -31,11 +31,12 @@
     },
     types: {
         // The baseline round.
-        Standard: (label: "STD", tiers: [()]),
+        Standard: (label: "STD", name: "STANDARD", blurb: "Baseline round.", tiers: [()]),
         // The shield breaker, for every class: arcs take x1.2 / x1.5 / x1.8, and the round hits 2 / 4 / 6 % harder
         // (kept under the Mako's 3-shot unarmored torso). 2 / 4 / 6 gear per magazine: AP III never fits a Heavy halo.
         ArmorPiercing: (
             label: "AP",
+            blurb: "Armor-piercing. Shield breaker.",
             tiers: [
                 (pen_mult: 1.2, damage_mult: 1.02, gear_cost: 2),
                 (pen_mult: 1.5, damage_mult: 1.04, gear_cost: 4),
@@ -46,6 +47,7 @@
         // on to the torso (legs 0.84 / 0.95 / 1.0, arms 0.72 / 0.81 / 0.87). Spray bare legs, never shields.
         Rip: (
             label: "RIP",
+            blurb: "Expanding. Shreds flesh, weak into shields.",
             only: [smg],
             tiers: [
                 (pen_mult: 0.35, flesh_mult: 1.1, spill_mult: 1.2, gear_cost: 1),
@@ -58,6 +60,7 @@
         // trickle that stays until respawn.
         Shrapnel: (
             label: "SHR",
+            name: "SHRAPNEL",
             player_loadout: false,
             tiers: [
                 (pen_mult: 0.7, damage_mult: 0.8, bypass_chance: 0.1, bleed: Some((hp_per_s: 1.5, max_stacks: 3, residual_hp_per_s: 0.1))),
@@ -68,6 +71,7 @@
         // Shotgun only: one heavy projectile; big damage, shields resist it (x0.8).
         Slug: (
             label: "SLUG",
+            blurb: "One heavy projectile.",
             only: [shotgun],
             tiers: [(pen_mult: 0.8, damage_mult: 1.8, gear_cost: 1), (pen_mult: 0.8, damage_mult: 2.1, gear_cost: 2)],
         ),
