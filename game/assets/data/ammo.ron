@@ -1,18 +1,20 @@
-// Ammo (user direction, see game/DESIGN_DELTAS.md). A loadout loads ONE ammo for its gun, picked as a type
-// and a tier (e.g. AP II); there is no per-round or per-magazine sorting.
+// Ammo (user direction, see game/DESIGN_DELTAS.md). Ammo is picked PER MAGAZINE: each of a loadout's magazines
+// (up to six, in slot order) is loaded with one type and tier, e.g. AP II. In team deathmatch the halo's gear cost
+// (sum of its loadout-capped arc tiers) plus the gear_cost of EVERY magazine must fit rules.ron tdm.gear_budget.
 //
-// `pen` is a SHIELD-DAMAGE MULTIPLIER per halo tier: a bullet does damage x pen[tier] to a covered arc's
-// shield. Zone HP takes nothing while the arc holds; the bullet that breaks it carries its leftover on
-// (leftover = (shield damage - absorbed) / pen). pen 1.0 = normal, < 1 = that tier resists the round.
+// `pen` is a SHIELD-DAMAGE MULTIPLIER per halo tier: ammo pen[t] = classes[cls].pen[t] x pen_mult (t = 1..4).
+// While the hit arc has shield, the bullet does damage x pen to the shield and NOTHING to zone HP; the bullet that
+// breaks the arc carries its leftover on to HP (leftover = (shield damage - absorbed) / pen). An uncovered or broken
+// arc: the whole bullet hits HP. pen 1.0 = normal, < 1 = that tier resists the round, > 1 = the round shreds it.
 //
-//   class pen[t] x pen_mult   -> shield-damage multiplier vs a tier-t arc
-//   damage_mult               -> the whole bullet (shield and HP)
-//   flesh_mult                -> HP damage only
-//   spill_mult                -> broken-limb -> torso spill (arms 0.6 / legs 0.7), capped at spill_cap
-//   bypass_chance             -> chance a hit ignores the shield (Shrapnel)
-//   bleed                     -> HP/s per stack on the hit zone until treated; a residual stays to respawn
-//   gear_cost                 -> points against the team-deathmatch gear budget (rules.ron)
-// Omitted tier fields default to 1 / 0 / None.
+//   damage_mult    -> the whole bullet (shield and HP)
+//   flesh_mult     -> HP damage only
+//   spill_mult     -> broken-limb -> torso spill (weapons.ron spill_to_torso, arms 0.6 / legs 0.7), capped at spill_cap
+//   bypass_chance  -> chance a hit ignores the shield (Shrapnel)
+//   bleed          -> HP/s per stack on the hit zone; after treatment residual_hp_per_s per stack stays until respawn
+//   gear_cost      -> points PER MAGAZINE against the team-deathmatch gear budget
+// Omitted tier fields: pen_mult 1, damage_mult 1, flesh_mult 1, spill_mult 1, bypass_chance 0, bleed None,
+// gear_cost 0. Numbers: balance pass v2 (checked against the damage model's Python mirror).
 (
     spill_cap: 1.0,
     classes: {
@@ -23,46 +25,51 @@
         assault_rifle: (pen: (1.0, 1.0, 1.0, 1.0)),
         heavy_assault: (pen: (1.25, 1.15, 1.05, 1.0)),
         shotgun: (pen: (1.0, 1.0, 1.0, 1.0)),
-        bolt_sniper: (pen: (1.6, 1.6, 1.6, 1.6)),
+        // Neutral as well: 160 damage already breaks any arc up to 160 in one shot, and pen 1.0 keeps every design
+        // kill breakpoint (a torso hit at 30 m on a Volt Line leaves 60 HP, as in the design).
+        bolt_sniper: (pen: (1.0, 1.0, 1.0, 1.0)),
     },
     types: {
+        // The baseline round.
         Standard: (label: "STD", tiers: [()]),
-        // High damage, high pen: the shield breaker. Paid for with gear budget.
+        // The shield breaker, for every class: arcs take x1.2 / x1.5 / x1.8, and the round hits 2 / 4 / 6 % harder
+        // (kept under the Mako's 3-shot unarmored torso). 2 / 4 / 6 gear per magazine: AP III never fits a Heavy halo.
         ArmorPiercing: (
             label: "AP",
             tiers: [
-                (pen_mult: 1.3, damage_mult: 1.05, gear_cost: 2),
-                (pen_mult: 1.6, damage_mult: 1.1, gear_cost: 4),
-                (pen_mult: 2.0, damage_mult: 1.15, gear_cost: 6),
+                (pen_mult: 1.2, damage_mult: 1.02, gear_cost: 2),
+                (pen_mult: 1.5, damage_mult: 1.04, gear_cost: 4),
+                (pen_mult: 1.8, damage_mult: 1.06, gear_cost: 6),
             ],
         ),
-        // SMG only. Expanding rounds: bad into shields, brutal on flesh, and they carry more limb damage
-        // on into the torso, which makes spraying legs a real option.
+        // SMG only. Expanding rounds: arcs take only 35 %, flesh takes +10 / 15 / 20 %, and a broken limb passes more
+        // on to the torso (legs 0.84 / 0.95 / 1.0, arms 0.72 / 0.81 / 0.87). Spray bare legs, never shields.
         Rip: (
             label: "RIP",
             only: [smg],
             tiers: [
-                (pen_mult: 0.85, flesh_mult: 1.12, spill_mult: 1.2, gear_cost: 1),
-                (pen_mult: 0.8, flesh_mult: 1.2, spill_mult: 1.35, gear_cost: 2),
-                (pen_mult: 0.75, flesh_mult: 1.28, spill_mult: 1.45, gear_cost: 3),
+                (pen_mult: 0.35, flesh_mult: 1.1, spill_mult: 1.2, gear_cost: 1),
+                (pen_mult: 0.35, flesh_mult: 1.15, spill_mult: 1.35, gear_cost: 2),
+                (pen_mult: 0.35, flesh_mult: 1.2, spill_mult: 1.45, gear_cost: 3),
             ],
         ),
-        // NPC-only (bots and bosses in the extraction mode): weak, but fragments sometimes slip past the
-        // shield and leave a bleed that never fully goes away.
+        // NPC only (bots and bosses in the extraction mode): weak and resisted, but 10 / 15 / 20 % of hits slip past
+        // the shield, and every hit that reaches flesh adds a bleed stack. Treatment cuts each stack to a 0.1 HP/s
+        // trickle that stays until respawn.
         Shrapnel: (
             label: "SHR",
             player_loadout: false,
             tiers: [
-                (pen_mult: 0.7, damage_mult: 0.8, bypass_chance: 0.1, bleed: Some((hp_per_s: 1.5, max_stacks: 3, residual_hp_per_s: 0.25))),
-                (pen_mult: 0.7, damage_mult: 0.8, bypass_chance: 0.15, bleed: Some((hp_per_s: 2.0, max_stacks: 3, residual_hp_per_s: 0.3))),
-                (pen_mult: 0.7, damage_mult: 0.8, bypass_chance: 0.2, bleed: Some((hp_per_s: 2.5, max_stacks: 3, residual_hp_per_s: 0.4))),
+                (pen_mult: 0.7, damage_mult: 0.8, bypass_chance: 0.1, bleed: Some((hp_per_s: 1.5, max_stacks: 3, residual_hp_per_s: 0.1))),
+                (pen_mult: 0.7, damage_mult: 0.8, bypass_chance: 0.15, bleed: Some((hp_per_s: 2.0, max_stacks: 3, residual_hp_per_s: 0.1))),
+                (pen_mult: 0.7, damage_mult: 0.8, bypass_chance: 0.2, bleed: Some((hp_per_s: 2.5, max_stacks: 3, residual_hp_per_s: 0.1))),
             ],
         ),
-        // Shotgun only: one heavy projectile; low pen, high damage.
+        // Shotgun only: one heavy projectile; big damage, shields resist it (x0.8).
         Slug: (
             label: "SLUG",
             only: [shotgun],
-            tiers: [(pen_mult: 0.8, damage_mult: 1.8, gear_cost: 1), (pen_mult: 0.85, damage_mult: 2.1, gear_cost: 2)],
+            tiers: [(pen_mult: 0.8, damage_mult: 1.8, gear_cost: 1), (pen_mult: 0.8, damage_mult: 2.1, gear_cost: 2)],
         ),
     },
 )

@@ -18,21 +18,30 @@ Once the design docs and JSON are updated, delete the entry here and in `superse
   - **Weapon class** sets the baseline pen per halo tier. SMG Standard only slightly beats T1 and nothing above.
   - **Type and tier** scale pen, damage, flesh damage and limb spill:
     - Standard.
-    - **AP:** high damage, high pen.
-    - **RIP:** SMG only; bad into shields, brutal on flesh, carries more limb damage into the torso.
-    - **Slug:** shotgun only; low pen, high damage.
+    - **AP I-III:** arcs take x1.2 / x1.5 / x1.8 and the round hits 2 / 4 / 6 % harder (kept under the Mako's
+      3-shot bare torso).
+    - **RIP I-III:** SMG only. Arcs take only 35 %, flesh takes +10 / 15 / 20 %, and a broken limb passes more
+      on to the torso (legs 0.84 / 0.95 / 1.0). Spray bare legs, never shields.
+    - **Slug I-II:** shotgun only; one heavy projectile (x1.8 / x2.1 damage), shields resist it (x0.8).
     - **Shrapnel:** NPC-only, for bots and bosses later. Low damage, low pen, a seeded chance to slip past
-      the shield, and fragments that bleed until treated, after which a residual trickle stays until
-      respawn.
-  - **Gear budget:** in team deathmatch, AP is paid for with a loadout gear budget (`rules.ron`). Halo arc tiers
-    plus the gear cost of **every magazine** must fit. In the extraction mode, AP will be expensive or craftable
-    instead.
+      the shield, and fragments that bleed until treated, after which a 0.1 HP/s trickle per stack stays
+      until respawn.
+  - **Gear budget:** in team deathmatch, AP is paid for with a loadout gear budget of 13 (`rules.ron`). Halo arc
+    tiers plus the gear cost of **every magazine** must fit (AP 2 / 4 / 6, RIP 1 / 2 / 3 per magazine). A Heavy
+    halo never carries AP III; the capped Bulwark Juggernaut (13) just fits with Standard rounds. In the
+    extraction mode, AP will be expensive or craftable instead.
 - **Mako:** Standard has pen 1.0 everywhere, so it still matches the design's numbers exactly (tested against the
   design's Python model).
-- **Warden:** loses the 30% bleed-through and gets a high pen instead, tuned to keep its design kill breakpoints.
-  Final numbers come from the balance pass.
-- **Pending:** the shotgun's pellets and the SMG / light / heavy assault guns. The SMG is being added with the
-  RIP change.
+- **Warden:** loses the 30% bleed-through. Its pen is a flat 1.0: 160 damage already breaks any arc up to 160 in
+  one shot, so every design kill breakpoint holds (a torso hit at 30 m on a Volt Line still leaves 60 HP).
+  With AP it one-shots light halos (AP II a T2 Mender torso, AP III a T3 one); the gear budget is the brake.
+- **SK-9 Skink (new SMG, no design entry yet):** 1200 rpm (900 aimed), 24 damage to 10 m falling to 13 at 30 m,
+  40-round magazine, recoil = the Mako's pattern x0.6. It beats the Mako up close against most halos and loses
+  clearly past 15 m. The design sync test skips weapons the design does not have.
+  - Pinned by `crates/vetf_sim/tests/balance.rs`: RIP leg spraying beats any SMG round to the torso on
+    bare-legged Medium / Heavy halos, a T2 leg arc blunts it, Standard and AP stay torso-first.
+  - Needs a model with optic and side-rail sockets (art, local session).
+- **Pending:** the shotgun's pellets and the light / heavy assault guns.
 
 ## 2. Armor tier per halo section
 - **Design:** one halo has one tier, a list of covered zones and one shared shield pool.
@@ -44,8 +53,9 @@ Once the design docs and JSON are updated, delete the entry here and in `superse
   - **Loadout caps** (`loadout_tier_caps`) keep leg arcs at T2 or below. Higher leg protection is meant to be rare
     loot, so spraying legs stays a real option.
 - **Balance note:** with the design's spill factors (legs ×0.85, 70% spill to torso), spraying the legs of a T4-torso
-  target takes about as many rifle shots as going through the torso (10 vs 8). To make leg spraying a stronger
-  counter, raise `spill_to_torso.legs` in `weapons.ron`; that is a design call.
+  target takes about as many rifle shots as going through the torso (10 vs 8). The global spill stays as
+  designed (user direction); only RIP rounds in the SMG raise it, which makes leg spraying the faster answer to
+  bare-legged Medium / Heavy halos (section 1).
 - **Visual impact (art):** each halo arc should show its own tier colour, not one colour for the whole ring.
   `art/HALO_SHIELD_SPEC.md` needs an update by the local session.
 

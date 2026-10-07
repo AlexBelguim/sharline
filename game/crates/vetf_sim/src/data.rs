@@ -1303,9 +1303,10 @@ mod tests {
     #[test]
     fn embedded_data_loads_and_validates() {
         let d = GameData::embedded();
-        assert_eq!(d.weapons.weapons.len(), 2);
+        assert_eq!(d.weapons.weapons.len(), 3);
         assert_eq!(d.net.tick_hz, d.weapons.tick_hz);
         assert!(d.weapon("ar7_mako").is_some());
+        assert_eq!(d.weapon("sk9_skink").map(|w| w.cls), Some(WeaponClass::Smg));
         assert_ne!(d.fingerprint, 0);
     }
 

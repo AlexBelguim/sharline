@@ -95,6 +95,7 @@ The design is a listen server ticking at 60 Hz.
 - Shot claims with lag compensation; hits, kills, kill feed and respawn.
 - TDM score, timer and match end.
 - Per-arc halo shields and per-zone HP with spill.
+- Three guns: AR-7 Mako, VK-50 Warden and the SK-9 Skink SMG (the only gun that loads RIP).
 - Ammo class × type × tier, picked per magazine (up to six ordered magazines).
 - Rulesets: team deathmatch has no bleeding or broken-limb penalties; the range runs the full rules.
 - Healing items with a heal ring: whole-body items (the only kind in team deathmatch) and region items.
@@ -116,8 +117,7 @@ The design is a listen server ticking at 60 Hz.
 - Security: netcode uses a fixed private key, so this is a prototype for friends only.
 
 **Known limits:**
-- Leg spraying against a T4 torso is about as fast as shooting through it; see the balance note in
-  DESIGN_DELTAS.md.
+- Leg spraying is only faster than shooting the torso with RIP in the SMG, against bare legs (by design).
 - Some "not standable" roofs are flat in the blockout.
 - On a CPU software renderer running two copies of the game (this cloud container), the frame rate gets so low
   that lightyear can drop inputs (more than 64 ticks out). It is fine on real GPUs.
