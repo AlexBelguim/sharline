@@ -1,8 +1,8 @@
 //! Command line, gameplay data and the current level as resources.
 
 use bevy::prelude::*;
-use std::path::PathBuf;
-use std::sync::Arc;
+use std::path::{Path, PathBuf};
+use std::sync::{Arc, OnceLock};
 use vetf_sim::GameData;
 use vetf_sim::level::Level;
 
@@ -14,17 +14,35 @@ pub struct Data(pub Arc<GameData>);
 #[derive(Resource, Clone, Deref)]
 pub struct CurrentLevel(pub Arc<Level>);
 
+/// The game's asset folder (`game/assets`), found once at start-up; every file the game reads at run time
+/// (textures, images, data) comes from here. See [`pick_assets_root`] for the search order.
+pub fn assets_root() -> &'static Path {
+    static ROOT: OnceLock<PathBuf> = OnceLock::new();
+    ROOT.get_or_init(|| {
+        let exe_dir = std::env::current_exe().ok().and_then(|e| e.parent().map(Path::to_path_buf));
+        let source = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../assets");
+        pick_assets_root(std::env::var_os("VETF_ASSETS").map(PathBuf::from), exe_dir.as_deref(), &source)
+    })
+}
+
+/// Where the asset folder is, in this order: `VETF_ASSETS` if set; an `assets` folder next to the exe (a
+/// copied build) or in the nearest folder above it (`target/debug`, `target/release` and
+/// `target/<triple>/release` all sit under `game/`); else the source tree the binary was built from. Only a
+/// folder with `data/rules.ron` counts, so the repository's art `assets/` folder never matches.
+pub fn pick_assets_root(env: Option<PathBuf>, exe_dir: Option<&Path>, source: &Path) -> PathBuf {
+    let is_root = |d: &Path| d.join("data").join("rules.ron").is_file();
+    let mut candidates: Vec<PathBuf> = env.into_iter().collect();
+    if let Some(dir) = exe_dir {
+        candidates.extend(dir.ancestors().map(|a| a.join("assets")));
+    }
+    candidates.push(source.to_path_buf());
+    candidates.into_iter().find(|d| is_root(d)).unwrap_or_else(|| source.to_path_buf())
+}
+
 /// Load `game/assets/data/*.ron` so numbers can be tuned without rebuilding; fall back to the copy compiled
 /// into the binary.
 pub fn load_game_data() -> GameData {
-    let mut candidates = vec![PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../assets/data")];
-    if let Ok(exe) = std::env::current_exe()
-        && let Some(dir) = exe.parent()
-    {
-        candidates.push(dir.join("assets/data"));
-        candidates.push(dir.join("../../assets/data"));
-    }
-    for dir in candidates.into_iter().filter(|d| d.is_dir()) {
+    for dir in [assets_root().join("data")].into_iter().filter(|d| d.is_dir()) {
         match GameData::load_dir(&dir) {
             Ok(d) => {
                 info!("game data loaded from {}", dir.display());
@@ -317,6 +335,36 @@ mod tests {
 
     fn cli() -> Cli {
         Cli { name: "T".into(), ..Cli::default() }
+    }
+
+    /// The asset folder is found from wherever the exe sits: `--target <triple>` builds sit one folder
+    /// deeper than `target/release`, which broke the old fixed `../../assets` (the walls did not draw).
+    #[test]
+    fn the_asset_folder_is_found_from_any_build_folder() {
+        let tmp = std::env::temp_dir().join(format!("vetf_assets_root_{}", std::process::id()));
+        let mk = |d: &Path, marker: bool| {
+            std::fs::create_dir_all(d.join("data")).unwrap();
+            if marker {
+                std::fs::write(d.join("data").join("rules.ron"), "()").unwrap();
+            }
+        };
+        let game = tmp.join("repo").join("game");
+        let release = game.join("target").join("x86_64-pc-windows-msvc").join("release");
+        std::fs::create_dir_all(&release).unwrap();
+        mk(&game.join("assets"), true);
+        // The repository's art folder (no data/rules.ron) is never taken.
+        mk(&tmp.join("repo").join("assets"), false);
+        let source = tmp.join("nowhere");
+        assert_eq!(pick_assets_root(None, Some(&release), &source), game.join("assets"));
+        assert_eq!(pick_assets_root(None, Some(&game.join("target").join("debug")), &source), game.join("assets"));
+        // A copied build with its own assets folder uses that one.
+        let shipped = tmp.join("shipped");
+        mk(&shipped.join("assets"), true);
+        assert_eq!(pick_assets_root(None, Some(&shipped), &source), shipped.join("assets"));
+        // VETF_ASSETS wins; nothing found falls back to the source tree.
+        assert_eq!(pick_assets_root(Some(shipped.join("assets")), Some(&release), &source), shipped.join("assets"));
+        assert_eq!(pick_assets_root(None, Some(&tmp.join("empty")), &source), source);
+        std::fs::remove_dir_all(&tmp).ok();
     }
 
     #[test]

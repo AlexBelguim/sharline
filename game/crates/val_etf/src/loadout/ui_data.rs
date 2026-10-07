@@ -5,7 +5,6 @@
 use bevy::prelude::*;
 use serde::Deserialize;
 use std::collections::{BTreeMap, HashMap};
-use std::path::PathBuf;
 use vetf_sim::data::{AttachmentCategory, FireMode, WeaponClass};
 
 #[derive(Debug, Clone, PartialEq, Deserialize)]
@@ -126,7 +125,7 @@ impl LoadoutUiData {
 
     /// From `game/assets/data` when it is there and valid, else the built-in copy.
     pub fn load() -> Self {
-        let dir = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../assets/data");
+        let dir = crate::config::assets_root().join("data");
         let read = |name: &str| std::fs::read_to_string(dir.join(name)).ok();
         match (read("loadout_ui.ron"), read("agents.ron")) {
             (Some(ui), Some(agents)) => Self::parse(&ui, &agents).unwrap_or_else(|e| {

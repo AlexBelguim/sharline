@@ -508,13 +508,7 @@ pub fn embedded() -> &'static SettingsData {
 
 /// settings.ron from the data folder (so it can be tuned without a rebuild), else the built-in copy.
 pub fn load_data() -> SettingsData {
-    let mut dirs = vec![std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../assets/data")];
-    if let Ok(exe) = std::env::current_exe()
-        && let Some(dir) = exe.parent()
-    {
-        dirs.push(dir.join("assets/data"));
-    }
-    for dir in dirs {
+    for dir in [crate::config::assets_root().join("data")] {
         let Ok(text) = std::fs::read_to_string(dir.join("settings.ron")) else { continue };
         match ron::from_str(&text) {
             Ok(d) => return d,

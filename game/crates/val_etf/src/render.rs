@@ -72,7 +72,7 @@ fn setup_menu_camera(mut commands: Commands, existing: Query<(), With<MenuCamera
 }
 
 /// Palette from art/STYLE_GUIDE.md (graphite, bone, sand, olive...) plus readable blockout colours.
-fn look_color(look: Look) -> (Color, f32) {
+pub(crate) fn look_color(look: Look) -> (Color, f32) {
     let c = match look {
         Look::Ground => Color::srgb(0.42, 0.47, 0.36),
         Look::Floor => Color::srgb(0.58, 0.52, 0.44),

@@ -70,7 +70,8 @@ fn main() -> AppExit {
                 }),
                 ..default()
             })
-            .set(AssetPlugin { file_path: "../../assets".into(), ..default() })
+            // An absolute path, so the game finds its assets wherever the exe was built or copied to.
+            .set(AssetPlugin { file_path: config::assets_root().to_string_lossy().into_owned(), ..default() })
             .set(bevy::log::LogPlugin {
                 filter: "info,wgpu=error,naga=warn,lightyear=warn,bevy_replicon=warn".into(),
                 ..default()
@@ -122,6 +123,7 @@ fn main() -> AppExit {
         esc_menu::EscMenuPlugin,
     ));
     app.add_systems(Update, place_window);
+    app.add_systems(Startup, || info!("assets from {}", config::assets_root().display()));
     // First launch on this machine: ask for a callsign over the main menu.
     app.add_plugins(first_run::FirstRunPlugin);
     app.run()

@@ -1,13 +1,16 @@
 //! Textured materials for the Showhome map, from the texture library in `assets/maps/showhome/textures`
 //! (its README gives each texture's use, metres per repeat and roughness). Brush meshes get world-space UVs in
 //! metres (see `render::world_uvs`); each material scales them to its repeat. PNGs carry no mipmaps and tiling
-//! textures shimmer without them, so the mip chain is built here once an image has loaded.
+//! textures shimmer without them, so the mip chain is built here once an image has loaded. A texture that
+//! cannot load becomes one flat texel (the look's colour, or a flat normal), so its surfaces still draw: a
+//! material whose image never arrives is not drawn at all.
 
 use crate::render::team_color;
+use bevy::asset::RenderAssetUsages;
 use bevy::image::{ImageAddressMode, ImageLoaderSettings, ImageSampler, ImageSamplerDescriptor};
 use bevy::math::Affine2;
 use bevy::prelude::*;
-use bevy::render::render_resource::TextureFormat;
+use bevy::render::render_resource::{Extent3d, TextureDimension, TextureFormat};
 use std::collections::HashMap;
 use vetf_sim::level::Team;
 use vetf_sim::movement::collision::Look;
@@ -78,8 +81,16 @@ const LOOKS: [Look; 15] = [
 #[derive(Resource)]
 pub struct ShowhomeMaterials {
     materials: HashMap<Look, Handle<StandardMaterial>>,
-    /// Loaded PNGs waiting to become their finished images: (source, finished, sRGB).
-    pending: Vec<(Handle<Image>, Handle<Image>, bool)>,
+    /// PNGs waiting to become their finished images.
+    pending: Vec<Pending>,
+}
+
+struct Pending {
+    source: Handle<Image>,
+    done: Handle<Image>,
+    srgb: bool,
+    /// The texel used when the PNG cannot load (RGBA8).
+    fallback: [u8; 4],
 }
 
 impl ShowhomeMaterials {
@@ -96,18 +107,20 @@ fn load(
     images: Res<Assets<Image>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
 ) {
-    let mut sources: HashMap<(&str, bool), (Handle<Image>, Handle<Image>)> = HashMap::new();
-    let mut image = |name: &'static str, srgb: bool| {
+    let mut sources: HashMap<(&str, bool), Pending> = HashMap::new();
+    let mut image = |name: &'static str, srgb: bool, fallback: [u8; 4]| {
         sources
             .entry((name, srgb))
-            .or_insert_with(|| {
-                let source = server
+            .or_insert_with(|| Pending {
+                source: server
                     .load_builder()
                     .with_settings(move |s: &mut ImageLoaderSettings| s.is_srgb = srgb)
-                    .load(format!("{DIR}/{name}.png"));
-                (source, images.reserve_handle())
+                    .load(format!("{DIR}/{name}.png")),
+                done: images.reserve_handle(),
+                srgb,
+                fallback,
             })
-            .1
+            .done
             .clone()
     };
     let mut out = HashMap::new();
@@ -124,22 +137,37 @@ fn load(
         };
         let material = StandardMaterial {
             base_color: tint,
-            base_color_texture: Some(image(surf.albedo, true)),
-            normal_map_texture: surf.normal.map(|n| image(n, false)),
+            base_color_texture: Some(image(
+                surf.albedo,
+                true,
+                crate::render::look_color(look).0.to_srgba().to_u8_array(),
+            )),
+            normal_map_texture: surf.normal.map(|n| image(n, false, FLAT_NORMAL)),
             perceptual_roughness: surf.roughness,
             uv_transform: Affine2::from_scale(Vec2::splat(1.0 / surf.repeat_m)),
             ..default()
         };
         out.insert(look, materials.add(material));
     }
-    let pending = sources.into_iter().map(|((_, srgb), (source, done))| (source, done, srgb)).collect();
-    commands.insert_resource(ShowhomeMaterials { materials: out, pending });
+    commands.insert_resource(ShowhomeMaterials { materials: out, pending: sources.into_values().collect() });
 }
 
-/// One loaded PNG per frame becomes its finished image: mip chain, repeating anisotropic sampler.
-fn build_mipmaps(mut lib: ResMut<ShowhomeMaterials>, mut images: ResMut<Assets<Image>>) {
-    let Some(i) = lib.pending.iter().position(|(source, ..)| images.contains(source)) else { return };
-    let (source, done, srgb) = lib.pending.swap_remove(i);
+/// A normal map texel that leaves the surface as it is (+Z in tangent space).
+const FLAT_NORMAL: [u8; 4] = [128, 128, 255, 255];
+
+/// One loaded PNG per frame becomes its finished image: mip chain, repeating anisotropic sampler. A PNG that
+/// failed to load becomes its flat fallback texel.
+fn build_mipmaps(mut lib: ResMut<ShowhomeMaterials>, mut images: ResMut<Assets<Image>>, server: Res<AssetServer>) {
+    if let Some(i) = lib.pending.iter().position(|p| server.load_state(&p.source).is_failed()) {
+        let p = lib.pending.swap_remove(i);
+        warn!("map texture {:?} did not load; its surfaces use a flat colour", p.source.path());
+        if let Err(e) = images.insert(&p.done, flat_texel(p.fallback, p.srgb)) {
+            warn!("cannot fill a map texture: {e:?}");
+        }
+        return;
+    }
+    let Some(i) = lib.pending.iter().position(|p| images.contains(&p.source)) else { return };
+    let Pending { source, done, srgb, .. } = lib.pending.swap_remove(i);
     let Some(mut image) = images.remove(&source) else { return };
     image.sampler = ImageSampler::Descriptor(ImageSamplerDescriptor {
         address_mode_u: ImageAddressMode::Repeat,
@@ -159,6 +187,18 @@ fn build_mipmaps(mut lib: ResMut<ShowhomeMaterials>, mut images: ResMut<Assets<I
     if let Err(e) = images.insert(&done, image) {
         warn!("cannot finish a map texture: {e:?}");
     }
+}
+
+/// A 1x1 image of one texel.
+fn flat_texel(rgba: [u8; 4], srgb: bool) -> Image {
+    let format = if srgb { TextureFormat::Rgba8UnormSrgb } else { TextureFormat::Rgba8Unorm };
+    Image::new_fill(
+        Extent3d { width: 1, height: 1, depth_or_array_layers: 1 },
+        TextureDimension::D2,
+        &rgba,
+        format,
+        RenderAssetUsages::RENDER_WORLD,
+    )
 }
 
 /// Box-filtered mip levels of an RGBA8 image, appended after the base level. sRGB colour is averaged in linear
