@@ -3,8 +3,8 @@
 //! When no profile has been saved yet (`profile.ron` is missing from the config folder), the main menu opens
 //! with a modal over it: CHOOSE YOUR CALLSIGN, a text field with live validation, CONFIRM (Enter does the
 //! same) and a one-click `USE AGENT-nnnn` (a generated callsign, never the OS user name). Esc does not
-//! close it. Confirming saves the profile, so the
-//! prompt never shows again; the name can be changed later with EDIT NAME on the main menu's player card.
+//! close it. Confirming saves the profile, so the prompt never shows again; the name can be changed later
+//! with EDIT NAME on the main menu's player card. Until a name is chosen the player shows as `UNKNOWN`.
 //!
 //! Unattended runs never see it: `--name` (used for that run, not saved), `--host`, `--join`, `--bot`,
 //! `--screenshot` and `--demo-ui` skip it, except `--demo-ui first-run | first-run-invalid |
