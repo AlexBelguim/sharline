@@ -115,7 +115,9 @@ fn on_link_connected(
     }
     let (Ok(remote), Some(level)) = (links.get(trigger.entity), level) else { return };
     let peer = remote.0;
-    let tdm = matches.iter().next().is_none_or(|m| m.mode == MatchMode::Tdm);
+    // The match entity may not exist yet when the host's own client connects; the level decides.
+    let tdm =
+        !level.name.eq_ignore_ascii_case("range") && matches.iter().next().is_none_or(|m| m.mode == MatchMode::Tdm);
     let team = tdm.then(|| {
         let a = players.iter().filter(|(i, _, _)| i.team == Some(Team::A)).count();
         let b = players.iter().filter(|(i, _, _)| i.team == Some(Team::B)).count();
@@ -309,6 +311,7 @@ fn simulate_authoritative(
         sp.history.push(tick, Pose { pos: mv.0.pos, yaw: look.yaw, stance: mv.0.stance }, keep);
 
         if let Some(shot) = ev.weapon.shot {
+            debug!("{:x} fired shot {} at tick {tick}", id.0, shot.seq);
             vitals.protected_s = 0.0;
             let origin = mv.0.eye_pos();
             sp.shots.push_back(FiredShot {
@@ -371,6 +374,9 @@ fn resolve_claims(
             })
         });
         let Some(shooter) = shooter else {
+            if p.age == CLAIM_WAIT_TICKS {
+                debug!("claim {} expired: no matching shot", p.claim.seq);
+            }
             if p.age < CLAIM_WAIT_TICKS {
                 keep.push(p);
             }
@@ -395,6 +401,7 @@ fn resolve_claims(
                 continue;
             }
         };
+        info!("hit: {:x} -> {:x} {zone:?} at {range:.1} m", shooter.id, p.claim.victim);
         let halo_spec = vloadout.0.halo;
         let (mut halo, mut health) = (vitals.halo, vitals.health);
         let report = resolve_hit(

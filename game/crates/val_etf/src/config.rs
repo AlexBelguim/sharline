@@ -61,6 +61,8 @@ pub struct Cli {
     pub exit_after: Option<f32>,
     /// Drive the local player with a simple bot (smoke tests).
     pub bot: bool,
+    /// Start looking this way (degrees, 0 = north / -Z, 90 = west); the bot then holds this heading.
+    pub yaw: Option<f32>,
 }
 
 impl Cli {
@@ -76,6 +78,7 @@ impl Cli {
             screenshot_after: 3.0,
             exit_after: None,
             bot: false,
+            yaw: None,
         };
         let mut args = std::env::args().skip(1);
         while let Some(a) = args.next() {
@@ -91,10 +94,11 @@ impl Cli {
                 "--screenshot-after" => cli.screenshot_after = val().parse().unwrap_or(3.0),
                 "--exit-after" => cli.exit_after = val().parse().ok(),
                 "--bot" => cli.bot = true,
+                "--yaw" => cli.yaw = val().parse().ok(),
                 "--help" | "-h" => {
                     println!(
                         "val_etf [--host showhome|range] [--join CODE|IP[:PORT]] [--name NAME] [--port PORT]\n\
-                         \x20       [--width W --height H] [--screenshot PATH [--screenshot-after S]] [--exit-after S] [--bot]"
+                         \x20       [--width W --height H] [--screenshot PATH [--screenshot-after S]] [--exit-after S] [--bot] [--yaw DEG]"
                     );
                     std::process::exit(0);
                 }

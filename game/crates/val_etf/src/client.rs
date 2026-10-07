@@ -127,9 +127,10 @@ fn wait_for_player(
     }
 }
 
-fn reset_control(mut control: ResMut<LocalControl>, me: Query<&PlayerLook, With<Controlled>>) {
+fn reset_control(mut control: ResMut<LocalControl>, me: Query<&PlayerLook, With<Controlled>>, cli: Res<Cli>) {
     let look = me.iter().next().copied().unwrap_or_default();
-    *control = LocalControl { yaw: look.yaw, pitch: look.pitch, sensitivity: control.sensitivity, ..default() };
+    let yaw = cli.yaw.map_or(look.yaw, f32::to_radians);
+    *control = LocalControl { yaw, pitch: look.pitch, sensitivity: control.sensitivity, ..default() };
 }
 
 fn grab_cursor(mut cursor: Query<&mut CursorOptions, With<PrimaryWindow>>) {
@@ -288,6 +289,7 @@ fn fire_claims(
                 }
             }
         }
+        debug!("local shot {} spread {:.2} hit {:?} (world at {world_t:.1} m)", s.shot.seq, s.shot.spread_deg, best);
         let end_t = best.map_or(world_t, |b| b.2);
         let muzzle = s.origin + dir * 0.6 + Vec3::new(0.0, -0.12, 0.0);
         feedback.tracers.push((muzzle, s.origin + dir * end_t, 0.08, true));
@@ -395,11 +397,21 @@ fn automation(
             2 => Vec2::NEG_Y,
             _ => Vec2::new(-1.0, 0.3),
         };
-        control.yaw = (t * 0.6).sin() * 1.2 + std::f32::consts::FRAC_PI_2 * if phase < 2 { 1.0 } else { -1.0 };
-        control.pitch = (t * 1.3).sin() * 0.08;
+        match cli.yaw {
+            // Hold a heading and strafe (aim tests): only side-to-side movement.
+            Some(yaw) => {
+                control.movement = Vec2::new((t * 1.5).sin() * 0.15, 0.0);
+                control.yaw = yaw.to_radians();
+                control.pitch = -0.01;
+            }
+            None => {
+                control.yaw = (t * 0.6).sin() * 1.2 + std::f32::consts::FRAC_PI_2 * if phase < 2 { 1.0 } else { -1.0 };
+                control.pitch = (t * 1.3).sin() * 0.08;
+            }
+        }
         let firing = (t * 2.0) as i32 % 3 == 0;
         control.held = if firing { Buttons::FIRE } else { 0 };
-        if (t as i32) % 7 == 3 {
+        if (t as i32) % 7 == 3 && cli.yaw.is_none() {
             control.held |= Buttons::JUMP;
         }
     }
