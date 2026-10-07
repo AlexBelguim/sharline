@@ -1,12 +1,15 @@
-//! Quick ring menus (reload magazine pick, later healing). While one is open, mouse movement steers a
-//! pointer instead of the view; the sector the pointer is in is the selection. Slot 1 sits at the top and
-//! the rest follow clockwise, so the same slot is always in the same direction.
+//! Quick ring menus: the magazine radial (hold R) and the heal ring (H). While one is open, mouse movement
+//! steers a pointer instead of the view; the sector the pointer is in is the selection. Option 1 sits at
+//! the top and the rest follow clockwise, so the same slot is always in the same direction.
 
 use crate::AppState;
 use crate::client::LocalControl;
+use crate::config::Data;
 use bevy::prelude::*;
 use lightyear::prelude::Controlled;
-use vetf_net::{PlayerLoadout, PlayerWeapon};
+use vetf_net::{PlayerItems, PlayerLoadout, PlayerWeapon, Vitals};
+use vetf_sim::Zone;
+use vetf_sim::items::{ItemScope, would_help};
 
 /// Seconds reload must be held before the magazine radial opens (a shorter tap reloads the next slot).
 pub const RELOAD_HOLD_S: f32 = 0.2;
@@ -52,6 +55,24 @@ pub fn sector(pointer: Vec2, n: usize, deadzone: f32) -> Option<usize> {
     Some(((angle + width / 2.0) / width) as usize % n)
 }
 
+/// The heal ring: items first; a region item opens a second ring of regions around it.
+#[derive(Debug, Clone, Copy, PartialEq, Default)]
+pub struct HealMenu {
+    pub ring: Radial,
+    /// The region item picked on the first ring (kit slot), while its region ring is open.
+    pub item: Option<usize>,
+    pub regions: Radial,
+}
+
+impl HealMenu {
+    pub fn new(items: usize) -> Self {
+        Self { ring: Radial::new(items), item: None, regions: Radial::new(REGION_ORDER.len()) }
+    }
+}
+
+/// Regions on the second ring, clockwise from the top: head up, legs down.
+pub const REGION_ORDER: [Zone; 4] = [Zone::Head, Zone::Torso, Zone::Legs, Zone::Arms];
+
 /// Where option `i` of `n` sits on a ring of radius `r` (screen space, +y down), for drawing.
 pub fn option_offset(i: usize, n: usize, r: f32) -> Vec2 {
     let angle = std::f32::consts::TAU * i as f32 / n.max(1) as f32;
@@ -63,24 +84,36 @@ pub fn option_offset(i: usize, n: usize, r: f32) -> Vec2 {
 /// One option on a ring as drawn.
 #[derive(Debug, Clone, PartialEq, Default)]
 pub struct RingOption {
-    /// Big text: the slot number.
+    /// Main text: a slot number, item or region.
     pub key: String,
-    /// Small text under it: e.g. the ammo.
+    /// Small text under it: e.g. the ammo, how many are left, or the region's state.
     pub label: String,
-    /// False draws it dimmed (e.g. a spent magazine).
+    /// False draws it dimmed (a spent magazine, an item that would do nothing).
     pub enabled: bool,
-    /// Marked as current (e.g. the magazine in the gun).
+    /// Outlined as current (the magazine in the gun).
     pub current: bool,
 }
 
-/// What the ring on screen shows this frame. Filled by the menus that use a ring.
-#[derive(Resource, Debug, Clone, Default)]
-pub struct RingView {
-    pub open: bool,
+/// One ring on screen.
+#[derive(Debug, Clone, PartialEq, Default)]
+pub struct RingLayer {
     pub title: String,
     pub options: Vec<RingOption>,
     pub selected: Option<usize>,
     pub pointer: Vec2,
+    /// Centre, as an offset from the screen centre (px).
+    pub centre: Vec2,
+    pub radius: f32,
+    pub chip: Vec2,
+    pub key_size: f32,
+    /// Only this option is drawn (the item whose region ring is open).
+    pub focus: Option<usize>,
+}
+
+/// What the ring menus show this frame (no layers = closed). Filled by the menus that use a ring.
+#[derive(Resource, Debug, Clone, Default)]
+pub struct RingView {
+    pub layers: Vec<RingLayer>,
 }
 
 pub struct RadialPlugin;
@@ -89,14 +122,17 @@ impl Plugin for RadialPlugin {
     fn build(&self, app: &mut App) {
         app.init_resource::<RingView>()
             .add_systems(OnEnter(AppState::InGame), spawn_ring)
-            .add_systems(Update, (reload_ring, draw_ring).chain().run_if(in_state(AppState::InGame)));
+            .add_systems(Update, (fill_rings, draw_ring).chain().run_if(in_state(AppState::InGame)));
     }
 }
 
-/// Ring radius on screen (px) and the size of one option chip.
+/// Ring sizes on screen (px).
 const RING_R: f32 = 120.0;
-const CHIP: Vec2 = Vec2::new(96.0, 58.0);
+const CHIP: Vec2 = Vec2::new(104.0, 58.0);
+const REGION_R: f32 = 92.0;
+const REGION_CHIP: Vec2 = Vec2::new(88.0, 46.0);
 const MAX_OPTIONS: usize = 8;
+const MAX_LAYERS: usize = 2;
 
 const INK: Color = Color::srgb(0.93, 0.94, 0.95);
 const MUTED: Color = Color::srgb(0.58, 0.62, 0.68);
@@ -107,15 +143,15 @@ const CHIP_SELECTED: Color = Color::srgba(0.0, 0.42, 0.37, 0.95);
 #[derive(Component)]
 struct RingRoot;
 #[derive(Component)]
-struct RingChip(usize);
+struct RingChip(usize, usize);
 #[derive(Component)]
-struct RingKey(usize);
+struct RingKey(usize, usize);
 #[derive(Component)]
-struct RingLabel(usize);
+struct RingLabel(usize, usize);
 #[derive(Component)]
-struct RingTitle;
+struct RingTitle(usize);
 #[derive(Component)]
-struct RingPointer;
+struct RingPointer(usize);
 
 fn spawn_ring(mut commands: Commands) {
     // A zero-size anchor at the screen centre; chips are placed around it.
@@ -135,79 +171,170 @@ fn spawn_ring(mut commands: Commands) {
             DespawnOnExit(AppState::InGame),
         ))
         .id();
-    commands.spawn((
-        RingTitle,
-        Text::new(""),
-        TextFont::from_font_size(15.0),
-        TextColor(MUTED),
-        TextLayout::justify(Justify::Center),
-        Node { position_type: PositionType::Absolute, left: px(-80), top: px(-10), width: px(160), ..default() },
-        ChildOf(root),
-    ));
-    commands.spawn((
-        RingPointer,
-        Node {
-            position_type: PositionType::Absolute,
-            width: px(10),
-            height: px(10),
-            border_radius: BorderRadius::MAX,
-            ..default()
-        },
-        BackgroundColor(TEAL),
-        ChildOf(root),
-    ));
-    for i in 0..MAX_OPTIONS {
-        let chip = commands
-            .spawn((
-                RingChip(i),
-                Node {
-                    position_type: PositionType::Absolute,
-                    width: px(CHIP.x),
-                    height: px(CHIP.y),
-                    flex_direction: FlexDirection::Column,
-                    align_items: AlignItems::Center,
-                    justify_content: JustifyContent::Center,
-                    border: UiRect::all(px(2)),
-                    border_radius: BorderRadius::all(px(6)),
-                    ..default()
-                },
-                BackgroundColor(CHIP_BG),
-                BorderColor::all(Color::NONE),
-                ChildOf(root),
-            ))
-            .id();
-        commands.spawn((RingKey(i), Text::new(""), TextFont::from_font_size(24.0), TextColor(INK), ChildOf(chip)));
-        commands.spawn((RingLabel(i), Text::new(""), TextFont::from_font_size(13.0), TextColor(MUTED), ChildOf(chip)));
+    for layer in 0..MAX_LAYERS {
+        commands.spawn((
+            RingTitle(layer),
+            Text::new(""),
+            TextFont::from_font_size(14.0),
+            TextColor(MUTED),
+            TextLayout::justify(Justify::Center),
+            Node { position_type: PositionType::Absolute, width: px(160), ..default() },
+            ChildOf(root),
+        ));
+        commands.spawn((
+            RingPointer(layer),
+            Node {
+                position_type: PositionType::Absolute,
+                width: px(10),
+                height: px(10),
+                border_radius: BorderRadius::MAX,
+                ..default()
+            },
+            BackgroundColor(TEAL),
+            ChildOf(root),
+        ));
+        for i in 0..MAX_OPTIONS {
+            let chip = commands
+                .spawn((
+                    RingChip(layer, i),
+                    Node {
+                        position_type: PositionType::Absolute,
+                        flex_direction: FlexDirection::Column,
+                        align_items: AlignItems::Center,
+                        justify_content: JustifyContent::Center,
+                        border: UiRect::all(px(2)),
+                        border_radius: BorderRadius::all(px(6)),
+                        display: Display::None,
+                        ..default()
+                    },
+                    BackgroundColor(CHIP_BG),
+                    BorderColor::all(Color::NONE),
+                    ChildOf(root),
+                ))
+                .id();
+            commands.spawn((
+                RingKey(layer, i),
+                Text::new(""),
+                TextFont::from_font_size(24.0),
+                TextColor(INK),
+                ChildOf(chip),
+            ));
+            commands.spawn((
+                RingLabel(layer, i),
+                Text::new(""),
+                TextFont::from_font_size(13.0),
+                TextColor(MUTED),
+                ChildOf(chip),
+            ));
+        }
     }
 }
 
-/// The magazine radial: one option per slot, its ammo under the number, spent magazines dimmed (you
-/// emptied them yourself; nothing says how many rounds the others hold).
-fn reload_ring(
+/// Fill the ring layers from whichever menu is open.
+#[allow(clippy::type_complexity)]
+fn fill_rings(
     control: Res<LocalControl>,
-    me: Query<(&PlayerWeapon, &PlayerLoadout), With<Controlled>>,
+    data: Res<Data>,
+    me: Query<(&PlayerWeapon, &PlayerItems, &PlayerLoadout, Option<&Vitals>), With<Controlled>>,
     mut view: ResMut<RingView>,
 ) {
-    let (Some(radial), Some((w, lo))) = (control.reload_radial, me.iter().next()) else {
-        view.open = false;
+    view.layers.clear();
+    let Some((w, items, lo, vitals)) = me.iter().next() else { return };
+    if let Some(radial) = control.reload_radial {
+        // The magazine radial: one option per slot, its ammo under the number, spent magazines dimmed (you
+        // emptied them yourself; nothing says how many rounds the others hold).
+        let options =
+            lo.0.weapon
+                .mags
+                .iter()
+                .enumerate()
+                .map(|(i, ammo)| RingOption {
+                    key: (i + 1).to_string(),
+                    label: ammo.label.clone(),
+                    enabled: w.0.slot_has_rounds(i as u8),
+                    current: w.0.loaded as usize == i,
+                })
+                .collect();
+        view.layers.push(RingLayer {
+            title: "MAGAZINE".into(),
+            options,
+            selected: radial.selected(),
+            pointer: radial.pointer,
+            radius: RING_R,
+            chip: CHIP,
+            key_size: 24.0,
+            ..default()
+        });
         return;
+    }
+    let Some(menu) = control.heal else { return };
+    let helps = |slot: usize, zone: Option<Zone>| {
+        let spec = data.items.spec(&lo.0.kit[slot]);
+        vitals.is_none_or(|v| would_help(spec, zone, &v.health, &v.halo, &lo.0.halo))
     };
-    view.open = true;
-    view.title = "MAGAZINE".into();
-    view.options =
-        lo.0.weapon
-            .mags
+    let options =
+        lo.0.kit
             .iter()
             .enumerate()
-            .map(|(i, ammo)| RingOption {
-                key: (i + 1).to_string(),
-                label: ammo.label.clone(),
-                enabled: w.0.slot_has_rounds(i as u8),
-                current: w.0.loaded as usize == i,
+            .map(|(i, k)| {
+                let spec = data.items.spec(k);
+                let left = items.0.count(i as u8);
+                // A region item is worth opening if it helps any region.
+                let useful = match spec.scope {
+                    ItemScope::Body => helps(i, None),
+                    ItemScope::Region => REGION_ORDER.iter().any(|z| helps(i, Some(*z))),
+                };
+                let scope = if spec.scope == ItemScope::Body { "ALL" } else { "REGION" };
+                RingOption {
+                    key: spec.label.clone(),
+                    label: format!("x{left}  {scope}"),
+                    enabled: left > 0 && useful,
+                    current: false,
+                }
             })
             .collect();
-    view.selected = radial.selected();
-    view.pointer = radial.pointer;
+    view.layers.push(RingLayer {
+        title: "HEAL".into(),
+        options,
+        selected: if menu.item.is_some() { menu.item } else { menu.ring.selected() },
+        pointer: menu.ring.pointer,
+        radius: RING_R,
+        chip: CHIP,
+        key_size: 15.0,
+        focus: menu.item,
+        ..default()
+    });
+    let Some(item) = menu.item else { return };
+    let spec = data.items.spec(&lo.0.kit[item]);
+    let options = REGION_ORDER
+        .iter()
+        .map(|z| {
+            let label = match vitals {
+                Some(v) if spec.shield_frac > 0.0 && spec.heal_hp <= 0.0 => {
+                    if lo.0.halo.tiers[*z] == 0 {
+                        "NO ARC".to_string()
+                    } else {
+                        format!("ARC {:.0}/{:.0}", v.halo.shield[*z], lo.0.halo.capacity[*z])
+                    }
+                }
+                Some(v) if v.health.bleeding.active[*z] > v.health.bleeding.residual[*z] => "BLEEDING".into(),
+                Some(v) => format!("{:.0}/{:.0}", v.health.hp[*z].max(0.0), v.health.max[*z]),
+                None => String::new(),
+            };
+            RingOption { key: z.label().into(), label, enabled: helps(item, Some(*z)), current: false }
+        })
+        .collect();
+    view.layers.push(RingLayer {
+        title: String::new(),
+        options,
+        selected: menu.regions.selected(),
+        pointer: menu.regions.pointer,
+        centre: option_offset(item, lo.0.kit.len(), RING_R),
+        radius: REGION_R,
+        chip: REGION_CHIP,
+        key_size: 16.0,
+        ..default()
+    });
 }
 
 #[allow(clippy::type_complexity)]
@@ -215,50 +342,74 @@ fn draw_ring(
     view: Res<RingView>,
     mut root: Query<&mut Visibility, With<RingRoot>>,
     mut chips: Query<(&RingChip, &mut Node, &mut BackgroundColor, &mut BorderColor), Without<RingPointer>>,
-    mut keys: Query<(&RingKey, &mut Text, &mut TextColor), Without<RingLabel>>,
+    mut keys: Query<(&RingKey, &mut Text, &mut TextColor, &mut TextFont), Without<RingLabel>>,
     mut labels: Query<(&RingLabel, &mut Text, &mut TextColor), (Without<RingKey>, Without<RingTitle>)>,
-    mut title: Query<&mut Text, (With<RingTitle>, Without<RingKey>, Without<RingLabel>)>,
-    mut pointer: Query<&mut Node, (With<RingPointer>, Without<RingChip>)>,
+    mut titles: Query<(&RingTitle, &mut Text, &mut Node), (Without<RingKey>, Without<RingLabel>, Without<RingChip>)>,
+    mut pointers: Query<(&RingPointer, &mut Node), (Without<RingChip>, Without<RingTitle>)>,
 ) {
+    let open = !view.layers.is_empty();
     for mut v in &mut root {
-        *v = if view.open { Visibility::Inherited } else { Visibility::Hidden };
+        *v = if open { Visibility::Inherited } else { Visibility::Hidden };
     }
-    if !view.open {
+    if !open {
         return;
     }
-    let n = view.options.len();
+    // Only the innermost open layer steers.
+    let active = view.layers.len() - 1;
     for (chip, mut node, mut bg, mut border) in &mut chips {
-        let Some(opt) = view.options.get(chip.0) else {
+        let Some(layer) = view.layers.get(chip.0) else {
             node.display = Display::None;
             continue;
         };
-        let at = option_offset(chip.0, n, RING_R) - CHIP / 2.0;
+        let Some(opt) = layer.options.get(chip.1).filter(|_| layer.focus.is_none_or(|f| f == chip.1)) else {
+            node.display = Display::None;
+            continue;
+        };
+        let at = layer.centre + option_offset(chip.1, layer.options.len(), layer.radius) - layer.chip / 2.0;
         node.display = Display::Flex;
         node.left = px(at.x);
         node.top = px(at.y);
-        let selected = view.selected == Some(chip.0) && opt.enabled;
+        node.width = px(layer.chip.x);
+        node.height = px(layer.chip.y);
+        let selected = layer.selected == Some(chip.1) && opt.enabled;
         bg.0 = if selected { CHIP_SELECTED } else { CHIP_BG };
-        *border = BorderColor::all(if opt.current { INK } else { Color::NONE });
+        *border = BorderColor::all(if opt.current || layer.focus == Some(chip.1) { INK } else { Color::NONE });
     }
-    for (k, mut t, mut c) in &mut keys {
-        if let Some(opt) = view.options.get(k.0) {
+    for (k, mut t, mut c, mut font) in &mut keys {
+        let Some(layer) = view.layers.get(k.0) else { continue };
+        if let Some(opt) = layer.options.get(k.1) {
             t.0.clone_from(&opt.key);
             c.0 = if opt.enabled { INK } else { MUTED.with_alpha(0.5) };
+            font.font_size = FontSize::Px(layer.key_size);
         }
     }
     for (l, mut t, mut c) in &mut labels {
-        if let Some(opt) = view.options.get(l.0) {
-            t.0 = if opt.enabled { opt.label.clone() } else { format!("{} · EMPTY", opt.label) };
+        let Some(layer) = view.layers.get(l.0) else { continue };
+        if let Some(opt) = layer.options.get(l.1) {
+            t.0.clone_from(&opt.label);
             c.0 = if opt.enabled { MUTED } else { MUTED.with_alpha(0.5) };
         }
     }
-    for mut t in &mut title {
-        t.0.clone_from(&view.title);
+    for (title, mut t, mut node) in &mut titles {
+        match view.layers.get(title.0) {
+            Some(layer) => {
+                t.0.clone_from(&layer.title);
+                node.left = px(layer.centre.x - 80.0);
+                node.top = px(layer.centre.y + 14.0);
+            }
+            None => t.0.clear(),
+        }
     }
-    for mut node in &mut pointer {
-        let p = view.pointer / POINTER_RADIUS * (RING_R * 0.45) - Vec2::splat(5.0);
-        node.left = px(p.x);
-        node.top = px(p.y);
+    for (p, mut node) in &mut pointers {
+        match view.layers.get(p.0).filter(|_| p.0 == active) {
+            Some(layer) => {
+                let at = layer.centre + layer.pointer / POINTER_RADIUS * (layer.radius * 0.45) - Vec2::splat(5.0);
+                node.display = Display::Flex;
+                node.left = px(at.x);
+                node.top = px(at.y);
+            }
+            None => node.display = Display::None,
+        }
     }
 }
 

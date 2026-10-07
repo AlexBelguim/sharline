@@ -356,7 +356,7 @@ pub(crate) mod test_util {
         let data = GameData::embedded();
         let mods = MoveModifiers::unarmored(&data);
         let mut st = MoveState::spawn(from, data.movement.jetpack.fuel_s);
-        let input = InputFrame { movement: Vec2::Y, yaw, pitch: 0.0, buttons: Buttons(0), reload_slot: 0 };
+        let input = InputFrame { movement: Vec2::Y, yaw, pitch: 0.0, buttons: Buttons(0), ..Default::default() };
         let dt = 1.0 / 60.0;
         for _ in 0..(secs / dt).round() as usize {
             step(&data, level, &mut st, &input, &mods, dt);

@@ -392,7 +392,7 @@ fn menu_button(label: &str, action: PauseButton) -> impl Bundle {
 
 #[allow(clippy::type_complexity)]
 fn update_vitals_panel(
-    me: Query<(&Vitals, &PlayerLoadout), With<Controlled>>,
+    me: Query<(&Vitals, &PlayerLoadout, Option<&PlayerItems>), With<Controlled>>,
     data: Res<Data>,
     mut zone_bars: Query<(&ZoneBar, &mut Node, &mut BackgroundColor), Without<ArcBar>>,
     mut zone_vals: Query<
@@ -404,7 +404,7 @@ fn update_vitals_panel(
     mut label: Query<&mut Text, (With<HaloLabel>, Without<ZoneValue>, Without<ShieldText>, Without<StatusText>)>,
     mut status: Query<&mut Text, (With<StatusText>, Without<ZoneValue>, Without<ShieldText>, Without<HaloLabel>)>,
 ) {
-    let Some((v, lo)) = me.iter().next() else { return };
+    let Some((v, lo, items)) = me.iter().next() else { return };
     let halo = lo.0.halo;
     for (z, mut node, mut bg) in &mut zone_bars {
         let frac = (v.health.hp[z.0] / v.health.max[z.0]).clamp(0.0, 1.0);
@@ -413,7 +413,7 @@ fn update_vitals_panel(
     }
     for (z, mut t, mut c) in &mut zone_vals {
         t.0 = format!("{:.0}", v.health.hp[z.0].max(0.0));
-        c.0 = if v.health.is_broken(z.0) { CORAL } else { INK };
+        c.0 = if v.wounds.broken.contains(z.0) || v.health.hp[z.0] <= 0.0 { CORAL } else { INK };
     }
     for (a, mut node, mut bg) in &mut arc_bars {
         let cap = halo.capacity[a.0];
@@ -437,15 +437,23 @@ fn update_vitals_panel(
     }
     for mut t in &mut status {
         let mut parts = vec![];
+        // The item in hand, with a progress bar.
+        if let Some((u, k)) = items.and_then(|i| i.0.using).and_then(|u| Some((u, lo.0.kit.get(u.slot as usize)?))) {
+            let done = 1.0 - u.left as f32 / u.total.max(1) as f32;
+            let bar: String = (0..10).map(|i| if (i as f32) < done * 10.0 { '#' } else { '.' }).collect();
+            let zone = u.zone.map_or(String::new(), |z| format!(" ON {}", z.label()));
+            parts.push(format!("USING {}{zone} [{bar}]", data.items.spec(k).label));
+        }
         let bleeding = v.health.bleeding.zones();
         if !bleeding.is_empty() {
             let zones: Vec<&str> = bleeding.iter().map(Zone::label).collect();
             parts.push(format!("BLEEDING - {}", zones.join(" ")));
         }
-        if v.health.is_broken(Zone::Arms) {
+        // Broken limbs only exist where the mode's rules have injuries (wounds are synced on the host).
+        if v.wounds.broken.contains(Zone::Arms) {
             parts.push("ARMS BROKEN".to_string());
         }
-        if v.health.is_broken(Zone::Legs) {
+        if v.wounds.broken.contains(Zone::Legs) {
             parts.push("LEGS BROKEN".to_string());
         }
         if v.halo.regen_wait_s > 0.0 && halo.core.is_some() {
@@ -456,7 +464,6 @@ fn update_vitals_panel(
         }
         t.0 = parts.join("  |  ");
     }
-    let _ = data;
 }
 
 #[allow(clippy::type_complexity)]

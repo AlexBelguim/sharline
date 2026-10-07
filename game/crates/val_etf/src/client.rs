@@ -4,7 +4,7 @@
 use crate::AppState;
 use crate::config::{Cli, CurrentLevel, Data, level_by_name};
 use crate::net::{NetRequest, Role, Session};
-use crate::radial::{RELOAD_HOLD_S, Radial};
+use crate::radial::{HealMenu, REGION_ORDER, RELOAD_HOLD_S, Radial};
 use crate::shared::LocalShot;
 use bevy::input::mouse::AccumulatedMouseMotion;
 use bevy::prelude::*;
@@ -17,6 +17,7 @@ use std::sync::Arc;
 use vetf_net::*;
 use vetf_sim::hitbox::{self, HitClaim, Pose};
 use vetf_sim::input::{Buttons, MAX_PITCH};
+use vetf_sim::items::{ItemScope, encode_pick};
 use vetf_sim::recoil::ViewRecoil;
 use vetf_sim::weapon::{shot_direction, shot_seed};
 
@@ -66,6 +67,13 @@ pub struct LocalControl {
     pub reload_radial: Option<Radial>,
     /// A magazine picked on the radial (1..=6), sent with the next tick's input.
     pub reload_pick: u8,
+    /// The heal ring, while open (H).
+    pub heal: Option<HealMenu>,
+    /// An item picked on the heal ring (kit slot 1..=8, region 0..=4), sent with the next tick's input.
+    pub item_pick: (u8, u8),
+    /// After a ring menu closes, the mouse buttons stay off until released (the click that picked must
+    /// not fire the gun or cancel the item).
+    pub mouse_block: bool,
 }
 
 impl Default for LocalControl {
@@ -83,6 +91,9 @@ impl Default for LocalControl {
             reload_held_s: None,
             reload_radial: None,
             reload_pick: 0,
+            heal: None,
+            item_pick: (0, 0),
+            mouse_block: false,
         }
     }
 }
@@ -163,6 +174,11 @@ fn toggle_pause(
     mut cursor: Query<&mut CursorOptions, With<PrimaryWindow>>,
 ) {
     if keys.just_pressed(KeyCode::Escape) {
+        // Esc closes an open ring menu first.
+        if control.heal.take().is_some() || control.reload_radial.take().is_some() {
+            control.mouse_block = true;
+            return;
+        }
         control.paused = !control.paused;
         for mut c in &mut cursor {
             c.visible = control.paused;
@@ -178,7 +194,8 @@ fn gather_input(
     motion: Res<AccumulatedMouseMotion>,
     time: Res<Time>,
     cli: Res<Cli>,
-    me: Query<&PlayerLoadout, With<Controlled>>,
+    data: Res<Data>,
+    me: Query<(&PlayerLoadout, &PlayerItems), With<Controlled>>,
     mut control: ResMut<LocalControl>,
 ) {
     if cli.bot {
@@ -189,11 +206,25 @@ fn gather_input(
         control.held = 0;
         control.reload_held_s = None;
         control.reload_radial = None;
+        control.heal = None;
         return;
     }
-    let mags = me.iter().next().map_or(1, |l| l.0.weapon.mags.len());
-    let tap_reload = reload_input(&mut control, &keys, motion.delta, time.delta_secs(), mags);
-    if control.reload_radial.is_none() {
+    let me = me.iter().next();
+    let mags = me.map_or(1, |(l, _)| l.0.weapon.mags.len());
+    // Per kit slot: whole-body or region item, and whether any are left.
+    let kit: Vec<(ItemScope, bool)> = me
+        .map(|(l, it)| {
+            l.0.kit.iter().enumerate().map(|(i, k)| (data.items.spec(k).scope, it.0.count(i as u8) > 0)).collect()
+        })
+        .unwrap_or_default();
+    heal_input(&mut control, &keys, &mouse, motion.delta, &kit);
+    let tap_reload = control.heal.is_none() && reload_input(&mut control, &keys, motion.delta, time.delta_secs(), mags);
+    if control.heal.is_some() || control.reload_radial.is_some() {
+        control.mouse_block = true;
+    } else if !mouse.pressed(MouseButton::Left) && !mouse.pressed(MouseButton::Right) {
+        control.mouse_block = false;
+    }
+    if control.reload_radial.is_none() && control.heal.is_none() {
         let ads_scale = if control.held & Buttons::ADS != 0 { 0.6 } else { 1.0 };
         let s = control.sensitivity * ads_scale;
         control.yaw = (control.yaw - motion.delta.x * s).rem_euclid(std::f32::consts::TAU);
@@ -213,8 +244,9 @@ fn gather_input(
     set(Buttons::CROUCH, keys.pressed(KeyCode::ControlLeft) || keys.pressed(KeyCode::KeyC));
     set(Buttons::SPRINT, keys.pressed(KeyCode::ShiftLeft));
     set(Buttons::WALK, keys.pressed(KeyCode::AltLeft));
-    set(Buttons::FIRE, mouse.pressed(MouseButton::Left));
-    set(Buttons::ADS, mouse.pressed(MouseButton::Right));
+    let mouse_free = !control.mouse_block;
+    set(Buttons::FIRE, mouse_free && mouse.pressed(MouseButton::Left));
+    set(Buttons::ADS, mouse_free && mouse.pressed(MouseButton::Right));
     set(Buttons::MAG_CHECK, keys.pressed(KeyCode::KeyT));
     set(Buttons::FIRE_MODE, keys.pressed(KeyCode::KeyB));
     set(Buttons::INTERACT, keys.pressed(KeyCode::KeyF));
@@ -222,6 +254,64 @@ fn gather_input(
     control.held = held;
     if tap_reload {
         control.latched |= Buttons::RELOAD;
+    }
+}
+
+/// Heal ring (H toggles it). Click an item: a whole-body item is used at once; a region item opens a second
+/// ring of regions around it, where a click picks the region. Right click steps back; Esc or H closes.
+fn heal_input(
+    control: &mut LocalControl,
+    keys: &ButtonInput<KeyCode>,
+    mouse: &ButtonInput<MouseButton>,
+    mouse_delta: Vec2,
+    kit: &[(ItemScope, bool)],
+) {
+    if keys.just_pressed(KeyCode::KeyH) {
+        control.heal = match control.heal {
+            Some(_) => None,
+            None if !kit.is_empty() => Some(HealMenu::new(kit.len())),
+            None => None,
+        };
+        control.reload_radial = None;
+        control.reload_held_s = None;
+    }
+    let Some(menu) = &mut control.heal else { return };
+    match menu.item {
+        None => menu.ring.steer(mouse_delta),
+        Some(_) => menu.regions.steer(mouse_delta),
+    }
+    if mouse.just_pressed(MouseButton::Right) {
+        if menu.item.take().is_none() {
+            control.heal = None;
+        }
+        return;
+    }
+    if !mouse.just_pressed(MouseButton::Left) {
+        return;
+    }
+    match menu.item {
+        None => {
+            let Some(i) = menu.ring.selected() else { return };
+            let Some(&(scope, any_left)) = kit.get(i) else { return };
+            if !any_left {
+                return;
+            }
+            match scope {
+                ItemScope::Body => {
+                    control.item_pick = encode_pick(i as u8, None);
+                    control.heal = None;
+                }
+                ItemScope::Region => {
+                    menu.item = Some(i);
+                    menu.regions = Radial::new(REGION_ORDER.len());
+                }
+            }
+        }
+        Some(i) => {
+            let Some(r) = menu.regions.selected() else { return };
+            control.item_pick = encode_pick(i as u8, Some(REGION_ORDER[r]));
+            control.heal = None;
+        }
     }
 }
 
@@ -284,10 +374,13 @@ fn write_inputs(
             pitch: control.pitch,
             buttons: control.held | control.latched,
             reload_slot: control.reload_pick,
+            use_item: control.item_pick.0,
+            use_zone: control.item_pick.1,
         };
     }
     control.latched = 0;
     control.reload_pick = 0;
+    control.item_pick = (0, 0);
 }
 
 fn record_smoothing(
@@ -455,7 +548,7 @@ fn automation(
     cli: Res<Cli>,
     time: Res<Time>,
     state: Res<State<AppState>>,
-    me: Query<&PlayerLoadout, With<Controlled>>,
+    me: Query<(&PlayerLoadout, &PlayerItems), With<Controlled>>,
     mut control: ResMut<LocalControl>,
     mut commands: Commands,
     mut taken: Local<bool>,
@@ -502,13 +595,28 @@ fn automation(
             control.latched |= Buttons::RELOAD;
         }
     }
-    if cli.demo_ui.as_deref() == Some("reload")
+    // Open a ring menu for screenshots.
+    if let Some(demo) = cli.demo_ui.as_deref()
         && in_game_since.is_some_and(|s| t - s > 1.0)
-        && let Some(lo) = me.iter().next()
+        && let Some((lo, _)) = me.iter().next()
     {
-        let mut radial = Radial::new(lo.0.weapon.mags.len());
-        radial.steer(Vec2::new(40.0, -12.0));
-        control.reload_radial = Some(radial);
+        match demo {
+            "reload" => {
+                let mut radial = Radial::new(lo.0.weapon.mags.len());
+                radial.steer(Vec2::new(40.0, -12.0));
+                control.reload_radial = Some(radial);
+            }
+            "heal" | "heal-region" => {
+                let mut menu = HealMenu::new(lo.0.kit.len());
+                menu.ring.steer(Vec2::new(30.0, -40.0));
+                if demo == "heal-region" {
+                    menu.item = menu.ring.selected();
+                    menu.regions.steer(Vec2::new(0.0, 40.0));
+                }
+                control.heal = Some(menu);
+            }
+            _ => {}
+        }
     }
     // With --host / --join the screenshot clock starts when the match view appears.
     let clock = if cli.host.is_some() || cli.join.is_some() { in_game_since.map_or(-1.0, |s| t - s) } else { t };

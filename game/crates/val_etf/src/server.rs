@@ -1,7 +1,7 @@
 //! Host authority: player spawns, the authoritative simulation, shot-claim validation, damage, deaths,
 //! respawns and team-deathmatch rules. Runs only while hosting.
 
-use crate::config::{CurrentLevel, Data};
+use crate::config::{Cli, CurrentLevel, Data};
 use crate::net::{Role, Session};
 use crate::shared::{LocalShot, SimSystems};
 use bevy::prelude::*;
@@ -16,6 +16,7 @@ use vetf_sim::combat::{HaloState, Health, resolve_hit};
 use vetf_sim::data::{Core, Ruleset};
 use vetf_sim::hitbox::{FiredShot, Pose, PoseHistory, Verdict, validate_claim};
 use vetf_sim::input::view_dir;
+use vetf_sim::items::{self, ItemState};
 use vetf_sim::level::{Level, SpawnPoint, Team};
 use vetf_sim::movement::MoveState;
 use vetf_sim::player::{self, Loadout, Wounds};
@@ -29,7 +30,7 @@ impl Plugin for ServerPlugin {
             .add_message::<PlayerDied>()
             .add_observer(on_new_link)
             .add_observer(on_link_connected)
-            .add_systems(Update, (receive_hellos, receive_claims).run_if(is_hosting))
+            .add_systems(Update, (receive_hellos, receive_claims, demo_wounds).run_if(is_hosting))
             .add_systems(FixedUpdate, simulate_authoritative.in_set(SimSystems::Simulate).run_if(is_hosting))
             .add_systems(
                 FixedUpdate,
@@ -133,7 +134,8 @@ fn on_link_connected(
         .map(|(_, m, _)| m.0.pos)
         .collect();
     let spawn = pick_spawn(&level, team, &enemies);
-    let loadout = Loadout::default_for(&data);
+    let mode = if tdm { MatchMode::Tdm } else { MatchMode::Range };
+    let loadout = Loadout::default_for(&data, mode);
     let id = peer.to_bits();
     let player = commands
         .spawn((
@@ -143,6 +145,7 @@ fn on_link_connected(
             PlayerMove(MoveState::spawn(spawn.pos, loadout_fuel(&data, &loadout))),
             PlayerLook { yaw: spawn.yaw, pitch: 0.0 },
             PlayerWeapon(WeaponState::new(&data, &loadout.weapon)),
+            PlayerItems(ItemState::new(&loadout.kit)),
             fresh_vitals(&data, &loadout),
             PlayerLoadout(loadout),
             Score::default(),
@@ -213,8 +216,9 @@ pub enum LoadoutError {
 }
 
 /// Build a loadout from a client's choice: loadout tier caps on the halo arcs, players' ammo only, one to
-/// six magazines, and the team-deathmatch gear budget (arc tiers + every magazine's gear cost).
-fn loadout_from_choice(data: &GameData, choice: &LoadoutChoice) -> Result<Loadout, LoadoutError> {
+/// six magazines, and the team-deathmatch gear budget (arc tiers + every magazine's gear cost). The
+/// healing kit comes from the mode, not the client.
+fn loadout_from_choice(data: &GameData, choice: &LoadoutChoice, mode: MatchMode) -> Result<Loadout, LoadoutError> {
     let spec = data.weapon(&choice.weapon).ok_or(LoadoutError::UnknownWeapon)?;
     if choice.mags.is_empty() || choice.mags.len() > MAX_MAGS {
         return Err(LoadoutError::MagCount);
@@ -233,12 +237,17 @@ fn loadout_from_choice(data: &GameData, choice: &LoadoutChoice) -> Result<Loadou
     if cost > budget {
         return Err(LoadoutError::OverBudget { cost, budget });
     }
-    Ok(Loadout::new(weapon, &armor))
+    Ok(Loadout::new(weapon, &armor, data.items.kit(mode)))
 }
 
 /// The running match's rules (full rules before the match entity exists).
 fn match_rules(matches: &Query<&MatchState>) -> Ruleset {
     matches.iter().next().map_or(Ruleset::FULL, |m| m.rules)
+}
+
+/// The running match's mode.
+fn match_mode(matches: &Query<&MatchState>) -> MatchMode {
+    matches.iter().next().map_or(MatchMode::Tdm, |m| m.mode)
 }
 
 /// Deterministic shield-bypass roll for one hit (shooter, shot number, victim).
@@ -253,35 +262,71 @@ fn receive_hellos(
         &mut ServerPlayer,
         &mut PlayerLoadout,
         &mut PlayerWeapon,
+        &mut PlayerItems,
         &mut Vitals,
         &mut PlayerMove,
     )>,
+    matches: Query<&MatchState>,
     data: Res<Data>,
 ) {
+    let mode = match_mode(&matches);
     for (link, mut rx) in &mut links {
         for hello in rx.receive() {
             if hello.data_fingerprint != data.fingerprint {
                 warn!("{} runs different gameplay data: prediction will drift", hello.name);
             }
-            for (mut info, mut sp, mut lo, mut w, mut v, mut mv) in &mut players {
+            for (mut info, mut sp, mut lo, mut w, mut it, mut v, mut mv) in &mut players {
                 if sp.link != link {
                     continue;
                 }
                 info.name = hello.name.chars().filter(|c| !c.is_control()).take(16).collect();
-                let chosen = loadout_from_choice(&data, &hello.loadout);
+                let chosen = loadout_from_choice(&data, &hello.loadout, mode);
                 if let Err(e) = &chosen {
                     warn!("{}: loadout {:?} refused ({e:?}); keeping the default", hello.name, hello.loadout);
                 }
                 if let Ok(l) = chosen {
                     *w = PlayerWeapon(WeaponState::new(&data, &l.weapon));
+                    *it = PlayerItems(ItemState::new(&l.kit));
                     *v = fresh_vitals(&data, &l);
                     mv.0.fuel = loadout_fuel(&data, &l);
                     *lo = PlayerLoadout(l);
                 }
-                if lo.0.armor_id == hello.loadout.armor || loadout_from_choice(&data, &hello.loadout).is_ok() {
+                if lo.0.armor_id == hello.loadout.armor || loadout_from_choice(&data, &hello.loadout, mode).is_ok() {
                     sp.choice = Some(hello.loadout.clone());
                 }
             }
+        }
+    }
+}
+
+/// `--demo-ui heal*`: hurt the host's own player once, so the heal ring has something to treat in
+/// screenshots.
+fn demo_wounds(
+    cli: Res<Cli>,
+    data: Res<Data>,
+    mut done: Local<bool>,
+    mut me: Query<(&mut Vitals, &ServerPlayer), With<Controlled>>,
+) {
+    if *done || !cli.demo_ui.as_deref().is_some_and(|d| d.starts_with("heal")) {
+        return;
+    }
+    // After the hello (which resets vitals for the chosen loadout).
+    for (mut v, _) in me.iter_mut().filter(|(_, sp)| sp.choice.is_some()) {
+        *done = true;
+        let spill = &data.weapons.spill_to_torso;
+        v.health.apply(Zone::Legs, 60.0, spill);
+        v.health.apply(Zone::Head, 12.0, spill);
+        v.halo.shield.torso = 0.0;
+        v.halo.regen_wait_s = 600.0;
+        if let Some(bleed) = data
+            .ammo
+            .resolve(
+                vetf_sim::data::WeaponClass::AssaultRifle,
+                vetf_sim::data::AmmoChoice { kind: vetf_sim::data::AmmoKind::Shrapnel, tier: 1 },
+            )
+            .and_then(|a| a.bleed)
+        {
+            v.health.bleeding.add_stack(Zone::Arms, &bleed);
         }
     }
 }
@@ -309,6 +354,7 @@ fn simulate_authoritative(
             Option<&ActionState<PlayerInput>>,
             &mut PlayerMove,
             &mut PlayerWeapon,
+            &mut PlayerItems,
             &PlayerLoadout,
             &mut Vitals,
             &mut PlayerLook,
@@ -329,7 +375,8 @@ fn simulate_authoritative(
     let dt = data.tick_dt();
     let keep = (data.combat.shot_validation.history_s * data.net.tick_hz as f32).ceil() as u32;
     let server = server.iter().next();
-    for (entity, id, input, mut mv, mut weapon, loadout, mut vitals, mut look, mut sp, local) in &mut players {
+    for (entity, id, input, mut mv, mut weapon, mut items, loadout, mut vitals, mut look, mut sp, local) in &mut players
+    {
         if vitals.health.dead {
             continue;
         }
@@ -337,8 +384,15 @@ fn simulate_authoritative(
         look.yaw = frame.yaw;
         look.pitch = frame.pitch;
         let mut wounds = vitals.wounds;
-        let ev = player::step(&data, &level, &loadout.0, &mut mv.0, &mut weapon.0, &mut wounds, &frame);
+        let ev = player::step(&data, &level, &loadout.0, &mut mv.0, &mut weapon.0, &mut items.0, &mut wounds, &frame);
         vitals.wounds = wounds;
+        if let Some((slot, zone)) = ev.items.finished
+            && let Some(k) = loadout.0.kit.get(slot as usize)
+        {
+            let Vitals { health, halo, wounds, .. } = &mut *vitals;
+            items::apply(data.items.spec(k), zone, health, halo, &loadout.0.halo);
+            wounds.sync(health, &rules);
+        }
         vitals.protected_s = (vitals.protected_s - dt).max(0.0);
         let spec = loadout.0.halo;
         vitals.halo.tick(&spec, dt);
@@ -573,15 +627,18 @@ fn respawn_players(
         &mut PlayerMove,
         &mut PlayerLook,
         &mut PlayerWeapon,
+        &mut PlayerItems,
         &mut PlayerLoadout,
         &mut ServerPlayer,
     )>,
+    matches: Query<&MatchState>,
 ) {
     let Some(level) = level else { return };
+    let mode = match_mode(&matches);
     let dt = data.tick_dt();
     let living: Vec<(Option<Team>, Vec3)> =
         players.iter().filter(|(_, v, ..)| !v.health.dead).map(|(i, _, m, ..)| (i.team, m.0.pos)).collect();
-    for (info, mut v, mut mv, mut look, mut w, mut lo, mut sp) in &mut players {
+    for (info, mut v, mut mv, mut look, mut w, mut it, mut lo, mut sp) in &mut players {
         if !v.health.dead {
             continue;
         }
@@ -589,7 +646,7 @@ fn respawn_players(
         if v.respawn_s > 0.0 {
             continue;
         }
-        if let Some(l) = sp.choice.as_ref().and_then(|c| loadout_from_choice(&data, c).ok()) {
+        if let Some(l) = sp.choice.as_ref().and_then(|c| loadout_from_choice(&data, c, mode).ok()) {
             lo.0 = l;
         }
         let enemies: Vec<Vec3> =
@@ -599,6 +656,7 @@ fn respawn_players(
         mv.0 = MoveState::spawn(spawn.pos, loadout_fuel(&data, &lo.0));
         *look = PlayerLook { yaw: spawn.yaw, pitch: 0.0 };
         w.0 = WeaponState::new(&data, &lo.0.weapon);
+        it.0 = ItemState::new(&lo.0.kit);
         sp.history.clear();
         sp.shots.clear();
         sp.last_attacker = None;
@@ -662,6 +720,22 @@ mod tests {
         level.spawns.push(SpawnPoint { pos: Vec3::new(100.0, 0.0, 0.0), yaw: 0.0, team: Some(Team::B) });
         let s = pick_spawn(&level, Some(Team::A), &[Vec3::new(-5.0, 0.0, 0.0)]);
         assert_eq!(s.pos.x, 20.0);
+    }
+
+    /// Team deathmatch (the gear budget's mode).
+    fn loadout_from_choice(d: &GameData, c: &LoadoutChoice) -> Result<Loadout, LoadoutError> {
+        super::loadout_from_choice(d, c, MatchMode::Tdm)
+    }
+
+    #[test]
+    fn the_mode_decides_the_healing_kit() {
+        let d = GameData::embedded();
+        let c = choice("ar7_mako", AmmoChoice::STANDARD, "arm_none");
+        let tdm = super::loadout_from_choice(&d, &c, MatchMode::Tdm).unwrap();
+        let range = super::loadout_from_choice(&d, &c, MatchMode::Range).unwrap();
+        assert_eq!(tdm.kit, d.items.kit(MatchMode::Tdm));
+        assert_eq!(range.kit, d.items.kit(MatchMode::Range));
+        assert_ne!(tdm.kit, range.kit);
     }
 
     fn choice(weapon: &str, ammo: AmmoChoice, armor: &str) -> LoadoutChoice {

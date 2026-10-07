@@ -11,13 +11,14 @@ use vetf_sim::combat::{HaloState, Health};
 use vetf_sim::data::{AmmoChoice, Ruleset};
 use vetf_sim::hitbox::HitClaim;
 use vetf_sim::input::{Buttons, InputFrame};
+use vetf_sim::items::ItemState;
 use vetf_sim::level::Team;
 use vetf_sim::movement::MoveState;
 use vetf_sim::player::{Loadout, Wounds};
 use vetf_sim::weapon::WeaponState;
 
 /// Bumped whenever the protocol changes; part of the netcode protocol id, so old builds cannot connect.
-pub const PROTOCOL_VERSION: u64 = 2;
+pub const PROTOCOL_VERSION: u64 = 3;
 
 /// netcode.io protocol id shared by host and clients.
 pub fn protocol_id() -> u64 {
@@ -54,6 +55,10 @@ pub struct PlayerLook {
 #[derive(Component, Serialize, Deserialize, Clone, Debug, PartialEq)]
 pub struct PlayerWeapon(pub WeaponState);
 
+/// Healing items left and the item in use. Predicted by the owner.
+#[derive(Component, Serialize, Deserialize, Clone, Debug, PartialEq, Default)]
+pub struct PlayerItems(pub ItemState);
+
 /// Gun, ammo, attachments and halo for the current life.
 #[derive(Component, Serialize, Deserialize, Clone, Debug, PartialEq)]
 pub struct PlayerLoadout(pub Loadout);
@@ -76,13 +81,7 @@ pub struct Score {
     pub deaths: u16,
 }
 
-#[derive(Serialize, Deserialize, Clone, Copy, Debug, PartialEq, Eq)]
-pub enum MatchMode {
-    /// Team deathmatch on Showhome.
-    Tdm,
-    /// Gun range: free practice, no score.
-    Range,
-}
+pub use vetf_sim::data::Mode as MatchMode;
 
 #[derive(Serialize, Deserialize, Clone, Copy, Debug, PartialEq, Eq)]
 pub enum MatchPhase {
@@ -116,6 +115,9 @@ pub struct PlayerInput {
     pub buttons: u16,
     /// Reload radial pick: 1..=6, or 0.
     pub reload_slot: u8,
+    /// Heal ring pick: kit slot 1..=8 and region 1..=4 (0 = none / whole body).
+    pub use_item: u8,
+    pub use_zone: u8,
 }
 
 impl MapEntities for PlayerInput {
@@ -130,6 +132,8 @@ impl PlayerInput {
             pitch: self.pitch,
             buttons: Buttons(self.buttons),
             reload_slot: self.reload_slot,
+            use_item: self.use_item,
+            use_zone: self.use_zone,
         }
     }
 
@@ -141,6 +145,8 @@ impl PlayerInput {
             pitch: f.pitch,
             buttons: f.buttons.0,
             reload_slot: f.reload_slot,
+            use_item: f.use_item,
+            use_zone: f.use_zone,
         }
     }
 }
@@ -242,6 +248,10 @@ fn weapon_should_rollback(confirmed: &PlayerWeapon, predicted: &PlayerWeapon) ->
         || (a.ads - b.ads).abs() > 0.05
 }
 
+fn items_should_rollback(confirmed: &PlayerItems, predicted: &PlayerItems) -> bool {
+    confirmed != predicted
+}
+
 fn lerp_move(start: PlayerMove, end: PlayerMove, t: f32) -> PlayerMove {
     let mut m = if t < 0.5 { start.0 } else { end.0 };
     m.pos = start.0.pos.lerp(end.0.pos, t);
@@ -278,6 +288,7 @@ impl Plugin for ProtocolPlugin {
             .add_interpolation_with(lerp_move);
         app.component::<PlayerLook>().replicate().add_interpolation_with(lerp_look);
         app.component::<PlayerWeapon>().replicate().predict().with_rollback_condition(weapon_should_rollback);
+        app.component::<PlayerItems>().replicate().predict().with_rollback_condition(items_should_rollback);
         app.component::<PlayerLoadout>().replicate();
         app.component::<Vitals>().replicate();
         app.component::<Score>().replicate();
@@ -321,11 +332,12 @@ mod tests {
     #[test]
     fn components_and_messages_roundtrip() {
         let d = GameData::embedded();
-        let loadout = Loadout::default_for(&d);
+        let loadout = Loadout::default_for(&d, MatchMode::Range);
         let ws = WeaponState::new(&d, &loadout.weapon);
         let ms = MoveState::spawn(Vec3::new(1.0, 2.0, 3.0), 1.6);
         roundtrip(&PlayerMove(ms));
         roundtrip(&PlayerWeapon(ws));
+        roundtrip(&PlayerItems(ItemState::new(&loadout.kit)));
         roundtrip(&PlayerLoadout(loadout.clone()));
         roundtrip(&Vitals {
             health: Health::new(d.armor.zone_hp),
@@ -376,6 +388,8 @@ mod tests {
             pitch: -0.2,
             buttons: Buttons(0b1011),
             reload_slot: 3,
+            use_item: 2,
+            use_zone: 4,
         };
         assert_eq!(PlayerInput::from_frame(&f).frame(), f);
     }

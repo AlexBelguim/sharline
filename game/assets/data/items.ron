@@ -1,0 +1,37 @@
+// Healing items (user direction, see game/DESIGN_DELTAS.md 8). The design has no item numbers yet, so
+// every value here is a PLACEHOLDER to tune.
+//
+// Items are used from the heal ring (hold H):
+//   scope Body   -> treats every region at once. High-end in the extraction mode, and the only kind in
+//                   team deathmatch (rulesets in rules.ron).
+//   scope Region -> pick the item, then the region on a second ring around it.
+//
+//   use_s       -> seconds with the gun lowered. Firing, aiming, reloading or sprinting cancels and keeps
+//                  the item.
+//   heal_hp     -> HP restored to each treated region. A broken limb above 0 HP is no longer broken.
+//   stop_bleed  -> treats bleeding in each treated region. A residual stays until respawn.
+//   shield_frac -> fraction of each treated arc's capacity restored.
+(
+    // Movement speed while using an item.
+    use_move_mult: 0.6,
+    items: [
+        // Extraction: one region at a time.
+        (id: "gauze", label: "GAUZE", scope: Region, use_s: 2.0, stop_bleed: true),
+        (id: "field_dressing", label: "DRESSING", scope: Region, use_s: 3.0, heal_hp: 40.0, stop_bleed: true),
+        (id: "arc_patch", label: "ARC PATCH", scope: Region, use_s: 2.0, shield_frac: 0.5),
+        // High-end: every region or every arc at once.
+        (id: "trauma_kit", label: "TRAUMA KIT", scope: Body, use_s: 4.5, heal_hp: 60.0, stop_bleed: true),
+        (id: "halo_cell", label: "HALO CELL", scope: Body, use_s: 3.5, shield_frac: 1.0),
+    ],
+    // What each mode hands out at spawn, in heal-ring order (slot 1 at the top, clockwise). At most 8.
+    kits: (
+        tdm: [(item: "trauma_kit", count: 2), (item: "halo_cell", count: 3)],
+        range: [
+            (item: "gauze", count: 4),
+            (item: "field_dressing", count: 3),
+            (item: "arc_patch", count: 3),
+            (item: "trauma_kit", count: 1),
+            (item: "halo_cell", count: 1),
+        ],
+    ),
+)

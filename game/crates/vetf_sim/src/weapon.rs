@@ -279,6 +279,8 @@ pub struct WeaponEnv {
     /// Horizontal speed / jog speed.
     pub speed_frac: f32,
     pub broken_arms: bool,
+    /// An item is in hand (or was put away this tick): the gun is down like when sprinting, and no reload.
+    pub hands_busy: bool,
 }
 
 /// A shot fired this tick.
@@ -378,8 +380,8 @@ impl WeaponState {
             }
         }
 
-        // Sprinting lowers the gun; it takes `sprint_to_fire_s` to bring it back up.
-        let lowered = env.sprinting || env.mode == MoveMode::Mantle;
+        // Sprinting (or an item in hand) lowers the gun; it takes `sprint_to_fire_s` to bring it back up.
+        let lowered = env.sprinting || env.mode == MoveMode::Mantle || env.hands_busy;
         if lowered {
             self.sprint_lock = secs_to_ticks(spec.sprint_to_fire_s * loadout.mods.sprint_to_fire, hz);
         } else {
@@ -405,7 +407,7 @@ impl WeaponState {
                 }
             }
             WeaponAction::MagChecking { left } => {
-                // Firing, aiming or sprinting cancels a mag check.
+                // Firing, aiming, sprinting or using an item cancels a mag check.
                 if b.held(Buttons::FIRE) || b.held(Buttons::ADS) || lowered {
                     self.action = WeaponAction::Ready;
                 } else {
@@ -449,7 +451,7 @@ impl WeaponState {
             self.burst = 0;
         }
 
-        if !self.is_ready() {
+        if !self.is_ready() || env.hands_busy {
             return ev;
         }
 
@@ -644,11 +646,18 @@ mod tests {
     }
 
     fn still() -> WeaponEnv {
-        WeaponEnv { mode: MoveMode::Ground, sprinting: false, crouched: false, speed_frac: 0.0, broken_arms: false }
+        WeaponEnv {
+            mode: MoveMode::Ground,
+            sprinting: false,
+            crouched: false,
+            speed_frac: 0.0,
+            broken_arms: false,
+            hands_busy: false,
+        }
     }
 
     fn input(bits: u16) -> InputFrame {
-        InputFrame { movement: Vec2::ZERO, yaw: 0.0, pitch: 0.0, buttons: Buttons(bits), reload_slot: 0 }
+        InputFrame { movement: Vec2::ZERO, yaw: 0.0, pitch: 0.0, buttons: Buttons(bits), ..Default::default() }
     }
 
     fn pick(slot: u8) -> InputFrame {

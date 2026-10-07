@@ -82,7 +82,24 @@ Once the design docs and JSON are updated, delete the entry here and in `superse
   - **Gun range:** the full extraction rules (bleeding, broken limbs, regional items).
 - **Visual impact (UI):** the HUD shows status icons only when the ruleset has them.
 
-## 7. Small things that are not changes, but worth knowing
+## 7. Healing items and the heal ring
+- **Design:** no item numbers yet (the HUD mockups show heal states only).
+- **Now (user direction):** `assets/data/items.ron`. Every number there is a placeholder.
+  - **Whole-body items** treat every region or every arc at once: the trauma kit (HP + bleeding) and the halo
+    cell (all arcs). They are high-end in the extraction mode and are **the only items in team deathmatch**.
+  - **Region items** treat one region: gauze (bleeding), field dressing (HP + bleeding), arc patch (one arc).
+  - **Each mode hands out a kit** (`kits` in `items.ron`). Validation refuses a region item in a mode whose
+    rules forbid them.
+  - **Heal ring (H):** click an item. A whole-body item is used at once. A region item opens a second ring of
+    regions around it (head up, torso right, legs down, arms left); click the region. Right click steps
+    back. Options that would do nothing are dimmed.
+  - **Using an item:**
+    - It lowers the gun for `use_s` and slows you (`use_move_mult`).
+    - Firing, aiming, reloading or sprinting cancels it and keeps the item.
+    - The gun then takes as long to come up as after a sprint.
+    - The use is predicted like the weapon; the host applies the effect when it finishes.
+
+## 8. Small things that are not changes, but worth knowing
 - **Port:** the host-game mockup (`design/ui/mockups/png/04b_main_menu_host.png`) shows UDP port 7777, while the
   network diagram uses 47820. The game uses **47820** (`assets/data/net.ron`). The mockup should be updated.
 - **Placeholders:** the TDM time limit and spawn protection length have no design value yet. Both are marked as

@@ -993,6 +993,24 @@ pub struct Rulesets {
     pub range: Ruleset,
 }
 
+impl Rulesets {
+    pub fn get(&self, mode: Mode) -> Ruleset {
+        match mode {
+            Mode::Tdm => self.tdm,
+            Mode::Range => self.range,
+        }
+    }
+}
+
+/// The game modes of the slice.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
+pub enum Mode {
+    /// Team deathmatch on Showhome.
+    Tdm,
+    /// Gun range: free practice, no score, full rules.
+    Range,
+}
+
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct TdmRules {
     /// Halo arc tiers plus ammo gear cost must fit this (AP's price in team deathmatch).
@@ -1041,11 +1059,12 @@ pub struct GameData {
     pub hitboxes: HitboxFile,
     pub rules: RulesFile,
     pub net: NetSpec,
+    pub items: crate::items::ItemsFile,
     /// FNV-1a hash of the source text, so host and clients can check they run the same numbers.
     pub fingerprint: u64,
 }
 
-const FILES: [&str; 10] = [
+const FILES: [&str; 11] = [
     "weapons.ron",
     "ammo.ron",
     "recoil_patterns.ron",
@@ -1056,6 +1075,7 @@ const FILES: [&str; 10] = [
     "hitboxes.ron",
     "rules.ron",
     "net.ron",
+    "items.ron",
 ];
 
 macro_rules! embedded {
@@ -1064,7 +1084,7 @@ macro_rules! embedded {
     };
 }
 
-const EMBEDDED: [(&str, &str); 10] = [
+const EMBEDDED: [(&str, &str); 11] = [
     embedded!("weapons.ron"),
     embedded!("ammo.ron"),
     embedded!("recoil_patterns.ron"),
@@ -1075,6 +1095,7 @@ const EMBEDDED: [(&str, &str); 10] = [
     embedded!("hitboxes.ron"),
     embedded!("rules.ron"),
     embedded!("net.ron"),
+    embedded!("items.ron"),
 ];
 
 fn parse<T: serde::de::DeserializeOwned>(file: &str, text: &str) -> Result<T, DataError> {
@@ -1121,6 +1142,7 @@ impl GameData {
             hitboxes: parse(FILES[7], &texts[7])?,
             rules: parse(FILES[8], &texts[8])?,
             net: parse(FILES[9], &texts[9])?,
+            items: parse(FILES[10], &texts[10])?,
             fingerprint,
         };
         data.validate()?;
@@ -1218,6 +1240,29 @@ impl GameData {
         }
         if self.armor.preset(&l.armor).is_none() {
             return bad(format!("default loadout: unknown armor {}", l.armor));
+        }
+        for mode in [Mode::Tdm, Mode::Range] {
+            let kit = self.items.kits.get(mode);
+            if kit.len() > crate::items::MAX_KIT {
+                return bad(format!("{mode:?} kit: at most {} items", crate::items::MAX_KIT));
+            }
+            let rules = self.rules.rulesets.get(mode);
+            for e in kit {
+                let Some(i) = self.items.index(&e.item) else {
+                    return bad(format!("{mode:?} kit: unknown item {}", e.item));
+                };
+                if e.count == 0 {
+                    return bad(format!("{mode:?} kit: {} has a count of 0", e.item));
+                }
+                if self.items.items[i].scope == crate::items::ItemScope::Region && !rules.regional_items {
+                    return bad(format!("{mode:?} kit: {} treats one region, which this mode's rules forbid", e.item));
+                }
+            }
+        }
+        for i in &self.items.items {
+            if i.use_s <= 0.0 || !(0.0..=1.0).contains(&i.shield_frac) || i.heal_hp < 0.0 {
+                return bad(format!("item {}: use_s > 0, heal_hp >= 0, shield_frac within 0..1", i.id));
+            }
         }
         Ok(())
     }

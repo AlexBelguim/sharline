@@ -40,6 +40,7 @@ Linux needs the usual Bevy packages: `libasound2-dev libudev-dev libxkbcommon-de
 | RMB | Aim (ADS) |
 | B | Fire mode |
 | R | Tap: reload the next magazine in slot order. Hold: magazine radial; release over a slot (or press 1-6) to load it. Magazines keep their slots |
+| H | Heal ring: click an item; a region item opens a second ring to pick the region. Right click steps back |
 | T | Mag check. Gives an estimate only; there is no ammo counter anywhere (genre rule) |
 | Tab | Scoreboard and join code |
 | Esc | Pause: resume or leave |
@@ -47,12 +48,12 @@ Linux needs the usual Bevy packages: `libasound2-dev libudev-dev libxkbcommon-de
 ### Command line (automation and testing)
 `val_etf [--host showhome|range] [--join CODE|IP[:PORT]] [--name NAME] [--port PORT] [--width W --height H]
 [--screenshot PATH --screenshot-after S] [--exit-after S] [--bot] [--yaw DEG]
-[--weapon ID] [--ammo AMMO | --mags std,ap2,..] [--armor PRESET] [--attach A,B] [--demo-ui reload]`
+[--weapon ID] [--ammo AMMO | --mags std,ap2,..] [--armor PRESET] [--attach A,B] [--demo-ui reload|heal|heal-region]`
 
 - `--bot` drives the local player.
 - `--yaw` makes the bot hold a heading and shoot, which is useful for testing hits over the network.
 - `--mags` lists magazines in slot order (up to six); `--ammo` loads every default magazine with one ammo.
-- `--demo-ui reload` opens the magazine radial, for screenshots.
+- `--demo-ui reload|heal|heal-region` opens a ring menu for screenshots (the heal ones also hurt the host's player).
 
 For example, a local two-process test:
 
@@ -95,6 +96,7 @@ The design is a listen server ticking at 60 Hz.
 - Per-arc halo shields and per-zone HP with spill.
 - Ammo class × type × tier, picked per magazine (up to six ordered magazines).
 - Rulesets: team deathmatch has no bleeding or broken-limb penalties; the range runs the full rules.
+- Healing items with a heal ring: whole-body items (the only kind in team deathmatch) and region items.
 - The full movement set: sprint, slide, jump, jetpack with design max-rise values, mantle, zipline, step-up and
   ramps.
 - Recoil pattern and recovery; ADS behaviour.
@@ -106,7 +108,7 @@ The design is a listen server ticking at 60 Hz.
   `Hello` already carries a loadout choice.
 - UPnP and the LAN beacon.
 - Range targets and aim-lab modes. `maps::range_targets()` exists, but nothing spawns from it yet.
-- Character abilities (Kestrel scan, Solace heal), healing items and energy drain.
+- Character abilities (Kestrel scan, Solace heal) and energy drain.
 - Warden sway and hold-breath, the bipod, aim punch, and Bulwark flinch reduction.
 - Network visibility: exact enemy halo values only after a scan. Today all vitals replicate to everyone.
 - Real art: glTF characters, weapons and halos. Everything is blockout boxes for now.
