@@ -27,7 +27,10 @@ After mockups 04 / 04b (`design/ui/mockups`). The left nav has **PLAY** (with **
   Legacy short LAN codes are also accepted. **PASTE** and Ctrl+V use the system clipboard.
   **RECENT** lists the last three games joined. **ON YOUR NETWORK** discovery is not built yet.
   Connection problems show under the field.
-- **Player card:** your name (**EDIT NAME**: A-Z, 0-9, `_`, `-`, up to 16), the loadout, the six magazine
+- **First launch:** with no saved profile, **CHOOSE YOUR CALLSIGN** opens over the menu: type a name (Enter or
+  CONFIRM) or take the generated **USE AGENT-nnnn**. Esc does not skip it. Until then you show as `UNKNOWN`;
+  the OS user name is never used.
+- **Player card:** your name (**EDIT NAME**: 3-16 letters, digits, spaces, `-`, `_`, `.`), the loadout, the six magazine
   slots in order and the team-deathmatch gear cost against the budget (**OVER BUDGET** means the host will
   give you the default loadout).
 - **Keys:** ↑↓ select (moving onto HOST GAME / JOIN GAME opens it), Enter confirm (or → into the flyout),
@@ -104,7 +107,10 @@ A real friend on a different network should still confirm gameplay and latency b
 [--weapon ID] [--ammo AMMO | --mags std,ap2,..] [--armor PRESET] [--attach A,B]
 [--demo-ui reload|heal|heal-region|hud|menu-join|menu-join-ip|menu-host]`
 
-- `--name` overrides the name saved from the main menu, for this run only.
+- `--name` overrides the name saved from the main menu, for this run only (not saved; no first-launch prompt).
+  `--host`, `--join`, `--bot`, `--screenshot` and `--demo-ui` runs never show the prompt either.
+- `--demo-ui first-run|first-run-invalid|first-run-valid` opens the first-launch callsign prompt (empty, too
+  short, valid) for screenshots.
 - `--port` sets HOST GAME's port (and so `--host`'s).
 - `--bot` drives the local player.
 - `--yaw` makes the bot hold a heading and shoot, which is useful for testing hits over the network.
