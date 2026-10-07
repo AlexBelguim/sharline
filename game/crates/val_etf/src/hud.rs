@@ -60,8 +60,15 @@ impl Plugin for HudPlugin {
     }
 }
 
+/// The HUD's centre layer (outside the scaled canvas): crosshair, hit marker, damage direction and flash.
+#[derive(Component)]
+struct HudCenter;
+
 /// The HUD hides while a hub screen is open over the match (the ESC menu, Settings, the lobby).
-fn hide_under_screens(screens: Res<crate::screens::Screens>, mut root: Query<&mut Visibility, With<HudRoot>>) {
+fn hide_under_screens(
+    screens: Res<crate::screens::Screens>,
+    mut root: Query<&mut Visibility, Or<(With<HudRoot>, With<HudCenter>)>>,
+) {
     let want = if screens.is_empty() { Visibility::Inherited } else { Visibility::Hidden };
     for mut v in &mut root {
         v.set_if_neq(want);
@@ -474,6 +481,7 @@ fn spawn_hud(mut commands: Commands, data: Res<Data>, fonts: Res<UiFonts>) {
     // with the HUD (the crosshair has its own sizes), under the canvas so the banner draws over it.
     let center = commands
         .spawn((
+            HudCenter,
             Node {
                 position_type: PositionType::Absolute,
                 width: percent(100),
@@ -482,6 +490,7 @@ fn spawn_hud(mut commands: Commands, data: Res<Data>, fonts: Res<UiFonts>) {
                 justify_content: JustifyContent::Center,
                 ..default()
             },
+            Visibility::Inherited,
             ZIndex(-1),
             DespawnOnExit(AppState::InGame),
             Pickable::IGNORE,

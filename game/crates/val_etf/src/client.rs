@@ -253,12 +253,15 @@ pub struct HoldKeys {
     pub ads: (bool, bool),
     pub walk: bool,
     pub forward: bool,
+    /// Fire or mag check held: the gun is wanted, so sprint gives way.
+    pub gun: bool,
 }
 
 /// Sprint, crouch and aim for this frame, with sprint and crouch in `stance` mode (HUD tab) and aim in `aim`
 /// mode (Mouse & Aim tab). A toggled sprint ends when forward input stops or crouch is pressed (a slide);
 /// pressing sprint stands a toggled crouch up and lowers a toggled aim. Auto-sprint sprints on any forward
-/// input unless walk is held.
+/// input unless walk is held. Firing, aiming or a mag check ends a toggled sprint and holds off a held or
+/// automatic one while they last: a sprinting player's gun is lowered, so it could never come up otherwise.
 pub fn hold_buttons(stance: HoldToggle, aim: HoldToggle, auto_sprint: bool, t: &mut Toggles, k: HoldKeys) -> [bool; 3] {
     if (t.forward && !k.forward) || k.crouch.1 {
         t.sprint = false;
@@ -268,9 +271,15 @@ pub fn hold_buttons(stance: HoldToggle, aim: HoldToggle, auto_sprint: bool, t: &
         t.ads = false;
     }
     t.forward = k.forward;
-    let sprint = hold_or_toggle(stance, &mut t.sprint, k.sprint.0, k.sprint.1) || (auto_sprint && k.forward && !k.walk);
-    let crouch = hold_or_toggle(stance, &mut t.crouch, k.crouch.0, k.crouch.1);
     let ads = hold_or_toggle(aim, &mut t.ads, k.ads.0, k.ads.1);
+    if k.gun || ads {
+        t.sprint = false;
+    }
+    let sprint = (hold_or_toggle(stance, &mut t.sprint, k.sprint.0, k.sprint.1)
+        || (auto_sprint && k.forward && !k.walk))
+        && !k.gun
+        && !ads;
+    let crouch = hold_or_toggle(stance, &mut t.crouch, k.crouch.0, k.crouch.1);
     [sprint, crouch, ads]
 }
 
@@ -375,6 +384,7 @@ fn gather_input(
         ads: (free && held(Action::Ads), free && pressed(Action::Ads)),
         walk: held(Action::Walk),
         forward: control.movement.y > 0.0,
+        gun: (free && held(Action::Fire)) || held(Action::MagCheck),
     };
     let [sprint, crouch, ads] =
         hold_buttons(settings.hud.hold_toggle, m.ads_input, g.auto_sprint, &mut control.toggles, keys);
@@ -873,6 +883,34 @@ mod tests {
         let walking = HoldKeys { walk: true, ..fwd };
         assert!(!hold_buttons(Hold, Hold, true, &mut t, walking)[0], "walk beats auto-sprint");
         assert!(!hold_buttons(Hold, Hold, true, &mut t, HoldKeys::default())[0], "standing still");
+    }
+
+    /// A sprinting player's gun is lowered, so firing or aiming must end the sprint, or the gun never comes up
+    /// (review finding: toggled sprint or auto-sprint plus fire or aim locked the gun down).
+    #[test]
+    fn firing_or_aiming_ends_the_sprint() {
+        use HoldToggle::{Hold, Toggle};
+        let fwd = HoldKeys { forward: true, ..default() };
+        let mut t = Toggles::default();
+        assert!(hold_buttons(Toggle, Hold, false, &mut t, HoldKeys { sprint: (true, true), ..fwd })[0]);
+        assert!(
+            !hold_buttons(Toggle, Hold, false, &mut t, HoldKeys { gun: true, ..fwd })[0],
+            "fire ends a toggled sprint"
+        );
+        assert!(!hold_buttons(Toggle, Hold, false, &mut t, fwd)[0], "and it stays ended");
+        let mut t = Toggles::default();
+        assert_eq!(
+            hold_buttons(Hold, Hold, true, &mut t, HoldKeys { ads: (true, true), ..fwd }),
+            [false, false, true],
+            "aim beats auto-sprint"
+        );
+        assert!(!hold_buttons(Hold, Hold, true, &mut t, HoldKeys { gun: true, ..fwd })[0], "fire beats auto-sprint");
+        assert!(hold_buttons(Hold, Hold, true, &mut t, fwd)[0], "auto-sprint resumes after");
+        let mut t = Toggles::default();
+        assert!(
+            !hold_buttons(Hold, Hold, false, &mut t, HoldKeys { sprint: (true, false), gun: true, ..fwd })[0],
+            "held sprint gives way to fire"
+        );
     }
 
     #[test]

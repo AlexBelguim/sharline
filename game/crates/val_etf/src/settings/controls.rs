@@ -132,6 +132,8 @@ pub struct UiState {
     pub save_error: Option<String>,
     /// Seconds left of the import field's flash after APPLY.
     pub flash: f32,
+    /// The field being edited (see [`Editing`]).
+    pub editing: Option<Editing>,
 }
 
 // ---------------------------------------------------------------------------------------------- values
@@ -854,7 +856,8 @@ pub fn field_valid(kind: FieldKind, text: &str, d: &SettingsData) -> bool {
             let r = range(d, n);
             parse_num(text).is_some_and(|v| v >= r.min - 1e-6 && v <= r.max + 1e-6)
         }
-        FieldKind::PlayerName => !clean_name(text).is_empty(),
+        // The first-launch prompt's rules (3-16 letters, digits, space, - _ .).
+        FieldKind::PlayerName => PlayerProfile::clean_name(text).is_some(),
         FieldKind::CrosshairHex => parse_hex(text).is_some(),
     }
 }
@@ -1045,13 +1048,90 @@ pub fn slider_input(
     }
 }
 
-/// Fields: show the value while not being edited; Enter or a click elsewhere commits, Esc reverts (the
-/// screen's hotkeys handle Esc); a typed value out of range shows a WARN border.
+/// The field being edited and what it holds this frame, so the edit is kept however focus leaves it: Enter,
+/// a click elsewhere, another field, a rail tab, DONE / BACK (only Esc drops it).
+#[derive(Debug, Clone, PartialEq)]
+pub struct Editing {
+    pub entity: Entity,
+    pub kind: FieldKind,
+    pub text: String,
+}
+
+/// Write a typed value (if valid) into the settings or the player profile.
+#[allow(clippy::too_many_arguments)]
+fn commit_text(
+    kind: FieldKind,
+    typed: &str,
+    settings: &mut ResMut<Settings>,
+    ui: &mut UiState,
+    data: &SettingsData,
+    profile: &mut PlayerProfile,
+    session: &mut crate::net::Session,
+) {
+    if !field_valid(kind, typed, data) {
+        return;
+    }
+    match kind {
+        FieldKind::Num(n) => {
+            let v = parse_num(typed).unwrap_or_default();
+            let mut next = (**settings).clone();
+            set_num(&mut next, ui, data, n, v);
+            if next != **settings {
+                **settings = next;
+            }
+        }
+        FieldKind::PlayerName => {
+            let Some(name) = PlayerProfile::clean_name(typed) else { return };
+            if profile.name != name {
+                profile.name = name.clone();
+                session.local_name = name;
+                if let Err(err) = crate::user_config::save(PlayerProfile::FILE, &*profile) {
+                    warn!("could not save the player name: {err}");
+                }
+            }
+        }
+        FieldKind::CrosshairHex => {
+            let hex = parse_hex(typed).map(hex_string).unwrap_or_default();
+            edit(settings, |s| s.crosshair.color = hex);
+        }
+    }
+}
+
+/// First in the screen's frame: an edit whose field lost the keyboard (to another field), or that a click
+/// outside it ends (a rail tab, DONE / BACK, any control), is committed before those clicks act.
+#[allow(clippy::too_many_arguments)]
+pub fn commit_left_edit(
+    fields: Query<&Interaction, With<Field>>,
+    mut focus: ResMut<InputFocus>,
+    mouse: Res<ButtonInput<MouseButton>>,
+    mut settings: ResMut<Settings>,
+    mut ui: ResMut<UiState>,
+    data: Res<SettingsData>,
+    mut profile: ResMut<PlayerProfile>,
+    mut session: ResMut<crate::net::Session>,
+) {
+    let Some(ed) = ui.editing.clone() else { return };
+    let moved = focus.get() != Some(ed.entity);
+    let clicked_out =
+        mouse.just_pressed(MouseButton::Left) && fields.get(ed.entity).is_ok_and(|i| *i == Interaction::None);
+    if !(moved || clicked_out) {
+        return;
+    }
+    ui.editing = None;
+    commit_text(ed.kind, &ed.text, &mut settings, &mut ui, &data, &mut profile, &mut session);
+    if focus.get() == Some(ed.entity) {
+        focus.clear();
+    }
+}
+
+/// Fields: show the value while not being edited; Enter commits (a click elsewhere too, see
+/// [`commit_left_edit`]), Esc reverts (the screen's Esc handler); a typed value out of range shows a WARN
+/// border.
+#[allow(clippy::too_many_arguments)]
 pub fn field_input(
-    mut fields: Query<(Entity, &mut Field, &mut EditableText, &Interaction, &mut BorderColor)>,
+    mut fields: Query<(Entity, &mut Field, &mut EditableText, &mut BorderColor)>,
     mut focus: ResMut<InputFocus>,
     keys: Res<ButtonInput<KeyCode>>,
-    mouse: Res<ButtonInput<MouseButton>>,
     mut settings: ResMut<Settings>,
     mut ui: ResMut<UiState>,
     data: Res<SettingsData>,
@@ -1061,43 +1141,21 @@ pub fn field_input(
 ) {
     ui.flash = (ui.flash - time.delta_secs()).max(0.0);
     let focused = focus.get();
-    for (e, mut f, mut text, interaction, mut border) in &mut fields {
-        let editing = focused == Some(e);
-        if editing {
+    for (e, mut f, mut text, mut border) in &mut fields {
+        if focused == Some(e) {
             let typed = text.value().to_string();
-            let commit = keys.just_pressed(KeyCode::Enter)
-                || keys.just_pressed(KeyCode::NumpadEnter)
-                || (mouse.just_pressed(MouseButton::Left) && *interaction == Interaction::None);
+            let enter = keys.just_pressed(KeyCode::Enter) || keys.just_pressed(KeyCode::NumpadEnter);
             f.invalid = !typed.trim().is_empty() && !field_valid(f.kind, &typed, &data);
-            if commit {
-                if field_valid(f.kind, &typed, &data) {
-                    match f.kind {
-                        FieldKind::Num(n) => {
-                            let v = parse_num(&typed).unwrap_or_default();
-                            let mut next = (*settings).clone();
-                            set_num(&mut next, &mut ui, &data, n, v);
-                            if next != *settings {
-                                *settings = next;
-                            }
-                        }
-                        FieldKind::PlayerName => {
-                            let name = clean_name(&typed);
-                            if profile.name != name {
-                                profile.name = name.clone();
-                                session.local_name = name;
-                                if let Err(err) = crate::user_config::save(PlayerProfile::FILE, &*profile) {
-                                    warn!("could not save the player name: {err}");
-                                }
-                            }
-                        }
-                        FieldKind::CrosshairHex => {
-                            let hex = parse_hex(&typed).map(hex_string).unwrap_or_default();
-                            edit(&mut settings, |s| s.crosshair.color = hex);
-                        }
-                    }
-                }
+            if enter {
+                ui.editing = None;
+                commit_text(f.kind, &typed, &mut settings, &mut ui, &data, &mut profile, &mut session);
                 f.invalid = false;
                 focus.clear();
+            } else {
+                let ed = Editing { entity: e, kind: f.kind, text: typed };
+                if ui.editing.as_ref() != Some(&ed) {
+                    ui.editing = Some(ed);
+                }
             }
         }
         let still_editing = focus.get() == Some(e);
@@ -1130,9 +1188,11 @@ pub fn field_input(
 }
 
 /// Esc while a field is being edited: put the value back and stop editing.
-pub fn cancel_field_edit(focus: &mut InputFocus, fields: &Query<(), With<Field>>) -> bool {
+pub fn cancel_field_edit(focus: &mut InputFocus, fields: &Query<(), With<Field>>, ui: &mut UiState) -> bool {
     match focus.get() {
         Some(e) if fields.contains(e) => {
+            // Dropped, not committed (see `commit_left_edit`).
+            ui.editing = None;
             focus.clear();
             true
         }
@@ -1184,15 +1244,19 @@ pub fn dropdown_input(
                         flex_direction: FlexDirection::Column,
                         border: UiRect::all(px(1)),
                         margin: UiRect::top(px(2)),
+                        // Long lists (a monitor's modes) scroll with the wheel, opened on the current choice.
+                        max_height: px(DROP_ROWS as f32 * DROP_ROW_H + 2.0),
+                        overflow: Overflow::scroll_y(),
                         ..default()
                     },
+                    ScrollPosition(Vec2::new(0.0, current.saturating_sub(DROP_ROWS / 2) as f32 * DROP_ROW_H)),
                     BackgroundColor(kit::PANEL_SOLID),
                     BorderColor::all(kit::STROKE_HI),
                     GlobalZIndex(130),
                     ChildOf(e),
                 ))
                 .id();
-            for (idx, label) in labels.iter().enumerate().take(14) {
+            for (idx, label) in labels.iter().enumerate() {
                 let on = idx == current;
                 let looks = Looks::new(
                     kit::Look::new(Color::NONE, Color::NONE, if on { kit::TEXT_HI } else { kit::TEXT }),
@@ -1203,7 +1267,7 @@ pub fn dropdown_input(
                     Button,
                     DropRow { choice: d.choice, index: idx },
                     Node {
-                        height: px(36),
+                        height: px(DROP_ROW_H),
                         padding: UiRect::horizontal(px(10)),
                         justify_content: JustifyContent::SpaceBetween,
                         align_items: AlignItems::Center,
@@ -1230,6 +1294,30 @@ pub fn dropdown_input(
         && buttons.is_empty()
     {
         close_dropdown(&mut commands, &mut ui);
+    }
+}
+
+/// An open list shows this many rows at a time, each this tall.
+const DROP_ROWS: usize = 12;
+const DROP_ROW_H: f32 = 36.0;
+
+/// The mouse wheel scrolls an open dropdown list, kept within its content.
+pub fn scroll_dropdown(
+    ui: Res<UiState>,
+    scroll: Res<AccumulatedMouseScroll>,
+    mut lists: Query<(&mut ScrollPosition, &ComputedNode)>,
+) {
+    let Some((_, list)) = ui.dropdown else { return };
+    if scroll.delta.y == 0.0 {
+        return;
+    }
+    if let Ok((mut pos, node)) = lists.get_mut(list) {
+        let step = match scroll.unit {
+            bevy::input::mouse::MouseScrollUnit::Line => DROP_ROW_H,
+            bevy::input::mouse::MouseScrollUnit::Pixel => 1.0,
+        };
+        let max = ((node.content_size().y - node.size().y) * node.inverse_scale_factor()).max(0.0);
+        pos.y = (pos.y - scroll.delta.y * step).clamp(0.0, max);
     }
 }
 

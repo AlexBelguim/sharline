@@ -51,7 +51,7 @@ pub fn build(p: &mut ChildSpawnerCommands, k: &Kit) {
             slider_row(c, k, "SCREEN SHAKE", None, Num::ScreenShake, &[]);
             seg_row(c, k, "DAMAGE FLASH", Some("Red / hex edge flash when hit"), Ch::DamageFlash, false, true);
             row(c, k, "REDUCE FLASHING", None, false, true, 50.0, |r| switch(r, k, Tg::ReduceFlashing, false));
-            seg_row(c, k, "TEXT SIZE", None, Ch::TextSize, false, true);
+            seg_row(c, k, "TEXT SIZE", None, Ch::TextSize, LATER, true);
             // ADS has its own HOLD / TOGGLE on the Mouse & Aim tab.
             seg_row(c, k, "HOLD / TOGGLE", Some("Sprint, crouch, health panel"), Ch::HoldToggle, false, false);
         });
@@ -213,7 +213,7 @@ mod tests {
                 field(Num::ScreenShake),
                 Seg(Ch::DamageFlash, false),
                 Switch(Tg::ReduceFlashing),
-                Seg(Ch::TextSize, false),
+                Seg(Ch::TextSize, LATER),
                 Seg(Ch::HoldToggle, false),
             ]
         );

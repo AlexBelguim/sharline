@@ -628,6 +628,10 @@ impl Settings {
             Tab::Gameplay => {
                 self.gameplay = defaults.gameplay.clone();
                 self.network = defaults.network.clone();
+                // SHOW NET GRAPH sits on this tab; it is VIDEO's '+ NETWORK' overlay.
+                if (self.video.overlay == Overlay::Network) != (defaults.video.overlay == Overlay::Network) {
+                    self.video.overlay = defaults.video.overlay;
+                }
             }
             Tab::MouseAim => {
                 self.mouse = defaults.mouse.clone();
@@ -749,15 +753,6 @@ pub fn parse_num(s: &str) -> Option<f32> {
     let t = t.replace(',', ".");
     let v: f32 = t.parse().ok()?;
     v.is_finite().then_some(v)
-}
-
-/// The player-name rule: A–Z 0–9 _ -, upper case, 1–16 characters.
-pub fn clean_name(s: &str) -> String {
-    s.chars()
-        .map(|c| c.to_ascii_uppercase())
-        .filter(|c| c.is_ascii_uppercase() || c.is_ascii_digit() || *c == '_' || *c == '-')
-        .take(16)
-        .collect()
 }
 
 /// The key cap labels of a composite Move binding, e.g. 'W A S D'.
@@ -940,9 +935,8 @@ mod tests {
 
     #[test]
     fn names_tabs_and_teams() {
-        assert_eq!(clean_name("kestrel you!"), "KESTRELYOU");
-        assert_eq!(clean_name("a_b-c"), "A_B-C");
-        assert_eq!(clean_name(&"x".repeat(30)).len(), 16);
+        // The PLAYER NAME field uses the first-launch prompt's rule (spaces and dots allowed).
+        assert_eq!(crate::user_config::PlayerProfile::clean_name("kestrel you."), Some("KESTREL YOU.".into()));
         assert_eq!(Tab::Gameplay.step(-1), Tab::Hud);
         assert_eq!(Tab::Hud.step(1), Tab::Gameplay);
         for t in Tab::ALL {

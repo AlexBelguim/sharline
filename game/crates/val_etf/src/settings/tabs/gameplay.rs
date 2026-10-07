@@ -26,8 +26,9 @@ const GAMEPLAY: &[Row] = &[
     ("AUTO-SPRINT", None, Ctl::Switch(Tg::AutoSprint)),
     // SEPARATE KEY needs a 'Jetpack (hold)' bind, which Keybinds does not have yet.
     ("JETPACK", None, Ctl::Seg(Ch::Jetpack, &[1])),
-    ("SLIDE", None, Ctl::Seg(Ch::Slide, &[])),
-    ("MAG CHECK CARD", None, Ctl::Seg(Ch::MagCard, &[])),
+    // OFF and WHILE HELD wait for the game to honour them (the sim always slides; the card is timed).
+    ("SLIDE", None, Ctl::Seg(Ch::Slide, &[1])),
+    ("MAG CHECK CARD", None, Ctl::Seg(Ch::MagCard, &[1])),
 ];
 
 const RADIAL: &[Row] = &[

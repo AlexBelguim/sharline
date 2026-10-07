@@ -12,7 +12,34 @@ use bevy::prelude::*;
 use bevy::text::EditableText;
 
 pub(super) fn plugin(app: &mut App) {
-    app.add_systems(Update, (settings_from_widgets, visuals).chain().run_if(in_state(AppState::MainMenu)));
+    app.add_systems(
+        Update,
+        (follow_default_port, settings_from_widgets, visuals).chain().run_if(in_state(AppState::MainMenu)),
+    );
+}
+
+/// SETTINGS > GAMEPLAY > DEFAULT HOST PORT is HOST GAME's port (and the gun range's), unless `--port` set one
+/// for this run: at start-up and whenever the setting changes.
+fn follow_default_port(
+    settings: Res<crate::settings::Settings>,
+    cli: Res<crate::config::Cli>,
+    mut host: ResMut<HostSettings>,
+    mut editors: Query<(&FieldEditor, &mut EditableText)>,
+    mut seen: Local<Option<u16>>,
+) {
+    let port = settings.network.host_port;
+    if cli.port.is_some() || *seen == Some(port) {
+        return;
+    }
+    *seen = Some(port);
+    if host.port != port {
+        host.port = port;
+    }
+    for (id, mut ed) in &mut editors {
+        if id.0 == FieldId::Port && ed.value().to_string() != port.to_string() {
+            field::set_value(&mut ed, &port.to_string());
+        }
+    }
 }
 
 /// WHO CAN JOIN's segments, in order: an internet invite (Iroh), LAN only and direct IP (both plain UDP

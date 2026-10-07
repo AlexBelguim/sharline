@@ -59,13 +59,16 @@ impl Plugin for SettingsScreenPlugin {
                     spawn_screen.run_if(resource_exists::<SymbolFont>),
                     // A listening key cap, then an edited field or an open list, take Esc before BACK.
                     (keybinds::capture, esc).chain().in_set(EscSystems::Top).run_if(on_top()),
-                    (rail_clicks, hotkeys, footer_clicks, rebuild_pane).chain().run_if(on_top()),
+                    (controls::commit_left_edit, rail_clicks, hotkeys, footer_clicks, rebuild_pane)
+                        .chain()
+                        .run_if(on_top()),
                     (
                         controls::seg_input,
                         controls::switch_input,
                         controls::slider_input,
                         controls::field_input,
                         controls::dropdown_input,
+                        controls::scroll_dropdown,
                         keybinds::cap_clicks,
                     )
                         .run_if(on_top()),
@@ -124,6 +127,8 @@ fn spawn_screen(
     mut screens: ResMut<Screens>,
     roots: Query<&ScreenRoot>,
     mut settings: ResMut<Settings>,
+    mut ui: ResMut<UiState>,
+    mut listening: ResMut<Listening>,
     fonts: Res<UiFonts>,
     mut commands: Commands,
 ) {
@@ -131,6 +136,11 @@ fn spawn_screen(
     if roots.iter().any(|r| matches!(r.0, Screen::Settings(_))) {
         return;
     }
+    // A fresh screen: nothing left over from one that was closed from outside (match end, a disconnect).
+    *listening = Listening::default();
+    ui.confirm = None;
+    ui.dropdown = None;
+    ui.editing = None;
     let tab = opening_tab(pushed, settings.last_tab);
     screens.replace_top(Screen::Settings(tab.screen()));
     if settings.last_tab != tab {
@@ -374,7 +384,7 @@ fn esc(
     if !esc.pending() {
         return;
     }
-    if controls::cancel_field_edit(&mut focus, &fields) {
+    if controls::cancel_field_edit(&mut focus, &fields, &mut ui) {
         esc.take();
     } else if ui.dropdown.is_some() {
         controls::close_dropdown(&mut commands, &mut ui);
