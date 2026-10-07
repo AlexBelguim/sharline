@@ -111,6 +111,10 @@ impl ZoneSet {
         self.0 |= 1 << zone.index();
     }
 
+    pub fn remove(&mut self, zone: Zone) {
+        self.0 &= !(1 << zone.index());
+    }
+
     pub fn len(self) -> u32 {
         self.0.count_ones()
     }

@@ -6,22 +6,32 @@ direction that changes some of those numbers and systems. Cloud sessions cannot 
 local session), so each change is listed here and skipped by the sync test (`superseded()` in `design_sync.rs`).
 Once the design docs and JSON are updated, delete the entry here and in `superseded()`.
 
-## 1. Ammo decides halo penetration (class × type × tier)
-- **Design:** one flat `shield_pierce` per weapon (Mako 0.0, Warden 0.3).
-- **Now:** `assets/data/ammo.ron`. A loadout loads one ammo for its gun, picked as a **type and a tier** (e.g. AP II).
-  Nothing to sort per round or per magazine, so it stays lighter than Tarkov.
-  - **Weapon class** (SMG, light assault, assault rifle, heavy assault, shotgun, bolt sniper) sets the baseline
-    penetration per halo tier. Example from the direction: SMG rounds slightly pierce T1 and do nothing to T2+.
-  - **Type** changes the halo-vs-HP split:
+## 1. Shields are a buffer; pen is a shield-damage multiplier (ammo = class × type × tier)
+- **Design:** a flat `shield_pierce` fraction per weapon bled through the shield to HP (Mako 0.0, Warden 0.3).
+- **Now (user direction):**
+  - **The shield is a buffer.** While a halo arc holds, it takes the whole bullet, and zone HP takes nothing.
+    The bullet that breaks the arc carries its leftover on to HP.
+  - **`pen` multiplies shield damage, per halo tier.** pen 2 means the shield takes twice the bullet's damage;
+    below 1 means that tier resists the round. Leftover is converted back as `(shield damage − absorbed) / pen`.
+- **Ammo** is picked per loadout as a **type and a tier** (e.g. AP II) in `assets/data/ammo.ron`. Nothing to sort
+  per round or per magazine.
+  - **Weapon class** sets the baseline pen per halo tier. SMG Standard only slightly beats T1 and nothing above.
+  - **Type and tier** scale pen, damage, flesh damage and limb spill:
     - Standard.
-    - AP: pierces, slightly less damage.
-    - Shrapnel: shreds shields, no pen.
-    - RIP: big HP damage, weak on shields.
-    - Slug: shotgun only.
-  - **Tier I-III** scales the type's speciality.
-- The Warden's standard round keeps the design's 0.30 pierce against T3.
-- **Pending:** the shotgun's pellets and slugs, and the SMG / light / heavy assault guns themselves. The data hooks
-  exist already.
+    - **AP:** high damage, high pen.
+    - **RIP:** SMG only; bad into shields, brutal on flesh, carries more limb damage into the torso.
+    - **Slug:** shotgun only; low pen, high damage.
+    - **Shrapnel:** NPC-only, for bots and bosses later. Low damage, low pen, a seeded chance to slip past
+      the shield, and fragments that bleed until treated, after which a residual trickle stays until
+      respawn.
+  - **Gear budget:** in team deathmatch, AP is paid for with a loadout gear budget (`rules.ron`). Halo arc tiers
+    plus ammo gear cost must fit. In the extraction mode, AP will be expensive or craftable instead.
+- **Mako:** Standard has pen 1.0 everywhere, so it still matches the design's numbers exactly (tested against the
+  design's Python model).
+- **Warden:** loses the 30% bleed-through and gets a high pen instead, tuned to keep its design kill breakpoints.
+  Final numbers come from the balance pass.
+- **Pending:** the shotgun's pellets and the SMG / light / heavy assault guns. The SMG is being added with the
+  RIP change.
 
 ## 2. Armor tier per halo section
 - **Design:** one halo has one tier, a list of covered zones and one shared shield pool.

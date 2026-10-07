@@ -437,6 +437,11 @@ fn update_vitals_panel(
     }
     for mut t in &mut status {
         let mut parts = vec![];
+        let bleeding = v.health.bleeding.zones();
+        if !bleeding.is_empty() {
+            let zones: Vec<&str> = bleeding.iter().map(Zone::label).collect();
+            parts.push(format!("BLEEDING - {}", zones.join(" ")));
+        }
         if v.health.is_broken(Zone::Arms) {
             parts.push("ARMS BROKEN".to_string());
         }

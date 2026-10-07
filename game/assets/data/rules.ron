@@ -1,6 +1,8 @@
 // Match rules for team deathmatch on Showhome, and the default loadout.
 (
     tdm: (
+        // Halo arc tiers (loadout-capped) + ammo gear cost must fit: AP's price in this test mode.
+        gear_budget: 12,
         score_limit: 50,          // "TDM - first to 50" (design/ui/mockups/png/01_hud.png)
         time_limit_s: 600.0,      // placeholder: the design does not fix a match length yet
         respawn_s: 4.0,           // design/systems damage_flow: "respawn timer 4 s"
