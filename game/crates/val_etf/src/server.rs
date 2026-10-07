@@ -229,7 +229,11 @@ fn receive_hellos(
                     continue;
                 }
                 info.name = hello.name.chars().filter(|c| !c.is_control()).take(16).collect();
-                if let Some(l) = loadout_from_choice(&data, &hello.loadout) {
+                let chosen = loadout_from_choice(&data, &hello.loadout);
+                if chosen.is_none() {
+                    warn!("{}: loadout {:?} is invalid; keeping the default", hello.name, hello.loadout);
+                }
+                if let Some(l) = chosen {
                     *w = PlayerWeapon(WeaponState::new(&data, &l.weapon));
                     *v = fresh_vitals(&data, &l);
                     mv.0.fuel = loadout_fuel(&data, &l);

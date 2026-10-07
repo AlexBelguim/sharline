@@ -64,6 +64,12 @@ pub struct Cli {
     pub bot: bool,
     /// Start looking this way (degrees, 0 = north / -Z, 90 = west); the bot then holds this heading.
     pub yaw: Option<f32>,
+    /// Loadout overrides until there is a loadout screen (weapon id, ammo like `rip3`, armor preset id,
+    /// comma-separated attachment ids). Anything missing uses `rules.ron`'s default loadout.
+    pub weapon: Option<String>,
+    pub ammo: Option<String>,
+    pub armor: Option<String>,
+    pub attach: Option<String>,
 }
 
 impl Cli {
@@ -80,6 +86,10 @@ impl Cli {
             exit_after: None,
             bot: false,
             yaw: None,
+            weapon: None,
+            ammo: None,
+            armor: None,
+            attach: None,
         };
         let mut args = std::env::args().skip(1);
         while let Some(a) = args.next() {
@@ -96,10 +106,15 @@ impl Cli {
                 "--exit-after" => cli.exit_after = val().parse().ok(),
                 "--bot" => cli.bot = true,
                 "--yaw" => cli.yaw = val().parse().ok(),
+                "--weapon" => cli.weapon = Some(val()),
+                "--ammo" => cli.ammo = Some(val()),
+                "--armor" => cli.armor = Some(val()),
+                "--attach" => cli.attach = Some(val()),
                 "--help" | "-h" => {
                     println!(
                         "val_etf [--host showhome|range] [--join CODE|IP[:PORT]] [--name NAME] [--port PORT]\n\
-                         \x20       [--width W --height H] [--screenshot PATH [--screenshot-after S]] [--exit-after S] [--bot] [--yaw DEG]"
+                         \x20       [--width W --height H] [--screenshot PATH [--screenshot-after S]] [--exit-after S] [--bot] [--yaw DEG]\n\
+                         \x20       [--weapon ID] [--ammo std|ap1..3|shr1..3|rip1..3|slug1..2] [--armor PRESET] [--attach A,B]"
                     );
                     std::process::exit(0);
                 }
@@ -110,6 +125,53 @@ impl Cli {
     }
 }
 
+/// Parse an ammo shorthand: `std`, `ap2`, `shr3` / `shrapnel3`, `rip1`, `slug2` (tier defaults to 1).
+pub fn parse_ammo(s: &str) -> Option<vetf_sim::data::AmmoChoice> {
+    use vetf_sim::data::{AmmoChoice, AmmoKind};
+    let s = s.trim().to_ascii_lowercase();
+    let split = s.find(|c: char| c.is_ascii_digit()).unwrap_or(s.len());
+    let (name, tier) = s.split_at(split);
+    let tier = if tier.is_empty() { 1 } else { tier.parse().ok()? };
+    let kind = match name.trim_end_matches(['-', '_', ' ']) {
+        "std" | "standard" => AmmoKind::Standard,
+        "ap" | "armorpiercing" | "armor_piercing" => AmmoKind::ArmorPiercing,
+        "shr" | "shrapnel" => AmmoKind::Shrapnel,
+        "rip" => AmmoKind::Rip,
+        "slug" => AmmoKind::Slug,
+        _ => return None,
+    };
+    Some(AmmoChoice { kind, tier })
+}
+
+/// The loadout this player asks the host for: `rules.ron` defaults with any command-line overrides.
+pub fn loadout_choice(cli: &Cli, data: &GameData) -> vetf_net::LoadoutChoice {
+    let d = &data.rules.default_loadout;
+    let weapon = cli.weapon.clone().unwrap_or_else(|| d.primary.clone());
+    // Another gun's default attachments would not fit: only keep the rules.ron ones for the default gun.
+    let attachments = match &cli.attach {
+        Some(list) => list.split(',').map(|a| a.trim().to_string()).filter(|a| !a.is_empty()).collect(),
+        None if weapon == d.primary => d.attachments.clone(),
+        None => Vec::new(),
+    };
+    let ammo = cli.ammo.as_deref().and_then(parse_ammo).unwrap_or(d.ammo);
+    vetf_net::LoadoutChoice { weapon, ammo, attachments, armor: cli.armor.clone().unwrap_or_else(|| d.armor.clone()) }
+}
+
 fn default_name() -> String {
     std::env::var("USER").or_else(|_| std::env::var("USERNAME")).map(|u| u.to_uppercase()).unwrap_or("AGENT".into())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use vetf_sim::data::{AmmoChoice, AmmoKind};
+
+    #[test]
+    fn ammo_shorthand() {
+        assert_eq!(parse_ammo("std"), Some(AmmoChoice::STANDARD));
+        assert_eq!(parse_ammo("RIP3"), Some(AmmoChoice { kind: AmmoKind::Rip, tier: 3 }));
+        assert_eq!(parse_ammo("ap-2"), Some(AmmoChoice { kind: AmmoKind::ArmorPiercing, tier: 2 }));
+        assert_eq!(parse_ammo("shrapnel"), Some(AmmoChoice { kind: AmmoKind::Shrapnel, tier: 1 }));
+        assert_eq!(parse_ammo("laser"), None);
+    }
 }

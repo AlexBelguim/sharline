@@ -15,7 +15,7 @@ use lightyear::prelude::*;
 use std::net::{Ipv4Addr, SocketAddr, SocketAddrV4, UdpSocket};
 use std::sync::Arc;
 use std::time::Duration;
-use vetf_net::{Hello, JoinCode, LoadoutChoice, ReliableChannel};
+use vetf_net::{Hello, JoinCode, ReliableChannel};
 
 pub struct NetPlugin;
 
@@ -194,17 +194,14 @@ fn on_client_connected(
     mut senders: Query<&mut MessageSender<Hello>, With<Client>>,
     session: Res<Session>,
     data: Res<Data>,
+    cli: Res<Cli>,
 ) {
     let Ok(mut sender) = senders.get_mut(trigger.entity) else { return };
-    let l = &data.rules.default_loadout;
+    let loadout = crate::config::loadout_choice(&cli, &data);
+    info!("asking for loadout {loadout:?}");
     sender.send::<ReliableChannel>(Hello {
         name: session.local_name.clone(),
-        loadout: LoadoutChoice {
-            weapon: l.primary.clone(),
-            ammo: l.ammo,
-            attachments: l.attachments.clone(),
-            armor: l.armor.clone(),
-        },
+        loadout,
         data_fingerprint: data.fingerprint,
     });
     info!("connected; sent hello");

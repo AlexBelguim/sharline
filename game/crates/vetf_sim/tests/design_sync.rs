@@ -58,6 +58,14 @@ fn compare(path: &str, design: &Value, game: &Value, errors: &mut Vec<String>) {
                 }
             }
         }
+        // Fit lists: the game may add its own weapons; every design entry must still be there.
+        (Value::Array(a), Value::Array(b)) if path.ends_with(".fits") => {
+            for v in a {
+                if !b.contains(v) {
+                    errors.push(format!("{path}: design entry {v} missing in game"));
+                }
+            }
+        }
         (Value::Array(a), Value::Array(b)) => {
             if a.len() != b.len() {
                 errors.push(format!("{path}: design has {} items, game has {}", a.len(), b.len()));
@@ -86,10 +94,33 @@ fn to_value<T: serde::Serialize>(v: &T) -> Value {
     serde_json::to_value(v).unwrap()
 }
 
+/// Pick the game records with the same ids as the design's `key` array, in design order, so the game may
+/// add records (new weapons, presets, attachments) without hiding drift in the design's own ones.
+fn by_design_ids(design: &Value, key: &str, game: Value) -> Value {
+    let game_items = game.as_array().cloned().unwrap_or_default();
+    let picked: Vec<Value> = design[key]
+        .as_array()
+        .unwrap()
+        .iter()
+        .map(|d| {
+            let id = &d["id"];
+            game_items
+                .iter()
+                .find(|g| &g["id"] == id)
+                .cloned()
+                .unwrap_or_else(|| panic!("design {key} {id} missing in game data"))
+        })
+        .collect();
+    Value::Array(picked)
+}
+
 #[test]
 fn weapons_match_design() {
     let d = GameData::embedded();
-    check("weapons.slice.json", to_value(&d.weapons));
+    let Some(design) = load_design("weapons.slice.json") else { return };
+    let mut game = to_value(&d.weapons);
+    game["weapons"] = by_design_ids(&design, "weapons", game["weapons"].clone());
+    check("weapons.slice.json", game);
 }
 
 #[test]
@@ -134,5 +165,8 @@ fn movement_matches_design() {
 #[test]
 fn attachments_match_design() {
     let d = GameData::embedded();
-    check("attachments_stats.slice.json", to_value(&d.attachments));
+    let Some(design) = load_design("attachments_stats.slice.json") else { return };
+    let mut game = to_value(&d.attachments);
+    game["attachments"] = by_design_ids(&design, "attachments", game["attachments"].clone());
+    check("attachments_stats.slice.json", game);
 }
