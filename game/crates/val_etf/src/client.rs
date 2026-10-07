@@ -552,6 +552,7 @@ fn automation(
     mut control: ResMut<LocalControl>,
     mut commands: Commands,
     mut taken: Local<bool>,
+    mut demo_checked: Local<bool>,
     mut in_game_since: Local<Option<f32>>,
     mut exit: MessageWriter<AppExit>,
 ) {
@@ -605,6 +606,11 @@ fn automation(
                 let mut radial = Radial::new(lo.0.weapon.mags.len());
                 radial.steer(Vec2::new(40.0, -12.0));
                 control.reload_radial = Some(radial);
+            }
+            // The HUD with wounds (see server::demo_wounds) and a mag check card.
+            "hud" if !*demo_checked && t - in_game_since.unwrap_or(t) > 1.5 => {
+                *demo_checked = true;
+                control.latched |= Buttons::MAG_CHECK;
             }
             "heal" | "heal-region" => {
                 let mut menu = HealMenu::new(lo.0.kit.len());

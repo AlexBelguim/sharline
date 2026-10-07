@@ -15,6 +15,7 @@ mod radial;
 mod render;
 mod server;
 mod shared;
+mod ui_kit;
 
 use bevy::prelude::*;
 use bevy::window::{PresentMode, WindowResolution};
@@ -71,6 +72,7 @@ fn main() -> AppExit {
         render::RenderPlugin,
         hud::HudPlugin,
         radial::RadialPlugin,
+        ui_kit::UiKitPlugin,
         menu::MenuPlugin,
     ));
     app.run()

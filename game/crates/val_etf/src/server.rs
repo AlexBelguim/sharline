@@ -299,15 +299,15 @@ fn receive_hellos(
     }
 }
 
-/// `--demo-ui heal*`: hurt the host's own player once, so the heal ring has something to treat in
-/// screenshots.
+/// `--demo-ui heal*|hud`: hurt the host's own player once, so the HUD and the heal ring have something
+/// to show in screenshots.
 fn demo_wounds(
     cli: Res<Cli>,
     data: Res<Data>,
     mut done: Local<bool>,
     mut me: Query<(&mut Vitals, &ServerPlayer), With<Controlled>>,
 ) {
-    if *done || !cli.demo_ui.as_deref().is_some_and(|d| d.starts_with("heal")) {
+    if *done || !cli.demo_ui.as_deref().is_some_and(|d| d.starts_with("heal") || d == "hud") {
         return;
     }
     // After the hello (which resets vitals for the chosen loadout).

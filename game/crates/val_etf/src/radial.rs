@@ -5,6 +5,7 @@
 use crate::AppState;
 use crate::client::LocalControl;
 use crate::config::Data;
+use crate::ui_kit::{self as kit, Face, UiFonts};
 use bevy::prelude::*;
 use lightyear::prelude::Controlled;
 use vetf_net::{PlayerItems, PlayerLoadout, PlayerWeapon, Vitals};
@@ -127,18 +128,18 @@ impl Plugin for RadialPlugin {
 }
 
 /// Ring sizes on screen (px).
-const RING_R: f32 = 120.0;
-const CHIP: Vec2 = Vec2::new(104.0, 58.0);
-const REGION_R: f32 = 92.0;
-const REGION_CHIP: Vec2 = Vec2::new(88.0, 46.0);
+const RING_R: f32 = 165.0;
+const CHIP: Vec2 = Vec2::new(132.0, 66.0);
+const REGION_R: f32 = 128.0;
+const REGION_CHIP: Vec2 = Vec2::new(112.0, 52.0);
 const MAX_OPTIONS: usize = 8;
 const MAX_LAYERS: usize = 2;
 
-const INK: Color = Color::srgb(0.93, 0.94, 0.95);
-const MUTED: Color = Color::srgb(0.58, 0.62, 0.68);
-const TEAL: Color = Color::srgb(0.0, 0.70, 0.62);
-const CHIP_BG: Color = Color::srgba(0.06, 0.07, 0.09, 0.86);
-const CHIP_SELECTED: Color = Color::srgba(0.0, 0.42, 0.37, 0.95);
+const INK: Color = kit::TEXT_HI;
+const MUTED: Color = kit::TEXT_MID;
+const TEAL: Color = kit::TEAL;
+const CHIP_BG: Color = kit::PANEL_HI;
+const CHIP_SELECTED: Color = Color::srgba(0.0, 0.45, 0.42, 0.95);
 
 #[derive(Component)]
 struct RingRoot;
@@ -153,7 +154,7 @@ struct RingTitle(usize);
 #[derive(Component)]
 struct RingPointer(usize);
 
-fn spawn_ring(mut commands: Commands) {
+fn spawn_ring(mut commands: Commands, fonts: Res<UiFonts>) {
     // A zero-size anchor at the screen centre; chips are placed around it.
     let root = commands
         .spawn((
@@ -175,7 +176,7 @@ fn spawn_ring(mut commands: Commands) {
         commands.spawn((
             RingTitle(layer),
             Text::new(""),
-            TextFont::from_font_size(14.0),
+            fonts.font(Face::Display, 700, 14.0),
             TextColor(MUTED),
             TextLayout::justify(Justify::Center),
             Node { position_type: PositionType::Absolute, width: px(160), ..default() },
@@ -215,14 +216,14 @@ fn spawn_ring(mut commands: Commands) {
             commands.spawn((
                 RingKey(layer, i),
                 Text::new(""),
-                TextFont::from_font_size(24.0),
+                fonts.font(Face::Display, 700, 24.0),
                 TextColor(INK),
                 ChildOf(chip),
             ));
             commands.spawn((
                 RingLabel(layer, i),
                 Text::new(""),
-                TextFont::from_font_size(13.0),
+                fonts.font(Face::Display, 600, 14.0),
                 TextColor(MUTED),
                 ChildOf(chip),
             ));
@@ -300,7 +301,7 @@ fn fill_rings(
         pointer: menu.ring.pointer,
         radius: RING_R,
         chip: CHIP,
-        key_size: 15.0,
+        key_size: 17.0,
         focus: menu.item,
         ..default()
     });
@@ -332,7 +333,7 @@ fn fill_rings(
         centre: option_offset(item, lo.0.kit.len(), RING_R),
         radius: REGION_R,
         chip: REGION_CHIP,
-        key_size: 16.0,
+        key_size: 18.0,
         ..default()
     });
 }
@@ -395,7 +396,7 @@ fn draw_ring(
             Some(layer) => {
                 t.0.clone_from(&layer.title);
                 node.left = px(layer.centre.x - 80.0);
-                node.top = px(layer.centre.y + 14.0);
+                node.top = px(layer.centre.y + 28.0);
             }
             None => t.0.clear(),
         }
