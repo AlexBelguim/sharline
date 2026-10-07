@@ -842,6 +842,7 @@ pub(crate) mod tests {
             mags: None,
             armor: None,
             attach: None,
+            monitor: None,
         }
     }
 
