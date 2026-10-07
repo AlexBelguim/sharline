@@ -7,18 +7,76 @@ pub const fn hex(rgb: u32) -> Color {
     Color::srgb(((rgb >> 16) & 0xff) as f32 / 255.0, ((rgb >> 8) & 0xff) as f32 / 255.0, (rgb & 0xff) as f32 / 255.0)
 }
 
+/// A translucent colour at a CSS alpha (blend-corrected, see [`css_alpha`]).
 pub const fn hexa(rgb: u32, a: f32) -> Color {
-    Color::srgba(
-        ((rgb >> 16) & 0xff) as f32 / 255.0,
-        ((rgb >> 8) & 0xff) as f32 / 255.0,
-        (rgb & 0xff) as f32 / 255.0,
-        a,
-    )
+    let (r, g, b) =
+        (((rgb >> 16) & 0xff) as f32 / 255.0, ((rgb >> 8) & 0xff) as f32 / 255.0, (rgb & 0xff) as f32 / 255.0);
+    Color::srgba(r, g, b, css_alpha(luma(r, g, b), a))
 }
 
-/// White at an alpha (the mockups' `rgba(255,255,255,a)` ladder).
+/// White at an alpha (the mockups' `rgba(255,255,255,a)` ladder, blend-corrected, see [`css_alpha`]).
 pub const fn white(a: f32) -> Color {
-    Color::srgba(1.0, 1.0, 1.0, a)
+    Color::srgba(1.0, 1.0, 1.0, css_alpha(1.0, a))
+}
+
+/// Any colour at a CSS alpha, blend-corrected like [`hexa`] (use it instead of `with_alpha` for fills,
+/// borders and glows that copy a CSS `rgba(...)`).
+pub fn translucent(c: Color, a: f32) -> Color {
+    let s = c.to_srgba();
+    c.with_alpha(css_alpha(luma(s.red, s.green, s.blue), a))
+}
+
+// --- Blending
+// The mockups are CSS: a translucent colour mixes with what is under it in sRGB values. Bevy blends UI in
+// linear light, which makes faint fills over the hub's dark surfaces far brighter (white at .03 comes out like
+// CSS white at .18). Translucent tokens therefore carry the alpha that gives the CSS result over a reference
+// dark surface: sRGB grey 0.05, the hub's pages and panels. Opaque colours and dark-on-dark scrims are
+// unchanged.
+const BLEND_REF: f64 = 0.05;
+
+const fn fifth_root(v: f64) -> f64 {
+    let mut y = 1.0;
+    let mut i = 0;
+    while i < 64 {
+        let y4 = y * y * y * y;
+        y = (4.0 * y + v / y4) / 5.0;
+        i += 1;
+    }
+    y
+}
+
+/// sRGB -> linear light (const: x^2.4 as the fifth root of x^12).
+const fn to_linear(x: f64) -> f64 {
+    if x <= 0.04045 {
+        x / 12.92
+    } else {
+        let b = (x + 0.055) / 1.055;
+        let b4 = b * b * b * b;
+        fifth_root(b4 * b4 * b4)
+    }
+}
+
+const fn luma(r: f32, g: f32, b: f32) -> f32 {
+    0.2126 * r + 0.7152 * g + 0.0722 * b
+}
+
+/// The alpha that makes a colour of sRGB luma `lum` at CSS alpha `a` look like the mockup once Bevy blends
+/// it in linear light over the hub's dark surfaces.
+pub const fn css_alpha(lum: f32, a: f32) -> f32 {
+    let (c, a) = (lum as f64, a as f64);
+    let d = c - BLEND_REF;
+    if (d < 0.02 && d > -0.02) || a <= 0.0 || a >= 1.0 {
+        return a as f32;
+    }
+    let (lb, lc) = (to_linear(BLEND_REF), to_linear(c));
+    let out = (to_linear(BLEND_REF + a * d) - lb) / (lc - lb);
+    (if out < 0.0 {
+        0.0
+    } else if out > 1.0 {
+        1.0
+    } else {
+        out
+    }) as f32
 }
 
 /// Black at an alpha.
@@ -136,24 +194,41 @@ pub fn ammo_color(kind: vetf_sim::data::AmmoKind) -> Color {
     }
 }
 
-/// Multiply a colour's alpha (the disabled look uses .35).
+/// Multiply a colour's alpha (the disabled look uses .35). An opaque colour gets the CSS-opacity look
+/// (blend-corrected like [`translucent`]).
 pub fn fade(c: Color, a: f32) -> Color {
     let alpha = c.alpha();
-    c.with_alpha(alpha * a)
+    if alpha >= 0.999 { translucent(c, a) } else { c.with_alpha(alpha * a) }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
 
+    /// Linear-light blending with the corrected alpha lands where CSS (sRGB) blending lands.
+    #[test]
+    fn translucent_tokens_blend_like_the_css() {
+        let enc = |l: f64| if l <= 0.0031308 { l * 12.92 } else { 1.055 * l.powf(1.0 / 2.4) - 0.055 };
+        let dec = |s: f64| if s <= 0.04045 { s / 12.92 } else { ((s + 0.055) / 1.055).powf(2.4) };
+        assert!((to_linear(0.5) - dec(0.5)).abs() < 1e-9);
+        for a in [0.03_f32, 0.06, 0.12, 0.16, 0.32] {
+            let css = BLEND_REF + a as f64 * (1.0 - BLEND_REF);
+            let bevy = enc(dec(BLEND_REF) + white(a).alpha() as f64 * (1.0 - dec(BLEND_REF)));
+            assert!((css - bevy).abs() < 1e-3, "white {a}: css {css} bevy {bevy}");
+        }
+        assert!(W03.alpha() < 0.005, "white .03 is a very faint fill in linear light");
+        assert_eq!(white(1.0).alpha(), 1.0);
+        assert_eq!(translucent(Color::WHITE, 0.12).alpha(), W12.alpha());
+    }
+
     #[test]
     fn hex_tokens_match_the_css() {
         let c = TEAL.to_srgba();
         assert!(c.red.abs() < 1e-6 && (c.green - 218.0 / 255.0).abs() < 1e-6 && (c.blue - 206.0 / 255.0).abs() < 1e-6);
         let p = PANEL.to_srgba();
-        assert!((p.alpha - 0.70).abs() < 1e-6 && (p.red - 9.0 / 255.0).abs() < 1e-6);
+        assert!((p.alpha - 0.70).abs() < 1e-6 && (p.red - 9.0 / 255.0).abs() < 1e-6, "dark on dark is unchanged");
         assert_eq!(tier_color(9), TIERS[4]);
         assert_eq!(tier_color(0), UNLIT);
-        assert!((fade(STROKE_HI, 0.35).alpha() - 0.32 * 0.35).abs() < 1e-6);
+        assert!((fade(STROKE_HI, 0.35).alpha() - STROKE_HI.alpha() * 0.35).abs() < 1e-6);
     }
 }

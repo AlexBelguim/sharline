@@ -560,7 +560,7 @@ pub fn mag_chip(
             border_radius: BorderRadius::all(px(2)),
             ..default()
         },
-        BackgroundColor(if in_gun { TEXT_HI.with_alpha(0.10) } else { W04 }),
+        BackgroundColor(if in_gun { translucent(TEXT_HI, 0.10) } else { W04 }),
         BorderColor::all(if in_gun { TEXT_HI } else { STROKE_MID }),
         children![
             fonts.text(slot.to_string(), Face::Display, 600, 11.0, TEXT_LOW, 0.0),
