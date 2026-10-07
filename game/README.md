@@ -97,12 +97,12 @@ A real friend on a different network should still confirm gameplay and latency b
 | R | Tap: reload the next magazine in slot order. Hold: magazine radial; release over a slot (or press 1-6) to load it. Magazines keep their slots |
 | H | Heal ring: click an item; a region item opens a second ring to pick the region. Right click steps back |
 | T | Mag check. Gives an estimate only; there is no ammo counter anywhere (genre rule) |
-| Tab | Scoreboard and invite status |
+| Tab (hold) | Scoreboard: kills, deaths and ping per player |
 | F6 | Copy the host's invite to the system clipboard |
 | Esc | Pause: resume or leave |
 
 ### Command line (automation and testing)
-`val_etf [--host showhome|range] [--join CODE|IP[:PORT]] [--name NAME] [--port PORT] [--width W --height H]
+`val_etf [--host showhome|range [--live]] [--join CODE|IP[:PORT]] [--name NAME] [--port PORT] [--width W --height H]
 [--screenshot PATH --screenshot-after S] [--exit-after S] [--bot] [--yaw DEG]
 [--weapon ID] [--ammo AMMO | --mags std,ap2,..] [--armor PRESET] [--attach A,B]
 [--demo-ui reload|heal|heal-region|hud|menu-join|menu-join-ip|menu-host]`
@@ -111,7 +111,13 @@ A real friend on a different network should still confirm gameplay and latency b
   `--host`, `--join`, `--bot`, `--screenshot` and `--demo-ui` runs never show the prompt either.
 - `--demo-ui first-run|first-run-invalid|first-run-valid` opens the first-launch callsign prompt (empty, too
   short, valid) for screenshots.
+- `--host showhome` opens the lobby, like CREATE LOBBY; add `--live` to start the match at once.
+  `--demo-ui lobby-ready|lobby-switch|lobby-start` presses READY, SWITCH TEAM then READY, or READY then START MATCH
+  a few seconds in, to test the lobby over the network.
 - `--port` sets HOST GAME's port (and so `--host`'s).
+- `VETF_ASSETS` points the game at another asset folder. Without it the game finds `game/assets` from wherever the
+  exe was built (`target/debug`, `target/release`, `target/<triple>/release`) or an `assets` folder next to a
+  copied exe.
 - `--bot` drives the local player.
 - `--yaw` makes the bot hold a heading and shoot, which is useful for testing hits over the network.
 - `--mags` lists magazines in slot order (up to six); `--ammo` loads every default magazine with one ammo.
