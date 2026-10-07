@@ -1,0 +1,247 @@
+{
+  "zone_hp": {
+    "head": 45,
+    "torso": 120,
+    "arms": 70,
+    "legs": 85
+  },
+  "weight_effects": {
+    "None": {
+      "move": 1.0,
+      "accel": 1.0,
+      "fuel": 1.0,
+      "slide_boost": 2.0,
+      "mantle": 1.0,
+      "energy_per_min": 0.0,
+      "cells": 0
+    },
+    "Light": {
+      "move": 1.0,
+      "accel": 1.0,
+      "fuel": 1.0,
+      "slide_boost": 2.0,
+      "mantle": 1.0,
+      "energy_per_min": 2.0,
+      "cells": 1
+    },
+    "Medium": {
+      "move": 0.95,
+      "accel": 0.95,
+      "fuel": 0.9,
+      "slide_boost": 1.7,
+      "mantle": 1.1,
+      "energy_per_min": 4.0,
+      "cells": 2
+    },
+    "Heavy": {
+      "move": 0.88,
+      "accel": 0.85,
+      "fuel": 0.75,
+      "slide_boost": 1.3,
+      "mantle": 1.25,
+      "energy_per_min": 8.0,
+      "cells": 3
+    }
+  },
+  "capacity": {
+    "Bulwark": [
+      65,
+      100,
+      130,
+      165
+    ],
+    "Volt": [
+      50,
+      75,
+      100,
+      125
+    ],
+    "Mender": [
+      40,
+      60,
+      80,
+      100
+    ],
+    "Phase": [
+      35,
+      55,
+      70,
+      90
+    ]
+  },
+  "regen": {
+    "Bulwark": {
+      "delay_s": 5.0,
+      "delay_after_break_s": 8.0,
+      "rate_per_s": 10.0
+    },
+    "Volt": {
+      "delay_s": 4.0,
+      "delay_after_break_s": 7.0,
+      "rate_per_s": 15.0
+    },
+    "Mender": {
+      "delay_s": 2.5,
+      "delay_after_break_s": 5.0,
+      "rate_per_s": 20.0
+    },
+    "Phase": {
+      "delay_s": 3.5,
+      "delay_after_break_s": 6.0,
+      "rate_per_s": 15.0
+    }
+  },
+  "weight_bands": [
+    [
+      "Light",
+      1,
+      4
+    ],
+    [
+      "Medium",
+      5,
+      8
+    ],
+    [
+      "Heavy",
+      9,
+      16
+    ]
+  ],
+  "presets": [
+    {
+      "id": "arm_none",
+      "name": "No halo",
+      "core": null,
+      "tier": 0,
+      "coverage": [],
+      "weight_class": "None",
+      "power_cells": 0,
+      "move_speed_mult": 1.0,
+      "energy_drain_per_min": 0.0,
+      "gear_cost": 0,
+      "capacity": 0
+    },
+    {
+      "id": "arm_phase_runner",
+      "name": "Phase Runner",
+      "core": "Phase",
+      "tier": 1,
+      "coverage": [
+        "torso"
+      ],
+      "weight_class": "Light",
+      "power_cells": 1,
+      "move_speed_mult": 1.0,
+      "energy_drain_per_min": 2.0,
+      "gear_cost": 1,
+      "capacity": 35,
+      "regen_delay_s": 3.5,
+      "regen_delay_after_break_s": 6.0,
+      "regen_per_s": 15.0,
+      "status_effect": "immune to slow effects (Volt pulse, tagging slow)"
+    },
+    {
+      "id": "arm_phase_ghost",
+      "name": "Phase Ghost",
+      "core": "Phase",
+      "tier": 4,
+      "coverage": [
+        "head"
+      ],
+      "weight_class": "Light",
+      "power_cells": 1,
+      "move_speed_mult": 1.0,
+      "energy_drain_per_min": 2.0,
+      "gear_cost": 4,
+      "capacity": 90,
+      "regen_delay_s": 3.5,
+      "regen_delay_after_break_s": 6.0,
+      "regen_per_s": 15.0,
+      "status_effect": "immune to slow effects (Volt pulse, tagging slow)"
+    },
+    {
+      "id": "arm_mender_scout",
+      "name": "Mender Scout",
+      "core": "Mender",
+      "tier": 2,
+      "coverage": [
+        "head",
+        "torso"
+      ],
+      "weight_class": "Light",
+      "power_cells": 1,
+      "move_speed_mult": 1.0,
+      "energy_drain_per_min": 2.0,
+      "gear_cost": 4,
+      "capacity": 60,
+      "regen_delay_s": 2.5,
+      "regen_delay_after_break_s": 5.0,
+      "regen_per_s": 20.0,
+      "status_effect": "fast out-of-combat regen (see regen table)"
+    },
+    {
+      "id": "arm_volt_line",
+      "name": "Volt Line",
+      "core": "Volt",
+      "tier": 3,
+      "coverage": [
+        "torso",
+        "arms"
+      ],
+      "weight_class": "Medium",
+      "power_cells": 2,
+      "move_speed_mult": 0.95,
+      "energy_drain_per_min": 4.0,
+      "gear_cost": 6,
+      "capacity": 100,
+      "regen_delay_s": 4.0,
+      "regen_delay_after_break_s": 7.0,
+      "regen_per_s": 15.0,
+      "status_effect": "on break: shock pulse r=4 m, enemies slowed 30% for 1.5 s"
+    },
+    {
+      "id": "arm_bulwark_assault",
+      "name": "Bulwark Assault",
+      "core": "Bulwark",
+      "tier": 3,
+      "coverage": [
+        "head",
+        "torso",
+        "arms"
+      ],
+      "weight_class": "Heavy",
+      "power_cells": 3,
+      "move_speed_mult": 0.88,
+      "energy_drain_per_min": 8.0,
+      "gear_cost": 9,
+      "capacity": 130,
+      "regen_delay_s": 5.0,
+      "regen_delay_after_break_s": 8.0,
+      "regen_per_s": 10.0,
+      "status_effect": "flinch (aim punch) taken -50% while shield > 0"
+    },
+    {
+      "id": "arm_bulwark_jugg",
+      "name": "Bulwark Juggernaut",
+      "core": "Bulwark",
+      "tier": 4,
+      "coverage": [
+        "head",
+        "torso",
+        "arms",
+        "legs"
+      ],
+      "weight_class": "Heavy",
+      "power_cells": 3,
+      "move_speed_mult": 0.88,
+      "energy_drain_per_min": 8.0,
+      "gear_cost": 16,
+      "capacity": 165,
+      "regen_delay_s": 5.0,
+      "regen_delay_after_break_s": 8.0,
+      "regen_per_s": 10.0,
+      "status_effect": "flinch (aim punch) taken -50% while shield > 0"
+    }
+  ]
+}

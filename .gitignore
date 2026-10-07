@@ -1,0 +1,21 @@
+# build / tooling
+__pycache__/
+*.pyc
+target/
+*.blend1
+*.blend2
+.DS_Store
+Thumbs.db
+
+# agent scratch + iteration renders (regenerable, heavy)
+**/_work/
+**/_iterations/
+**/review/*.png
+art/textures/_src/raw/
+design/ui/mockups/img/raw/
+
+# raw TRELLIS generations: keep only the chosen base seeds
+assets/characters/*/trellis/*.glb
+!assets/characters/kestrel/trellis/kestrel_trellis_s123.glb
+!assets/characters/solace/trellis/solace_trellis_s42.glb
+!assets/characters/solace/trellis/solace_trellis_s2024.glb

@@ -1,0 +1,172 @@
+{
+  "tick_hz": 60,
+  "weapons": [
+    {
+      "id": "ar7_mako",
+      "name": "AR-7 Mako",
+      "cls": "assault_rifle",
+      "ballistics": "hitscan",
+      "damage": 37,
+      "falloff": [
+        [
+          0,
+          37
+        ],
+        [
+          25,
+          37
+        ],
+        [
+          50,
+          31
+        ],
+        [
+          80,
+          27
+        ]
+      ],
+      "min_damage": 27,
+      "max_range_m": 300,
+      "zone_mult": {
+        "head": 1.3,
+        "torso": 1.0,
+        "arms": 0.8,
+        "legs": 0.85
+      },
+      "shield_pierce": 0.0,
+      "rpm": 720,
+      "fire_modes": [
+        "auto",
+        "semi"
+      ],
+      "mag_default": "mag_30",
+      "reload_tactical_s": 2.1,
+      "reload_empty_s": 2.65,
+      "reload_fast_drop_s": 1.6,
+      "mag_check_s": 1.0,
+      "equip_s": 0.7,
+      "holster_s": 0.4,
+      "ads_s": 0.22,
+      "sprint_to_fire_s": 0.2,
+      "move_mult_held": 1.0,
+      "move_mult_ads": 0.6,
+      "spread_deg": {
+        "ads_still": 0.08,
+        "hip_still": 0.7,
+        "crouch_mult": 0.85,
+        "move_full_ads": 1.4,
+        "move_full_hip": 2.6,
+        "move_threshold_frac": 0.3,
+        "air": 4.0,
+        "slide": 1.8,
+        "zipline": 2.0,
+        "jetpack": 3.0,
+        "bloom_per_shot_ads": 0.05,
+        "bloom_max_ads": 0.8,
+        "bloom_per_shot_hip": 0.12,
+        "bloom_max_hip": 1.6,
+        "bloom_decay_delay_s": 0.08,
+        "bloom_decay_deg_per_s": 3.0
+      },
+      "recoil": {
+        "pattern": "mako_recoil_pattern.json",
+        "ads_mult": 0.85,
+        "hip_mult": 1.0,
+        "crouch_mult": 0.9,
+        "reset_after_s": 0.3,
+        "recover_frac": 0.6,
+        "recover_delay_s": 0.1,
+        "recover_deg_per_s": 15.0,
+        "view_punch_visual_deg": 0.15
+      }
+    },
+    {
+      "id": "vk50_warden",
+      "name": "VK-50 Warden",
+      "cls": "bolt_sniper",
+      "ballistics": "hitscan",
+      "damage": 160,
+      "falloff": [
+        [
+          0,
+          160
+        ],
+        [
+          60,
+          160
+        ],
+        [
+          120,
+          150
+        ],
+        [
+          150,
+          140
+        ]
+      ],
+      "min_damage": 140,
+      "max_range_m": 500,
+      "zone_mult": {
+        "head": 2.0,
+        "torso": 1.0,
+        "arms": 0.8,
+        "legs": 0.85
+      },
+      "shield_pierce": 0.3,
+      "rpm": 48,
+      "bolt_cycle_s": 1.25,
+      "fire_modes": [
+        "bolt"
+      ],
+      "mag_default": "mag_5",
+      "reload_tactical_s": 2.8,
+      "reload_empty_s": 3.4,
+      "reload_fast_drop_s": 2.3,
+      "mag_check_s": 1.2,
+      "equip_s": 1.0,
+      "holster_s": 0.55,
+      "ads_s": 0.38,
+      "sprint_to_fire_s": 0.32,
+      "move_mult_held": 0.93,
+      "move_mult_ads": 0.45,
+      "spread_deg": {
+        "ads_still": 0.0,
+        "ads_unsettled": 3.0,
+        "hip_still": 6.0,
+        "crouch_mult": 0.85,
+        "move_full_ads": 3.0,
+        "move_full_hip": 8.0,
+        "move_threshold_frac": 0.2,
+        "air": 8.0,
+        "slide": 6.0,
+        "zipline": 6.0,
+        "jetpack": 10.0
+      },
+      "sway": {
+        "idle_amp_deg": 0.12,
+        "period_s": 3.0,
+        "hold_breath_s": 4.0,
+        "exhausted_mult": 2.0,
+        "exhausted_s": 2.0
+      },
+      "recoil": {
+        "kick_pitch_deg": 3.5,
+        "kick_yaw_rand_deg": 0.4,
+        "recover_frac": 0.7,
+        "recover_s": 0.35
+      },
+      "scope": {
+        "zoom_levels": [
+          6.0,
+          12.0
+        ],
+        "glint_min_range_m": 25,
+        "glint_cone_deg": 15
+      }
+    }
+  ],
+  "spill_to_torso": {
+    "arms": 0.6,
+    "legs": 0.7
+  }
+}

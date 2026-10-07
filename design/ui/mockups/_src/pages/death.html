@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>{{title}}</title>
+<!--COMMON-->
+<style>
+.bgd{position:absolute;inset:0;background-size:cover;background-position:center;filter:grayscale(.85) brightness(.55)}
+.vig{position:absolute;inset:0;background:radial-gradient(ellipse at center,rgba(0,0,0,0) 35%,rgba(0,0,0,.7) 100%)}
+body.downed .vig{background:radial-gradient(ellipse at center,rgba(60,0,8,0) 30%,rgba(90,0,12,.75) 100%)}
+.death,.down{display:none}
+body:not(.downed) .death{display:block} body.downed .down{display:block}
+.title{position:absolute;left:96px;top:96px}
+.title .k{font-family:var(--fd);font-weight:700;font-size:20px;letter-spacing:.24em;color:var(--enemy)}
+.title .n{font-family:var(--fd);font-weight:700;font-size:72px;letter-spacing:.08em;color:var(--text-hi);line-height:72px}
+.title .s{font-size:17px;color:var(--text);margin-top:6px}
+.killer{position:absolute;left:96px;top:300px;width:560px;padding:18px 20px;border-left:3px solid var(--enemy)}
+.killer h2,.recap h2{font-family:var(--fd);font-weight:700;font-size:18px;letter-spacing:.18em;color:var(--text-hi)}
+.kr{display:flex;gap:18px;align-items:center;margin-top:12px}
+.kv{display:grid;grid-template-columns:110px 1fr;row-gap:7px;font-size:14.5px}
+.kv span:nth-child(odd){font-family:var(--fd);font-weight:600;font-size:12.5px;letter-spacing:.14em;color:var(--text-mid);text-transform:uppercase;padding-top:2px}
+.recap{position:absolute;left:700px;top:300px;width:720px;padding:18px 20px}
+.hits{width:100%;border-collapse:collapse;margin-top:10px}
+.hits th{font-family:var(--fd);font-weight:600;font-size:12px;letter-spacing:.16em;color:var(--text-mid);text-align:left;padding:4px 8px;text-transform:uppercase}
+.hits td{height:36px;padding:0 8px;border-top:1px solid var(--stroke);font-size:14.5px;color:var(--text)}
+.hits td b{font-family:var(--fd);font-weight:700;letter-spacing:.04em;color:var(--text-hi)}
+.hits td.sh,.sh{color:var(--t2);font-family:var(--fd);font-weight:700}
+.hits td.fl,.fl{color:#FF6170;font-family:var(--fd);font-weight:700}
+.you{position:absolute;left:1460px;top:300px;width:360px;padding:18px 20px;display:flex;flex-direction:column;align-items:center}
+.respawn{position:absolute;left:50%;bottom:110px;transform:translateX(-50%);display:flex;align-items:center;gap:26px}
+.ring{position:relative;width:110px;height:110px}
+.ring b{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:var(--fd);font-weight:700;font-size:48px;color:var(--text-hi)}
+.respawn .t{font-family:var(--fd);font-weight:700;font-size:28px;letter-spacing:.14em;color:var(--text-hi)}
+.respawn .t small{display:block;font-size:14px;letter-spacing:.16em;color:var(--text-mid);font-weight:600}
+.acts{display:flex;gap:10px;margin-top:10px}
+/* downed */
+.dn{position:absolute;left:50%;top:40%;transform:translate(-50%,-50%);display:flex;flex-direction:column;align-items:center;gap:10px}
+.dn .big{font-family:var(--fd);font-weight:700;font-size:64px;letter-spacing:.16em;color:#FF6170;line-height:64px}
+.dn .sub{font-family:var(--fd);font-weight:600;font-size:18px;letter-spacing:.14em;color:var(--text-hi)}
+.dn .help{display:flex;align-items:center;gap:10px;padding:10px 16px;margin-top:10px;background:rgba(9,12,17,.8);border:1px solid rgba(82,229,165,.5)}
+.dn .help b{font-family:var(--fd);font-weight:700;font-size:18px;letter-spacing:.1em;color:var(--ally)}
+.reviver{position:absolute;right:80px;bottom:80px;width:520px;padding:16px 18px}
+.reviver h2{font-family:var(--fd);font-weight:700;font-size:16px;letter-spacing:.18em;color:var(--text-mid)}
+.rv{position:relative;height:200px;margin-top:10px;background-size:cover;background-position:center 60%;border:1px solid var(--stroke-mid)}
+.rv .pr{position:absolute;left:50%;top:58%;transform:translate(-50%,-50%);display:flex;flex-direction:column;align-items:center;gap:6px}
+.rv .pr span{font-family:var(--fd);font-weight:700;font-size:15px;letter-spacing:.14em;color:var(--text-hi);text-shadow:0 1px 3px #000}
+.hint{display:flex;align-items:center;gap:7px;font-family:var(--fd);font-weight:600;font-size:14px;letter-spacing:.14em;color:var(--text-mid)}
+</style></head>
+<body data-variant="{{variant}}">
+<!--ICONS-->
+<div class="stage"><div class="screen">
+  <div class="bgd" style="background-image:url({{img:hud_street}})"></div>
+  <div class="vig"></div>
+
+  <!-- =================== DEATH RECAP =================== -->
+  <div class="death">
+    <div class="title"><div class="k">ELIMINATED</div><div class="n">BY ROOK</div><div class="s">VK-50 Warden · 21 m · headshot through a T2 shield</div></div>
+
+    <div class="killer panel hi">
+      <h2>KILLER</h2>
+      <div class="kr">
+        <div data-halo='{"tier":"t3","core":"bulwark","covered":["head","torso"],"weight":"heavy","cells":3,"shield":0.62,"state":"idle","size":120,"value":121}'></div>
+        <div class="kv">
+          <span>Player</span><span><b class="c-enemy" style="font-family:var(--fd);font-size:18px">ROOK</b> · Kestrel</span>
+          <span>Weapon</span><span>VK-50 Warden · sniper 8× · bipod</span>
+          <span>Halo</span><span><b class="c-t3">T3 Bulwark</b> · Heavy · Head + Torso</span>
+          <span>Shield left</span><span class="num">121 / 195 (you hit it for 74)</span>
+          <span>HP left</span><span class="num">Arms 31 / 60 · rest full</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="recap panel hi">
+      <h2>DAMAGE YOU TOOK <span class="micro" style="margin-left:8px">last 10 s · newest first</span></h2>
+      <table class="hits">
+        <tr><th>Time</th><th>From</th><th>Weapon</th><th>Zone</th><th>Shield</th><th>Flesh</th></tr>
+        <tr><td class="num">−0.0 s</td><td><b class="c-enemy">ROOK</b></td><td>Warden</td><td><b>HEAD</b></td><td class="sh num">−30 · broken</td><td class="fl num">−35 · destroyed</td></tr>
+        <tr><td class="num">−2.4 s</td><td><b class="c-enemy">PIKE</b></td><td>Mako</td><td>TORSO</td><td class="sh num">−42</td><td class="fl num">—</td></tr>
+        <tr><td class="num">−2.6 s</td><td><b class="c-enemy">PIKE</b></td><td>Mako</td><td>LEGS</td><td style="color:var(--text-low)">open</td><td class="fl num">−22</td></tr>
+        <tr><td class="num">−6.1 s</td><td><b class="c-enemy">MOTH</b></td><td>UGL-40</td><td>ARMS + TORSO</td><td class="sh num">−48</td><td class="fl num">−79 · bleeding</td></tr>
+      </table>
+      <div style="display:flex;gap:24px;margin-top:12px;font-size:14px;color:var(--text-mid)"><span>Total <b class="sh num">120 shield</b> · <b class="fl num">136 flesh</b></span><span>You dealt <b class="num" style="color:var(--text-hi)">74</b> to Rook, <b class="num" style="color:var(--text-hi)">61</b> to Pike</span></div>
+    </div>
+
+    <div class="you panel hi">
+      <h2 style="font-family:var(--fd);font-weight:700;font-size:18px;letter-spacing:.18em;color:var(--text-hi);align-self:flex-start">YOU</h2>
+      <div style="margin-top:10px" data-body='{"hp":{"head":0,"torso":0.61,"arms":0.23,"legs":0.69},"covered":["head","torso","arms"],"tier":"t2","w":120,"broken":true}'></div>
+    </div>
+
+    <div class="respawn">
+      <div class="ring"><svg width="110" height="110" viewBox="0 0 110 110"><circle cx="55" cy="55" r="50" fill="none" stroke="rgba(255,255,255,.15)" stroke-width="6"/><circle cx="55" cy="55" r="50" fill="none" stroke="#F3F0E9" stroke-width="6" stroke-dasharray="314" stroke-dashoffset="78" transform="rotate(-90 55 55)"/></svg><b class="num">3</b></div>
+      <div><div class="t">RESPAWN IN 3 S<small>WEST HOUSE · SPAWN PROTECTION 2 S</small></div>
+        <div class="acts"><div class="btn"><span class="key">L</span>CHANGE LOADOUT</div><div class="btn"><span class="key">TAB</span>SCOREBOARD</div></div></div>
+    </div>
+  </div>
+
+  <!-- =================== DOWNED (host option) =================== -->
+  <div class="down">
+    <div class="dn">
+      <div class="ring" style="width:150px;height:150px"><svg width="150" height="150" viewBox="0 0 150 150"><circle cx="75" cy="75" r="68" fill="none" stroke="rgba(255,255,255,.15)" stroke-width="7"/><circle cx="75" cy="75" r="68" fill="none" stroke="#FF6170" stroke-width="7" stroke-dasharray="427" stroke-dashoffset="142" transform="rotate(-90 75 75)"/></svg><b class="num" style="font-size:56px">10</b></div>
+      <div class="big">DOWNED</div>
+      <div class="sub">BLEEDING OUT · CRAWL TO COVER</div>
+      <div class="help"><svg width="20" height="20" style="color:var(--ally)"><use href="#i-heal"/></svg><b>JUNO IS COMING · 8 M</b><span class="micro" style="color:var(--text-mid)">SOLACE REVIVES 2× FASTER</span></div>
+      <div style="display:flex;gap:20px;margin-top:8px"><span class="hint"><span class="key ghost">WASD</span>CRAWL 1.0 M/S</span><span class="hint"><span class="key ghost">F</span>HOLD 2 S TO GIVE UP</span><span class="hint"><span class="key ghost">Z</span>PING FOR HELP</span></div>
+    </div>
+    <div class="reviver panel hi">
+      <h2>WHAT THE REVIVER SEES</h2>
+      <div class="rv" style="background-image:url({{img:hud_street}})"><div class="pr">
+        <svg width="70" height="70" viewBox="0 0 70 70"><circle cx="35" cy="35" r="30" fill="rgba(9,12,17,.6)" stroke="rgba(255,255,255,.2)" stroke-width="5"/><circle cx="35" cy="35" r="30" fill="none" stroke="#52E5A5" stroke-width="5" stroke-dasharray="188" stroke-dashoffset="80" transform="rotate(-90 35 35)"/><use href="#i-heal" x="23" y="23" width="24" height="24" style="color:#52E5A5"/></svg>
+        <span>REVIVING KESTREL_YOU · 2.1 S</span><span class="micro" style="color:var(--text-hi)">HOLD F · 5 S (SOLACE 2.5 S)</span></div></div>
+    </div>
+  </div>
+  <div class="mock-label">{{label}}</div>
+</div></div>
+<!--WIDGETS-->
+<script>if((location.hash||'').includes('downed'))document.body.classList.add('downed');</script>
+<!--FIT-->
+</body></html>

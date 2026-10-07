@@ -1,0 +1,13 @@
+#!/bin/sh
+# Concept images for the ATT tactical / underbarrel / shield set (local Krea2 via ComfyUI).
+# Re-runnable: python must be on PATH, ComfyUI running at 127.0.0.1:8188.
+G="F:/git/val etf/tools/comfy_gen.py"
+O="F:/git/val etf/assets/weapons/attachments/tactical/concepts"
+STYLE="stylized hand-painted game asset concept art, Valorant and Overwatch 2 style, clean planar hard-surface shapes, generous chamfered edges, near-future 2060s tactical gear, matte dark graphite grey metal with pale bone-white polymer parts, painted flat material response, no grime, plain light grey background, orthographic product shot, no text, no logos"
+
+python "$G" --w 1536 --h 864 --seed 11 --out "$O/ugl_side_v01.png" --prompt "Side view of a compact 40 mm single-shot underbarrel grenade launcher attachment, angular monolithic dark graphite housing with a rail clamp on top, thick gunmetal launcher tube with a wide dark bore at the muzzle, small bone-white pistol grip with an angular trigger guard at the rear, the attachment shown alone, muzzle pointing left. $STYLE"
+python "$G" --w 1536 --h 864 --seed 21 --out "$O/bipod_v01.png" --prompt "Three-quarter view of a sniper rifle front bipod attachment, deployed, two angular rectangular telescoping legs angled forward and down, dark graphite upper legs, gunmetal lower legs, chunky black rubber angular feet, compact rail clamp block with a hinge head and a small throw lever, the attachment shown alone. $STYLE"
+python "$G" --w 1536 --h 864 --seed 31 --out "$O/shield_v01.png" --prompt "Three-quarter front view of a compact ballistic gun shield attachment mounted on the front of an assault rifle handguard, angular faceted dark graphite armour plate slightly wrapped around the gun, a wide horizontal blue tinted transparent ballistic glass viewport in the upper half, a horizontal slot port at barrel height where the barrel passes through, short angular mounting arm clamped on the top rail, small bolt heads on the plate corners. $STYLE"
+python "$G" --w 1536 --h 864 --seed 41 --out "$O/grips_v01.png" --prompt "Side view lineup of three rifle foregrip attachments: a vertical foregrip, an angled wedge foregrip, and a small hand stop, each made of pale bone-white polymer with a dark graphite rail clamp on top, chamfered angular shapes with subtle grip grooves, shown alone. $STYLE"
+python "$G" --w 1536 --h 864 --seed 51 --out "$O/laser_light_v01.png" --prompt "Two side-rail weapon attachments shown alone: a compact angular box laser module with a small red laser emitter lens and a dark infrared window on its front face, and a cylindrical tactical flashlight with a knurled gunmetal bezel and a glowing white lens, both dark graphite with side rail clamps. $STYLE"
+echo done

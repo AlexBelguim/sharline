@@ -1,0 +1,246 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>{{title}}</title>
+<!--COMMON-->
+<style>
+.screen{background:radial-gradient(ellipse at 50% 35%,#18202b 0%,#0a0d12 55%,#06080B 100%)}
+.topbar{position:absolute;left:0;right:0;top:0;height:84px;display:flex;align-items:center;padding:0 48px;gap:28px;border-bottom:1px solid var(--stroke)}
+.topbar h1{font-family:var(--fd);font-weight:700;font-size:40px;letter-spacing:.14em;color:var(--text-hi)}
+.presets{display:flex;gap:6px}
+.presets div{display:flex;align-items:center;gap:8px;height:38px;padding:0 14px;font-family:var(--fd);font-weight:700;font-size:16px;letter-spacing:.14em;color:var(--text-mid);border:1px solid var(--stroke-mid)}
+.presets div.on{color:var(--bg0);background:var(--text-hi);border-color:var(--text-hi)}
+.topbar .sp{flex:1}
+.col-h{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:10px}
+.col-h h2{font-family:var(--fd);font-weight:700;font-size:20px;letter-spacing:.18em;color:var(--text-hi)}
+/* left: agents */
+.agents{position:absolute;left:48px;top:108px;width:360px}
+.acard{position:relative;height:150px;margin-bottom:10px;overflow:hidden;border:1px solid var(--stroke-mid);background:#0c1016}
+.acard .img{position:absolute;right:-20px;top:-10px;width:200px;height:200px;background-size:cover;background-position:center}
+.acard .fade{position:absolute;inset:0;background:linear-gradient(90deg,#0c1016 38%,rgba(12,16,22,0) 75%)}
+.acard .t{position:absolute;left:18px;top:18px}
+.acard .t .n{font-family:var(--fd);font-weight:700;font-size:34px;letter-spacing:.12em;color:var(--text-hi);line-height:34px}
+.acard .t .r{font-family:var(--fd);font-weight:600;font-size:13px;letter-spacing:.2em;margin-top:2px}
+.acard .ab{position:absolute;left:18px;bottom:16px;display:flex;gap:6px}
+.acard .ab div{width:34px;height:34px;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.5);border:1px solid var(--stroke-mid);color:var(--text-hi)}
+.acard .ab svg{width:22px;height:22px}
+.acard.on{border:2px solid var(--teal);box-shadow:0 0 24px rgba(0,218,206,.18)}
+.acard.on::after{content:'SELECTED';position:absolute;right:10px;top:10px;font-family:var(--fd);font-weight:700;font-size:11px;letter-spacing:.2em;color:var(--bg0);background:var(--teal);padding:2px 7px}
+.abl{margin-top:6px;padding:14px 16px}
+.abl .a{display:grid;grid-template-columns:40px 1fr;gap:10px;padding:8px 0;border-bottom:1px solid var(--stroke)}
+.abl .a:last-child{border-bottom:0}
+.abl .a .ic{width:40px;height:40px;display:flex;align-items:center;justify-content:center;border:1px solid var(--stroke-mid);color:var(--text-hi)}
+.abl .a .ic svg{width:26px;height:26px}
+.abl .a b{font-family:var(--fd);font-weight:700;font-size:16px;letter-spacing:.1em;color:var(--text-hi)}
+.abl .a p{font-size:12.5px;color:var(--text-mid);line-height:1.35;margin-top:1px}
+/* centre: weapon */
+.wpn{position:absolute;left:432px;top:108px;width:872px}
+.wtabs{display:flex;gap:6px}
+.wtab{flex:1;display:flex;align-items:center;gap:14px;height:62px;padding:0 16px;border:1px solid var(--stroke-mid);background:rgba(255,255,255,.03)}
+.wtab svg{color:var(--bone)}
+.wtab .n{font-family:var(--fd);font-weight:700;font-size:22px;letter-spacing:.08em;color:var(--text-mid)}
+.wtab .n small{display:block;font-size:12px;letter-spacing:.18em;font-weight:600;color:var(--text-low)}
+.wtab.on{border-color:var(--text-hi);background:rgba(255,255,255,.07)} .wtab.on .n{color:var(--text-hi)}
+.preview{position:relative;height:540px;margin-top:10px;overflow:hidden;border:1px solid var(--stroke);background:#090b0e}
+.preview .gun{position:absolute;left:-40px;top:0px;width:960px;height:540px;background-size:cover;background-position:center}
+.preview .floor{position:absolute;left:0;right:0;bottom:0;height:120px;background:linear-gradient(0deg,rgba(9,11,14,.9),rgba(9,11,14,0))}
+.hs{position:absolute;display:flex;align-items:center;gap:8px}
+.hs .dot{width:14px;height:14px;border-radius:50%;border:2px solid var(--text-hi);background:rgba(0,0,0,.4);flex:none}
+.hs .dot.sel{background:var(--teal);border-color:var(--teal);box-shadow:0 0 0 5px rgba(0,218,206,.25)}
+.hs .tg{padding:3px 8px;background:rgba(7,9,13,.85);border:1px solid var(--stroke-mid);font-family:var(--fd);font-weight:700;font-size:13px;letter-spacing:.12em;color:var(--text-hi);white-space:nowrap}
+.hs .tg small{color:var(--text-mid);font-weight:600;margin-right:6px}
+.hs.l{flex-direction:row-reverse}
+.pv-hint{position:absolute;left:14px;bottom:12px;display:flex;gap:16px}
+.pv-hint span{display:flex;gap:6px;align-items:center;font-family:var(--fd);font-weight:600;font-size:12.5px;letter-spacing:.14em;color:var(--text-mid)}
+.pv-badge{position:absolute;right:14px;top:12px}
+.slots{display:grid;grid-template-columns:repeat(6,1fr);gap:6px;margin-top:10px}
+.sl{height:76px;padding:9px 10px;border:1px solid var(--stroke-mid);background:rgba(255,255,255,.03);position:relative}
+.sl .h{display:flex;align-items:center;gap:6px;font-family:var(--fd);font-weight:600;font-size:12px;letter-spacing:.16em;color:var(--text-mid)}
+.sl .h svg{width:16px;height:16px}
+.sl .v{font-family:var(--fd);font-weight:700;font-size:17px;letter-spacing:.04em;color:var(--text-hi);margin-top:6px;line-height:18px}
+.sl.on{border-color:var(--teal);background:rgba(0,218,206,.08)} .sl.on .h{color:var(--teal)}
+.sl.empty .v{color:var(--text-low)}
+.wstats{display:grid;grid-template-columns:1fr 1fr;column-gap:28px;row-gap:9px;margin-top:10px;padding:14px 16px}
+.st{display:grid;grid-template-columns:96px 1fr 64px;align-items:center;gap:10px}
+.st .k{font-family:var(--fd);font-weight:600;font-size:12.5px;letter-spacing:.14em;color:var(--text-mid);text-transform:uppercase}
+.st .b{position:relative;height:6px;background:rgba(255,255,255,.1)}
+.st .b b{position:absolute;left:0;top:0;bottom:0;background:var(--text-hi)}
+.st .b .dp{position:absolute;top:0;bottom:0;background:var(--good)} .st .b .dn{position:absolute;top:0;bottom:0;background:var(--bad)}
+.st .v{font-family:var(--fd);font-weight:700;font-size:15px;color:var(--text-hi);text-align:right}
+.st .v .g{color:var(--good)} .st .v .r{color:var(--bad)}
+/* attachment list popover (variant #attach) */
+.alist{position:absolute;left:446px;top:330px;width:420px;padding:12px;display:none;border-top:2px solid var(--teal);z-index:5;box-shadow:0 20px 60px rgba(0,0,0,.6)}
+body.attach .alist{display:block}
+.alist .it{display:grid;grid-template-columns:44px 1fr auto;gap:12px;align-items:center;padding:10px;border:1px solid transparent;margin-top:4px}
+.alist .it .ic{width:44px;height:44px;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.05);color:var(--text-hi)}
+.alist .it .ic svg{width:28px;height:28px}
+.alist .it b{font-family:var(--fd);font-weight:700;font-size:17px;letter-spacing:.06em;color:var(--text-hi)}
+.alist .it small{display:block;font-size:12.5px;color:var(--text-mid);margin-top:1px}
+.alist .it .d{font-family:var(--fd);font-weight:600;font-size:13px;text-align:right;line-height:17px}
+.alist .it.eq{border-color:var(--stroke-mid);background:rgba(255,255,255,.04)}
+.alist .it.hov{border-color:var(--text-hi);background:rgba(255,255,255,.08)}
+.g{color:var(--good)} .r{color:var(--bad)}
+/* right: halo */
+.halo{position:absolute;left:1328px;top:108px;width:544px}
+.cores{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.core{height:128px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;border:1px solid var(--stroke-mid);background:rgba(255,255,255,.03)}
+.core .n{font-family:var(--fd);font-weight:700;font-size:15px;letter-spacing:.14em;color:var(--text-mid)}
+.core .d{font-size:11px;color:var(--text-low);text-align:center;line-height:1.25;padding:0 6px}
+.core.on{border-color:var(--t2);background:rgba(89,179,255,.08)} .core.on .n{color:var(--text-hi)}
+.sec{margin-top:14px}
+.tiers{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:8px}
+.ti{height:46px;display:flex;align-items:center;justify-content:center;gap:8px;border:1px solid var(--stroke-mid);font-family:var(--fd);font-weight:700;font-size:18px;letter-spacing:.1em}
+.ti i{width:14px;height:14px;transform:rotate(45deg);background:currentColor;box-shadow:0 0 10px currentColor}
+.ti.on{border:2px solid currentColor;background:rgba(89,179,255,.08)}
+.cov{display:grid;grid-template-columns:150px 1fr;gap:16px;margin-top:8px;align-items:center}
+.zt{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.z{display:flex;align-items:center;gap:10px;height:46px;padding:0 12px;border:1px solid var(--stroke-mid);font-family:var(--fd);font-weight:700;font-size:16px;letter-spacing:.14em;color:var(--text-mid)}
+.z svg{width:18px;height:18px}
+.z .cb{margin-left:auto;width:18px;height:18px;border:2px solid var(--stroke-hi)}
+.z.on{color:var(--text-hi);border-color:rgba(89,179,255,.6);background:rgba(89,179,255,.08)} .z.on .cb{background:var(--t2);border-color:var(--t2)}
+.res{margin-top:14px;padding:16px 18px;border-top:2px solid var(--text-hi)}
+.wclass{display:flex;gap:4px;margin-top:8px}
+.wclass div{flex:1;height:36px;display:flex;align-items:center;justify-content:center;font-family:var(--fd);font-weight:700;font-size:15px;letter-spacing:.16em;color:var(--text-low);background:rgba(255,255,255,.05)}
+.wclass div.on{background:var(--text-hi);color:var(--bg0)}
+.rg{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-top:14px}
+.rg .c .v{font-family:var(--fd);font-weight:700;font-size:26px;color:var(--text-hi);line-height:28px}
+.rg .c .v small{font-size:14px;color:var(--text-mid);font-weight:600}
+.rg .c .s{font-size:12px;color:var(--text-mid)}
+.budget{display:flex;align-items:center;gap:10px;margin-top:14px}
+.budget .bar{flex:1;height:8px}
+.foot{position:absolute;left:48px;right:48px;bottom:24px;display:flex;align-items:center;gap:22px}
+.hint{display:flex;align-items:center;gap:7px;font-family:var(--fd);font-weight:600;font-size:14px;letter-spacing:.14em;color:var(--text-mid)}
+</style></head>
+<body data-variant="{{variant}}">
+<!--ICONS-->
+<div class="stage"><div class="screen">
+  <div class="topbar">
+    <h1>LOADOUT</h1>
+    <div class="presets"><div class="on">A · RIFLE</div><div>B · LONG</div><div>C · MEDIC</div><div style="border-style:dashed">+ SAVE AS</div></div>
+    <div class="sp"></div>
+    <span class="hint" style="color:var(--warn)">In match: changes apply on your next spawn</span>
+    <div class="btn">BACK <span class="key ghost" style="height:20px">ESC</span></div>
+    <div class="btn primary">CONFIRM</div>
+  </div>
+
+  <!-- ===== agent ===== -->
+  <div class="agents">
+    <div class="col-h"><h2>AGENT</h2><span class="micro">1 of 2</span></div>
+    <div class="acard on">
+      <div class="img" style="background-image:url({{img:kestrel_portrait}})"></div><div class="fade"></div>
+      <div class="t"><div class="n">KESTREL</div><div class="r c-teal">RECON · MOBILITY</div></div>
+      <div class="ab"><div><svg><use href="#i-grapple"/></svg></div><div><svg><use href="#i-scan"/></svg></div><div><svg><use href="#i-kes-ult"/></svg></div></div>
+    </div>
+    <div class="acard">
+      <div class="img" style="background-image:url({{img:solace_portrait}})"></div><div class="fade"></div>
+      <div class="t"><div class="n" style="color:var(--text-mid)">SOLACE</div><div class="r c-coral">MEDIC · SUPPORT</div></div>
+      <div class="ab"><div><svg><use href="#i-drone"/></svg></div><div><svg><use href="#i-pulse"/></svg></div><div><svg><use href="#i-sol-ult"/></svg></div></div>
+    </div>
+    <div class="abl panel">
+      <div class="a"><div class="ic"><svg><use href="#i-grapple"/></svg></div><div><b>Q · GRAPPLE LINE</b> <span class="micro">2 charges</span><p>Fire a line up to 25 m and reel in. Hooks onto any ledge or zipline cable.</p></div></div>
+      <div class="a"><div class="ic"><svg><use href="#i-scan"/></svg></div><div><b>E · EYEPIECE SCAN</b> <span class="micro">35 s</span><p>40 m cone. Marks enemies for 4 s and reveals their halo: core, tier, coverage, shield, power.</p></div></div>
+      <div class="a"><div class="ic"><svg><use href="#i-kes-ult"/></svg></div><div><b>X · WIDE SWEEP</b> <span class="micro">7 points</span><p>Placeholder ultimate: 3 scan pulses across the whole map.</p></div></div>
+    </div>
+  </div>
+
+  <!-- ===== weapon ===== -->
+  <div class="wpn">
+    <div class="wtabs">
+      <div class="wtab on"><svg width="130" height="35"><use href="#i-mako"/></svg><div class="n">AR-7 MAKO<small>ASSAULT RIFLE · AUTO / SEMI</small></div></div>
+      <div class="wtab"><svg width="150" height="35" style="opacity:.6"><use href="#i-warden"/></svg><div class="n">VK-50 WARDEN<small>HEAVY BOLT-ACTION</small></div></div>
+    </div>
+    <div class="preview">
+      <div class="gun" style="background-image:url({{img:mako_dark}})"></div>
+      <div class="floor"></div>
+      <div class="hs" style="left:532px;top:134px"><span class="dot"></span><span class="tg"><small>OPTIC</small>HOLO</span></div>
+      <div class="hs l" style="left:620px;top:200px"><span class="dot"></span><span class="tg"><small>STOCK</small>STANDARD</span></div>
+      <div class="hs" style="left:502px;top:410px"><span class="dot"></span><span class="tg"><small>MAG</small>30-RND</span></div>
+      <div class="hs l" style="left:112px;top:393px"><span class="dot sel"></span><span class="tg" style="border-color:var(--teal)"><small>UNDER</small>ANGLED GRIP</span></div>
+      <div class="hs" style="left:171px;top:343px;flex-direction:column;align-items:flex-start;gap:6px"><span class="dot"></span><span class="tg"><small>SIDE R</small>LASER</span></div>
+      <div class="hs" style="left:61px;top:330px;flex-direction:column-reverse;align-items:flex-start;gap:6px"><span class="dot"></span><span class="tg"><small>SHIELD</small>NONE</span></div>
+      <div class="pv-badge"><span class="micro">LIVE 3D PREVIEW · ViewportNode</span></div>
+      <div class="pv-hint"><span><span class="key ghost">LMB</span>DRAG TO ROTATE</span><span><span class="key ghost">WHEEL</span>ZOOM</span><span><span class="key ghost">F</span>SHOW ON AGENT + HALO</span></div>
+    </div>
+    <div class="slots">
+      <div class="sl"><div class="h"><svg><use href="#i-optic"/></svg>OPTIC</div><div class="v">HOLO</div></div>
+      <div class="sl"><div class="h"><svg><use href="#i-stock"/></svg>STOCK</div><div class="v">STANDARD</div></div>
+      <div class="sl"><div class="h"><svg><use href="#i-magslot"/></svg>MAG</div><div class="v">30-RND STANAG</div></div>
+      <div class="sl on"><div class="h"><svg><use href="#i-under"/></svg>UNDER</div><div class="v">ANGLED GRIP</div></div>
+      <div class="sl"><div class="h"><svg><use href="#i-side"/></svg>SIDE</div><div class="v">LASER (R)</div></div>
+      <div class="sl empty"><div class="h"><svg><use href="#i-gunshield"/></svg>SHIELD</div><div class="v">NONE</div></div>
+    </div>
+    <div class="wstats panel">
+      <div class="st"><span class="k">ADS time</span><div class="b"><b style="width:66%"></b><span class="dp" style="left:66%;width:4%"></span></div><span class="v num">0.20 s <span class="g">−0.02</span></span></div>
+      <div class="st"><span class="k">Fire rate</span><div class="b"><b style="width:72%"></b></div><span class="v num">750 rpm</span></div>
+      <div class="st"><span class="k">Recoil V</span><div class="b"><b style="width:52%"></b><span class="dp" style="left:52%;width:3%"></span></div><span class="v num">42 <span class="g">−4 %</span></span></div>
+      <div class="st"><span class="k">Recoil H</span><div class="b"><b style="width:38%"></b></div><span class="v num">18</span></div>
+      <div class="st"><span class="k">Handling</span><div class="b"><b style="width:64%"></b></div><span class="v num">64</span></div>
+      <div class="st"><span class="k">Reload</span><div class="b"><b style="width:58%"></b></div><span class="v num">2.3 s</span></div>
+      <div class="st"><span class="k">Eff. range</span><div class="b"><b style="width:45%"></b></div><span class="v num">40 m</span></div>
+      <div class="st"><span class="k">Mag size</span><div class="b"><b style="width:40%"></b></div><span class="v num">30</span></div>
+    </div>
+  </div>
+
+  <!-- attachment list (UNDER slot open) -->
+  <div class="alist panel hi">
+    <div class="col-h" style="margin:2px 4px 6px"><h2 style="font-size:17px">UNDER · 5 PARTS</h2><span class="micro">hover = preview + stat delta</span></div>
+    <div class="it"><div class="ic" style="color:var(--text-low)">—</div><div><b>NONE</b><small>Lightest. Best sprint-to-fire.</small></div><div class="d"><span class="g">ADS −0.03 s</span><br><span class="r">recoil +6 %</span></div></div>
+    <div class="it"><div class="ic"><svg><use href="#i-under"/></svg></div><div><b>VERTICAL GRIP</b><small>Steady full-auto sprays.</small></div><div class="d"><span class="g">recoil V −8 %</span><br><span class="r">ADS +0.01 s</span></div></div>
+    <div class="it eq"><div class="ic"><svg><use href="#i-under"/></svg></div><div><b>ANGLED GRIP <svg width="14" height="14" style="color:var(--teal);vertical-align:-2px"><use href="#i-check"/></svg></b><small>Equipped. Fast to aim.</small></div><div class="d"><span class="g">ADS −0.02 s</span><br><span class="g">recoil V −4 %</span></div></div>
+    <div class="it"><div class="ic"><svg><use href="#i-under"/></svg></div><div><b>STUB GRIP</b><small>Hand stop. Less sway.</small></div><div class="d"><span class="g">sway −6 %</span><br><span style="color:var(--text-mid)">no ADS change</span></div></div>
+    <div class="it hov"><div class="ic"><svg width="34" height="17" style="width:34px;height:17px"><use href="#i-gl"/></svg></div><div><b>UGL-40 LAUNCHER</b><small>1 grenade loaded, 2 spare. <span class="key ghost" style="height:16px;min-width:16px;font-size:11px">G</span> to switch.</small></div><div class="d"><span class="r">ADS +0.04 s</span><br><span class="r">handling −10</span></div></div>
+  </div>
+
+  <!-- ===== halo armor ===== -->
+  <div class="halo">
+    <div class="col-h"><h2>HALO ARMOR</h2><span class="micro">any agent can wear it</span></div>
+    <div class="cores">
+      <div class="core"><div data-halo='{"tier":"t2","core":"bulwark","covered":["head","torso","arms","legs"],"weight":"light","cells":1,"size":62,"label":false}'></div><div class="n">BULWARK</div><div class="d">Most shield, slow regen</div></div>
+      <div class="core on"><div data-halo='{"tier":"t2","core":"mender","covered":["head","torso","arms","legs"],"weight":"light","cells":1,"size":62,"label":false}'></div><div class="n">MENDER</div><div class="d">Regens out of combat</div></div>
+      <div class="core"><div data-halo='{"tier":"t2","core":"volt","covered":["head","torso","arms","legs"],"weight":"light","cells":1,"size":62,"label":false}'></div><div class="n">VOLT</div><div class="d">Break = shock pulse</div></div>
+      <div class="core"><div data-halo='{"tier":"t2","core":"phase","covered":["head","torso","arms","legs"],"weight":"light","cells":1,"size":62,"label":false}'></div><div class="n">PHASE</div><div class="d">Light, resists slow/bleed</div></div>
+    </div>
+    <div class="sec"><span class="lbl">Tier</span>
+      <div class="tiers"><div class="ti c-t1"><i></i>T1</div><div class="ti c-t2 on"><i></i>T2</div><div class="ti c-t3"><i></i>T3</div><div class="ti c-t4"><i></i>T4</div></div>
+    </div>
+    <div class="sec"><span class="lbl">Coverage · click a zone</span>
+      <div class="cov">
+        <div style="display:flex;justify-content:center" data-halo='{"tier":"t2","core":"mender","covered":["head","torso","arms"],"weight":"medium","cells":2,"size":140,"value":120}'></div>
+        <div class="zt">
+          <div class="z on"><svg><use href="#i-head"/></svg>HEAD<span class="cb"></span></div>
+          <div class="z on"><svg><use href="#i-torso"/></svg>TORSO<span class="cb"></span></div>
+          <div class="z on"><svg><use href="#i-arms"/></svg>ARMS<span class="cb"></span></div>
+          <div class="z"><svg><use href="#i-legs"/></svg>LEGS<span class="cb"></span></div>
+        </div>
+      </div>
+    </div>
+    <div class="res panel">
+      <div class="col-h" style="margin:0"><h2 style="font-size:17px">RESULT</h2><span class="micro">T2 × 3 zones + Mender = 6 pts</span></div>
+      <div class="wclass"><div>LIGHT ≤ 4</div><div class="on">MEDIUM 5–8</div><div>HEAVY ≥ 9</div></div>
+      <div class="rg">
+        <div class="c"><span class="lbl">Shield</span><div class="v num">120</div><div class="s">regen 4/s after 5 s</div></div>
+        <div class="c"><span class="lbl">Move speed</span><div class="v num">−5 %</div><div class="s">sprint 6.5 m/s (base 6.8)</div></div>
+        <div class="c"><span class="lbl">Power drain</span><div class="v num">2 <small>cells</small></div><div class="s">energy −3.0/min · food −1.5/min</div></div>
+      </div>
+      <div class="budget"><span class="lbl">Gear budget</span><div class="bar"><b style="width:70%;background:var(--text-hi)"></b></div><span class="num" style="font-family:var(--fd);font-weight:700;color:var(--text-hi)">14 / 20</span><span class="micro">host option</span></div>
+    </div>
+    <div class="panel" style="margin-top:12px;padding:14px 18px">
+      <div class="col-h" style="margin:0 0 6px"><h2 style="font-size:17px">WHAT OTHERS SEE</h2><span class="micro">readability layers</span></div>
+      <div style="display:grid;grid-template-columns:86px 1fr;row-gap:7px;font-size:13px;color:var(--text)">
+        <span class="lbl" style="font-size:12px">Always</span><span>MEDIUM halo (size, band, 2 cells) in dimmed blue</span>
+        <span class="lbl" style="font-size:12px">On hit</span><span>Lit arcs: Head, Torso, Arms · blue hex shards · cracks</span>
+        <span class="lbl" style="font-size:12px">On scan</span><span>Everything: Mender, 72/120, 2 cells, status effect</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="foot">
+    <span class="hint"><span class="key ghost">Q</span><span class="key ghost">E</span>SWITCH COLUMN</span>
+    <span class="hint"><span class="key ghost">1</span><span class="key ghost">2</span><span class="key ghost">3</span>PRESET</span>
+    <span class="hint"><span class="key ghost">R</span>RESET SLOT</span>
+  </div>
+  <div class="mock-label">{{label}}</div>
+</div></div>
+<!--WIDGETS-->
+<script>if((location.hash||'').includes('attach'))document.body.classList.add('attach');</script>
+<!--FIT-->
+</body></html>

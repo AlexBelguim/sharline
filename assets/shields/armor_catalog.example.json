@@ -1,0 +1,133 @@
+{
+  "schema_version": 1,
+  "notes": "Example halo-shield armor catalog. 'schema' is a JSON Schema (draft 2020-12) for one entry of 'armors'. 'rules' documents how the stats are derived and how they map onto the HALO kit visuals (assets/shields/NOTES.md). Numbers are first-pass balance values for the prototype, not final.",
+
+  "schema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "title": "HaloArmor",
+    "type": "object",
+    "additionalProperties": false,
+    "required": ["id", "name", "core", "tier", "coverage", "weight_class", "capacity", "regen_per_s",
+                 "power_cells", "food_drain_mult", "energy_drain_mult", "move_speed_mult", "status_effect"],
+    "properties": {
+      "id": {"type": "string", "pattern": "^[a-z0-9_]+$", "description": "Stable item id (loot tables, saves)."},
+      "name": {"type": "string", "description": "Display name (placeholder)."},
+      "core": {"enum": ["Bulwark", "Mender", "Volt", "Phase"], "description": "Ring silhouette: HALO_<core>_Arc_* meshes."},
+      "tier": {"type": "integer", "minimum": 1, "maximum": 4, "description": "Halo colour + number of lit tier pips."},
+      "coverage": {
+        "type": "array", "minItems": 1, "maxItems": 4, "uniqueItems": true,
+        "items": {"enum": ["head", "torso", "arms", "legs"]},
+        "description": "Zones the shield protects = arcs lit on hit (head=front, arms=+X/left, torso=back, legs=-X/right)."
+      },
+      "weight_class": {"enum": ["Light", "Medium", "Heavy"], "description": "Derived from protection_score (see rules). Drives halo scale, weight band and cell count."},
+      "protection_score": {"type": "integer", "minimum": 1, "maximum": 16, "description": "tier x number of covered zones (informational)."},
+      "capacity": {"type": "number", "exclusiveMinimum": 0, "description": "Shield HP pool absorbed before the halo breaks."},
+      "regen_per_s": {"type": "number", "minimum": 0, "description": "Shield HP regenerated per second once regen_delay_s has passed without damage."},
+      "regen_delay_s": {"type": "number", "minimum": 0, "description": "Seconds without damage before regen starts."},
+      "power_cells": {"type": "integer", "minimum": 1, "maximum": 3, "description": "Orbiting HALO_PowerCell count (1 Light, 2 Medium, 3 Heavy)."},
+      "food_drain_mult": {"type": "number", "minimum": 0.5, "maximum": 2.0, "description": "Multiplier on the hunger drain rate while worn."},
+      "energy_drain_mult": {"type": "number", "minimum": 0.5, "maximum": 2.0, "description": "Multiplier on the energy drain rate while worn."},
+      "move_speed_mult": {"type": "number", "minimum": 0.7, "maximum": 1.0, "description": "Multiplier on base movement speed."},
+      "status_effect": {
+        "type": "object",
+        "required": ["id", "description"],
+        "properties": {
+          "id": {"enum": ["steady", "passive_regen", "break_shock", "phase_resist"]},
+          "description": {"type": "string"},
+          "params": {"type": "object", "additionalProperties": {"type": "number"}}
+        },
+        "description": "Core-specific effect; also selects the cell trail / pulse colour and hit-particle behaviour."
+      }
+    }
+  },
+
+  "rules": {
+    "zones_to_arcs": {"head": "Head", "torso": "Torso", "arms": "Arms", "legs": "Legs"},
+    "tier_colors_linear_rgb": {"1": [0.85, 0.88, 0.92], "2": [0.10, 0.45, 1.00], "3": [0.55, 0.15, 1.00], "4": [1.00, 0.62, 0.08]},
+    "protection_score": "tier * len(coverage)",
+    "weight_class_from_score": {"Light": [1, 4], "Medium": [5, 8], "Heavy": [9, 16]},
+    "weight_class_visuals": {
+      "Light":  {"halo_scale": 0.85, "band_mesh": null,     "power_cells": 1, "orbit_radius_m": 0.215, "orbit_period_s": 2.6},
+      "Medium": {"halo_scale": 1.00, "band_mesh": "Medium", "power_cells": 2, "orbit_radius_m": 0.245, "orbit_period_s": 3.4},
+      "Heavy":  {"halo_scale": 1.20, "band_mesh": "Heavy",  "power_cells": 3, "orbit_radius_m": 0.275, "orbit_period_s": 4.6}
+    },
+    "capacity": "round(per_zone_hp[tier] * len(coverage) * core_capacity_mult[core])",
+    "per_zone_hp": {"1": 20, "2": 28, "3": 36, "4": 46},
+    "core_capacity_mult": {"Bulwark": 1.30, "Volt": 1.00, "Mender": 0.85, "Phase": 0.80},
+    "regen_per_s": "core_regen_base[core] + core_regen_per_tier[core] * tier",
+    "core_regen_base": {"Bulwark": 1.0, "Volt": 2.0, "Mender": 4.0, "Phase": 2.5},
+    "core_regen_per_tier": {"Bulwark": 0.25, "Volt": 0.5, "Mender": 1.0, "Phase": 0.5},
+    "regen_delay_s": {"Bulwark": 6.0, "Volt": 5.0, "Mender": 3.0, "Phase": 4.0},
+    "drain_by_weight": {"Light": {"food": 1.00, "energy": 1.05}, "Medium": {"food": 1.10, "energy": 1.15}, "Heavy": {"food": 1.25, "energy": 1.35}},
+    "drain_core_adjust": {"Phase": {"food": -0.05, "energy": -0.05}, "Bulwark": {"food": 0.0, "energy": 0.05}},
+    "move_by_weight": {"Light": 1.00, "Medium": 0.96, "Heavy": 0.91},
+    "move_core_adjust": {"Bulwark": -0.01, "Phase": 0.01},
+    "move_speed_cap": 1.0
+  },
+
+  "armors": [
+    {
+      "id": "phase_t1_runner", "name": "Runner Halo", "core": "Phase", "tier": 1, "coverage": ["head", "torso"],
+      "weight_class": "Light", "protection_score": 2, "capacity": 32, "regen_per_s": 3.0, "regen_delay_s": 4.0,
+      "power_cells": 1, "food_drain_mult": 0.95, "energy_drain_mult": 1.00, "move_speed_mult": 1.00,
+      "status_effect": {"id": "phase_resist", "description": "Reduces incoming slow and bleed effects while the shield is up.",
+                        "params": {"slow_resist": 0.20, "bleed_resist": 0.20}}
+    },
+    {
+      "id": "mender_t2_fieldkit", "name": "Field Mender", "core": "Mender", "tier": 2, "coverage": ["torso", "arms"],
+      "weight_class": "Light", "protection_score": 4, "capacity": 48, "regen_per_s": 6.0, "regen_delay_s": 3.0,
+      "power_cells": 1, "food_drain_mult": 1.00, "energy_drain_mult": 1.05, "move_speed_mult": 1.00,
+      "status_effect": {"id": "passive_regen", "description": "Keeps trickle-regenerating even while taking fire.",
+                        "params": {"in_combat_regen_per_s": 1.0}}
+    },
+    {
+      "id": "phase_t4_glass", "name": "Glassline Phase", "core": "Phase", "tier": 4, "coverage": ["torso"],
+      "weight_class": "Light", "protection_score": 4, "capacity": 37, "regen_per_s": 4.5, "regen_delay_s": 4.0,
+      "power_cells": 1, "food_drain_mult": 0.95, "energy_drain_mult": 1.00, "move_speed_mult": 1.00,
+      "status_effect": {"id": "phase_resist", "description": "Strong slow and bleed resistance; gold glow on a light frame.",
+                        "params": {"slow_resist": 0.40, "bleed_resist": 0.40}}
+    },
+    {
+      "id": "volt_t2_breacher", "name": "Breacher Volt", "core": "Volt", "tier": 2, "coverage": ["head", "torso", "arms"],
+      "weight_class": "Medium", "protection_score": 6, "capacity": 84, "regen_per_s": 3.0, "regen_delay_s": 5.0,
+      "power_cells": 2, "food_drain_mult": 1.10, "energy_drain_mult": 1.15, "move_speed_mult": 0.96,
+      "status_effect": {"id": "break_shock", "description": "When the shield breaks, a shock pulse slows nearby enemies.",
+                        "params": {"radius_m": 4.0, "slow": 0.30, "duration_s": 2.5}}
+    },
+    {
+      "id": "mender_t3_lifeline", "name": "Lifeline Mender", "core": "Mender", "tier": 3, "coverage": ["head", "torso"],
+      "weight_class": "Medium", "protection_score": 6, "capacity": 61, "regen_per_s": 7.0, "regen_delay_s": 3.0,
+      "power_cells": 2, "food_drain_mult": 1.10, "energy_drain_mult": 1.15, "move_speed_mult": 0.96,
+      "status_effect": {"id": "passive_regen", "description": "Keeps trickle-regenerating even while taking fire.",
+                        "params": {"in_combat_regen_per_s": 1.5}}
+    },
+    {
+      "id": "bulwark_t2_warden", "name": "Warden Bulwark", "core": "Bulwark", "tier": 2, "coverage": ["torso", "arms", "legs"],
+      "weight_class": "Medium", "protection_score": 6, "capacity": 109, "regen_per_s": 1.5, "regen_delay_s": 6.0,
+      "power_cells": 2, "food_drain_mult": 1.10, "energy_drain_mult": 1.20, "move_speed_mult": 0.95,
+      "status_effect": {"id": "steady", "description": "Reduced aim flinch while the shield is up.",
+                        "params": {"flinch_reduction": 0.35}}
+    },
+    {
+      "id": "bulwark_t3_bastion", "name": "Bastion Bulwark", "core": "Bulwark", "tier": 3, "coverage": ["head", "torso", "arms", "legs"],
+      "weight_class": "Heavy", "protection_score": 12, "capacity": 187, "regen_per_s": 1.75, "regen_delay_s": 6.0,
+      "power_cells": 3, "food_drain_mult": 1.25, "energy_drain_mult": 1.40, "move_speed_mult": 0.90,
+      "status_effect": {"id": "steady", "description": "Reduced aim flinch while the shield is up.",
+                        "params": {"flinch_reduction": 0.50}}
+    },
+    {
+      "id": "volt_t4_stormcrown", "name": "Stormcrown Volt", "core": "Volt", "tier": 4, "coverage": ["head", "torso", "arms"],
+      "weight_class": "Heavy", "protection_score": 12, "capacity": 138, "regen_per_s": 4.0, "regen_delay_s": 5.0,
+      "power_cells": 3, "food_drain_mult": 1.25, "energy_drain_mult": 1.35, "move_speed_mult": 0.91,
+      "status_effect": {"id": "break_shock", "description": "When the shield breaks, a shock pulse slows nearby enemies.",
+                        "params": {"radius_m": 5.0, "slow": 0.40, "duration_s": 3.0}}
+    },
+    {
+      "id": "bulwark_t4_monolith", "name": "Monolith Bulwark", "core": "Bulwark", "tier": 4, "coverage": ["head", "torso", "arms", "legs"],
+      "weight_class": "Heavy", "protection_score": 16, "capacity": 239, "regen_per_s": 2.0, "regen_delay_s": 6.0,
+      "power_cells": 3, "food_drain_mult": 1.25, "energy_drain_mult": 1.40, "move_speed_mult": 0.90,
+      "status_effect": {"id": "steady", "description": "Reduced aim flinch while the shield is up.",
+                        "params": {"flinch_reduction": 0.60}}
+    }
+  ]
+}

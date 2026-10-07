@@ -1,0 +1,261 @@
+{
+  "note": "multipliers on the base weapon stat; 1.0 = no change; missing key = 1.0",
+  "attachments": [
+    {
+      "id": "optic_reddot",
+      "cat": "optic",
+      "fits": [
+        "ar7_mako",
+        "vk50_warden"
+      ],
+      "zoom": 1.15,
+      "ads_time": 0.95,
+      "move": 1.0
+    },
+    {
+      "id": "optic_holo",
+      "cat": "optic",
+      "fits": [
+        "ar7_mako",
+        "vk50_warden"
+      ],
+      "zoom": 1.25,
+      "ads_time": 1.0,
+      "default_for": [
+        "ar7_mako"
+      ]
+    },
+    {
+      "id": "optic_3x",
+      "cat": "optic",
+      "fits": [
+        "ar7_mako",
+        "vk50_warden"
+      ],
+      "zoom": 3.0,
+      "ads_time": 1.15,
+      "sway": 1.1,
+      "ads_move": 0.95,
+      "other": "scope glint >= 40 m"
+    },
+    {
+      "id": "optic_sniper",
+      "cat": "optic",
+      "fits": [
+        "vk50_warden"
+      ],
+      "zoom": [
+        6.0,
+        12.0
+      ],
+      "ads_time": 1.0,
+      "default_for": [
+        "vk50_warden"
+      ],
+      "other": "scope glint >= 25 m; scroll toggles 6x/12x"
+    },
+    {
+      "id": "optic_thermal",
+      "cat": "optic",
+      "fits": [
+        "vk50_warden"
+      ],
+      "zoom": 4.0,
+      "ads_time": 1.2,
+      "sway": 1.1,
+      "move": 0.99,
+      "other": "white-hot view: bodies bright, world desaturated; no glint"
+    },
+    {
+      "id": "mako_stock_standard",
+      "cat": "stock",
+      "fits": [
+        "ar7_mako"
+      ],
+      "default_for": [
+        "ar7_mako"
+      ]
+    },
+    {
+      "id": "mako_stock_precision",
+      "cat": "stock",
+      "fits": [
+        "ar7_mako"
+      ],
+      "ads_time": 1.1,
+      "recoil_v": 0.9,
+      "recoil_h": 0.9,
+      "sway": 0.8,
+      "move": 0.98
+    },
+    {
+      "id": "mako_stock_light",
+      "cat": "stock",
+      "fits": [
+        "ar7_mako"
+      ],
+      "ads_time": 0.88,
+      "recoil_v": 1.12,
+      "recoil_h": 1.12,
+      "sway": 1.15,
+      "sprint_to_fire": 0.85
+    },
+    {
+      "id": "warden_stock_standard",
+      "cat": "stock",
+      "fits": [
+        "vk50_warden"
+      ],
+      "default_for": [
+        "vk50_warden"
+      ]
+    },
+    {
+      "id": "warden_stock_folding",
+      "cat": "stock",
+      "fits": [
+        "vk50_warden"
+      ],
+      "ads_time": 0.9,
+      "sway": 1.25,
+      "move": 1.03,
+      "recoil_v": 1.1
+    },
+    {
+      "id": "mag_30",
+      "cat": "mag",
+      "fits": [
+        "ar7_mako"
+      ],
+      "capacity": 30,
+      "default_for": [
+        "ar7_mako"
+      ]
+    },
+    {
+      "id": "mag_45",
+      "cat": "mag",
+      "fits": [
+        "ar7_mako"
+      ],
+      "capacity": 45,
+      "reload": 1.12,
+      "ads_time": 1.05,
+      "move": 0.99
+    },
+    {
+      "id": "mag_drum60",
+      "cat": "mag",
+      "fits": [
+        "ar7_mako"
+      ],
+      "capacity": 60,
+      "reload": 1.35,
+      "ads_time": 1.12,
+      "move": 0.97
+    },
+    {
+      "id": "mag_5",
+      "cat": "mag",
+      "fits": [
+        "vk50_warden"
+      ],
+      "capacity": 5,
+      "default_for": [
+        "vk50_warden"
+      ]
+    },
+    {
+      "id": "mag_8",
+      "cat": "mag",
+      "fits": [
+        "vk50_warden"
+      ],
+      "capacity": 8,
+      "reload": 1.15,
+      "ads_time": 1.06
+    },
+    {
+      "id": "grip_vertical",
+      "cat": "under",
+      "fits": [
+        "ar7_mako"
+      ],
+      "recoil_v": 0.88,
+      "ads_time": 1.03
+    },
+    {
+      "id": "grip_angled",
+      "cat": "under",
+      "fits": [
+        "ar7_mako"
+      ],
+      "ads_time": 0.92,
+      "recoil_h": 0.94
+    },
+    {
+      "id": "grip_stub",
+      "cat": "under",
+      "fits": [
+        "ar7_mako"
+      ],
+      "hip_spread": 0.88,
+      "sprint_to_fire": 0.9,
+      "recoil_h": 0.95
+    },
+    {
+      "id": "ugl_launcher",
+      "cat": "under",
+      "fits": [
+        "ar7_mako"
+      ],
+      "ads_time": 1.15,
+      "sway": 1.1,
+      "move": 0.97,
+      "other": "40 mm grenade, see UGL table"
+    },
+    {
+      "id": "bipod",
+      "cat": "under",
+      "fits": [
+        "vk50_warden"
+      ],
+      "ads_time": 1.06,
+      "move": 0.99,
+      "other": "deployed: sway -80%, recoil -40%, look clamp yaw +-35 / pitch +-20 deg, deploy 0.40 s"
+    },
+    {
+      "id": "laser",
+      "cat": "side",
+      "fits": [
+        "ar7_mako",
+        "vk50_warden"
+      ],
+      "hip_spread": 0.8,
+      "ads_time": 1.02,
+      "other": "visible red dot always; beam visible <= 25 m; toggle"
+    },
+    {
+      "id": "flashlight",
+      "cat": "side",
+      "fits": [
+        "ar7_mako",
+        "vk50_warden"
+      ],
+      "ads_time": 1.02,
+      "other": "cone 30 deg, 25 m; glare on enemies <= 15 m inside 12 deg; toggle"
+    },
+    {
+      "id": "shield_front",
+      "cat": "shield",
+      "fits": [
+        "ar7_mako"
+      ],
+      "ads_time": 1.2,
+      "move": 0.96,
+      "sway": 1.15,
+      "recoil_h": 0.95,
+      "other": "0.32 x 0.26 m plate, 250 HP, blocks bullets only, no repair in a life"
+    }
+  ]
+}

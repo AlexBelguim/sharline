@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>{{title}}</title>
+<!--COMMON-->
+<style>
+.dim{position:absolute;inset:0;background:linear-gradient(90deg,rgba(5,7,10,.94) 0%,rgba(5,7,10,.86) 36%,rgba(5,7,10,.55) 100%)}
+.live{position:absolute;left:96px;top:72px;display:flex;align-items:center;gap:10px}
+.live i{width:10px;height:10px;border-radius:50%;background:var(--enemy);animation:pulse 1.2s infinite}
+.menu{position:absolute;left:96px;top:150px;width:460px}
+.mi{display:flex;align-items:center;justify-content:space-between;height:60px;padding-left:22px;font-family:var(--fd);font-weight:700;font-size:36px;letter-spacing:.1em;color:var(--text-mid);text-transform:uppercase;position:relative}
+.mi.on{color:var(--text-hi)} .mi.on::before{content:'';position:absolute;left:0;top:14px;bottom:14px;width:4px;background:var(--text-hi)}
+.mi small{font-size:13px;letter-spacing:.16em;color:var(--text-low);font-weight:600}
+.grp{margin-top:22px;padding-top:14px;border-top:1px solid var(--stroke)}
+.grp .mi{font-size:24px;height:46px}
+.mi.bad{color:var(--enemy)}
+.info{position:absolute;right:96px;top:150px;width:560px;padding:22px 24px}
+.info h2{font-family:var(--fd);font-weight:700;font-size:20px;letter-spacing:.18em;color:var(--text-hi)}
+.sc{display:flex;align-items:center;gap:18px;margin-top:10px}
+.sc b{font-family:var(--fd);font-weight:700;font-size:56px;line-height:56px}
+.kv{display:grid;grid-template-columns:150px 1fr;row-gap:10px;margin-top:16px;font-size:15px}
+.kv span:nth-child(odd){font-family:var(--fd);font-weight:600;font-size:13px;letter-spacing:.14em;color:var(--text-mid);text-transform:uppercase;padding-top:2px}
+.code{font-family:var(--fd);font-weight:700;font-size:24px;letter-spacing:.2em;color:var(--text-hi)}
+.modal-bg{position:absolute;inset:0;background:rgba(0,0,0,.6);display:none;z-index:10}
+body.confirm .modal-bg{display:block}
+.modal{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:620px;padding:28px 30px;border-top:3px solid var(--enemy)}
+.modal h3{font-family:var(--fd);font-weight:700;font-size:32px;letter-spacing:.1em;color:var(--text-hi)}
+.modal p{font-size:16px;color:var(--text);line-height:1.5;margin-top:10px}
+.modal .acts{display:flex;justify-content:flex-end;gap:12px;margin-top:22px}
+.hints{position:absolute;left:96px;bottom:40px;display:flex;gap:22px}
+.hint{display:flex;align-items:center;gap:7px;font-family:var(--fd);font-weight:600;font-size:14px;letter-spacing:.14em;color:var(--text-mid)}
+</style></head>
+<body data-variant="{{variant}}">
+<!--ICONS-->
+<div class="stage"><div class="screen">
+  <div class="bg" style="background-image:url({{img:hud_street}})"></div>
+  <div class="dim"></div>
+  <div class="live"><i></i><span class="lbl" style="color:var(--text-hi)">Match still running · the game does not pause</span></div>
+  <div class="menu">
+    <div class="mi on">Resume <small><span class="key ghost" style="height:20px">ESC</span></small></div>
+    <div class="mi">Loadout <small>NEXT SPAWN</small></div>
+    <div class="mi">Settings</div>
+    <div class="mi">Controls <small>KEY REFERENCE</small></div>
+    <div class="grp">
+      <div class="micro" style="padding-left:22px;margin-bottom:4px">HOST · ONLY YOU SEE THIS</div>
+      <div class="mi">Players <small>MOVE · KICK</small></div>
+      <div class="mi">Restart match</div>
+      <div class="mi">Back to lobby <small>KEEPS EVERYONE</small></div>
+    </div>
+    <div class="grp"><div class="mi bad">Stop hosting <small style="color:rgba(255,77,90,.7)">ENDS MATCH FOR ALL</small></div></div>
+  </div>
+
+  <div class="info panel hi">
+    <h2>TEAM DEATHMATCH · SHOWHOME</h2>
+    <div class="sc"><b class="c-ally num">32</b><span class="lbl">VS</span><b class="c-enemy num">28</b><span class="micro" style="margin-left:auto;text-align:right">FIRST TO 50<br><span class="num" style="font-size:20px;color:var(--text-hi);font-weight:700">06:41</span> LEFT</span></div>
+    <div class="kv">
+      <span>Join code</span><span class="code num">SHRD-4K7Q</span>
+      <span>Players</span><span class="num">10 / 10 · 5 v 5</span>
+      <span>Server</span><span class="num">Listen server (you) · 60 Hz · CPU 2.1 ms / tick</span>
+      <span>Worst ping</span><span class="num">Brann 90 ms · 1.2 % loss</span>
+      <span>Your loadout</span><span>Kestrel · AR-7 Mako · T2 Mender (Medium)</span>
+    </div>
+  </div>
+  <div class="hints"><span class="hint"><span class="key ghost">↑↓</span>SELECT</span><span class="hint"><span class="key ghost">ENTER</span>CONFIRM</span><span class="hint"><span class="key ghost">ESC</span>RESUME</span></div>
+
+  <div class="modal-bg"><div class="modal panel hi" style="background:#11161D">
+    <h3>STOP HOSTING?</h3>
+    <p>The match ends for all 9 other players and everyone returns to the main menu. Scores are not saved.</p>
+    <div class="acts"><div class="btn">CANCEL <span class="key ghost" style="height:20px">ESC</span></div><div class="btn" style="background:var(--enemy);border-color:var(--enemy);color:#1b0507">STOP HOSTING</div></div>
+  </div></div>
+  <div class="mock-label">{{label}}</div>
+</div></div>
+<script>if((location.hash||'').includes('confirm'))document.body.classList.add('confirm');</script>
+<!--FIT-->
+</body></html>

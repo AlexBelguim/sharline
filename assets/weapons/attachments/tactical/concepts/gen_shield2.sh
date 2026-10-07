@@ -1,0 +1,7 @@
+#!/bin/sh
+G="F:/git/val etf/tools/comfy_gen.py"
+O="F:/git/val etf/assets/weapons/attachments/tactical/concepts"
+STYLE="stylized hand-painted game asset concept art, Valorant and Overwatch 2 style, clean planar hard-surface shapes, generous chamfered edges, near-future tactical gear, matte dark graphite grey, painted flat material response, no grime, plain light grey background, no text, no logos"
+python "$G" --w 1536 --h 864 --seed 37 --out "$O/shield_v02.png" --prompt "Three-quarter front view of an assault rifle with a small square ballistic gun shield clamped to the front of its handguard. The shield is a flat angular dark graphite armour plate about as wide as a forearm is long, standing upright and perpendicular to the barrel like a tiny riot shield, its left and right edges folded slightly backwards, a wide horizontal blue-tinted transparent glass vision window in its upper half, a horizontal slot below the window where the barrel passes through, hex bolts on the corners. $STYLE"
+python "$G" --w 1536 --h 864 --seed 38 --out "$O/shield_v03.png" --prompt "Product shot of a compact ballistic gun shield attachment alone, front view slightly from the side: an upright angular faceted dark graphite armour plate, wider than tall, with clipped corners, the side wings bent slightly back, a wide horizontal transparent blue tinted ballistic glass window in the upper half with a raised frame, a horizontal rectangular barrel slot in the lower half, a short angular mounting arm and rail clamp on the back, hex bolts. $STYLE"
+echo done

@@ -1,0 +1,86 @@
+/* ==========================================================================
+   SHARDLINE (working title) UI mockups: shared design tokens + components
+   Reference canvas: 1920 x 1080. All px values are at 1080p and HUD scale 100 %.
+   In Bevy every px below maps 1:1 to Val::Px with UiScale = window_height / 1080.
+   ========================================================================== */
+:root{
+  /* surfaces */
+  --bg0:#07090D; --bg1:#0C1016; --bg2:#121821;
+  --panel:rgba(9,12,17,.70); --panel-hi:rgba(16,21,29,.82); --panel-solid:#10151C;
+  --stroke:rgba(255,255,255,.09); --stroke-mid:rgba(255,255,255,.16); --stroke-hi:rgba(255,255,255,.32);
+  /* text */
+  --text-hi:#F3F0E9; --text:#D7D4CD; --text-mid:#9CA2AB; --text-low:#646B75;
+  /* art-bible palette (sRGB conversions of the linear values in art/STYLE_GUIDE.md) */
+  --graphite:#303338; --gunmetal:#5D5F61; --bone:#C4BFB5; --sand:#A29076; --olive:#616550; --ivory:#DAD6CB;
+  --teal:#00DACE; --coral:#FF8C7A; /* coral is UI-boosted from #FFA295 so it reads on dark panels */
+  --ice:#B3EDFF;
+  /* halo tiers (sRGB of HALO_SHIELD_SPEC emissive values) */
+  --t1:#EDF1F6; --t2:#59B3FF; --t3:#C46CFF; --t4:#FFCE50; --unlit:#27272C;
+  /* teams (relative: ally is always you and your team) */
+  --ally:#52E5A5; --enemy:#FF4D5A;
+  /* health states */
+  --hp-ok:#E6E2D8; --hp-dmg:#FFA23A; --hp-crit:#FF3B4E; --hp-dead:#15171B; --bleed:#E0162E; --heal:#9CF7C8;
+  /* misc */
+  --warn:#FFA23A; --good:#52E5A5; --bad:#FF4D5A;
+  --fd:'Barlow Condensed','Arial Narrow',sans-serif;
+  --fb:'Barlow','Segoe UI',sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{width:100%;height:100%;background:#000;overflow:hidden}
+body{font-family:var(--fb);color:var(--text);-webkit-font-smoothing:antialiased}
+.stage{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:#000}
+.screen{width:1920px;height:1080px;position:relative;overflow:hidden;flex:none;transform-origin:center center;background:var(--bg0)}
+.bg{position:absolute;inset:0;background-size:cover;background-position:center}
+.num{font-family:var(--fd);font-variant-numeric:tabular-nums;font-feature-settings:"tnum"}
+.d{font-family:var(--fd);text-transform:uppercase;letter-spacing:.06em}
+.lbl{font-family:var(--fd);font-weight:600;font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:var(--text-mid)}
+.micro{font-family:var(--fd);font-weight:600;font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--text-low)}
+
+/* panels: dark translucent, hairline stroke, optional accent bar on top */
+.panel{background:var(--panel);border:1px solid var(--stroke);border-radius:2px}
+.panel.hi{background:var(--panel-hi)}
+.accent-top{box-shadow:inset 0 2px 0 0 var(--acc,var(--bone))}
+.cut{clip-path:polygon(10px 0,100% 0,100% calc(100% - 10px),calc(100% - 10px) 100%,0 100%,0 10px)}
+.cut-s{clip-path:polygon(6px 0,100% 0,100% calc(100% - 6px),calc(100% - 6px) 100%,0 100%,0 6px)}
+
+/* key caps */
+.key{display:inline-flex;align-items:center;justify-content:center;min-width:22px;height:22px;padding:0 6px;
+  font-family:var(--fd);font-weight:700;font-size:13px;letter-spacing:.04em;color:var(--bg0);background:var(--text-hi);border-radius:2px}
+.key.ghost{background:transparent;color:var(--text-hi);border:1px solid var(--stroke-hi)}
+.key.lg{min-width:28px;height:28px;font-size:15px}
+
+/* buttons */
+.btn{display:inline-flex;align-items:center;gap:10px;height:44px;padding:0 22px;font-family:var(--fd);font-weight:700;font-size:18px;
+  letter-spacing:.12em;text-transform:uppercase;color:var(--text-hi);background:rgba(255,255,255,.06);border:1px solid var(--stroke-mid);cursor:pointer}
+.btn:hover{background:rgba(255,255,255,.12);border-color:var(--stroke-hi)}
+.btn.primary{background:var(--text-hi);color:var(--bg0);border-color:var(--text-hi)}
+.btn.primary:hover{background:#fff}
+.btn.danger{color:var(--enemy);border-color:rgba(255,77,90,.45)}
+.btn.ally{background:var(--ally);color:#04140C;border-color:var(--ally)}
+.btn[disabled]{opacity:.35;pointer-events:none}
+
+/* tier chips */
+.tier{display:inline-flex;align-items:center;gap:3px;font-family:var(--fd);font-weight:700;font-size:13px;letter-spacing:.08em}
+.tier i{display:block;width:6px;height:10px;transform:skewX(-14deg);background:currentColor}
+.c-t1{color:var(--t1)} .c-t2{color:var(--t2)} .c-t3{color:var(--t3)} .c-t4{color:var(--t4)}
+.c-ally{color:var(--ally)} .c-enemy{color:var(--enemy)} .c-teal{color:var(--teal)} .c-coral{color:var(--coral)}
+
+/* bars */
+.bar{position:relative;height:6px;background:rgba(255,255,255,.10)}
+.bar>b{position:absolute;left:0;top:0;bottom:0;background:var(--hp-ok)}
+.segbar{display:flex;gap:2px}
+.segbar>i{flex:1;height:100%;background:rgba(255,255,255,.10)}
+.segbar>i.on{background:var(--seg,var(--t2))}
+
+/* annotation layer (design notes drawn over mockups; toggle with N) */
+.anno{position:absolute;font-family:var(--fd);font-size:13px;font-weight:600;letter-spacing:.06em;color:#FFE27A;pointer-events:none;z-index:50}
+.anno.box{border:1px dashed rgba(255,226,122,.7)}
+.anno .tag{position:absolute;top:-19px;left:-1px;background:#FFE27A;color:#111;padding:1px 6px;white-space:nowrap;font-size:12px}
+body.no-anno .anno{display:none}
+.mock-label{position:absolute;right:12px;bottom:8px;font-family:var(--fd);font-size:12px;letter-spacing:.14em;color:rgba(255,255,255,.28);text-transform:uppercase;z-index:60}
+
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+@keyframes drip{0%{transform:translateY(0);opacity:1}100%{transform:translateY(10px);opacity:0}}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes orbit{to{transform:rotate(360deg)}}
+@keyframes flare{0%{opacity:1;filter:brightness(1.8)}100%{opacity:.9;filter:brightness(1)}}

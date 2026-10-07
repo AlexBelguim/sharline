@@ -1,0 +1,425 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Health panel</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Barlow:wght@400;500;600;700&display=swap" rel="stylesheet"><style>/* ==========================================================================
+   SHARDLINE (working title) UI mockups: shared design tokens + components
+   Reference canvas: 1920 x 1080. All px values are at 1080p and HUD scale 100 %.
+   In Bevy every px below maps 1:1 to Val::Px with UiScale = window_height / 1080.
+   ========================================================================== */
+:root{
+  /* surfaces */
+  --bg0:#07090D; --bg1:#0C1016; --bg2:#121821;
+  --panel:rgba(9,12,17,.70); --panel-hi:rgba(16,21,29,.82); --panel-solid:#10151C;
+  --stroke:rgba(255,255,255,.09); --stroke-mid:rgba(255,255,255,.16); --stroke-hi:rgba(255,255,255,.32);
+  /* text */
+  --text-hi:#F3F0E9; --text:#D7D4CD; --text-mid:#9CA2AB; --text-low:#646B75;
+  /* art-bible palette (sRGB conversions of the linear values in art/STYLE_GUIDE.md) */
+  --graphite:#303338; --gunmetal:#5D5F61; --bone:#C4BFB5; --sand:#A29076; --olive:#616550; --ivory:#DAD6CB;
+  --teal:#00DACE; --coral:#FF8C7A; /* coral is UI-boosted from #FFA295 so it reads on dark panels */
+  --ice:#B3EDFF;
+  /* halo tiers (sRGB of HALO_SHIELD_SPEC emissive values) */
+  --t1:#EDF1F6; --t2:#59B3FF; --t3:#C46CFF; --t4:#FFCE50; --unlit:#27272C;
+  /* teams (relative: ally is always you and your team) */
+  --ally:#52E5A5; --enemy:#FF4D5A;
+  /* health states */
+  --hp-ok:#E6E2D8; --hp-dmg:#FFA23A; --hp-crit:#FF3B4E; --hp-dead:#15171B; --bleed:#E0162E; --heal:#9CF7C8;
+  /* misc */
+  --warn:#FFA23A; --good:#52E5A5; --bad:#FF4D5A;
+  --fd:'Barlow Condensed','Arial Narrow',sans-serif;
+  --fb:'Barlow','Segoe UI',sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{width:100%;height:100%;background:#000;overflow:hidden}
+body{font-family:var(--fb);color:var(--text);-webkit-font-smoothing:antialiased}
+.stage{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:#000}
+.screen{width:1920px;height:1080px;position:relative;overflow:hidden;flex:none;transform-origin:center center;background:var(--bg0)}
+.bg{position:absolute;inset:0;background-size:cover;background-position:center}
+.num{font-family:var(--fd);font-variant-numeric:tabular-nums;font-feature-settings:"tnum"}
+.d{font-family:var(--fd);text-transform:uppercase;letter-spacing:.06em}
+.lbl{font-family:var(--fd);font-weight:600;font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:var(--text-mid)}
+.micro{font-family:var(--fd);font-weight:600;font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--text-low)}
+
+/* panels: dark translucent, hairline stroke, optional accent bar on top */
+.panel{background:var(--panel);border:1px solid var(--stroke);border-radius:2px}
+.panel.hi{background:var(--panel-hi)}
+.accent-top{box-shadow:inset 0 2px 0 0 var(--acc,var(--bone))}
+.cut{clip-path:polygon(10px 0,100% 0,100% calc(100% - 10px),calc(100% - 10px) 100%,0 100%,0 10px)}
+.cut-s{clip-path:polygon(6px 0,100% 0,100% calc(100% - 6px),calc(100% - 6px) 100%,0 100%,0 6px)}
+
+/* key caps */
+.key{display:inline-flex;align-items:center;justify-content:center;min-width:22px;height:22px;padding:0 6px;
+  font-family:var(--fd);font-weight:700;font-size:13px;letter-spacing:.04em;color:var(--bg0);background:var(--text-hi);border-radius:2px}
+.key.ghost{background:transparent;color:var(--text-hi);border:1px solid var(--stroke-hi)}
+.key.lg{min-width:28px;height:28px;font-size:15px}
+
+/* buttons */
+.btn{display:inline-flex;align-items:center;gap:10px;height:44px;padding:0 22px;font-family:var(--fd);font-weight:700;font-size:18px;
+  letter-spacing:.12em;text-transform:uppercase;color:var(--text-hi);background:rgba(255,255,255,.06);border:1px solid var(--stroke-mid);cursor:pointer}
+.btn:hover{background:rgba(255,255,255,.12);border-color:var(--stroke-hi)}
+.btn.primary{background:var(--text-hi);color:var(--bg0);border-color:var(--text-hi)}
+.btn.primary:hover{background:#fff}
+.btn.danger{color:var(--enemy);border-color:rgba(255,77,90,.45)}
+.btn.ally{background:var(--ally);color:#04140C;border-color:var(--ally)}
+.btn[disabled]{opacity:.35;pointer-events:none}
+
+/* tier chips */
+.tier{display:inline-flex;align-items:center;gap:3px;font-family:var(--fd);font-weight:700;font-size:13px;letter-spacing:.08em}
+.tier i{display:block;width:6px;height:10px;transform:skewX(-14deg);background:currentColor}
+.c-t1{color:var(--t1)} .c-t2{color:var(--t2)} .c-t3{color:var(--t3)} .c-t4{color:var(--t4)}
+.c-ally{color:var(--ally)} .c-enemy{color:var(--enemy)} .c-teal{color:var(--teal)} .c-coral{color:var(--coral)}
+
+/* bars */
+.bar{position:relative;height:6px;background:rgba(255,255,255,.10)}
+.bar>b{position:absolute;left:0;top:0;bottom:0;background:var(--hp-ok)}
+.segbar{display:flex;gap:2px}
+.segbar>i{flex:1;height:100%;background:rgba(255,255,255,.10)}
+.segbar>i.on{background:var(--seg,var(--t2))}
+
+/* annotation layer (design notes drawn over mockups; toggle with N) */
+.anno{position:absolute;font-family:var(--fd);font-size:13px;font-weight:600;letter-spacing:.06em;color:#FFE27A;pointer-events:none;z-index:50}
+.anno.box{border:1px dashed rgba(255,226,122,.7)}
+.anno .tag{position:absolute;top:-19px;left:-1px;background:#FFE27A;color:#111;padding:1px 6px;white-space:nowrap;font-size:12px}
+body.no-anno .anno{display:none}
+.mock-label{position:absolute;right:12px;bottom:8px;font-family:var(--fd);font-size:12px;letter-spacing:.14em;color:rgba(255,255,255,.28);text-transform:uppercase;z-index:60}
+
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+@keyframes drip{0%{transform:translateY(0);opacity:1}100%{transform:translateY(10px);opacity:0}}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes orbit{to{transform:rotate(360deg)}}
+@keyframes flare{0%{opacity:1;filter:brightness(1.8)}100%{opacity:.9;filter:brightness(1)}}
+</style>
+<style>
+.screen{background:radial-gradient(ellipse at 30% 40%,#141b25 0%,#07090D 70%)}
+.grid-bg{position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,.025) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.025) 1px,transparent 1px);background-size:40px 40px}
+h1{font-family:var(--fd);font-weight:700;font-size:30px;letter-spacing:.1em;color:var(--text-hi);text-transform:uppercase}
+h2{font-family:var(--fd);font-weight:700;font-size:16px;letter-spacing:.18em;color:var(--text-hi);text-transform:uppercase}
+.sub{font-size:14px;color:var(--text-mid);margin-top:2px}
+/* expanded health panel (hold H) */
+.hp-big{position:absolute;left:48px;top:48px;width:700px;height:984px;padding:22px 26px}
+.hp-big .top{display:flex;justify-content:space-between;align-items:flex-start}
+.hp-big .figure{position:relative;height:430px;margin-top:18px}
+.callout{position:absolute;width:190px}
+.callout .zn{display:flex;align-items:center;gap:8px;font-family:var(--fd);font-weight:700;font-size:15px;letter-spacing:.16em;color:var(--text-hi)}
+.callout .zn svg{width:16px;height:16px}
+.callout .hpv{font-family:var(--fd);font-weight:700;font-size:30px;line-height:30px;color:var(--text-hi)}
+.callout .hpv small{font-size:15px;color:var(--text-mid);font-weight:600}
+.callout .bar{height:5px;margin:4px 0 5px}
+.callout .st{font-family:var(--fd);font-weight:600;font-size:12px;letter-spacing:.14em;text-transform:uppercase}
+.callout .fx{font-size:12.5px;color:var(--text-mid);line-height:1.35;margin-top:3px}
+.callout.r{text-align:right}.callout.r .zn{justify-content:flex-end}
+.leader{position:absolute;height:1px;background:rgba(255,255,255,.25)}
+.sect{margin-top:16px;padding-top:14px;border-top:1px solid var(--stroke)}
+.treat{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px}
+.treat .t{padding:10px;background:rgba(255,255,255,.04);border:1px solid var(--stroke)}
+.treat .t .h{display:flex;align-items:center;gap:8px;font-family:var(--fd);font-weight:700;font-size:15px;letter-spacing:.1em;color:var(--text-hi)}
+.treat .t svg{width:20px;height:20px}
+.treat .t p{font-size:12.5px;color:var(--text-mid);margin-top:5px;line-height:1.35}
+.shieldrow{display:flex;gap:18px;align-items:center;margin-top:10px}
+.kv2{display:grid;grid-template-columns:110px 1fr;row-gap:5px;font-size:14px}
+.kv2 span:nth-child(odd){font-family:var(--fd);font-weight:600;font-size:12px;letter-spacing:.14em;color:var(--text-mid);text-transform:uppercase;padding-top:2px}
+.needs2{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:10px}
+.need2 .h{display:flex;justify-content:space-between;align-items:center}
+.need2 .h span{display:flex;gap:6px;align-items:center;font-family:var(--fd);font-weight:700;font-size:14px;letter-spacing:.14em;color:var(--text-hi)}
+.need2 svg{width:14px;height:14px}
+.need2 .bar{height:6px;margin-top:6px}.need2 .bar b{background:var(--bone)}
+.need2 p{font-size:12.5px;color:var(--text-mid);margin-top:5px}
+/* state matrix */
+.matrix{position:absolute;left:790px;top:48px;width:1082px;padding:22px 26px}
+.mtx{display:grid;grid-template-columns:110px repeat(5,1fr);gap:6px;margin-top:14px}
+.mtx .ch{font-family:var(--fd);font-weight:700;font-size:14px;letter-spacing:.16em;color:var(--text-hi);text-align:center;padding-bottom:4px;border-bottom:2px solid var(--c,var(--text-hi))}
+.mtx .ch small{display:block;font-size:11px;color:var(--text-mid);letter-spacing:.1em;font-weight:600}
+.mtx .rh{display:flex;align-items:center;gap:8px;font-family:var(--fd);font-weight:700;font-size:15px;letter-spacing:.16em;color:var(--text-hi)}
+.mtx .rh svg{width:18px;height:18px}
+.mtx .cell{height:96px;display:flex;align-items:center;justify-content:center;gap:10px;background:rgba(255,255,255,.03);border:1px solid var(--stroke)}
+.mtx .cell .ztxt{font-family:var(--fd);font-weight:700;font-size:20px;color:var(--text-hi);line-height:20px}
+.mtx .cell .ztxt small{display:block;font-size:11px;font-weight:600;color:var(--text-mid);letter-spacing:.12em}
+.legend{display:flex;gap:18px;margin-top:12px;font-size:12.5px;color:var(--text-mid)}
+.legend b{font-family:var(--fd);letter-spacing:.1em;color:var(--text-hi)}
+.halo-states{position:absolute;left:790px;top:610px;width:1082px;padding:20px 26px}
+.hs-row{display:flex;gap:10px;margin-top:12px}
+.hs{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;padding:8px 4px 10px;background:rgba(255,255,255,.03);border:1px solid var(--stroke)}
+.hs .n{font-family:var(--fd);font-weight:700;font-size:14px;letter-spacing:.14em;color:var(--text-hi)}
+.hs .d{font-size:11.5px;color:var(--text-mid);text-align:center;line-height:1.3;padding:0 4px}
+</style></head>
+<body data-variant="default">
+<svg xmlns="http://www.w3.org/2000/svg" style="position:absolute;width:0;height:0;overflow:hidden" aria-hidden="true">
+<defs>
+  <!-- ===== body zone glyphs (24x24) ===== -->
+  <symbol id="i-head" viewBox="0 0 24 24"><rect x="7" y="3" width="10" height="12" rx="4" fill="currentColor"/><path d="M5 21c1-3 4-5 7-5s6 2 7 5" fill="none" stroke="currentColor" stroke-width="2" opacity=".35"/></symbol>
+  <symbol id="i-torso" viewBox="0 0 24 24"><path d="M6 4h12l2 4-2 13H6L4 8z" fill="currentColor"/></symbol>
+  <symbol id="i-arms" viewBox="0 0 24 24"><path d="M4 4h4l2 6-3 11H4L3 9zM20 4h-4l-2 6 3 11h3l1-12z" fill="currentColor"/></symbol>
+  <symbol id="i-legs" viewBox="0 0 24 24"><path d="M6 3h5l-.5 18H7zM13 3h5l-1 18h-3.5z" fill="currentColor"/></symbol>
+
+  <!-- ===== Kestrel abilities ===== -->
+  <symbol id="i-grapple" viewBox="0 0 32 32"><path d="M4 28L22 10" stroke="currentColor" stroke-width="2.4" stroke-dasharray="3 2.2" fill="none"/><path d="M19 5l8 8-3 1-6-6z" fill="currentColor"/><path d="M24 4l4 4M26 2l2 2" stroke="currentColor" stroke-width="2" fill="none"/><circle cx="5" cy="27" r="2.6" fill="currentColor"/></symbol>
+  <symbol id="i-scan" viewBox="0 0 32 32"><path d="M10 9h12l5 7-5 7H10l-5-7z" fill="none" stroke="currentColor" stroke-width="2.4"/><circle cx="16" cy="16" r="3.4" fill="currentColor"/><path d="M2 16h2M28 16h2M16 2v3M16 27v3" stroke="currentColor" stroke-width="2"/></symbol>
+  <symbol id="i-kes-ult" viewBox="0 0 32 32"><circle cx="16" cy="16" r="12" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="16" cy="16" r="6.5" fill="none" stroke="currentColor" stroke-width="2" opacity=".6"/><path d="M16 16L26 9A12 12 0 0 1 28 16z" fill="currentColor"/><circle cx="16" cy="16" r="2" fill="currentColor"/></symbol>
+  <!-- ===== Solace abilities ===== -->
+  <symbol id="i-drone" viewBox="0 0 32 32"><circle cx="16" cy="17" r="9" fill="none" stroke="currentColor" stroke-width="2.4"/><circle cx="16" cy="17" r="3.4" fill="currentColor"/><path d="M16 8V3M12 3h8" stroke="currentColor" stroke-width="2.2"/></symbol>
+  <symbol id="i-pulse" viewBox="0 0 32 32"><circle cx="16" cy="16" r="12.5" fill="none" stroke="currentColor" stroke-width="2" stroke-dasharray="4 3"/><path d="M13 8h6v5h5v6h-5v5h-6v-5H8v-6h5z" fill="currentColor"/></symbol>
+  <symbol id="i-sol-ult" viewBox="0 0 32 32"><path d="M16 3l11 6v14l-11 6-11-6V9z" fill="none" stroke="currentColor" stroke-width="2"/><path d="M5 17h6l2-5 3 10 3-8 2 3h6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/></symbol>
+
+  <!-- ===== consumables / vitals / status ===== -->
+  <symbol id="i-bandage" viewBox="0 0 32 32"><rect x="4" y="11" width="24" height="10" rx="5" transform="rotate(-35 16 16)" fill="currentColor"/><g fill="#0b0e13"><circle cx="13" cy="15" r="1.2"/><circle cx="16" cy="13" r="1.2"/><circle cx="16" cy="18" r="1.2"/><circle cx="19" cy="16" r="1.2"/></g></symbol>
+  <symbol id="i-medkit" viewBox="0 0 32 32"><rect x="4" y="9" width="24" height="18" rx="2" fill="currentColor"/><path d="M12 9V6h8v3" fill="none" stroke="currentColor" stroke-width="2"/><path d="M14 13h4v3h3v4h-3v3h-4v-3h-3v-4h3z" fill="#0b0e13"/></symbol>
+  <symbol id="i-energy" viewBox="0 0 24 24"><path d="M13 2L5 14h6l-1 8 8-12h-6z" fill="currentColor"/></symbol>
+  <symbol id="i-food" viewBox="0 0 24 24"><rect x="5" y="6" width="14" height="15" rx="2" fill="currentColor"/><rect x="4" y="3" width="16" height="4" rx="1" fill="currentColor" opacity=".55"/><path d="M8 11h8M8 15h8" stroke="#0b0e13" stroke-width="1.6"/></symbol>
+  <symbol id="i-bleed" viewBox="0 0 24 24"><path d="M12 2c3 5 6 8 6 12a6 6 0 0 1-12 0c0-4 3-7 6-12z" fill="currentColor"/></symbol>
+  <symbol id="i-heal" viewBox="0 0 24 24"><path d="M9 3h6v6h6v6h-6v6H9v-6H3V9h6z" fill="currentColor"/></symbol>
+  <symbol id="i-jet" viewBox="0 0 24 24"><path d="M8 3h8v9l-2 3h-4l-2-3z" fill="currentColor"/><path d="M10 17l-1 5M14 17l1 5M12 17v5" stroke="currentColor" stroke-width="1.6"/></symbol>
+
+  <!-- ===== kill feed modifiers ===== -->
+  <symbol id="i-headshot" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="3" fill="currentColor"/><path d="M12 1v5M12 18v5M1 12h5M18 12h5" stroke="currentColor" stroke-width="2"/></symbol>
+  <symbol id="i-shieldbreak" viewBox="0 0 24 24"><path d="M7 3h10l5 9-5 9H7l-5-9z" fill="none" stroke="currentColor" stroke-width="2"/><path d="M11 3l2 6-3 3 4 3-1 6" fill="none" stroke="currentColor" stroke-width="1.8"/></symbol>
+  <symbol id="i-wall" viewBox="0 0 24 24"><path d="M3 5h18v14H3z" fill="none" stroke="currentColor" stroke-width="2"/><path d="M3 12h18M9 5v7M15 12v7" stroke="currentColor" stroke-width="1.6"/></symbol>
+
+  <!-- ===== weapons (side silhouettes, muzzle right) ===== -->
+  <symbol id="i-mako" viewBox="0 0 240 64"><g fill="currentColor">
+    <path d="M4 20l30-4h8v18h-9l-22 12H4z"/><rect x="40" y="20" width="20" height="8"/>
+    <path d="M58 15h64l4 4v15H58z"/><path d="M84 34h17l4 22-15 4-6-1z"/><path d="M62 34h11l-4 19H58z"/>
+    <path d="M72 34h10v6h-6z" opacity=".7"/>
+    <rect x="124" y="16" width="92" height="16"/><rect x="60" y="12" width="152" height="3"/>
+    <rect x="214" y="21" width="12" height="6"/><rect x="225" y="19" width="12" height="10"/>
+    <path d="M76 2h26l3 10H74z"/></g>
+    <g fill="#0b0e13" opacity=".55"><rect x="132" y="20" width="9" height="3" rx="1.5"/><rect x="146" y="20" width="9" height="3" rx="1.5"/><rect x="160" y="20" width="9" height="3" rx="1.5"/><rect x="174" y="20" width="9" height="3" rx="1.5"/><rect x="188" y="20" width="9" height="3" rx="1.5"/><rect x="139" y="25" width="9" height="3" rx="1.5"/><rect x="153" y="25" width="9" height="3" rx="1.5"/><rect x="167" y="25" width="9" height="3" rx="1.5"/><rect x="181" y="25" width="9" height="3" rx="1.5"/><rect x="88" y="40" width="3" height="12" rx="1.5"/></g></symbol>
+  <symbol id="i-warden" viewBox="0 0 280 64"><g fill="currentColor">
+    <path d="M4 24h10l6-6h30l4 4v14l-10 10H30l-4-6H4z"/><path d="M14 18h22v-5h8v5" />
+    <path d="M52 18h70l4 4v14H52z"/><path d="M70 36h12l-3 17H66z"/><path d="M90 36h14v14H90z"/>
+    <rect x="124" y="20" width="86" height="13"/><rect x="208" y="23" width="52" height="6"/><path d="M258 20h14v12h-14z"/>
+    <path d="M62 4h12l3 4h44l4-4h10v10h-10l-4-2H77l-3 2H62z"/><rect x="80" y="12" width="6" height="7"/><rect x="112" y="12" width="6" height="7"/>
+    <path d="M196 33l4 0-10 22-3-1z"/><path d="M202 33l4 0 6 22-3 1z"/></g></symbol>
+  <symbol id="i-gl" viewBox="0 0 48 24"><g fill="currentColor"><rect x="10" y="4" width="34" height="10" rx="2"/><path d="M12 14h8l-2 9h-6z"/><rect x="2" y="6" width="8" height="6"/></g></symbol>
+  <symbol id="i-mag" viewBox="0 0 16 28"><path d="M2 1h11l2 26-12 0z" fill="currentColor"/><rect x="6" y="6" width="3" height="15" rx="1.5" fill="#0b0e13" opacity=".7"/></symbol>
+
+  <!-- ===== attachment slot glyphs ===== -->
+  <symbol id="i-optic" viewBox="0 0 32 32"><path d="M6 10h18l2 12H4z" fill="none" stroke="currentColor" stroke-width="2.2"/><circle cx="15" cy="16" r="2.4" fill="currentColor"/><path d="M4 26h24" stroke="currentColor" stroke-width="2"/></symbol>
+  <symbol id="i-stock" viewBox="0 0 32 32"><path d="M28 10H14L4 14v8l10-2h14z" fill="none" stroke="currentColor" stroke-width="2.2"/></symbol>
+  <symbol id="i-under" viewBox="0 0 32 32"><path d="M4 8h24" stroke="currentColor" stroke-width="2.4"/><path d="M13 11h6l-1 17h-4z" fill="currentColor"/></symbol>
+  <symbol id="i-side" viewBox="0 0 32 32"><rect x="5" y="11" width="14" height="10" rx="1" fill="none" stroke="currentColor" stroke-width="2.2"/><path d="M21 16h9" stroke="currentColor" stroke-width="2.4" stroke-dasharray="2 2"/></symbol>
+  <symbol id="i-gunshield" viewBox="0 0 32 32"><path d="M6 6h20v12l-10 9-10-9z" fill="none" stroke="currentColor" stroke-width="2.2"/><rect x="12" y="10" width="8" height="4" fill="currentColor"/></symbol>
+  <symbol id="i-magslot" viewBox="0 0 32 32"><path d="M10 4h11l3 24H12z" fill="none" stroke="currentColor" stroke-width="2.2"/><rect x="15" y="9" width="3" height="12" rx="1.5" fill="currentColor"/></symbol>
+
+  <!-- ===== misc ===== -->
+  <symbol id="i-crown" viewBox="0 0 24 24"><path d="M3 18l1-11 5 5 3-7 3 7 5-5 1 11z" fill="currentColor"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="M4 12l5 5L20 6" fill="none" stroke="currentColor" stroke-width="3"/></symbol>
+  <symbol id="i-copy" viewBox="0 0 24 24"><rect x="8" y="8" width="12" height="13" rx="1" fill="none" stroke="currentColor" stroke-width="2"/><path d="M5 16V4h11" fill="none" stroke="currentColor" stroke-width="2"/></symbol>
+  <symbol id="i-signal" viewBox="0 0 24 24"><g fill="currentColor"><rect x="3" y="15" width="4" height="6"/><rect x="10" y="10" width="4" height="11"/><rect x="17" y="4" width="4" height="17"/></g></symbol>
+  <symbol id="i-zipline" viewBox="0 0 24 24"><path d="M2 5l20 6" stroke="currentColor" stroke-width="2"/><path d="M11 8v5l-3 6M11 13l3 6" fill="none" stroke="currentColor" stroke-width="2"/></symbol>
+  <symbol id="i-swap" viewBox="0 0 24 24"><path d="M4 8h14l-4-4M20 16H6l4 4" fill="none" stroke="currentColor" stroke-width="2.2"/></symbol>
+  <symbol id="i-chev" viewBox="0 0 12 12"><path d="M2 3l4 4 4-4" fill="none" stroke="currentColor" stroke-width="2"/></symbol>
+</defs>
+</svg>
+
+<div class="stage"><div class="screen">
+  <div class="grid-bg"></div>
+
+  <!-- ================= expanded health panel (hold H, also inside TAB) ================= -->
+  <div class="hp-big panel hi accent-top" style="--acc:var(--text-hi)">
+    <div class="top">
+      <div><h1>Health</h1><div class="sub">Hold <span class="key" style="height:18px;min-width:18px;font-size:12px">H</span> in match · the HUD vitals block expanded</div></div>
+      <div style="text-align:right"><div class="lbl">Total</div><div class="num" style="font-family:var(--fd);font-weight:700;font-size:34px;color:var(--text-hi);line-height:34px">136<small style="font-size:16px;color:var(--text-mid)"> / 250</small></div></div>
+    </div>
+    <div class="figure">
+      <div style="position:absolute;left:250px;top:0" data-body='{"hp":{"head":1,"torso":0.61,"arms":0.23,"legs":0.5},"bleed":["arms"],"covered":["head","torso","arms"],"tier":"t2","w":200,"heal":["legs"]}'></div>
+      <div class="leader" style="left:200px;top:40px;width:84px"></div>
+      <div class="callout" style="left:0;top:4px"><div class="zn"><svg style="color:var(--hp-ok)"><use href="#i-head"/></svg>HEAD</div><div class="hpv num">35<small> / 35</small></div><div class="bar"><b style="width:100%"></b></div><div class="st" style="color:var(--hp-ok)">Healthy · shielded</div><div class="fx">0 HP = death.</div></div>
+      <div class="leader" style="left:200px;top:150px;width:110px"></div>
+      <div class="callout" style="left:0;top:116px"><div class="zn"><svg style="color:var(--hp-dmg)"><use href="#i-torso"/></svg>TORSO</div><div class="hpv num">52<small> / 85</small></div><div class="bar"><b style="width:61%;background:var(--hp-dmg)"></b></div><div class="st" style="color:var(--hp-dmg)">Damaged · shielded</div><div class="fx">0 HP = death. Overflow from destroyed limbs lands here.</div></div>
+      <div class="leader" style="left:462px;top:136px;width:150px"></div>
+      <div class="callout r" style="left:500px;top:120px"><div class="zn">ARMS<svg style="color:var(--hp-crit)"><use href="#i-arms"/></svg></div><div class="hpv num" style="color:#FF6170">14<small> / 60</small></div><div class="bar"><b style="width:23%;background:var(--hp-crit)"></b></div><div class="st" style="color:#FF6170">Critical · bleeding · shielded</div><div class="fx">Sway +30 %. At 0: sway +60 %, ADS and reload +30 %.</div></div>
+      <div class="leader" style="left:420px;top:306px;width:190px"></div>
+      <div class="callout r" style="left:500px;top:290px"><div class="zn">LEGS<svg style="color:var(--hp-dmg)"><use href="#i-legs"/></svg></div><div class="hpv num">35<small> / 70</small></div><div class="bar"><b style="width:50%;background:var(--hp-dmg)"></b></div><div class="st" style="color:var(--heal)">Damaged · healing +4/s · open</div><div class="fx">At 0: no sprint or slide, jet thrust −50 %.</div></div>
+    </div>
+
+    <div class="sect">
+      <h2>Treat</h2>
+      <div class="treat">
+        <div class="t"><div class="h"><span class="key">4</span><svg><use href="#i-bandage"/></svg>BANDAGE ×2</div><p>2.5 s. Stops bleeding on the worst bleeding zone. No HP.</p></div>
+        <div class="t"><div class="h"><span class="key">5</span><svg><use href="#i-medkit"/></svg>MED-STIM ×1</div><p>4 s. +40 HP split over damaged zones, worst first. Cannot restore a destroyed zone.</p></div>
+        <div class="t" style="border-color:rgba(255,140,122,.4)"><div class="h" style="color:var(--coral)"><span class="key" style="background:var(--coral)">E</span><svg><use href="#i-pulse"/></svg>SOLACE PULSE</div><p>Solace only. Heals allies in 6 m, stops bleeding, revives a destroyed limb to 1 HP.</p></div>
+      </div>
+    </div>
+
+    <div class="sect">
+      <h2>Halo shield</h2>
+      <div class="shieldrow">
+        <div data-halo='{"tier":"t2","core":"mender","covered":["head","torso","arms"],"weight":"medium","cells":2,"shield":0.6,"state":"idle","size":150,"value":72}'></div>
+        <div class="kv2">
+          <span>Core</span><span><b class="c-t2">MENDER</b> · twin ring · slow passive regen</span>
+          <span>Tier</span><span><span class="tier c-t2"><i></i><i></i></span> T2 · blue</span>
+          <span>Covers</span><span>Head, Torso, Arms · <span style="color:var(--text-low)">Legs open</span></span>
+          <span>Shield</span><span class="num">72 / 120 · regen 4/s after 5 s without damage</span>
+          <span>Weight</span><span>MEDIUM · 2 power cells · move speed −5 %</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="sect">
+      <h2>Energy &amp; food</h2>
+      <div class="needs2">
+        <div class="need2"><div class="h"><span><svg><use href="#i-energy"/></svg>ENERGY</span><span class="num">74 / 100 <span style="color:var(--warn)">&#9660;&#9660; −3.0/min</span></span></div><div class="bar"><b style="width:74%"></b></div><p>2 power cells drain it. Below 20: shield regen stops.</p></div>
+        <div class="need2"><div class="h"><span><svg><use href="#i-food"/></svg>FOOD</span><span class="num">81 / 100 <span style="color:var(--warn)">&#9660; −1.5/min</span></span></div><div class="bar"><b style="width:81%"></b></div><p>Below 20: sprint and jet recharge −25 %.</p></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= zone state matrix ================= -->
+  <div class="matrix panel">
+    <h1>Zone states</h1>
+    <div class="sub">Silhouette fill height = remaining HP. Colour = state. A tier-coloured outline marks zones covered by the halo shield.</div>
+    <div class="mtx" id="mtx"></div>
+    <div class="legend">
+      <span><b style="color:var(--hp-ok)">HEALTHY</b> ≥ 75 %</span><span><b style="color:var(--hp-dmg)">DAMAGED</b> 35–74 %</span>
+      <span><b style="color:var(--hp-crit)">CRITICAL</b> 1–34 %, pulses 1.1 s</span><span><b>DESTROYED</b> 0, hatched + red outline</span><span><b style="color:#FF6170">BLEEDING</b> drip loop + −0.8 HP/s</span>
+    </div>
+  </div>
+
+  <!-- ================= halo + weight states ================= -->
+  <div class="halo-states panel">
+    <h1>Halo widget states</h1>
+    <div class="sub">Your own halo in the HUD (top-down: Head front/up, Arms left, Torso back/down, Legs right; same order as the 3D halo).</div>
+    <div class="hs-row">
+      <div class="hs"><div data-halo='{"tier":"t2","core":"mender","covered":["head","torso","arms"],"weight":"medium","cells":2,"shield":1,"state":"idle","size":104,"value":120}'></div><div class="n">IDLE</div><div class="d">Full. Arcs at 85 %.</div></div>
+      <div class="hs"><div data-halo='{"tier":"t2","core":"mender","covered":["head","torso","arms"],"weight":"medium","cells":2,"shield":0.7,"state":"hit","size":104,"value":84}'></div><div class="n" style="color:var(--t2)">HIT</div><div class="d">0.25 s flare + white rim, the hit arc shakes 2 px.</div></div>
+      <div class="hs"><div data-halo='{"tier":"t2","core":"mender","covered":["head","torso","arms"],"weight":"medium","cells":2,"shield":0.18,"state":"idle","size":104,"value":22}'></div><div class="n" style="color:var(--warn)">LOW &lt; 25 %</div><div class="d">Arcs drain clockwise. Crack sprite overlay.</div></div>
+      <div class="hs"><div data-halo='{"tier":"t2","core":"mender","covered":["head","torso","arms"],"weight":"medium","cells":2,"shield":0,"state":"broken","size":104,"value":0}'></div><div class="n" style="color:var(--hp-crit)">BROKEN</div><div class="d">Shard burst 0.4 s, outlines dashed on the body.</div></div>
+      <div class="hs"><div data-halo='{"tier":"t2","core":"mender","covered":["head","torso","arms"],"weight":"medium","cells":2,"shield":0.45,"state":"regen","size":104,"value":54}'></div><div class="n" style="color:var(--heal)">REGEN</div><div class="d">Sweep shimmer while it refills.</div></div>
+    </div>
+    <div class="hs-row">
+      <div class="hs"><div data-halo='{"tier":"t1","core":"phase","covered":["head","torso"],"weight":"light","cells":1,"state":"idle","size":96,"label":true}'></div><div class="n">LIGHT</div><div class="d">T1 Phase · 1 cell · no band</div></div>
+      <div class="hs"><div data-halo='{"tier":"t2","core":"mender","covered":["head","torso","arms"],"weight":"medium","cells":2,"state":"idle","size":96}'></div><div class="n">MEDIUM</div><div class="d">T2 Mender · 2 cells · thin band</div></div>
+      <div class="hs"><div data-halo='{"tier":"t3","core":"volt","covered":["head","torso","arms","legs"],"weight":"heavy","cells":3,"state":"idle","size":96}'></div><div class="n">HEAVY</div><div class="d">T3 Volt · 3 cells · armored band</div></div>
+      <div class="hs"><div data-halo='{"tier":"t4","core":"bulwark","covered":["head","torso","arms","legs"],"weight":"heavy","cells":3,"state":"idle","size":96}'></div><div class="n">HEAVY</div><div class="d">T4 Bulwark · hex ring</div></div>
+      <div class="hs"><div data-halo='{"tier":"t3","core":"bulwark","covered":["head","torso"],"weight":"heavy","cells":3,"state":"idle","size":96}'></div><div class="n">COVERAGE</div><div class="d">Head + Torso lit, Arms + Legs dark</div></div>
+    </div>
+  </div>
+
+  <div class="mock-label">Mockup 03 · Health + halo close-up, all states</div>
+</div></div>
+<script>/* Shared widget generators for the mockups (inlined by build.py).
+   bodySVG  : EFT-style body-zone health silhouette (4 zones, matches HALO_SHIELD_SPEC coverage zones)
+   haloSVG  : the player's own halo as a top-down HUD icon (tier colour, coverage arcs, core shape,
+              weight band, power cells, remaining shield)
+   In Bevy both are layered ImageNodes (one white PNG per zone / arc, tinted via ImageNode.color)
+   or one UiMaterial each; see UI_DESIGN.md section 9. */
+const TIER = {t1:'#EDF1F6', t2:'#59B3FF', t3:'#C46CFF', t4:'#FFCE50'};
+const HP = {ok:'#E6E2D8', dmg:'#FFA23A', crit:'#FF3B4E', dead:'#15171B'};
+const ZONES = {
+  head:  ['M42 4H58L64 12V26L58 34H42L36 26V12Z'],
+  torso: ['M33 39H67L72 47L68 100H32L28 47Z'],
+  arms:  ['M25 41L18 44L9 107L17 110L27 64Z', 'M75 41L82 44L91 107L83 110L73 64Z'],
+  legs:  ['M32 104H49L48 195H35Z', 'M51 104H68L65 195H52Z'],
+};
+const ZB = {head:[4,34], torso:[39,100], arms:[41,110], legs:[104,195]};
+let _uid = 0;
+function hpState(p){ return p<=0?'dead': p<0.35?'crit': p<0.75?'dmg':'ok'; }
+/* o = {hp:{head:1,torso:.6,arms:.2,legs:1}, bleed:['arms'], covered:['head','torso','arms'], tier:'t2',
+        heal:['legs'], hit:'torso', w:84, broken:false} */
+function bodySVG(o){
+  const id = 'b'+(_uid++); const w = o.w||84, h = w*2;
+  const tc = TIER[o.tier||'t2'];
+  let s = `<svg viewBox="0 0 100 200" width="${w}" height="${h}" style="overflow:visible">`;
+  s += `<defs><pattern id="${id}hatch" width="5" height="5" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="5" height="5" fill="${HP.dead}"/><rect width="1.4" height="5" fill="#FF3B4E" opacity=".55"/></pattern>`;
+  s += `<filter id="${id}glow" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="2.2"/></filter></defs>`;
+  // shield coverage outline (under everything)
+  for (const z of (o.covered||[])) for (const d of ZONES[z]) {
+    const op = o.broken? .25 : 1;
+    s += `<path d="${d}" fill="none" stroke="${tc}" stroke-width="6" stroke-linejoin="round" opacity="${.55*op}" filter="url(#${id}glow)"/>`;
+    s += `<path d="${d}" fill="none" stroke="${tc}" stroke-width="4.2" stroke-linejoin="round" opacity="${op}" ${o.broken?'stroke-dasharray="4 3"':''}/>`;
+  }
+  for (const z of Object.keys(ZONES)) {
+    const p = (o.hp && o.hp[z]!==undefined)? o.hp[z] : 1;
+    const st = hpState(p);
+    const [y0,y1] = ZB[z]; const fillTop = y1 - (y1-y0)*Math.max(0,Math.min(1,p));
+    s += `<clipPath id="${id}c${z}"><rect x="0" y="${fillTop}" width="100" height="${200-fillTop}"/></clipPath>`;
+    for (const d of ZONES[z]) {
+      if (st==='dead') { s += `<path d="${d}" fill="url(#${id}hatch)" stroke="#FF3B4E" stroke-width="1.6" stroke-linejoin="round"/>`; continue; }
+      s += `<path d="${d}" fill="#2a2d33" stroke="#0b0e13" stroke-width="1.5" stroke-linejoin="round"/>`;
+      const anim = st==='crit' ? 'style="animation:pulse 1.1s ease-in-out infinite"' : '';
+      s += `<path d="${d}" fill="${HP[st]}" clip-path="url(#${id}c${z})" ${anim}/>`;
+      if (o.hit===z) s += `<path d="${d}" fill="#fff" opacity=".55"/>`;
+      if ((o.heal||[]).includes(z)) s += `<path d="${d}" fill="none" stroke="#9CF7C8" stroke-width="2" stroke-dasharray="3 3" style="animation:pulse 1.4s infinite"/>`;
+    }
+    if ((o.bleed||[]).includes(z)) {
+      const pts = {arms:[[13,96],[87,96]], legs:[[42,170],[58,170]], head:[[50,28]], torso:[[50,86]]}[z];
+      for (const c of pts) {
+        s += `<g transform="translate(${c[0]-5},${c[1]})"><path d="M5 0c2 3 4 5 4 7.5a4 4 0 0 1-8 0C1 5 3 3 5 0z" fill="#E0162E" stroke="#0b0e13" stroke-width=".8" style="animation:drip 1.2s ease-in infinite"/></g>`;
+      }
+    }
+  }
+  return s + '</svg>';
+}
+/* o = {tier:'t2', core:'mender'|'bulwark'|'volt'|'phase', covered:['head','torso','arms'], weight:'light'|'medium'|'heavy',
+        cells:2, shield:.6, state:'idle'|'hit'|'broken'|'regen', size:112, label:true, value:72} */
+function haloSVG(o){
+  const id='h'+(_uid++); const S=o.size||112; const tc=TIER[o.tier||'t2']; const cx=60, cy=60;
+  const R = 34, core=o.core||'mender', st=o.state||'idle';
+  const ang = {head:-90, legs:0, torso:90, arms:180};
+  const bw = {bulwark:8, mender:4, volt:6, phase:5}[core];
+  const hex = (t)=>{ const k=((t%60)+60)%60 - 30; return R*Math.cos(Math.PI/6)/Math.cos(k*Math.PI/180); };
+  const pt = (a,r)=>[cx + r*Math.cos(a*Math.PI/180), cy + r*Math.sin(a*Math.PI/180)];
+  const arc = (a0,a1,rr)=>{ let d=''; for(let i=0;i<=24;i++){ const a=a0+(a1-a0)*i/24; const r= core==='bulwark'? hex(a+90)*rr/R : rr; const p=pt(a,r); d+=(i?'L':'M')+p[0].toFixed(2)+' '+p[1].toFixed(2);} return d; };
+  let s = `<svg viewBox="0 0 120 120" width="${S}" height="${S}" style="overflow:visible"><defs><filter id="${id}g" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="${st==='hit'?3.2:2}"/></filter></defs>`;
+  // weight band
+  if (o.weight==='medium') s += `<circle cx="60" cy="60" r="${R+11}" fill="none" stroke="#3a3f47" stroke-width="3"/><circle cx="60" cy="60" r="${R+11}" fill="none" stroke="${tc}" stroke-opacity=".25" stroke-width="1"/>`;
+  if (o.weight==='heavy') s += `<circle cx="60" cy="60" r="${R+12}" fill="none" stroke="#3a3f47" stroke-width="7" stroke-dasharray="14 3"/><circle cx="60" cy="60" r="${R+12}" fill="none" stroke="${tc}" stroke-opacity=".3" stroke-width="1"/>`;
+  // arcs
+  const lit = o.covered||[]; const shield = o.shield===undefined?1:o.shield;
+  for (const z of ['head','legs','torso','arms']) {
+    const a=ang[z]; let segs=[[a-39,a+39]];
+    if (core==='phase' && z==='torso') segs=[[a-39,a-8],[a+8,a+39]];
+    const on = lit.includes(z) && st!=='broken';
+    for (const [a0,a1] of segs) {
+      const d = arc(a0,a1,R);
+      if (on) {
+        s += `<path d="${d}" fill="none" stroke="${tc}" stroke-width="${bw+3}" opacity="${st==='idle'?.35:.7}" filter="url(#${id}g)" stroke-linecap="butt"/>`;
+        s += `<path d="${d}" fill="none" stroke="${tc}" stroke-width="${bw}" opacity="${st==='idle'?.85:1}"/>`;
+        if (shield<1) { // remaining shield: dim the arc tail (each arc drains from its clockwise end)
+          const cut = a0 + (a1-a0)*shield; s += `<path d="${arc(cut,a1,R)}" fill="none" stroke="#0b0e13" stroke-width="${bw+.5}" opacity=".62"/>`; }
+        if (st==='hit') s += `<path d="${d}" fill="none" stroke="#fff" stroke-width="1.2" opacity=".9"/>`;
+        if (core==='mender') s += `<path d="${arc(a0+3,a1-3,R-7)}" fill="none" stroke="${tc}" stroke-width="2.4" opacity=".8"/>`;
+      } else {
+        s += `<path d="${d}" fill="none" stroke="#27272C" stroke-width="${bw}"/><path d="${d}" fill="none" stroke="#fff" stroke-opacity=".13" stroke-width="1"/>`;
+        if (core==='mender') s += `<path d="${arc(a0+3,a1-3,R-7)}" fill="none" stroke="#27272C" stroke-width="2.4"/>`;
+      }
+      if (core==='volt') for (const t of [a0+10,(a0+a1)/2,a1-10]) { const p1=pt(t,R+bw/2), p2=pt(t,R+bw/2+6); s += `<path d="M${p1[0]} ${p1[1]}L${p2[0]} ${p2[1]}" stroke="${on?tc:'#33363d'}" stroke-width="3.2"/>`; }
+    }
+  }
+  if (st==='broken') { s += `<g stroke="${tc}" stroke-width="2" fill="none" opacity=".9"><path d="M30 34l6 4-2 6"/><path d="M88 30l-5 6 4 4"/><path d="M84 90l-6-3-1 6"/><path d="M33 86l6-2 1 6"/></g>`; }
+  // zone glyph letters
+  const L={head:'H',legs:'L',torso:'T',arms:'A'};
+  if (o.value===undefined) for (const z in ang){ const p=pt(ang[z],R-(core==='mender'?15:12)); s += `<text x="${p[0]}" y="${p[1]+3.4}" text-anchor="middle" font-family="Barlow Condensed" font-weight="700" font-size="9.5" fill="${lit.includes(z)&&st!=='broken'?tc:'#5a6069'}">${L[z]}</text>`; }
+  // power cells (orbit)
+  const n=o.cells||1; s += `<g style="transform-origin:60px 60px;animation:orbit ${n===3?14:10}s linear infinite">`;
+  for (let i=0;i<n;i++){ const p=pt(-60+i*(360/n), R+19); s += `<rect x="${p[0]-3}" y="${p[1]-5}" width="6" height="10" rx="3" fill="${tc}" opacity="${st==='broken'?.35:.95}"/>`; }
+  s += `</g>`;
+  if (o.label!==false) {
+    s += `<text x="60" y="${o.value!==undefined?62:64}" text-anchor="middle" font-family="Barlow Condensed" font-weight="700" font-size="${o.value!==undefined?21:13}" fill="${st==='broken'?'#FF3B4E':'#F3F0E9'}">${o.value!==undefined?o.value:(o.tier||'t2').toUpperCase()}</text>`;
+    if (o.value!==undefined) s += `<text x="60" y="73" text-anchor="middle" font-family="Barlow Condensed" font-weight="600" font-size="8" letter-spacing="1.2" fill="${tc}">${(o.tier||'t2').toUpperCase()} ${core.toUpperCase()}</text>`;
+  }
+  return s+'</svg>';
+}
+function mount(){ document.querySelectorAll('[data-body]').forEach(e=>{ e.innerHTML = bodySVG(JSON.parse(e.dataset.body)); });
+  document.querySelectorAll('[data-halo]').forEach(e=>{ e.innerHTML = haloSVG(JSON.parse(e.dataset.halo)); }); }
+document.addEventListener('DOMContentLoaded', mount);
+</script>
+<script>
+(function(){ const m=document.getElementById('mtx');
+  const cols=[['HEALTHY','100 %','var(--hp-ok)',1],['DAMAGED','55 %','var(--hp-dmg)',.55],['CRITICAL','20 %','var(--hp-crit)',.2],['DESTROYED','0 HP','#8a8f98',0],['BLEEDING','70 % + bleed','#FF6170',.7]];
+  const rows=[['head','HEAD',35],['torso','TORSO',85],['arms','ARMS',60],['legs','LEGS',70]];
+  let h='<div></div>'; for(const c of cols) h+=`<div class="ch" style="--c:${c[2]}">${c[0]}<small>${c[1]}</small></div>`;
+  for(const r of rows){ h+=`<div class="rh"><svg><use href="#i-${r[0]}"/></svg>${r[1]}</div>`;
+    for(const c of cols){ const hp={head:1,torso:1,arms:1,legs:1}; hp[r[0]]=c[3]; const o={hp, w:40, covered:[], tier:'t2'}; if(c[0]==='BLEEDING') o.bleed=[r[0]];
+      const v=Math.round(r[2]*c[3]); const note = (c[0]==='DESTROYED' && (r[0]==='head'||r[0]==='torso')) ? 'DEATH' : (c[0]==='DESTROYED'?'overflow ×0.7 → torso':'');
+      h+=`<div class="cell"><div data-body='${JSON.stringify(o)}'></div><div class="ztxt num">${v}<small>/ ${r[2]}</small><small style="color:${note==='DEATH'?'#FF6170':'var(--text-low)'};margin-top:3px">${note}</small></div></div>`; } }
+  m.innerHTML=h; })();
+</script>
+<script>
+(function(){const s=document.querySelector('.screen');
+function fit(){const k=Math.min(innerWidth/1920,innerHeight/1080);s.style.transform='scale('+k+')';}
+addEventListener('resize',fit);fit();
+const tok=(location.hash||'').replace('#','').split(',');
+if(tok.includes('still')){const st=document.createElement('style');st.textContent='*{animation:none!important;transition:none!important}';document.head.appendChild(st);}
+window.__tokens=tok;})();
+</script>
+</body></html>

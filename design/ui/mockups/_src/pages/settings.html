@@ -1,0 +1,275 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>{{title}}</title>
+<!--COMMON-->
+<style>
+.screen{background:radial-gradient(ellipse at 60% 30%,#141b25 0%,#090c11 60%,#06080B 100%)}
+.topbar{position:absolute;left:0;right:0;top:0;height:84px;display:flex;align-items:center;padding:0 48px;gap:24px;border-bottom:1px solid var(--stroke)}
+.topbar h1{font-family:var(--fd);font-weight:700;font-size:40px;letter-spacing:.14em;color:var(--text-hi)}
+.sp{flex:1}
+.rail{position:absolute;left:48px;top:112px;width:260px}
+.tb{display:flex;align-items:center;height:52px;padding-left:18px;font-family:var(--fd);font-weight:700;font-size:20px;letter-spacing:.14em;color:var(--text-mid);border-left:3px solid transparent;cursor:pointer}
+.tb:hover{color:var(--text-hi)}
+.tb.on{color:var(--text-hi);border-left-color:var(--text-hi);background:linear-gradient(90deg,rgba(255,255,255,.07),rgba(255,255,255,0))}
+.pane{position:absolute;left:340px;top:112px;right:48px;bottom:104px;display:none;gap:24px}
+.pane.on{display:flex}
+.col{flex:1;display:flex;flex-direction:column;gap:14px;min-width:0}
+.card{padding:18px 20px}
+.card h2{font-family:var(--fd);font-weight:700;font-size:18px;letter-spacing:.18em;color:var(--text-hi);display:flex;justify-content:space-between;align-items:baseline}
+.row{display:grid;grid-template-columns:230px 1fr;align-items:center;min-height:50px;border-bottom:1px solid var(--stroke)}
+.row:last-child{border-bottom:0}
+.row .k{font-family:var(--fd);font-weight:600;font-size:14px;letter-spacing:.12em;color:var(--text);text-transform:uppercase}
+.row .k small{display:block;font-family:var(--fb);text-transform:none;letter-spacing:0;font-size:12px;color:var(--text-mid);font-weight:400;margin-top:1px}
+.ctl{display:flex;align-items:center;gap:12px}
+.inp{height:36px;min-width:90px;display:flex;align-items:center;padding:0 10px;border:1px solid var(--stroke-hi);background:rgba(0,0,0,.35);font-family:var(--fd);font-weight:700;font-size:18px;color:var(--text-hi)}
+.inp.big{height:44px;font-size:24px;min-width:140px}
+.unit{font-family:var(--fd);font-weight:600;font-size:14px;color:var(--text-mid);letter-spacing:.08em}
+.slider{position:relative;flex:1;height:4px;background:rgba(255,255,255,.14)}
+.slider b{position:absolute;left:0;top:0;bottom:0;background:var(--text-hi)}
+.slider i{position:absolute;top:50%;width:16px;height:16px;margin:-8px 0 0 -8px;background:var(--text-hi);transform:rotate(45deg)}
+.slider .tk{position:absolute;top:10px;font-family:var(--fd);font-size:11px;color:var(--text-low);transform:translateX(-50%)}
+.seg{display:flex}
+.seg div{height:34px;padding:0 14px;display:flex;align-items:center;justify-content:center;border:1px solid var(--stroke-mid);margin-left:-1px;font-family:var(--fd);font-weight:700;font-size:15px;letter-spacing:.08em;color:var(--text-mid)}
+.seg div.on{background:var(--text-hi);color:var(--bg0);border-color:var(--text-hi)}
+.sw{width:46px;height:24px;border-radius:12px;background:rgba(255,255,255,.14);position:relative}
+.sw::after{content:'';position:absolute;left:3px;top:3px;width:18px;height:18px;border-radius:50%;background:var(--text-mid)}
+.sw.on{background:var(--ally)} .sw.on::after{left:25px;background:#06140D}
+.note{font-size:12.5px;color:var(--text-mid);line-height:1.45}
+.conv{display:grid;grid-template-columns:1fr auto auto auto;gap:10px;align-items:center;margin-top:10px;padding:12px;background:rgba(255,255,255,.04);border:1px solid var(--stroke)}
+.dd{height:36px;display:flex;align-items:center;justify-content:space-between;gap:16px;padding:0 10px;border:1px solid var(--stroke-hi);font-family:var(--fd);font-weight:700;font-size:16px;letter-spacing:.06em;color:var(--text-hi);min-width:150px}
+.big-v{font-family:var(--fd);font-weight:700;font-size:44px;color:var(--text-hi);line-height:44px}
+.ruler{position:relative;height:42px;margin-top:10px;border-top:2px solid var(--text-hi)}
+.ruler i{position:absolute;top:0;width:1px;background:var(--text-mid)}
+.xh-prev{position:relative;height:250px;margin-top:12px;background-size:cover;background-position:center 55%;border:1px solid var(--stroke-mid)}
+.xh{position:absolute;left:50%;top:50%}
+.xh i{position:absolute;background:var(--xc,#F3F0E9);box-shadow:0 0 0 1px rgba(0,0,0,.85)}
+.sw-c{display:flex;gap:8px}
+.sw-c div{width:30px;height:30px;border:2px solid transparent}
+.sw-c div.on{border-color:#fff;outline:2px solid #000}
+/* keybinds */
+.kb{width:100%;border-collapse:collapse}
+.kb th{font-family:var(--fd);font-weight:600;font-size:12px;letter-spacing:.16em;color:var(--text-mid);text-align:left;padding:6px 10px;text-transform:uppercase}
+.kb td{height:38px;padding:0 10px;border-top:1px solid var(--stroke);font-size:14.5px;color:var(--text)}
+.kb td.g{font-family:var(--fd);font-weight:700;font-size:13px;letter-spacing:.18em;color:var(--text-hi);padding-top:12px;border-top:0;height:34px}
+.kb .kc{display:inline-flex;align-items:center;min-width:44px;height:28px;padding:0 10px;border:1px solid var(--stroke-hi);font-family:var(--fd);font-weight:700;font-size:15px;color:var(--text-hi);letter-spacing:.04em}
+.kb .kc.none{color:var(--text-low);border-style:dashed}
+.kb .kc.listen{border-color:var(--teal);color:var(--teal);animation:pulse 1s infinite}
+.kb .kc.warn{border-color:var(--warn);color:var(--warn)}
+.kb .pad{font-family:var(--fd);font-weight:600;font-size:14px;color:var(--text-mid)}
+.cb-prev{display:flex;gap:10px;align-items:center}
+.cb-prev span{display:flex;align-items:center;gap:6px;font-family:var(--fd);font-weight:700;font-size:14px;letter-spacing:.1em}
+.cb-prev i{width:14px;height:14px;display:inline-block}
+.bottom{position:absolute;left:0;right:0;bottom:0;height:80px;display:flex;align-items:center;gap:12px;padding:0 48px;border-top:1px solid var(--stroke);background:rgba(5,7,10,.6)}
+.hint{display:flex;align-items:center;gap:7px;font-family:var(--fd);font-weight:600;font-size:14px;letter-spacing:.14em;color:var(--text-mid)}
+.meter{display:flex;align-items:center;gap:10px}
+.meter .slider{max-width:340px}
+</style></head>
+<body data-variant="{{variant}}">
+<!--ICONS-->
+<div class="stage"><div class="screen">
+  <div class="topbar"><h1>SETTINGS</h1><div class="sp"></div><span class="hint">Changes apply instantly · saved to settings.ron</span><div class="btn">BACK <span class="key ghost" style="height:20px">ESC</span></div></div>
+  <div class="rail">
+    <div class="tb" data-t="gameplay">GAMEPLAY</div>
+    <div class="tb" data-t="mouse">MOUSE &amp; AIM</div>
+    <div class="tb" data-t="keybinds">KEYBINDS</div>
+    <div class="tb" data-t="video">VIDEO</div>
+    <div class="tb" data-t="audio">AUDIO</div>
+    <div class="tb" data-t="hud">HUD &amp; ACCESSIBILITY</div>
+  </div>
+
+  <!-- ===================== MOUSE & AIM ===================== -->
+  <div class="pane" id="p-mouse">
+    <div class="col">
+      <div class="card panel">
+        <h2>SENSITIVITY <span class="micro">raw input, no acceleration, no smoothing</span></h2>
+        <div class="row"><span class="k">Mouse DPI<small>Read it from your mouse software</small></span><div class="ctl"><div class="inp num">800</div><span class="unit">counts per inch</span></div></div>
+        <div class="row" style="min-height:96px"><span class="k">Turn distance<small>Mouse travel for one full 360° turn</small></span>
+          <div><div class="ctl"><div class="inp big num">40.8</div><span class="unit">cm / 360°</span><span class="unit" style="margin-left:14px">= 16.1 in · 0.0280° per count</span></div>
+            <div class="ctl" style="margin-top:14px"><div class="slider"><b style="width:40%"></b><i style="left:40%"></i><span class="tk" style="left:0">15</span><span class="tk" style="left:23.1%">30</span><span class="tk" style="left:53.8%">50</span><span class="tk" style="left:76.9%">65</span><span class="tk" style="left:100%">80 cm</span></div></div></div></div>
+        <div class="conv">
+          <div><div class="lbl" style="color:var(--text)">Import from another game</div><div class="note">Same DPI. Valorant yaw 0.07°, CS2 / Apex 0.022°, Overwatch 2 0.0066° per count.</div></div>
+          <div class="dd">VALORANT<svg width="12" height="12"><use href="#i-chev"/></svg></div>
+          <div class="inp num" style="min-width:80px">0.400</div>
+          <div class="btn primary" style="height:36px;font-size:15px;padding:0 16px">APPLY</div>
+        </div>
+        <div class="note" style="margin-top:8px">cm/360 = 914.4 ÷ (DPI × sens × yaw). Valorant 0.400 at 800 DPI → 40.8 cm. Your value in other games: Valorant <b style="color:var(--text-hi)">0.400</b> · CS2/Apex <b style="color:var(--text-hi)">1.273</b> · OW2 <b style="color:var(--text-hi)">4.242</b></div>
+        <div style="margin-top:12px"><span class="micro">ONE FULL TURN AT YOUR SETTING (not to scale)</span>
+          <div class="ruler" style="width:408px"><i style="left:0;height:14px"></i><i style="left:25%;height:8px"></i><i style="left:50%;height:12px"></i><i style="left:75%;height:8px"></i><i style="left:100%;height:14px"></i><span class="unit" style="position:absolute;right:-70px;top:-12px;color:var(--text-hi)">40.8 cm</span></div></div>
+      </div>
+      <div class="card panel">
+        <h2>AIM DOWN SIGHTS</h2>
+        <div class="row"><span class="k">ADS scaling<small>How zoomed sensitivity is derived</small></span><div class="seg"><div class="on">MATCH FOCAL LENGTH</div><div>SAME CM/360</div><div>CUSTOM</div></div></div>
+        <div class="row"><span class="k">Holo / red dot · 1.25×</span><div class="ctl"><div class="slider"><b style="width:50%"></b><i style="left:50%"></i></div><div class="inp num" style="min-width:70px">1.00</div></div></div>
+        <div class="row"><span class="k">3× prism</span><div class="ctl"><div class="slider"><b style="width:50%"></b><i style="left:50%"></i></div><div class="inp num" style="min-width:70px">1.00</div></div></div>
+        <div class="row"><span class="k">Sniper 5–25×<small>Per zoom step, same feel at every step</small></span><div class="ctl"><div class="slider"><b style="width:46%"></b><i style="left:46%"></i></div><div class="inp num" style="min-width:70px">0.92</div></div></div>
+        <div class="row"><span class="k">ADS input</span><div class="seg"><div class="on">HOLD</div><div>TOGGLE</div></div></div>
+        <div class="row"><span class="k">Invert Y</span><div class="sw"></div></div>
+      </div>
+    </div>
+    <div class="col">
+      <div class="card panel">
+        <h2>FIELD OF VIEW</h2>
+        <div class="row" style="min-height:90px"><span class="k">Horizontal FOV<small>Measured at 16:9. Ultrawide adds width (Hor+)</small></span>
+          <div><div class="ctl"><div class="inp big num">103°</div><span class="unit">= 70.5° vertical · Valorant uses 103°</span></div>
+          <div class="ctl" style="margin-top:14px"><div class="slider"><b style="width:76.7%"></b><i style="left:76.7%"></i><span class="tk" style="left:0">80°</span><span class="tk" style="left:100%">110°</span></div></div></div></div>
+        <div class="row"><span class="k">Viewmodel FOV<small>Gun and hands only</small></span><div class="ctl"><div class="slider"><b style="width:50%"></b><i style="left:50%"></i></div><div class="inp num" style="min-width:70px">68°</div></div></div>
+      </div>
+      <div class="card panel" style="flex:1">
+        <h2>CROSSHAIR <span class="micro">copy / paste code: XH1-W-O1-I7.2.5</span></h2>
+        <div class="xh-prev" style="background-image:url({{img:hud_street}})"><div class="xh"><i style="left:-1px;top:-12px;width:2px;height:7px"></i><i style="left:-1px;top:5px;width:2px;height:7px"></i><i style="top:-1px;left:-12px;width:7px;height:2px"></i><i style="top:-1px;left:5px;width:7px;height:2px"></i></div>
+          <div class="seg" style="position:absolute;right:10px;top:10px;background:rgba(7,9,13,.85)"><div class="on">STREET</div><div>WHITE WALL</div><div>SKY</div></div></div>
+        <div class="row"><span class="k">Colour</span><div class="sw-c"><div class="on" style="background:#F3F0E9"></div><div style="background:#B3EDFF"></div><div style="background:#F6FF52"></div><div style="background:#52E5A5"></div><div style="background:#FF4DF0"></div><div class="inp" style="width:auto;min-width:0;height:30px;font-size:14px">#F3F0E9</div></div></div>
+        <div class="row"><span class="k">Outline · centre dot</span><div class="ctl"><div class="seg"><div class="on">OUTLINE 1 PX</div><div>OFF</div></div><div class="seg"><div>DOT</div><div class="on">NO DOT</div></div></div></div>
+        <div class="row"><span class="k">Lines · length / gap / width</span><div class="ctl"><div class="inp num" style="min-width:56px">7</div><div class="inp num" style="min-width:56px">5</div><div class="inp num" style="min-width:56px">2</div><span class="unit">px at 1080p</span></div></div>
+        <div class="row"><span class="k">Hit markers</span><div class="seg"><div class="on">SHIELD + FLESH</div><div>FLESH ONLY</div><div>OFF</div></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================== KEYBINDS ===================== -->
+  <div class="pane" id="p-keybinds">
+    <div class="col card panel" style="flex:1.05">
+      <h2>KEYBOARD &amp; MOUSE <span class="micro">click a key to rebind · BACKSPACE clears · ESC cancels</span></h2>
+      <table class="kb"><tr><th>Action</th><th>Primary</th><th>Secondary</th><th>Gamepad</th></tr>
+        <tr><td class="g" colspan="4">MOVEMENT</td></tr>
+        <tr><td>Move</td><td><span class="kc">W A S D</span></td><td><span class="kc none">—</span></td><td class="pad">Left stick</td></tr>
+        <tr><td>Jump · hold in air: jetpack</td><td><span class="kc">SPACE</span></td><td><span class="kc">WHEEL ↓</span></td><td class="pad">A / ✕</td></tr>
+        <tr><td>Sprint (hold)</td><td><span class="kc">L-SHIFT</span></td><td><span class="kc none">—</span></td><td class="pad">L3 click</td></tr>
+        <tr><td>Crouch · while sprinting: slide</td><td><span class="kc">L-CTRL</span></td><td><span class="kc">C</span></td><td class="pad">B / ◯</td></tr>
+        <tr><td>Interact · grab zipline · revive</td><td><span class="kc">F</span></td><td><span class="kc none">—</span></td><td class="pad">X / ▢ hold</td></tr>
+        <tr><td class="g" colspan="4">COMBAT</td></tr>
+        <tr><td>Fire · aim down sights</td><td><span class="kc">LMB</span> <span class="kc">RMB</span></td><td><span class="kc none">—</span></td><td class="pad">RT · LT</td></tr>
+        <tr><td>Reload · double-tap: fast reload (drop mag)</td><td><span class="kc">R</span></td><td><span class="kc none">—</span></td><td class="pad">X / ▢ tap</td></tr>
+        <tr><td><b style="color:var(--text-hi)">Mag check</b></td><td><span class="kc listen">PRESS A KEY…</span></td><td><span class="kc none">—</span></td><td class="pad">D-pad ↑</td></tr>
+        <tr><td>Fire mode</td><td><span class="kc">B</span></td><td><span class="kc none">—</span></td><td class="pad">D-pad ↑ hold</td></tr>
+        <tr><td>Underbarrel launcher</td><td><span class="kc">G</span></td><td><span class="kc none">—</span></td><td class="pad">D-pad →</td></tr>
+        <tr><td>Laser / flashlight</td><td><span class="kc">V</span></td><td><span class="kc none">—</span></td><td class="pad">D-pad ↓</td></tr>
+        <tr><td>Melee <span style="color:var(--warn);font-size:12.5px">· V is also Laser</span></td><td><span class="kc warn">V</span></td><td><span class="kc">3</span></td><td class="pad">R3 tap</td></tr>
+        <tr><td>Hold breath (Warden scope)</td><td><span class="kc">L-SHIFT</span></td><td><span class="kc none">—</span></td><td class="pad">L3 while ADS</td></tr>
+      </table>
+    </div>
+    <div class="col card panel">
+      <table class="kb"><tr><th>Action</th><th>Primary</th><th>Secondary</th><th>Gamepad</th></tr>
+        <tr><td class="g" colspan="4">ABILITIES</td></tr>
+        <tr><td>Ability 1 (Grapple · Mend Drone)</td><td><span class="kc">Q</span></td><td><span class="kc none">—</span></td><td class="pad">LB / L1</td></tr>
+        <tr><td>Signature (Scan · Triage Pulse)</td><td><span class="kc">E</span></td><td><span class="kc none">—</span></td><td class="pad">RB / R1</td></tr>
+        <tr><td>Ultimate</td><td><span class="kc">X</span></td><td><span class="kc none">—</span></td><td class="pad">LB + RB</td></tr>
+        <tr><td class="g" colspan="4">ITEMS &amp; HEALTH</td></tr>
+        <tr><td>Bandage (stops bleeding)</td><td><span class="kc">4</span></td><td><span class="kc none">—</span></td><td class="pad">D-pad ← tap</td></tr>
+        <tr><td>Med-stim</td><td><span class="kc">5</span></td><td><span class="kc none">—</span></td><td class="pad">D-pad ← hold</td></tr>
+        <tr><td>Health panel (hold)</td><td><span class="kc">H</span></td><td><span class="kc none">—</span></td><td class="pad">View tap (toggle)</td></tr>
+        <tr><td class="g" colspan="4">INTERFACE</td></tr>
+        <tr><td>Scoreboard (hold)</td><td><span class="kc">TAB</span></td><td><span class="kc none">—</span></td><td class="pad">View hold</td></tr>
+        <tr><td>Ping / mark</td><td><span class="kc">MMB</span></td><td><span class="kc">Z</span></td><td class="pad">R3 hold</td></tr>
+        <tr><td>Team chat · all chat</td><td><span class="kc">ENTER</span></td><td><span class="kc">Y</span></td><td class="pad">—</td></tr>
+        <tr><td>Change loadout (when dead)</td><td><span class="kc">L</span></td><td><span class="kc none">—</span></td><td class="pad">Y / △</td></tr>
+        <tr><td>Match menu</td><td><span class="kc">ESC</span></td><td><span class="kc none">—</span></td><td class="pad">Menu / Options</td></tr>
+      </table>
+      <div class="note" style="margin-top:auto;padding-top:12px">Conflicts are allowed only between contexts that never run at once (Sprint and Hold breath share Shift because you cannot sprint while aiming). Any other clash turns the key amber and names the other action.</div>
+    </div>
+  </div>
+
+  <!-- ===================== VIDEO ===================== -->
+  <div class="pane" id="p-video">
+    <div class="col card panel">
+      <h2>DISPLAY</h2>
+      <div class="row"><span class="k">Window mode</span><div class="seg"><div>FULLSCREEN</div><div class="on">BORDERLESS</div><div>WINDOWED</div></div></div>
+      <div class="row"><span class="k">Resolution</span><div class="dd" style="width:240px">2560 × 1440 · 165 Hz<svg width="12" height="12"><use href="#i-chev"/></svg></div></div>
+      <div class="row"><span class="k">Render scale<small>3D only. UI always renders at native</small></span><div class="ctl"><div class="slider"><b style="width:66%"></b><i style="left:66%"></i></div><div class="inp num" style="min-width:70px">100 %</div></div></div>
+      <div class="row"><span class="k">Frame limit</span><div class="seg"><div>60</div><div>144</div><div class="on">165</div><div>240</div><div>OFF</div></div></div>
+      <div class="row"><span class="k">V-sync<small>Bevy PresentMode</small></span><div class="seg"><div class="on">OFF (AutoNoVsync)</div><div>ON (AutoVsync)</div></div></div>
+      <div class="row"><span class="k">Brightness</span><div class="ctl"><div class="slider"><b style="width:50%"></b><i style="left:50%"></i></div><div class="inp num" style="min-width:70px">0</div></div></div>
+      <h2 style="margin-top:12px">PERFORMANCE OVERLAY</h2>
+      <div class="row"><span class="k">Show</span><div class="seg"><div>OFF</div><div class="on">FPS + FRAME TIME</div><div>+ NETWORK</div></div></div>
+    </div>
+    <div class="col card panel">
+      <h2>QUALITY <span class="micro">preset: HIGH · custom</span></h2>
+      <div class="row"><span class="k">Preset</span><div class="seg"><div>LOW</div><div>MEDIUM</div><div class="on">HIGH</div><div>ULTRA</div></div></div>
+      <div class="row"><span class="k">Anti-aliasing</span><div class="seg"><div>OFF</div><div>FXAA</div><div class="on">SMAA</div><div>TAA</div><div>MSAA 4×</div></div></div>
+      <div class="row"><span class="k">Shadows</span><div class="seg"><div>LOW</div><div class="on">MEDIUM</div><div>HIGH</div></div></div>
+      <div class="row"><span class="k">Stylized outlines<small>Ink edges on characters and props</small></span><div class="sw on"></div></div>
+      <div class="row"><span class="k">Bloom<small>Halos, optics, jet cores</small></span><div class="seg"><div>OFF</div><div class="on">LOW</div><div>HIGH</div></div></div>
+      <div class="row"><span class="k">Particles (bevy_hanabi)</span><div class="seg"><div>LOW</div><div class="on">HIGH</div></div></div>
+      <div class="row"><span class="k">Contact shadows · SSR</span><div class="ctl"><div class="sw on"></div><div class="sw"></div></div></div>
+      <div class="row"><span class="k">Motion blur · vignette</span><div class="ctl"><div class="sw"></div><div class="sw"></div></div></div>
+      <div class="note" style="margin-top:10px">Competitive rule: settings may never hide halos, hex shards or enemy outlines. "Low" only drops their particle count, not their visibility.</div>
+    </div>
+  </div>
+
+  <!-- ===================== AUDIO ===================== -->
+  <div class="pane" id="p-audio">
+    <div class="col card panel">
+      <h2>VOLUME</h2>
+      <div class="row"><span class="k">Master</span><div class="meter"><div class="slider"><b style="width:80%"></b><i style="left:80%"></i></div><div class="inp num" style="min-width:64px">80</div></div></div>
+      <div class="row"><span class="k">Weapons</span><div class="meter"><div class="slider"><b style="width:90%"></b><i style="left:90%"></i></div><div class="inp num" style="min-width:64px">90</div></div></div>
+      <div class="row"><span class="k">Footsteps &amp; movement<small>Jetpack, slide, zipline</small></span><div class="meter"><div class="slider"><b style="width:100%"></b><i style="left:100%"></i></div><div class="inp num" style="min-width:64px">100</div></div></div>
+      <div class="row"><span class="k">Abilities &amp; halos</span><div class="meter"><div class="slider"><b style="width:85%"></b><i style="left:85%"></i></div><div class="inp num" style="min-width:64px">85</div></div></div>
+      <div class="row"><span class="k">Hit and kill sounds</span><div class="meter"><div class="slider"><b style="width:70%"></b><i style="left:70%"></i></div><div class="inp num" style="min-width:64px">70</div></div></div>
+      <div class="row"><span class="k">Interface</span><div class="meter"><div class="slider"><b style="width:60%"></b><i style="left:60%"></i></div><div class="inp num" style="min-width:64px">60</div></div></div>
+      <div class="row"><span class="k">Music<small>Menus and match end only</small></span><div class="meter"><div class="slider"><b style="width:40%"></b><i style="left:40%"></i></div><div class="inp num" style="min-width:64px">40</div></div></div>
+    </div>
+    <div class="col card panel">
+      <h2>OUTPUT &amp; CUES</h2>
+      <div class="row"><span class="k">Output device</span><div class="dd" style="width:300px">System default<svg width="12" height="12"><use href="#i-chev"/></svg></div></div>
+      <div class="row"><span class="k">Mix</span><div class="seg"><div class="on">HEADPHONES</div><div>SPEAKERS</div><div>NIGHT (compressed)</div></div></div>
+      <div class="row"><span class="k">Shield-hit sound<small>Glassy "tink" per tier, pitch rises T1 → T4</small></span><div class="sw on"></div></div>
+      <div class="row"><span class="k">Headshot sound</span><div class="sw on"></div></div>
+      <div class="row"><span class="k">Low-mag cue<small>Lighter trigger click in roughly the last 15 % (open question)</small></span><div class="seg"><div class="on">OFF</div><div>ON</div></div></div>
+      <div class="row"><span class="k">Play in background</span><div class="sw"></div></div>
+      <div class="note" style="margin-top:10px">No voice chat in the prototype. Friends use Discord or similar. Text chat is in the lobby and in match.</div>
+    </div>
+  </div>
+
+  <!-- ===================== HUD & ACCESSIBILITY ===================== -->
+  <div class="pane" id="p-hud">
+    <div class="col card panel">
+      <h2>HUD</h2>
+      <div class="row"><span class="k">HUD scale</span><div class="ctl"><div class="slider"><b style="width:50%"></b><i style="left:50%"></i><span class="tk" style="left:0">80 %</span><span class="tk" style="left:100%">120 %</span></div><div class="inp num" style="min-width:70px">100 %</div></div></div>
+      <div class="row"><span class="k">Safe area margin<small>Pushes HUD in from the screen edge</small></span><div class="ctl"><div class="slider"><b style="width:30%"></b><i style="left:30%"></i></div><div class="inp num" style="min-width:70px">32 px</div></div></div>
+      <div class="row"><span class="k">Ultrawide HUD width</span><div class="seg"><div class="on">16:9 CENTRE</div><div>FULL WIDTH</div></div></div>
+      <div class="row"><span class="k">Health numbers</span><div class="seg"><div class="on">SHOW</div><div>BARS ONLY</div></div></div>
+      <div class="row"><span class="k">Minimap</span><div class="seg"><div>ROTATE</div><div class="on">NORTH UP</div></div></div>
+      <div class="row"><span class="k">Damage numbers</span><div class="seg"><div class="on">OFF</div><div>ON</div></div></div>
+      <div class="row"><span class="k">Kill feed lines</span><div class="seg"><div>3</div><div class="on">5</div><div>7</div></div></div>
+      <div class="row"><span class="k">Show enemy names</span><div class="seg"><div class="on">ON SCAN / AIM</div><div>NEVER</div></div></div>
+    </div>
+    <div class="col card panel">
+      <h2>COLOUR &amp; COMFORT</h2>
+      <div class="row" style="min-height:76px"><span class="k">Team colours<small>Halo tier colours never change; tiers also show as I–IV pips</small></span>
+        <div><div class="seg"><div class="on">DEFAULT</div><div>DEUTAN</div><div>PROTAN</div><div>TRITAN</div></div>
+        <div class="cb-prev" style="margin-top:10px"><span class="c-ally"><i style="background:var(--ally)"></i>ALLY</span><span class="c-enemy"><i style="background:var(--enemy)"></i>ENEMY</span><span style="color:var(--text-mid)">· Deutan/Protan: ally <i style="background:#3FA9F5"></i> enemy <i style="background:#FFB000"></i></span></div></div></div>
+      <div class="row"><span class="k">Enemy outline</span><div class="seg"><div class="on">ON</div><div>THICK</div><div>OFF</div></div></div>
+      <div class="row"><span class="k">Screen shake</span><div class="ctl"><div class="slider"><b style="width:60%"></b><i style="left:60%"></i></div><div class="inp num" style="min-width:70px">60 %</div></div></div>
+      <div class="row"><span class="k">Damage flash<small>Red / hex edge flash when hit</small></span><div class="seg"><div>OFF</div><div class="on">SOFT</div><div>FULL</div></div></div>
+      <div class="row"><span class="k">Reduce flashing</span><div class="sw"></div></div>
+      <div class="row"><span class="k">Text size</span><div class="seg"><div>S</div><div class="on">M</div><div>L</div></div></div>
+      <div class="row"><span class="k">Hold / toggle<small>Sprint, crouch, ADS, health panel</small></span><div class="seg"><div class="on">HOLD</div><div>TOGGLE</div></div></div>
+    </div>
+  </div>
+
+  <!-- ===================== GAMEPLAY ===================== -->
+  <div class="pane" id="p-gameplay">
+    <div class="col card panel">
+      <h2>GAMEPLAY</h2>
+      <div class="row"><span class="k">Player name</span><div class="inp" style="width:280px">KESTREL_YOU</div></div>
+      <div class="row"><span class="k">Auto-sprint</span><div class="sw"></div></div>
+      <div class="row"><span class="k">Jetpack</span><div class="seg"><div class="on">HOLD JUMP IN AIR</div><div>SEPARATE KEY</div></div></div>
+      <div class="row"><span class="k">Slide</span><div class="seg"><div class="on">CROUCH WHILE SPRINTING</div><div>OFF</div></div></div>
+      <div class="row"><span class="k">Mag check card</span><div class="seg"><div class="on">3 S</div><div>WHILE HELD</div></div></div>
+    </div>
+    <div class="col card panel"><h2>NETWORK</h2>
+      <div class="row"><span class="k">Default host port</span><div class="inp num">7777</div></div>
+      <div class="row"><span class="k">Show net graph</span><div class="sw"></div></div></div>
+  </div>
+
+  <div class="bottom"><span class="hint"><span class="key ghost">Q</span><span class="key ghost">E</span>TABS</span><span class="hint"><span class="key ghost">R</span>RESET TAB</span><div class="sp"></div><div class="btn">RESET ALL</div><div class="btn primary">DONE</div></div>
+  <div class="mock-label" style="bottom:88px">{{label}}</div>
+</div></div>
+<script>
+(function(){ const tok=(location.hash||'').replace('#','').split(','); const tabs=['gameplay','mouse','keybinds','video','audio','hud'];
+  let t=tabs.find(x=>tok.includes(x))||'mouse';
+  function show(n){ document.querySelectorAll('.tb').forEach(e=>e.classList.toggle('on',e.dataset.t===n)); document.querySelectorAll('.pane').forEach(e=>e.classList.toggle('on',e.id==='p-'+n)); }
+  document.querySelectorAll('.tb').forEach(e=>e.addEventListener('click',()=>show(e.dataset.t))); show(t); })();
+</script>
+<!--FIT-->
+</body></html>

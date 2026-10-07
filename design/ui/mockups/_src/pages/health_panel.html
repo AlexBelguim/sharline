@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>{{title}}</title>
+<!--COMMON-->
+<style>
+.screen{background:radial-gradient(ellipse at 30% 40%,#141b25 0%,#07090D 70%)}
+.grid-bg{position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,.025) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.025) 1px,transparent 1px);background-size:40px 40px}
+h1{font-family:var(--fd);font-weight:700;font-size:30px;letter-spacing:.1em;color:var(--text-hi);text-transform:uppercase}
+h2{font-family:var(--fd);font-weight:700;font-size:16px;letter-spacing:.18em;color:var(--text-hi);text-transform:uppercase}
+.sub{font-size:14px;color:var(--text-mid);margin-top:2px}
+/* expanded health panel (hold H) */
+.hp-big{position:absolute;left:48px;top:48px;width:700px;height:984px;padding:22px 26px}
+.hp-big .top{display:flex;justify-content:space-between;align-items:flex-start}
+.hp-big .figure{position:relative;height:430px;margin-top:18px}
+.callout{position:absolute;width:190px}
+.callout .zn{display:flex;align-items:center;gap:8px;font-family:var(--fd);font-weight:700;font-size:15px;letter-spacing:.16em;color:var(--text-hi)}
+.callout .zn svg{width:16px;height:16px}
+.callout .hpv{font-family:var(--fd);font-weight:700;font-size:30px;line-height:30px;color:var(--text-hi)}
+.callout .hpv small{font-size:15px;color:var(--text-mid);font-weight:600}
+.callout .bar{height:5px;margin:4px 0 5px}
+.callout .st{font-family:var(--fd);font-weight:600;font-size:12px;letter-spacing:.14em;text-transform:uppercase}
+.callout .fx{font-size:12.5px;color:var(--text-mid);line-height:1.35;margin-top:3px}
+.callout.r{text-align:right}.callout.r .zn{justify-content:flex-end}
+.leader{position:absolute;height:1px;background:rgba(255,255,255,.25)}
+.sect{margin-top:16px;padding-top:14px;border-top:1px solid var(--stroke)}
+.treat{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px}
+.treat .t{padding:10px;background:rgba(255,255,255,.04);border:1px solid var(--stroke)}
+.treat .t .h{display:flex;align-items:center;gap:8px;font-family:var(--fd);font-weight:700;font-size:15px;letter-spacing:.1em;color:var(--text-hi)}
+.treat .t svg{width:20px;height:20px}
+.treat .t p{font-size:12.5px;color:var(--text-mid);margin-top:5px;line-height:1.35}
+.shieldrow{display:flex;gap:18px;align-items:center;margin-top:10px}
+.kv2{display:grid;grid-template-columns:110px 1fr;row-gap:5px;font-size:14px}
+.kv2 span:nth-child(odd){font-family:var(--fd);font-weight:600;font-size:12px;letter-spacing:.14em;color:var(--text-mid);text-transform:uppercase;padding-top:2px}
+.needs2{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:10px}
+.need2 .h{display:flex;justify-content:space-between;align-items:center}
+.need2 .h span{display:flex;gap:6px;align-items:center;font-family:var(--fd);font-weight:700;font-size:14px;letter-spacing:.14em;color:var(--text-hi)}
+.need2 svg{width:14px;height:14px}
+.need2 .bar{height:6px;margin-top:6px}.need2 .bar b{background:var(--bone)}
+.need2 p{font-size:12.5px;color:var(--text-mid);margin-top:5px}
+/* state matrix */
+.matrix{position:absolute;left:790px;top:48px;width:1082px;padding:22px 26px}
+.mtx{display:grid;grid-template-columns:110px repeat(5,1fr);gap:6px;margin-top:14px}
+.mtx .ch{font-family:var(--fd);font-weight:700;font-size:14px;letter-spacing:.16em;color:var(--text-hi);text-align:center;padding-bottom:4px;border-bottom:2px solid var(--c,var(--text-hi))}
+.mtx .ch small{display:block;font-size:11px;color:var(--text-mid);letter-spacing:.1em;font-weight:600}
+.mtx .rh{display:flex;align-items:center;gap:8px;font-family:var(--fd);font-weight:700;font-size:15px;letter-spacing:.16em;color:var(--text-hi)}
+.mtx .rh svg{width:18px;height:18px}
+.mtx .cell{height:96px;display:flex;align-items:center;justify-content:center;gap:10px;background:rgba(255,255,255,.03);border:1px solid var(--stroke)}
+.mtx .cell .ztxt{font-family:var(--fd);font-weight:700;font-size:20px;color:var(--text-hi);line-height:20px}
+.mtx .cell .ztxt small{display:block;font-size:11px;font-weight:600;color:var(--text-mid);letter-spacing:.12em}
+.legend{display:flex;gap:18px;margin-top:12px;font-size:12.5px;color:var(--text-mid)}
+.legend b{font-family:var(--fd);letter-spacing:.1em;color:var(--text-hi)}
+.halo-states{position:absolute;left:790px;top:610px;width:1082px;padding:20px 26px}
+.hs-row{display:flex;gap:10px;margin-top:12px}
+.hs{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;padding:8px 4px 10px;background:rgba(255,255,255,.03);border:1px solid var(--stroke)}
+.hs .n{font-family:var(--fd);font-weight:700;font-size:14px;letter-spacing:.14em;color:var(--text-hi)}
+.hs .d{font-size:11.5px;color:var(--text-mid);text-align:center;line-height:1.3;padding:0 4px}
+</style></head>
+<body data-variant="{{variant}}">
+<!--ICONS-->
+<div class="stage"><div class="screen">
+  <div class="grid-bg"></div>
+
+  <!-- ================= expanded health panel (hold H, also inside TAB) ================= -->
+  <div class="hp-big panel hi accent-top" style="--acc:var(--text-hi)">
+    <div class="top">
+      <div><h1>Health</h1><div class="sub">Hold <span class="key" style="height:18px;min-width:18px;font-size:12px">H</span> in match · the HUD vitals block expanded</div></div>
+      <div style="text-align:right"><div class="lbl">Total</div><div class="num" style="font-family:var(--fd);font-weight:700;font-size:34px;color:var(--text-hi);line-height:34px">136<small style="font-size:16px;color:var(--text-mid)"> / 250</small></div></div>
+    </div>
+    <div class="figure">
+      <div style="position:absolute;left:250px;top:0" data-body='{"hp":{"head":1,"torso":0.61,"arms":0.23,"legs":0.5},"bleed":["arms"],"covered":["head","torso","arms"],"tier":"t2","w":200,"heal":["legs"]}'></div>
+      <div class="leader" style="left:200px;top:40px;width:84px"></div>
+      <div class="callout" style="left:0;top:4px"><div class="zn"><svg style="color:var(--hp-ok)"><use href="#i-head"/></svg>HEAD</div><div class="hpv num">35<small> / 35</small></div><div class="bar"><b style="width:100%"></b></div><div class="st" style="color:var(--hp-ok)">Healthy · shielded</div><div class="fx">0 HP = death.</div></div>
+      <div class="leader" style="left:200px;top:150px;width:110px"></div>
+      <div class="callout" style="left:0;top:116px"><div class="zn"><svg style="color:var(--hp-dmg)"><use href="#i-torso"/></svg>TORSO</div><div class="hpv num">52<small> / 85</small></div><div class="bar"><b style="width:61%;background:var(--hp-dmg)"></b></div><div class="st" style="color:var(--hp-dmg)">Damaged · shielded</div><div class="fx">0 HP = death. Overflow from destroyed limbs lands here.</div></div>
+      <div class="leader" style="left:462px;top:136px;width:150px"></div>
+      <div class="callout r" style="left:500px;top:120px"><div class="zn">ARMS<svg style="color:var(--hp-crit)"><use href="#i-arms"/></svg></div><div class="hpv num" style="color:#FF6170">14<small> / 60</small></div><div class="bar"><b style="width:23%;background:var(--hp-crit)"></b></div><div class="st" style="color:#FF6170">Critical · bleeding · shielded</div><div class="fx">Sway +30 %. At 0: sway +60 %, ADS and reload +30 %.</div></div>
+      <div class="leader" style="left:420px;top:306px;width:190px"></div>
+      <div class="callout r" style="left:500px;top:290px"><div class="zn">LEGS<svg style="color:var(--hp-dmg)"><use href="#i-legs"/></svg></div><div class="hpv num">35<small> / 70</small></div><div class="bar"><b style="width:50%;background:var(--hp-dmg)"></b></div><div class="st" style="color:var(--heal)">Damaged · healing +4/s · open</div><div class="fx">At 0: no sprint or slide, jet thrust −50 %.</div></div>
+    </div>
+
+    <div class="sect">
+      <h2>Treat</h2>
+      <div class="treat">
+        <div class="t"><div class="h"><span class="key">4</span><svg><use href="#i-bandage"/></svg>BANDAGE ×2</div><p>2.5 s. Stops bleeding on the worst bleeding zone. No HP.</p></div>
+        <div class="t"><div class="h"><span class="key">5</span><svg><use href="#i-medkit"/></svg>MED-STIM ×1</div><p>4 s. +40 HP split over damaged zones, worst first. Cannot restore a destroyed zone.</p></div>
+        <div class="t" style="border-color:rgba(255,140,122,.4)"><div class="h" style="color:var(--coral)"><span class="key" style="background:var(--coral)">E</span><svg><use href="#i-pulse"/></svg>SOLACE PULSE</div><p>Solace only. Heals allies in 6 m, stops bleeding, revives a destroyed limb to 1 HP.</p></div>
+      </div>
+    </div>
+
+    <div class="sect">
+      <h2>Halo shield</h2>
+      <div class="shieldrow">
+        <div data-halo='{"tier":"t2","core":"mender","covered":["head","torso","arms"],"weight":"medium","cells":2,"shield":0.6,"state":"idle","size":150,"value":72}'></div>
+        <div class="kv2">
+          <span>Core</span><span><b class="c-t2">MENDER</b> · twin ring · slow passive regen</span>
+          <span>Tier</span><span><span class="tier c-t2"><i></i><i></i></span> T2 · blue</span>
+          <span>Covers</span><span>Head, Torso, Arms · <span style="color:var(--text-low)">Legs open</span></span>
+          <span>Shield</span><span class="num">72 / 120 · regen 4/s after 5 s without damage</span>
+          <span>Weight</span><span>MEDIUM · 2 power cells · move speed −5 %</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="sect">
+      <h2>Energy &amp; food</h2>
+      <div class="needs2">
+        <div class="need2"><div class="h"><span><svg><use href="#i-energy"/></svg>ENERGY</span><span class="num">74 / 100 <span style="color:var(--warn)">&#9660;&#9660; −3.0/min</span></span></div><div class="bar"><b style="width:74%"></b></div><p>2 power cells drain it. Below 20: shield regen stops.</p></div>
+        <div class="need2"><div class="h"><span><svg><use href="#i-food"/></svg>FOOD</span><span class="num">81 / 100 <span style="color:var(--warn)">&#9660; −1.5/min</span></span></div><div class="bar"><b style="width:81%"></b></div><p>Below 20: sprint and jet recharge −25 %.</p></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= zone state matrix ================= -->
+  <div class="matrix panel">
+    <h1>Zone states</h1>
+    <div class="sub">Silhouette fill height = remaining HP. Colour = state. A tier-coloured outline marks zones covered by the halo shield.</div>
+    <div class="mtx" id="mtx"></div>
+    <div class="legend">
+      <span><b style="color:var(--hp-ok)">HEALTHY</b> ≥ 75 %</span><span><b style="color:var(--hp-dmg)">DAMAGED</b> 35–74 %</span>
+      <span><b style="color:var(--hp-crit)">CRITICAL</b> 1–34 %, pulses 1.1 s</span><span><b>DESTROYED</b> 0, hatched + red outline</span><span><b style="color:#FF6170">BLEEDING</b> drip loop + −0.8 HP/s</span>
+    </div>
+  </div>
+
+  <!-- ================= halo + weight states ================= -->
+  <div class="halo-states panel">
+    <h1>Halo widget states</h1>
+    <div class="sub">Your own halo in the HUD (top-down: Head front/up, Arms left, Torso back/down, Legs right; same order as the 3D halo).</div>
+    <div class="hs-row">
+      <div class="hs"><div data-halo='{"tier":"t2","core":"mender","covered":["head","torso","arms"],"weight":"medium","cells":2,"shield":1,"state":"idle","size":104,"value":120}'></div><div class="n">IDLE</div><div class="d">Full. Arcs at 85 %.</div></div>
+      <div class="hs"><div data-halo='{"tier":"t2","core":"mender","covered":["head","torso","arms"],"weight":"medium","cells":2,"shield":0.7,"state":"hit","size":104,"value":84}'></div><div class="n" style="color:var(--t2)">HIT</div><div class="d">0.25 s flare + white rim, the hit arc shakes 2 px.</div></div>
+      <div class="hs"><div data-halo='{"tier":"t2","core":"mender","covered":["head","torso","arms"],"weight":"medium","cells":2,"shield":0.18,"state":"idle","size":104,"value":22}'></div><div class="n" style="color:var(--warn)">LOW &lt; 25 %</div><div class="d">Arcs drain clockwise. Crack sprite overlay.</div></div>
+      <div class="hs"><div data-halo='{"tier":"t2","core":"mender","covered":["head","torso","arms"],"weight":"medium","cells":2,"shield":0,"state":"broken","size":104,"value":0}'></div><div class="n" style="color:var(--hp-crit)">BROKEN</div><div class="d">Shard burst 0.4 s, outlines dashed on the body.</div></div>
+      <div class="hs"><div data-halo='{"tier":"t2","core":"mender","covered":["head","torso","arms"],"weight":"medium","cells":2,"shield":0.45,"state":"regen","size":104,"value":54}'></div><div class="n" style="color:var(--heal)">REGEN</div><div class="d">Sweep shimmer while it refills.</div></div>
+    </div>
+    <div class="hs-row">
+      <div class="hs"><div data-halo='{"tier":"t1","core":"phase","covered":["head","torso"],"weight":"light","cells":1,"state":"idle","size":96,"label":true}'></div><div class="n">LIGHT</div><div class="d">T1 Phase · 1 cell · no band</div></div>
+      <div class="hs"><div data-halo='{"tier":"t2","core":"mender","covered":["head","torso","arms"],"weight":"medium","cells":2,"state":"idle","size":96}'></div><div class="n">MEDIUM</div><div class="d">T2 Mender · 2 cells · thin band</div></div>
+      <div class="hs"><div data-halo='{"tier":"t3","core":"volt","covered":["head","torso","arms","legs"],"weight":"heavy","cells":3,"state":"idle","size":96}'></div><div class="n">HEAVY</div><div class="d">T3 Volt · 3 cells · armored band</div></div>
+      <div class="hs"><div data-halo='{"tier":"t4","core":"bulwark","covered":["head","torso","arms","legs"],"weight":"heavy","cells":3,"state":"idle","size":96}'></div><div class="n">HEAVY</div><div class="d">T4 Bulwark · hex ring</div></div>
+      <div class="hs"><div data-halo='{"tier":"t3","core":"bulwark","covered":["head","torso"],"weight":"heavy","cells":3,"state":"idle","size":96}'></div><div class="n">COVERAGE</div><div class="d">Head + Torso lit, Arms + Legs dark</div></div>
+    </div>
+  </div>
+
+  <div class="mock-label">{{label}}</div>
+</div></div>
+<!--WIDGETS-->
+<script>
+(function(){ const m=document.getElementById('mtx');
+  const cols=[['HEALTHY','100 %','var(--hp-ok)',1],['DAMAGED','55 %','var(--hp-dmg)',.55],['CRITICAL','20 %','var(--hp-crit)',.2],['DESTROYED','0 HP','#8a8f98',0],['BLEEDING','70 % + bleed','#FF6170',.7]];
+  const rows=[['head','HEAD',35],['torso','TORSO',85],['arms','ARMS',60],['legs','LEGS',70]];
+  let h='<div></div>'; for(const c of cols) h+=`<div class="ch" style="--c:${c[2]}">${c[0]}<small>${c[1]}</small></div>`;
+  for(const r of rows){ h+=`<div class="rh"><svg><use href="#i-${r[0]}"/></svg>${r[1]}</div>`;
+    for(const c of cols){ const hp={head:1,torso:1,arms:1,legs:1}; hp[r[0]]=c[3]; const o={hp, w:40, covered:[], tier:'t2'}; if(c[0]==='BLEEDING') o.bleed=[r[0]];
+      const v=Math.round(r[2]*c[3]); const note = (c[0]==='DESTROYED' && (r[0]==='head'||r[0]==='torso')) ? 'DEATH' : (c[0]==='DESTROYED'?'overflow ×0.7 → torso':'');
+      h+=`<div class="cell"><div data-body='${JSON.stringify(o)}'></div><div class="ztxt num">${v}<small>/ ${r[2]}</small><small style="color:${note==='DEATH'?'#FF6170':'var(--text-low)'};margin-top:3px">${note}</small></div></div>`; } }
+  m.innerHTML=h; })();
+</script>
+<!--FIT-->
+</body></html>

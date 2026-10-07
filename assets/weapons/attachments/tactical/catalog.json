@@ -1,0 +1,377 @@
+{
+  "prefix": "ATT",
+  "set": "tactical / underbarrel / shield",
+  "units": "metres, Blender axes (Z up, muzzle -Y); shooter's right = -X",
+  "rail_standard": {
+    "top_width": 0.021,
+    "height": 0.0095,
+    "slot_pitch": 0.01
+  },
+  "parts": [
+    {
+      "id": "ATT_grip_vertical",
+      "category": "foregrip",
+      "mount": "under",
+      "file": "assets/weapons/attachments/tactical/ATT_grip_vertical.glb",
+      "fbx": "assets/weapons/attachments/tactical/ATT_grip_vertical.fbx",
+      "sockets_accepted": [
+        "_SOCKET_Under"
+      ],
+      "compatible_weapons": [
+        "MAKO",
+        "WARDEN"
+      ],
+      "tris": 3108,
+      "objects": [
+        "ATT_grip_vertical",
+        "ATT_grip_vertical_SOCKET_LeftHand"
+      ],
+      "child_sockets": [
+        "ATT_grip_vertical_SOCKET_LeftHand"
+      ],
+      "moving_parts": {},
+      "origin": "centre of clamp contact on the rail BOTTOM surface (part hangs -Z)"
+    },
+    {
+      "id": "ATT_grip_angled",
+      "category": "foregrip",
+      "mount": "under",
+      "file": "assets/weapons/attachments/tactical/ATT_grip_angled.glb",
+      "fbx": "assets/weapons/attachments/tactical/ATT_grip_angled.fbx",
+      "sockets_accepted": [
+        "_SOCKET_Under"
+      ],
+      "compatible_weapons": [
+        "MAKO",
+        "WARDEN"
+      ],
+      "tris": 2520,
+      "objects": [
+        "ATT_grip_angled",
+        "ATT_grip_angled_SOCKET_LeftHand"
+      ],
+      "child_sockets": [
+        "ATT_grip_angled_SOCKET_LeftHand"
+      ],
+      "moving_parts": {},
+      "origin": "centre of clamp contact on the rail BOTTOM surface (part hangs -Z)"
+    },
+    {
+      "id": "ATT_grip_stub",
+      "category": "foregrip",
+      "mount": "under",
+      "file": "assets/weapons/attachments/tactical/ATT_grip_stub.glb",
+      "fbx": "assets/weapons/attachments/tactical/ATT_grip_stub.fbx",
+      "sockets_accepted": [
+        "_SOCKET_Under"
+      ],
+      "compatible_weapons": [
+        "MAKO",
+        "WARDEN"
+      ],
+      "tris": 1512,
+      "objects": [
+        "ATT_grip_stub",
+        "ATT_grip_stub_SOCKET_LeftHand"
+      ],
+      "child_sockets": [
+        "ATT_grip_stub_SOCKET_LeftHand"
+      ],
+      "moving_parts": {},
+      "origin": "centre of clamp contact on the rail BOTTOM surface (part hangs -Z)"
+    },
+    {
+      "id": "ATT_ugl_launcher",
+      "category": "underbarrel",
+      "mount": "under",
+      "file": "assets/weapons/attachments/tactical/ATT_ugl_launcher.glb",
+      "fbx": "assets/weapons/attachments/tactical/ATT_ugl_launcher.fbx",
+      "sockets_accepted": [
+        "_SOCKET_Under"
+      ],
+      "compatible_weapons": [
+        "MAKO"
+      ],
+      "tris": 6351,
+      "objects": [
+        "ATT_ugl_launcher",
+        "ATT_ugl_launcher_Breech",
+        "ATT_ugl_launcher_Trigger",
+        "ATT_ugl_launcher_SOCKET_LeftHand",
+        "ATT_ugl_launcher_SOCKET_Muzzle"
+      ],
+      "child_sockets": [
+        "ATT_ugl_launcher_SOCKET_LeftHand",
+        "ATT_ugl_launcher_SOCKET_Muzzle"
+      ],
+      "moving_parts": {
+        "ATT_ugl_launcher_Breech": {
+          "hinge_axis": "local Z (vertical pin, shooter's right front)",
+          "open_angle_deg": -35.0,
+          "closed_angle_deg": 0.0,
+          "note": "rotate about local Z by open_angle_deg: the breech end swings out to the shooter's LEFT (+X)"
+        },
+        "ATT_ugl_launcher_Trigger": {
+          "pivot_axis": "local X",
+          "pull_angle_deg": 12.0
+        }
+      },
+      "origin": "centre of clamp contact on the rail BOTTOM surface (part hangs -Z)"
+    },
+    {
+      "id": "ATT_bipod",
+      "category": "underbarrel",
+      "mount": "under",
+      "file": "assets/weapons/attachments/tactical/ATT_bipod.glb",
+      "fbx": "assets/weapons/attachments/tactical/ATT_bipod.fbx",
+      "sockets_accepted": [
+        "_SOCKET_Under"
+      ],
+      "compatible_weapons": [
+        "WARDEN"
+      ],
+      "tris": 5360,
+      "objects": [
+        "ATT_bipod",
+        "ATT_bipod_Leg_L",
+        "ATT_bipod_LegLower_L",
+        "ATT_bipod_Leg_R",
+        "ATT_bipod_LegLower_R"
+      ],
+      "child_sockets": [],
+      "moving_parts": {
+        "ATT_bipod_Leg_L": {
+          "hinge_axis": "local X (leg lies along local -Z)",
+          "deploy_angle_deg": 50.0,
+          "fold_angle_deg": -50.0,
+          "euler_x_deployed_deg": -40.0,
+          "euler_x_folded_deg": -90.0,
+          "splay_deg": 10.0,
+          "note": "deploy_angle_deg = legs 50 deg below the rail, forward. fold_angle_deg = extra rotation about the hinge (local X) that folds the leg forward along -Y under the rail (euler X -40 -> -90)."
+        },
+        "ATT_bipod_LegLower_L": {
+          "slide_axis": "local -Z",
+          "telescope_min_m": 0.0,
+          "telescope_max_m": 0.06,
+          "telescope_m": 0.0
+        },
+        "ATT_bipod_Leg_R": {
+          "hinge_axis": "local X (leg lies along local -Z)",
+          "deploy_angle_deg": 50.0,
+          "fold_angle_deg": -50.0,
+          "euler_x_deployed_deg": -40.0,
+          "euler_x_folded_deg": -90.0,
+          "splay_deg": 10.0,
+          "note": "deploy_angle_deg = legs 50 deg below the rail, forward. fold_angle_deg = extra rotation about the hinge (local X) that folds the leg forward along -Y under the rail (euler X -40 -> -90)."
+        },
+        "ATT_bipod_LegLower_R": {
+          "slide_axis": "local -Z",
+          "telescope_min_m": 0.0,
+          "telescope_max_m": 0.06,
+          "telescope_m": 0.0
+        }
+      },
+      "origin": "centre of clamp contact on the rail BOTTOM surface (part hangs -Z)",
+      "foot_sole_z": -0.2182
+    },
+    {
+      "id": "ATT_laser_R",
+      "category": "side_rail",
+      "mount": "side",
+      "file": "assets/weapons/attachments/tactical/ATT_laser_R.glb",
+      "fbx": "assets/weapons/attachments/tactical/ATT_laser_R.fbx",
+      "sockets_accepted": [
+        "_SOCKET_Side_R"
+      ],
+      "compatible_weapons": [
+        "MAKO",
+        "WARDEN"
+      ],
+      "tris": 2712,
+      "objects": [
+        "ATT_laser_R",
+        "ATT_laser_R_Emitter",
+        "ATT_laser_R_SOCKET_Beam"
+      ],
+      "child_sockets": [
+        "ATT_laser_R_SOCKET_Beam"
+      ],
+      "moving_parts": {},
+      "origin": "centre of clamp contact on the rail outer face (part sticks out sideways)"
+    },
+    {
+      "id": "ATT_flashlight_R",
+      "category": "side_rail",
+      "mount": "side",
+      "file": "assets/weapons/attachments/tactical/ATT_flashlight_R.glb",
+      "fbx": "assets/weapons/attachments/tactical/ATT_flashlight_R.fbx",
+      "sockets_accepted": [
+        "_SOCKET_Side_R"
+      ],
+      "compatible_weapons": [
+        "MAKO",
+        "WARDEN"
+      ],
+      "tris": 2080,
+      "objects": [
+        "ATT_flashlight_R",
+        "ATT_flashlight_R_Lens",
+        "ATT_flashlight_R_SOCKET_Beam"
+      ],
+      "child_sockets": [
+        "ATT_flashlight_R_SOCKET_Beam"
+      ],
+      "moving_parts": {},
+      "origin": "centre of clamp contact on the rail outer face (part sticks out sideways)"
+    },
+    {
+      "id": "ATT_shield_front",
+      "category": "shield",
+      "mount": "top",
+      "file": "assets/weapons/attachments/tactical/ATT_shield_front.glb",
+      "fbx": "assets/weapons/attachments/tactical/ATT_shield_front.fbx",
+      "sockets_accepted": [
+        "_SOCKET_Shield"
+      ],
+      "compatible_weapons": [
+        "MAKO"
+      ],
+      "tris": 5958,
+      "objects": [
+        "ATT_shield_front",
+        "ATT_shield_front_Glass"
+      ],
+      "child_sockets": [],
+      "moving_parts": {},
+      "origin": "centre of clamp contact on the rail TOP surface",
+      "glass_z": [
+        0.03,
+        0.1
+      ],
+      "plate_z": [
+        -0.1,
+        0.16
+      ],
+      "plate_x": [
+        -0.16,
+        0.16
+      ]
+    },
+    {
+      "id": "ATT_laser_L",
+      "category": "side_rail",
+      "mount": "side",
+      "file": "assets/weapons/attachments/tactical/ATT_laser_L.glb",
+      "fbx": "assets/weapons/attachments/tactical/ATT_laser_L.fbx",
+      "sockets_accepted": [
+        "_SOCKET_Side_L"
+      ],
+      "compatible_weapons": [
+        "MAKO",
+        "WARDEN"
+      ],
+      "tris": 2712,
+      "objects": [
+        "ATT_laser_L",
+        "ATT_laser_L_Emitter",
+        "ATT_laser_L_SOCKET_Beam"
+      ],
+      "child_sockets": [
+        "ATT_laser_L_SOCKET_Beam"
+      ],
+      "moving_parts": {},
+      "origin": "centre of clamp contact on the rail outer face (part sticks out sideways)"
+    },
+    {
+      "id": "ATT_flashlight_L",
+      "category": "side_rail",
+      "mount": "side",
+      "file": "assets/weapons/attachments/tactical/ATT_flashlight_L.glb",
+      "fbx": "assets/weapons/attachments/tactical/ATT_flashlight_L.fbx",
+      "sockets_accepted": [
+        "_SOCKET_Side_L"
+      ],
+      "compatible_weapons": [
+        "MAKO",
+        "WARDEN"
+      ],
+      "tris": 2080,
+      "objects": [
+        "ATT_flashlight_L",
+        "ATT_flashlight_L_Lens",
+        "ATT_flashlight_L_SOCKET_Beam"
+      ],
+      "child_sockets": [
+        "ATT_flashlight_L_SOCKET_Beam"
+      ],
+      "moving_parts": {},
+      "origin": "centre of clamp contact on the rail outer face (part sticks out sideways)"
+    }
+  ],
+  "test_sockets": {
+    "MAKO": {
+      "Optic": [
+        0,
+        -0.085,
+        0.084
+      ],
+      "Under": [
+        0,
+        -0.36,
+        0.0165
+      ],
+      "Side_R": [
+        -0.0315,
+        -0.44,
+        0.05
+      ],
+      "Side_L": [
+        0.0315,
+        -0.44,
+        0.05
+      ],
+      "Shield": [
+        0,
+        -0.48,
+        0.084
+      ],
+      "Muzzle": [
+        0,
+        -0.565,
+        0.05
+      ],
+      "LeftHand": [
+        0,
+        -0.33,
+        0.02
+      ]
+    },
+    "WARDEN": {
+      "Under": [
+        0,
+        -0.6,
+        0.0205
+      ],
+      "Side_R": [
+        -0.0455,
+        -0.645,
+        0.079
+      ],
+      "Side_L": [
+        0.0455,
+        -0.645,
+        0.079
+      ],
+      "Optic": [
+        0,
+        -0.08,
+        0.1375
+      ],
+      "Muzzle": [
+        0,
+        -1.1,
+        0.075
+      ]
+    }
+  }
+}

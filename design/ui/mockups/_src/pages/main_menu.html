@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>{{title}}</title>
+<!--COMMON-->
+<style>
+.bgshade{position:absolute;inset:0;background:linear-gradient(90deg,rgba(5,7,10,.96) 0%,rgba(5,7,10,.88) 30%,rgba(5,7,10,.35) 56%,rgba(5,7,10,0) 72%),linear-gradient(0deg,rgba(5,7,10,.85) 0%,rgba(5,7,10,0) 26%)}
+.logo{position:absolute;left:96px;top:72px}
+.logo .w{font-family:var(--fd);font-weight:700;font-size:84px;letter-spacing:.14em;color:var(--text-hi);line-height:80px}
+.logo .w span{color:var(--teal)}
+.logo .tag{display:flex;gap:10px;align-items:center;margin-top:6px}
+.logo .tag i{display:block;width:40px;height:2px;background:var(--teal)}
+nav{position:absolute;left:96px;top:300px;width:400px}
+.ni{position:relative;display:flex;align-items:center;justify-content:space-between;height:66px;padding-left:22px;font-family:var(--fd);font-weight:700;font-size:44px;letter-spacing:.1em;color:var(--text-mid);text-transform:uppercase;cursor:pointer}
+.ni:hover{color:var(--text-hi)}
+.ni.on{color:var(--text-hi)}
+.ni.on::before{content:'';position:absolute;left:0;top:14px;bottom:14px;width:4px;background:var(--teal)}
+.ni small{font-size:13px;letter-spacing:.18em;color:var(--text-low);font-weight:600}
+.sub{padding:2px 0 12px 44px}
+.si{display:flex;align-items:center;gap:12px;height:44px;font-family:var(--fd);font-weight:700;font-size:24px;letter-spacing:.14em;text-transform:uppercase;color:var(--text-mid);cursor:pointer}
+.si.on{color:var(--text-hi)}
+.si.on::before{content:'';width:10px;height:10px;background:var(--text-hi);transform:rotate(45deg)}
+.si:not(.on)::before{content:'';width:10px;height:10px;border:1px solid var(--text-low);transform:rotate(45deg)}
+.ni.quit{color:var(--text-low);font-size:32px;height:56px}
+.fly{position:absolute;left:540px;top:300px;width:620px;padding:26px 28px 24px;border-top:2px solid var(--teal)}
+.fly h2{font-family:var(--fd);font-weight:700;font-size:30px;letter-spacing:.12em;color:var(--text-hi)}
+.tabs{display:flex;gap:0;margin-top:18px;border-bottom:1px solid var(--stroke-mid)}
+.tabs div{padding:10px 18px;font-family:var(--fd);font-weight:700;font-size:16px;letter-spacing:.16em;color:var(--text-mid);cursor:pointer}
+.tabs div.on{color:var(--text-hi);box-shadow:inset 0 -2px 0 var(--text-hi)}
+.field{margin-top:18px}
+.field label{display:block}
+.input{display:flex;align-items:center;height:56px;margin-top:8px;padding:0 16px;background:rgba(0,0,0,.45);border:1px solid var(--stroke-hi);font-family:var(--fd);font-weight:700;font-size:30px;letter-spacing:.24em;color:var(--text-hi)}
+.input.sm{height:44px;font-size:20px;letter-spacing:.06em}
+.input .caret{width:2px;height:30px;background:var(--teal);margin-left:4px;animation:pulse 1s steps(1) infinite}
+.input .r{margin-left:auto;display:flex;gap:8px;align-items:center}
+.help{font-size:13px;color:var(--text-mid);margin-top:8px;line-height:1.45}
+.row{display:flex;gap:10px;align-items:center}
+.list{margin-top:8px;border-top:1px solid var(--stroke)}
+.li{display:grid;grid-template-columns:1fr 110px 70px 60px;align-items:center;height:46px;padding:0 10px;border-bottom:1px solid var(--stroke);font-size:15px;color:var(--text)}
+.li:hover{background:rgba(255,255,255,.05)}
+.li b{font-family:var(--fd);font-weight:700;font-size:17px;letter-spacing:.06em;color:var(--text-hi)}
+.li small{display:block;font-size:12px;color:var(--text-mid)}
+.li .p{font-family:var(--fd);font-weight:600;color:var(--text-mid);text-align:right}
+.player{position:absolute;left:96px;bottom:60px;display:flex;align-items:center;gap:16px;padding:12px 18px 12px 12px}
+.player .pf{width:64px;height:64px;background-size:cover;background-position:center 20%;clip-path:polygon(50% 0,100% 25%,100% 75%,50% 100%,0 75%,0 25%)}
+.player .nm{font-family:var(--fd);font-weight:700;font-size:24px;letter-spacing:.08em;color:var(--text-hi)}
+.player .lo{font-size:13px;color:var(--text-mid);margin-top:2px}
+.ver{position:absolute;right:40px;bottom:28px;text-align:right}
+.hints{position:absolute;left:50%;bottom:28px;transform:translateX(-50%);display:flex;gap:22px}
+.hint{display:flex;align-items:center;gap:7px;font-family:var(--fd);font-weight:600;font-size:14px;letter-spacing:.14em;color:var(--text-mid)}
+.agent-tag{position:absolute;right:120px;bottom:120px;text-align:right}
+.agent-tag .n{font-family:var(--fd);font-weight:700;font-size:56px;letter-spacing:.16em;color:var(--text-hi);line-height:56px}
+.agent-tag .r{font-family:var(--fd);font-weight:600;font-size:15px;letter-spacing:.22em;color:var(--teal)}
+.agent-tag .h{display:flex;gap:10px;justify-content:flex-end;margin-top:10px;align-items:center}
+body:not(.host) .host-only{display:none} body.host .join-only{display:none}
+.toggle{display:flex;border:1px solid var(--stroke-hi)}
+.toggle div{padding:8px 14px;font-family:var(--fd);font-weight:700;font-size:15px;letter-spacing:.12em;color:var(--text-mid)}
+.toggle div.on{background:var(--text-hi);color:var(--bg0)}
+.stepper{display:flex;align-items:center;gap:0;border:1px solid var(--stroke-hi);height:40px}
+.stepper span{width:40px;text-align:center;font-family:var(--fd);font-weight:700;font-size:20px;color:var(--text-mid)}
+.stepper b{width:70px;text-align:center;font-family:var(--fd);font-weight:700;font-size:20px;color:var(--text-hi)}
+.grid2{display:grid;grid-template-columns:170px 1fr;row-gap:14px;align-items:center;margin-top:18px}
+</style></head>
+<body data-variant="{{variant}}">
+<!--ICONS-->
+<div class="stage"><div class="screen">
+  <div class="bg" style="background-image:url({{img:menu_kestrel}});background-position:center"></div>
+  <div class="bgshade"></div>
+
+  <div class="logo">
+    <div class="w">SHARD<span>/</span>LINE</div>
+    <div class="tag"><i></i><span class="lbl">Working title · prototype 0.1</span></div>
+  </div>
+
+  <nav>
+    <div class="ni on">Play <small>HOST · JOIN</small></div>
+    <div class="sub">
+      <div class="si host-only on">Host game</div><div class="si join-only">Host game</div>
+      <div class="si join-only on">Join game</div><div class="si host-only">Join game</div>
+    </div>
+    <div class="ni">Gun range <small>OFFLINE</small></div>
+    <div class="ni">Loadout</div>
+    <div class="ni">Settings</div>
+    <div style="height:18px"></div>
+    <div class="ni quit">Quit</div>
+  </nav>
+
+  <!-- JOIN flyout -->
+  <div class="fly panel hi join-only">
+    <h2>JOIN GAME</h2>
+    <div class="tabs"><div class="on">JOIN CODE</div><div>DIRECT IP</div><div>ON YOUR NETWORK (1)</div></div>
+    <div class="field">
+      <label class="lbl">Code from your host</label>
+      <div class="input num">SHRD-4K7Q<span class="caret"></span><span class="r"><span class="btn" style="height:36px;font-size:14px;padding:0 12px"><svg width="16" height="16"><use href="#i-copy"/></svg>PASTE</span></span></div>
+      <div class="help">8 characters, not case-sensitive, dash optional. The code finds the host's lobby; you never need their IP address.</div>
+    </div>
+    <div class="row" style="margin-top:18px;gap:12px">
+      <div class="btn primary" style="height:52px;font-size:20px;padding:0 34px">JOIN LOBBY</div>
+      <span class="hint"><span class="key">ENTER</span></span>
+    </div>
+    <div class="field" style="margin-top:26px">
+      <div class="row" style="justify-content:space-between"><span class="lbl">Recent</span><span class="micro">ping · players</span></div>
+      <div class="list">
+        <div class="li"><div><b>ASH'S GAME</b><small>TDM · Showhome · code SHRD-4K7Q</small></div><span class="p num">34 ms</span><span class="p num">7/10</span><span class="p" style="color:var(--ally)">OPEN</span></div>
+        <div class="li"><div><b>JUNO · RANGE NIGHT</b><small>Gun range · 192.168.1.40:7777</small></div><span class="p num">2 ms</span><span class="p num">2/4</span><span class="p" style="color:var(--ally)">LAN</span></div>
+        <div class="li"><div><b>PIKE'S SERVER</b><small>TDM · last seen 2 days ago</small></div><span class="p">—</span><span class="p">—</span><span class="p" style="color:var(--text-low)">OFFLINE</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- HOST flyout -->
+  <div class="fly panel hi host-only">
+    <h2>HOST GAME</h2>
+    <div class="help" style="margin-top:6px">You play and host at the same time (listen server). If you leave, the match ends for everyone.</div>
+    <div class="grid2">
+      <span class="lbl">Lobby name</span><div class="input sm">ASH'S GAME<span class="caret"></span></div>
+      <span class="lbl">Who can join</span><div class="toggle"><div class="on">JOIN CODE</div><div>LAN ONLY</div><div>DIRECT IP</div></div>
+      <span class="lbl">Max players</span><div class="row"><div class="stepper"><span>−</span><b class="num">10</b><span>+</span></div><span class="help" style="margin:0">2–10 · 5 v 5 max on Showhome</span></div>
+      <span class="lbl">Port</span><div class="row"><div class="input sm num" style="width:140px">7777</div><span class="help" style="margin:0">UDP. Only needed for Direct IP (port-forward).</span></div>
+      <span class="lbl">Password</span><div class="input sm" style="color:var(--text-low)">optional</div>
+    </div>
+    <div class="row" style="margin-top:22px;gap:12px">
+      <div class="btn primary" style="height:52px;font-size:20px;padding:0 34px">CREATE LOBBY</div>
+      <span class="help" style="margin:0">Map, mode and score limit are set in the lobby.</span>
+    </div>
+  </div>
+
+  <div class="agent-tag">
+    <div class="r">RECON · MOBILITY</div>
+    <div class="n">KESTREL</div>
+    <div class="h"><span class="tier c-t2"><i></i><i></i>&nbsp;T2 MENDER</span><span class="micro" style="color:var(--text-mid)">· MEDIUM · AR-7 MAKO</span></div>
+  </div>
+
+  <div class="player panel">
+    <div class="pf" style="background-image:url({{img:kestrel_portrait}})"></div>
+    <div><div class="nm">KESTREL_YOU <span class="micro">EDIT NAME</span></div><div class="lo">Loadout A · Kestrel · AR-7 Mako (holo, angled grip, laser) · T2 Mender, 3 zones</div></div>
+  </div>
+  <div class="hints"><span class="hint"><span class="key ghost">↑↓</span>SELECT</span><span class="hint"><span class="key ghost">ENTER</span>CONFIRM</span><span class="hint"><span class="key ghost">ESC</span>BACK</span></div>
+  <div class="ver"><div class="micro">v0.1.0-proto · Bevy 0.19 · lightyear 0.30</div><div class="micro" style="margin-top:3px">Region: auto · relay reachable</div></div>
+  <div class="mock-label" style="right:auto;left:12px">{{label}}</div>
+</div></div>
+<script>if((location.hash||'').includes('host'))document.body.classList.add('host');</script>
+<!--FIT-->
+</body></html>

@@ -1,0 +1,110 @@
+{
+  "MAKO_SOCKET_Optic": {
+    "location": [
+      0.0,
+      -0.0855,
+      0.084
+    ],
+    "rotation_deg": [
+      0,
+      0,
+      0
+    ]
+  },
+  "MAKO_SOCKET_Stock": {
+    "location": [
+      0.0,
+      0.215,
+      0.05
+    ],
+    "rotation_deg": [
+      0,
+      0,
+      0
+    ]
+  },
+  "MAKO_SOCKET_Mag": {
+    "location": [
+      0.0,
+      -0.152,
+      0.012
+    ],
+    "rotation_deg": [
+      0,
+      0,
+      0
+    ]
+  },
+  "MAKO_SOCKET_Under": {
+    "location": [
+      0.0,
+      -0.335,
+      0.0155
+    ],
+    "rotation_deg": [
+      0,
+      0,
+      0
+    ]
+  },
+  "MAKO_SOCKET_Side_R": {
+    "location": [
+      -0.0325,
+      -0.449,
+      0.05
+    ],
+    "rotation_deg": [
+      0,
+      0,
+      0
+    ]
+  },
+  "MAKO_SOCKET_Side_L": {
+    "location": [
+      0.0325,
+      -0.449,
+      0.05
+    ],
+    "rotation_deg": [
+      0,
+      0,
+      0
+    ]
+  },
+  "MAKO_SOCKET_Shield": {
+    "location": [
+      0.0,
+      -0.4755,
+      0.084
+    ],
+    "rotation_deg": [
+      0,
+      0,
+      0
+    ]
+  },
+  "MAKO_SOCKET_Muzzle": {
+    "location": [
+      0.0,
+      -0.565,
+      0.05
+    ],
+    "rotation_deg": [
+      0,
+      0,
+      0
+    ]
+  },
+  "MAKO_SOCKET_LeftHand": {
+    "location": [
+      0.0,
+      -0.33,
+      0.0155
+    ],
+    "rotation_deg": [
+      0,
+      0,
+      0
+    ]
+  }
+}

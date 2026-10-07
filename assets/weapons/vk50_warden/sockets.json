@@ -1,0 +1,98 @@
+{
+  "WARDEN_SOCKET_Optic": {
+    "location": [
+      0,
+      -0.08,
+      0.1375
+    ],
+    "rotation_deg": [
+      0,
+      0,
+      0
+    ]
+  },
+  "WARDEN_SOCKET_Stock": {
+    "location": [
+      0,
+      0.08,
+      0.075
+    ],
+    "rotation_deg": [
+      0,
+      0,
+      0
+    ]
+  },
+  "WARDEN_SOCKET_Mag": {
+    "location": [
+      0,
+      -0.27,
+      0.0
+    ],
+    "rotation_deg": [
+      0,
+      0,
+      0
+    ]
+  },
+  "WARDEN_SOCKET_Under": {
+    "location": [
+      0,
+      -0.6,
+      0.0205
+    ],
+    "rotation_deg": [
+      0,
+      0,
+      0
+    ]
+  },
+  "WARDEN_SOCKET_Side_R": {
+    "location": [
+      -0.0455,
+      -0.645,
+      0.079
+    ],
+    "rotation_deg": [
+      0,
+      0,
+      0
+    ]
+  },
+  "WARDEN_SOCKET_Side_L": {
+    "location": [
+      0.0455,
+      -0.645,
+      0.079
+    ],
+    "rotation_deg": [
+      0,
+      0,
+      0
+    ]
+  },
+  "WARDEN_SOCKET_Muzzle": {
+    "location": [
+      0,
+      -1.1,
+      0.075
+    ],
+    "rotation_deg": [
+      0,
+      0,
+      0
+    ]
+  },
+  "WARDEN_SOCKET_LeftHand": {
+    "location": [
+      0,
+      -0.38,
+      0.03
+    ],
+    "rotation_deg": [
+      0,
+      0,
+      0
+    ]
+  }
+}

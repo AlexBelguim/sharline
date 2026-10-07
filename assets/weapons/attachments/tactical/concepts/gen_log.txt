@@ -1,0 +1,6 @@
+saved F:/git/val etf/assets/weapons/attachments/tactical/concepts/ugl_side_v01.png (81.6s)
+saved F:/git/val etf/assets/weapons/attachments/tactical/concepts/bipod_v01.png (152.4s)
+saved F:/git/val etf/assets/weapons/attachments/tactical/concepts/shield_v01.png (181.0s)
+saved F:/git/val etf/assets/weapons/attachments/tactical/concepts/grips_v01.png (319.8s)
+saved F:/git/val etf/assets/weapons/attachments/tactical/concepts/laser_light_v01.png (330.1s)
+done
