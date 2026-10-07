@@ -5,11 +5,12 @@ use crate::AppState;
 use crate::config::{Cli, CurrentLevel, Data, level_by_name};
 use crate::net::{NetRequest, Role, Session};
 use crate::radial::{HealMenu, HealOption, REGION_ORDER, RELOAD_HOLD_S, Radial, heal_options};
+use crate::screens::{EscPress, EscSystems, Screens};
 use crate::shared::LocalShot;
 use bevy::input::mouse::AccumulatedMouseMotion;
 use bevy::prelude::*;
 use bevy::render::view::screenshot::{Screenshot, save_to_disk};
-use bevy::window::{CursorGrabMode, CursorOptions, PrimaryWindow, WindowFocused};
+use bevy::window::WindowFocused;
 use lightyear::prelude::client::input::InputSystems;
 use lightyear::prelude::input::native::{ActionState, InputMarker};
 use lightyear::prelude::*;
@@ -35,11 +36,18 @@ impl Plugin for ClientPlugin {
             .add_systems(FixedPreUpdate, write_inputs.in_set(InputSystems::WriteClientInputs))
             .add_systems(FixedPostUpdate, record_smoothing)
             .add_systems(Update, wait_for_player.run_if(in_state(AppState::Connecting)))
-            .add_systems(OnEnter(AppState::InGame), (reset_control, grab_cursor))
-            .add_systems(OnExit(AppState::InGame), release_cursor)
+            .add_systems(OnEnter(AppState::InGame), reset_control)
             .add_systems(
                 Update,
-                (block_mouse_on_focus, toggle_pause, fire_claims, recoil_recovery, receive_feedback, tick_feedback)
+                (
+                    block_mouse_on_focus,
+                    // The base under the screen stack: it only gets Esc while no screen is open.
+                    esc_in_match.in_set(EscSystems::Base),
+                    fire_claims,
+                    recoil_recovery,
+                    receive_feedback,
+                    tick_feedback,
+                )
                     .chain()
                     .run_if(in_state(AppState::InGame)),
             )
@@ -116,10 +124,6 @@ pub struct Feedback {
 pub const TRACER_SPEED: f32 = 420.0;
 pub const TRACER_LEN: f32 = 5.0;
 
-/// Where our muzzle is in view space (the placeholder viewmodel's barrel tip), at the hip and aimed.
-const MUZZLE_HIP: Vec3 = Vec3::new(0.2, -0.2, -0.84);
-const MUZZLE_ADS: Vec3 = Vec3::new(0.0, -0.075, -0.64);
-
 /// Visual smoothing of the predicted position between fixed ticks.
 #[derive(Component, Default)]
 pub struct Smoothed {
@@ -174,26 +178,10 @@ fn block_mouse_on_focus(mut focus: MessageReader<WindowFocused>, mut control: Re
     }
 }
 
-fn grab_cursor(mut cursor: Query<&mut CursorOptions, With<PrimaryWindow>>) {
-    for mut c in &mut cursor {
-        c.visible = false;
-        c.grab_mode = CursorGrabMode::Locked;
-    }
-}
-
-fn release_cursor(mut cursor: Query<&mut CursorOptions, With<PrimaryWindow>>) {
-    for mut c in &mut cursor {
-        c.visible = true;
-        c.grab_mode = CursorGrabMode::None;
-    }
-}
-
-fn toggle_pause(
-    keys: Res<ButtonInput<KeyCode>>,
-    mut control: ResMut<LocalControl>,
-    mut cursor: Query<&mut CursorOptions, With<PrimaryWindow>>,
-) {
-    if keys.just_pressed(KeyCode::Escape) {
+/// Esc in the match, when no hub screen is open (`screens::EscSystems::Base`): it closes an open ring menu,
+/// else toggles the pause overlay. The cursor follows `paused` (`screens::apply_cursor`).
+fn esc_in_match(mut esc: ResMut<EscPress>, mut control: ResMut<LocalControl>) {
+    if esc.take() {
         // Esc closes an open ring menu first (and forgets a reload hold, so it does not reopen).
         let heal = control.heal.take().is_some();
         let radial = control.reload_radial.take().is_some();
@@ -203,14 +191,11 @@ fn toggle_pause(
             return;
         }
         control.paused = !control.paused;
-        for mut c in &mut cursor {
-            c.visible = control.paused;
-            c.grab_mode = if control.paused { CursorGrabMode::None } else { CursorGrabMode::Locked };
-        }
     }
 }
 
-/// Keyboard + mouse into [`LocalControl`] (every frame, before the fixed ticks).
+/// Keyboard + mouse into [`LocalControl`] (every frame, before the fixed ticks). Nothing reaches the match
+/// while it is paused or a hub screen is open over it.
 fn gather_input(
     keys: Res<ButtonInput<KeyCode>>,
     mouse: Res<ButtonInput<MouseButton>>,
@@ -218,13 +203,14 @@ fn gather_input(
     time: Res<Time>,
     cli: Res<Cli>,
     data: Res<Data>,
+    screens: Res<Screens>,
     me: Query<(&PlayerLoadout, &PlayerItems, Option<&Vitals>), With<Controlled>>,
     mut control: ResMut<LocalControl>,
 ) {
     if cli.bot {
         return;
     }
-    if control.paused {
+    if control.paused || !screens.is_empty() {
         control.movement = Vec2::ZERO;
         control.held = 0;
         control.reload_held_s = None;
@@ -243,8 +229,10 @@ fn gather_input(
     }
     let mags = me.map_or(1, |(l, ..)| l.0.weapon.mags.len());
     let kit: Vec<HealOption> = me.map(|(l, it, v)| heal_options(&data, &l.0, &it.0, v)).unwrap_or_default();
-    heal_input(&mut control, &keys, &mouse, motion.delta, &kit);
-    let tap_reload = control.heal.is_none() && reload_input(&mut control, &keys, motion.delta, time.delta_secs(), mags);
+    // Screenshot and demo runs ignore the desktop's mouse: it must not turn the view or fire.
+    let (mouse_delta, mouse_on) = if cli.ignores_desktop_input() { (Vec2::ZERO, false) } else { (motion.delta, true) };
+    heal_input(&mut control, &keys, &mouse, mouse_delta, &kit);
+    let tap_reload = control.heal.is_none() && reload_input(&mut control, &keys, mouse_delta, time.delta_secs(), mags);
     if control.heal.is_some() || control.reload_radial.is_some() {
         control.mouse_block = true;
     } else if !mouse.pressed(MouseButton::Left) && !mouse.pressed(MouseButton::Right) {
@@ -253,8 +241,8 @@ fn gather_input(
     if control.reload_radial.is_none() && control.heal.is_none() {
         let ads_scale = if control.held & Buttons::ADS != 0 { 0.6 } else { 1.0 };
         let s = control.sensitivity * ads_scale;
-        control.yaw = (control.yaw - motion.delta.x * s).rem_euclid(std::f32::consts::TAU);
-        control.pitch = (control.pitch - motion.delta.y * s).clamp(-MAX_PITCH, MAX_PITCH);
+        control.yaw = (control.yaw - mouse_delta.x * s).rem_euclid(std::f32::consts::TAU);
+        control.pitch = (control.pitch - mouse_delta.y * s).clamp(-MAX_PITCH, MAX_PITCH);
     }
 
     let axis = |neg: KeyCode, pos: KeyCode| (keys.pressed(pos) as i32 - keys.pressed(neg) as i32) as f32;
@@ -270,7 +258,7 @@ fn gather_input(
     set(Buttons::CROUCH, keys.pressed(KeyCode::ControlLeft) || keys.pressed(KeyCode::KeyC));
     set(Buttons::SPRINT, keys.pressed(KeyCode::ShiftLeft));
     set(Buttons::WALK, keys.pressed(KeyCode::AltLeft));
-    let mouse_free = !control.mouse_block;
+    let mouse_free = mouse_on && !control.mouse_block;
     set(Buttons::FIRE, mouse_free && mouse.pressed(MouseButton::Left));
     set(Buttons::ADS, mouse_free && mouse.pressed(MouseButton::Right));
     set(Buttons::MAG_CHECK, keys.pressed(KeyCode::KeyT));
@@ -445,7 +433,7 @@ fn fire_claims(
     session: Res<Session>,
     timeline: Res<LocalTimeline>,
     interp: Option<Res<InterpolationTimeline>>,
-    me: Query<(&PlayerLoadout, &PlayerInfo, &PlayerWeapon), With<Controlled>>,
+    me: Query<(&PlayerLoadout, &PlayerInfo, Option<&PlayerWeapon>), With<Controlled>>,
     others: Query<(&PlayerId, &PlayerInfo, &PlayerMove, &PlayerLook, &Vitals), Without<Controlled>>,
     mut senders: Query<&mut MessageSender<ShotClaim>, With<Client>>,
     mut control: ResMut<LocalControl>,
@@ -453,6 +441,7 @@ fn fire_claims(
 ) {
     let Some(level) = level else { return };
     let Some((loadout, my_info, weapon)) = me.iter().next() else { return };
+    let ads = weapon.map_or(0.0, |w| w.0.ads);
     let spec = loadout.0.weapon.spec(&data);
     let view_tick = match (&session.role, interp) {
         (Role::Client, Some(i)) if i.is_synced() => i.tick().0 as f32 + i.overstep().to_f32(),
@@ -486,8 +475,10 @@ fn fire_claims(
         }
         debug!("local shot {} spread {:.2} hit {:?} (world at {world_t:.1} m)", s.shot.seq, s.shot.spread_deg, best);
         let end_t = best.map_or(world_t, |b| b.2);
-        let view = Quat::from_euler(EulerRot::YXZ, s.yaw, s.pitch, 0.0);
-        let muzzle = s.origin + view * MUZZLE_HIP.lerp(MUZZLE_ADS, weapon.0.ads);
+        // From the viewmodel's muzzle (lower right on screen), not from under the eye: a tracer from a point
+        // straight below the camera drew a vertical line hanging under the crosshair (playtest 2026-10-07).
+        let muzzle =
+            s.origin + vetf_sim::input::view_rotation(s.yaw, s.pitch) * crate::render::viewmodel_muzzle(spec.cls, ads);
         feedback.tracers.push((muzzle, s.origin + dir * end_t, 0.0, true));
         if let (None, Some((d, normal))) = (best, world_hit) {
             feedback.impacts.push((s.origin + dir * d, normal));

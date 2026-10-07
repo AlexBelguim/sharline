@@ -32,7 +32,10 @@ pub struct UiKitPlugin;
 
 impl Plugin for UiKitPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Startup, icons::load_images).add_systems(Update, follow_window_scale);
+        app.add_systems(Startup, icons::load_images)
+            .add_systems(Update, follow_window_scale)
+            // After every system that sets text colours this frame (looks, screens).
+            .add_systems(PostUpdate, text::thicken_dark_ink.before(bevy::ui::UiSystems::Prepare));
         look::plugin(app);
         widgets::plugin(app);
     }

@@ -47,6 +47,11 @@ fn join_char(c: char) -> bool {
     c.is_ascii_alphanumeric() || matches!(c, '-' | '.' | ':' | ' ')
 }
 
+/// How the field draws a value: a whole SL1 invite short ("SL1-3A38…DC49"), anything else as typed.
+pub(super) fn invite_display(value: &str) -> Option<String> {
+    crate::iroh_transport::parse_invite(value).map(|_| crate::invite::short_invite(value))
+}
+
 /// What PASTE puts in the field: trimmed, upper case on the code tab.
 pub(super) fn pasted(text: &str, tab: JoinTab) -> String {
     let t = text.trim();
@@ -89,8 +94,6 @@ pub(super) fn spawn_flyout(r: &mut ChildSpawnerCommands, ctx: &Ctx, recent: &Rec
             },
         ),
     ))
-    // The panel sits over the art: blend like the browser does.
-    .insert(BackgroundColor(super::browser_fill_over_art(PANEL_HI)))
     .with_children(|p| {
         p.spawn(fonts.role(TextRole::FlyoutTitle, "Join game"));
         p.spawn((
@@ -143,6 +146,8 @@ pub(super) fn spawn_flyout(r: &mut ChildSpawnerCommands, ctx: &Ctx, recent: &Rec
                         max_chars: 80,
                         filter: Some(join_char),
                         initial: String::new(),
+                        // A pasted invite is 68 characters: show it short (it is never typed by hand).
+                        display: Some(invite_display),
                     },
                     (
                         Node {
@@ -155,8 +160,7 @@ pub(super) fn spawn_flyout(r: &mut ChildSpawnerCommands, ctx: &Ctx, recent: &Rec
                             ..default()
                         },
                         BackgroundColor(K45),
-                        BorderColor::all(super::browser(STROKE_HI)),
-                        super::BrowserBlended,
+                        BorderColor::all(STROKE_HI),
                     ),
                     |f| {
                         f.spawn((
@@ -345,12 +349,19 @@ pub(super) fn actions(
                 }
             }
             MenuAction::Paste => {
-                let Some(id) = state.tab.field() else { continue };
+                if state.tab.field().is_none() {
+                    continue;
+                }
                 let Some(cb) = clipboard.as_deref_mut() else { continue };
                 let Some(Ok(text)) = cb.fetch_text().poll_result() else { continue };
                 if text.trim().is_empty() {
                     continue;
                 }
+                // An invite pasted on DIRECT IP belongs on the invite tab.
+                if crate::iroh_transport::parse_invite(&text).is_some() {
+                    state.tab = JoinTab::Code;
+                }
+                let Some(id) = state.tab.field() else { continue };
                 let text = pasted(&text, state.tab);
                 for (f, mut ed) in &mut editors {
                     if f.0 == id {
@@ -412,6 +423,7 @@ fn visuals(
     mut rows: Query<(&RecentRow, &mut Active), Without<TabBtn>>,
     mut fields: Query<(&Field, &mut BorderColor)>,
     mut helps: Query<(&BlockHelp, &mut Text, &mut TextColor)>,
+    spawned: Query<(), Added<TabBtn>>,
     data: Res<Data>,
     mut commands: Commands,
 ) {
@@ -429,7 +441,7 @@ fn visuals(
             continue;
         }
         let bad = error.is_some() && Some(f.id) == error_field;
-        let want = BorderColor::all(if bad { BAD } else { super::browser(STROKE_HI) });
+        let want = BorderColor::all(if bad { BAD } else { STROKE_HI });
         if *border != want {
             *border = want;
         }
@@ -445,7 +457,9 @@ fn visuals(
             c.0 = color;
         }
     }
-    if !state.is_changed() {
+    // On a change of the menu state, and once when the flyout is spawned (the first frame's change of the
+    // state lands before the new entities exist, which left the open tab unlit).
+    if !state.is_changed() && spawned.is_empty() {
         return;
     }
     for (t, mut on) in &mut tabs {
@@ -497,5 +511,15 @@ mod tests {
         assert_eq!(pasted(" 192.168.1.20:47820 ", JoinTab::Ip), "192.168.1.20:47820");
         assert!("6000-105E-PC".chars().all(join_char) && "10.0.0.2:47820".chars().all(join_char));
         assert!(!join_char('/'));
+    }
+
+    #[test]
+    fn a_pasted_invite_shows_short() {
+        let invite = crate::iroh_transport::invite(iroh::SecretKey::from_bytes(&[0x3A; 32]).public());
+        assert!(invite.chars().all(join_char), "an invite can be pasted into the field");
+        let shown = invite_display(&pasted(&invite.to_lowercase(), JoinTab::Code)).unwrap();
+        assert_eq!(shown, crate::invite::short_invite(&invite));
+        assert_eq!(invite_display("6000-105E-PC"), None, "codes and addresses show as typed");
+        assert_eq!(invite_display(&invite[..20]), None, "half an invite too");
     }
 }

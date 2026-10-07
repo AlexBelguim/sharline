@@ -104,17 +104,21 @@ def hex_portrait(src, dst, size=128):
 
 
 def key_updown():
-    """24x24: an up and a down arrow side by side, for the [up/down] key cap (drawn at 12x12)."""
+    """24x32 (2x): the browser's thin "↑↓" for the [up/down] key cap, drawn at 12x16 centred in the 28x22 cap.
+
+    Measured on mockup 04: 1 px shafts 12 px tall (cap rows 7-18) at cap columns 10 and 17, with small
+    5 px wide heads at the top of the up arrow and the bottom of the down arrow.
+    """
     def d(dr, s):
         def arrow(cx, up):
-            y0, y1 = (4, 20) if up else (20, 4)
-            dr.line([(cx * s, y0 * s), (cx * s, y1 * s)], fill=WHITE, width=int(2.5 * s))
-            head = [(cx - 4, y0 + (5 if up else -5)), (cx, y0), (cx + 4, y0 + (5 if up else -5))]
-            dr.line([(x * s, y * s) for x, y in head], fill=WHITE, width=int(2.5 * s), joint="curve")
-        arrow(7, True)
-        arrow(17, False)
+            top, bottom = 8, 32
+            dr.line([(cx * s, top * s), (cx * s, bottom * s)], fill=WHITE, width=int(2 * s))
+            tip, back = (top, top + 7) if up else (bottom, bottom - 7)
+            dr.polygon([((cx - 5) * s, back * s), (cx * s, tip * s), ((cx + 5) * s, back * s)], fill=WHITE)
+        arrow(5, True)
+        arrow(19, False)
 
-    supersample(24, 24, d).save(os.path.join(SHAPES, "key_updown.png"))
+    supersample(24, 32, d).save(os.path.join(SHAPES, "key_updown.png"))
 
 
 def main():

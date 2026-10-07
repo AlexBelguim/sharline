@@ -63,8 +63,24 @@ impl UiFonts {
     }
 
     /// Text in a face, weight, size (px at 1080p), colour and letter spacing (em, like the CSS).
+    /// The line box is the browser's `normal` one ([`css_normal_line`]); [`UiFonts::text_line`] takes another.
+    /// The bundle already holds a `LineHeight`: do not add a second one next to it (a duplicate panics).
     pub fn text(&self, s: impl Into<String>, face: Face, weight: u16, size: f32, color: Color, em: f32) -> impl Bundle {
-        (Text::new(s), self.font(face, weight, size), TextColor(color), LetterSpacing::Px(size * em))
+        self.text_line(s, face, weight, size, color, em, LineHeight::Px(css_normal_line(size)))
+    }
+
+    /// [`UiFonts::text`] with its own line height.
+    pub fn text_line(
+        &self,
+        s: impl Into<String>,
+        face: Face,
+        weight: u16,
+        size: f32,
+        color: Color,
+        em: f32,
+        line: LineHeight,
+    ) -> impl Bundle {
+        (Text::new(s), self.font(face, weight, size), TextColor(color), LetterSpacing::Px(size * em), line)
     }
 
     /// `.lbl`: Barlow Condensed 600, 13 px, 0.14 em, upper case, `--text-mid`.
@@ -97,6 +113,46 @@ impl UiFonts {
     pub fn role_color(&self, role: TextRole, s: impl Into<String>, color: Color) -> impl Bundle {
         let r = role.spec();
         (Text::new(role.case(s)), self.role_font(role), TextColor(color), LetterSpacing::Px(r.size * r.em), r.line)
+    }
+}
+
+// --- Dark ink on light fills
+// Bevy blends glyph edges in linear light while the browser blends them in sRGB, so dark text on a light
+// fill (BG0 on TEXT_HI: primary buttons, a selected segment, chip or keycap) loses weight: its edge pixels
+// come out far lighter (measured: JOIN LOBBY 12 and a selected JOIN CODE segment 15 levels lighter on average
+// than the mockups). Light text on dark is not affected. The kit gives every dark text a copy of itself
+// [`INK_WEIGHT_PX`] to the right (a `TextShadow` in its own colour), which brings the weight back. It follows
+// the text colour, so ink that turns dark only when a segment is selected gets it then, and loses it again.
+
+/// How far the thickening copy of dark ink sits to the right (logical px).
+pub const INK_WEIGHT_PX: f32 = 0.5;
+
+/// The `TextShadow` the kit added to thicken dark ink (one a screen set itself is left alone).
+#[derive(Component, Debug, Clone, Copy)]
+pub struct InkWeight;
+
+/// A text colour that is dark enough to need [`INK_WEIGHT_PX`]: dark ink, mostly opaque.
+pub fn is_dark_ink(c: Color) -> bool {
+    let s = c.to_srgba();
+    s.alpha > 0.5 && 0.2126 * s.red + 0.7152 * s.green + 0.0722 * s.blue < 0.25
+}
+
+pub(super) fn thicken_dark_ink(
+    texts: Query<(Entity, &TextColor, Option<&TextShadow>, Has<InkWeight>), (With<Text>, Changed<TextColor>)>,
+    mut commands: Commands,
+) {
+    for (e, color, shadow, ours) in &texts {
+        if is_dark_ink(color.0) {
+            if shadow.is_some() && !ours {
+                continue;
+            }
+            let want = TextShadow { offset: Vec2::new(INK_WEIGHT_PX, 0.0), color: color.0 };
+            if shadow.is_none_or(|s| s.offset != want.offset || s.color != want.color) {
+                commands.entity(e).insert((want, InkWeight));
+            }
+        } else if ours {
+            commands.entity(e).remove::<(TextShadow, InkWeight)>();
+        }
     }
 }
 
@@ -214,13 +270,24 @@ pub enum TextRole {
     Sub,
 }
 
+/// The browser's `line-height: normal` for Barlow and Barlow Condensed (ascent 1.0 em, descent 0.2 em): Chrome
+/// rounds the ascent and the descent to whole pixels, so 11 px text gets a 13 px line box, 13 px a 16, 16 px
+/// a 19 and 44 px a 53. Bevy's `RelativeToFont(1.2)` gave 13.2 / 15.6 / 19.2 / 52.8, which the layout rounded
+/// into 1-2 px drifts against the mockups (a tab row 1 px tall, the version lines 2 px high).
+pub const fn css_normal_line(size: f32) -> f32 {
+    const fn round(v: f32) -> f32 {
+        (v + 0.5) as i32 as f32
+    }
+    round(size) + round(size * 0.2)
+}
+
 const fn d(weight: u16, size: f32, em: f32, upper: bool, color: Color) -> RoleSpec {
     RoleSpec {
         face: Face::Display,
         weight,
         size,
         em,
-        line: LineHeight::RelativeToFont(1.2),
+        line: LineHeight::Px(css_normal_line(size)),
         upper,
         color,
         tnum: false,
@@ -234,7 +301,7 @@ const fn b(weight: u16, size: f32, color: Color) -> RoleSpec {
         weight,
         size,
         em: 0.0,
-        line: LineHeight::RelativeToFont(1.2),
+        line: LineHeight::Px(css_normal_line(size)),
         upper: false,
         color,
         tnum: false,
@@ -378,6 +445,18 @@ mod tests {
         assert!((TextRole::Wordmark.spacing_px() - 11.76).abs() < 1e-4);
         assert!((TextRole::Lbl.spacing_px() - 1.82).abs() < 1e-4);
         assert!((TextRole::NavXl.spacing_px() - 4.4).abs() < 1e-4);
+    }
+
+    /// The browser's normal line box for Barlow: whole-pixel ascent (1 em) plus whole-pixel descent (.2 em).
+    #[test]
+    fn normal_line_height_matches_the_browser() {
+        assert_eq!(css_normal_line(11.0), 13.0, "micro: the version lines are 13 tall");
+        assert_eq!(css_normal_line(13.0), 16.0, ".lbl rows are 16 tall");
+        assert_eq!(css_normal_line(16.0), 19.0, "a tab box is 10 + 19 + 10");
+        assert_eq!(css_normal_line(24.0), 29.0, "the player card's name line");
+        assert_eq!(css_normal_line(30.0), 36.0, "a flyout title");
+        assert_eq!(css_normal_line(44.0), 53.0);
+        assert_eq!(TextRole::Tab.spec().line, LineHeight::Px(19.0));
     }
 
     #[test]

@@ -161,11 +161,14 @@ pub struct LookOwner(pub Entity);
 
 // ---------------------------------------------------------------------------------------------- presets
 
+// Borders on filled elements use `white_on` / `stroke_on_fill`: CSS paints the fill under the border, Bevy
+// does not, so the plain stroke token would come out too dark there.
+
 /// `.btn`: W06 fill, STROKE_MID border; hover W12 / STROKE_HI.
 pub const BTN: Looks = Looks::new(
-    Look::new(W06, STROKE_MID, TEXT_HI),
-    Look::new(W12, STROKE_HI, TEXT_HI),
-    Look::new(W12, STROKE_HI, TEXT_HI),
+    Look::new(W06, white_on(0.16, 0.06), TEXT_HI),
+    Look::new(W12, white_on(0.32, 0.12), TEXT_HI),
+    Look::new(W12, white_on(0.32, 0.12), TEXT_HI),
 );
 /// `.btn.primary`: TEXT_HI fill and border, BG0 text; hover white.
 pub const BTN_PRIMARY: Looks = Looks::new(
@@ -175,9 +178,9 @@ pub const BTN_PRIMARY: Looks = Looks::new(
 );
 /// `.btn.danger`: ENEMY text and a .45 ENEMY border.
 pub const BTN_DANGER: Looks = Looks::new(
-    Look::new(W06, hexa(0xFF4D5A, 0.45), ENEMY),
-    Look::new(W12, hexa(0xFF4D5A, 0.70), ENEMY),
-    Look::new(W12, hexa(0xFF4D5A, 0.70), ENEMY),
+    Look::new(W06, stroke_on_fill(0xFF4D5A, 0.45, 0xFFFFFF, 0.06, DARK_REF), ENEMY),
+    Look::new(W12, stroke_on_fill(0xFF4D5A, 0.70, 0xFFFFFF, 0.12, DARK_REF), ENEMY),
+    Look::new(W12, stroke_on_fill(0xFF4D5A, 0.70, 0xFFFFFF, 0.12, DARK_REF), ENEMY),
 );
 /// `.btn.danger-solid`.
 pub const BTN_DANGER_SOLID: Looks = Looks::new(
@@ -193,8 +196,8 @@ pub const BTN_ALLY: Looks = Looks::new(
 );
 /// Selectable tiles (slot, mag, core cards): STROKE_MID / W03, hover STROKE_HI / W06, on TEAL / TEAL .08.
 pub const TILE: Looks = Looks::new(
-    Look::new(W03, STROKE_MID, TEXT_HI),
-    Look::new(W06, STROKE_HI, TEXT_HI),
+    Look::new(W03, white_on(0.16, 0.03), TEXT_HI),
+    Look::new(W06, white_on(0.32, 0.06), TEXT_HI),
     Look::new(hexa(0x00DACE, 0.08), TEAL, TEAL),
 );
 /// Segments (settings / lobby): STROKE_MID border; on TEXT_HI fill, BG0 ink.
@@ -212,14 +215,14 @@ pub const TOGGLE: Looks = Looks::new(
 /// Preset chips (Loadout A/B/C).
 pub const CHIP: Looks = Looks::new(
     Look::new(Color::NONE, STROKE_MID, TEXT_MID),
-    Look::new(W12, STROKE_HI, TEXT_HI),
+    Look::new(W12, white_on(0.32, 0.12), TEXT_HI),
     Look::new(TEXT_HI, TEXT_HI, BG0),
 );
 /// List rows: hover W05, selected W08.
 pub const LIST_ROW: Looks = Looks::new(
     Look::new(Color::NONE, STROKE, TEXT_HI),
-    Look::new(W05, STROKE, TEXT_HI),
-    Look::new(W08, STROKE, TEXT_HI),
+    Look::new(W05, white_on(0.09, 0.05), TEXT_HI),
+    Look::new(W08, white_on(0.09, 0.08), TEXT_HI),
 );
 /// Nav rows and text tabs: TEXT_MID, hover / on TEXT_HI.
 pub const NAV: Looks = Looks::ink(TEXT_MID, TEXT_HI, TEXT_HI);

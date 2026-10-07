@@ -134,8 +134,8 @@ pub fn build(v: &View, p: &mut ChildSpawnerCommands) {
         UiTransform::from_translation(Val2::percent(0.0, -100.0)),
     ));
     // PANEL_HI is dark on dark elsewhere; here it lies on the bright preview, where linear-light blending
-    // would let the gun show through far more than the mockup's .82 does.
-    panel.insert(BackgroundColor(hexa(0x10151D, 0.9)));
+    // would let the gun show through far more than the mockup's .82 does: the kit's PANEL_HI over art.
+    panel.insert(BackgroundColor(PANEL_HI_OVER_ART));
     panel.with_children(|panel| {
         panel.spawn((
             Node {
@@ -319,8 +319,15 @@ fn spawn_row(
                             Tone::Neutral => TEXT_MID,
                         };
                         d.spawn((
-                            f.text(delta.text.to_uppercase(), Face::Display, 600, 13.0, color, 0.06),
-                            bevy::text::LineHeight::Px(17.0),
+                            f.text_line(
+                                delta.text.to_uppercase(),
+                                Face::Display,
+                                600,
+                                13.0,
+                                color,
+                                0.06,
+                                bevy::text::LineHeight::Px(17.0),
+                            ),
                             TextLayout::justify(Justify::Right).with_no_wrap(),
                         ));
                     }

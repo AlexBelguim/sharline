@@ -378,9 +378,11 @@ pub fn cap_clicks(caps: Query<(&KeyCap, &Interaction), Changed<Interaction>>, mu
 }
 
 /// While a cap listens, the next key, mouse button or wheel turn binds it (runs before the UI sees the
-/// input, and swallows it). Backspace clears, Esc cancels.
+/// input, and swallows it). Backspace clears, Esc cancels. Register it in `screens::EscSystems::Top`
+/// (gated on the Settings screen being on top), so its Esc comes before the screen's BACK.
 pub fn capture(
     mut listening: ResMut<Listening>,
+    mut esc: ResMut<crate::screens::EscPress>,
     mut keys: ResMut<ButtonInput<KeyCode>>,
     mut mouse: ResMut<ButtonInput<MouseButton>>,
     scroll: Res<AccumulatedMouseScroll>,
@@ -388,8 +390,7 @@ pub fn capture(
     mut settings: ResMut<Settings>,
 ) {
     let Some(target) = listening.target else { return };
-    if keys.just_pressed(KeyCode::Escape) {
-        keys.clear_just_pressed(KeyCode::Escape);
+    if esc.take() {
         *listening = Listening::default();
         return;
     }

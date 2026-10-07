@@ -29,7 +29,7 @@ impl Plugin for NetPlugin {
             .insert_resource(crate::user_config::load_or_default::<RecentServers>(RecentServers::FILE))
             .init_resource::<RecentPending>()
             .add_message::<NetRequest>()
-            .add_systems(Update, (poll_internet, handle_requests, copy_invite, finish_closing).chain())
+            .add_systems(Update, (poll_internet, handle_requests, finish_closing).chain())
             .add_systems(Startup, auto_start)
             .add_systems(OnEnter(AppState::InGame), arm_recent)
             .add_systems(Update, record_recent.run_if(in_state(AppState::InGame)))
@@ -271,20 +271,15 @@ fn handle_requests(
                 session.server = Some(server);
                 session.client = Some(client);
                 session.lan_addr = lan;
-                session.join_code = if host.access == JoinAccess::JoinCode {
-                    None
-                } else {
-                    lan.and_then(|a| match a {
-                        SocketAddr::V4(v4) => Some(JoinCode::encode(v4)),
-                        _ => None,
-                    })
-                };
+                // An invite host gets its SL1 invite from the Iroh worker in a few seconds; Direct IP and
+                // LAN-only hosts are joined at ip:port (see `invite::JoinInfo`).
+                session.join_code = if host.access == JoinAccess::JoinCode { None } else { lan.map(|a| a.to_string()) };
                 session.status = None;
                 session.host_error = false;
                 session.lobby_name = Some(host.lobby_name_for(&session.local_name));
                 session.access = host.access;
-                if let Some(code) = &session.join_code {
-                    info!("join code {code} ({})", lan.unwrap());
+                if let Some(addr) = &session.join_code {
+                    info!("friends join at {addr}");
                 }
                 crate::server::spawn_match(&mut commands, &data, map);
                 next.set(AppState::Connecting);
@@ -310,7 +305,7 @@ fn handle_requests(
                     JoinCode::parse(address, data.net.port)
                 };
                 let Some(server_addr) = server_addr else {
-                    session.status = Some(format!("\"{}\" is not a join code or address.", address.trim()));
+                    session.status = Some(format!("\"{}\" is not an invite or address.", address.trim()));
                     continue;
                 };
                 let client_id = random_client_id();
@@ -555,20 +550,6 @@ fn poll_internet(mut session: ResMut<Session>, mut requests: MessageWriter<NetRe
                 break;
             }
         }
-    }
-}
-
-fn copy_invite(
-    keys: Res<ButtonInput<KeyCode>>,
-    session: Res<Session>,
-    clipboard: Option<ResMut<bevy::clipboard::Clipboard>>,
-) {
-    if session.role == Role::Host
-        && keys.just_pressed(KeyCode::F6)
-        && let (Some(invite), Some(mut clipboard)) = (&session.join_code, clipboard)
-        && let Err(e) = clipboard.set_text(invite.clone())
-    {
-        warn!("Cannot copy invite: {e}");
     }
 }
 

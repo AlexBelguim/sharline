@@ -14,6 +14,7 @@
 use crate::AppState;
 use crate::client::{Feedback, LocalControl};
 use crate::config::Data;
+use crate::invite::JoinInfo;
 use crate::net::{NetRequest, Session};
 use crate::render::ViewCamera;
 use crate::ui_kit::{self as kit, Face, UiFonts, abs, panel};
@@ -129,8 +130,13 @@ struct FeedVictim(usize);
 struct FeedTag(usize);
 #[derive(Component)]
 struct CenterBanner;
+/// The legacy pause overlay, which also carries the Tab board (until the ESC menu and the scoreboard
+/// replace both).
 #[derive(Component)]
 struct PauseRoot;
+/// Parts of the pause overlay shown only while paused (the title and buttons), not for the Tab board.
+#[derive(Component)]
+struct PauseOnly;
 #[derive(Component)]
 struct ScoreboardText;
 #[derive(Component)]
@@ -494,14 +500,14 @@ fn spawn_hud(mut commands: Commands, data: Res<Data>, fonts: Res<UiFonts>) {
         Visibility::Hidden,
         ChildOf(root),
         children![
-            (fonts.text("PAUSED", Face::Display, 700, 34.0, kit::TEXT_HI, 0.08)),
+            (PauseOnly, fonts.text("PAUSED", Face::Display, 700, 34.0, kit::TEXT_HI, 0.08)),
             (
                 ScoreboardText,
                 fonts.text("", Face::Display, 600, 16.0, kit::TEXT, 0.04),
                 TextLayout::justify(Justify::Center)
             ),
-            menu_button(&fonts, "RESUME", PauseButton::Resume),
-            menu_button(&fonts, "LEAVE MATCH", PauseButton::Leave),
+            (PauseOnly, menu_button(&fonts, "RESUME", PauseButton::Resume)),
+            (PauseOnly, menu_button(&fonts, "LEAVE MATCH", PauseButton::Leave)),
         ],
     ));
 }
@@ -866,10 +872,13 @@ fn update_overlays(
     players: Query<(&PlayerInfo, &Score)>,
     control: Res<LocalControl>,
     session: Res<Session>,
+    data: Res<Data>,
+    cli: Res<crate::config::Cli>,
     keys: Res<ButtonInput<KeyCode>>,
     banner: Query<&Children, With<CenterBanner>>,
     mut texts: Query<&mut Text, Without<ScoreboardText>>,
-    mut pause: Query<&mut Visibility, With<PauseRoot>>,
+    mut pause: Query<&mut Visibility, (With<PauseRoot>, Without<PauseOnly>)>,
+    mut pause_only: Query<&mut Visibility, (With<PauseOnly>, Without<PauseRoot>)>,
     mut board: Query<&mut Text, With<ScoreboardText>>,
 ) {
     let Some((v, info)) = me.iter().next() else { return };
@@ -892,30 +901,30 @@ fn update_overlays(
             }
         }
     }
-    let show_board = control.paused || keys.pressed(KeyCode::Tab);
+    // `--demo-ui board` holds Tab for screenshots (the invite's state on the board).
+    let show_board = control.paused || keys.pressed(KeyCode::Tab) || cli.demo_ui.as_deref() == Some("board");
+    // Holding Tab shows the board (with the invite's state) on its own; pausing adds the title and buttons.
+    let shown = |on: bool| if on { Visibility::Inherited } else { Visibility::Hidden };
     for mut vis in &mut pause {
-        *vis = if control.paused { Visibility::Inherited } else { Visibility::Hidden };
+        vis.set_if_neq(shown(show_board));
+    }
+    for mut vis in &mut pause_only {
+        vis.set_if_neq(shown(control.paused));
     }
     if show_board {
+        // How friends join: the invite's state (never the full 64-hex invite), see `invite::JoinInfo`.
         let mut lines = vec![];
-        if session.role == crate::net::Role::Host && session.join_code.is_none() {
-            if let Some(error) = &session.internet_error {
-                lines.push(format!("INTERNET INVITE UNAVAILABLE\n{error}"));
-                if let Some(addr) = session.lan_addr {
-                    lines.push(format!("LAN / DIRECT IP: {addr}"));
-                }
-            } else {
-                lines.push("PREPARING INTERNET INVITE...".into());
+        let join = JoinInfo::of(&session, data.net.port);
+        if join != JoinInfo::None {
+            lines.push(format!("{}  {}", join.label(), join.headline()));
+            if let Some(detail) = join.detail() {
+                lines.push(detail);
             }
-        }
-        if let Some(code) = &session.join_code {
-            if code.starts_with("SL1-") {
-                lines.push("INTERNET INVITE READY - F6 TO COPY".into());
-            } else {
-                lines.push(format!("JOIN CODE  {code}"));
+            if let JoinInfo::Ready { lan: Some(lan), .. } | JoinInfo::Preparing { lan: Some(lan) } = &join {
+                lines.push(format!("LAN {lan}"));
             }
-            if let Some(addr) = session.lan_addr {
-                lines.push(format!("(LAN {addr})"));
+            if join.copy_text().is_some() {
+                lines.push(format!("[F6] {}", join.copy_label()));
             }
             lines.push(String::new());
         }
@@ -967,24 +976,18 @@ fn update_damage_indicators(
     }
 }
 
+/// The pause overlay's buttons (the cursor follows `paused`, see `screens::apply_cursor`).
 fn pause_buttons(
     q: Query<(&Interaction, &PauseButton), Changed<Interaction>>,
     mut control: ResMut<LocalControl>,
     mut requests: MessageWriter<NetRequest>,
-    mut cursor: Query<&mut bevy::window::CursorOptions, With<bevy::window::PrimaryWindow>>,
 ) {
     for (i, b) in &q {
         if *i != Interaction::Pressed {
             continue;
         }
         match b {
-            PauseButton::Resume => {
-                control.paused = false;
-                for mut c in &mut cursor {
-                    c.visible = false;
-                    c.grab_mode = bevy::window::CursorGrabMode::Locked;
-                }
-            }
+            PauseButton::Resume => control.paused = false,
             PauseButton::Leave => {
                 control.paused = false;
                 requests.write(NetRequest::Leave { reason: None });

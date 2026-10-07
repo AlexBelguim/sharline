@@ -8,8 +8,10 @@
 
 mod client;
 mod config;
+mod demo_mode;
 mod esc_menu;
 mod hud;
+mod invite;
 mod iroh_transport;
 mod loadout;
 mod map_materials;
@@ -43,17 +45,25 @@ fn main() -> AppExit {
     let data = config::load_game_data();
     let tick = Duration::from_secs_f64(1.0 / data.net.tick_hz as f64);
 
+    // Screenshot and demo runs ignore the desktop's display scale, so W x H is the image size in pixels
+    // (on a 200 % Windows display a 1920x1080 request would otherwise make a 3840x2160 window).
+    let mut resolution = WindowResolution::new(cli.width, cli.height);
+    if cli.demo_mode() {
+        resolution = resolution.with_scale_factor_override(1.0);
+    }
     let mut app = App::new();
     app.add_plugins(
         DefaultPlugins
             .set(WindowPlugin {
                 primary_window: Some(Window {
                     title: "SHARD/LINE (prototype)".into(),
-                    resolution: WindowResolution::new(cli.width, cli.height),
+                    resolution,
                     present_mode: PresentMode::AutoNoVsync,
                     // Scripted runs start hidden and are moved off the primary monitor first
                     // (`place_window`), so tests do not flash over the user's main screen.
                     visible: !(cli.automated() || cli.monitor.is_some()),
+                    // A test run must not take the keyboard from whatever the user is typing in.
+                    focused: !cli.ignores_desktop_input(),
                     ..default()
                 }),
                 ..default()
@@ -78,11 +88,19 @@ fn main() -> AppExit {
     session.local_name = local_name;
     app.insert_resource(session);
     app.insert_resource(profile);
+    if cli.ignores_desktop_input() {
+        // The window opens without the keyboard focus; it must still run at full speed.
+        app.insert_resource(bevy::winit::WinitSettings {
+            focused_mode: bevy::winit::UpdateMode::Continuous,
+            unfocused_mode: bevy::winit::UpdateMode::Continuous,
+        });
+    }
     app.insert_resource(cli);
     app.init_state::<AppState>();
     app.add_plugins((
         shared::SharedPlugin,
         net::NetPlugin,
+        invite::InvitePlugin,
         server::ServerPlugin,
         client::ClientPlugin,
         render::RenderPlugin,
@@ -95,6 +113,7 @@ fn main() -> AppExit {
     // Hub screens over the menu or the match.
     app.add_plugins((
         screens::ScreensPlugin,
+        demo_mode::DemoModePlugin,
         loadout::LoadoutScreenPlugin,
         settings::SettingsScreenPlugin,
         esc_menu::EscMenuPlugin,

@@ -243,8 +243,13 @@ pub fn spawn_halo(parent: &mut ChildSpawnerCommands, images: &HaloImages, fonts:
                     justify_content: JustifyContent::Center,
                     ..default()
                 },
-                children![(
-                    fonts.text(value.to_string(), Face::Display, 700, 21.0 * k, TEXT_HI, 0.0),
+                children![fonts.text_line(
+                    value.to_string(),
+                    Face::Display,
+                    700,
+                    21.0 * k,
+                    TEXT_HI,
+                    0.0,
                     bevy::text::LineHeight::RelativeToFont(1.2),
                 )],
             ));
