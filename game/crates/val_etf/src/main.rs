@@ -28,6 +28,7 @@ mod settings;
 mod shared;
 mod ui_kit;
 mod user_config;
+mod video;
 
 use bevy::prelude::*;
 use bevy::window::{PresentMode, WindowResolution};
@@ -115,6 +116,7 @@ fn main() -> AppExit {
         map_materials::MapMaterialsPlugin,
         scoreboard::ScoreboardPlugin,
         lobby::LobbyPlugin,
+        video::VideoPlugin,
     ));
     // Hub screens over the menu or the match.
     app.add_plugins((
