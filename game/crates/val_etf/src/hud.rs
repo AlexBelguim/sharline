@@ -341,9 +341,15 @@ fn spawn_hud(mut commands: Commands, data: Res<Data>, fonts: Res<UiFonts>) {
     ));
 
     // --- score (top centre)
+    // Hidden until the match state says which mode this is: the range has no teams (no team boxes).
     commands.spawn((
         ScoreRoot,
-        Node { width: percent(100), justify_content: JustifyContent::Center, ..abs(None, None, Some(24.0), None) },
+        Node {
+            width: percent(100),
+            justify_content: JustifyContent::Center,
+            display: Display::None,
+            ..abs(None, None, Some(24.0), None)
+        },
         ChildOf(root),
         children![(
             Node { column_gap: px(3), align_items: AlignItems::Stretch, ..default() },
@@ -352,6 +358,7 @@ fn spawn_hud(mut commands: Commands, data: Res<Data>, fonts: Res<UiFonts>) {
                     ScoreBox,
                     Node {
                         width: px(64),
+                        display: Display::None,
                         justify_content: JustifyContent::Center,
                         align_items: AlignItems::Center,
                         ..default()
@@ -376,6 +383,7 @@ fn spawn_hud(mut commands: Commands, data: Res<Data>, fonts: Res<UiFonts>) {
                     ScoreBox,
                     Node {
                         width: px(64),
+                        display: Display::None,
                         justify_content: JustifyContent::Center,
                         align_items: AlignItems::Center,
                         ..default()
@@ -716,6 +724,18 @@ fn update_action(
     }
 }
 
+/// The top-centre header for a mode: (team score boxes shown, title, subline). The range has no teams, so it
+/// shows only what the place is; team deathmatch shows the clock and the score limit between the scores.
+fn score_header(mode: MatchMode, time_left_s: f32, score_limit: u32) -> (bool, String, String) {
+    match mode {
+        MatchMode::Range => (false, "GUN RANGE".into(), "FREE PRACTICE".into()),
+        MatchMode::Tdm => {
+            let s = time_left_s.max(0.0) as u32;
+            (true, format!("{:02}:{:02}", s / 60, s % 60), format!("TDM  /  FIRST TO {score_limit}"))
+        }
+    }
+}
+
 #[allow(clippy::type_complexity)]
 fn update_score(
     matches: Query<&MatchState>,
@@ -724,7 +744,8 @@ fn update_score(
     mut enemy: Query<&mut Text, (With<ScoreEnemy>, Without<ScoreAlly>, Without<MatchClock>, Without<MatchSub>)>,
     mut clock: Query<&mut Text, (With<MatchClock>, Without<ScoreAlly>, Without<ScoreEnemy>, Without<MatchSub>)>,
     mut sub: Query<&mut Text, (With<MatchSub>, Without<ScoreAlly>, Without<ScoreEnemy>, Without<MatchClock>)>,
-    mut boxes: Query<&mut Node, With<ScoreBox>>,
+    mut boxes: Query<&mut Node, (With<ScoreBox>, Without<ScoreRoot>)>,
+    mut root: Query<&mut Node, (With<ScoreRoot>, Without<ScoreBox>)>,
 ) {
     let Some(m) = matches.iter().next() else { return };
     // Scores are relative: your team on the left in the ally colour.
@@ -736,20 +757,19 @@ fn update_score(
     for mut t in &mut enemy {
         t.0 = b.to_string();
     }
-    let range = m.mode == MatchMode::Range;
+    let (teams, title, subline) = score_header(m.mode, m.time_left_s, m.score_limit);
+    let show = |on: bool| if on { Display::Flex } else { Display::None };
+    for mut node in &mut root {
+        node.display = Display::Flex;
+    }
     for mut node in &mut boxes {
-        node.display = if range { Display::None } else { Display::Flex };
+        node.display = show(teams);
     }
     for mut t in &mut clock {
-        t.0 = if range {
-            "GUN RANGE".into()
-        } else {
-            let s = m.time_left_s.max(0.0) as u32;
-            format!("{:02}:{:02}", s / 60, s % 60)
-        };
+        t.0.clone_from(&title);
     }
     for mut t in &mut sub {
-        t.0 = if range { "FREE PRACTICE".into() } else { format!("TDM  /  FIRST TO {}", m.score_limit) };
+        t.0.clone_from(&subline);
     }
 }
 
@@ -947,24 +967,18 @@ fn update_damage_indicators(
     }
 }
 
+/// The pause overlay's buttons (the cursor follows `paused`, see `screens::apply_cursor`).
 fn pause_buttons(
     q: Query<(&Interaction, &PauseButton), Changed<Interaction>>,
     mut control: ResMut<LocalControl>,
     mut requests: MessageWriter<NetRequest>,
-    mut cursor: Query<&mut bevy::window::CursorOptions, With<bevy::window::PrimaryWindow>>,
 ) {
     for (i, b) in &q {
         if *i != Interaction::Pressed {
             continue;
         }
         match b {
-            PauseButton::Resume => {
-                control.paused = false;
-                for mut c in &mut cursor {
-                    c.visible = false;
-                    c.grab_mode = bevy::window::CursorGrabMode::Locked;
-                }
-            }
+            PauseButton::Resume => control.paused = false,
             PauseButton::Leave => {
                 control.paused = false;
                 requests.write(NetRequest::Leave { reason: None });
@@ -976,6 +990,16 @@ fn pause_buttons(
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn the_range_header_has_no_team_scores() {
+        let (teams, title, sub) = score_header(MatchMode::Range, 0.0, 50);
+        assert!(!teams, "the range has no teams");
+        assert_eq!((title.as_str(), sub.as_str()), ("GUN RANGE", "FREE PRACTICE"));
+        let (teams, title, sub) = score_header(MatchMode::Tdm, 125.4, 50);
+        assert!(teams);
+        assert_eq!((title.as_str(), sub.as_str()), ("02:05", "TDM  /  FIRST TO 50"));
+    }
 
     #[test]
     fn segments_are_ten_points_each_with_a_short_last_one() {

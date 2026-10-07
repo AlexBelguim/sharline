@@ -7,7 +7,7 @@
 //! - [`ActiveLoadout`] is what this player asks the host for (sent in `Hello`, applied at each spawn).
 //!   CONFIRM updates it and saves it into the active preset (`loadouts.ron`).
 //! - [`summary`] formats it for the main menu's player card and the ESC menu.
-//! - Open the screen with `Screens::push(Screen::Loadout)`; Esc or BACK pops it.
+//! - Open the screen with `Screens::push(Screen::Loadout)`; Esc (after the popover) or BACK pops it.
 
 mod focus;
 mod halo;
@@ -26,13 +26,13 @@ pub use text::{ammo_short, halo_name, tier_label};
 use crate::AppState;
 use crate::config::{Cli, Data};
 use crate::net::Session;
-use crate::screens::{Screen, ScreenRoot, Screens, screen_on_top};
+use crate::screens::{EscPress, EscSystems, Screen, ScreenRoot, Screens, screen_on_top};
 use crate::ui_kit::*;
 use bevy::input_focus::{FocusCause, InputFocus};
 use bevy::prelude::*;
 use bevy::text::{EditableText, TextEdit};
 use bevy::ui::RelativeCursorPosition;
-use bevy::window::{CursorGrabMode, CursorOptions, PrimaryWindow};
+use bevy::window::PrimaryWindow;
 use halo::HaloImages;
 use lightyear::prelude::*;
 use std::hash::{Hash, Hasher};
@@ -51,7 +51,7 @@ impl Plugin for LoadoutScreenPlugin {
         app.insert_resource(LoadoutUiData::load())
             .init_resource::<LoadoutUi>()
             .add_systems(Startup, (init_active_loadout, load_halo_images))
-            .add_systems(Update, (demo_open, open_screen, free_cursor_in_match).chain())
+            .add_systems(Update, (demo_open, open_screen).chain())
             .add_systems(
                 Update,
                 (
@@ -59,6 +59,7 @@ impl Plugin for LoadoutScreenPlugin {
                     presses,
                     mag_release,
                     right_click,
+                    esc.in_set(EscSystems::Top),
                     keys,
                     save_as_field,
                     hover_rows,
@@ -377,47 +378,6 @@ fn open_screen(
     view::spawn_root(&mut commands, 100 + depth * 10);
 }
 
-/// Over a running match the cursor is free and the player's input is off while the screen is open. When the
-/// screen paused the game itself and closes with nothing under it, play resumes (a screen under it, such as
-/// the ESC menu, keeps its own pause).
-fn free_cursor_in_match(
-    screens: Res<Screens>,
-    state: Res<State<AppState>>,
-    mut cursor: Query<&mut CursorOptions, With<PrimaryWindow>>,
-    mut control: Option<ResMut<crate::client::LocalControl>>,
-    mut paused_here: Local<bool>,
-) {
-    let on_top = screens.top().is_some_and(|t| t.same_kind(Screen::Loadout));
-    if *state.get() != AppState::InGame {
-        *paused_here = false;
-        return;
-    }
-    let Some(control) = control.as_mut() else { return };
-    if !on_top {
-        if *paused_here && !screens.contains(Screen::Loadout) {
-            *paused_here = false;
-            if screens.is_empty() && control.paused {
-                control.paused = false;
-                for mut c in &mut cursor {
-                    c.visible = false;
-                    c.grab_mode = CursorGrabMode::Locked;
-                }
-            }
-        }
-        return;
-    }
-    for mut c in &mut cursor {
-        if !c.visible || c.grab_mode != CursorGrabMode::None {
-            c.visible = true;
-            c.grab_mode = CursorGrabMode::None;
-        }
-    }
-    if !control.paused {
-        control.paused = true;
-        *paused_here = true;
-    }
-}
-
 // ---------------------------------------------------------------------------------------------- actions
 
 fn load_preset(edit: &mut LoadoutEdit, ui: &mut LoadoutUi, i: usize, data: &GameData) {
@@ -656,29 +616,29 @@ fn right_click(
     }
 }
 
-/// Keyboard: Esc (popover, then the name field, then BACK), 1-3 presets, R reset, arrows in the popover,
-/// Shift+arrows move a magazine.
+/// Esc closes the + SAVE AS name field, else the popover. With neither open it is left to the stack's
+/// default BACK (`screens::back_on_esc`), which pops the screen and so discards unconfirmed edits.
+fn esc(mut esc: ResMut<EscPress>, mut ui: ResMut<LoadoutUi>) {
+    if !(ui.save_as || ui.pop.is_some()) || !esc.take() {
+        return;
+    }
+    if ui.save_as {
+        ui.save_as = false;
+    } else {
+        ui.close_pop();
+    }
+}
+
+/// Keyboard: 1-3 presets, R reset, arrows in the popover, Shift+arrows move a magazine (Esc: [`esc`]).
 #[allow(clippy::too_many_arguments)]
 fn keys(
-    mut keys: ResMut<ButtonInput<KeyCode>>,
+    keys: Res<ButtonInput<KeyCode>>,
     mut edit: ResMut<LoadoutEdit>,
     mut ui: ResMut<LoadoutUi>,
-    mut screens: ResMut<Screens>,
     data: Res<Data>,
     ui_data: Res<LoadoutUiData>,
     cards: Query<(&Act, &Interaction)>,
 ) {
-    if keys.just_pressed(KeyCode::Escape) {
-        keys.clear_just_pressed(KeyCode::Escape);
-        if ui.save_as {
-            ui.save_as = false;
-        } else if ui.pop.is_some() {
-            ui.close_pop();
-        } else {
-            screens.pop();
-        }
-        return;
-    }
     if ui.save_as {
         return;
     }
@@ -837,6 +797,7 @@ pub(crate) mod tests {
             bot: false,
             yaw: None,
             demo_ui: None,
+            esc_at: Vec::new(),
             weapon: None,
             ammo: None,
             mags: None,

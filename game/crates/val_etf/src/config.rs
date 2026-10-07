@@ -73,6 +73,8 @@ pub struct Cli {
     /// the host's own player. On the main menu: `menu-join` (JOIN GAME, code tab), `menu-join-ip` (direct
     /// IP tab), `menu-host` (HOST GAME).
     pub demo_ui: Option<String>,
+    /// `--esc-at 4,5.5`: press Esc at these seconds after start-up (automated tests of the Esc routing).
+    pub esc_at: Vec<f32>,
     /// Loadout overrides (weapon id, ammo like `rip3`, armor preset id, comma-separated attachment ids).
     /// Without any of them the Loadout screen's active preset is used; with some, anything missing uses
     /// `rules.ron`'s default loadout.
@@ -104,6 +106,7 @@ impl Cli {
             bot: false,
             yaw: None,
             demo_ui: None,
+            esc_at: Vec::new(),
             weapon: None,
             ammo: None,
             mags: None,
@@ -130,6 +133,7 @@ impl Cli {
                 "--bot" => cli.bot = true,
                 "--yaw" => cli.yaw = val().parse().ok(),
                 "--demo-ui" => cli.demo_ui = Some(val()),
+                "--esc-at" => cli.esc_at = val().split(',').filter_map(|t| t.trim().parse().ok()).collect(),
                 "--weapon" => cli.weapon = Some(val()),
                 "--ammo" => cli.ammo = Some(val()),
                 "--mags" => cli.mags = Some(val()),
@@ -143,13 +147,16 @@ impl Cli {
                          \x20       [--weapon ID] [--ammo std|ap1..3|rip1..3|slug1..2] [--mags std,ap2,..]\n\
                          \x20       [--armor PRESET] [--attach A,B]\n\
                          \x20       [--demo-ui reload|heal|heal-region|hud|menu-join|menu-join-ip|menu-host|\n\
-                         \x20                  loadout|loadout-ammo|loadout-attach]\n\
+                         \x20                  loadout|loadout-ammo|loadout-attach] [--esc-at S,S,..]\n\
                          \n\
                          --name overrides the name saved from the main menu (EDIT NAME) for this run.\n\
-                         --port sets the HOST GAME port (default: net.ron, 47820).
-                         --monitor N opens the window on monitor N (0 = leftmost). Automated runs (--exit-after,
-                         --screenshot, --demo-ui) open on the first non-primary monitor by default
-                         (override with VETF_TEST_MONITOR=N)."
+                         --port sets the HOST GAME port (default: net.ron, 47820).\n\
+                         --monitor N opens the window on monitor N (0 = leftmost). Automated runs (--exit-after,\n\
+                         \x20 --screenshot, --demo-ui) open on the first non-primary monitor by default\n\
+                         \x20 (override with VETF_TEST_MONITOR=N).\n\
+                         --screenshot and --demo-ui runs render at scale factor 1 (exactly W x H pixels, also on\n\
+                         \x20 a HiDPI screen) and never grab the mouse; --bot runs do not grab it either.\n\
+                         --esc-at presses Esc at those seconds after start-up (tests of the Esc routing)."
                     );
                     std::process::exit(0);
                 }
@@ -159,9 +166,23 @@ impl Cli {
         cli
     }
 
-    /// A scripted run (tests, screenshots, demos) rather than someone playing.
+    /// A scripted run (tests, screenshots, demos) rather than someone playing: it opens on a secondary
+    /// monitor (see `main::place_window`).
     pub fn automated(&self) -> bool {
         self.exit_after.is_some() || self.screenshot.is_some() || self.demo_ui.is_some()
+    }
+
+    /// A screenshot or demo run (`--screenshot`, `--demo-ui`): the window renders at scale factor 1, so
+    /// `--width 1920 --height 1080` gives a 1920x1080 image on a HiDPI screen too, and the mouse neither
+    /// turns the view nor fires in the match (see also [`Cli::hands_off`]).
+    pub fn demo_mode(&self) -> bool {
+        self.screenshot.is_some() || self.demo_ui.is_some()
+    }
+
+    /// Automated runs leave the desktop's mouse alone: the cursor is never grabbed or hidden (demo mode and
+    /// `--bot`).
+    pub fn hands_off(&self) -> bool {
+        self.demo_mode() || self.bot
     }
 
     /// Any loadout option on the command line (they override the Loadout screen's preset).
@@ -268,6 +289,7 @@ mod tests {
             bot: false,
             yaw: None,
             demo_ui: None,
+            esc_at: Vec::new(),
             weapon: None,
             ammo: None,
             mags: None,
