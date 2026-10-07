@@ -364,10 +364,26 @@ fn spawn_view_camera(mut commands: Commands) {
         .with_children(|cam| {
             cam.spawn((
                 Viewmodel(None),
-                Transform::from_xyz(0.2, -0.2, -0.5).with_scale(Vec3::splat(0.6)),
+                Transform::from_translation(VIEWMODEL_HIP).with_scale(Vec3::splat(VIEWMODEL_SCALE)),
                 Visibility::default(),
             ));
         });
+}
+
+/// Where the viewmodel sits in view space (camera-local, -Z forward): from the hip and aimed down sights.
+const VIEWMODEL_HIP: Vec3 = Vec3::new(0.2, -0.2, -0.5);
+const VIEWMODEL_ADS: Vec3 = Vec3::new(0.0, -0.075, -0.3);
+const VIEWMODEL_SCALE: f32 = 0.6;
+
+/// The viewmodel's muzzle in view space (camera-local, -Z forward) at an ADS blend `ads` (0 hip .. 1 aimed):
+/// own tracers start here, so they come out of the gun on screen instead of hanging under the crosshair.
+pub fn viewmodel_muzzle(class: WeaponClass, ads: f32) -> Vec3 {
+    let tip = viewmodel_parts(class)
+        .into_iter()
+        .map(|(size, offset, _)| offset - Vec3::Z * size.z * 0.5)
+        .min_by(|a, b| a.z.total_cmp(&b.z))
+        .unwrap_or(Vec3::ZERO);
+    VIEWMODEL_HIP.lerp(VIEWMODEL_ADS, ads.clamp(0.0, 1.0)) + tip * VIEWMODEL_SCALE
 }
 
 /// Placeholder viewmodel parts per weapon class: (size, offset, material) in gun space (muzzle toward -Z,
@@ -487,12 +503,10 @@ fn update_camera(
     }
     let ads = weapon.0.ads;
     for (mut t, mut v) in &mut viewmodel {
-        let hip = Vec3::new(0.2, -0.2, -0.5);
-        let aimed = Vec3::new(0.0, -0.075, -0.3);
         let sprint = if mv.0.sprinting { Vec3::new(0.05, -0.06, 0.04) } else { Vec3::ZERO };
-        t.translation = hip.lerp(aimed, ads) + sprint;
+        t.translation = VIEWMODEL_HIP.lerp(VIEWMODEL_ADS, ads) + sprint;
         t.rotation = if mv.0.sprinting { Quat::from_rotation_y(0.5) } else { Quat::IDENTITY };
-        t.scale = Vec3::splat(0.6);
+        t.scale = Vec3::splat(VIEWMODEL_SCALE);
         *v = if dead { Visibility::Hidden } else { Visibility::Inherited };
     }
 }
@@ -501,5 +515,22 @@ fn draw_tracers(feedback: Res<Feedback>, mut gizmos: Gizmos) {
     for (from, to, _, own) in &feedback.tracers {
         let c = if *own { Color::srgb(1.0, 0.92, 0.6) } else { Color::srgb(1.0, 0.75, 0.45) };
         gizmos.line(*from, *to, c);
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    /// Own tracers start at the gun on screen: right of and below the crosshair from the hip, in front of the
+    /// camera, and on the centre line when aimed.
+    #[test]
+    fn tracers_leave_the_viewmodel_muzzle() {
+        for class in [WeaponClass::Smg, WeaponClass::AssaultRifle, WeaponClass::BoltSniper] {
+            let hip = viewmodel_muzzle(class, 0.0);
+            assert!(hip.x > 0.15 && hip.y < -0.15 && hip.z < -0.6, "{class:?} hip muzzle {hip}");
+            let ads = viewmodel_muzzle(class, 1.0);
+            assert!(ads.x.abs() < 0.01 && ads.y < 0.0 && ads.z < -0.4, "{class:?} aimed muzzle {ads}");
+        }
     }
 }

@@ -427,14 +427,15 @@ fn fire_claims(
     session: Res<Session>,
     timeline: Res<LocalTimeline>,
     interp: Option<Res<InterpolationTimeline>>,
-    me: Query<(&PlayerLoadout, &PlayerInfo), With<Controlled>>,
+    me: Query<(&PlayerLoadout, &PlayerInfo, Option<&PlayerWeapon>), With<Controlled>>,
     others: Query<(&PlayerId, &PlayerInfo, &PlayerMove, &PlayerLook, &Vitals), Without<Controlled>>,
     mut senders: Query<&mut MessageSender<ShotClaim>, With<Client>>,
     mut control: ResMut<LocalControl>,
     mut feedback: ResMut<Feedback>,
 ) {
     let Some(level) = level else { return };
-    let Some((loadout, my_info)) = me.iter().next() else { return };
+    let Some((loadout, my_info, weapon)) = me.iter().next() else { return };
+    let ads = weapon.map_or(0.0, |w| w.0.ads);
     let spec = loadout.0.weapon.spec(&data);
     let view_tick = match (&session.role, interp) {
         (Role::Client, Some(i)) if i.is_synced() => i.tick().0 as f32 + i.overstep().to_f32(),
@@ -467,7 +468,10 @@ fn fire_claims(
         }
         debug!("local shot {} spread {:.2} hit {:?} (world at {world_t:.1} m)", s.shot.seq, s.shot.spread_deg, best);
         let end_t = best.map_or(world_t, |b| b.2);
-        let muzzle = s.origin + dir * 0.6 + Vec3::new(0.0, -0.12, 0.0);
+        // From the viewmodel's muzzle (lower right on screen), not from under the eye: a tracer from a point
+        // straight below the camera drew a vertical line hanging under the crosshair (playtest 2026-10-07).
+        let muzzle =
+            s.origin + vetf_sim::input::view_rotation(s.yaw, s.pitch) * crate::render::viewmodel_muzzle(spec.cls, ads);
         feedback.tracers.push((muzzle, s.origin + dir * end_t, 0.08, true));
         if let Some((victim, zone, t)) = best {
             let hit = HitClaim { origin: s.origin, dir, view_tick, zone, point: s.origin + dir * t };
