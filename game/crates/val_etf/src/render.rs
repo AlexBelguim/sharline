@@ -42,9 +42,10 @@ impl Plugin for RenderPlugin {
             .init_resource::<hit_fx::HitMemory>()
             .init_resource::<hit_fx::ShardAssets>()
             .init_resource::<SmoothedAds>()
+            .init_resource::<StepEye>()
             .add_message::<hit_fx::HaloHit>()
             .add_systems(Startup, setup_menu_camera)
-            .add_systems(FixedPostUpdate, record_ads)
+            .add_systems(FixedPostUpdate, (record_ads, record_footing))
             .add_systems(
                 OnEnter(AppState::InGame),
                 (spawn_level, spawn_view_camera, tracer_fx::spawn_tracer_mesh, hit_fx::spawn_marker_layer),
@@ -60,6 +61,7 @@ impl Plugin for RenderPlugin {
                     update_player_visuals,
                     sync_viewmodel,
                     camera_fx::step_feel.before(update_camera),
+                    smooth_step_eye.before(update_camera),
                     update_camera,
                 )
                     .run_if(in_state(AppState::InGame)),
@@ -171,6 +173,63 @@ impl SmoothedAds {
 
 fn record_ads(me: Query<&PlayerWeapon, With<Controlled>>, mut ads: ResMut<SmoothedAds>) {
     ads.record(me.iter().next().map_or(0.0, |w| w.0.ads));
+}
+
+/// The view over a step: Showhome's kerbs lift the feet 11 cm in one tick and the view jumped with them (map-kit
+/// review K9). While our player stands on flat ground (this tick and the last, so a step between two flat
+/// surfaces), the eye's height follows the feet over `feel.ron`'s `camera.step_smooth_s`; on a slope, in the air
+/// or after a jump larger than a step it follows them at once.
+#[derive(Resource, Debug, Default, Clone, Copy, PartialEq)]
+pub struct StepEye {
+    /// On flat ground now and the tick before.
+    steady: bool,
+    flat: bool,
+    /// The smoothed feet height, and how far the eye is below (or above) the feet's own this frame.
+    feet_y: Option<f32>,
+    pub offset: f32,
+}
+
+/// The smoothed feet height this frame: toward `raw` over `tau` while `steady` and within a step of it, else
+/// `raw` at once.
+pub fn step_eye(smoothed: Option<f32>, raw: f32, steady: bool, max_step: f32, dt: f32, tau: f32) -> f32 {
+    match smoothed {
+        Some(y) if steady && (raw - y).abs() <= max_step && tau > 0.0 => y + (raw - y) * (1.0 - (-dt / tau).exp()),
+        _ => raw,
+    }
+}
+
+/// Per tick: whether our player stands on flat ground (grounded, the level's surface under the feet level).
+fn record_footing(
+    level: Option<Res<CurrentLevel>>,
+    me: Query<&PlayerMove, With<Controlled>>,
+    mut step: ResMut<StepEye>,
+) {
+    let flat = match (level, me.iter().next()) {
+        (Some(level), Some(mv)) if mv.0.mode == vetf_sim::movement::MoveMode::Ground => {
+            level.world.raycast(mv.0.pos + Vec3::Y * 0.3, Vec3::NEG_Y, 0.6).is_some_and(|(_, normal)| normal.y > 0.99)
+        }
+        _ => false,
+    };
+    step.steady = flat && step.flat;
+    step.flat = flat;
+}
+
+/// This frame's eye offset over a step (see [`StepEye`]), from the feet as `update_camera` draws them.
+fn smooth_step_eye(
+    time: Res<Time>,
+    fixed: Res<Time<Fixed>>,
+    game: Res<Data>,
+    feel: Res<feel::FeelData>,
+    me: Query<(&PlayerMove, Option<&Smoothed>, &Vitals), With<Controlled>>,
+    mut step: ResMut<StepEye>,
+) {
+    let Some((mv, smoothed, vitals)) = me.iter().next() else { return };
+    let raw = smoothed.map_or(mv.0.pos, |s| s.prev.lerp(s.curr, fixed.overstep_fraction())).y;
+    let steady = step.steady && !vitals.health.dead;
+    let max = game.movement.ground.step_height;
+    let y = step_eye(step.feet_y, raw, steady, max, time.delta_secs(), feel.camera.step_smooth_s);
+    step.feet_y = Some(y);
+    step.offset = y - raw;
 }
 
 /// One arc of a third-person player's halo: its zone, tier, and the ring's radius (its mesh is centred on the
@@ -901,6 +960,7 @@ fn update_camera(
     settings: Res<Settings>,
     fixed: Res<Time<Fixed>>,
     smoothed_ads: Res<SmoothedAds>,
+    step: Res<StepEye>,
     rig: Res<ViewmodelRig>,
     feel: Res<camera_fx::ViewFeel>,
     data: Res<feel::FeelData>,
@@ -940,7 +1000,7 @@ fn update_camera(
     let alpha = fixed.overstep_fraction();
     let feet = smoothed.map_or(mv.0.pos, |s| s.prev.lerp(s.curr, alpha));
     let dead = vitals.health.dead;
-    let eye = if dead { feet + Vec3::Y * 3.0 } else { feet + Vec3::Y * mv.0.eye };
+    let eye = if dead { feet + Vec3::Y * 3.0 } else { feet + Vec3::Y * (mv.0.eye + step.offset) };
     if let Some((at, target)) = cli.camera {
         for (mut t, _) in &mut camera {
             *t = Transform::from_translation(at).looking_at(target, Vec3::Y);
@@ -1041,6 +1101,24 @@ mod tests {
         let heavy = halo_arcs(&mut app);
         assert_eq!(heavy.iter().map(|a| a.1).collect::<Vec<_>>(), [4, 4, 3, 2], "{heavy:?}");
         assert!(heavy.iter().all(|a| (a.2 - 0.16 * 1.2).abs() < 1e-6), "the heavy ring: {heavy:?}");
+    }
+
+    /// Map-kit review K9: a kerb step on flat ground eases the view up over the time constant instead of a jump;
+    /// slopes and jumps (not steady), and anything bigger than a step, follow at once.
+    #[test]
+    fn a_kerb_step_eases_the_view_up() {
+        let (tau, max, dt) = (0.04, 0.35, 1.0 / 240.0);
+        let mut y = step_eye(None, 0.0, true, max, dt, tau);
+        assert_eq!(y, 0.0);
+        y = step_eye(Some(y), 0.11, true, max, dt, tau);
+        assert!(y > 0.0 && y < 0.02, "one frame after the step: {y}");
+        for _ in 0..72 {
+            y = step_eye(Some(y), 0.11, true, max, dt, tau);
+        }
+        assert!((y - 0.11).abs() < 0.001, "settled after 0.3 s: {y}");
+        assert_eq!(step_eye(Some(0.0), 0.11, false, max, dt, tau), 0.11, "not on flat ground: at once");
+        assert_eq!(step_eye(Some(0.0), 1.2, true, max, dt, tau), 1.2, "more than a step: at once");
+        assert_eq!(step_eye(Some(0.0), 0.11, true, max, dt, 0.0), 0.11, "no smoothing");
     }
 
     /// Finding ads-blend-steps-at-tick-rate: between two ticks the ADS blend moves smoothly.

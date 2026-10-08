@@ -120,6 +120,8 @@ pub struct CameraFeel {
     pub land: Landing,
     pub shot_damping: f32,
     pub ads_shot_mult: f32,
+    /// The view follows a step up or down on flat ground over this time constant.
+    pub step_smooth_s: f32,
 }
 
 /// One gun's shot: the camera's jolt and the gun's kick.

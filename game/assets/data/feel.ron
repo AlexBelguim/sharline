@@ -33,6 +33,10 @@
         shot_damping: 0.55,
         // Aimed, the shot shake is this share.
         ads_shot_mult: 0.5,
+        // A step on flat ground (Showhome's 11 cm kerbs) lifts the feet a whole step in one tick; the view follows
+        // over this time constant instead of jumping with them (most of the way in 0.1 s). Slopes, jumps and
+        // falls are never smoothed.
+        step_smooth_s: 0.04,
     ),
     // Per gun (weapons.ron id), on every shot: the camera's jolt (pitch up, a random yaw and roll, a shove back)
     // and how fast it settles, and the gun's kick back in the hands. The SMG is light and rapid, the Mako medium,
