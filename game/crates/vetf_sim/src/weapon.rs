@@ -895,8 +895,68 @@ mod tests {
                 kicks.push((shot.kick_pitch, shot.kick_yaw));
             }
         }
-        assert_eq!(kicks[0], (0.55, 0.0));
-        assert_eq!(kicks[1], (0.6, 0.02));
+        assert_eq!(kicks[0], (1.0, 0.0));
+        assert_eq!(kicks[1], (1.1, 0.05));
+    }
+
+    /// Fire `shots` rounds from a standstill (hip, or fully aimed) and add up the view kick (pitch, yaw).
+    fn spray_kick(weapon: &str, shots: usize, aimed: bool) -> (f32, f32) {
+        let (d, l, mut s) = setup(weapon);
+        let bits = if aimed {
+            s.ads = 1.0;
+            Buttons::FIRE | Buttons::ADS
+        } else {
+            Buttons::FIRE
+        };
+        let (mut kick, mut n) = ((0.0, 0.0), 0);
+        for _ in 0..600 {
+            if n == shots {
+                break;
+            }
+            if let Some(shot) = s.step(&d, &l, &input(bits), &still()).shot {
+                kick.0 += shot.kick_pitch;
+                kick.1 += shot.kick_yaw;
+                n += 1;
+            }
+        }
+        assert_eq!(n, shots, "{weapon}");
+        kick
+    }
+
+    /// Playtest round 1, "the recoil is way too low on the AR": the Mako's climb after 10 and 20 rounds. That is
+    /// about twice the design's over the first 10 (4.37 deg), and it keeps climbing after (the design's went flat:
+    /// 4.89 deg at 20). Aimed, every kick is x0.7.
+    #[test]
+    fn the_mako_climb_is_pinned() {
+        let near = |a: (f32, f32), b: (f32, f32)| (a.0 - b.0).abs() < 1e-3 && (a.1 - b.1).abs() < 1e-3;
+        for (shots, hip) in [(10, (8.87, 0.81)), (20, (12.64, -0.37))] {
+            let got = spray_kick("ar7_mako", shots, false);
+            assert!(near(got, hip), "hip {shots}: {got:?}");
+            let got = spray_kick("ar7_mako", shots, true);
+            assert!(near(got, (hip.0 * 0.7, hip.1 * 0.7)), "aimed {shots}: {got:?}");
+        }
+        // The Skink's first second (20 rounds at 1200 rpm): the Mako's shape x0.6.
+        let got = spray_kick("sk9_skink", 20, false);
+        assert!(near(got, (12.64 * 0.6, -0.37 * 0.6)), "skink: {got:?}");
+    }
+
+    /// Aiming down sights is fast (playtest round 1): the ADS blend is full after `ads_s`, to the tick.
+    #[test]
+    fn ads_takes_ads_s() {
+        for weapon in ["ar7_mako", "sk9_skink", "vk50_warden"] {
+            let (d, l, mut s) = setup(weapon);
+            let spec = l.spec(&d);
+            let want = (spec.ads_s * l.mods.ads_time * d.net.tick_hz as f32).ceil() as u32;
+            let mut ticks = 0;
+            while s.ads < 1.0 {
+                s.step(&d, &l, &input(Buttons::ADS), &still());
+                ticks += 1;
+                assert!(ticks <= 60, "{weapon}");
+            }
+            assert_eq!(ticks, want, "{weapon}");
+        }
+        let (d, l, _) = setup("ar7_mako");
+        assert_eq!(l.spec(&d).ads_s, 0.13);
     }
 
     #[test]

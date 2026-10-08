@@ -4,7 +4,9 @@
 //   - halo penetration comes from the ammo (weapon class x ammo type x tier, ammo.ron), not `shield_pierce`;
 //   - aiming lowers the fire rate (`ads_rpm_mult`) and the recoil (`recoil.ads_mult`);
 //   - an aimed first shot ignores the airborne penalty and slight movement (`ads_first_shot`);
-//   - bloom only builds up while moving, so standing still you fight the learnable pattern alone.
+//   - bloom only builds up while moving, so standing still you fight the learnable pattern alone;
+//   - playtest round 1 gun tuning: harder-hitting Mako, SMG strong close / weak past 25 m, much faster ADS,
+//     stronger recoil with no recovery mid-spray (DESIGN_DELTAS.md section 9).
 // Angles in degrees, distances in metres, times in seconds.
 (
     tick_hz: 60,
@@ -14,11 +16,14 @@
             name: "AR-7 Mako",
             cls: assault_rifle,
             ballistics: hitscan,
-            damage: 37.0,
-            falloff: [(0.0, 37.0), (25.0, 37.0), (50.0, 31.0), (80.0, 27.0)],
-            min_damage: 27.0,
+            // 4 torso hits through the default Mender Scout halo (60 shield + 120 HP) out to ~28 m, 3 on a bare
+            // torso; the falloff keeps the design's shape (x0.84 at 50 m, x0.73 at 80 m).
+            damage: 46.0,
+            falloff: [(0.0, 46.0), (25.0, 46.0), (50.0, 38.5), (80.0, 33.5)],
+            min_damage: 33.5,
             max_range_m: 300.0,
-            zone_mult: (head: 1.3, torso: 1.0, arms: 0.8, legs: 0.85),
+            // Head x1.5: two head hits kill through any T3 head arc within 25 m (one on a bare head).
+            zone_mult: (head: 1.5, torso: 1.0, arms: 0.8, legs: 0.85),
             rpm: 720.0,
             ads_rpm_mult: 0.85,
             ads_first_shot: Some((air_accurate: true, move_tolerance_frac: 0.35)),
@@ -30,7 +35,7 @@
             mag_check_s: 1.0,
             equip_s: 0.7,
             holster_s: 0.4,
-            ads_s: 0.22,
+            ads_s: 0.13,
             sprint_to_fire_s: 0.2,
             move_mult_held: 1.0,
             move_mult_ads: 0.6,
@@ -58,10 +63,14 @@
                 hip_mult: 1.0,
                 crouch_mult: 0.9,
                 reset_after_s: 0.3,
-                recover_frac: 0.6,
-                recover_delay_s: 0.1,
-                recover_deg_per_s: 15.0,
-                view_punch_visual_deg: 0.15,
+                // Recovery waits longer than any automatic fire interval (600 rpm aimed = 0.1 s), so a spray
+                // never recovers between shots: the pattern is the same every time.
+                recover_frac: 0.5,
+                recover_delay_s: 0.15,
+                recover_deg_per_s: 20.0,
+                // A visible kick per shot that is back before the next one (720 rpm = 0.083 s apart).
+                view_punch_visual_deg: 0.5,
+                view_punch_return_s: 0.07,
             ),
         ),
         (
@@ -85,7 +94,7 @@
             mag_check_s: 1.2,
             equip_s: 1.0,
             holster_s: 0.55,
-            ads_s: 0.38,
+            ads_s: 0.22,
             sprint_to_fire_s: 0.32,
             move_mult_held: 0.93,
             move_mult_ads: 0.45,
@@ -128,11 +137,15 @@
             name: "SK-9 Skink",
             cls: smg,
             ballistics: hitscan,
-            damage: 24.0,
-            falloff: [(0.0, 24.0), (10.0, 24.0), (30.0, 13.0)],
-            min_damage: 13.0,
+            // Gun tuning (playtest round 1): it must out-kill the harder Mako up close and fade fast past it.
+            // 5 torso hits through a Mender Scout to 10 m (Mako: 4 at 720 rpm, so 0.20 s against 0.25 s), then
+            // a steep drop: 16 at 25 m and 10 past 40 m, under 60 % of the Mako's damage per second from 25 m.
+            damage: 36.0,
+            falloff: [(0.0, 36.0), (10.0, 36.0), (25.0, 16.0), (40.0, 10.0)],
+            min_damage: 10.0,
             max_range_m: 150.0,
-            zone_mult: (head: 1.3, torso: 1.0, arms: 0.8, legs: 0.85),
+            // Head x1.0: a spray gun. Keeps every Skink round (RIP III: 36 x 1.2 = 43.2) under a bare head's 45 HP.
+            zone_mult: (head: 1.0, torso: 1.0, arms: 0.8, legs: 0.85),
             rpm: 1200.0,
             ads_rpm_mult: 0.75,
             ads_first_shot: Some((air_accurate: true, move_tolerance_frac: 0.35)),
@@ -144,7 +157,7 @@
             mag_check_s: 0.9,
             equip_s: 0.5,
             holster_s: 0.35,
-            ads_s: 0.18,
+            ads_s: 0.11,
             sprint_to_fire_s: 0.15,
             move_mult_held: 1.0,
             move_mult_ads: 0.7,
@@ -172,10 +185,12 @@
                 hip_mult: 1.0,
                 crouch_mult: 0.9,
                 reset_after_s: 0.3,
-                recover_frac: 0.6,
-                recover_delay_s: 0.1,
-                recover_deg_per_s: 15.0,
-                view_punch_visual_deg: 0.12,
+                recover_frac: 0.5,
+                recover_delay_s: 0.15,
+                recover_deg_per_s: 20.0,
+                // Back before the next shot (1200 rpm = 0.05 s apart).
+                view_punch_visual_deg: 0.3,
+                view_punch_return_s: 0.045,
             ),
         ),
     ],

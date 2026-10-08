@@ -372,8 +372,21 @@ mod tests {
         resolve_hit(w, a, 10.0, z, &d.weapons.spill_to_torso, spec, halo, hp, NEVER)
     }
 
+    /// The Mako with the design's damage numbers (design/systems/data/weapons.slice.json). The live Mako hits harder
+    /// since playtest round 1 (game/DESIGN_DELTAS.md section 9; pinned in tests/balance.rs); the damage model is
+    /// still checked against the design's Python model with the numbers that model uses.
+    fn design_mako(d: &GameData) -> WeaponSpec {
+        let mut w = d.weapon("ar7_mako").unwrap().clone();
+        w.damage = 37.0;
+        w.falloff = vec![(0.0, 37.0), (25.0, 37.0), (50.0, 31.0), (80.0, 27.0)];
+        w.min_damage = 27.0;
+        w.zone_mult = ZoneTable { head: 1.3, torso: 1.0, arms: 0.8, legs: 0.85 };
+        w
+    }
+
     fn shots_to_kill(d: &GameData, weapon: &str, ammo: &AmmoSpec, armor: &str, zone: Zone, range: f32) -> u32 {
-        let w = d.weapon(weapon).unwrap();
+        let w = &design_mako(d);
+        assert_eq!(weapon, "ar7_mako", "the oracle covers the design's Mako");
         let spec = HaloSpec::from_armor(&d.armor.resolve_id(armor).unwrap());
         let mut halo = HaloState::full(&spec);
         let mut hp = Health::new(d.armor.zone_hp);
@@ -427,9 +440,13 @@ mod tests {
         let mako = d.weapon("ar7_mako").unwrap();
         let warden = d.weapon("vk50_warden").unwrap();
         for (r, want) in
-            [(0.0, 37.0), (25.0, 37.0), (30.0, 35.8), (37.5, 34.0), (50.0, 31.0), (80.0, 27.0), (300.0, 27.0)]
+            [(0.0, 46.0), (25.0, 46.0), (30.0, 44.5), (37.5, 42.25), (50.0, 38.5), (80.0, 33.5), (300.0, 33.5)]
         {
             assert!((falloff(mako, r) - want).abs() < 1e-4, "mako {r}");
+        }
+        let skink = d.weapon("sk9_skink").unwrap();
+        for (r, want) in [(5.0, 36.0), (10.0, 36.0), (15.0, 29.333), (25.0, 16.0), (32.5, 13.0), (60.0, 10.0)] {
+            assert!((falloff(skink, r) - want).abs() < 1e-3, "skink {r}");
         }
         for (r, want) in [(60.0, 160.0), (90.0, 155.0), (135.0, 145.0), (400.0, 140.0)] {
             assert!((falloff(warden, r) - want).abs() < 1e-4, "warden {r}");
@@ -440,7 +457,7 @@ mod tests {
     #[test]
     fn hp_only_after_the_arc_breaks_and_leftover_carries() {
         let d = GameData::embedded();
-        let w = d.weapon("ar7_mako").unwrap();
+        let w = &design_mako(&d);
         let std = ammo(&d, "ar7_mako", AmmoKind::Standard, 1);
         // Phase Runner: T1 torso arc, 35 shield.
         let spec = HaloSpec::from_armor(&d.armor.resolve_id("arm_phase_runner").unwrap());
@@ -460,7 +477,7 @@ mod tests {
     #[test]
     fn pen_scales_shield_damage_and_converts_leftover_back() {
         let d = GameData::embedded();
-        let w = d.weapon("ar7_mako").unwrap();
+        let w = &design_mako(&d);
         let ap = ammo(&d, "ar7_mako", AmmoKind::ArmorPiercing, 3);
         let spec = HaloSpec::from_armor(&d.armor.resolve_id("arm_phase_runner").unwrap());
         let (mut halo, mut hp) = (HaloState::full(&spec), Health::new(d.armor.zone_hp));
@@ -474,7 +491,7 @@ mod tests {
     #[test]
     fn broken_legs_spill_to_torso() {
         let d = GameData::embedded();
-        let w = d.weapon("ar7_mako").unwrap();
+        let w = &design_mako(&d);
         let ammo = &ammo(&d, "ar7_mako", AmmoKind::Standard, 1);
         let spec = HaloSpec::NONE;
         let mut halo = HaloState::full(&spec);

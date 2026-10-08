@@ -526,13 +526,13 @@ mod tests {
         let def: Vec<_> =
             ["optic_holo", "mako_stock_standard", "mag_30"].iter().map(|i| d.attachment(i).unwrap()).collect();
         let s = weapon_stats(&d, mako, &def);
-        assert!((s.ads_s - 0.22).abs() < 1e-5);
+        assert!((s.ads_s - 0.13).abs() < 1e-5);
         assert_eq!((s.rpm, s.range_m, s.mag), (720.0, 25.0, 30));
         assert!((s.recoil_v - 100.0).abs() < 1e-4 && (s.mobility - 100.0).abs() < 1e-4);
         assert!((s.reload_s - 2.1).abs() < 1e-5);
         let grip = parts_with(&def, AttachmentCategory::Under, d.attachment("grip_angled"));
         let g = weapon_stats(&d, mako, &grip);
-        assert!((g.ads_s - 0.22 * 0.92).abs() < 1e-5);
+        assert!((g.ads_s - 0.13 * 0.92).abs() < 1e-5);
         let drum = parts_with(&def, AttachmentCategory::Mag, d.attachment("mag_drum60"));
         assert_eq!(weapon_stats(&d, mako, &drum).mag, 60);
         assert_eq!(weapon_stats(&d, d.weapon("vk50_warden").unwrap(), &[]).range_m, 60.0);

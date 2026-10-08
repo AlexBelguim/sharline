@@ -114,3 +114,69 @@ Once the design docs and JSON are updated, delete the entry here and in `superse
   network diagram uses 47820. The game uses **47820** (`assets/data/net.ron`). The mockup should be updated.
 - **Placeholders:** the TDM time limit and spawn protection length have no design value yet. Both are marked as
   placeholders in `assets/data/rules.ron`.
+
+## 9. Gun tuning after playtest round 1 (recoil, time to kill, ADS speed, SMG range)
+User direction (2026-10-08): recoil is much stronger, the AR's most of all, and recoil control is the skill check;
+the AR kills faster; the SMG is weak at range; aiming down sights is much faster. Skipped in the sync test by
+`gun_tuning_round_1()` in `design_sync.rs`; pinned in `tests/balance.rs`, `recoil.rs` and `weapon.rs`.
+
+- **Mako damage** 37 → **46** (falloff kept in shape: 46 to 25 m, 38.5 at 50 m, 33.5 from 80 m), **head x1.3 → x1.5**.
+  - Lever: the base damage. Death is per zone (head or torso at 0), and limb hits only reach the torso once the
+    limb breaks (spill stays as designed), so a body spray kills when enough torso hits land. Through the default
+    halo (Mender Scout, 60 shield + 120 HP) that is 5 hits at 37 and 4 from 45 up. Nothing below 45 changes a
+    body spray, and the zone, spill and halo rules stay untouched.
+  - Bare torso: 4 → 3 hits (AP still never makes it 2; the AP note in section 1 now reads "3-shot").
+  - Head x1.5: two head hits through any loadout head arc up to T3 Bulwark within 25 m (was 3), one on a bare
+    head at any range (was not past 70 m).
+- **Mako time to kill, through the default halo** (10 m, the same out to 25 m; aimed fire is 600 rpm, hip 720):
+
+  | Hit mix | Before: hits, hip / aimed s | After: hits, hip / aimed s | Faster |
+  | --- | --- | --- | --- |
+  | All torso | 5, 0.33 / 0.40 | 4, 0.25 / 0.30 | 25 % |
+  | Body spray (60 % torso, 20 % arms, 20 % legs) | 8, 0.58 / 0.70 | 6, 0.42 / 0.50 | 29 % |
+  | Head and torso (every third hit on the head) | 6, 0.42 / 0.50 | 5, 0.33 / 0.40 | 20 % |
+  | All head | 2, 0.08 / 0.10 | 2, 0.08 / 0.10 | – |
+  | All torso, no halo | 4, 0.25 / 0.30 | 3, 0.17 / 0.20 | 33 % |
+  | All torso / body spray at 40 m | 6 / 10 hits | 5 / 8 hits | 20-22 % |
+
+- **Skink (SMG)**: close damage 24 → **36** to 10 m, then a steep drop to **16 at 25 m** and **10 from 40 m** (was
+  24 → 13 from 30 m), **head x1.3 → x1.0**.
+  - Why the close buff: the harder Mako would otherwise out-kill it up close (it already tied it before). It now
+    kills a Scout's torso in 5 hits (0.20 s hip, 0.27 s aimed against the Mako's 0.25 / 0.30) and a body spray in
+    8 (0.35 / 0.47 against 0.42 / 0.50) out to 10 m; the Mako wins from 15 m (Skink 0.30 / 0.40 s torso), and from
+    25 m the Skink takes at least 1.5x as long, about twice as long through a halo (Scout torso at 25 m: 12 hits,
+    0.55 s).
+  - Head x1.0 keeps the balance-pass rule that no Skink round one-taps a bare head (RIP III: 36 x 1.2 = 43.2 < 45).
+    The SMG sprays bodies; the AR rewards heads.
+  - RIP leg-spraying keeps its shape (only RIP is leg-first on bare-legged Medium / Heavy halos, a T2 leg arc still
+    blunts it); every count in those pins dropped.
+  - Aimed fire stays at 900 rpm.
+- **Damage per second by range** (hip fire rate; before → after):
+
+  | Range | Mako | Skink | Warden | Skink / Mako |
+  | --- | --- | --- | --- | --- |
+  | 5 m | 444 → 552 | 480 → 720 | 128 | 108 % → 130 % |
+  | 15 m | 444 → 552 | 425 → 587 | 128 | 96 % → 106 % |
+  | 25 m | 444 → 552 | 315 → 320 | 128 | 71 % → 58 % |
+  | 40 m | 401 → 498 | 260 → 200 | 128 | 65 % → 40 % |
+  | 60 m | 356 → 442 | 260 → 200 | 128 | 73 % → 45 % |
+
+  The Warden is unchanged and stays the long-range pick: two torso hits or one head hit kill through anything up
+  to T3, at any range.
+- **Recoil** (`recoil_patterns.ron`; the Skink's stays the Mako's x0.6):
+  - Mako climb after 10 rounds 4.37 → **8.87°**, after 20 rounds 4.89 → **12.64°** (aimed x0.7: 6.21° / 8.85°). The
+    design's pattern went flat after round 10; the new one keeps climbing 0.35° a round, drifts right over the
+    first 10, swings left over the next 10, and its loop sways with zero net yaw.
+  - Still controllable: pulling down hard to round 8 and gently to round 15, with no sideways correction, keeps
+    a 15-round aimed spray on a torso at 15 m (tested with the real hitboxes). Without pulling down the spray
+    leaves the torso by round 3.
+  - **No recovery mid-spray**: `recover_delay_s` 0.1 → 0.15 (longer than aimed 600 rpm's 0.1 s plus frame
+    jitter, so the pattern is the same every time), `recover_frac` 0.6 → 0.5, `recover_deg_per_s` 15 → 20.
+  - **Visible view punch**: `view_punch_visual_deg` 0.15 → 0.5 (Skink 0.12 → 0.3), settling over the new
+    `view_punch_return_s` (0.07 s; Skink 0.045 s) instead of a hard-coded 2°/s, so every shot reads as its own kick
+    and the screen centre is back on the aim before the next shot. Still scaled by the screen-shake setting.
+  - The Warden's kick is unchanged (3.5° up, 70 % back in 0.35 s): about a quarter of the 6x scope picture.
+- **ADS time** (`ads_s`): Mako 0.22 → **0.13**, Skink 0.18 → **0.11**, Warden 0.38 → **0.22** (8 / 7 / 14 ticks with
+  the default optics). Everything on screen follows the sim's ADS blend: camera zoom, viewmodel pose, scope picture,
+  crosshair. The projector sight had its own clock: flaps 0.12 → 0.08 s, hologram fade 0.08 → 0.03 s
+  (`weapon_models.ron`; it still shows from 80 % ADS), tested to keep up with the fastest build of each gun.

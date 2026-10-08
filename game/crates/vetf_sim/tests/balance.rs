@@ -1,14 +1,18 @@
 //! Balance pins from the ammo balance pass (v2; see game/DESIGN_DELTAS.md section 1). These fail when a
 //! number in `assets/data` moves a breakpoint the design relies on: the SMG and RIP leg spraying, AP and the
 //! gear budget, the Warden's one-shot margins, and Shrapnel bleed timing. All at 10 m and hip fire unless
-//! stated.
+//! stated. The gun tuning of playtest round 1 (DESIGN_DELTAS.md section 9) adds time-to-kill, range-role and
+//! recoil-control pins at the end.
 
+use glam::Vec3;
 use vetf_sim::GameData;
 use vetf_sim::Zone;
 use vetf_sim::ZoneTable;
-use vetf_sim::combat::{HaloSpec, HaloState, Health, resolve_hit};
-use vetf_sim::data::{AmmoChoice, AmmoKind, AmmoSpec, ArmorStats, WeaponClass};
-use vetf_sim::weapon::fire_interval_ticks;
+use vetf_sim::combat::{HaloSpec, HaloState, Health, falloff, resolve_hit};
+use vetf_sim::data::{AmmoChoice, AmmoKind, AmmoSpec, ArmorStats, RecoilSpec, WeaponClass};
+use vetf_sim::hitbox::{self, Pose};
+use vetf_sim::movement::Stance;
+use vetf_sim::weapon::{fire_interval_ticks, shot_direction, shot_seed};
 
 const NEVER: f32 = 1.0;
 const SKINK: &str = "sk9_skink";
@@ -73,16 +77,17 @@ fn rip_makes_leg_spraying_the_answer_to_bare_legs() {
         ("AP II", ammo(&d, smg, AmmoKind::ArmorPiercing, 2)),
         ("AP III", ammo(&d, smg, AmmoKind::ArmorPiercing, 3)),
     ];
-    // (torso, legs) per round, for bulwark_assault, volt_line, bulwark_vanguard, mender_medic.
+    // (torso, legs) per round, for bulwark_assault, volt_line, bulwark_vanguard, mender_medic. Gun tuning
+    // (playtest round 1) raised the Skink's close damage 24 -> 36: every count dropped, the order stayed.
     #[rustfmt::skip]
     let want: [[(u32, u32); 4]; 7] = [
-        [(21, 11), (17, 11), (25, 16), (15, 14)],
-        [(20, 10), (17, 10), (24, 15), (14, 13)],
-        [(20, 9), (17, 9), (24, 14), (14, 12)],
-        [(11, 13), (10, 13), (12, 15), (9, 14)],
-        [(10, 13), (9, 13), (11, 14), (8, 14)],
-        [(9, 13), (8, 13), (10, 14), (7, 13)],
-        [(8, 12), (7, 12), (9, 13), (7, 13)],
+        [(14, 7), (11, 7), (17, 11), (10, 9)],
+        [(14, 7), (11, 7), (16, 10), (10, 9)],
+        [(14, 6), (11, 6), (16, 9), (10, 8)],
+        [(7, 9), (7, 9), (8, 10), (6, 10)],
+        [(7, 9), (6, 9), (8, 10), (6, 9)],
+        [(6, 9), (5, 9), (7, 9), (5, 9)],
+        [(6, 8), (5, 8), (6, 9), (5, 9)],
     ];
     let presets = ["arm_bulwark_assault", "arm_volt_line", "arm_bulwark_vanguard", "arm_mender_medic"];
     for ((name, a), want) in rounds.iter().zip(want) {
@@ -102,7 +107,7 @@ fn leg_arcs_blunt_rip() {
     let assault = capped(&d, "arm_bulwark_assault");
     let jugg = capped(&d, "arm_bulwark_jugg");
     assert_eq!(jugg.tiers.legs, d.armor.loadout_tier_caps.legs);
-    let want = [((21, 11), (25, 19)), ((20, 10), (24, 18)), ((20, 9), (24, 17))];
+    let want = [((14, 7), (17, 13)), ((14, 7), (16, 12)), ((14, 6), (16, 12))];
     for (tier, (wa, wj)) in (1..=3).zip(want) {
         let rip = ammo(&d, WeaponClass::Smg, AmmoKind::Rip, tier);
         let (a, j) = (torso_legs(&d, SKINK, &rip, &assault), torso_legs(&d, SKINK, &rip, &jugg));
@@ -118,15 +123,15 @@ fn skink_breakpoints() {
     let smg = WeaponClass::Smg;
     let none = capped(&d, "arm_none");
     let (s, rip3) = (std(&d, smg), ammo(&d, smg, AmmoKind::Rip, 3));
-    assert_eq!(shots(&d, SKINK, &s, &none, Zone::Torso, 10.0), 5, "24 x 5 = 120 exactly");
-    assert_eq!(shots(&d, SKINK, &rip3, &none, Zone::Torso, 10.0), 5, "28.8 x 4 = 115.2 < 120");
-    assert_eq!(shots(&d, SKINK, &s, &capped(&d, "arm_mender_scout"), Zone::Torso, 10.0), 8);
-    assert_eq!(shots(&d, MAKO, &std(&d, WeaponClass::AssaultRifle), &none, Zone::Torso, 10.0), 4);
+    assert_eq!(shots(&d, SKINK, &s, &none, Zone::Torso, 10.0), 4, "36 x 3 = 108 < 120");
+    assert_eq!(shots(&d, SKINK, &rip3, &none, Zone::Torso, 10.0), 3, "43.2 x 3 = 129.6");
+    assert_eq!(shots(&d, SKINK, &s, &capped(&d, "arm_mender_scout"), Zone::Torso, 10.0), 5, "36 x 5 = 180");
+    assert_eq!(shots(&d, MAKO, &std(&d, WeaponClass::AssaultRifle), &none, Zone::Torso, 10.0), 3);
     // N10: the SMG falls off hard; the Mako owns range.
     let volt = capped(&d, "arm_volt_line");
     let mako = std(&d, WeaponClass::AssaultRifle);
     for (range, armor, want_std, want_rip, want_mako) in
-        [(30.0, &none, 10, 8, 4), (30.0, &volt, 17, 30, 7), (50.0, &volt, 17, 30, 8)]
+        [(30.0, &none, 9, 8, 3), (30.0, &volt, 16, 28, 5), (50.0, &volt, 22, 39, 6)]
     {
         assert_eq!(shots(&d, SKINK, &s, armor, Zone::Torso, range), want_std, "STD at {range}");
         assert_eq!(shots(&d, SKINK, &rip3, armor, Zone::Torso, range), want_rip, "RIP III at {range}");
@@ -139,12 +144,12 @@ fn skink_breakpoints() {
 }
 
 #[test]
-fn ap_hits_shields_harder_but_keeps_the_mako_at_four_bare_torso_shots() {
+fn ap_hits_shields_harder_but_keeps_the_mako_at_three_bare_torso_shots() {
     let d = GameData::embedded();
     let none = capped(&d, "arm_none");
     for tier in 1..=3 {
         let ap = ammo(&d, WeaponClass::AssaultRifle, AmmoKind::ArmorPiercing, tier);
-        assert_eq!(shots(&d, MAKO, &ap, &none, Zone::Torso, 10.0), 4, "AP {tier}");
+        assert_eq!(shots(&d, MAKO, &ap, &none, Zone::Torso, 10.0), 3, "AP {tier}");
     }
 }
 
@@ -275,4 +280,194 @@ fn shrapnel_bleed_timing() {
         hp.bleeding.treat(Zone::Torso);
         assert!((hp.bleeding.active.torso - 0.1 * b.max_stacks as f32).abs() < 1e-5);
     }
+}
+
+// ---------------------------------------------------------------------------------------------- gun tuning
+// Playtest round 1 (DESIGN_DELTAS.md section 9): "time to kill seems pretty high with the AR", "the SMG does the
+// same damage at long range?", "the recoil is way too low on the AR".
+
+/// Hit mixes: where a spray's rounds land, in turn.
+const ALL_TORSO: &[Zone] = &[Zone::Torso];
+/// A body spray: 60 % torso, 20 % arms, 20 % legs.
+const BODY_SPRAY: &[Zone] = &[Zone::Torso, Zone::Arms, Zone::Torso, Zone::Legs, Zone::Torso];
+/// A spray that climbs into the head: every third round.
+const HEAD_AND_TORSO: &[Zone] = &[Zone::Torso, Zone::Torso, Zone::Head];
+const ALL_HEAD: &[Zone] = &[Zone::Head];
+
+/// The halo every player spawns with (rules.ron default loadout), loadout-capped.
+fn default_halo(d: &GameData) -> ArmorStats {
+    capped(d, &d.rules.default_loadout.armor)
+}
+
+/// Rounds and seconds to kill with Standard rounds landing on `mix` in turn at `range`, hip fire or aimed (the
+/// aimed fire rate). The seconds run from the first round to the killing one.
+fn ttk(d: &GameData, weapon: &str, armor: &ArmorStats, mix: &[Zone], range: f32, aimed: bool) -> (u32, f32) {
+    let w = d.weapon(weapon).unwrap();
+    let a = std(d, w.cls);
+    let spec = HaloSpec::from_armor(armor);
+    let mut halo = HaloState::full(&spec);
+    let mut hp = Health::new(d.armor.zone_hp);
+    let hz = d.net.tick_hz;
+    for (n, zone) in mix.iter().cycle().take(400).enumerate() {
+        if resolve_hit(w, &a, range, *zone, &d.weapons.spill_to_torso, &spec, &mut halo, &mut hp, NEVER).killed {
+            let interval = fire_interval_ticks(w, hz, aimed) as f32 / hz as f32;
+            return (n as u32 + 1, n as f32 * interval);
+        }
+    }
+    panic!("{weapon} never killed");
+}
+
+/// The Mako with the design's damage numbers (what the slice shipped with before playtest round 1).
+fn with_design_mako(d: &GameData) -> GameData {
+    let mut old = d.clone();
+    let w = old.weapons.weapons.iter_mut().find(|w| w.id == MAKO).unwrap();
+    w.damage = 37.0;
+    w.falloff = vec![(0.0, 37.0), (25.0, 37.0), (50.0, 31.0), (80.0, 27.0)];
+    w.min_damage = 27.0;
+    w.zone_mult = ZoneTable { head: 1.3, torso: 1.0, arms: 0.8, legs: 0.85 };
+    old
+}
+
+/// The Mako's time to kill through the default halo (Mender Scout: 60 shield + 120 torso HP, 36 + 45 head) at
+/// 10 m: (rounds, hip seconds, aimed seconds) per mix. Before, with the design's 37 damage: torso 5 (0.33 / 0.40 s),
+/// body spray 8 (0.58 / 0.70 s), head and torso 6 (0.42 / 0.50 s), head 2.
+#[test]
+fn the_mako_kills_faster_through_the_default_halo() {
+    let d = GameData::embedded();
+    let old = with_design_mako(&d);
+    let halo = default_halo(&d);
+    assert_eq!(halo.id, "arm_mender_scout");
+    #[rustfmt::skip]
+    let want: [(&[Zone], u32, f32, f32); 4] = [
+        (ALL_TORSO, 4, 0.25, 0.3),
+        (BODY_SPRAY, 6, 5.0 / 12.0, 0.5),
+        (HEAD_AND_TORSO, 5, 4.0 / 12.0, 0.4),
+        (ALL_HEAD, 2, 1.0 / 12.0, 0.1),
+    ];
+    for range in [10.0, 25.0] {
+        for (mix, rounds, hip, aimed) in want {
+            let (n, h) = ttk(&d, MAKO, &halo, mix, range, false);
+            let (_, a) = ttk(&d, MAKO, &halo, mix, range, true);
+            assert_eq!(n, rounds, "{mix:?} at {range} m");
+            assert!((h - hip).abs() < 1e-4 && (a - aimed).abs() < 1e-4, "{mix:?} at {range} m: {h} / {a}");
+        }
+    }
+    // The aim of the change: a body spray kills 25-35 % faster, hip and aimed, out to 25 m.
+    for range in [10.0, 25.0] {
+        for aimed in [false, true] {
+            let before = ttk(&old, MAKO, &halo, BODY_SPRAY, range, aimed).1;
+            let after = ttk(&d, MAKO, &halo, BODY_SPRAY, range, aimed).1;
+            let faster = 1.0 - after / before;
+            assert!((0.25..=0.35).contains(&faster), "{range} m aimed {aimed}: {before} -> {after} s");
+        }
+    }
+    // Headshots pay: two kill within 25 m through the biggest T3 head arc (Bulwark; three before) and a T4 Phase
+    // one, and one kills a bare head at any range (before: not past 70 m).
+    for armor in ["arm_mender_scout", "arm_bulwark_assault", "arm_phase_ghost"] {
+        assert_eq!(ttk(&d, MAKO, &capped(&d, armor), ALL_HEAD, 25.0, false).0, 2, "{armor}");
+    }
+    assert_eq!(ttk(&old, MAKO, &capped(&d, "arm_bulwark_assault"), ALL_HEAD, 25.0, false).0, 3);
+    assert_eq!(ttk(&d, MAKO, &capped(&d, "arm_none"), ALL_HEAD, 300.0, false).0, 1);
+}
+
+/// SMG wins close, the AR owns mid range: the Skink kills faster at 5-10 m (strictly through the default halo), the
+/// Mako from 15 m, and past 25 m the Skink takes at least half as long again, hip or aimed, sprayed or all torso.
+#[test]
+fn the_skink_wins_close_and_the_mako_owns_mid_range() {
+    let d = GameData::embedded();
+    let halos = [default_halo(&d), capped(&d, "arm_none")];
+    for (i, halo) in halos.iter().enumerate() {
+        for mix in [ALL_TORSO, BODY_SPRAY] {
+            for aimed in [false, true] {
+                let t = |w: &str, r: f32| ttk(&d, w, halo, mix, r, aimed).1;
+                let at = |r: f32| format!("{} {mix:?} aimed {aimed} at {r} m", halo.id);
+                for r in [5.0, 10.0] {
+                    let (s, m) = (t(SKINK, r), t(MAKO, r));
+                    assert!(if i == 0 { s < m } else { s <= m + 1e-6 }, "{}: skink {s} mako {m}", at(r));
+                }
+                for r in [15.0, 25.0, 40.0] {
+                    let (s, m) = (t(SKINK, r), t(MAKO, r));
+                    assert!(m < s, "{}: skink {s} mako {m}", at(r));
+                    if r >= 25.0 {
+                        assert!(s >= 1.5 * m, "{}: skink {s} mako {m}", at(r));
+                    }
+                }
+            }
+        }
+    }
+}
+
+/// Damage per second by range (hip fire rate): the Skink leads up close and falls under 60 % of the Mako's from
+/// 25 m; the Warden's is low on paper, it is the one-shot pick.
+#[test]
+fn damage_per_second_by_range() {
+    let d = GameData::embedded();
+    let dps = |w: &str, r: f32| {
+        let w = d.weapon(w).unwrap();
+        falloff(w, r) / w.bolt_cycle_s.unwrap_or(60.0 / w.rpm)
+    };
+    #[rustfmt::skip]
+    let want = [
+        (5.0, 552.0, 720.0), (15.0, 552.0, 586.7), (25.0, 552.0, 320.0), (40.0, 498.0, 200.0), (60.0, 442.0, 200.0),
+    ];
+    for (r, mako, skink) in want {
+        assert!((dps(MAKO, r) - mako).abs() < 0.5, "mako at {r} m: {}", dps(MAKO, r));
+        assert!((dps(SKINK, r) - skink).abs() < 0.5, "skink at {r} m: {}", dps(SKINK, r));
+        assert!((dps(WARDEN, r) - 128.0).abs() < 0.5, "warden at {r} m");
+        if r >= 25.0 {
+            assert!(dps(SKINK, r) < 0.6 * dps(MAKO, r), "{r} m");
+        }
+    }
+}
+
+/// Recoil is the skill check now, and it must stay learnable. A player who learned the Mako's pattern (pull down
+/// hard to the 8th round, then gently on to the 15th, no sideways correction) keeps a 15-round aimed spray on the
+/// torso of a target 15 m away. Without pulling down, the climb leaves the torso within four rounds.
+#[test]
+fn a_learned_pull_keeps_an_aimed_mako_spray_on_a_torso_at_15_m() {
+    let d = GameData::embedded();
+    let w = d.weapon(MAKO).unwrap();
+    let RecoilSpec::Pattern(p) = &w.recoil else { panic!("the Mako has a pattern") };
+    let pattern = d.recoil_pattern(w).unwrap();
+    const ROUNDS: usize = 15;
+    const KNEE: usize = 8;
+    // The view climb (pitch, yaw right; degrees) each round leaves with: the aimed kicks of the rounds before it.
+    let mut climb = vec![(0.0_f32, 0.0_f32)];
+    for n in 1..ROUNDS as u32 {
+        let (kp, ky) = pattern.kick(n);
+        let last = climb[climb.len() - 1];
+        climb.push((last.0 + kp * p.ads_mult, last.1 + ky * p.ads_mult));
+    }
+    // The learned pull: straight down to where round KNEE would go, then on to round ROUNDS.
+    let (k, e) = (KNEE - 1, ROUNDS - 1);
+    let pull = |i: usize| {
+        if i <= k {
+            climb[k].0 * i as f32 / k as f32
+        } else {
+            climb[k].0 + (climb[e].0 - climb[k].0) * (i - k) as f32 / (e - k) as f32
+        }
+    };
+    let eye = Vec3::Y * d.movement.eye_height.stand;
+    let target = Pose { pos: Vec3::new(0.0, 0.0, -15.0), yaw: 0.0, stance: Stance::Stand };
+    let torso = d.hitboxes.boxes.iter().find(|b| b.zone == Zone::Torso).unwrap();
+    let aim = (target.pos + Vec3::new(torso.center.0, torso.center.1, torso.center.2) - eye).normalize();
+    let (yaw0, pitch0) = ((-aim.x).atan2(-aim.z), aim.y.asin());
+    let spread = w.spread_deg.ads_still;
+    let zones = |pulled: bool| -> Vec<Option<Zone>> {
+        (0..ROUNDS)
+            .map(|i| {
+                let down = if pulled { pull(i) } else { 0.0 };
+                let pitch = pitch0 + (climb[i].0 - down).to_radians();
+                // Yaw right turns the view to negative yaw (as the client applies the kick).
+                let yaw = yaw0 - climb[i].1.to_radians();
+                let dir = shot_direction(yaw, pitch, spread, shot_seed(7, i as u32 + 1));
+                hitbox::raycast(&d, &target, eye, dir, 100.0).map(|(z, _)| z)
+            })
+            .collect()
+    };
+    let pulled = zones(true);
+    assert!(pulled.iter().all(|z| *z == Some(Zone::Torso)), "pulled: {pulled:?}");
+    let free = zones(false);
+    let left = free.iter().position(|z| *z != Some(Zone::Torso)).expect("the climb leaves the torso");
+    assert!(left < 4, "without pulling down the spray leaves the torso at round {}: {free:?}", left + 1);
 }

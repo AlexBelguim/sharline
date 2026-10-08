@@ -401,20 +401,21 @@ mod tests {
         let base = weapon_stats(&d, mako, &def);
         let with = |id: &str| weapon_stats(&d, mako, &parts_with(&def, AttachmentCategory::Under, d.attachment(id)));
         let angled = stat_deltas(&base, &with("grip_angled"));
-        assert_eq!(angled.iter().map(|x| x.text.as_str()).collect::<Vec<_>>(), ["ADS −0.02 S", "RECOIL H −6 %"]);
+        assert_eq!(angled.iter().map(|x| x.text.as_str()).collect::<Vec<_>>(), ["ADS −0.01 S", "RECOIL H −6 %"]);
         let vertical = stat_deltas(&base, &with("grip_vertical"));
         assert_eq!(vertical[0].text, "RECOIL V −12 %");
         assert_eq!(vertical[0].tone, Tone::Good);
-        assert_eq!(vertical[1].text, "ADS +0.01 S");
-        assert_eq!(vertical[1].tone, Tone::Bad);
+        // Since ADS got fast (0.13 s), the vertical grip's +3 % is under 0.005 s; the launcher's +15 % shows.
+        let ugl = stat_deltas(&base, &with("ugl_launcher"));
+        assert!(ugl.iter().any(|x| x.text == "ADS +0.02 S" && x.tone == Tone::Bad), "{ugl:?}");
         assert_eq!(stat_deltas(&base, &base)[0].text, "NO CHANGE");
         let drum = weapon_stats(&d, mako, &parts_with(&def, AttachmentCategory::Mag, d.attachment("mag_drum60")));
         assert!(stat_deltas(&base, &drum).iter().any(|x| x.text == "+30 RND" && x.tone == Tone::Good));
         let scope = weapon_stats(&d, mako, &parts_with(&def, AttachmentCategory::Optic, d.attachment("optic_3x")));
         assert!(stat_deltas(&base, &scope).iter().any(|x| x.text == "ZOOM 3×"));
-        assert_eq!(stat_inline_delta(0, &base, &with("grip_angled")), Some(("−0.02".into(), Tone::Good)));
+        assert_eq!(stat_inline_delta(0, &base, &with("grip_angled")), Some(("−0.01".into(), Tone::Good)));
         assert_eq!(stat_inline_delta(1, &base, &with("grip_angled")), None);
-        assert_eq!(stat_value(0, &base), "0.22 s");
+        assert_eq!(stat_value(0, &base), "0.13 s");
         assert_eq!(stat_value(1, &base), "720 rpm");
         assert_eq!(stat_value(4, &base), "100 %");
         assert_eq!(stat_value(6, &base), "25 m");

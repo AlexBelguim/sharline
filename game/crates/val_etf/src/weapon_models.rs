@@ -1148,6 +1148,43 @@ mod tests {
         assert_eq!((s.flaps, s.hologram), (0.0, 0.0), "between ticks the gun is still going down");
     }
 
+    /// Aiming is fast now (playtest round 1): the projector's flaps are open and its hologram is in by the time the
+    /// fastest build of any gun it fits is fully aimed (one tick of slack), so the sight never lags the ADS blend.
+    #[test]
+    fn the_projector_keeps_up_with_the_fastest_ads() {
+        let d = GameData::embedded();
+        let m = ModelData::embedded();
+        let t = m.parts[m.part("optic_projector").unwrap()].projector.expect("projector timings");
+        let projector = d.attachment("optic_projector").unwrap();
+        for gun in &projector.fits {
+            let spec = d.weapon(gun).unwrap();
+            // The quickest part of every other category that fits the gun (the projector is the optic).
+            let mut cats: Vec<AttachmentCategory> = Vec::new();
+            for a in &d.attachments.attachments {
+                if !cats.contains(&a.cat) {
+                    cats.push(a.cat);
+                }
+            }
+            let fastest: f32 = cats
+                .iter()
+                .filter(|c| **c != AttachmentCategory::Optic)
+                .map(|c| {
+                    d.attachments
+                        .attachments
+                        .iter()
+                        .filter(|a| a.cat == *c && a.fits.contains(gun))
+                        .map(|a| a.ads_time.unwrap_or(1.0))
+                        .fold(1.0_f32, f32::min)
+                })
+                .product();
+            let ads_s = spec.ads_s * fastest * projector.ads_time.unwrap_or(1.0);
+            let tick = 1.0 / d.net.tick_hz as f32;
+            assert!(t.flap_open_s <= ads_s, "{gun}: flaps {} s, fastest ADS {ads_s} s", t.flap_open_s);
+            let shown = t.hologram_from_ads * ads_s + t.hologram_fade_s;
+            assert!(shown <= ads_s + tick, "{gun}: hologram in at {shown} s, fastest ADS {ads_s} s");
+        }
+    }
+
     /// The bipod rides folded: its legs, splay and feet take the export's folded pose, which tucks the feet up
     /// under the handguard.
     #[test]
