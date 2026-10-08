@@ -3,7 +3,7 @@
 
 use crate::config::{Cli, CurrentLevel, Data};
 use crate::net::{Role, Session};
-use crate::shared::{LocalShot, SimSystems};
+use crate::shared::{LocalPlayerEvents, LocalShot, SimSystems};
 use bevy::prelude::*;
 use lightyear::prelude::input::native::ActionState;
 use lightyear::prelude::server::*;
@@ -540,6 +540,7 @@ fn simulate_authoritative(
     matches: Query<&MatchState>,
     mut fx: ServerMultiMessageSender,
     mut local_shots: MessageWriter<LocalShot>,
+    mut local_events: MessageWriter<LocalPlayerEvents>,
     mut deaths: MessageWriter<PlayerDied>,
     mut feedback: ResMut<crate::client::Feedback>,
 ) {
@@ -560,6 +561,10 @@ fn simulate_authoritative(
         let mut wounds = vitals.wounds;
         let ev = player::step(&data, &level, &loadout.0, &mut mv.0, &mut weapon.0, &mut items.0, &mut wounds, &frame);
         vitals.wounds = wounds;
+        if local {
+            let trigger = crate::sound::TriggerTick::of(&weapon.0);
+            local_events.write(LocalPlayerEvents { player: id.0, events: ev, trigger });
+        }
         if let Some((slot, zone)) = ev.items.finished
             && let Some(k) = loadout.0.kit.get(slot as usize)
         {
