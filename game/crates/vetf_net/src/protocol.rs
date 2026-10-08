@@ -8,7 +8,7 @@ use lightyear::prelude::*;
 use serde::{Deserialize, Serialize};
 use vetf_sim::Zone;
 use vetf_sim::combat::{HaloState, Health};
-use vetf_sim::data::{AmmoChoice, Ruleset};
+use vetf_sim::data::{AmmoChoice, DeathmatchLoadout, Ruleset};
 use vetf_sim::gear::HaloChoice;
 use vetf_sim::hitbox::HitClaim;
 use vetf_sim::input::{Buttons, InputFrame};
@@ -90,6 +90,12 @@ pub struct PlayerNet {
     /// READY in the lobby (cleared when the match starts or the player switches team).
     pub ready: bool,
 }
+
+/// The agent this player plays, as the host says (an `agents.ron` id; cosmetic for now). Team deathmatch and
+/// free-for-all have no agent pick (DIRECTION_LOG 17): the host deals one at random when the match starts and
+/// it is kept until the match ends; `None` in the lobby. The gun range: the one picked on the Loadout screen.
+#[derive(Component, Serialize, Deserialize, Clone, Debug, PartialEq, Eq, Default)]
+pub struct PlayerAgent(pub Option<String>);
 
 pub use vetf_sim::data::Mode as MatchMode;
 
@@ -199,14 +205,46 @@ impl PlayerInput {
 pub struct LoadoutChoice {
     pub weapon: String,
     /// Magazines in slot order: one to six, no gaps, each with its own ammo. Slot 1 starts in the gun, and
-    /// a slot's index is its position on the reload wheel.
+    /// a slot's index is its position on the reload wheel. Team deathmatch and free-for-all load the mode's
+    /// count of them with slot 1's ammo ([`LoadoutChoice::shaped`]).
     pub mags: Vec<AmmoChoice>,
-    /// Attachment ids, at most one per category; categories left out use the weapon's defaults.
+    /// Attachment ids, at most one per category (the magazine type among them); categories left out use the
+    /// weapon's defaults.
     pub attachments: Vec<String>,
-    /// The halo: one core and a tier per arc, within the armor data's loadout tier caps.
+    /// The halo: one core and a tier per arc, within the armor data's loadout tier caps. Team deathmatch and
+    /// free-for-all wear one of their armor tiers on their one core instead ([`LoadoutChoice::shaped`]).
     pub halo: HaloChoice,
-    /// Agent id (cosmetic for now: agents have no abilities in this build).
+    /// Agent id, picked in the gun range (cosmetic for now: agents have no abilities in this build). Team
+    /// deathmatch and free-for-all have no agent pick: the host deals agents ([`PlayerAgent`]).
     pub agent: String,
+}
+
+impl LoadoutChoice {
+    /// The ammo of slot 1 (the magazine that starts in the gun): a deathmatch loadout's one ammo type.
+    pub fn ammo(&self) -> AmmoChoice {
+        self.mags.first().copied().unwrap_or(AmmoChoice::STANDARD)
+    }
+
+    /// This loadout as team deathmatch and free-for-all take it (`rules.ron` `deathmatch_loadout`, see
+    /// [`vetf_sim::data::RulesFile::fixed_loadout`]): the armor tier its halo makes
+    /// ([`DeathmatchLoadout::tier_for`]) on the one halo core, and the mode's count of magazines, all with
+    /// slot 1's ammo. Without such rules (the gun range) it is taken as it is. The host and the Loadout screen
+    /// both shape a loadout this way, so a loadout saved by an older build still opens (as its nearest picks),
+    /// and a client never gets more than the picks it pays for (another core, a mix of ammo, extra
+    /// magazines).
+    pub fn shaped(&self, fixed: Option<&DeathmatchLoadout>) -> LoadoutChoice {
+        let Some(kit) = fixed else { return self.clone() };
+        LoadoutChoice {
+            mags: vec![self.ammo(); kit.mags as usize],
+            halo: HaloChoice::of_tier(kit, kit.tier_for(self.halo.tiers)),
+            ..self.clone()
+        }
+    }
+
+    /// This loadout as `mode` takes it (see [`LoadoutChoice::shaped`]).
+    pub fn for_mode(&self, data: &vetf_sim::GameData, mode: MatchMode) -> LoadoutChoice {
+        self.shaped(data.rules.fixed_loadout(mode))
+    }
 }
 
 /// Client -> host: a new loadout from the Loadout screen during a match, applied at the next spawn.
@@ -355,6 +393,7 @@ impl Plugin for ProtocolPlugin {
         app.component::<Vitals>().replicate();
         app.component::<Score>().replicate();
         app.component::<PlayerNet>().replicate();
+        app.component::<PlayerAgent>().replicate();
         app.component::<MatchState>().replicate();
 
         app.add_channel::<ReliableChannel>(ChannelSettings {
@@ -387,11 +426,31 @@ mod tests {
     use super::*;
     use vetf_sim::GameData;
 
-    /// Wire types must survive a serde round trip (lightyear serialises them with bincode-style serde).
-    fn roundtrip<T: Serialize + for<'de> Deserialize<'de> + PartialEq + std::fmt::Debug>(v: &T) {
-        let bytes = ron::to_string(v).unwrap();
-        let back: T = ron::from_str(&bytes).unwrap();
+    /// Wire types must survive lightyear's serializer: postcard (lightyear_serde), which unlike RON is not
+    /// self-describing, so a `skip_serializing_if` reachable from a networked type fails here as it would on
+    /// the wire. Returns the bytes.
+    fn roundtrip<T: Serialize + for<'de> Deserialize<'de> + PartialEq + std::fmt::Debug>(v: &T) -> Vec<u8> {
+        let bytes = postcard::to_allocvec(v).unwrap();
+        let back: T = postcard::from_bytes(&bytes).unwrap();
         assert_eq!(&back, v);
+        bytes
+    }
+
+    /// The round trip above catches what RON lets through: an optional field skipped when empty decodes in
+    /// RON, but not from postcard's bytes.
+    #[test]
+    fn the_wire_format_is_not_self_describing() {
+        #[derive(Serialize, Deserialize, Debug, PartialEq)]
+        struct Skips {
+            a: u8,
+            #[serde(default, skip_serializing_if = "Option::is_none")]
+            b: Option<u8>,
+            c: u8,
+        }
+        let v = Skips { a: 1, b: None, c: 2 };
+        assert_eq!(ron::from_str::<Skips>(&ron::to_string(&v).unwrap()).unwrap(), v, "RON hides the hazard");
+        let bytes = postcard::to_allocvec(&v).unwrap();
+        assert_ne!(postcard::from_bytes::<Skips>(&bytes).ok(), Some(v), "postcard does not");
     }
 
     #[test]
@@ -497,13 +556,13 @@ mod tests {
         roundtrip(&MatchPhase::Ended { winner: Some(Team::B), player: None });
         // A player without a team (free-for-all and the range) roundtrips too.
         roundtrip(&PlayerInfo { name: "LARK".into(), team: None });
-        // The same bytes the binary wire format carries (lightyear uses bincode-style serde): the mode is
-        // its own variant, so a free-for-all never decodes as team deathmatch.
-        assert_ne!(ron::to_string(&MatchMode::Ffa).unwrap(), ron::to_string(&MatchMode::Tdm).unwrap());
+        // The bytes the wire carries: the mode is its own variant, so a free-for-all never decodes as team
+        // deathmatch.
+        assert_ne!(roundtrip(&MatchMode::Ffa), roundtrip(&MatchMode::Tdm));
     }
 
     /// The Loadout screen's output: six ordered magazines with mixed ammo, a mixed-tier custom halo and
-    /// the agent survive the wire (ron here; lightyear's binary serde uses the same derive).
+    /// the agent survive the wire (postcard, as lightyear sends them).
     #[test]
     fn loadout_choice_with_six_mags_and_a_custom_halo_roundtrips() {
         use vetf_sim::ZoneTable;
@@ -517,12 +576,55 @@ mod tests {
             agent: "solace".into(),
         };
         roundtrip(&LoadoutUpdate { loadout: choice.clone() });
-        let text = ron::to_string(&choice).unwrap();
-        let back: LoadoutChoice = ron::from_str(&text).unwrap();
+        let bytes = roundtrip(&choice);
+        let back: LoadoutChoice = postcard::from_bytes(&bytes).unwrap();
         assert_eq!(back.mags.len(), 6);
         assert_eq!(back.mags[2], AmmoChoice { kind: AmmoKind::Rip, tier: 3 }, "slot order is kept");
         assert_eq!(back.halo.tiers.legs, 2);
         assert_eq!(protocol_id() ^ 0x5641_4c5f_4554_4600, PROTOCOL_VERSION);
+    }
+
+    /// Team deathmatch and free-for-all: whatever a client asks for (another core, a halo that is no armor
+    /// tier, a mix of ammo, fewer magazines) is shaped to the picks it pays for: an armor tier on the one
+    /// halo core, and the mode's count of magazines with slot 1's ammo. The gun range takes the loadout as it
+    /// is.
+    #[test]
+    fn deathmatch_loadouts_become_an_armor_tier_and_one_ammo_type() {
+        use vetf_sim::ZoneTable;
+        use vetf_sim::data::{AmmoKind, Core};
+        let d = GameData::embedded();
+        let ap = |tier| AmmoChoice { kind: AmmoKind::ArmorPiercing, tier };
+        let rich = LoadoutChoice {
+            weapon: "sk9_skink".into(),
+            mags: vec![ap(3), AmmoChoice::STANDARD, AmmoChoice { kind: AmmoKind::Rip, tier: 1 }, ap(1), ap(2), ap(2)],
+            attachments: vec!["optic_reddot".into(), "skink_mag_60".into()],
+            halo: HaloChoice { core: Core::Volt, tiers: ZoneTable { head: 3, torso: 1, arms: 0, legs: 2 } },
+            agent: "solace".into(),
+        };
+        for mode in [MatchMode::Tdm, MatchMode::Ffa] {
+            let kit = d.rules.fixed_loadout(mode).unwrap();
+            let s = rich.for_mode(&d, mode);
+            assert_eq!(s.mags, vec![ap(3); kit.mags as usize], "{mode:?}: slot 1's ammo in all six magazines");
+            assert_eq!(s.mags.len(), 6);
+            assert_eq!(s.halo, HaloChoice::of_tier(kit, 3), "{mode:?}: head 3 makes T3, on the one core");
+            assert_eq!(s.halo.core, Core::Mender);
+            assert_eq!((&s.weapon, &s.attachments), (&rich.weapon, &rich.attachments), "the gun stays free");
+            assert_eq!(s.for_mode(&d, mode), s, "shaping twice changes nothing");
+            roundtrip(&LoadoutUpdate { loadout: s });
+        }
+        assert_eq!(rich.for_mode(&d, MatchMode::Range), rich);
+        let none = LoadoutChoice { mags: vec![], ..rich.clone() };
+        assert_eq!(none.ammo(), AmmoChoice::STANDARD);
+        assert!(none.for_mode(&d, MatchMode::Tdm).mags.iter().all(|m| *m == AmmoChoice::STANDARD));
+    }
+
+    /// The host deals agents: an id, or none in the lobby.
+    #[test]
+    fn the_dealt_agent_roundtrips() {
+        roundtrip(&PlayerAgent(Some("solace".into())));
+        roundtrip(&PlayerAgent(None));
+        assert_eq!(PlayerAgent::default(), PlayerAgent(None));
+        assert_eq!(PROTOCOL_VERSION, 6, "the agent component and the deathmatch picks changed the wire");
     }
 
     #[test]

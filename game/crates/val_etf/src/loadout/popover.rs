@@ -2,7 +2,7 @@
 //! part that fits the slot (or every round the gun loads) with a one-line blurb, the two biggest changes and,
 //! for ammo, its gear cost against the budget.
 
-use super::model::{Draft, WeaponStats, parts_for, parts_with, weapon_stats};
+use super::model::{Draft, WeaponStats, parts_for, parts_with, pushes_over, weapon_stats};
 use super::text::{self, Delta, Tone};
 use super::ui_data::LoadoutUiData;
 use super::view::View;
@@ -122,7 +122,8 @@ pub fn build(v: &View, p: &mut ChildSpawnerCommands) {
             PanelKind::Popover,
             Node {
                 position_type: PositionType::Absolute,
-                left: px(446),
+                // Over the weapon column, 14 px in.
+                left: px(super::view::weapon_left(v.ctx.simple()) + 14.0),
                 top: px(bottom_edge),
                 width: px(420),
                 padding: UiRect::all(px(12)),
@@ -293,6 +294,18 @@ fn spawn_row(
                             ));
                         }
                     }
+                    // Team deathmatch and free-for-all: a magazine type's points (six of it are carried).
+                    if let (RowKind::Part(Some(id)), Pop::Slot(AttachmentCategory::Mag), Some(kit)) =
+                        (&row.kind, pop, &draft.fixed)
+                    {
+                        let with = draft.gear_with(v.data, |x| x.set_part(AttachmentCategory::Mag, Some(id), v.data));
+                        let over = !row.equipped && pushes_over(v.ctx.budget, draft.gear(v.data).total(), with.total());
+                        n.spawn(f.role_color(
+                            TextRole::Micro,
+                            text::points(kit.mag_points(id)),
+                            if over { BAD } else { TEXT_MID },
+                        ));
+                    }
                     if row.equipped {
                         n.spawn((
                             ImageNode::new(v.images.icon(Icon::Check)).with_color(TEAL),
@@ -382,7 +395,8 @@ mod tests {
             halo: crate::config::halo_from_armor(&d.rules.default_loadout.armor, d),
             agent: "kestrel".into(),
         };
-        Draft::from_choice(&c, &BTreeMap::new(), d)
+        // The gun range's draft: its magazines have their own ammo.
+        Draft::from_choice(&c, &BTreeMap::new(), d, None)
     }
 
     #[test]

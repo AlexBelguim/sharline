@@ -188,7 +188,7 @@ pub struct AmmoTierSpec {
     /// Chance that a hit on a covered arc ignores the shield entirely.
     pub bypass_chance: f32,
     pub bleed: Option<BleedSpec>,
-    /// Points against the team-deathmatch loadout gear budget.
+    /// Points against the deathmatch loadout budget, paid once for the loadout's one ammo type.
     pub gear_cost: u32,
 }
 
@@ -1037,6 +1037,8 @@ pub struct RulesFile {
     pub tdm: TdmRules,
     /// Free-for-all deathmatch on Showhome: everyone against everyone (user direction 2026-10-08).
     pub ffa: FfaRules,
+    /// The loadout of team deathmatch and free-for-all (see [`RulesFile::fixed_loadout`]).
+    pub deathmatch_loadout: DeathmatchLoadout,
     pub rulesets: Rulesets,
     pub default_loadout: LoadoutSpec,
 }
@@ -1111,6 +1113,73 @@ impl RulesFile {
             Mode::Tdm | Mode::Range => &self.tdm,
         }
     }
+
+    /// The loadout rules of a mode with picks and points: team deathmatch and free-for-all share one
+    /// ([`DeathmatchLoadout`]); the gun range has none (any halo core, a tier per arc, ammo per magazine).
+    pub fn fixed_loadout(&self, mode: Mode) -> Option<&DeathmatchLoadout> {
+        match mode {
+            Mode::Tdm | Mode::Ffa => Some(&self.deathmatch_loadout),
+            Mode::Range => None,
+        }
+    }
+}
+
+/// The team deathmatch and free-for-all loadout (user direction 2026-10-08, DIRECTION_LOG 17). A player
+/// picks a gun and its parts (the magazine type among them), ONE armor tier and ONE ammo type; everything
+/// else is fixed: no agent pick (the host deals agents at random), one halo core for everyone, and
+/// [`DeathmatchLoadout::mags`] magazines of the picked type, all loaded with the picked ammo. The armor tier,
+/// the ammo type (its `gear_cost`, paid once) and the magazine type cost points against the mode's
+/// `gear_budget`.
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
+pub struct DeathmatchLoadout {
+    /// The one halo: every player's halo has this core.
+    pub halo_core: Core,
+    /// Magazines every loadout carries, all of the picked type and ammo (slot 1 starts in the gun).
+    pub mags: u8,
+    /// Armor tiers T1, T2, ... in order: each a fixed combination of per-arc tiers (no new armor), and its
+    /// points.
+    pub armor: Vec<ArmorTierSpec>,
+    /// Points of a magazine type (an attachment id of category `mag`); a type left out costs nothing (each
+    /// gun's standard magazine).
+    #[serde(default)]
+    pub mag_points: BTreeMap<String, u32>,
+}
+
+/// One armor tier of the deathmatch loadout.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
+pub struct ArmorTierSpec {
+    /// The halo's tier on each arc.
+    pub tiers: ZoneTable<u8>,
+    pub points: u32,
+}
+
+impl DeathmatchLoadout {
+    /// Armor tier `t` (1-based: T1 is 1).
+    pub fn armor_tier(&self, t: u8) -> Option<&ArmorTierSpec> {
+        self.armor.get((t as usize).checked_sub(1)?)
+    }
+
+    /// The tier whose combination these arcs are exactly (1-based), if any.
+    pub fn tier_of(&self, tiers: ZoneTable<u8>) -> Option<u8> {
+        self.armor.iter().position(|a| a.tiers == tiers).map(|i| i as u8 + 1)
+    }
+
+    /// The armor tier a halo becomes (an older loadout, or any halo a client sends): its own tier when it is
+    /// one, else the highest tier whose torso does not exceed the halo's best head-or-torso tier (head and
+    /// torso are what set the tiers apart), T1 at least. Mender Scout's H2 T2 becomes T2, Mender Medic's
+    /// H1 T3 A1 L1 T3, no halo T1.
+    pub fn tier_for(&self, tiers: ZoneTable<u8>) -> u8 {
+        if let Some(t) = self.tier_of(tiers) {
+            return t;
+        }
+        let best = tiers.head.max(tiers.torso);
+        self.armor.iter().rposition(|a| a.tiers.torso <= best).map_or(1, |i| i as u8 + 1)
+    }
+
+    /// Points of a magazine type.
+    pub fn mag_points(&self, mag: &str) -> u32 {
+        self.mag_points.get(mag).copied().unwrap_or(0)
+    }
 }
 
 /// Free-for-all has the same match rules as team deathmatch (`max_players` need not be even, and
@@ -1119,7 +1188,7 @@ pub type FfaRules = TdmRules;
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct TdmRules {
-    /// Halo arc tiers plus ammo gear cost must fit this (AP's price in team deathmatch).
+    /// The loadout's points (armor tier + ammo type + magazine type, see [`DeathmatchLoadout`]) must fit this.
     pub gear_budget: u32,
     pub score_limit: u32,
     pub time_limit_s: f32,
@@ -1379,6 +1448,27 @@ impl GameData {
         if self.armor.preset(&l.armor).is_none() {
             return bad(format!("default loadout: unknown armor {}", l.armor));
         }
+        let kit = &self.rules.deathmatch_loadout;
+        if !(1..=crate::weapon::MAX_MAGS).contains(&(kit.mags as usize)) {
+            return bad(format!("deathmatch loadout: 1..={} magazines", crate::weapon::MAX_MAGS));
+        }
+        if kit.armor.is_empty() {
+            return bad("deathmatch loadout: at least one armor tier".into());
+        }
+        for (i, a) in kit.armor.iter().enumerate() {
+            let caps = self.armor.loadout_tier_caps;
+            if Zone::ALL.iter().any(|z| a.tiers[*z] == 0 || a.tiers[*z] > caps[*z]) {
+                return bad(format!("deathmatch armor T{}: every arc 1 up to its loadout cap", i + 1));
+            }
+            if kit.armor[..i].iter().any(|b| b.tiers == a.tiers || b.points > a.points) {
+                return bad(format!("deathmatch armor T{}: a new combination, at no fewer points than T{i}", i + 1));
+            }
+        }
+        for id in kit.mag_points.keys() {
+            if self.attachment(id).is_none_or(|a| a.cat != AttachmentCategory::Mag) {
+                return bad(format!("deathmatch mag_points: {id} is not a magazine"));
+            }
+        }
         for mode in Mode::ALL {
             let kit = self.items.kits.get(mode);
             if kit.len() > crate::items::MAX_KIT {
@@ -1588,6 +1678,52 @@ mod tests {
         let mut d = GameData::embedded();
         d.weapons.weapons[0].mag_default = "optic_holo".into();
         assert!(d.validate().is_err());
+        // the deathmatch armor tiers: within the caps, every arc covered, new combinations, rising points
+        let broken = |f: &dyn Fn(&mut DeathmatchLoadout)| {
+            let mut d = GameData::embedded();
+            f(&mut d.rules.deathmatch_loadout);
+            d.validate().is_err()
+        };
+        assert!(broken(&|k| k.armor[3].tiers.legs = 4), "legs above their cap");
+        assert!(broken(&|k| k.armor[0].tiers.arms = 0), "an uncovered arc");
+        assert!(broken(&|k| k.armor[2] = k.armor[1]), "the same combination twice");
+        assert!(broken(&|k| k.armor[0].points = 9), "T1 dearer than T2");
+        assert!(broken(&|k| k.armor.clear()));
+        assert!(broken(&|k| k.mags = 7));
+        assert!(broken(&|k| _ = k.mag_points.insert("optic_holo".into(), 1)), "not a magazine");
+    }
+
+    /// The deathmatch armor tiers are the user's combinations (DIRECTION_LOG 17), and an older halo becomes
+    /// the tier of its best head or torso arc.
+    #[test]
+    fn deathmatch_armor_tiers() {
+        let d = GameData::embedded();
+        let k = &d.rules.deathmatch_loadout;
+        let t = |h, t, a, l| ZoneTable { head: h, torso: t, arms: a, legs: l };
+        let combos: Vec<ZoneTable<u8>> = k.armor.iter().map(|a| a.tiers).collect();
+        assert_eq!(combos, [t(1, 1, 1, 1), t(2, 2, 2, 2), t(3, 3, 1, 1), t(4, 4, 3, 2)]);
+        assert_eq!(k.armor[3].tiers, d.armor.loadout_tier_caps, "T4 is the best combination a loadout allows");
+        let weight = |i: usize| d.armor.weight_class(k.armor[i].tiers.iter().map(|(_, t)| *t as u32).sum());
+        assert_eq!(
+            [weight(0), weight(1), weight(2), weight(3)],
+            [WeightClass::Light, WeightClass::Medium, WeightClass::Medium, WeightClass::Heavy]
+        );
+        assert_eq!(k.halo_core, Core::Mender);
+        assert_eq!(k.mags, 6, "everyone carries six magazines");
+        for (i, c) in combos.iter().enumerate() {
+            assert_eq!(k.tier_of(*c), Some(i as u8 + 1));
+            assert_eq!(k.tier_for(*c), i as u8 + 1);
+            assert_eq!(k.armor_tier(i as u8 + 1).map(|a| a.tiers), Some(*c));
+        }
+        assert_eq!(k.armor_tier(0), None);
+        assert_eq!(k.armor_tier(5), None);
+        assert_eq!(k.tier_for(t(2, 2, 0, 0)), 2, "Mender Scout");
+        assert_eq!(k.tier_for(t(1, 3, 1, 1)), 3, "Mender Medic");
+        assert_eq!(k.tier_for(t(4, 4, 4, 4)), 4, "the uncapped Juggernaut");
+        assert_eq!(k.tier_for(t(0, 0, 0, 0)), 1, "no halo");
+        assert_eq!(k.tier_for(t(0, 0, 3, 2)), 1, "no head or torso arc");
+        assert_eq!(k.mag_points("mag_30"), 0);
+        assert_eq!(k.mag_points("mag_drum60"), 2);
     }
 
     /// Spread tuning can never make moving as accurate as standing still, a faster state tighter than a slower one,

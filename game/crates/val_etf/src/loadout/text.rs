@@ -217,6 +217,21 @@ pub fn halo_name(halo: &HaloChoice) -> String {
     }
 }
 
+/// A halo's arcs in one line: `H3 T3 A1 L1`.
+pub fn arcs_line(tiers: &vetf_sim::ZoneTable<u8>) -> String {
+    Zone::ALL.iter().map(|z| format!("{}{}", &z.label()[..1], tiers[*z])).collect::<Vec<_>>().join(" ")
+}
+
+/// A number of points: `0 PTS`, `1 PT`, `4 PTS`.
+pub fn pts(n: u32) -> String {
+    if n == 1 { "1 PT".into() } else { format!("{n} PTS") }
+}
+
+/// A pick's points on its card: `FREE`, `1 PT`, `4 PTS`.
+pub fn points(n: u32) -> String {
+    if n == 0 { "FREE".into() } else { pts(n) }
+}
+
 /// RESULT header: `T2 × 3 ZONES = 6 PTS`, `H2 · T3 · A1 · L0 = 6 PTS`, `NO HALO · 0 PTS`.
 pub fn result_header(halo: &HaloChoice) -> String {
     let score = halo.score();
@@ -428,6 +443,9 @@ mod tests {
         assert_eq!(tier_label(&t2), Some(("T2".into(), 2)));
         assert_eq!(result_header(&t2), "T2 × 3 ZONES = 6 PTS");
         assert_eq!(halo_name(&t2), "T2 MENDER");
+        assert_eq!(arcs_line(&t2.tiers), "H2 T2 A2 L0");
+        assert_eq!((points(0), points(1), points(4)), ("FREE".into(), "1 PT".into(), "4 PTS".into()));
+        assert_eq!((pts(0), pts(1)), ("0 PTS".into(), "1 PT".into()));
         let mixed = halo(Core::Bulwark, 2, 3, 1, 0);
         assert_eq!(tier_label(&mixed), Some(("T1–T3".into(), 3)));
         assert_eq!(result_header(&mixed), "H2 · T3 · A1 · L0 = 6 PTS");

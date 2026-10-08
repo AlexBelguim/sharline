@@ -39,6 +39,19 @@ pub enum Section {
     Halo,
     Popover,
     Ghost,
+    /// The deathmatch layout: the magazine type (under the attachments).
+    MagType,
+    /// The deathmatch layout: the armor tier of the one halo.
+    Armor,
+    /// The deathmatch layout: one ammo type for every magazine.
+    Ammo,
+    /// The deathmatch layout: weight class, figures and the points used against the total.
+    Result,
+}
+
+/// Left edge of the weapon column: next to the agents (gun range) or at the page's margin (deathmatch).
+pub fn weapon_left(simple: bool) -> f32 {
+    if simple { 48.0 } else { 432.0 }
 }
 
 #[derive(Component, Default)]
@@ -104,6 +117,11 @@ impl View<'_> {
             Section::Halo => hash_of(&(d.halo, self.st.arc, &d.mags, &d.weapon, self.ctx)),
             Section::Popover => hash_of(&(self.st.pop, &d.weapon, parts, &d.mags, d.halo, self.ctx)),
             Section::Ghost => hash_of(&self.st.drag.filter(|g| g.active).map(|g| (g.from, d.mags.get(g.from)))),
+            // Every pick card turns red when it would go over the total: each depends on the other picks.
+            Section::MagType => hash_of(&(d.halo, &d.mags, &d.weapon, parts, self.ctx)),
+            Section::Armor => hash_of(&(d.halo, &d.mags, &d.weapon, parts, self.ctx)),
+            Section::Ammo => hash_of(&(&d.mags, &d.weapon, d.halo, parts, self.ctx, self.st.flash[0] > 0.0)),
+            Section::Result => hash_of(&(d.halo, &d.mags, &d.weapon, parts, self.ctx)),
         }
     }
 
@@ -119,6 +137,10 @@ impl View<'_> {
             Section::Halo => self.halo_column(p),
             Section::Popover => popover::build(self, p),
             Section::Ghost => self.ghost(p),
+            Section::MagType => self.mag_types(p),
+            Section::Armor => self.armor(p),
+            Section::Ammo => self.ammo(p),
+            Section::Result => self.kit_result(p),
         }
     }
 }
@@ -129,7 +151,7 @@ fn raw(fonts: &UiFonts, role: TextRole, s: impl Into<String>, color: Color) -> i
     (Text::new(s), fonts.role_font(role), TextColor(color), LetterSpacing::Px(r.size * r.em), r.line)
 }
 
-fn section(s: Section) -> impl Bundle {
+pub(super) fn section(s: Section) -> impl Bundle {
     (s, SectionKey::default())
 }
 
@@ -149,8 +171,10 @@ fn dashed(images: &UiImages, color: Color) -> impl Bundle {
     },)
 }
 
-/// The page frame: background, sections and footer. Sections fill themselves in [`refresh`].
-pub fn spawn_root(commands: &mut Commands, z: i32) {
+/// The page frame: background, sections and footer. Sections fill themselves in [`refresh`]. `simple`: the
+/// deathmatch layout (the gun, its parts and its magazine type on the left; armor tier, ammo and points on the
+/// right; no agents, no magazine strip); else the gun range's (agents, gun with its magazines, halo).
+pub fn spawn_root(commands: &mut Commands, z: i32, simple: bool) {
     let bg = page_background(50.0, 35.0, [(0x18202B, 0.0), (0x0A0D12, 55.0), (0x06080B, 100.0)]);
     commands
         .spawn((
@@ -165,20 +189,22 @@ pub fn spawn_root(commands: &mut Commands, z: i32) {
         .with_children(|root| {
             root.spawn(bg);
             root.spawn((section(Section::TopBar), top_bar(84.0, 28.0)));
-            root.spawn((
-                section(Section::Agents),
-                Node {
-                    position_type: PositionType::Absolute,
-                    left: px(48),
-                    top: px(108),
-                    width: px(360),
-                    flex_direction: FlexDirection::Column,
-                    ..default()
-                },
-            ));
+            if !simple {
+                root.spawn((
+                    section(Section::Agents),
+                    Node {
+                        position_type: PositionType::Absolute,
+                        left: px(48),
+                        top: px(108),
+                        width: px(360),
+                        flex_direction: FlexDirection::Column,
+                        ..default()
+                    },
+                ));
+            }
             root.spawn(Node {
                 position_type: PositionType::Absolute,
-                left: px(432),
+                left: px(weapon_left(simple)),
                 top: px(108),
                 width: px(872),
                 flex_direction: FlexDirection::Column,
@@ -202,23 +228,29 @@ pub fn spawn_root(commands: &mut Commands, z: i32) {
                     section(Section::Slots),
                     Node { height: px(76), margin: UiRect::top(px(10)), column_gap: px(6), ..default() },
                 ));
+                // The gun range's six ordered magazines, or the deathmatch layout's one magazine type.
+                let mags = if simple { Section::MagType } else { Section::Mags };
                 w.spawn((
-                    section(Section::Mags),
+                    section(mags),
                     Node { margin: UiRect::top(px(10)), flex_direction: FlexDirection::Column, ..default() },
                 ));
                 w.spawn((section(Section::Stats), Node { margin: UiRect::top(px(10)), ..default() }));
             });
-            root.spawn((
-                section(Section::Halo),
-                Node {
-                    position_type: PositionType::Absolute,
-                    right: px(48),
-                    top: px(108),
-                    width: px(544),
-                    flex_direction: FlexDirection::Column,
-                    ..default()
-                },
-            ));
+            if simple {
+                super::kit_view::spawn_column(root, weapon_left(true) + 872.0 + 48.0);
+            } else {
+                root.spawn((
+                    section(Section::Halo),
+                    Node {
+                        position_type: PositionType::Absolute,
+                        right: px(48),
+                        top: px(108),
+                        width: px(544),
+                        flex_direction: FlexDirection::Column,
+                        ..default()
+                    },
+                ));
+            }
             root.spawn(footer_marker());
             root.spawn((
                 section(Section::Popover),
@@ -291,11 +323,16 @@ pub fn refresh(
     }
     for (e, kids) in &footers {
         if kids.is_none_or(|k| k.is_empty()) {
+            let simple = edit.draft.fixed.is_some();
             commands.entity(e).with_children(|f| {
                 f.spawn(ghost_hint(&fonts, &["Q", "E"], "SWITCH COLUMN"));
                 f.spawn(ghost_hint(&fonts, &["1", "2", "3"], "PRESET"));
                 f.spawn(ghost_hint(&fonts, &["R"], "RESET SLOT"));
-                f.spawn(ghost_hint(&fonts, &["LMB"], "DRAG TO REORDER MAGS"));
+                if simple {
+                    f.spawn(ghost_hint(&fonts, &["ENTER"], "PICK"));
+                } else {
+                    f.spawn(ghost_hint(&fonts, &["LMB"], "DRAG TO REORDER MAGS"));
+                }
             });
         }
     }
@@ -370,7 +407,7 @@ const TAB: Looks = Looks::new(
     Look::new(W07, TEXT_HI, TEXT_HI),
 );
 
-fn tier_looks(c: Color) -> Looks {
+pub(super) fn tier_looks(c: Color) -> Looks {
     Looks::new(
         Look::new(Color::NONE, STROKE_MID, c),
         Look::new(W06, white_on(0.32, 0.06), c),
@@ -435,12 +472,16 @@ impl View<'_> {
             _ => None,
         });
         if let Some((used, budget)) = over {
-            p.spawn(raw(f, TextRole::Hint, format!("Over gear budget: {used} / {budget} pts"), BAD));
+            let what = if self.ctx.simple() { "the points" } else { "gear budget" };
+            p.spawn(raw(f, TextRole::Hint, format!("Over {what}: {used} / {budget} pts"), BAD));
+        } else if self.ctx.lobby {
+            p.spawn(raw(f, TextRole::Hint, "Lobby: you wear it as soon as you confirm", TEXT_MID));
         } else if self.ctx.in_match {
             p.spawn(raw(f, TextRole::Hint, "In match: changes apply on your next spawn", WARN));
         }
-        p.spawn((Act::Back, button_with_key(f, "BACK", "ESC", BtnKind::Normal, BtnSize::M)));
-        let mut confirm = p.spawn((Act::Confirm, button(f, "CONFIRM", BtnKind::Primary, BtnSize::M)));
+        // Both are the last row of the keyboard focus (focus::columns), so the keyboard can finish the edit.
+        p.spawn((Act::Back, Focusable, button_with_key(f, "BACK", "ESC", BtnKind::Normal, BtnSize::M)));
+        let mut confirm = p.spawn((Act::Confirm, Focusable, button(f, "CONFIRM", BtnKind::Primary, BtnSize::M)));
         if !problems.is_empty() {
             confirm.insert(Disabled);
         }
@@ -1431,7 +1472,7 @@ impl View<'_> {
         });
     }
 
-    fn result(
+    pub(super) fn result(
         &self,
         p: &mut ChildSpawnerCommands,
         halo: &vetf_sim::gear::HaloChoice,
@@ -1450,7 +1491,12 @@ impl View<'_> {
             },
         ))
         .with_children(|r| {
-            r.spawn(col_header(f, "RESULT", &text::result_header(halo), TextRole::H2Small, 0.0));
+            // The deathmatch layout names the armor tier: `T3 · H3 T3 A1 L1`.
+            let header = match d.armor_tier() {
+                Some(t) => format!("T{t} · {}", text::arcs_line(&halo.tiers)),
+                None => text::result_header(halo),
+            };
+            r.spawn(col_header(f, "RESULT", &header, TextRole::H2Small, 0.0));
             r.spawn(Node { margin: UiRect::top(px(8)), column_gap: px(4), ..default() }).with_children(|w| {
                 for (wc, label) in text::weight_band_labels(self.data) {
                     let on = wc == armor.weight_class;
@@ -1517,9 +1563,15 @@ impl View<'_> {
                     });
                 }
             });
-            // gear budget
+            // The points (the gun range: the gear it would cost, with no limit): a bar in parts, used / total.
             let used = gear.total();
             let over = self.ctx.budget.is_some_and(|b| used > b);
+            let simple = self.ctx.simple();
+            let parts: Vec<(&str, u32, f32)> = if simple {
+                vec![("ARMOR", gear.halo, 1.0), ("AMMO (ONCE)", gear.ammo, 0.55), ("MAG", gear.mags, 0.3)]
+            } else {
+                vec![("HALO", gear.halo, 1.0), ("AMMO", gear.ammo, 0.55)]
+            };
             r.spawn(Node {
                 margin: UiRect::top(px(14)),
                 column_gap: px(10),
@@ -1527,7 +1579,7 @@ impl View<'_> {
                 ..default()
             })
             .with_children(|b| {
-                b.spawn(f.role(TextRole::Lbl, "GEAR BUDGET"));
+                b.spawn(f.role(TextRole::Lbl, if simple { "POINTS" } else { "GEAR BUDGET" }));
                 match self.ctx.budget {
                     Some(budget) => {
                         let scale = budget.max(used).max(1) as f32;
@@ -1537,24 +1589,14 @@ impl View<'_> {
                             BackgroundColor(W10),
                         ))
                         .with_children(|bar| {
-                            if gear.halo > 0 {
+                            for (_, pts, alpha) in parts.iter().filter(|p| p.1 > 0) {
                                 bar.spawn((
                                     Node {
-                                        width: percent(gear.halo as f32 / scale * 100.0),
+                                        width: percent(*pts as f32 / scale * 100.0),
                                         height: percent(100),
                                         ..default()
                                     },
-                                    BackgroundColor(fill),
-                                ));
-                            }
-                            if gear.ammo > 0 {
-                                bar.spawn((
-                                    Node {
-                                        width: percent(gear.ammo as f32 / scale * 100.0),
-                                        height: percent(100),
-                                        ..default()
-                                    },
-                                    BackgroundColor(translucent(fill, 0.55)),
+                                    BackgroundColor(translucent(fill, *alpha)),
                                 ));
                             }
                         });
@@ -1583,21 +1625,20 @@ impl View<'_> {
             })
             .with_children(|l| match self.ctx.budget {
                 Some(budget) if over => {
-                    l.spawn(f.role_color(
-                        TextRole::Micro,
-                        format!("OVER BY {} PTS: LOWER AN ARC TIER OR A MAG'S AMMO", used - budget),
-                        BAD,
-                    ));
+                    let fix =
+                        if simple { "THE ARMOR, THE AMMO OR THE MAGAZINE" } else { "AN ARC TIER OR A MAG'S AMMO" };
+                    l.spawn(f.role_color(TextRole::Micro, format!("OVER BY {} PTS: LOWER {fix}", used - budget), BAD));
                 }
                 _ => {
-                    for (label, pts, c) in
-                        [("HALO", gear.halo, TEXT_HI), ("AMMO", gear.ammo, translucent(TEXT_HI, 0.55))]
-                    {
+                    for (label, pts, alpha) in &parts {
                         l.spawn((
                             Node { column_gap: px(6), align_items: AlignItems::Center, ..default() },
                             children![
-                                (Node { width: px(8), height: px(8), ..default() }, BackgroundColor(c)),
-                                f.role(TextRole::Micro, format!("{label} {pts} PTS")),
+                                (
+                                    Node { width: px(8), height: px(8), ..default() },
+                                    BackgroundColor(translucent(TEXT_HI, *alpha))
+                                ),
+                                f.role(TextRole::Micro, format!("{label} {}", text::pts(*pts))),
                             ],
                         ));
                     }
@@ -1632,7 +1673,7 @@ fn card_node() -> Node {
     }
 }
 
-fn col_header_node(margin_bottom: f32) -> Node {
+pub(super) fn col_header_node(margin_bottom: f32) -> Node {
     Node {
         justify_content: JustifyContent::SpaceBetween,
         align_items: AlignItems::Baseline,
@@ -1642,7 +1683,7 @@ fn col_header_node(margin_bottom: f32) -> Node {
 }
 
 /// A column header: a heading on the left, a micro label on the right.
-fn col_header(f: &UiFonts, title: &str, micro: &str, role: TextRole, margin_bottom: f32) -> impl Bundle {
+pub(super) fn col_header(f: &UiFonts, title: &str, micro: &str, role: TextRole, margin_bottom: f32) -> impl Bundle {
     (col_header_node(margin_bottom), children![f.role(role, title), f.role(TextRole::Micro, micro)])
 }
 

@@ -110,6 +110,8 @@ pub struct RecentServer {
     pub name: String,
     /// Map id: "showhome", "range".
     pub map: String,
+    /// The mode when we joined (team deathmatch, free-for-all, the range); None in files from older builds.
+    pub mode: Option<vetf_net::MatchMode>,
     /// What to dial again: a canonical join code ("6000-105E-PC") or "ip:port".
     pub address: String,
     /// Joined by address (DIRECT IP) rather than by code.
@@ -201,5 +203,12 @@ mod tests {
         assert_eq!(r.servers.len(), RecentServers::KEEP);
         let text = ron::ser::to_string(&r).unwrap();
         assert_eq!(ron::from_str::<RecentServers>(&text).unwrap(), r, "recent.ron round-trips");
+        // An entry remembers the mode it was joined in; files from builds without it still load.
+        r.record(RecentServer { mode: Some(vetf_net::MatchMode::Ffa), ..e("F", "10.0.0.99:47820") });
+        let back: RecentServers = ron::from_str(&ron::ser::to_string(&r).unwrap()).unwrap();
+        assert_eq!(back.servers[0].mode, Some(vetf_net::MatchMode::Ffa));
+        let old = r#"(servers: [(name: "ASH'S GAME", map: "showhome", address: "6000-105E-PC", by_ip: false, last_joined: 5)])"#;
+        let old: RecentServers = ron::from_str(old).unwrap();
+        assert_eq!((old.servers[0].map.as_str(), old.servers[0].mode), ("showhome", None));
     }
 }

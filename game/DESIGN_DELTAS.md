@@ -26,10 +26,10 @@ Once the design docs and JSON are updated, delete the entry here and in `superse
     - **Shrapnel:** NPC-only, for bots and bosses later. Low damage, low pen, a seeded chance to slip past
       the shield, and fragments that bleed until treated, after which a 0.1 HP/s trickle per stack stays
       until respawn.
-  - **Gear budget:** in team deathmatch, AP is paid for with a loadout gear budget of 13 (`rules.ron`). Halo arc
-    tiers plus the gear cost of **every magazine** must fit (AP 2 / 4 / 6, RIP 1 / 2 / 3 per magazine). A Heavy
-    halo never carries AP III; the capped Bulwark Juggernaut (13) just fits with Standard rounds. In the
-    extraction mode, AP will be expensive or craftable instead.
+  - **Points:** in team deathmatch and free-for-all, AP and RIP are paid for with loadout points (section 13):
+    the ammo type's `gear_cost` (AP and RIP I / II / III: 1 / 2 / 4) is paid **once**, next to the armor tier
+    and the magazine type, against a total of 8. T4 armor never carries a tier III round. In the extraction
+    mode, AP will be expensive or craftable instead.
 - **Mako:** Standard has pen 1.0 everywhere, so it still matches the design's numbers exactly (tested against the
   design's Python model).
 - **Warden:** loses the 30% bleed-through. Its pen is a flat 1.0: 160 damage already breaks any arc up to 160 in
@@ -72,6 +72,8 @@ Once the design docs and JSON are updated, delete the entry here and in `superse
 
 ## 5. Ordered magazines, each with its own ammo
 - **Design:** one magazine type per loadout, and the HUD shows spare magazines in the pouch.
+- **Since 2026-10-08** this is the gun range's: in team deathmatch and free-for-all everyone carries six
+  magazines of one picked type, all with one ammo type (see 12).
 - **Now (user direction):**
   - A loadout carries **up to six magazines in slot order**, each loaded with its own ammo (`mags` in
     `rules.ron`'s default loadout, `LoadoutChoice.mags` on the wire). Slot 1 starts in the gun.
@@ -266,3 +268,69 @@ Skipped in the sync test by `recoil_and_bloom_round_2()`; pinned by the tests in
   `kick_yaw_rand_deg`; add `walk_hip`, `sprint_hip`, `ads_move_mult`, `kick_yaw_deg`; take the new threshold, floors,
   bloom and `sprint_to_fire_s` values. In `attachments_stats.slice.json` drop `ads_move`. Then delete
   `recoil_and_bloom_round_2()` and the `ads_move` line in `superseded()`.
+
+## 13. Deathmatch loadout: picks and points, a random agent (2026-10-08)
+- **Design:** the Loadout screen (mockups 05 / 05b) picks an agent, a halo core and a tier per arc, and ammo per
+  magazine for up to six magazines, priced magazine by magazine against the budget.
+- **Now (user direction, DIRECTION_LOG 17):** team deathmatch and free-for-all share one loadout rule,
+  `deathmatch_loadout` in `rules.ron`. A player picks the gun, its attachments and its **magazine type**, then
+  **one armor tier** and **one ammo type**, and pays points for the three against the mode's `gear_budget`.
+  - **One armor tier (T1-T4)** for the whole halo. A tier is a fixed combination of the existing arc tiers (no
+    new armor, no new art; the halo shows the arcs as before):
+
+    | Tier | Head / torso / arms / legs | Tier points | Weight class | Points |
+    |------|----------------------------|-------------|--------------|--------|
+    | T1   | 1 / 1 / 1 / 1              | 4           | Light        | 1      |
+    | T2   | 2 / 2 / 2 / 2              | 8           | Medium       | 2      |
+    | T3   | 3 / 3 / 1 / 1              | 8           | Medium       | 3      |
+    | T4   | 4 / 4 / 3 / 2              | 13          | Heavy        | 5      |
+
+    T4 is every arc at its `loadout_tier_caps`, the best combination a loadout allows. Validation keeps every
+    tier within the caps, a new combination, and no cheaper than the tier below.
+  - **One halo for everyone:** `halo_core: Mender`, no core pick. Of the four cores its special is only numbers (its
+    regen table); Volt's break pulse slows, Phase is immune to slows and Bulwark cuts flinch, ability-like effects
+    these modes leave out. It is also the default loadout's core, so time-to-kill stays where playtest round 1
+    tuned it.
+  - **Six magazines of the picked type** (`mags: 6`), all loaded with the **one ammo type**. The magazine type is
+    the gun's `mag` attachment: Mako `mag_30` / `mag_45` / `mag_drum60`, Warden `mag_5` / `mag_8`, Skink
+    `skink_mag_40` / `skink_mag_60`.
+  - **No agent pick:** these modes have no abilities (everyone keeps the jetpack). The host deals every player a
+    random agent from `agents.ron` when the match goes live: one roll per player from the match's seed (the tick
+    it went live) and the player id, kept for the whole match, dealt to late joiners on arrival, dealt again on
+    RESTART MATCH and taken back in the lobby. `PlayerAgent` is replicated (`PROTOCOL_VERSION` 6). The agent is
+    cosmetic today: it shows on the scoreboard's and the lobby's badge (`?` until dealt) and on the ESC card
+    (`Random agent` before the start). The gun range keeps the agent pick.
+- **The point table** (all in data: armor in `deathmatch_loadout.armor`, magazines in `mag_points`, ammo is
+  `gear_cost` in `ammo.ron`, the total is `gear_budget`):
+  - Total **8** in both modes.
+  - Armor T1 / T2 / T3 / T4: **1 / 2 / 3 / 5**.
+  - Ammo, paid **once** for all six magazines: Standard **0**, AP I / II / III **1 / 2 / 4**, RIP I / II / III
+    **1 / 2 / 4** (Skink only).
+  - Magazine: each gun's standard magazine **0**, extended (`mag_45`, `mag_8`, `skink_mag_60`) **1**, drum
+    (`mag_drum60`) **2**.
+  - What it buys: T1 and T2 fit any ammo with any magazine (T2 + AP III + drum is exactly 8). T3 fits any ammo
+    with a standard or extended magazine, and the drum up to a tier II round. T4 never fits a tier III round
+    (5 + 4 = 9); it fits a tier II round with a standard or extended magazine, and the drum with Standard or a
+    tier I round. Every gun fits every tier with Standard ammo and any magazine. The best gun does not change
+    this: guns cost nothing, so no gun, T4 and the best ammo fit together.
+  - Why these numbers: the notes started from a total of 9 with armor 1 / 2 / 4 / 6. T3 is 3 / 3 / 1 / 1, the
+    same tier points and weight class as T2, so its price sits one point above T2 rather than two. Taking one
+    point off T3, T4 and the total keeps exactly the same set of loadouts that fit, with smaller numbers.
+  - Pinned by tests: `vetf_sim::gear` (every gun, magazine and round), `tests/balance.rs` (`deathmatch_points`)
+    and the host's checks in `server.rs`.
+- **The host** shapes every loadout it receives (`LoadoutChoice::shaped`): its halo becomes an armor tier on the
+  one core (its own tier, else the highest tier whose torso is no higher than its best head or torso arc), and
+  it gets six magazines of slot 1's ammo. It refuses an unknown gun, no magazine or more than six, a halo arc
+  above its cap, ammo the gun cannot load, misfit or doubled attachments, and anything over the points. The
+  `LoadoutChoice` message keeps its fields.
+- **The screen:** the gun, its attachments and a MAGAZINE row (six carried); then ONE ARMOR row (T1-T4 with weight
+  class, arcs and points), ONE AMMO row, and the points used / total split into armor, ammo and magazine. A card's
+  points turn red when picking it would push the loadout over the total. Q / E and the arrows walk gun ->
+  attachments -> magazine -> armor -> ammo -> BACK / CONFIRM. The main menu has no LOADOUT entry for now; the
+  lobby's LOADOUT and the ESC menu open the screen. A loadout confirmed in the lobby is worn at once.
+- The HUD's vitals header reads `HALO / MEDIUM` (the weight class tells halos apart); the lobby's match settings
+  list the mode's loadout rule and that agents are random.
+- **The gun range** keeps the full screen (agent, core, a tier per arc, ammo per magazine, no budget).
+- Presets saved before (`loadouts.ron`) load unchanged and open in these modes as their nearest picks (an armor
+  tier, slot 1's ammo in six magazines, the gun's magazine type); a preset this build cannot read is replaced by
+  the built-in one in its letter.

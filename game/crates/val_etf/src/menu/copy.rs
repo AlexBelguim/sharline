@@ -91,7 +91,9 @@ pub fn tier_label(tiers: &ZoneTable<u8>) -> Option<(String, u8)> {
     Some((label, hi))
 }
 
-/// The player card's loadout line: "Default loadout · AR-7 Mako (holo, std stock, 30 mag) · Mender Scout H2 T2".
+/// The player card's loadout line: "Default loadout · AR-7 Mako (holo, std stock, 30 mag) · Mender H2 T2", or
+/// "... · T2 halo H2 T2 A2 L2" where everyone wears the same halo in one armor tier (team deathmatch,
+/// free-for-all).
 pub fn loadout_line(choice: &LoadoutChoice, s: &LoadoutSummary, data: &GameData) -> String {
     let d = &data.rules.default_loadout;
     let is_default = choice.weapon == d.primary
@@ -106,9 +108,11 @@ pub fn loadout_line(choice: &LoadoutChoice, s: &LoadoutSummary, data: &GameData)
         format!("{} ({})", s.weapon_name, attachments.join(", "))
     };
     let arcs = arcs_short(&s.tiers);
-    // The halo is custom now (a core and a tier per arc): name the core, then the arcs.
-    let halo = match s.core {
-        Some(core) if !arcs.is_empty() => format!("{} {arcs}", title_case(core.label())),
+    // The halo is custom (a core and a tier per arc): name the core, then the arcs. With one halo for
+    // everyone the armor tier says it, then its arcs.
+    let halo = match (s.core, s.armor_tier) {
+        (Some(_), Some(t)) if s.one_halo => format!("T{t} halo {arcs}"),
+        (Some(core), _) if !arcs.is_empty() => format!("{} {arcs}", title_case(core.label())),
         _ => "No halo".to_string(),
     };
     format!("{name} · {weapon} · {halo}")
@@ -131,17 +135,30 @@ pub fn mag_slots(s: &LoadoutSummary) -> [Option<(String, AmmoKind)>; MAG_SLOTS] 
     slots
 }
 
-/// The GEAR readout's numbers and whether they are over budget: ("4 / 13", false).
-pub fn gear_text(cost: u32, budget: u32) -> (String, bool) {
-    (format!("{cost} / {budget}"), cost > budget)
+/// The GEAR readout's numbers and whether they are over budget: ("4 / 13", false); a mode without a budget
+/// (the gun range) shows the points alone ("4 PTS").
+pub fn gear_text(cost: u32, budget: Option<u32>) -> (String, bool) {
+    match budget {
+        Some(budget) => (format!("{cost} / {budget}"), cost > budget),
+        None => (format!("{cost} PTS"), false),
+    }
 }
 
-/// The agent tag's halo part: the tier label with the core ("T2 MENDER") and its colour tier, or None
-/// with no halo.
+/// How many magazines carry the one ammo type: "× 6".
+pub fn mags_count(n: usize) -> String {
+    format!("× {n}")
+}
+
+/// The agent tag's halo part: the tier label with the core ("T2 MENDER", or the armor tier, "T3 HALO", where
+/// everyone wears the same halo) and its colour tier, or None with no halo.
 pub fn agent_halo(s: &LoadoutSummary) -> Option<(String, u8)> {
     let core = s.core?;
-    let (label, hi) = tier_label(&s.tiers)?;
-    Some((format!("{label} {}", core.label()), hi))
+    let (label, hi) = match s.armor_tier {
+        Some(t) => (format!("T{t}"), t),
+        None => tier_label(&s.tiers)?,
+    };
+    let name = if s.one_halo { "HALO" } else { core.label() };
+    Some((format!("{label} {name}"), hi))
 }
 
 /// The agent tag's micro line after the halo chip: "· LIGHT · AR-7 MAKO", or "NO HALO · AR-7 MAKO".
@@ -168,23 +185,34 @@ pub fn ffa_create_help(score_limit: u32) -> String {
     format!("Opens a Free-for-all lobby on Showhome · first to {score_limit} kills.")
 }
 
-/// A map's mode and name for RECENT: "TDM · Showhome", "Gun range".
-pub fn mode_map_label(map: &str) -> String {
-    match map.to_ascii_lowercase().as_str() {
-        "range" => "Gun range".into(),
-        "showhome" => "TDM · Showhome".into(),
-        other => {
-            let mut c = other.chars();
-            let name: String = c.next().map(|f| f.to_uppercase().chain(c).collect()).unwrap_or_default();
-            format!("TDM · {name}")
-        }
+/// A map's mode and name for RECENT: "TDM · Showhome", "FFA · Showhome", "Gun range"; just "Showhome" when
+/// the entry does not know its mode (files from older builds).
+pub fn mode_map_label(map: &str, mode: Option<vetf_net::MatchMode>) -> String {
+    use vetf_net::MatchMode;
+    let map = map.to_ascii_lowercase();
+    if map == "range" || mode == Some(MatchMode::Range) {
+        return "Gun range".into();
+    }
+    let mut c = map.chars();
+    let name: String = c.next().map(|f| f.to_uppercase().chain(c).collect()).unwrap_or_default();
+    match mode {
+        Some(MatchMode::Ffa) => format!("FFA · {name}"),
+        Some(_) => format!("TDM · {name}"),
+        None => name,
     }
 }
 
 /// A RECENT row's subline: "TDM · Showhome · code 6000-105E-PC", "Gun range · 192.168.1.40:47820", or
 /// "TDM · last seen 2 days ago" after a day.
-pub fn recent_subline(map: &str, address: &str, by_ip: bool, last_joined: u64, now: u64) -> String {
-    let label = mode_map_label(map);
+pub fn recent_subline(
+    map: &str,
+    mode: Option<vetf_net::MatchMode>,
+    address: &str,
+    by_ip: bool,
+    last_joined: u64,
+    now: u64,
+) -> String {
+    let label = mode_map_label(map, mode);
     let days = now.saturating_sub(last_joined) / 86_400;
     if days >= 1 {
         let mode = label.split(" · ").next().unwrap_or(&label).to_string();
@@ -252,6 +280,7 @@ pub fn ip_help(port: u16) -> String {
 mod tests {
     use super::*;
     use crate::loadout::summary;
+    use vetf_net::MatchMode;
     use vetf_sim::data::AmmoChoice;
 
     fn default_choice(d: &GameData) -> LoadoutChoice {
@@ -269,7 +298,8 @@ mod tests {
     fn the_player_card_describes_the_default_loadout() {
         let d = GameData::embedded();
         let c = default_choice(&d);
-        let s = summary(&c, &d);
+        // The gun range: the core and every magazine.
+        let s = summary(&c, &d, MatchMode::Range);
         assert_eq!(loadout_line(&c, &s, &d), "Default loadout · AR-7 Mako (holo, std stock, 30 mag) · Mender H2 T2");
         let slots = mag_slots(&s);
         assert_eq!(slots.iter().filter(|m| m.is_some()).count(), c.mags.len());
@@ -278,6 +308,19 @@ mod tests {
         // The default Mender Scout (H2 T2) is LIGHT, whatever the mockup's sample copy says.
         assert_eq!(agent_halo(&s), Some(("T2 MENDER".into(), 2)));
         assert_eq!(agent_micro(&s), "· LIGHT · AR-7 MAKO");
+        assert_eq!(gear_text(s.gear_cost, s.gear_budget), ("4 PTS".into(), false), "no budget in the range");
+        // Team deathmatch and free-for-all: one halo in an armor tier (H2 T2 makes T2), six magazines of one
+        // ammo type.
+        for mode in [MatchMode::Tdm, MatchMode::Ffa] {
+            let s = summary(&c, &d, mode);
+            let line = "Default loadout · AR-7 Mako (holo, std stock, 30 mag) · T2 halo H2 T2 A2 L2";
+            assert_eq!(loadout_line(&c, &s, &d), line);
+            assert_eq!(agent_halo(&s), Some(("T2 HALO".into(), 2)));
+            assert_eq!(agent_micro(&s), "· MEDIUM · AR-7 MAKO");
+            assert_eq!(s.one_ammo(), Some(("STD".into(), AmmoKind::Standard, 6)));
+            assert_eq!(mags_count(6), "× 6");
+            assert_eq!(gear_text(s.gear_cost, s.gear_budget), ("2 / 8".into(), false));
+        }
     }
 
     #[test]
@@ -289,12 +332,16 @@ mod tests {
             mags: vec![ap2, AmmoChoice::STANDARD],
             ..default_choice(&d)
         };
-        let s = summary(&c, &d);
+        let s = summary(&c, &d, MatchMode::Range);
         assert!(loadout_line(&c, &s, &d).starts_with("Custom loadout · "));
         assert!(loadout_line(&c, &s, &d).ends_with(" · No halo"));
         assert_eq!(agent_halo(&s), None);
         assert_eq!(agent_micro(&s), "NO HALO · AR-7 MAKO");
         assert_eq!(mag_slots(&s)[0], Some(("AP II".into(), AmmoKind::ArmorPiercing)));
+        assert_eq!(s.one_ammo(), None, "mixed magazines");
+        // a deathmatch loads every magazine with slot 1's AP II
+        let tdm = summary(&c, &d, MatchMode::Tdm);
+        assert_eq!(tdm.one_ammo().map(|a| a.0), Some("AP II".into()));
     }
 
     #[test]
@@ -327,8 +374,8 @@ mod tests {
 
     #[test]
     fn gear_version_and_network_lines() {
-        assert_eq!(gear_text(4, 13), ("4 / 13".into(), false));
-        assert_eq!(gear_text(14, 13), ("14 / 13".into(), true));
+        assert_eq!(gear_text(4, Some(13)), ("4 / 13".into(), false));
+        assert_eq!(gear_text(14, Some(13)), ("14 / 13".into(), true));
         assert!(version_line().starts_with(&format!("v{}-proto", env!("CARGO_PKG_VERSION"))));
         assert!(tagline().ends_with("prototype 0.1"));
         let (head, tail, warn) = network_line(47820, Some(Ipv4Addr::new(192, 168, 1, 23)));
@@ -345,13 +392,28 @@ mod tests {
         assert_eq!(ffa_max_players_help(d.rules.ffa.max_players), "2–8 · everyone for themselves");
         assert_eq!(ffa_create_help(25), "Opens a Free-for-all lobby on Showhome · first to 25 kills.");
         let now = 1_700_000_000;
-        assert_eq!(recent_subline("showhome", "6000-105E-PC", false, now, now), "TDM · Showhome · code 6000-105E-PC");
+        let (tdm, ffa) = (Some(vetf_net::MatchMode::Tdm), Some(vetf_net::MatchMode::Ffa));
         assert_eq!(
-            recent_subline("range", "192.168.1.40:47820", true, now - 60, now),
+            recent_subline("showhome", tdm, "6000-105E-PC", false, now, now),
+            "TDM · Showhome · code 6000-105E-PC"
+        );
+        // A free-for-all lobby is remembered as one (it used to read TDM: the label came from the map).
+        assert_eq!(
+            recent_subline("showhome", ffa, "6000-105E-PC", false, now, now),
+            "FFA · Showhome · code 6000-105E-PC"
+        );
+        assert_eq!(mode_map_label("showhome", None), "Showhome", "an old entry without its mode");
+        assert_eq!(
+            recent_subline("range", Some(vetf_net::MatchMode::Range), "192.168.1.40:47820", true, now - 60, now),
             "Gun range · 192.168.1.40:47820"
         );
-        assert_eq!(recent_subline("showhome", "x", false, now - 2 * 86_400 - 5, now), "TDM · last seen 2 days ago");
-        assert_eq!(recent_subline("range", "x", true, now - 86_400, now), "Gun range · last seen 1 day ago");
+        assert_eq!(recent_subline("range", None, "x", true, now - 60, now), "Gun range · x");
+        assert_eq!(
+            recent_subline("showhome", tdm, "x", false, now - 2 * 86_400 - 5, now),
+            "TDM · last seen 2 days ago"
+        );
+        assert_eq!(recent_subline("showhome", ffa, "x", false, now - 2 * 86_400, now), "FFA · last seen 2 days ago");
+        assert_eq!(recent_subline("range", None, "x", true, now - 86_400, now), "Gun range · last seen 1 day ago");
         assert!(ip_help(47820).contains("UDP 47820"));
     }
 }

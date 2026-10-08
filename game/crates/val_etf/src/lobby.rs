@@ -321,12 +321,14 @@ fn mode_toggle(
 
 /// `--demo-ui lobby-ready | lobby-switch | lobby-start | lobby-ffa`: press READY; SWITCH TEAM then READY; READY
 /// then START MATCH; or (the host) switch to free-for-all, READY and START MATCH, a few seconds in (demo runs
-/// ignore the desktop's mouse), to test the lobby over the network.
+/// ignore the desktop's mouse), to test the lobby over the network. `loadout-pick:...` readies and starts
+/// after picking a loadout.
 fn demo(
     cli: Res<Cli>,
     time: Res<Time>,
     screens: Res<Screens>,
     mut step: Local<usize>,
+    players: Query<&PlayerNet>,
     mut senders: Query<&mut MessageSender<LobbyAction>, With<Client>>,
 ) {
     let plan: &[(f32, LobbyAction)] = match cli.demo_ui.as_deref() {
@@ -337,10 +339,17 @@ fn demo(
         Some("lobby-ffa") => {
             &[(4.0, LobbyAction::SetMode(MatchMode::Ffa)), (5.0, LobbyAction::Ready(true)), (12.0, LobbyAction::Start)]
         }
+        // After picking a loadout on the Loadout screen (`loadout::demo_open`): READY, then START once a joiner
+        // has readied too (or after a minute alone).
+        Some(d) if d.starts_with("loadout-pick") => &[(9.0, LobbyAction::Ready(true)), (18.0, LobbyAction::Start)],
         _ => return,
     };
     let Some((at, action)) = plan.get(*step) else { return };
-    if screens.contains(Screen::Lobby) && time.elapsed_secs() >= *at {
+    let waiting_for_others = cli.demo_ui.as_deref().is_some_and(|d| d.starts_with("loadout-pick"))
+        && *action == LobbyAction::Start
+        && time.elapsed_secs() < 60.0
+        && (players.iter().count() < 2 || players.iter().any(|n| !n.ready));
+    if screens.contains(Screen::Lobby) && time.elapsed_secs() >= *at && !waiting_for_others {
         *step += 1;
         info!("--demo-ui: {action:?}");
         for mut s in &mut senders {
@@ -360,12 +369,14 @@ struct Seat {
     weight: vetf_sim::data::WeightClass,
     ping_ms: u16,
     ready: bool,
+    /// The agent the host dealt (none in the lobby: agents are dealt at random when the match starts).
+    agent: Option<String>,
 }
 
 #[allow(clippy::too_many_arguments)]
 fn refresh(
     screens: Res<Screens>,
-    players: Query<(&PlayerId, &PlayerInfo, &PlayerLoadout, Option<&PlayerNet>, Has<Controlled>)>,
+    players: Query<(&PlayerId, &PlayerInfo, &PlayerLoadout, Option<&PlayerNet>, Has<Controlled>, Option<&PlayerAgent>)>,
     matches: Query<&MatchState>,
     session: Res<Session>,
     data: Res<Data>,
@@ -393,7 +404,7 @@ fn refresh(
     let Some(m) = matches.iter().next() else { return };
     let seats: Vec<Seat> = players
         .iter()
-        .map(|(id, info, loadout, net, me)| Seat {
+        .map(|(id, info, loadout, net, me, agent)| Seat {
             id: id.0,
             name: info.name.to_uppercase(),
             me,
@@ -403,6 +414,7 @@ fn refresh(
             weight: loadout.0.weight,
             ping_ms: net.map_or(0, |n| n.ping_ms),
             ready: net.is_some_and(|n| n.ready),
+            agent: agent.and_then(|a| a.0.clone()),
         })
         .collect();
     let my_team = seats.iter().find(|s| s.me).and_then(|s| s.team);
@@ -495,6 +507,14 @@ fn refresh(
         });
     }
     let rules = data.rules.deathmatch(m.mode);
+    // What everyone picks in this mode: one armor tier and one ammo type for six magazines, within the points.
+    // Agents are dealt at random when the match starts (these modes have no abilities).
+    let loadout = match (data.rules.fixed_loadout(m.mode), vetf_sim::gear::gear_budget(&data, m.mode)) {
+        (Some(k), Some(pts)) => {
+            format!("ARMOR T1–T{} · ONE AMMO TYPE · {} MAGS · {pts} PTS", k.armor.len(), k.mags)
+        }
+        _ => "ANY HALO · AMMO PER MAGAZINE".to_string(),
+    };
     let rows = [
         ("Map", m.map.to_uppercase()),
         ("Mode", mode_title(m.mode).to_string()),
@@ -513,6 +533,8 @@ fn refresh(
         ),
         ("Respawn", format!("{} S", rules.respawn_s)),
         ("Kill refill", format!("{} MAGAZINE", rules.kill_refill_mags)),
+        ("Loadout", loadout),
+        ("Agents", if m.mode.is_deathmatch() { "RANDOM AT THE START" } else { "YOUR PICK" }.to_string()),
     ];
     for e in &settings_box {
         commands.entity(e).despawn_children().with_children(|s| {
@@ -584,6 +606,7 @@ fn ffa_header(c: &mut ChildSpawnerCommands, fonts: &UiFonts, first: bool, n: usi
 
 fn seat_row(c: &mut ChildSpawnerCommands, fonts: &UiFonts, images: &UiImages, s: &Seat) {
     let bg = if s.me { hexa(0x52E5A5, 0.16) } else { white(0.035) };
+    let badge = s.agent.as_deref().map_or(("?".to_string(), TEXT_MID), crate::loadout::agent_badge);
     c.spawn((
         Node {
             height: px(64),
@@ -605,8 +628,9 @@ fn seat_row(c: &mut ChildSpawnerCommands, fonts: &UiFonts, images: &UiImages, s:
                 border_radius: BorderRadius::all(px(3)),
                 ..default()
             },
-            BackgroundColor(AGENT_KESTREL),
-            children![fonts.text("K", Face::Display, 700, 16.0, ICON_CUT, 0.0)],
+            // The dealt agent's initial in its colour; `?` until the match starts and deals them.
+            BackgroundColor(badge.1),
+            children![fonts.text(badge.0, Face::Display, 700, 16.0, ICON_CUT, 0.0)],
         ));
         row.spawn(Node { flex_direction: FlexDirection::Column, row_gap: px(4), flex_grow: 1.0, ..default() })
             .with_children(|n| {

@@ -118,6 +118,12 @@ pub fn max_players_cap_for(data: &GameData, mode: vetf_net::MatchMode) -> u32 {
     crate::server::mode_max_players(data, mode, data.net.max_remote_clients + 1)
 }
 
+/// The players a hosted game of `mode` opens with: HOST GAME's MAX PLAYERS (the player's wanted value, which
+/// may suit the other mode) within the mode's cap, even for teams.
+pub fn hosted_players(data: &GameData, mode: vetf_net::MatchMode, wanted: u32) -> u32 {
+    crate::server::mode_max_players(data, mode, wanted.clamp(2, max_players_cap_for(data, mode)))
+}
+
 /// Netcode client slots for a game of `max_players`: the host plays through a local link, not a netcode
 /// connection, so it does not take a slot.
 pub fn netcode_max_clients(max_players: u32) -> usize {
@@ -253,8 +259,8 @@ fn handle_requests(
                     session.host_error = true;
                     continue;
                 }
-                let mode = if map.eq_ignore_ascii_case("range") { vetf_net::MatchMode::Range } else { host.mode };
-                let max_players = host.max_players.clamp(2, max_players_cap_for(&data, mode));
+                let mode = crate::server::mode_for_map(map, host.mode);
+                let max_players = hosted_players(&data, mode, host.max_players);
                 session.internet_error = None;
                 if host.access == JoinAccess::JoinCode {
                     match Bridge::host(port, netcode_max_clients(max_players)) {
@@ -272,6 +278,9 @@ fn handle_requests(
                 commands.insert_resource(ReplicationMetadata::new(Duration::from_secs_f64(
                     1.0 / data.net.snapshot_hz.max(1) as f64,
                 )));
+                // The lobby's seats can drop below the netcode's slots (a mode change): the seat check
+                // denies joiners once the match is full.
+                let seats = crate::server::Seats::new(netcode_max_clients(max_players) as u32);
                 let server = commands
                     .spawn((
                         Name::new("Server"),
@@ -281,12 +290,17 @@ fn handle_requests(
                             max_clients: netcode_max_clients(max_players),
                             // Friends dial our LAN / public / VPN address, not 0.0.0.0.
                             server_addr_check: false,
+                            connection_request_handler: Some(seats.check()),
                             ..default()
                         }),
                         LocalAddr(SocketAddr::new(Ipv4Addr::UNSPECIFIED.into(), port)),
                         ServerUdpIo::default(),
                     ))
                     .id();
+                commands.insert_resource(seats);
+                // Before the host's own client connects: its player spawns for this mode (the match entity
+                // comes later in this queue).
+                commands.insert_resource(crate::server::HostedMatch { mode, slots: max_players });
                 let client = commands.spawn((Client, Name::new("HostClient"), LinkOf { server })).id();
                 commands.trigger(Start { entity: server });
                 commands.trigger(Connect { entity: client });
@@ -405,6 +419,9 @@ fn handle_requests(
                     commands.entity(e).try_despawn();
                 }
                 commands.remove_resource::<CurrentLevel>();
+                // A session's mode and seats never reach the next one.
+                commands.remove_resource::<crate::server::HostedMatch>();
+                commands.remove_resource::<crate::server::Seats>();
                 session.role = Role::Offline;
                 session.join_code = None;
                 session.lobby_name = None;
@@ -482,6 +499,8 @@ pub fn disconnect_text(reason: &DisconnectedReason) -> String {
         DisconnectedReason::TransportError(e) if e.contains("TimedOut") => {
             "No answer from the host (timed out). Check the code, and that the host's UDP port is reachable.".into()
         }
+        // The host's seat check (`server::Seats`): every seat of its lobby is taken.
+        DisconnectedReason::TransportError(e) if e.contains("Denied") => "The host's lobby is full.".into(),
         DisconnectedReason::ByPeer(Some(r)) => format!("The host closed the connection: {r}."),
         DisconnectedReason::ByPeer(None) => "The host closed the connection.".into(),
         DisconnectedReason::LinkFailed(r) => format!("Connection lost ({r})."),
@@ -531,6 +550,7 @@ fn record_recent(
     recent.record(RecentServer {
         name: default_lobby_name(host.as_deref().unwrap_or("HOST")),
         map: m.map.clone(),
+        mode: Some(m.mode),
         address,
         by_ip,
         last_joined,
@@ -599,6 +619,12 @@ mod tests {
         // The host plays over a local link: a 10-player game takes 9 netcode slots.
         assert_eq!(netcode_max_clients(10), 9);
         assert_eq!(netcode_max_clients(2), 1);
+        // MAX PLAYERS as picked, within the mode's cap (even for teams): 7 from free-for-all opens a 6-seat
+        // team deathmatch; 10 opens an 8-seat free-for-all.
+        assert_eq!(hosted_players(&d, vetf_net::MatchMode::Tdm, 7), 6);
+        assert_eq!(hosted_players(&d, vetf_net::MatchMode::Ffa, 10), ffa);
+        assert_eq!(hosted_players(&d, vetf_net::MatchMode::Tdm, 0), 2);
+        assert_eq!(hosted_players(&d, vetf_net::MatchMode::Range, 10), 10);
     }
 
     #[test]
@@ -655,5 +681,8 @@ mod tests {
         assert!(t.starts_with("No answer from the host"), "{t}");
         assert_eq!(disconnect_text(&DisconnectedReason::ByPeer(None)), "The host closed the connection.");
         assert!(disconnect_text(&DisconnectedReason::TransportError("x".into())).contains("(x)"));
+        // netcode's state when the host's seat check said "server full"
+        let full = disconnect_text(&DisconnectedReason::TransportError("ConnectionDenied".into()));
+        assert_eq!(full, "The host's lobby is full.");
     }
 }

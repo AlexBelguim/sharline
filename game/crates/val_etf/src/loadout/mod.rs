@@ -1,7 +1,14 @@
-//! The Loadout hub screen (mockups 05 / 05b): agent, weapon, attachments, the six ordered magazines with
-//! their ammo, the custom halo (a core and a tier per arc) and the gear-budget result. Opens over the main
-//! menu or the match (`Screen::Loadout`); in a match, CONFIRM sends a `LoadoutUpdate` that the host
-//! applies at the next spawn.
+//! The Loadout hub screen, in two layouts:
+//! - Team deathmatch and free-for-all (DIRECTION_LOG 17): the gun, its attachments and its magazine type (six
+//!   of it), then ONE armor tier (T1-T4), ONE ammo type for all six magazines, and the points used against
+//!   the mode's total (`rules.ron` `deathmatch_loadout`). No agent pick (the host deals agents at random) and
+//!   no halo core (everyone wears the mode's one halo).
+//! - The gun range (mockups 05 / 05b): agent, weapon, attachments, the six ordered magazines with their own
+//!   ammo, the custom halo (a core and a tier per arc) and the result.
+//!
+//! It opens over the lobby or the match (`Screen::Loadout`: the lobby's LOADOUT, the ESC menu's LOADOUT);
+//! the main menu has no LOADOUT entry for now. In a match, CONFIRM sends a `LoadoutUpdate` that the host
+//! applies at the next spawn (at once in the lobby).
 //!
 //! Contract with the other screens:
 //! - [`ActiveLoadout`] is what this player asks the host for (sent in `Hello`, applied at each spawn).
@@ -11,6 +18,7 @@
 
 mod focus;
 mod halo;
+mod kit_view;
 mod model;
 mod popover;
 mod presets;
@@ -40,7 +48,7 @@ use ui_data::LoadoutUiData;
 use vetf_net::{LoadoutChoice, LoadoutUpdate, MatchMode, MatchState, ReliableChannel};
 use vetf_sim::GameData;
 use vetf_sim::ZoneTable;
-use vetf_sim::data::{AmmoKind, AttachmentCategory, Core, WeightClass};
+use vetf_sim::data::{AmmoChoice, AmmoKind, AttachmentCategory, Core, WeightClass};
 use vetf_sim::gear::gear_budget;
 use vetf_sim::{Zone, gear};
 
@@ -94,17 +102,17 @@ fn init_active_loadout(mut commands: Commands, cli: Res<Cli>, data: Res<Data>) {
 }
 
 /// The active preset, cleaned up like the screen would (unknown parts dropped, caps applied); a preset the
-/// host would refuse in team deathmatch (saved over budget with + SAVE AS) gives the default loadout.
+/// host would refuse in the mode this player hosts (`--mode`, else team deathmatch; e.g. saved over budget
+/// with + SAVE AS) gives the default loadout.
 fn preset_choice(file: &LoadoutsFile, data: &GameData, cli: &Cli) -> LoadoutChoice {
     let preset = &file.presets[file.active.min(file.presets.len().saturating_sub(1))].loadout;
-    let draft = Draft::from_choice(preset, &file.attachments, data);
-    if draft.problems(data, gear_budget(data, MatchMode::Tdm)).is_empty() {
-        draft.choice()
+    let mode = cli.mode.unwrap_or(MatchMode::Tdm);
+    let shaped = Draft::from_choice(preset, &file.attachments, data, data.rules.fixed_loadout(mode).cloned());
+    if shaped.problems(data, gear_budget(data, mode)).is_empty() {
+        // As saved (the gun range keeps its mixed magazines); each mode shapes it its own way.
+        Draft::from_choice(preset, &file.attachments, data, None).choice()
     } else {
-        warn!(
-            "loadout preset {} cannot be used in team deathmatch; using the default loadout",
-            file.label(file.active)
-        );
+        warn!("loadout preset {} cannot be used in {mode:?}; using the default loadout", file.label(file.active));
         crate::config::loadout_choice(
             &Cli { weapon: None, ammo: None, mags: None, armor: None, attach: None, ..cli.clone() },
             data,
@@ -116,30 +124,78 @@ fn load_halo_images(mut commands: Commands, assets: Res<AssetServer>) {
     commands.insert_resource(HaloImages::load(&assets));
 }
 
-/// A loadout as the hub screens show it.
-#[allow(dead_code)] // for the main menu's player card and the ESC menu
+/// A loadout as the hub screens show it, in one mode.
 #[derive(Debug, Clone, PartialEq)]
 pub struct LoadoutSummary {
     pub weapon_name: String,
     pub attachments: Vec<String>,
     /// (slot 1-based, short ammo label, ammo type) in slot order. Never round counts.
     pub mags: Vec<(usize, String, AmmoKind)>,
-    /// The halo in a few words: `T2 MENDER`, `T1–T3 BULWARK`, `NO HALO`.
+    /// Team deathmatch and free-for-all: one halo, one armor tier and one ammo type for everyone's six
+    /// magazines; the core is not worth naming, and the ammo is one label.
+    pub one_halo: bool,
+    /// The deathmatch armor tier (1-based; None in the gun range).
+    pub armor_tier: Option<u8>,
+    /// The halo in a few words: `T2 MENDER`, `T1–T3 BULWARK`, `NO HALO`; `T3 HALO` for an armor tier.
     pub armor_name: String,
     pub core: Option<Core>,
     /// Tier per halo arc (loadout caps applied).
     pub tiers: ZoneTable<u8>,
     pub weight: WeightClass,
-    /// Team-deathmatch gear cost (halo + every magazine) against the budget.
+    /// The mode's points and their parts (halo or armor tier, ammo, magazine type), against the mode's
+    /// budget (None: the gun range has no limit).
     pub gear_cost: u32,
-    pub gear_budget: u32,
-    /// The agent's display name (cosmetic for now).
+    pub ammo_cost: u32,
+    pub mag_cost: u32,
+    pub gear_budget: Option<u32>,
+    /// The agent's display name (cosmetic for now): the pick in the gun range.
     pub agent_name: String,
 }
 
-/// Summarise a loadout choice (unknown ids fall back to what the host would use).
-#[allow(dead_code)] // for the main menu's player card and the ESC menu
-pub fn summary(choice: &LoadoutChoice, data: &GameData) -> LoadoutSummary {
+impl LoadoutSummary {
+    /// The ammo of a one-ammo-type loadout: (short label, type, magazines). None with mixed magazines.
+    pub fn one_ammo(&self) -> Option<(String, AmmoKind, usize)> {
+        let (_, label, kind) = self.mags.first()?;
+        self.mags.iter().all(|(_, l, _)| l == label).then(|| (label.clone(), *kind, self.mags.len()))
+    }
+
+    /// The halo's (or armor tier's) part of the points.
+    pub fn halo_cost(&self) -> u32 {
+        self.gear_cost.saturating_sub(self.ammo_cost + self.mag_cost)
+    }
+}
+
+/// `agents.ron`, read once (the agent names the hub screens show, and the agents the host deals).
+fn agents_data() -> &'static LoadoutUiData {
+    static AGENTS: std::sync::OnceLock<LoadoutUiData> = std::sync::OnceLock::new();
+    AGENTS.get_or_init(LoadoutUiData::load)
+}
+
+/// Every agent's id, in `agents.ron` order: what team deathmatch and free-for-all deal from.
+pub fn agent_ids() -> Vec<String> {
+    agents_data().agents.iter().map(|a| a.id.clone()).collect()
+}
+
+/// An agent's display name (`KESTREL`), or the id in capitals for one this build does not know.
+pub fn agent_name(id: &str) -> String {
+    agents_data().agent(id).map_or(id.to_uppercase(), |(_, a)| a.name.clone())
+}
+
+/// An agent's badge on the scoreboard and in the lobby: its initial and its accent colour.
+pub fn agent_badge(id: &str) -> (String, Color) {
+    let accent = agents_data().agent(id).map(|(_, a)| a.accent);
+    let initial = agent_name(id).chars().next().map_or("?".into(), |c| c.to_string());
+    let color = match accent {
+        Some(ui_data::Accent::Teal) => AGENT_KESTREL,
+        Some(ui_data::Accent::Coral) => AGENT_SOLACE,
+        None => TEXT_MID,
+    };
+    (initial, color)
+}
+
+/// Summarise a loadout choice as `mode` takes it (unknown ids fall back to what the host would use).
+pub fn summary(choice: &LoadoutChoice, data: &GameData, mode: MatchMode) -> LoadoutSummary {
+    let choice = &choice.for_mode(data, mode);
     let weapon = data.weapon(&choice.weapon).or_else(|| data.weapon(&data.rules.default_loadout.primary));
     let mags: Vec<(usize, String, AmmoKind)> = choice
         .mags
@@ -152,9 +208,10 @@ pub fn summary(choice: &LoadoutChoice, data: &GameData) -> LoadoutSummary {
         .collect();
     let halo = choice.halo.capped(data.armor.loadout_tier_caps);
     let armor = data.armor.resolve_halo(&halo);
-    let cost = weapon.map_or(0, |w| gear::gear_cost(data, w, &halo, &choice.mags).total());
-    static AGENTS: std::sync::OnceLock<LoadoutUiData> = std::sync::OnceLock::new();
-    let agents = AGENTS.get_or_init(LoadoutUiData::load);
+    let cost =
+        weapon.map(|w| gear::loadout_cost(data, mode, w, &halo, &choice.mags, &choice.attachments)).unwrap_or_default();
+    let kit = data.rules.fixed_loadout(mode);
+    let armor_tier = kit.and_then(|k| k.tier_of(halo.tiers));
     LoadoutSummary {
         weapon_name: weapon.map_or("?".into(), |w| w.name.clone()),
         attachments: choice
@@ -163,13 +220,20 @@ pub fn summary(choice: &LoadoutChoice, data: &GameData) -> LoadoutSummary {
             .map(|a| data.attachment(a).map_or(a.clone(), |s| s.display_name().to_string()))
             .collect(),
         mags,
-        armor_name: halo_name(&halo),
+        one_halo: kit.is_some(),
+        armor_tier,
+        armor_name: match armor_tier {
+            Some(t) => format!("T{t} HALO"),
+            None => halo_name(&halo),
+        },
         core: armor.core,
         tiers: armor.tiers,
         weight: armor.weight_class,
-        gear_cost: cost,
-        gear_budget: data.rules.tdm.gear_budget,
-        agent_name: agents.agent(&choice.agent).map_or(choice.agent.to_uppercase(), |(_, a)| a.name.clone()),
+        gear_cost: cost.total(),
+        ammo_cost: cost.ammo,
+        mag_cost: cost.mags,
+        gear_budget: gear_budget(data, mode),
+        agent_name: agent_name(&choice.agent),
     }
 }
 
@@ -255,26 +319,49 @@ impl LoadoutUi {
     }
 }
 
-/// Where the screen is shown: from the menu (TDM budget as a default) or over a match (its mode decides).
+/// Where the screen is shown: over a match (its mode decides the layout, the picks and the budget) or over
+/// the menu (team deathmatch's, as a default).
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct ScreenCtx {
     pub in_match: bool,
+    /// Over the lobby: the host puts a confirmed loadout on at once (no fighting yet).
+    pub lobby: bool,
+    pub mode: MatchMode,
     pub budget: Option<u32>,
-    /// The micro after the budget: HOST OPTION, TDM DEFAULT, GUN RANGE.
+    /// The mode sells picks (team deathmatch, free-for-all: `rules.ron` `deathmatch_loadout`): the
+    /// deathmatch layout. False: the gun range's.
+    pub simple: bool,
+    /// The micro after the budget: TEAM DEATHMATCH, FREE-FOR-ALL, GUN RANGE, TDM DEFAULT.
     pub note: &'static str,
 }
 
 impl ScreenCtx {
     fn new(data: &GameData, state: &AppState, matches: &Query<&MatchState>) -> Self {
         let in_match = matches!(state, AppState::InGame | AppState::Connecting);
-        let mode = matches.iter().next().map(|m| m.mode);
-        match (in_match, mode) {
-            (true, Some(MatchMode::Range)) => {
-                Self { in_match, budget: gear_budget(data, MatchMode::Range), note: "GUN RANGE" }
-            }
-            (true, _) => Self { in_match, budget: gear_budget(data, MatchMode::Tdm), note: "HOST OPTION" },
-            (false, _) => Self { in_match, budget: gear_budget(data, MatchMode::Tdm), note: "TDM DEFAULT" },
-        }
+        let m = matches.iter().next().filter(|_| in_match);
+        let lobby = m.is_some_and(|m| m.phase == vetf_net::MatchPhase::Lobby);
+        Self { lobby, ..Self::for_mode(data, in_match, m.map(|m| m.mode)) }
+    }
+
+    /// `mode`: the match's, None over the menu (or before the match state arrives).
+    fn for_mode(data: &GameData, in_match: bool, mode: Option<MatchMode>) -> Self {
+        let note = match mode {
+            None => "TDM DEFAULT",
+            Some(m) => crate::lobby::mode_title(m),
+        };
+        let mode = mode.unwrap_or(MatchMode::Tdm);
+        let simple = data.rules.fixed_loadout(mode).is_some();
+        Self { in_match, lobby: false, mode, budget: gear_budget(data, mode), simple, note }
+    }
+
+    /// The deathmatch layout: the gun with its parts and magazine type, an armor tier, one ammo type, points.
+    pub fn simple(&self) -> bool {
+        self.simple
+    }
+
+    /// The picks this mode sells, for a draft (None: the gun range).
+    pub fn kit(&self, data: &GameData) -> Option<vetf_sim::data::DeathmatchLoadout> {
+        data.rules.fixed_loadout(self.mode).cloned()
     }
 }
 
@@ -294,6 +381,12 @@ pub enum Act {
     Zone(Zone),
     ZoneCheck(Zone),
     Row(usize),
+    /// The deathmatch layout: a magazine type (its index in the attachment data).
+    MagType(usize),
+    /// The deathmatch layout: an armor tier (1-based).
+    Armor(u8),
+    /// The deathmatch layout: the one ammo type.
+    Ammo(AmmoChoice),
 }
 
 /// The popover panel (clicks inside it never close it).
@@ -312,21 +405,63 @@ fn hash_of(v: &impl std::fmt::Debug) -> u64 {
 
 // ---------------------------------------------------------------------------------------------- lifecycle
 
-/// `--demo-ui loadout | loadout-ammo | loadout-attach`: open the screen over the main menu (and a popover).
+/// A scripted pick on the deathmatch layout (`--demo-ui loadout-set:TIER,AMMO[,MAG][,WEAPON]`, e.g.
+/// `loadout-set:3,ap3,mag_45`, or `loadout-pick:...` which then confirms): the clicks it makes, in order (the
+/// gun first, so its magazine type can be picked).
+pub fn demo_picks(spec: &str, data: &GameData) -> Option<Vec<Act>> {
+    let parts: Vec<&str> = spec.split(',').map(str::trim).collect();
+    let [tier, ammo, rest @ ..] = parts.as_slice() else { return None };
+    let tier: u8 = tier.trim_start_matches(['t', 'T']).parse().ok()?;
+    let mut gun = Vec::new();
+    let mut mag = Vec::new();
+    for id in rest {
+        match data.weapon_index(id) {
+            Some(w) => gun.push(Act::Weapon(w)),
+            None => {
+                let i = data.attachments.attachments.iter().position(|a| a.id == *id)?;
+                if data.attachments.attachments[i].cat != AttachmentCategory::Mag {
+                    return None;
+                }
+                mag.push(Act::MagType(i));
+            }
+        }
+    }
+    let mut acts = gun;
+    acts.extend(mag);
+    acts.push(Act::Armor(tier));
+    acts.push(Act::Ammo(crate::config::parse_ammo(ammo)?));
+    Some(acts)
+}
+
+/// `--demo-ui loadout | loadout-ammo | loadout-attach`: open the screen over the main menu, or over the
+/// lobby or match with `--host` / `--join` (and a popover). `loadout-set:TIER,AMMO[,MAG][,WEAPON]` also picks
+/// that armor tier, ammo (`ap2`), magazine type and gun through the screen's own clicks; `loadout-pick:...`
+/// then presses CONFIRM (the lobby then readies, and the host starts: see `lobby::demo`).
+#[allow(clippy::too_many_arguments)]
 fn demo_open(
     cli: Res<Cli>,
     state: Res<State<AppState>>,
+    time: Res<Time>,
+    data: Res<Data>,
     mut screens: ResMut<Screens>,
     mut ui: ResMut<LoadoutUi>,
     edit: Option<Res<LoadoutEdit>>,
     mut step: Local<u8>,
+    mut since: Local<Option<f32>>,
+    mut queue: Local<Vec<Act>>,
 ) {
     let Some(demo) = cli.demo_ui.as_deref() else { return };
-    // On the main menu, or over the match with --host.
-    let base = if cli.host.is_some() { AppState::InGame } else { AppState::MainMenu };
+    // On the main menu, or over the lobby / match with --host or --join.
+    let base = if cli.host.is_some() || cli.join.is_some() { AppState::InGame } else { AppState::MainMenu };
     if !demo.starts_with("loadout") || *state.get() != base {
         return;
     }
+    // Let the match state and the hello settle first (a joiner needs a moment).
+    let t = time.elapsed_secs();
+    if base == AppState::InGame && t - *since.get_or_insert(t) < 3.0 {
+        return;
+    }
+    let script = demo.split_once(':').filter(|(k, _)| matches!(*k, "loadout-set" | "loadout-pick"));
     match *step {
         0 => {
             screens.push(Screen::Loadout);
@@ -338,21 +473,44 @@ fn demo_open(
                 "loadout-attach" => ui.open_pop(Pop::Slot(AttachmentCategory::Optic)),
                 _ => {}
             }
+            if let Some((kind, spec)) = script {
+                match demo_picks(spec, &data) {
+                    Some(mut acts) => {
+                        if kind == "loadout-pick" {
+                            acts.push(Act::Confirm);
+                        }
+                        info!("--demo-ui {kind}: {acts:?}");
+                        acts.reverse();
+                        *queue = acts;
+                    }
+                    None => warn!("--demo-ui {demo}: expected TIER,AMMO[,MAG][,WEAPON]"),
+                }
+            }
             *step = 2;
+        }
+        // One click a frame, through `presses` (as Enter on a focused item).
+        2 if ui.activate.is_none() => {
+            if let Some(act) = queue.pop() {
+                ui.activate = Some(act);
+            } else {
+                *step = 3;
+            }
         }
         _ => {}
     }
 }
 
 /// Spawn the page when the screen comes to the top; drop the edit when it leaves the stack.
+#[allow(clippy::too_many_arguments)]
 fn open_screen(
     mut commands: Commands,
     screens: Res<Screens>,
     roots: Query<(Entity, &ScreenRoot)>,
-    edit: Option<Res<LoadoutEdit>>,
+    edit: Option<ResMut<LoadoutEdit>>,
     active: Res<ActiveLoadout>,
     data: Res<Data>,
     mut ui: ResMut<LoadoutUi>,
+    (state, matches): (Res<State<AppState>>, Query<&MatchState>),
 ) {
     let open = screens.contains(Screen::Loadout);
     let root = roots.iter().find(|(_, r)| r.0.same_kind(Screen::Loadout)).map(|(e, _)| e);
@@ -363,26 +521,41 @@ fn open_screen(
         }
         return;
     }
+    let ctx = ScreenCtx::new(&data, state.get(), &matches);
+    let kit = ctx.kit(&data);
+    // The host switched the lobby between the deathmatch modes: same layout, the new mode's picks (today
+    // both modes sell the same ones, so this only matters once they differ).
+    if let Some(mut edit) = edit
+        && root.is_some()
+        && edit.draft.fixed.is_some()
+        && kit.is_some()
+        && edit.draft.fixed != kit
+    {
+        let parts = edit.draft.parts.clone();
+        edit.draft = Draft::from_choice(&edit.draft.choice(), &parts, &data, kit.clone());
+    }
     if root.is_some() || !screens.top().is_some_and(|t| t.same_kind(Screen::Loadout)) {
         return;
     }
     let mut file = LoadoutsFile::load(&data, crate::config::DEFAULT_AGENT);
-    let draft = Draft::from_choice(&active.0, &file.attachments, &data);
-    // The edit starts from what the player spawns with; it belongs to the preset it equals (else the last one).
-    if let Some(i) = file.presets.iter().position(|p| p.loadout == draft.choice()) {
+    let draft = Draft::from_choice(&active.0, &file.attachments, &data, kit.clone());
+    // The edit starts from what the player spawns with; it belongs to the preset it equals as this mode
+    // takes it (else the last one).
+    let shaped = |p: &presets::Preset| Draft::from_choice(&p.loadout, &file.attachments, &data, kit.clone()).choice();
+    if let Some(i) = file.presets.iter().position(|p| shaped(p) == draft.choice()) {
         file.active = i;
     }
     commands.insert_resource(LoadoutEdit { draft, file });
     *ui = LoadoutUi::default();
     let depth = screens.iter().position(|s| s.same_kind(Screen::Loadout)).unwrap_or(0) as i32;
-    view::spawn_root(&mut commands, 100 + depth * 10);
+    view::spawn_root(&mut commands, 100 + depth * 10, ctx.simple());
 }
 
 // ---------------------------------------------------------------------------------------------- actions
 
 fn load_preset(edit: &mut LoadoutEdit, ui: &mut LoadoutUi, i: usize, data: &GameData) {
     let Some(p) = edit.file.presets.get(i) else { return };
-    edit.draft = Draft::from_choice(&p.loadout, &edit.file.attachments, data);
+    edit.draft = Draft::from_choice(&p.loadout, &edit.file.attachments, data, edit.draft.fixed.clone());
     edit.file.active = i;
     ui.close_pop();
     ui.flash = [0.0; 6];
@@ -539,6 +712,20 @@ fn presses(
                 ui.close_pop();
             }
         }
+        Act::MagType(i) => {
+            if let Some(m) = data.attachments.attachments.get(i) {
+                let id = m.id.clone();
+                edit.draft.set_part(AttachmentCategory::Mag, Some(&id), &data);
+                ui.close_pop();
+            }
+        }
+        Act::Armor(t) => {
+            edit.draft.set_armor_tier(t);
+        }
+        Act::Ammo(c) => {
+            edit.draft.set_ammo(c, &data);
+            ui.flash[0] = 0.0;
+        }
     }
 }
 
@@ -653,6 +840,13 @@ fn keys(
         }
     }
     if keys.just_pressed(KeyCode::KeyR) {
+        // The deathmatch layout: the ammo row back to standard, the magazine row to the gun's standard one.
+        if ui.pop.is_none() && matches!(hovered, Some(Act::Ammo(_))) {
+            edit.draft.set_ammo(AmmoChoice::STANDARD, &data);
+        }
+        if ui.pop.is_none() && matches!(hovered, Some(Act::MagType(_))) {
+            edit.draft.reset_part(AttachmentCategory::Mag, &data);
+        }
         let target = match ui.pop {
             Some(p) => Some(p),
             None => match hovered {
@@ -664,7 +858,7 @@ fn keys(
         match target {
             Some(Pop::Slot(c)) => edit.draft.reset_part(c, &data),
             Some(Pop::Mag(i)) if i < edit.draft.mags.len() => {
-                edit.draft.set_mag(i, vetf_sim::data::AmmoChoice::STANDARD);
+                edit.draft.set_mag(i, AmmoChoice::STANDARD);
             }
             _ => {}
         }
@@ -779,36 +973,63 @@ fn tick_flash(time: Res<Time>, mut ui: ResMut<LoadoutUi>) {
 #[cfg(test)]
 pub(crate) mod tests {
     use super::*;
-    use vetf_sim::data::AmmoChoice;
+    use bevy::ecs::system::RunSystemOnce;
 
     /// A command line without options.
     pub(crate) fn plain_cli() -> Cli {
         Cli { name: "T".into(), ..Cli::default() }
     }
 
+    fn default_choice(d: &GameData) -> LoadoutChoice {
+        crate::server::default_choice(d)
+    }
+
     #[test]
     fn the_default_loadout_summarises_within_budget() {
         let d = GameData::embedded();
-        let l = &d.rules.default_loadout;
-        let c = LoadoutChoice {
-            weapon: l.primary.clone(),
-            mags: l.mags.clone(),
-            attachments: l.attachments.clone(),
-            halo: crate::config::halo_from_armor(&l.armor, &d),
-            agent: "kestrel".into(),
-        };
-        let s = summary(&c, &d);
+        let c = default_choice(&d);
+        let s = summary(&c, &d, MatchMode::Tdm);
         assert_eq!(s.weapon_name, "AR-7 Mako");
-        assert_eq!(s.mags.len(), l.mags.len());
+        assert_eq!(s.mags.len(), 6, "six magazines");
         assert_eq!(s.mags[0], (1, "STD".into(), AmmoKind::Standard));
-        assert_eq!(s.armor_name, "T2 MENDER");
+        assert_eq!(s.one_ammo(), Some(("STD".into(), AmmoKind::Standard, 6)));
+        assert!(s.one_halo);
+        assert_eq!((s.armor_tier, s.armor_name.as_str()), (Some(2), "T2 HALO"), "Mender Scout's H2 T2: T2");
         assert_eq!(s.agent_name, "KESTREL");
         assert_eq!(s.attachments[0], "HOLO");
-        assert_eq!(s.weight, WeightClass::Light);
-        assert!(s.gear_cost <= s.gear_budget);
-        let ap = AmmoChoice { kind: AmmoKind::ArmorPiercing, tier: 3 };
-        let c = LoadoutChoice { mags: vec![ap; 6], ..c };
-        assert!(summary(&c, &d).gear_cost > s.gear_budget, "six AP III magazines are over budget");
+        assert_eq!(s.weight, WeightClass::Medium);
+        assert_eq!(s.gear_budget, Some(d.rules.tdm.gear_budget));
+        assert_eq!((s.gear_cost, s.halo_cost(), s.ammo_cost, s.mag_cost), (2, 2, 0, 0));
+        // the gun range names the core and has no budget
+        let range = summary(&c, &d, MatchMode::Range);
+        assert_eq!((range.armor_name.as_str(), range.gear_budget, range.one_halo), ("T2 MENDER", None, false));
+        assert_eq!(range.armor_tier, None);
+        // T4 armor, AP II and the drum: over the deathmatch budget, the ammo paid once
+        let ap2 = AmmoChoice { kind: AmmoKind::ArmorPiercing, tier: 2 };
+        let rich = LoadoutChoice {
+            mags: vec![ap2, AmmoChoice::STANDARD],
+            attachments: vec!["mag_drum60".into()],
+            halo: gear::HaloChoice { core: Core::Volt, tiers: d.armor.loadout_tier_caps },
+            ..c.clone()
+        };
+        for mode in [MatchMode::Tdm, MatchMode::Ffa] {
+            let s = summary(&rich, &d, mode);
+            assert_eq!(s.core, Some(Core::Mender), "{mode:?}: the one halo");
+            assert_eq!((s.armor_tier, s.weight), (Some(4), WeightClass::Heavy));
+            assert_eq!((s.halo_cost(), s.ammo_cost, s.mag_cost), (5, 2, 2), "AP II once");
+            assert_eq!((s.gear_cost, s.gear_budget), (9, Some(8)), "{mode:?}: over");
+            assert_eq!(s.one_ammo().map(|a| a.0), Some("AP II".into()));
+        }
+    }
+
+    #[test]
+    fn agents_have_names_and_badges() {
+        assert_eq!(agent_ids(), ["kestrel", "solace"]);
+        assert_eq!(agent_name("solace"), "SOLACE");
+        assert_eq!(agent_name("nobody"), "NOBODY", "an agent this build does not know");
+        assert_eq!(agent_badge("kestrel"), ("K".to_string(), AGENT_KESTREL));
+        assert_eq!(agent_badge("solace"), ("S".to_string(), AGENT_SOLACE));
+        assert_eq!(agent_badge("nobody").1, TEXT_MID);
     }
 
     #[test]
@@ -818,27 +1039,72 @@ pub(crate) mod tests {
         file.repair(&d, "kestrel");
         file.active = 2;
         let cli = plain_cli();
-        assert_eq!(preset_choice(&file, &d, &cli), file.presets[2].loadout, "C · MEDIC is valid");
+        assert_eq!(preset_choice(&file, &d, &cli), file.presets[2].loadout, "C is valid");
+        // mixed magazines fit a deathmatch (slot 1's ammo, paid once) and are kept as saved for the range
         let ap3 = AmmoChoice { kind: AmmoKind::ArmorPiercing, tier: 3 };
+        file.presets[2].loadout.mags = vec![AmmoChoice::STANDARD, ap3, ap3];
+        assert_eq!(preset_choice(&file, &d, &cli), file.presets[2].loadout);
+        // T4 armor and AP III in slot 1: over budget, so the default loadout
         file.presets[2].loadout.mags = vec![ap3; 4];
+        file.presets[2].loadout.halo.tiers = d.armor.loadout_tier_caps;
         let fallback = preset_choice(&file, &d, &cli);
         assert_eq!(fallback, crate::config::loadout_choice(&cli, &d));
     }
 
+    /// The screen prices against the match's mode (free-for-all's own budget, not team deathmatch's) and
+    /// picks its layout from it: the deathmatch modes sell picks, the range does not.
     #[test]
-    fn the_budget_depends_on_where_the_screen_opens() {
-        let d = GameData::embedded();
+    fn the_budget_and_layout_follow_the_match() {
+        let mut d = GameData::embedded();
+        d.rules.ffa.gear_budget = 10;
+        let menu = ScreenCtx::for_mode(&d, false, None);
+        assert_eq!((menu.note, menu.budget, menu.mode), ("TDM DEFAULT", Some(d.rules.tdm.gear_budget), MatchMode::Tdm));
+        assert!(menu.simple());
+        let ffa = ScreenCtx::for_mode(&d, true, Some(MatchMode::Ffa));
+        assert_eq!((ffa.note, ffa.budget), ("FREE-FOR-ALL", Some(10)));
+        assert_eq!(ffa.kit(&d).as_ref(), d.rules.fixed_loadout(MatchMode::Ffa));
+        let range = ScreenCtx::for_mode(&d, true, Some(MatchMode::Range));
+        assert_eq!((range.note, range.budget, range.simple()), ("GUN RANGE", None, false));
+        assert_eq!(range.kit(&d), None);
+        // and from the replicated match
         let mut app = App::new();
-        app.add_systems(Update, |q: Query<&MatchState>, mut out: Local<Vec<ScreenCtx>>| {
-            let d = GameData::embedded();
-            out.push(ScreenCtx::new(&d, &AppState::MainMenu, &q));
-            assert_eq!(out[0].note, "TDM DEFAULT");
-            assert_eq!(out[0].budget, Some(d.rules.tdm.gear_budget));
-            let in_match = ScreenCtx::new(&d, &AppState::InGame, &q);
-            assert!(in_match.in_match);
-            assert_eq!(in_match.note, "HOST OPTION");
+        app.world_mut().spawn(MatchState {
+            mode: MatchMode::Ffa,
+            map: "showhome".into(),
+            score_a: 0,
+            score_b: 0,
+            score_limit: 25,
+            time_left_s: 600.0,
+            phase: vetf_net::MatchPhase::Lobby,
+            lobby_name: String::new(),
+            max_players: 8,
+            rules: d.rules.rulesets.ffa,
         });
-        app.update();
-        assert_eq!(gear_budget(&d, MatchMode::Range), None);
+        let data = d.clone();
+        let ctx = app
+            .world_mut()
+            .run_system_once(move |q: Query<&MatchState>| {
+                (ScreenCtx::new(&data, &AppState::InGame, &q), ScreenCtx::new(&data, &AppState::MainMenu, &q))
+            })
+            .unwrap();
+        assert_eq!((ctx.0.mode, ctx.0.budget), (MatchMode::Ffa, Some(10)), "in the match");
+        assert_eq!(ctx.1.mode, MatchMode::Tdm, "over the menu");
+    }
+
+    #[test]
+    fn demo_picks_click_through_the_deathmatch_layout() {
+        let d = GameData::embedded();
+        let ap2 = AmmoChoice { kind: AmmoKind::ArmorPiercing, tier: 2 };
+        assert_eq!(demo_picks("3,ap2", &d).unwrap(), [Act::Armor(3), Act::Ammo(ap2)]);
+        let mag = |id: &str| Act::MagType(d.attachments.attachments.iter().position(|a| a.id == id).unwrap());
+        let skink = Act::Weapon(d.weapon_index("sk9_skink").unwrap());
+        // the gun first, then its magazine type, whatever order they were given in
+        let acts = demo_picks("t1,std,skink_mag_60,sk9_skink", &d).unwrap();
+        assert_eq!(acts, [skink, mag("skink_mag_60"), Act::Armor(1), Act::Ammo(AmmoChoice::STANDARD)]);
+        assert_eq!(demo_picks("4,std,mag_drum60", &d).unwrap()[0], mag("mag_drum60"));
+        assert_eq!(demo_picks("3", &d), None);
+        assert_eq!(demo_picks("3,laser", &d), None, "not an ammo");
+        assert_eq!(demo_picks("3,std,optic_holo", &d), None, "not a magazine");
+        assert_eq!(demo_picks("x,std", &d), None);
     }
 }

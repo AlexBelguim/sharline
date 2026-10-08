@@ -9,12 +9,14 @@ use lightyear::prelude::input::native::ActionState;
 use lightyear::prelude::server::*;
 use lightyear::prelude::*;
 use std::collections::VecDeque;
+use std::sync::Arc;
+use std::sync::atomic::{AtomicU32, Ordering};
 use vetf_net::*;
 use vetf_sim::GameData;
 use vetf_sim::Zone;
 use vetf_sim::combat::{HaloState, Health, resolve_hit};
 use vetf_sim::data::{Core, Ruleset};
-use vetf_sim::gear::{gear_budget, gear_cost};
+use vetf_sim::gear::{gear_budget, loadout_cost};
 use vetf_sim::hitbox::{FiredShot, Pose, PoseHistory, Verdict, validate_claim};
 use vetf_sim::input::view_dir;
 use vetf_sim::items::{self, ItemState};
@@ -42,13 +44,14 @@ impl Plugin for ServerPlugin {
                     demo_wounds,
                     demo_kill,
                     measure_ping,
+                    count_seats,
                 )
                     .run_if(is_hosting),
             )
             .add_systems(FixedUpdate, simulate_authoritative.in_set(SimSystems::Simulate).run_if(is_hosting))
             .add_systems(
                 FixedUpdate,
-                (resolve_claims, handle_deaths, sync_teams, respawn_players, run_match)
+                (resolve_claims, handle_deaths, sync_teams, respawn_players, run_match, deal_agents)
                     .chain()
                     .in_set(SimSystems::Resolve)
                     .run_if(is_hosting),
@@ -92,13 +95,59 @@ pub struct ServerPlayer {
     pub kill_seq: u64,
 }
 
-/// What the host set up in HOST GAME: the mode before the match entity exists (the host's own player can
-/// connect first), and the player slots the netcode was opened with (MAX PLAYERS), so a mode change in the
-/// lobby never promises more seats than that.
+/// What the host set up in HOST GAME: the mode before the match entity exists (the host's own player
+/// connects first: `net::handle_requests` inserts this before it), kept in step with the lobby's mode, and
+/// the player slots the netcode was opened with (MAX PLAYERS), so a mode change in the lobby never promises
+/// more seats than that. Removed when the session ends.
 #[derive(Resource, Debug, Clone, Copy, PartialEq)]
 pub struct HostedMatch {
     pub mode: MatchMode,
     pub slots: u32,
+}
+
+/// Seats left for players joining over the network, shared with the netcode server's connection-request
+/// handler ([`SeatCheck`]): the match's MAX PLAYERS (which a lobby mode change can lower) minus the players
+/// in it, recounted every frame by [`count_seats`]. A full lobby denies new joiners with "server full".
+#[derive(Resource, Debug, Clone, Default)]
+pub struct Seats(pub Arc<AtomicU32>);
+
+impl Seats {
+    pub fn new(free: u32) -> Self {
+        Self(Arc::new(AtomicU32::new(free)))
+    }
+
+    pub fn free(&self) -> u32 {
+        self.0.load(Ordering::Relaxed)
+    }
+
+    /// The handler to give the netcode server.
+    pub fn check(&self) -> Arc<SeatCheck> {
+        Arc::new(SeatCheck(self.0.clone()))
+    }
+}
+
+/// Free seats in a match of `max_players` with `players` in it (the host included).
+pub fn free_seats(max_players: u32, players: usize) -> u32 {
+    max_players.saturating_sub(players as u32)
+}
+
+/// The netcode server's gate: a connection request finds the lobby full, or not.
+#[derive(Debug)]
+pub struct SeatCheck(Arc<AtomicU32>);
+
+impl lightyear::connection::shared::ConnectionRequestHandler for SeatCheck {
+    fn handle_request(&self, _client: PeerId) -> Option<lightyear::connection::shared::DeniedReason> {
+        (self.0.load(Ordering::Relaxed) == 0).then_some(lightyear::connection::shared::DeniedReason::ServerFull)
+    }
+}
+
+/// Keep [`Seats`] in step with the match (its seats follow the lobby's mode) and the players in it.
+fn count_seats(seats: Option<Res<Seats>>, matches: Query<&MatchState>, players: Query<(), With<ServerPlayer>>) {
+    let (Some(seats), Some(m)) = (seats, matches.iter().next()) else { return };
+    let free = free_seats(m.max_players, players.iter().count());
+    if seats.free() != free {
+        seats.0.store(free, Ordering::Relaxed);
+    }
 }
 
 /// Can a player of team `a` hurt one of team `b`? Players without a team (free-for-all, the gun range)
@@ -128,8 +177,14 @@ const CLAIM_WAIT_TICKS: u32 = 30;
 /// Seconds between the end of a match and the next one.
 const INTERMISSION_S: f32 = 8.0;
 
+/// The mode a game on `map` plays: the gun range is always the range, whatever HOST GAME's mode says.
+pub fn mode_for_map(map: &str, mode: MatchMode) -> MatchMode {
+    if map.eq_ignore_ascii_case("range") { MatchMode::Range } else { mode }
+}
+
 /// The match entity. A deathmatch (team or free-for-all) starts in the lobby unless `lobby` is false
-/// (`--live`); the range is always live, whatever `mode` asks for.
+/// (`--live`); the range is always live, whatever `mode` asks for. [`HostedMatch`] is the caller's (it must
+/// exist before the host's own client connects).
 pub fn spawn_match(
     commands: &mut Commands,
     data: &GameData,
@@ -139,9 +194,8 @@ pub fn spawn_match(
     max_players: u32,
     lobby: bool,
 ) {
-    let mode = if map.eq_ignore_ascii_case("range") { MatchMode::Range } else { mode };
+    let mode = mode_for_map(map, mode);
     let rules = data.rules.deathmatch(mode);
-    commands.insert_resource(HostedMatch { mode, slots: max_players });
     commands.spawn((
         Name::new("Match"),
         MatchState {
@@ -168,6 +222,11 @@ pub fn mode_max_players(data: &GameData, mode: MatchMode, slots: u32) -> u32 {
     let n = slots.min(data.rules.deathmatch(mode).max_players);
     let n = if mode.has_teams() { n - n % 2 } else { n };
     n.max(2)
+}
+
+/// A joiner finds no seat: the match already holds `max_players` (the host's own client always gets one).
+pub fn lobby_full(max_players: u32, players: usize, local: bool) -> bool {
+    !local && free_seats(max_players, players) == 0
 }
 
 /// Every new link (remote clients and the host's own) needs a replication sender.
@@ -204,6 +263,13 @@ fn on_link_connected(
     }
     let (Ok(remote), Some(level)) = (links.get(trigger.entity), level) else { return };
     let peer = remote.0;
+    // Backstop to the netcode seat check (`Seats`): two joiners racing for the last seat. Never the host.
+    if let Some(m) = matches.iter().next()
+        && lobby_full(m.max_players, players.iter().count(), peer.is_local())
+    {
+        warn!("{peer:?} connected to a full lobby ({} seats): no player for them", m.max_players);
+        return;
+    }
     // The match entity may not exist yet when the host's own client connects: HOST GAME's mode decides.
     let mode = matches
         .iter()
@@ -224,7 +290,7 @@ fn on_link_connected(
         .collect();
     let id = peer.to_bits();
     let spawn = spawn_for(&data, &level, mode, team, &enemies, spawn_roll(id, players.iter().count() as u64, 0));
-    let loadout = Loadout::default_for(&data, mode);
+    let loadout = default_loadout(&data, mode);
     let player = commands
         .spawn((
             Name::new(format!("Player {id:x}")),
@@ -238,6 +304,8 @@ fn on_link_connected(
             PlayerLoadout(loadout),
             Score::default(),
             PlayerNet::default(),
+            // Dealt when the match starts (`deal_agents`); none in the lobby and the range.
+            PlayerAgent::default(),
             ServerPlayer {
                 link: trigger.entity,
                 peer,
@@ -258,6 +326,26 @@ fn on_link_connected(
         ))
         .id();
     info!("spawned player {player} for {peer:?} on team {team:?}");
+}
+
+/// `rules.ron`'s default loadout as a choice (the command line without overrides asks for the same).
+pub fn default_choice(data: &GameData) -> LoadoutChoice {
+    let d = &data.rules.default_loadout;
+    LoadoutChoice {
+        weapon: d.primary.clone(),
+        mags: d.mags.clone(),
+        attachments: d.attachments.clone(),
+        halo: crate::config::halo_from_armor(&d.armor, data),
+        agent: crate::config::DEFAULT_AGENT.into(),
+    }
+}
+
+/// What a player wears before their hello: the default loadout, shaped to the mode (its one halo).
+fn default_loadout(data: &GameData, mode: MatchMode) -> Loadout {
+    loadout_from_choice(data, &default_choice(data), mode).unwrap_or_else(|e| {
+        warn!("the default loadout does not fit {mode:?} ({e:?})");
+        Loadout::default_for(data, mode)
+    })
 }
 
 fn loadout_fuel(data: &GameData, l: &Loadout) -> f32 {
@@ -332,28 +420,37 @@ pub enum LoadoutError {
     UnknownWeapon,
     /// An attachment that does not exist or does not fit the gun, or two in one category.
     Attachment,
-    /// A halo arc above its loadout tier cap.
+    /// A halo arc above its loadout tier cap (more armor than any loadout may wear).
     TierCap,
     /// A magazine's ammo cannot be loaded by that gun, or it is NPC-only.
     Ammo,
     /// No magazines, or more than six.
     MagCount,
-    /// Halo arc tiers plus the magazines' gear cost exceed the mode's gear budget.
+    /// The picks cost more points than the mode's budget.
     OverBudget {
         cost: u32,
         budget: u32,
     },
 }
 
-/// Build a loadout from a client's choice (the Loadout screen checks the same rules before CONFIRM):
-/// attachments that fit the gun (one per category), halo arcs within the loadout tier caps, players' ammo
-/// only, one to six magazines, and the mode's gear budget (arc tiers + every magazine's gear cost, see
-/// `vetf_sim::gear`; the gun range has none). The healing kit comes from the mode, not the client.
+/// Build a loadout from a client's choice (the Loadout screen checks the same rules before CONFIRM).
+///
+/// First what no loadout may ask for: an unknown gun, no magazine or more than six, a halo arc above its
+/// loadout cap. Then team deathmatch and free-for-all shape the choice to the picks they sell
+/// ([`LoadoutChoice::for_mode`]): the armor tier the halo makes, on the one halo core, and six magazines of
+/// slot 1's ammo (a loadout saved by an older build opens as its nearest picks). Then: players' ammo only,
+/// attachments that fit the gun (one per category), and the points (armor tier + ammo type once + magazine
+/// type, `vetf_sim::gear::loadout_cost`) within the mode's budget; the gun range has none. The healing kit
+/// comes from the mode, not the client.
 pub fn loadout_from_choice(data: &GameData, choice: &LoadoutChoice, mode: MatchMode) -> Result<Loadout, LoadoutError> {
     let spec = data.weapon(&choice.weapon).ok_or(LoadoutError::UnknownWeapon)?;
     if choice.mags.is_empty() || choice.mags.len() > MAX_MAGS {
         return Err(LoadoutError::MagCount);
     }
+    if !choice.halo.within_caps(data.armor.loadout_tier_caps) {
+        return Err(LoadoutError::TierCap);
+    }
+    let choice = &choice.for_mode(data, mode);
     for m in &choice.mags {
         data.ammo_for(spec, *m).filter(|a| a.player_loadout).ok_or(LoadoutError::Ammo)?;
     }
@@ -365,12 +462,9 @@ pub fn loadout_from_choice(data: &GameData, choice: &LoadoutChoice, mode: MatchM
         }
         cats.push(a.cat);
     }
-    if !choice.halo.within_caps(data.armor.loadout_tier_caps) {
-        return Err(LoadoutError::TierCap);
-    }
     let weapon = WeaponLoadout::resolve(data, &choice.weapon, &choice.mags, &choice.attachments)
         .ok_or(LoadoutError::UnknownWeapon)?;
-    let cost = gear_cost(data, spec, &choice.halo, &choice.mags).total();
+    let cost = loadout_cost(data, mode, spec, &choice.halo, &choice.mags, &choice.attachments).total();
     if let Some(budget) = gear_budget(data, mode)
         && cost > budget
     {
@@ -395,6 +489,41 @@ fn bypass_roll(shooter: u64, seq: u32, victim: u64) -> f32 {
     vetf_sim::rng::SplitMix::from_parts(&[shooter, seq as u64, victim, 0x4259_5041_5353]).next_f32()
 }
 
+/// What a player's gear is made of on the host, to equip a new loadout at once.
+type Gear<'a> =
+    (Mut<'a, PlayerLoadout>, Mut<'a, PlayerWeapon>, Mut<'a, PlayerItems>, Mut<'a, Vitals>, Mut<'a, PlayerMove>);
+
+/// Put a loadout on a living player now: a fresh gun, kit, halo and fuel (a hello, or a change in the lobby).
+fn equip(data: &GameData, l: Loadout, mode: MatchMode, gear: Gear) {
+    let (mut lo, mut w, mut it, mut v, mut mv) = gear;
+    *w = PlayerWeapon(WeaponState::new(data, &l.weapon));
+    *it = PlayerItems(ItemState::new(&l.kit));
+    *v = fresh_vitals(data, &l, mode);
+    mv.0.fuel = loadout_fuel(data, &l);
+    *lo = PlayerLoadout(l);
+}
+
+/// A loadout in a few words for the log: `sk9_skink skink_mag_60 · T3 MENDER (H3 T3 A1 L1) · AP II x6`, or
+/// `... · H2 T3 A1 L0 MENDER · ...` for a halo that is no deathmatch armor tier (the gun range).
+fn loadout_words(data: &GameData, l: &Loadout) -> String {
+    let t = l.halo.tiers;
+    let core = l.halo.core.map_or("NO HALO", |c| c.label());
+    let arcs = format!("H{} T{} A{} L{}", t.head, t.torso, t.arms, t.legs);
+    let halo = match data.rules.deathmatch_loadout.tier_of(t) {
+        Some(tier) => format!("T{tier} {core} ({arcs})"),
+        None => format!("{arcs} {core}"),
+    };
+    let ammo: Vec<String> =
+        l.weapon.mags.iter().map(|m| data.ammo.long_name(m.choice).unwrap_or_else(|| "?".into())).collect();
+    let ammo = match ammo.first() {
+        Some(first) if ammo.iter().all(|a| a == first) => format!("{first} x{}", ammo.len()),
+        _ => ammo.join(", "),
+    };
+    let spec = l.weapon.spec(data);
+    let mag = vetf_sim::gear::mag_type(data, spec, &l.weapon.attachments);
+    format!("{} {mag} · {halo} · {ammo}", spec.id)
+}
+
 fn receive_hellos(
     mut links: Query<(Entity, &mut MessageReceiver<Hello>), With<ClientOf>>,
     mut players: Query<(
@@ -415,48 +544,62 @@ fn receive_hellos(
             if hello.data_fingerprint != data.fingerprint {
                 warn!("{} runs different gameplay data: prediction will drift", hello.name);
             }
-            for (mut info, mut sp, mut lo, mut w, mut it, mut v, mut mv) in &mut players {
+            for (mut info, mut sp, lo, w, it, v, mv) in &mut players {
                 if sp.link != link {
                     continue;
                 }
                 info.name = hello.name.chars().filter(|c| !c.is_control()).take(16).collect();
-                let chosen = loadout_from_choice(&data, &hello.loadout, mode);
-                if let Err(e) = &chosen {
-                    warn!("{}: loadout {:?} refused ({e:?}); keeping the default", hello.name, hello.loadout);
-                }
-                if let Ok(l) = chosen {
-                    *w = PlayerWeapon(WeaponState::new(&data, &l.weapon));
-                    *it = PlayerItems(ItemState::new(&l.kit));
-                    *v = fresh_vitals(&data, &l, mode);
-                    mv.0.fuel = loadout_fuel(&data, &l);
-                    *lo = PlayerLoadout(l);
-                    // Kept for every respawn (a LoadoutUpdate replaces it).
-                    sp.choice = Some(hello.loadout.clone());
+                match loadout_from_choice(&data, &hello.loadout, mode) {
+                    Ok(l) => {
+                        info!("{}: loadout {}", info.name, loadout_words(&data, &l));
+                        equip(&data, l, mode, (lo, w, it, v, mv));
+                        // Kept for every respawn (a LoadoutUpdate replaces it).
+                        sp.choice = Some(hello.loadout.clone());
+                    }
+                    Err(e) => {
+                        warn!("{}: loadout {:?} refused ({e:?}); keeping the default", hello.name, hello.loadout)
+                    }
                 }
             }
         }
     }
 }
 
-/// A player changed their loadout on the Loadout screen during the match: check it now, apply it at their
-/// next spawn (the current life keeps its gear).
+/// A player changed their loadout on the Loadout screen: check it now and apply it at their next spawn (a
+/// live match keeps this life's gear). In the lobby, where nobody fights yet, it is put on at once, so the
+/// lobby's rows show the new halo.
+#[allow(clippy::type_complexity)]
 fn receive_loadout_updates(
     mut links: Query<(Entity, &mut MessageReceiver<LoadoutUpdate>), With<ClientOf>>,
-    mut players: Query<(&PlayerInfo, &mut ServerPlayer)>,
+    mut players: Query<(
+        &PlayerInfo,
+        &mut ServerPlayer,
+        &mut PlayerLoadout,
+        &mut PlayerWeapon,
+        &mut PlayerItems,
+        &mut Vitals,
+        &mut PlayerMove,
+    )>,
     matches: Query<&MatchState>,
     data: Res<Data>,
 ) {
     let mode = match_mode(&matches);
+    let lobby = matches.iter().next().is_some_and(|m| m.phase == MatchPhase::Lobby);
     for (link, mut rx) in &mut links {
         for update in rx.receive() {
-            for (info, mut sp) in &mut players {
+            for (info, mut sp, lo, w, it, v, mv) in &mut players {
                 if sp.link != link {
                     continue;
                 }
                 match loadout_from_choice(&data, &update.loadout, mode) {
-                    Ok(_) => {
-                        info!("{}: new loadout for the next spawn", info.name);
+                    Ok(l) => {
                         sp.choice = Some(update.loadout.clone());
+                        if lobby && !v.health.dead {
+                            info!("{}: new loadout {}, on now (lobby)", info.name, loadout_words(&data, &l));
+                            equip(&data, l, mode, (lo, w, it, v, mv));
+                        } else {
+                            info!("{}: new loadout {} for the next spawn", info.name, loadout_words(&data, &l));
+                        }
                     }
                     Err(e) => warn!("{}: loadout update {:?} refused ({e:?})", info.name, update.loadout),
                 }
@@ -470,7 +613,7 @@ fn receive_lobby_actions(
     mut links: Query<(Entity, &mut MessageReceiver<LobbyAction>), With<ClientOf>>,
     mut players: Query<(&mut PlayerInfo, &mut PlayerNet, &mut Vitals, &mut Score, &ServerPlayer)>,
     mut matches: Query<&mut MatchState>,
-    hosted: Option<Res<HostedMatch>>,
+    mut hosted: Option<ResMut<HostedMatch>>,
     data: Res<Data>,
 ) {
     let Some(mut m) = matches.iter_mut().next() else { return };
@@ -501,6 +644,9 @@ fn receive_lobby_actions(
                     };
                     info!("the host switches the lobby to {mode:?} ({max} players)");
                     let rules = data.rules.deathmatch(mode);
+                    if let Some(h) = hosted.as_mut() {
+                        h.mode = mode;
+                    }
                     m.mode = mode;
                     m.max_players = max;
                     m.score_limit = rules.score_limit;
@@ -834,8 +980,9 @@ fn resolve_claims(
     mut deaths: MessageWriter<PlayerDied>,
 ) {
     let Some(level) = level else { return };
-    // No damage in the lobby (bots, a held trigger): claims are dropped.
-    if matches.iter().next().is_some_and(|m| m.phase == MatchPhase::Lobby) {
+    // No damage in the lobby (bots, a held trigger) nor in the intermission after a match (the winner is
+    // decided): claims are dropped.
+    if matches.iter().next().is_some_and(|m| !takes_damage(m.phase)) {
         pending.0.clear();
         return;
     }
@@ -942,6 +1089,11 @@ fn resolve_claims(
     pending.0 = keep;
 }
 
+/// Shots hurt only while the match is live: not in the lobby, nor in the intermission once it has ended.
+pub fn takes_damage(phase: MatchPhase) -> bool {
+    phase == MatchPhase::Live
+}
+
 /// A kill's mark on the match: whether it counts (a live deathmatch, an enemy killed), and in team deathmatch
 /// a point for the killer's team. Free-for-all reads each player's kills instead, so nothing is added here.
 fn score_kill(m: &mut MatchState, killer: Option<Team>, victim: Option<Team>) -> bool {
@@ -967,19 +1119,24 @@ fn handle_deaths(
     mut kills: Local<u64>,
 ) {
     let mode = matches.iter().next().map_or(MatchMode::Tdm, |m| m.mode);
+    // Kills and deaths count only in a live match (the range is always live): a fall or a bleed-out in the
+    // lobby or in the intermission after the winner is decided leaves the standings alone.
+    let counts = matches.iter().next().is_none_or(|m| m.phase == MatchPhase::Live);
     for d in died.read() {
         let Ok((vid, vinfo, mut v, mut score, mut mv, _)) = players.get_mut(d.victim) else { continue };
         v.health.dead = true;
         v.respawn_s = data.rules.deathmatch(mode).respawn_s;
-        score.deaths += 1;
+        if counts {
+            score.deaths += 1;
+        }
         mv.0.vel = Vec3::ZERO;
         let (victim_id, victim_team) = (vid.0, vinfo.team);
-        let mut killer_id = None;
-        if let Some(k) = d.killer.filter(|k| *k != d.victim)
-            && let Ok((kid, kinfo, _, mut kscore, _, mut ksp)) = players.get_mut(k)
+        let killer = d.killer.filter(|k| *k != d.victim);
+        let killer_id = killer.and_then(|k| players.get(k).ok()).map(|p| p.0.0);
+        if let Some(k) = killer.filter(|_| counts)
+            && let Ok((_, kinfo, _, mut kscore, _, mut ksp)) = players.get_mut(k)
         {
             kscore.kills += 1;
-            killer_id = Some(kid.0);
             // When they reached this kill count: the free-for-all tie-break.
             *kills += 1;
             ksp.kill_seq = *kills;
@@ -1107,6 +1264,244 @@ mod routing_tests {
     }
 }
 
+/// The match systems run on a world of players: deaths and kill credit, teams, seats.
+#[cfg(test)]
+mod system_tests {
+    use super::*;
+    use bevy::ecs::system::RunSystemOnce;
+
+    fn world(mode: MatchMode, phase: MatchPhase) -> App {
+        let d = GameData::embedded();
+        let mut app = App::new();
+        app.add_message::<PlayerDied>();
+        let rules = d.rules.deathmatch(mode);
+        app.world_mut().spawn(MatchState {
+            mode,
+            map: "showhome".into(),
+            score_a: 0,
+            score_b: 0,
+            score_limit: rules.score_limit,
+            time_left_s: rules.time_limit_s,
+            phase,
+            lobby_name: String::new(),
+            max_players: rules.max_players,
+            rules: d.rules.rulesets.get(mode),
+        });
+        app.insert_resource(Data(Arc::new(d)));
+        app
+    }
+
+    fn player(app: &mut App, id: u64, team: Option<Team>) -> Entity {
+        let d = GameData::embedded();
+        let l = Loadout::default_for(&d, MatchMode::Ffa);
+        app.world_mut()
+            .spawn((
+                PlayerId(id),
+                PlayerInfo { name: format!("P{id}"), team },
+                fresh_vitals(&d, &l, MatchMode::Ffa),
+                Score::default(),
+                PlayerMove(MoveState::spawn(Vec3::ZERO, 1.0)),
+                PlayerWeapon(WeaponState::new(&d, &l.weapon)),
+                PlayerLoadout(l),
+                ServerPlayer {
+                    link: Entity::PLACEHOLDER,
+                    peer: PeerId::Netcode(id),
+                    history: PoseHistory::default(),
+                    shots: VecDeque::new(),
+                    choice: None,
+                    last_attacker: None,
+                    kill_seq: 0,
+                },
+            ))
+            .id()
+    }
+
+    fn kill(app: &mut App, killer: Entity, victim: Entity) {
+        app.world_mut().write_message(PlayerDied { victim, killer: Some(killer), zone: Some(Zone::Head) });
+    }
+
+    fn standing(app: &App, e: Entity) -> (u16, u16, u64) {
+        let w = app.world();
+        let s = w.get::<Score>(e).unwrap();
+        (s.kills, s.deaths, w.get::<ServerPlayer>(e).unwrap().kill_seq)
+    }
+
+    /// Empty every spare magazine (the one in the gun stays).
+    fn spend_spares(app: &mut App, e: Entity) {
+        let mut w = app.world_mut().get_mut::<PlayerWeapon>(e).unwrap();
+        let loaded = w.0.loaded as usize;
+        for (i, r) in w.0.rounds.iter_mut().enumerate() {
+            if i != loaded {
+                *r = 0;
+            }
+        }
+    }
+
+    fn full_spares(app: &App, e: Entity) -> usize {
+        let w = app.world().get::<PlayerWeapon>(e).unwrap();
+        w.0.rounds.iter().enumerate().filter(|(i, r)| *i != w.0.loaded as usize && **r > 0).count()
+    }
+
+    /// Free-for-all: each kill is the killer's point, numbered in the order they came (the tie-break), and
+    /// tops up a magazine.
+    #[test]
+    fn kills_count_and_refill_while_the_match_is_live() {
+        let mut app = world(MatchMode::Ffa, MatchPhase::Live);
+        let (a, b, victim) = (player(&mut app, 1, None), player(&mut app, 2, None), player(&mut app, 3, None));
+        spend_spares(&mut app, a);
+        kill(&mut app, a, victim);
+        kill(&mut app, b, victim);
+        app.world_mut().run_system_once(handle_deaths).unwrap();
+        assert_eq!(standing(&app, a), (1, 0, 1));
+        assert_eq!(standing(&app, b), (1, 0, 2), "b got there second");
+        assert_eq!(standing(&app, victim), (0, 2, 0));
+        assert!(app.world().get::<Vitals>(victim).unwrap().health.dead);
+        assert_eq!(full_spares(&app, a), 1, "a kill refills one magazine");
+    }
+
+    /// Once the match has ended (the 8 s intermission) nothing changes the standings any more: a kill, a fall
+    /// or a bleed-out still kills, but counts for nobody and refills nothing. The lobby is the same.
+    #[test]
+    fn a_death_after_the_match_ended_leaves_the_standings_alone() {
+        for phase in [MatchPhase::Ended { winner: None, player: Some(1) }, MatchPhase::Lobby] {
+            let mut app = world(MatchMode::Ffa, phase);
+            let (winner, victim) = (player(&mut app, 1, None), player(&mut app, 2, None));
+            spend_spares(&mut app, winner);
+            kill(&mut app, winner, victim);
+            app.world_mut().write_message(PlayerDied { victim: winner, killer: None, zone: None });
+            app.world_mut().run_system_once(handle_deaths).unwrap();
+            assert_eq!(standing(&app, winner), (0, 0, 0), "{phase:?}");
+            assert_eq!(standing(&app, victim), (0, 0, 0), "{phase:?}");
+            assert!(app.world().get::<Vitals>(victim).unwrap().health.dead, "the victim still dies");
+            assert_eq!(full_spares(&app, winner), 0, "{phase:?}: no refill");
+            assert!(!takes_damage(phase), "shots are dropped too");
+        }
+        assert!(takes_damage(MatchPhase::Live));
+    }
+
+    /// Team deathmatch after free-for-all: everyone without a team joins the smaller one, the host (id 0)
+    /// first, so the split is even; free-for-all clears the teams again.
+    #[test]
+    fn teams_follow_the_mode() {
+        let mut app = world(MatchMode::Tdm, MatchPhase::Lobby);
+        let ids = [9, 0, 5, 3];
+        let es: Vec<Entity> = ids.iter().map(|id| player(&mut app, *id, None)).collect();
+        app.world_mut().run_system_once(sync_teams).unwrap();
+        let team = |app: &App, e: Entity| app.world().get::<PlayerInfo>(e).unwrap().team;
+        assert_eq!(team(&app, es[1]), Some(Team::A), "the host");
+        let a = es.iter().filter(|e| team(&app, **e) == Some(Team::A)).count();
+        assert_eq!(a, 2, "two a side");
+        // by id: 0 A, 3 B, 5 A, 9 B
+        assert_eq!(
+            es.iter().map(|e| team(&app, *e)).collect::<Vec<_>>(),
+            [Some(Team::B), Some(Team::A), Some(Team::A), Some(Team::B)]
+        );
+        // a late joiner fills the smaller side
+        let late = player(&mut app, 11, None);
+        app.world_mut().get_mut::<PlayerInfo>(es[0]).unwrap().team = Some(Team::A);
+        app.world_mut().run_system_once(sync_teams).unwrap();
+        assert_eq!(team(&app, late), Some(Team::B));
+        // free-for-all: no teams
+        let mut q = app.world_mut().query::<&mut MatchState>();
+        q.single_mut(app.world_mut()).unwrap().mode = MatchMode::Ffa;
+        app.world_mut().run_system_once(sync_teams).unwrap();
+        assert!(es.iter().chain([&late]).all(|e| team(&app, *e).is_none()));
+    }
+
+    /// The seats follow the match: a lobby switched to a mode with fewer seats turns joiners away once it
+    /// holds that many, the host's own client never.
+    #[test]
+    fn seats_follow_the_match() {
+        use lightyear::connection::shared::{ConnectionRequestHandler, DeniedReason};
+        let mut app = world(MatchMode::Ffa, MatchPhase::Lobby);
+        let seats = Seats::new(9);
+        app.insert_resource(seats.clone());
+        let check = seats.check();
+        for id in 0..7 {
+            player(&mut app, id, None);
+        }
+        app.world_mut().run_system_once(count_seats).unwrap();
+        assert_eq!(seats.free(), 1, "7 of free-for-all's 8");
+        assert_eq!(check.handle_request(PeerId::Netcode(42)), None);
+        player(&mut app, 7, None);
+        app.world_mut().run_system_once(count_seats).unwrap();
+        assert_eq!(seats.free(), 0);
+        assert_eq!(check.handle_request(PeerId::Netcode(42)), Some(DeniedReason::ServerFull), "netcode says full");
+        assert!(lobby_full(8, 8, false), "the backstop agrees");
+        assert!(!lobby_full(8, 8, true), "never the host's own client");
+        assert!(!lobby_full(8, 7, false));
+        assert_eq!(free_seats(6, 7), 0, "more players than seats (a lobby that shrank) is still full");
+    }
+
+    /// Team deathmatch and free-for-all deal every player an agent when the match goes live, keep it for the
+    /// match (a late joiner gets one too), take them back in the lobby and deal afresh on a restart; the
+    /// gun range deals none.
+    #[test]
+    fn agents_are_dealt_for_the_match() {
+        let agent = |app: &App, e: Entity| app.world().get::<PlayerAgent>(e).unwrap().0.clone();
+        let set_match = |app: &mut App, f: &dyn Fn(&mut MatchState)| {
+            let mut q = app.world_mut().query::<&mut MatchState>();
+            f(&mut q.single_mut(app.world_mut()).unwrap());
+        };
+        for mode in [MatchMode::Tdm, MatchMode::Ffa] {
+            let mut app = world(mode, MatchPhase::Lobby);
+            app.init_resource::<LocalTimeline>();
+            app.add_systems(Update, deal_agents);
+            let es: Vec<Entity> = (0..6)
+                .map(|id| {
+                    let e = player(&mut app, id, None);
+                    app.world_mut().entity_mut(e).insert(PlayerAgent::default());
+                    e
+                })
+                .collect();
+            app.update();
+            assert!(es.iter().all(|e| agent(&app, *e).is_none()), "{mode:?}: no agents in the lobby");
+            set_match(&mut app, &|m| m.phase = MatchPhase::Live);
+            app.update();
+            let pool = crate::loadout::agent_ids();
+            let dealt: Vec<String> = es.iter().map(|e| agent(&app, *e).expect("dealt at the start")).collect();
+            assert!(dealt.iter().all(|a| pool.contains(a)), "{dealt:?}");
+            // the clock runs: the same agents; a late joiner gets one
+            set_match(&mut app, &|m| m.time_left_s -= 30.0);
+            let late = player(&mut app, 9, None);
+            app.world_mut().entity_mut(late).insert(PlayerAgent::default());
+            app.update();
+            assert_eq!(es.iter().map(|e| agent(&app, *e).unwrap()).collect::<Vec<_>>(), dealt, "{mode:?}: kept");
+            assert!(agent(&app, late).is_some());
+            set_match(&mut app, &|m| m.phase = MatchPhase::Ended { winner: None, player: None });
+            app.update();
+            assert_eq!(agent(&app, es[0]), Some(dealt[0].clone()), "kept on the end board");
+            // the host's RESTART MATCH: the clock jumps back up, a new deal (from a new seed)
+            app.world_mut().resource_mut::<LocalTimeline>().apply_delta(1000);
+            set_match(&mut app, &|m| {
+                m.phase = MatchPhase::Live;
+                m.time_left_s += 30.0;
+            });
+            app.update();
+            assert!(es.iter().all(|e| agent(&app, *e).is_some()), "{mode:?}: dealt again");
+            set_match(&mut app, &|m| m.phase = MatchPhase::Lobby);
+            app.update();
+            assert!(es.iter().all(|e| agent(&app, *e).is_none()), "{mode:?}: back to the lobby");
+        }
+        // The gun range: the agent each player picked (the default without a pick, or for an unknown one)
+        let mut range = world(MatchMode::Range, MatchPhase::Live);
+        range.init_resource::<LocalTimeline>();
+        range.add_systems(Update, deal_agents);
+        let picked = player(&mut range, 0, None);
+        let unknown = player(&mut range, 1, None);
+        let none = player(&mut range, 2, None);
+        for (e, pick) in [(picked, Some("solace")), (unknown, Some("nobody")), (none, None)] {
+            let choice = pick.map(|a| LoadoutChoice { agent: a.into(), ..default_choice(&GameData::embedded()) });
+            range.world_mut().get_mut::<ServerPlayer>(e).unwrap().choice = choice;
+            range.world_mut().entity_mut(e).insert(PlayerAgent::default());
+        }
+        range.update();
+        assert_eq!(agent(&range, picked).as_deref(), Some("solace"), "the range: the pick");
+        assert_eq!(agent(&range, unknown).as_deref(), Some("kestrel"));
+        assert_eq!(agent(&range, none).as_deref(), Some("kestrel"));
+    }
+}
+
 #[allow(clippy::type_complexity)]
 fn respawn_players(
     data: Res<Data>,
@@ -1140,8 +1535,11 @@ fn respawn_players(
         if v.respawn_s > 0.0 {
             continue;
         }
-        if let Some(l) = sp.choice.as_ref().and_then(|c| loadout_from_choice(&data, c, mode).ok()) {
-            lo.0 = l;
+        // The player's choice as this mode takes it (a lobby mode change reshapes it), else the default.
+        match sp.choice.as_ref().map(|c| loadout_from_choice(&data, c, mode)) {
+            Some(Ok(l)) => lo.0 = l,
+            Some(Err(_)) => {}
+            None => lo.0 = default_loadout(&data, mode),
         }
         let enemies: Vec<Vec3> = living.iter().filter(|(t, _)| hostile(info.team, *t)).map(|(_, p)| *p).collect();
         let spawn = spawn_for(&data, &level, mode, info.team, &enemies, spawn_roll(id.0, score.deaths as u64, tick));
@@ -1243,6 +1641,70 @@ fn run_match(
                     players.iter_mut().map(|(_, n, v, s, _)| (n, v, s)),
                 );
             }
+        }
+    }
+}
+
+/// The agent a player is dealt in a match (DIRECTION_LOG 17: team deathmatch and free-for-all have no agent
+/// pick): one roll from the match's seed and the player's id, so every match deals afresh, a player keeps
+/// theirs for the whole match, and the same seed deals the same agents (tests and replays). `pool` is
+/// `agents.ron`'s ids.
+pub fn deal_agent(pool: &[String], seed: u64, player: u64) -> Option<&String> {
+    let roll = vetf_sim::rng::SplitMix::from_parts(&[seed, player, 0x4147_454e_5453]).next_f32();
+    pool.get(((roll * pool.len() as f32) as usize).min(pool.len().saturating_sub(1)))
+}
+
+/// What [`deal_agents`] remembers: the running match's seed (the tick it went live) and its clock.
+#[derive(Default)]
+struct AgentDeal {
+    seed: Option<u64>,
+    clock: f32,
+}
+
+/// Team deathmatch and free-for-all: deal every player a random agent ([`deal_agent`]) when the match goes
+/// live, keep it until the match is over (a player who joins mid-match is dealt one on arrival), and take
+/// them back in the lobby. The host's RESTART MATCH (the clock jumps back up) is a new match and deals
+/// again. The gun range: the agent each player picked on the Loadout screen.
+fn deal_agents(
+    matches: Query<&MatchState>,
+    timeline: Res<LocalTimeline>,
+    mut players: Query<(&PlayerId, &mut PlayerAgent, Option<&ServerPlayer>)>,
+    mut deal: Local<AgentDeal>,
+) {
+    let running = matches.iter().next().filter(|m| m.mode.is_deathmatch() && m.phase != MatchPhase::Lobby);
+    let Some(m) = running else {
+        deal.seed = None;
+        let range = matches.iter().next().is_some_and(|m| m.mode == MatchMode::Range);
+        let pool = crate::loadout::agent_ids();
+        for (_, mut agent, sp) in &mut players {
+            let picked = sp.and_then(|p| p.choice.as_ref()).map(|c| c.agent.clone()).filter(|a| pool.contains(a));
+            let want = range.then(|| picked.unwrap_or_else(|| crate::config::DEFAULT_AGENT.into()));
+            if agent.0 != want {
+                agent.0 = want;
+            }
+        }
+        return;
+    };
+    let restarted = m.phase == MatchPhase::Live && m.time_left_s > deal.clock;
+    deal.clock = m.time_left_s;
+    let seed = match deal.seed {
+        Some(seed) if !restarted => seed,
+        _ => {
+            let seed = timeline.tick().0 as u64;
+            deal.seed = Some(seed);
+            for (_, mut agent, _) in &mut players {
+                agent.0 = None;
+            }
+            seed
+        }
+    };
+    let pool = crate::loadout::agent_ids();
+    for (id, mut agent, _) in &mut players {
+        if agent.0.is_none()
+            && let Some(dealt) = deal_agent(&pool, seed, id.0)
+        {
+            info!("player {:x} plays {dealt} this match", id.0);
+            agent.0 = Some(dealt.clone());
         }
     }
 }
@@ -1465,35 +1927,72 @@ mod tests {
         }
     }
 
+    /// A deathmatch loadout as the Loadout screen sends it: armor tier `armor`, six magazines of `ammo`, the
+    /// gun's parts.
+    fn picks(weapon: &str, armor: u8, ammo: AmmoChoice, parts: &[&str]) -> LoadoutChoice {
+        let d = GameData::embedded();
+        let kit = &d.rules.deathmatch_loadout;
+        LoadoutChoice {
+            weapon: weapon.into(),
+            mags: vec![ammo; kit.mags as usize],
+            attachments: parts.iter().map(|p| p.to_string()).collect(),
+            halo: HaloChoice::of_tier(kit, armor),
+            agent: String::new(),
+        }
+    }
+
     #[test]
     fn halo_arcs_must_stay_within_the_tier_caps() {
-        let mut d = GameData::embedded();
-        d.rules.tdm.gear_budget = 100; // only the caps matter here
+        let d = GameData::embedded();
         let capped = choice("ar7_mako", AmmoChoice::STANDARD, "arm_bulwark_jugg");
-        let l = loadout_from_choice(&d, &capped).unwrap();
+        let l = super::loadout_from_choice(&d, &capped, MatchMode::Range).unwrap();
         assert_eq!(l.halo.tiers.legs, d.armor.loadout_tier_caps.legs);
         assert_eq!(l.halo.tiers.torso, 4);
-        // the uncapped rare-loot halo is refused, not silently capped
+        // the uncapped rare-loot halo is refused, not silently capped, in every mode
         let raw = LoadoutChoice {
             halo: HaloChoice::from_preset(d.armor.preset("arm_bulwark_jugg").unwrap()),
             ..capped.clone()
         };
-        assert_eq!(loadout_from_choice(&d, &raw).err(), Some(LoadoutError::TierCap));
+        for mode in MatchMode::ALL {
+            assert_eq!(super::loadout_from_choice(&d, &raw, mode).err(), Some(LoadoutError::TierCap), "{mode:?}");
+        }
     }
 
     #[test]
-    fn a_custom_mixed_tier_halo_is_resolved_per_arc() {
+    fn the_range_wears_a_custom_mixed_tier_halo_per_arc() {
         let d = GameData::embedded();
         let mut c = choice("ar7_mako", AmmoChoice::STANDARD, "arm_none");
         c.halo = HaloChoice { core: Core::Volt, tiers: ZoneTable { head: 1, torso: 3, arms: 0, legs: 2 } };
-        let l = loadout_from_choice(&d, &c).unwrap();
+        let l = super::loadout_from_choice(&d, &c, MatchMode::Range).unwrap();
         assert_eq!(l.halo.tiers, c.halo.tiers);
         assert_eq!(l.halo.core, Some(Core::Volt));
         assert_eq!(l.weight, d.armor.weight_class(6));
         // no arcs: no halo, whatever the core
         c.halo.tiers = ZoneTable::splat(0);
-        let l = loadout_from_choice(&d, &c).unwrap();
+        let l = super::loadout_from_choice(&d, &c, MatchMode::Range).unwrap();
         assert_eq!((l.halo.core, l.weight), (None, vetf_sim::data::WeightClass::None));
+    }
+
+    /// Team deathmatch and free-for-all wear one armor tier on the one halo core: each tier's combination and
+    /// weight class (DIRECTION_LOG 17).
+    #[test]
+    fn deathmatch_players_wear_an_armor_tier() {
+        use vetf_sim::data::WeightClass::{Heavy, Light, Medium};
+        let d = GameData::embedded();
+        for mode in [MatchMode::Tdm, MatchMode::Ffa] {
+            for (tier, arcs, weight) in [
+                (1, ZoneTable { head: 1, torso: 1, arms: 1, legs: 1 }, Light),
+                (2, ZoneTable { head: 2, torso: 2, arms: 2, legs: 2 }, Medium),
+                (3, ZoneTable { head: 3, torso: 3, arms: 1, legs: 1 }, Medium),
+                (4, ZoneTable { head: 4, torso: 4, arms: 3, legs: 2 }, Heavy),
+            ] {
+                let c = picks("ar7_mako", tier, AmmoChoice::STANDARD, &[]);
+                let l = super::loadout_from_choice(&d, &c, mode).unwrap();
+                assert_eq!((l.halo.tiers, l.weight), (arcs, weight), "{mode:?} T{tier}");
+                assert_eq!(l.halo.core, Some(Core::Mender), "{mode:?} T{tier}: the one halo");
+                assert_eq!(l.weapon.mags.len(), 6, "six magazines");
+            }
+        }
     }
 
     #[test]
@@ -1508,6 +2007,8 @@ mod tests {
         assert_eq!(loadout_from_choice(&d, &c).err(), Some(LoadoutError::Attachment), "a Warden part");
         c.attachments = vec!["optic_reddot".into(), "optic_holo".into()];
         assert_eq!(loadout_from_choice(&d, &c).err(), Some(LoadoutError::Attachment), "two optics");
+        c.attachments = vec!["mag_45".into(), "mag_drum60".into()];
+        assert_eq!(loadout_from_choice(&d, &c).err(), Some(LoadoutError::Attachment), "two magazine types");
         c.attachments = vec!["nope".into()];
         assert_eq!(loadout_from_choice(&d, &c).err(), Some(LoadoutError::Attachment));
     }
@@ -1516,50 +2017,87 @@ mod tests {
     fn the_gun_range_has_no_gear_budget() {
         let d = GameData::embedded();
         let ap3 = AmmoChoice { kind: AmmoKind::ArmorPiercing, tier: 3 };
-        let c = mags("ar7_mako", &[ap3; 6], "arm_bulwark_assault");
+        let c = picks("ar7_mako", 4, ap3, &["mag_drum60"]);
         assert!(matches!(loadout_from_choice(&d, &c), Err(LoadoutError::OverBudget { .. })));
         assert!(super::loadout_from_choice(&d, &c, MatchMode::Range).is_ok());
     }
 
+    /// The host prices the picks like the Loadout screen and refuses what the budget does not cover: T4
+    /// armor with the best ammo, with any gun; the sensible middles and the default loadout go through.
     #[test]
-    fn gear_budget_prices_armor_and_each_magazine() {
+    fn the_host_holds_every_loadout_to_the_points() {
         let d = GameData::embedded();
         let std = AmmoChoice::STANDARD;
-        let ap1 = AmmoChoice { kind: AmmoKind::ArmorPiercing, tier: 1 };
-        let ap3 = AmmoChoice { kind: AmmoKind::ArmorPiercing, tier: 3 };
-        let budget = d.rules.tdm.gear_budget;
-        // the default loadout fits
-        let def = &d.rules.default_loadout;
-        assert!(loadout_from_choice(&d, &mags(&def.primary, &def.mags, &def.armor)).is_ok());
-        // the host prices a loadout exactly like the Loadout screen's RESULT panel (the shared function)
-        let c = mags("ar7_mako", &[ap1, ap3], "arm_mender_scout");
-        let shared = gear_cost(&d, d.weapon("ar7_mako").unwrap(), &c.halo, &c.mags).total();
-        assert_eq!(shared, 4 + d.ammo.resolve(vetf_sim::data::WeaponClass::AssaultRifle, ap3).unwrap().gear_cost + 2);
-        // every magazine is priced: one AP mag costs its tier's price, two cost twice that
-        let price = |m: &[AmmoChoice]| match loadout_from_choice(&d, &mags("ar7_mako", m, "arm_none")) {
-            Ok(l) => l.weapon.ammo_gear_cost(),
-            Err(LoadoutError::OverBudget { cost, .. }) => cost,
-            Err(e) => panic!("{e:?}"),
-        };
-        let one = d.ammo.resolve(vetf_sim::data::WeaponClass::AssaultRifle, ap1).unwrap().gear_cost;
-        assert_eq!(price(&[std, std, ap1]), one);
-        assert_eq!(price(&[std, ap1, ap1]), 2 * one);
-        // a full pouch of AP III is over budget even with no halo; one AP III mag with a light halo fits
-        let all_ap3 = loadout_from_choice(&d, &mags("ar7_mako", &[ap3; 6], "arm_none"));
-        assert!(matches!(all_ap3, Err(LoadoutError::OverBudget { budget: b, .. }) if b == budget), "{all_ap3:?}");
-        assert!(loadout_from_choice(&d, &mags("ar7_mako", &[std, std, std, ap3], "arm_phase_runner")).is_ok());
+        let ap = |tier| AmmoChoice { kind: AmmoKind::ArmorPiercing, tier };
+        let rip3 = AmmoChoice { kind: AmmoKind::Rip, tier: 3 };
+        for mode in MatchMode::ALL {
+            assert!(super::loadout_from_choice(&d, &default_choice(&d), mode).is_ok(), "{mode:?}: the default");
+        }
+        for mode in [MatchMode::Tdm, MatchMode::Ffa] {
+            let budget = gear_budget(&d, mode).unwrap();
+            let host = |c: &LoadoutChoice| super::loadout_from_choice(&d, c, mode);
+            let over =
+                |c: &LoadoutChoice| matches!(host(c), Err(LoadoutError::OverBudget { budget: b, .. }) if b == budget);
+            for gun in ["ar7_mako", "vk50_warden", "sk9_skink"] {
+                assert!(over(&picks(gun, 4, ap(3), &[])), "{mode:?} {gun}: T4 + AP III");
+                for tier in 1..=4 {
+                    assert!(host(&picks(gun, tier, std, &[])).is_ok(), "{mode:?} {gun}: T{tier} + STD");
+                }
+            }
+            assert!(over(&picks("sk9_skink", 4, rip3, &[])), "T4 + RIP III");
+            assert!(host(&picks("ar7_mako", 4, std, &["mag_drum60"])).is_ok(), "T4 + STD + the drum");
+            assert!(host(&picks("ar7_mako", 3, ap(3), &["mag_45"])).is_ok(), "T3 + AP III + extended");
+            assert!(host(&picks("ar7_mako", 2, ap(3), &["mag_drum60"])).is_ok(), "T2 + AP III + the drum");
+            assert!(over(&picks("ar7_mako", 3, ap(3), &["mag_drum60"])), "T3 + AP III + the drum");
+            assert!(over(&picks("ar7_mako", 4, ap(2), &["mag_drum60"])), "T4 + AP II + the drum");
+            // the magazine type is the one asked for, six of it, and the points add up to the budget
+            let c = picks("ar7_mako", 2, ap(3), &["mag_drum60"]);
+            let l = host(&c).unwrap();
+            assert_eq!((l.weapon.mag_capacity, l.weapon.mags.len()), (60, 6));
+            let spec = l.weapon.spec(&d);
+            assert_eq!(loadout_cost(&d, mode, spec, &c.halo, &c.mags, &c.attachments).total(), budget);
+        }
+    }
+
+    /// A client cannot ask a deathmatch for more than its picks: another halo core, a halo that is no armor
+    /// tier, a mix of ammo or fewer magazines are shaped to the picks before the checks (a loadout from an
+    /// older build becomes its nearest picks), and what the picks cost is what the budget sees.
+    #[test]
+    fn deathmatch_loadouts_are_shaped_to_their_picks_before_the_checks() {
+        let d = GameData::embedded();
+        let ap2 = AmmoChoice { kind: AmmoKind::ArmorPiercing, tier: 2 };
+        let rip3 = AmmoChoice { kind: AmmoKind::Rip, tier: 3 };
+        let mut rich = mags("sk9_skink", &[ap2, AmmoChoice::STANDARD, rip3, ap2], "arm_none");
+        rich.halo = HaloChoice { core: Core::Phase, tiers: ZoneTable { head: 2, torso: 2, arms: 0, legs: 0 } };
+        for mode in [MatchMode::Tdm, MatchMode::Ffa] {
+            let kit = d.rules.fixed_loadout(mode).unwrap();
+            let l = super::loadout_from_choice(&d, &rich, mode).unwrap();
+            assert_eq!(l.weapon.mags.len(), kit.mags as usize, "{mode:?}: six magazines");
+            assert!(l.weapon.mags.iter().all(|m| m.choice == ap2), "{mode:?}: slot 1's ammo everywhere");
+            assert_eq!(l.halo.core, Some(kit.halo_core), "{mode:?}: no Phase core (immune to slows)");
+            assert_eq!(l.halo.tiers, kit.armor[1].tiers, "{mode:?}: H2 T2 is armor T2");
+            // no magazine at all, or seven: refused, as everywhere
+            for odd in [vec![], vec![AmmoChoice::STANDARD; 7]] {
+                let c = mags("ar7_mako", &odd, "arm_none");
+                assert_eq!(super::loadout_from_choice(&d, &c, mode).err(), Some(LoadoutError::MagCount));
+            }
+        }
+        // the gun range takes the loadout as asked
+        let l = super::loadout_from_choice(&d, &rich, MatchMode::Range).unwrap();
+        assert_eq!((l.weapon.mags.len(), l.halo.core), (4, Some(Core::Phase)));
     }
 
     #[test]
-    fn magazine_count_is_one_to_six() {
+    fn magazine_count_is_one_to_six_in_the_range() {
         let d = GameData::embedded();
         let std = AmmoChoice::STANDARD;
-        assert_eq!(loadout_from_choice(&d, &mags("ar7_mako", &[], "arm_none")).err(), Some(LoadoutError::MagCount));
-        assert_eq!(
-            loadout_from_choice(&d, &mags("ar7_mako", &[std; 7], "arm_none")).err(),
-            Some(LoadoutError::MagCount)
-        );
-        assert_eq!(loadout_from_choice(&d, &mags("ar7_mako", &[std; 6], "arm_none")).unwrap().weapon.mags.len(), 6);
+        let range = |m: &[AmmoChoice]| {
+            super::loadout_from_choice(&d, &mags("ar7_mako", m, "arm_none"), MatchMode::Range)
+                .map(|l| l.weapon.mags.len())
+        };
+        assert_eq!(range(&[]), Err(LoadoutError::MagCount));
+        assert_eq!(range(&[std; 7]), Err(LoadoutError::MagCount));
+        assert_eq!(range(&[std; 6]), Ok(6));
     }
 
     #[test]
@@ -1569,13 +2107,30 @@ mod tests {
         let rip = AmmoChoice { kind: AmmoKind::Rip, tier: 1 };
         assert_eq!(loadout_from_choice(&d, &choice("ar7_mako", shr, "arm_none")).err(), Some(LoadoutError::Ammo));
         assert_eq!(loadout_from_choice(&d, &choice("ar7_mako", rip, "arm_none")).err(), Some(LoadoutError::Ammo));
-        // one bad magazine refuses the whole loadout
+        // in the range one bad magazine refuses the whole loadout; a deathmatch only takes slot 1's ammo
         let one_bad = mags("ar7_mako", &[AmmoChoice::STANDARD, shr], "arm_none");
-        assert_eq!(loadout_from_choice(&d, &one_bad).err(), Some(LoadoutError::Ammo));
+        assert_eq!(super::loadout_from_choice(&d, &one_bad, MatchMode::Range).err(), Some(LoadoutError::Ammo));
+        assert!(loadout_from_choice(&d, &one_bad).is_ok());
+        let bad_first = mags("ar7_mako", &[shr, AmmoChoice::STANDARD], "arm_none");
+        assert_eq!(loadout_from_choice(&d, &bad_first).err(), Some(LoadoutError::Ammo));
         assert_eq!(
             loadout_from_choice(&d, &choice("nope", AmmoChoice::STANDARD, "arm_none")).err(),
             Some(LoadoutError::UnknownWeapon)
         );
+    }
+
+    /// Agents are dealt from the pool by the match's seed and the player: the same seed deals the same, and
+    /// over many players every agent turns up about as often.
+    #[test]
+    fn agents_are_dealt_at_random_but_repeatably() {
+        let pool: Vec<String> = ["kestrel", "solace"].map(String::from).to_vec();
+        assert_eq!(deal_agent(&pool, 7, 3), deal_agent(&pool, 7, 3));
+        let kestrels = (0..1000).filter(|p| deal_agent(&pool, 7, *p).map(|a| a.as_str()) == Some("kestrel")).count();
+        assert!((420..580).contains(&kestrels), "{kestrels}");
+        let seeds = (0..64).filter(|s| deal_agent(&pool, *s, 3) != deal_agent(&pool, 0, 3)).count();
+        assert!(seeds > 10, "another match deals again ({seeds})");
+        assert_eq!(deal_agent(&[], 7, 3), None);
+        assert_eq!(deal_agent(&pool[..1], 7, 3).map(|a| a.as_str()), Some("kestrel"));
     }
 
     #[test]

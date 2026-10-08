@@ -1,14 +1,21 @@
 //! The loadout being edited on the Loadout screen, its rules and its derived numbers. Engine-free, so it
 //! is tested on its own: attachments per slot, the contiguous magazine list (1..=6, slot 1 in the gun,
-//! slot index = reload-wheel position), the custom halo, the gear budget and the weapon stats.
+//! slot index = reload-wheel position), the custom halo, the points and the weapon stats.
+//!
+//! Team deathmatch and free-for-all sell picks instead ([`Draft::fixed`], `rules.ron` `deathmatch_loadout`):
+//! the gun and its parts (the magazine type among them), ONE armor tier and ONE ammo type for all six
+//! magazines. The draft is shaped to them when it opens, exactly as the host shapes what it receives, so a
+//! loadout saved by an older build opens as its nearest picks.
 
 use std::collections::BTreeMap;
 use vetf_net::LoadoutChoice;
 use vetf_sim::GameData;
 use vetf_sim::Zone;
 use vetf_sim::ZoneTable;
-use vetf_sim::data::{AmmoChoice, AmmoKind, AttachmentCategory, AttachmentSpec, Core, WeaponSpec, Zoom};
-use vetf_sim::gear::{GearCost, HaloChoice, gear_cost};
+use vetf_sim::data::{
+    AmmoChoice, AmmoKind, AttachmentCategory, AttachmentSpec, Core, DeathmatchLoadout, WeaponSpec, Zoom,
+};
+use vetf_sim::gear::{GearCost, HaloChoice, gear_cost, kit_cost};
 use vetf_sim::weapon::MAX_MAGS;
 
 /// The edit in progress.
@@ -24,6 +31,9 @@ pub struct Draft {
     pub halo: HaloChoice,
     /// Each arc's last tier above 0 (a re-checked arc gets it back).
     pub last_tiers: ZoneTable<u8>,
+    /// The picks and points of team deathmatch and free-for-all: one armor tier on the one halo core, and
+    /// six magazines with one ammo type. None in the gun range (any core, a tier per arc, ammo per magazine).
+    pub fixed: Option<DeathmatchLoadout>,
 }
 
 /// Why CONFIRM is off.
@@ -42,8 +52,15 @@ pub enum Problem {
 }
 
 impl Draft {
-    /// Open a loadout for editing (unknown or misfit ids are cleaned up; `remembered` = other guns' sets).
-    pub fn from_choice(c: &LoadoutChoice, remembered: &BTreeMap<String, Vec<String>>, data: &GameData) -> Self {
+    /// Open a loadout for editing (unknown or misfit ids are cleaned up; `remembered` = other guns' sets),
+    /// shaped to the picks of team deathmatch and free-for-all when `fixed` ([`LoadoutChoice::shaped`]).
+    pub fn from_choice(
+        c: &LoadoutChoice,
+        remembered: &BTreeMap<String, Vec<String>>,
+        data: &GameData,
+        fixed: Option<DeathmatchLoadout>,
+    ) -> Self {
+        let c = &c.shaped(fixed.as_ref());
         let weapon = if data.weapon(&c.weapon).is_some() {
             c.weapon.clone()
         } else {
@@ -66,7 +83,7 @@ impl Draft {
         }
         let halo = c.halo.capped(data.armor.loadout_tier_caps);
         let last_tiers = halo.tiers.map(|_, t| (*t).max(1));
-        Self { agent: c.agent.clone(), weapon, parts, mags, halo, last_tiers }
+        Self { agent: c.agent.clone(), weapon, parts, mags, halo, last_tiers, fixed }
     }
 
     /// The loadout to send to the host.
@@ -173,6 +190,22 @@ impl Draft {
         (self.mags.len() < MAX_MAGS).then_some(self.mags.len())
     }
 
+    /// The one ammo type of a team deathmatch or free-for-all draft (every magazine's; slot 1's in the gun
+    /// range).
+    pub fn ammo(&self) -> AmmoChoice {
+        self.mags.first().copied().unwrap_or(AmmoChoice::STANDARD)
+    }
+
+    /// Load every magazine with `ammo` (the one ammo type of team deathmatch and free-for-all). False when the
+    /// gun cannot load it.
+    pub fn set_ammo(&mut self, ammo: AmmoChoice, data: &GameData) -> bool {
+        if !ammo_ok(data, self.spec(data), ammo) {
+            return false;
+        }
+        self.mags.iter_mut().for_each(|m| *m = ammo);
+        true
+    }
+
     /// Ammo rows of the picker for this gun: type x tier, players' ammo only, in data order.
     pub fn ammo_options(&self, data: &GameData) -> Vec<AmmoChoice> {
         let spec = self.spec(data);
@@ -229,10 +262,56 @@ impl Draft {
         }
     }
 
+    // ------------------------------------------------------------------------------------------ picks
+
+    /// The armor tier (1-based) of a team deathmatch or free-for-all draft: the tier its halo is (a draft
+    /// always holds one), else the one it makes. None in the gun range.
+    pub fn armor_tier(&self) -> Option<u8> {
+        let kit = self.fixed.as_ref()?;
+        Some(kit.tier_of(self.halo.tiers).unwrap_or_else(|| kit.tier_for(self.halo.tiers)))
+    }
+
+    /// Wear armor tier `tier` (team deathmatch, free-for-all). False in the gun range or for a tier that
+    /// does not exist.
+    pub fn set_armor_tier(&mut self, tier: u8) -> bool {
+        let Some(kit) = &self.fixed else { return false };
+        if kit.armor_tier(tier).is_none() {
+            return false;
+        }
+        self.halo = HaloChoice::of_tier(kit, tier);
+        true
+    }
+
+    /// The magazine type: the gun's part in its magazine slot.
+    pub fn mag_type<'a>(&self, data: &'a GameData) -> Option<&'a AttachmentSpec> {
+        self.equipped(AttachmentCategory::Mag, data)
+    }
+
+    /// The magazine types this gun takes, in data order (the standard one first).
+    pub fn mag_options<'a>(&self, data: &'a GameData) -> Vec<&'a AttachmentSpec> {
+        parts_for(data, &self.weapon, AttachmentCategory::Mag)
+    }
+
     // ------------------------------------------------------------------------------------------ budget
 
+    /// The points. Team deathmatch and free-for-all: the armor tier, the one ammo type once and the magazine
+    /// type; the gun range: the arc tiers and every magazine's ammo.
     pub fn gear(&self, data: &GameData) -> GearCost {
-        gear_cost(data, self.spec(data), &self.halo, &self.mags)
+        let spec = self.spec(data);
+        match (&self.fixed, self.armor_tier()) {
+            (Some(kit), Some(tier)) => {
+                let mag = self.mag_type(data).map_or(spec.mag_default.as_str(), |m| m.id.as_str());
+                kit_cost(data, kit, spec, tier, self.ammo(), mag)
+            }
+            _ => gear_cost(data, spec, &self.halo, &self.mags),
+        }
+    }
+
+    /// The points with one pick changed (`f` changes a copy): what a card shows before it is picked.
+    pub fn gear_with(&self, data: &GameData, f: impl FnOnce(&mut Draft)) -> GearCost {
+        let mut d = self.clone();
+        f(&mut d);
+        d.gear(data)
     }
 
     /// What keeps CONFIRM off (empty = the build is valid). `budget` None = no limit.
@@ -256,6 +335,12 @@ impl Draft {
         }
         out
     }
+}
+
+/// Does a pick push the loadout over the points total (`budget`; None: no limit): `with` its points instead of
+/// `now`? Over, or further over: a cheaper pick that still leaves the loadout over is not what pushes it over.
+pub fn pushes_over(budget: Option<u32>, now: u32, with: u32) -> bool {
+    budget.is_some_and(|b| with > b && with > now)
 }
 
 fn kind_order(k: AmmoKind) -> u8 {
@@ -390,10 +475,11 @@ pub fn parts_with<'a>(
 mod tests {
     use super::*;
 
+    /// The default loadout as the gun range edits it (ammo per magazine, any core).
     fn draft() -> (GameData, Draft) {
         let d = GameData::embedded();
         let c = crate::config::loadout_choice(&crate::loadout::tests::plain_cli(), &d);
-        let draft = Draft::from_choice(&c, &BTreeMap::new(), &d);
+        let draft = Draft::from_choice(&c, &BTreeMap::new(), &d, None);
         (d, draft)
     }
 
@@ -407,7 +493,7 @@ mod tests {
         assert_eq!(dr.mags.len(), 4);
         let c = dr.choice();
         assert_eq!(c.attachments, vec!["optic_holo", "mako_stock_standard", "mag_30"]);
-        assert_eq!(Draft::from_choice(&c, &dr.parts, &d), dr);
+        assert_eq!(Draft::from_choice(&c, &dr.parts, &d, None), dr);
         assert!(dr.problems(&d, Some(d.rules.tdm.gear_budget)).is_empty());
     }
 
@@ -508,13 +594,83 @@ mod tests {
         assert!(dr.set_tier(Zone::Legs, 2, caps));
         dr.set_tier_all(4, caps);
         assert_eq!(dr.halo.tiers, ZoneTable { head: 4, torso: 4, arms: 0, legs: 2 });
-        let budget = Some(d.rules.tdm.gear_budget);
-        assert!(dr.problems(&d, budget).is_empty(), "10 points fit");
+        let budget = Some(10);
+        assert!(dr.problems(&d, budget).is_empty(), "10 points fit a budget of 10");
         dr.set_mag(0, AmmoChoice { kind: AmmoKind::ArmorPiercing, tier: 3 });
-        assert!(matches!(dr.problems(&d, budget).as_slice(), [Problem::OverBudget { used: 16, .. }]));
+        assert!(matches!(dr.problems(&d, budget).as_slice(), [Problem::OverBudget { used: 14, .. }]));
         assert!(dr.problems(&d, None).is_empty(), "the gun range has no limit");
         dr.halo.tiers.legs = 4;
         assert!(dr.problems(&d, None).contains(&Problem::TierCap));
+    }
+
+    /// Team deathmatch and free-for-all: whatever the preset held (a Volt core, a halo that is no armor tier,
+    /// mixed ammo, fewer magazines), the draft opens as the picks the mode sells: an armor tier, six
+    /// magazines of one ammo type, the gun's magazine type. Each pick has its points.
+    #[test]
+    fn a_deathmatch_draft_is_an_armor_tier_a_magazine_type_and_one_ammo_type() {
+        let d = GameData::embedded();
+        let ap = |tier| AmmoChoice { kind: AmmoKind::ArmorPiercing, tier };
+        let old = LoadoutChoice {
+            weapon: "ar7_mako".into(),
+            mags: vec![AmmoChoice::STANDARD, ap(3), ap(3), ap(1)],
+            attachments: vec!["mag_45".into()],
+            halo: HaloChoice { core: Core::Volt, tiers: ZoneTable { head: 2, torso: 3, arms: 1, legs: 0 } },
+            agent: "solace".into(),
+        };
+        for mode in [vetf_net::MatchMode::Tdm, vetf_net::MatchMode::Ffa] {
+            let kit = d.rules.fixed_loadout(mode).cloned();
+            let budget = Some(d.rules.deathmatch(mode).gear_budget);
+            let mut dr = Draft::from_choice(&old, &BTreeMap::new(), &d, kit.clone());
+            let kit = kit.unwrap();
+            assert_eq!(dr.mags, vec![AmmoChoice::STANDARD; 6], "slot 1's ammo in six magazines");
+            assert_eq!(dr.armor_tier(), Some(3), "torso 3 makes T3");
+            assert_eq!(dr.halo, HaloChoice::of_tier(&kit, 3), "on the one halo core");
+            assert_eq!(dr.mag_type(&d).map(|m| m.id.as_str()), Some("mag_45"));
+            assert_eq!(dr.gear(&d), GearCost { halo: 3, ammo: 0, mags: 1 });
+            // the picks
+            assert!(dr.set_armor_tier(4));
+            assert_eq!(dr.halo.tiers, d.armor.loadout_tier_caps);
+            assert!(!dr.set_armor_tier(5) && !dr.set_armor_tier(0));
+            assert!(dr.set_ammo(ap(2), &d));
+            assert!(dr.mags.iter().all(|m| *m == ap(2)) && dr.ammo() == ap(2));
+            assert!(!dr.set_ammo(AmmoChoice { kind: AmmoKind::Rip, tier: 1 }, &d), "a rifle cannot load RIP");
+            dr.set_part(AttachmentCategory::Mag, Some("mag_drum60"), &d);
+            let opts: Vec<&str> = dr.mag_options(&d).iter().map(|m| m.id.as_str()).collect();
+            assert_eq!(opts, ["mag_30", "mag_45", "mag_drum60"]);
+            assert_eq!(dr.gear(&d), GearCost { halo: 5, ammo: 2, mags: 2 }, "AP II paid once");
+            assert!(matches!(dr.problems(&d, budget).as_slice(), [Problem::OverBudget { used: 9, budget: 8 }]));
+            let with_ext = dr.gear_with(&d, |x| x.set_part(AttachmentCategory::Mag, Some("mag_45"), &d));
+            assert_eq!(with_ext.total(), 8, "an extended magazine instead fits");
+            assert_eq!(dr.gear(&d).total(), 9, "gear_with leaves the draft alone");
+            dr.set_part(AttachmentCategory::Mag, Some("mag_45"), &d);
+            assert!(dr.problems(&d, budget).is_empty());
+            // the choice it confirms is what the host builds from it
+            assert_eq!(dr.choice(), dr.choice().for_mode(&d, mode));
+            // a gun that cannot load the ammo falls back to standard in every magazine
+            dr.set_ammo(ap(3), &d);
+            dr.switch_weapon("sk9_skink", &d);
+            assert!(dr.mags.iter().all(|m| *m == ap(3)), "the SMG loads AP too");
+            assert_eq!(dr.mag_type(&d).map(|m| m.id.as_str()), Some("skink_mag_40"), "the SMG's own magazine");
+            dr.set_ammo(AmmoChoice { kind: AmmoKind::Rip, tier: 2 }, &d);
+            let changed = dr.switch_weapon("ar7_mako", &d);
+            assert_eq!(changed.len(), 6);
+            assert!(dr.mags.iter().all(|m| *m == AmmoChoice::STANDARD));
+            assert_eq!(dr.mag_type(&d).map(|m| m.id.as_str()), Some("mag_45"), "the Mako's magazine comes back");
+        }
+        // the gun range has no armor tier
+        let mut range = Draft::from_choice(&old, &BTreeMap::new(), &d, None);
+        assert_eq!(range.armor_tier(), None);
+        assert!(!range.set_armor_tier(2));
+        assert_eq!(range.gear(&d).mags, 0);
+    }
+
+    #[test]
+    fn a_pick_pushes_over_only_when_it_adds_to_an_overrun() {
+        assert!(pushes_over(Some(8), 6, 9), "over");
+        assert!(!pushes_over(Some(8), 6, 8), "exactly the total fits");
+        assert!(pushes_over(Some(8), 9, 10), "further over");
+        assert!(!pushes_over(Some(8), 11, 9), "cheaper, still over: not the culprit");
+        assert!(!pushes_over(None, 0, 99), "no limit");
     }
 
     #[test]

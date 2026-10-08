@@ -625,11 +625,9 @@ fn update_vitals(
         };
         node.display = if on { Display::Flex } else { Display::None };
     }
+    let one_halo = matches.iter().next().is_some_and(|m| data.rules.fixed_loadout(m.mode).is_some());
     for mut t in &mut header {
-        t.0 = match halo.core {
-            Some(core) => format!("{} CORE  /  {}", core.label(), lo.0.weight.label()).to_uppercase(),
-            None => "NO HALO".into(),
-        };
+        t.0 = halo_header(halo.core, lo.0.weight, one_halo);
     }
     for mut t in &mut status {
         let mut parts = vec![];
@@ -640,6 +638,17 @@ fn update_vitals(
             parts.push("PROTECTED".into());
         }
         t.0 = parts.join("  ");
+    }
+}
+
+/// The vitals panel's header: the halo and its weight class. `MENDER CORE  /  MEDIUM` in the gun range (cores
+/// differ there); `HALO  /  MEDIUM` where everyone wears the same one (team deathmatch, free-for-all); the
+/// weight class is what tells halos apart there.
+fn halo_header(core: Option<vetf_sim::data::Core>, weight: vetf_sim::data::WeightClass, one_halo: bool) -> String {
+    match core {
+        Some(_) if one_halo => format!("HALO  /  {}", weight.label()),
+        Some(core) => format!("{} CORE  /  {}", core.label(), weight.label()),
+        None => "NO HALO".into(),
     }
 }
 
@@ -1135,6 +1144,18 @@ mod tests {
         let (boxes, title, sub) = score_header(MatchMode::Ffa, 59.9, 25);
         assert!(boxes, "free-for-all shows your kills and the leader's");
         assert_eq!((title.as_str(), sub.as_str()), ("00:59", "FFA  /  FIRST TO 25"));
+    }
+
+    /// One halo for everyone (team deathmatch, free-for-all): the header names the weight class, not a core.
+    #[test]
+    fn the_vitals_header_names_the_core_only_where_cores_differ() {
+        use vetf_sim::data::{Core, WeightClass};
+        assert_eq!(halo_header(Some(Core::Mender), WeightClass::Medium, false), "MENDER CORE  /  MEDIUM");
+        assert_eq!(halo_header(Some(Core::Mender), WeightClass::Medium, true), "HALO  /  MEDIUM");
+        assert_eq!(halo_header(None, WeightClass::None, true), "NO HALO");
+        let d = vetf_sim::GameData::embedded();
+        assert!(d.rules.fixed_loadout(MatchMode::Tdm).is_some() && d.rules.fixed_loadout(MatchMode::Ffa).is_some());
+        assert!(d.rules.fixed_loadout(MatchMode::Range).is_none(), "the range keeps its cores");
     }
 
     #[test]
