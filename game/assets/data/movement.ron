@@ -95,6 +95,9 @@
         detach_up: 5.0,
         end_hop_up: 3.0,
         reattach_block_s: 0.5,
+        // A ride ends this far plus the capsule radius short of each anchor (the cable is fixed to a pylon there), and
+        // short of anything solid on the line, so the rider never ends up inside the pylon.
+        end_clearance: 0.35,
     ),
     noise_radius_m: (
         walk: 0.0,

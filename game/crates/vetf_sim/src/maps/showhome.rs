@@ -818,4 +818,30 @@ mod tests {
             assert!(stopped_under.iter().all(|n| *n > 0), "x {x}: no run stopped under the door: {stopped_under:?}");
         }
     }
+
+    /// Riding the cable to either pylon without jumping off ends on that pylon's pad, clear of the mast (the
+    /// user: "you no clip in the pillar of the zip if you don't jump off"), and the rider can walk away.
+    #[test]
+    fn zipline_ends_clear_of_the_pylons() {
+        use super::super::test_util::{assert_walks_away, ride_zipline};
+        let l = showhome();
+        let m = crate::GameData::embedded().movement;
+        let keep_off = m.capsule.radius + m.zipline.end_clearance;
+        // (grab from the near pad at design x, facing, far mast's centre x)
+        for (x, yaw, mast) in [(25.8, 0.0, ZIPLINE[1].0), (MAP_W - 25.8, 180.0, ZIPLINE[0].0)] {
+            let (ticks, off) = ride_zipline(&l, design(x, 45.5, 4.0), MoveMode::Ground, design_yaw(yaw), None, 4.0);
+            let gap = (ticks[off].pos.x - mast).abs();
+            assert!(gap >= keep_off - 1e-3 && gap < keep_off + 0.1, "ride toward x {mast} ended {gap} m off the mast");
+            let last = *ticks.last().unwrap();
+            assert_eq!(last.mode, MoveMode::Ground, "{last:?}");
+            assert!((last.pos.y - 4.0).abs() < 0.01, "landed on the pad (perch at z 4.0): {}", last.pos);
+            assert_walks_away(&l, last, design_yaw(yaw + 180.0));
+            // Jumping off just before the end still works, into the mast's side at worst.
+            let (ticks, _) =
+                ride_zipline(&l, design(x, 45.5, 4.0), MoveMode::Ground, design_yaw(yaw), Some(off - 3), 4.0);
+            let jumped = ticks[off - 3];
+            assert!(jumped.mode == MoveMode::Air && jumped.vel.y > m.zipline.detach_up * 0.9, "{jumped:?}");
+            assert_eq!(ticks.last().unwrap().mode, MoveMode::Ground);
+        }
+    }
 }

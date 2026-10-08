@@ -1,6 +1,7 @@
 use super::collision::{Brush, BrushKind};
 use super::*;
 use crate::level::{Level, Zipline};
+use std::f32::consts::PI;
 
 const DT: f32 = 1.0 / 60.0;
 
@@ -323,6 +324,91 @@ fn zipline_ride_and_jump_off() {
     assert!(ev.zip_detached);
     assert_eq!(st.mode, MoveMode::Air);
     assert!(st.vel.y > 4.0);
+}
+
+/// A cable 2.9 m up from the middle of one pylon to the middle of another 30 m away (as on Showhome), over a floor.
+fn pylon_level() -> Level {
+    let mut level = flat_level();
+    for z in [0.0, -30.0] {
+        let (min, max) = (Vec3::new(-0.25, 0.0, z - 0.25), Vec3::new(0.25, 4.0, z + 0.25));
+        level.world.push(Brush::cuboid(min, max, BrushKind::Solid));
+    }
+    level.ziplines.push(Zipline { a: Vec3::new(0.0, 2.9, 0.0), b: Vec3::new(0.0, 2.9, -30.0) });
+    level
+}
+
+/// Grab the cable from `from` facing `yaw` and ride for `ticks` with no input but `jump_at`; returns every tick's
+/// state, asserting none of them is inside anything.
+fn ride(d: &GameData, level: &Level, from: Vec3, yaw: f32, jump_at: Option<usize>, ticks: usize) -> Vec<MoveState> {
+    let m = mods(d, WeightClass::None);
+    let mut st = spawn(d, from);
+    (0..ticks)
+        .map(|i| {
+            let bits = match i {
+                0 => Buttons::INTERACT,
+                i if Some(i) == jump_at => Buttons::JUMP,
+                _ => 0,
+            };
+            step(d, level, &mut st, &InputFrame { yaw, ..input(Vec2::ZERO, bits) }, &m, DT);
+            assert!(fits(&level.world, &d.movement, st.pos, st.stance), "tick {i}: inside something at {}", st.pos);
+            st
+        })
+        .collect()
+}
+
+#[test]
+fn zipline_ride_ends_short_of_the_pylon() {
+    let d = GameData::embedded();
+    let level = pylon_level();
+    let keep_off = d.movement.capsule.radius + d.movement.zipline.end_clearance;
+    let ticks = ride(&d, &level, Vec3::new(0.0, 0.0, -1.0), 0.0, None, 240);
+    assert_eq!(ticks[0].mode, MoveMode::Zipline);
+    let off = ticks.iter().position(|s| s.mode != MoveMode::Zipline).expect("the ride ends");
+    assert!((ticks[off].pos.z + 30.0 - keep_off).abs() < 1e-3, "ended at {}", ticks[off].pos);
+    // It hops off, drops to the floor in front of the pylon and can walk away (back along the line).
+    let mut st = *ticks.last().unwrap();
+    assert_eq!(st.mode, MoveMode::Ground);
+    assert!(st.pos.y.abs() < 0.01 && st.pos.z > -30.0 + 0.25 + 0.32, "{}", st.pos);
+    let from = st.pos;
+    run(&d, &level, &mut st, InputFrame { yaw: PI, ..input(Vec2::Y, 0) }, &mods(&d, WeightClass::None), 60);
+    assert!(st.pos.z - from.z > 2.0, "walked away: {} -> {}", from, st.pos);
+}
+
+#[test]
+fn zipline_grabbed_at_a_pylon_hangs_clear_of_it() {
+    let d = GameData::embedded();
+    let level = pylon_level();
+    // Facing the near pylon: the grab hangs clear of it and the ride ends on the same tick, still clear.
+    let ticks = ride(&d, &level, Vec3::new(0.0, 0.0, -0.6), PI, None, 60);
+    assert_eq!(ticks[0].mode, MoveMode::Air);
+    assert!(ticks[0].pos.y > 0.8 && ticks[0].pos.z <= -0.25 - 0.32, "{}", ticks[0].pos);
+    assert_eq!(ticks.last().unwrap().mode, MoveMode::Ground);
+}
+
+#[test]
+fn zipline_ride_stops_short_of_a_wall_on_the_line() {
+    let d = GameData::embedded();
+    let mut level = pylon_level();
+    // A beam across the line, above head height on the floor but in the way of a hanging rider.
+    level.world.push(Brush::cuboid(Vec3::new(-2.0, 2.2, -15.2), Vec3::new(2.0, 2.6, -14.8), BrushKind::Solid));
+    let ticks = ride(&d, &level, Vec3::new(0.0, 0.0, -1.0), 0.0, None, 240);
+    let off = ticks.iter().position(|s| s.mode != MoveMode::Zipline).expect("the ride ends");
+    assert!(ticks[off].pos.z > -14.8 + 0.31 && ticks[off].pos.z < -14.0, "{}", ticks[off].pos);
+}
+
+#[test]
+fn zipline_jump_off_near_the_end() {
+    let d = GameData::embedded();
+    let level = pylon_level();
+    let off = ride(&d, &level, Vec3::new(0.0, 0.0, -1.0), 0.0, None, 240)
+        .iter()
+        .position(|s| s.mode != MoveMode::Zipline)
+        .unwrap();
+    let ticks = ride(&d, &level, Vec3::new(0.0, 0.0, -1.0), 0.0, Some(off - 2), 240);
+    let jumped = ticks[off - 2];
+    assert_eq!(jumped.mode, MoveMode::Air);
+    assert!(jumped.vel.y > d.movement.zipline.detach_up * 0.9, "{jumped:?}");
+    assert_eq!(ticks.last().unwrap().mode, MoveMode::Ground);
 }
 
 #[test]

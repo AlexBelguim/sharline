@@ -956,6 +956,8 @@ pub struct ZiplineSpec {
     pub detach_up: f32,
     pub end_hop_up: f32,
     pub reattach_block_s: f32,
+    /// A ride ends this far plus the capsule radius short of each anchor (and short of anything solid on the line).
+    pub end_clearance: f32,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -1362,6 +1364,9 @@ impl GameData {
             && eye.clearance < cap.radius;
         if !eye_ok {
             return bad("movement: each eye height must sit `clearance` inside its stance's box".into());
+        }
+        if !(self.movement.zipline.end_clearance >= 0.0 && self.movement.zipline.end_clearance.is_finite()) {
+            return bad("movement: zipline.end_clearance must be a finite distance of 0 or more".into());
         }
         for w in &self.weapons.weapons {
             if w.falloff.is_empty() || w.falloff.windows(2).any(|p| p[1].0 <= p[0].0) {

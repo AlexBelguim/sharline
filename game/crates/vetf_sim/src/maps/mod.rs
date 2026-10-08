@@ -321,7 +321,8 @@ pub(crate) mod test_util {
     use crate::data::GameData;
     use crate::input::{Buttons, InputFrame};
     use crate::level::Level;
-    use crate::movement::{MoveModifiers, MoveState, step};
+    use crate::movement::collision::SKIN;
+    use crate::movement::{MoveMode, MoveModifiers, MoveState, Stance, step};
     use glam::{Vec2, Vec3};
 
     /// Standing player box (capsule radius 0.32, height 1.8).
@@ -385,6 +386,55 @@ pub(crate) mod test_util {
                 st
             })
             .collect()
+    }
+
+    /// True when the player's box (for its stance) is inside something that blocks players.
+    pub fn inside_solid(level: &Level, st: &MoveState) -> bool {
+        let c = GameData::embedded().movement.capsule;
+        let h = match st.stance {
+            Stance::Stand => c.height_stand,
+            Stance::Crouch => c.height_crouch,
+            Stance::Slide => c.height_slide,
+        };
+        let half = Vec3::new(c.radius, h * 0.5, c.radius);
+        !level.world.box_free(st.pos + Vec3::Y * (half.y + SKIN), half)
+    }
+
+    /// Grab the map's zipline from `from` (feet, in `mode`) facing `yaw` and ride it with no input for `secs`,
+    /// pressing jump on tick `jump_at` if given. Asserts the grab works, the ride ends, and the player is never
+    /// inside anything; returns the state after every tick and the tick the ride ended on.
+    pub fn ride_zipline(
+        level: &Level,
+        from: Vec3,
+        mode: MoveMode,
+        yaw: f32,
+        jump_at: Option<usize>,
+        secs: f32,
+    ) -> (Vec<MoveState>, usize) {
+        let data = GameData::embedded();
+        let mut st = MoveState::spawn(from, data.movement.jetpack.fuel_s);
+        st.mode = mode;
+        let buttons = |i: usize| match i {
+            0 => Buttons::INTERACT,
+            i if Some(i) == jump_at => Buttons::JUMP,
+            _ => 0,
+        };
+        let ticks = run(level, st, Vec2::ZERO, yaw, buttons, secs);
+        assert_eq!(ticks[0].mode, MoveMode::Zipline, "grab the line from {from}");
+        let off = ticks.iter().position(|s| s.mode != MoveMode::Zipline).expect("the ride ends");
+        for (i, s) in ticks.iter().enumerate() {
+            assert!(!inside_solid(level, s), "tick {i} (ride ended on {off}): inside something at {}", s.pos);
+        }
+        (ticks, off)
+    }
+
+    /// From `st`, walking forward at `yaw` for a second moves the player at least 2 m, never inside anything.
+    pub fn assert_walks_away(level: &Level, st: MoveState, yaw: f32) {
+        let ticks = run(level, st, Vec2::Y, yaw, |_| 0, 1.0);
+        assert!(ticks.iter().all(|s| !inside_solid(level, s)), "walked into something from {}", st.pos);
+        let end = ticks.last().unwrap().pos;
+        let moved = Vec2::new(end.x - st.pos.x, end.z - st.pos.z).length();
+        assert!(moved > 2.0, "stuck at {}: moved {moved} m", st.pos);
     }
 
     /// Jump on tick 0, let go, then light the jetpack on tick 8 and hold it (the fuel runs out by itself).

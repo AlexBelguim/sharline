@@ -7,7 +7,7 @@ pub mod collision;
 
 use crate::data::{GameData, MovementSpec, WeightClass, WeightEffects};
 use crate::input::{Buttons, InputFrame, yaw_basis};
-use crate::level::Level;
+use crate::level::{Level, Zipline};
 use collision::{CollisionWorld, SKIN};
 use glam::{Vec2, Vec3};
 use serde::{Deserialize, Serialize};
@@ -444,7 +444,9 @@ pub fn step(
         && matches!(st.mode, MoveMode::Ground | MoveMode::Air | MoveMode::Jetpack | MoveMode::Slide)
     {
         let hands = st.pos + Vec3::Y * m.capsule.height_stand;
-        if let Some((i, s)) = level.nearest_zipline(hands, m.zipline.attach_radius) {
+        if let Some((i, s)) = level.nearest_zipline(hands, m.zipline.attach_radius)
+            && let Some(s) = clear_hang(world, m, &level.ziplines[i], s)
+        {
             let line = &level.ziplines[i];
             let dir = if input.view_dir().dot(line.b - line.a) >= 0.0 { 1.0 } else { -1.0 };
             st.zip = Some(ZipRide { line: i as u8, s, dir, speed: st.horizontal_speed().min(m.zipline.speed_flat) });
@@ -899,11 +901,23 @@ fn step_zipline(
     let target = (z.speed_flat - dir.y * 15.0).clamp(z.speed_min, z.speed_max);
     let accel = z.speed_flat / z.accel_s.max(1e-3);
     ride.speed += (target - ride.speed).clamp(-accel * dt, accel * dt);
-    ride.s += ride.dir * ride.speed * dt / len;
-    let hang = m.capsule.height_stand + 0.2;
-    let at_end = !(0.0..=1.0).contains(&ride.s);
-    ride.s = ride.s.clamp(0.0, 1.0);
-    st.pos = line.a.lerp(line.b, ride.s) - Vec3::Y * hang;
+    // The ride ends short of each anchor (the pylon the cable is fixed to) and short of anything solid on the
+    // line: the hanging body is swept along it, and stops where it would touch something.
+    let (lo, hi) = ride_span(m, line);
+    let want = ride.s + ride.dir * ride.speed * dt / len;
+    let mut at_end = !(lo..=hi).contains(&want);
+    let next = want.clamp(lo, hi);
+    let half = half_extents(m, Stance::Stand);
+    let from = center(hang_feet(m, line, ride.s), half);
+    let tr = level.world.trace_box(from, center(hang_feet(m, line, next), half), half);
+    if tr.hit() && !tr.start_solid {
+        ride.s += (next - ride.s) * tr.fraction;
+        st.pos = tr.end - Vec3::Y * half.y;
+        at_end = true;
+    } else {
+        ride.s = next;
+        st.pos = hang_feet(m, line, ride.s);
+    }
     st.vel = dir * ride.speed;
     st.stance = Stance::Stand;
 
@@ -924,6 +938,35 @@ fn step_zipline(
     } else {
         st.zip = Some(ride);
     }
+}
+
+/// Feet position of a rider hanging from `line` at `s` (hands 0.2 m below the cable).
+fn hang_feet(m: &MovementSpec, line: &Zipline, s: f32) -> Vec3 {
+    line.a.lerp(line.b, s) - Vec3::Y * (m.capsule.height_stand + 0.2)
+}
+
+/// The part of a line (as `s`, 0 at `a`, 1 at `b`) a rider may hang from: `capsule.radius +
+/// zipline.end_clearance` short of each anchor, so the body never reaches the pylon the cable is fixed to.
+pub fn ride_span(m: &MovementSpec, line: &Zipline) -> (f32, f32) {
+    let len = (line.b - line.a).length().max(1e-3);
+    let e = ((m.capsule.radius + m.zipline.end_clearance) / len).min(0.5);
+    (e, 1.0 - e)
+}
+
+/// Search step and reach (metres along the line) for a clear place to hang when attaching.
+const HANG_SEARCH_STEP: f32 = 0.05;
+const HANG_SEARCH_STEPS: usize = 40;
+
+/// Where a rider grabbing `line` at `s` hangs: the nearest point within [`ride_span`] (up to 2 m either way) where
+/// the hanging body is clear of everything. `None` when there is none, and the grab fails.
+fn clear_hang(world: &CollisionWorld, m: &MovementSpec, line: &Zipline, s: f32) -> Option<f32> {
+    let (lo, hi) = ride_span(m, line);
+    let s = s.clamp(lo, hi);
+    let step = HANG_SEARCH_STEP / (line.b - line.a).length().max(1e-3);
+    (0..=HANG_SEARCH_STEPS)
+        .flat_map(|k| [s + step * k as f32, s - step * k as f32])
+        .filter(|t| (lo..=hi).contains(t))
+        .find(|t| fits(world, m, hang_feet(m, line, *t), Stance::Stand))
 }
 
 #[cfg(test)]

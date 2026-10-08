@@ -528,4 +528,23 @@ mod tests {
         assert_eq!(l.name, "Range");
         assert_eq!(l.kill_y, -10.0);
     }
+
+    /// S5: riding the zipline down from the tower, or up to it, without jumping off ends clear of everything,
+    /// and the rider can walk away.
+    #[test]
+    fn zipline_rides_end_clear() {
+        use super::super::test_util::{assert_walks_away, ride_zipline};
+        use crate::movement::MoveMode;
+        let l = range();
+        // Down: grab from the tower's edge facing south.
+        let (ticks, _) = ride_zipline(&l, design(91.0, 12.33, 6.0), MoveMode::Ground, design_yaw(-90.0), None, 7.0);
+        let last = *ticks.last().unwrap();
+        assert_eq!(last.mode, MoveMode::Ground, "{last:?}");
+        assert_walks_away(&l, last, design_yaw(-90.0));
+        // Up: grab the low end in mid-jump facing north.
+        let (ticks, _) = ride_zipline(&l, design(91.0, -39.0, 0.8), MoveMode::Air, design_yaw(90.0), None, 9.0);
+        let last = *ticks.last().unwrap();
+        assert_eq!(last.mode, MoveMode::Ground, "{last:?}");
+        assert_walks_away(&l, last, design_yaw(-90.0));
+    }
 }

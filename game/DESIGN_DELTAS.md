@@ -423,3 +423,14 @@ option before T1.
 - Pinned by `vetf_sim::movement` tests (slides into a wall head-on, at shallow angles, along it and into a corner;
   the eye under a lintel; a body inside a ceiling), `collision::push_out_*`, and `render` tests (the camera on
   Showhome's garage rollers with exaggerated offsets; the near plane's reach).
+
+## 18. Ziplines end clear of the pylons (2026-10-08)
+The user: "you no clip in the pillar of the zip if you don't jump off". Showhome's cable is anchored in the middle
+of each pylon mast, and a ride to the end used to stop with the rider hanging inside the mast.
+- A ride now ends `capsule.radius + zipline.end_clearance` (new, 0.35 m: 0.67 m in all) short of each anchor. The
+  hanging body is also swept along the cable each tick, so a ride ends just short of anything solid on the line
+  (a wider pylon, a wall). The rider then hops off as before, onto the pylon's pad on Showhome.
+- A grab hangs the rider at the nearest clear point within that span (up to 2 m away). With no clear point, the
+  grab fails.
+- Pinned by `vetf_sim::movement` tests (a cable between two pylons, a beam across the line, jumping off near the
+  end) and map tests that ride Showhome's cable to both pylons and the range's S5 line both ways.
