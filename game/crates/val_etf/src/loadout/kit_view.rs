@@ -8,7 +8,7 @@
 use super::Act;
 use super::focus::Focusable;
 use super::halo::{Centre, HaloLook, spawn_halo};
-use super::model::Draft;
+use super::model::{Draft, pushes_over};
 use super::text::{self, Tone};
 use super::view::{Section, View, col_header, section, tier_looks};
 use crate::ui_kit::*;
@@ -64,10 +64,11 @@ fn pick_card(act: Act, on: bool, accent: Color, border: Color) -> impl Bundle {
 }
 
 impl View<'_> {
-    /// Would this change take the loadout over the points total?
+    /// Would this change take the loadout over the points total (or further over it)? A cheaper pick that
+    /// still leaves it over is not marked: it is not what pushes the loadout over.
     fn over_with(&self, f: impl FnOnce(&mut Draft)) -> bool {
-        let Some(budget) = self.ctx.budget else { return false };
-        self.edit.draft.gear_with(self.data, f).total() > budget
+        let d = &self.edit.draft;
+        pushes_over(self.ctx.budget, d.gear(self.data).total(), d.gear_with(self.data, f).total())
     }
 
     /// A card's points: `FREE`, `2 PTS`; red when picking it would go over the total.

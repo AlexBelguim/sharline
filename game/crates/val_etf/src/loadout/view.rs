@@ -472,7 +472,8 @@ impl View<'_> {
             _ => None,
         });
         if let Some((used, budget)) = over {
-            p.spawn(raw(f, TextRole::Hint, format!("Over gear budget: {used} / {budget} pts"), BAD));
+            let what = if self.ctx.simple() { "the points" } else { "gear budget" };
+            p.spawn(raw(f, TextRole::Hint, format!("Over {what}: {used} / {budget} pts"), BAD));
         } else if self.ctx.lobby {
             p.spawn(raw(f, TextRole::Hint, "Lobby: you wear it as soon as you confirm", TEXT_MID));
         } else if self.ctx.in_match {

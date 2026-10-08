@@ -2,7 +2,7 @@
 //! part that fits the slot (or every round the gun loads) with a one-line blurb, the two biggest changes and,
 //! for ammo, its gear cost against the budget.
 
-use super::model::{Draft, WeaponStats, parts_for, parts_with, weapon_stats};
+use super::model::{Draft, WeaponStats, parts_for, parts_with, pushes_over, weapon_stats};
 use super::text::{self, Delta, Tone};
 use super::ui_data::LoadoutUiData;
 use super::view::View;
@@ -299,7 +299,7 @@ fn spawn_row(
                         (&row.kind, pop, &draft.fixed)
                     {
                         let with = draft.gear_with(v.data, |x| x.set_part(AttachmentCategory::Mag, Some(id), v.data));
-                        let over = !row.equipped && v.ctx.budget.is_some_and(|b| with.total() > b);
+                        let over = !row.equipped && pushes_over(v.ctx.budget, draft.gear(v.data).total(), with.total());
                         n.spawn(f.role_color(
                             TextRole::Micro,
                             text::points(kit.mag_points(id)),

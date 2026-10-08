@@ -337,6 +337,12 @@ impl Draft {
     }
 }
 
+/// Does a pick push the loadout over the points total (`budget`; None: no limit): `with` its points instead of
+/// `now`? Over, or further over: a cheaper pick that still leaves the loadout over is not what pushes it over.
+pub fn pushes_over(budget: Option<u32>, now: u32, with: u32) -> bool {
+    budget.is_some_and(|b| with > b && with > now)
+}
+
 fn kind_order(k: AmmoKind) -> u8 {
     match k {
         AmmoKind::Standard => 0,
@@ -658,6 +664,15 @@ mod tests {
         assert_eq!(range.armor_tier(), None);
         assert!(!range.set_armor_tier(2));
         assert_eq!(range.gear(&d).mags, 0);
+    }
+
+    #[test]
+    fn a_pick_pushes_over_only_when_it_adds_to_an_overrun() {
+        assert!(pushes_over(Some(8), 6, 9), "over");
+        assert!(!pushes_over(Some(8), 6, 8), "exactly the total fits");
+        assert!(pushes_over(Some(8), 9, 10), "further over");
+        assert!(!pushes_over(Some(8), 11, 9), "cheaper, still over: not the culprit");
+        assert!(!pushes_over(None, 0, 99), "no limit");
     }
 
     #[test]
