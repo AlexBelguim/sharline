@@ -123,6 +123,8 @@ folder).
   confirms over a hosted match. `ads` holds aim down sights (`sprint` / `sprint-ads` hold sprint, and aim, for a
   `--bot`), `inspect` / `inspect-left` hold the gun across the view with its right / left side to the camera (to
   check attachments), `hud-fx` shows the damage flash and `overlay` keeps the performance overlay in a scripted run.
+- `--demo-ui hit-fx` keeps hit markers (each kind in turn) and halo cracks going on the nearest other player, for
+  screenshots of the hit feedback (with a `--bot` joining, or as the joiner).
 - `--port` sets HOST GAME's port (and so `--host`'s).
 - `VETF_ASSETS` points the game at another asset folder. Without it the game finds `game/assets` from wherever the
   exe was built (`target/debug`, `target/release`, `target/<triple>/release`) or an `assets` folder next to a

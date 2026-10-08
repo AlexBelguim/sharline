@@ -5,6 +5,7 @@ use crate::AppState;
 use crate::config::{Cli, CurrentLevel, Data, level_by_name};
 use crate::net::{NetRequest, Role, Session};
 use crate::radial::{HealMenu, HealOption, REGION_ORDER, Radial, heal_options};
+use crate::render::hit_fx::ClaimedHit;
 use crate::render::{ViewmodelRig, ads_zoom, camera_fov, own_tracer_start, viewmodel_lens};
 use crate::screens::{EscPress, EscSystems, Screens};
 use crate::settings::{Action, BindInput, HoldToggle, Keybinds, RadialPick, Settings, rad_per_count};
@@ -114,20 +115,19 @@ impl Default for LocalControl {
 /// Things the HUD shows briefly.
 #[derive(Resource, Default)]
 pub struct Feedback {
-    pub hit_marker: Option<(HitKind, f32)>,
+    /// New hit confirms from the host; `render::hit_fx` turns them into markers on the player hit.
+    pub hits: Vec<HitConfirm>,
+    /// Our new shot claims (where on the player our shot hit); `render::hit_fx` keeps them for the confirms.
+    pub claims: Vec<ClaimedHit>,
     /// (world position the damage came from, seconds left)
     pub damage: Vec<(Vec3, f32)>,
     /// (killer, victim, headshot, seconds left)
     pub kills: Vec<(String, String, bool, f32)>,
-    /// Tracers in flight: (from, to, seconds since the shot, own shot)
+    /// New tracers: (from, to, seconds since the shot, own shot); `render::tracer_fx` flies them.
     pub tracers: Vec<(Vec3, Vec3, f32, bool)>,
     /// New bullet impacts on the level (point, surface normal); `render` turns them into decals.
     pub impacts: Vec<(Vec3, Vec3)>,
 }
-
-/// A tracer is a short streak flying from the muzzle to the hit (visual only).
-pub const TRACER_SPEED: f32 = 420.0;
-pub const TRACER_LEN: f32 = 5.0;
 
 /// Visual smoothing of the predicted position between fixed ticks.
 #[derive(Component, Default)]
@@ -620,7 +620,7 @@ fn fire_claims(
         let range = spec.max_range_m;
         let world_hit = level.world.raycast(s.origin, dir, range);
         let world_t = world_hit.map_or(range, |(d, _)| d);
-        let mut best: Option<(u64, vetf_sim::Zone, f32)> = None;
+        let mut best: Option<(u64, vetf_sim::Zone, f32, Pose)> = None;
         for (id, info, mv, look, vitals) in &others {
             if vitals.health.dead || (my_info.team.is_some() && info.team == my_info.team) {
                 continue;
@@ -629,7 +629,7 @@ fn fire_claims(
             if let Some((zone, t)) = hitbox::raycast(&data, &pose, s.origin, dir, world_t)
                 && best.is_none_or(|b| t < b.2)
             {
-                best = Some((id.0, zone, t));
+                best = Some((id.0, zone, t, pose));
             }
         }
         debug!("local shot {} spread {:.2} hit {:?} (world at {world_t:.1} m)", s.shot.seq, s.shot.spread_deg, best);
@@ -644,8 +644,10 @@ fn fire_claims(
         if let (None, Some((d, normal))) = (best, world_hit) {
             feedback.impacts.push((s.origin + dir * d, normal));
         }
-        if let Some((victim, zone, t)) = best {
+        if let Some((victim, zone, t, pose)) = best {
             let hit = HitClaim { origin: s.origin, dir, view_tick, zone, point: s.origin + dir * t };
+            // Where on them it hit, for the hit marker once the host confirms it.
+            feedback.claims.push(ClaimedHit::new(s.shot.seq, victim, hit.point, pose.pos, pose.yaw));
             for mut sender in &mut senders {
                 sender.send::<ClaimChannel>(ShotClaim { seq: s.shot.seq, victim, hit });
             }
@@ -686,7 +688,7 @@ fn receive_feedback(
     for mut rx in &mut hits {
         for h in rx.receive() {
             debug!("hit confirmed: {:?} {:?}", h.zone, h.kind);
-            feedback.hit_marker = Some((h.kind, 0.25));
+            feedback.hits.push(h);
         }
     }
     for mut rx in &mut damage {
@@ -719,12 +721,6 @@ fn receive_feedback(
 
 fn tick_feedback(time: Res<Time>, mut feedback: ResMut<Feedback>) {
     let dt = time.delta_secs();
-    if let Some((_, t)) = &mut feedback.hit_marker {
-        *t -= dt;
-        if *t <= 0.0 {
-            feedback.hit_marker = None;
-        }
-    }
     feedback.damage.retain_mut(|(_, t)| {
         *t -= dt;
         *t > 0.0
@@ -732,10 +728,6 @@ fn tick_feedback(time: Res<Time>, mut feedback: ResMut<Feedback>) {
     feedback.kills.retain_mut(|(.., t)| {
         *t -= dt;
         *t > 0.0
-    });
-    feedback.tracers.retain_mut(|(from, to, t, _)| {
-        *t += dt;
-        *t * TRACER_SPEED - TRACER_LEN < from.distance(*to)
     });
     // As many as the longest KILL FEED LINES choice; the HUD shows the player's number of them.
     let keep = crate::settings::KillFeed::ALL.iter().map(|k| k.lines()).max().unwrap_or(5);

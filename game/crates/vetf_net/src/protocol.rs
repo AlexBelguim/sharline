@@ -19,7 +19,7 @@ use vetf_sim::player::{Loadout, Wounds};
 use vetf_sim::weapon::WeaponState;
 
 /// Bumped whenever the protocol changes; part of the netcode protocol id, so old builds cannot connect.
-pub const PROTOCOL_VERSION: u64 = 4;
+pub const PROTOCOL_VERSION: u64 = 5;
 
 /// netcode.io protocol id shared by host and clients.
 pub fn protocol_id() -> u64 {
@@ -226,13 +226,17 @@ pub enum HitKind {
     Kill,
 }
 
-/// Host -> shooter: a claim was accepted (hit marker).
+/// Host -> shooter: a claim was accepted (hit marker, drawn on the victim where the shot hit).
 #[derive(Serialize, Deserialize, Clone, Copy, Debug, PartialEq)]
 pub struct HitConfirm {
     pub victim: u64,
     pub zone: Zone,
     pub kind: HitKind,
     pub shield_broke: bool,
+    /// The claim's shot number ([`ShotClaim::seq`]): the shooter finds where on the victim its shot landed.
+    pub seq: u32,
+    /// Where the shot hit, in the world, as the shooter claimed it ([`HitClaim::point`]).
+    pub point: Vec3,
 }
 
 /// Host -> victim: you were hit (damage direction indicator).
@@ -410,6 +414,17 @@ mod tests {
         roundtrip(&Hello { name: "KESTREL_YOU".into(), loadout: choice.clone(), data_fingerprint: d.fingerprint });
         roundtrip(&LoadoutUpdate { loadout: choice });
         roundtrip(&KillFeed { killer: Some(1), victim: 2, zone: Some(Zone::Head) });
+        // A hit confirm carries the shot number and where it hit, for the marker on the victim.
+        for kind in [HitKind::Shield, HitKind::Health, HitKind::Kill] {
+            roundtrip(&HitConfirm {
+                victim: 42,
+                zone: Zone::Arms,
+                kind,
+                shield_broke: kind == HitKind::Shield,
+                seq: 7,
+                point: Vec3::new(-3.5, 1.42, -18.25),
+            });
+        }
         roundtrip(&MatchState {
             mode: MatchMode::Tdm,
             map: "showhome".into(),

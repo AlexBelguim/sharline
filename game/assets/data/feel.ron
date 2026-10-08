@@ -1,0 +1,136 @@
+// Screen and gun feel (src/render/feel.rs): the camera's step bob and shot shake, the gun's sway, tracers and
+// the hit feedback drawn on the player that was hit. All of it is visual only: the aim point and where bullets go
+// come from the simulation's view angles, never from these offsets. The camera parts follow SETTINGS > HUD >
+// SCREEN SHAKE (0 % turns them off); the gun's own sway and kick do not.
+//
+// Units: metres, degrees, seconds. Offsets are half-amplitudes (the swing either side of rest). Camera and gun
+// offsets use view axes: +X right, +Y up, -Z ahead. Springs: `hz` is how fast they swing back, `damping` the
+// damping ratio (1 settles without overshoot, lower wobbles a little before it settles).
+(
+    camera: (
+        // The head's bob per gait, at that gait's speed (movement.ron speed.walk / jog / sprint); between gaits it
+        // blends by the horizontal speed, and below walking speed it fades out. `step_hz`: footfalls per second.
+        // Sprinting wobbles; walking and jogging stay calm.
+        walk: (step_hz: 1.8, up_m: 0.003, side_m: 0.002, pitch_deg: 0.06, yaw_deg: 0.04, roll_deg: 0.05),
+        jog: (step_hz: 2.2, up_m: 0.006, side_m: 0.004, pitch_deg: 0.12, yaw_deg: 0.07, roll_deg: 0.10),
+        sprint: (step_hz: 2.7, up_m: 0.014, side_m: 0.009, pitch_deg: 0.35, yaw_deg: 0.22, roll_deg: 0.45),
+        crouch_mult: 0.6,
+        // Aimed: the bob's turns stop (they would carry the sight off the aim point); a little of its shift stays.
+        ads_turn_mult: 0.0,
+        ads_shift_mult: 0.3,
+        // The bob eases toward the gait's over this time constant (no snap when you start or stop).
+        ease_s: 0.15,
+        // Landing from a fall faster than `min_speed_mps`: the head dips and nods, more for a harder landing.
+        land: (
+            min_speed_mps: 3.0,
+            dip_m_per_mps: 0.004,
+            max_dip_m: 0.04,
+            pitch_deg_per_mps: 0.15,
+            max_pitch_deg: 1.2,
+            spring: (hz: 3.5, damping: 0.6),
+        ),
+        // The shot shake's springs (each gun's `settle_hz` below sets their speed).
+        shot_damping: 0.55,
+        // Aimed, the shot shake is this share.
+        ads_shot_mult: 0.5,
+    ),
+    // Per gun (weapons.ron id), on every shot: the camera's jolt (pitch up, a random yaw and roll, a shove back)
+    // and how fast it settles, and the gun's kick back in the hands. The SMG is light and rapid, the Mako medium,
+    // the Warden one bigger jolt. A gun without a row uses `default_shot`.
+    shots: {
+        "sk9_skink": (
+            pitch_deg: 0.10, yaw_deg: 0.06, roll_deg: 0.12, back_m: 0.002, settle_hz: 12.0,
+            gun_back_m: 0.010, gun_pitch_deg: 0.8, gun_settle_hz: 14.0,
+        ),
+        "ar7_mako": (
+            pitch_deg: 0.22, yaw_deg: 0.10, roll_deg: 0.22, back_m: 0.004, settle_hz: 9.0,
+            gun_back_m: 0.016, gun_pitch_deg: 1.4, gun_settle_hz: 10.0,
+        ),
+        "vk50_warden": (
+            pitch_deg: 1.20, yaw_deg: 0.30, roll_deg: 0.80, back_m: 0.015, settle_hz: 4.5,
+            gun_back_m: 0.050, gun_pitch_deg: 5.0, gun_settle_hz: 4.0,
+        ),
+    },
+    default_shot: (
+        pitch_deg: 0.22, yaw_deg: 0.10, roll_deg: 0.22, back_m: 0.004, settle_hz: 9.0,
+        gun_back_m: 0.016, gun_pitch_deg: 1.4, gun_settle_hz: 10.0,
+    ),
+    // The gun in your hands (the viewmodel).
+    gun: (
+        // Idle breathing: a slow figure of eight.
+        breath: (period_s: 4.0, shift_m: 0.0018, turn_deg: 0.25),
+        // The gun trails the view when you turn: it lags `lag` of each turn (up to `max_deg`), shifts and cants a
+        // little with that lag, and springs back to settle.
+        drag: (lag: 0.10, max_deg: 3.0, shift_m_per_deg: 0.003, roll_per_deg: 0.5, spring: (hz: 4.5, damping: 0.55)),
+        // Bob at the step rhythm per gait (blended like the camera's).
+        walk: (side_m: 0.004, up_m: 0.003, roll_deg: 0.6, pitch_deg: 0.3),
+        jog: (side_m: 0.007, up_m: 0.005, roll_deg: 1.0, pitch_deg: 0.5),
+        sprint: (side_m: 0.014, up_m: 0.010, roll_deg: 2.0, pitch_deg: 1.2),
+        // Landing: the gun dips and tips down, more for a harder landing (`min_speed_mps` as for the camera).
+        land: (
+            min_speed_mps: 3.0,
+            dip_m_per_mps: 0.006,
+            max_dip_m: 0.045,
+            pitch_deg_per_mps: 0.6,
+            max_pitch_deg: 4.0,
+            spring: (hz: 3.5, damping: 0.5),
+        ),
+        kick_damping: 0.6,
+        // Aimed, the sway (breath, drag, bob, landing) is this share, so the sight stays on the aim point, and the
+        // kick this share.
+        ads_mult: 0.08,
+        ads_kick_mult: 0.35,
+        // Sprinting the gun is lowered and turned in; it eases there and back over `ease_s`.
+        sprint_pose: (shift: (0.05, -0.06, 0.04), yaw_deg: 28.6, ease_s: 0.08),
+    ),
+    // Tracers fly from the muzzle (through a magnified scope: from the scope's centre) to where the shot ended.
+    // Each is a hot core inside a wider glow, both camera-facing ribbons fading toward the tail, plus a faint smoke
+    // trail left along the path. Widths are metres, but never thinner or fatter on screen than `min_px` /
+    // `max_px` (at 1080p), so a distant tracer still reads and one at the muzzle does not blind. Colours are
+    // linear RGBA; above 1 they glow (and bloom when BLOOM is on).
+    tracers: (
+        // The streak's speed on screen (visual only: shots hit at once). Slower than a real bullet, so the eye
+        // catches it.
+        speed_mps: 360.0,
+        streak_m: 10.0,
+        core: (width_m: 0.02, min_px: 2.0, max_px: 4.0, own: (3.0, 2.4, 1.3, 1.0), other: (3.0, 1.8, 0.8, 1.0)),
+        glow: (width_m: 0.07, min_px: 5.0, max_px: 11.0, own: (1.0, 0.5, 0.12, 0.4), other: (1.0, 0.36, 0.08, 0.5)),
+        // The trail fades over `life_s` after the bullet passed and widens by `grow_m`; own shots leave none in the
+        // first `skip_own_m` (it would hang in front of the gun).
+        smoke: (life_s: 0.45, width_m: 0.025, grow_m: 0.12, min_px: 1.5, max_px: 6.0, color: (0.92, 0.92, 0.9, 0.15), skip_own_m: 2.5),
+    ),
+    // Hit markers, drawn on the player you hit (where the shot landed on them), not on the crosshair. Colours
+    // follow the HUD's rules: shield blue, flesh white, head gold, kill in the enemy colour; MOUSE & AIM's HIT
+    // MARKERS picks which show. Sizes are px at 1080p.
+    hits: (
+        life_s: 0.38,
+        // It pops in at `pop_scale` and shrinks to its size over `pop_s`, then fades out.
+        pop_s: 0.06,
+        pop_scale: 1.5,
+        size_px: 10.0,
+        thickness_px: 2.5,
+        gap_px: 4.0,
+        head_scale: 1.25,
+        kill_scale: 1.5,
+        // A shield that broke and a kill also get a ring this wide.
+        ring_px: 30.0,
+        // A shot that hit on our screen waits this long for the host's confirm.
+        remember_s: 2.0,
+    ),
+    // The halo arc that took the hit: it flashes, swells and sheds a few shards; the arc that breaks shatters
+    // (more, faster shards and a ring flash). Everyone sees it, from the replicated shield values.
+    halo: (
+        // Shield points an arc must lose at once to crack.
+        min_drop: 0.5,
+        flash_s: 0.2,
+        flash_gain: 6.0,
+        pulse_scale: 0.3,
+        crack: (count: 6, size_m: 0.045, speed_mps: 1.8, life_s: 0.4),
+        shatter: (count: 20, size_m: 0.06, speed_mps: 3.6, life_s: 0.8),
+        gravity_mps2: 6.5,
+        spin_rps: 4.0,
+        ring_s: 0.3,
+        ring_grow: 2.0,
+        max_shards: 200,
+    ),
+)

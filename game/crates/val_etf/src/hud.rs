@@ -6,8 +6,8 @@
 //!   the mode's rules have them.
 //! - **No weapon panel.** A mag check leaves a small card (estimate + which magazine and ammo); reloads,
 //!   item use and fire-mode changes show briefly under the crosshair.
-//! - Score (top centre, ally/enemy colours), kill feed (top right), crosshair, hit marker and damage
-//!   direction stay.
+//! - Score (top centre, ally/enemy colours), kill feed (top right), crosshair and damage direction stay. Hit
+//!   markers are drawn on the player hit, not here (`render::hit_fx`).
 //!
 //! The settings shape it as they change: HUD scale, safe area and the 16:9 width scale and place the HUD
 //! (the crosshair keeps its own size), the crosshair and hit markers follow MOUSE & AIM, and the kill feed
@@ -20,7 +20,7 @@ use crate::client::Feedback;
 use crate::config::{Cli, Data};
 use crate::net::Session;
 use crate::render::ViewCamera;
-use crate::settings::{DamageFlash, HitMarkers, Settings, Ultrawide, crosshair_rects, rgb_color};
+use crate::settings::{DamageFlash, Settings, Ultrawide, crosshair_rects, rgb_color};
 use crate::ui_kit::{self as kit, Face, UiFonts, abs, panel};
 use bevy::prelude::*;
 use bevy::ui::{ColorStop, RadialGradient, RadialGradientShape, UiPosition};
@@ -60,7 +60,7 @@ impl Plugin for HudPlugin {
     }
 }
 
-/// The HUD's centre layer (outside the scaled canvas): crosshair, hit marker, damage direction and flash.
+/// The HUD's centre layer (outside the scaled canvas): crosshair, damage direction and flash.
 #[derive(Component)]
 struct HudCenter;
 
@@ -163,8 +163,6 @@ struct HudSafeArea;
 /// One rectangle of the crosshair (`settings::crosshair_rects`: four lines, then the dot).
 #[derive(Component)]
 struct CrosshairPart(usize);
-#[derive(Component)]
-struct HitMarker;
 /// The red screen-edge flash when hit.
 #[derive(Component)]
 struct DamageFlashEdge;
@@ -477,7 +475,7 @@ fn spawn_hud(mut commands: Commands, data: Res<Data>, fonts: Res<UiFonts>) {
         ));
     }
 
-    // --- damage flash, crosshair, hit marker and damage direction (centre): full screen and never scaled
+    // --- damage flash, crosshair and damage direction (centre): full screen and never scaled
     // with the HUD (the crosshair has its own sizes), under the canvas so the banner draws over it.
     let center = commands
         .spawn((
@@ -520,13 +518,6 @@ fn spawn_hud(mut commands: Commands, data: Res<Data>, fonts: Res<UiFonts>) {
             ChildOf(anchor),
         ));
     }
-    commands.spawn((
-        HitMarker,
-        Node { position_type: PositionType::Absolute, ..default() },
-        fonts.text("X", Face::Display, 700, 26.0, Color::WHITE, 0.0),
-        Visibility::Hidden,
-        ChildOf(center),
-    ));
     for i in 0..4 {
         commands.spawn((
             DamageChevron(i),
@@ -809,29 +800,16 @@ fn spread_px(spread_deg: f32, vfov: f32) -> f32 {
     spread_deg.max(0.0).to_radians().tan() * focal
 }
 
-/// Whether HIT MARKERS shows a hit of this kind.
-fn hit_marker_shown(setting: HitMarkers, kind: HitKind) -> bool {
-    match setting {
-        HitMarkers::ShieldFlesh => true,
-        HitMarkers::FleshOnly => kind != HitKind::Shield,
-        HitMarkers::Off => false,
-    }
-}
-
 /// The crosshair from MOUSE & AIM (colour, outline, lines, dot), opened by the gun's live spread over its resting
-/// hip spread (so a gun at rest shows the plain small cross).
+/// hip spread (so a gun at rest shows the plain small cross). Hit markers are not drawn on it: they show on the
+/// player hit (`render::hit_fx`, which follows HIT MARKERS).
 #[allow(clippy::type_complexity)]
 fn update_crosshair(
     me: Query<(&PlayerWeapon, &PlayerLoadout, &PlayerMove, &Vitals), With<Controlled>>,
     camera: Query<&Projection, With<ViewCamera>>,
     data: Res<Data>,
     settings: Res<Settings>,
-    feedback: Res<Feedback>,
-    mut parts: Query<
-        (&CrosshairPart, &mut Node, &mut BackgroundColor, &mut Outline, &mut Visibility),
-        Without<HitMarker>,
-    >,
-    mut marker: Query<(&mut Visibility, &mut TextColor), With<HitMarker>>,
+    mut parts: Query<(&CrosshairPart, &mut Node, &mut BackgroundColor, &mut Outline, &mut Visibility)>,
 ) {
     let Some((w, lo, mv, v)) = me.iter().next() else { return };
     let spec = lo.0.weapon.spec(&data);
@@ -861,20 +839,6 @@ fn update_crosshair(
         }
         if line.color != outline {
             line.color = outline;
-        }
-    }
-    let (_, enemy) = settings.team_colors();
-    for (mut vis, mut text) in &mut marker {
-        match feedback.hit_marker.filter(|(kind, _)| hit_marker_shown(c.hit_markers, *kind)) {
-            Some((kind, _)) => {
-                *vis = Visibility::Inherited;
-                text.0 = match kind {
-                    HitKind::Shield => kit::TIERS[2],
-                    HitKind::Health => Color::WHITE,
-                    HitKind::Kill => enemy,
-                };
-            }
-            None => *vis = Visibility::Hidden,
         }
     }
 }
@@ -988,8 +952,9 @@ fn update_damage_flash(
     }
 }
 
-/// `--demo-ui hud-fx`: keep a kill hit marker, a stream of hits from the right and a kill feed on screen (you
-/// in the ally colour, the rest as enemies), for screenshots of the crosshair, team colours and flash.
+/// `--demo-ui hud-fx`: keep a stream of hits from the right and a kill feed on screen (you in the ally colour, the
+/// rest as enemies), for screenshots of the crosshair, team colours and flash (`--demo-ui hit-fx` shows the hit
+/// markers, on the nearest other player).
 fn demo_hud_fx(
     cli: Res<Cli>,
     time: Res<Time>,
@@ -1005,7 +970,6 @@ fn demo_hud_fx(
     if t - *since.get_or_insert(t) < 1.0 {
         return;
     }
-    feedback.hit_marker = Some((HitKind::Kill, 0.2));
     if feedback.damage.iter().all(|d| d.1 < 1.0) {
         feedback.damage.push((mv.0.pos + Vec3::new(8.0, 0.0, 0.0), 1.2));
     }
@@ -1147,18 +1111,13 @@ mod tests {
     }
 
     #[test]
-    fn the_crosshair_opens_with_spread_and_markers_follow_the_setting() {
+    fn the_crosshair_opens_with_spread() {
         let vfov = 78f32.to_radians();
         assert_eq!(spread_px(0.0, vfov), 0.0);
         // Half the field of view reaches the top of the 1080p canvas.
         assert!((spread_px(39.0, vfov) - 540.0).abs() < 0.01);
         assert!(spread_px(1.0, vfov) > spread_px(0.5, vfov));
         assert!(spread_px(1.0, 60f32.to_radians()) > spread_px(1.0, vfov), "a narrower view opens it more");
-        assert!(hit_marker_shown(HitMarkers::ShieldFlesh, HitKind::Shield));
-        assert!(!hit_marker_shown(HitMarkers::FleshOnly, HitKind::Shield));
-        assert!(hit_marker_shown(HitMarkers::FleshOnly, HitKind::Health));
-        assert!(hit_marker_shown(HitMarkers::FleshOnly, HitKind::Kill));
-        assert!(!hit_marker_shown(HitMarkers::Off, HitKind::Kill));
     }
 
     #[test]
