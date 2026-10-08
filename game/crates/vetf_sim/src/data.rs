@@ -879,6 +879,8 @@ pub struct AirSpec {
     pub jump_buffer_s: f32,
     pub air_accel: f32,
     pub air_wish_speed: f32,
+    /// Strafe jumping builds speed up to this (m/s); past it, air control only turns the speed.
+    pub air_strafe_max_speed: f32,
     pub terminal_speed: f32,
     pub max_horizontal_speed: f32,
     pub max_horizontal_speed_boosted: f32,

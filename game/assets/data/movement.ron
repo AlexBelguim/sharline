@@ -34,7 +34,11 @@
         coyote_s: 0.1,
         jump_buffer_s: 0.1,
         air_accel: 14.0,
-        air_wish_speed: 1.2,
+        // Playtest round 3: steering in the air (was 1.2, "you can't move left or right when airborne").
+        air_wish_speed: 3.2,
+        // "a form of strafe jumping should be allowed": strafing while turning builds speed up to this (sprint is 7).
+        // Past it, air control only turns the speed you have (movement/mod.rs air_accel).
+        air_strafe_max_speed: 9.0,
         terminal_speed: 40.0,
         max_horizontal_speed: 12.0,
         max_horizontal_speed_boosted: 16.0,

@@ -384,13 +384,18 @@ fn ground_accel(v: Vec3, target: Vec3, m: &MovementSpec, accel_mult: f32, dt: f3
     Vec3::new(nv.x, v.y, nv.z)
 }
 
-fn air_accel(v: Vec3, wish_dir: Vec3, wish_speed: f32, accel: f32, cap: f32, dt: f32) -> Vec3 {
+/// Air control (Quake-style): up to `wish_speed` along the input, and strafing while turning (strafe jumping) may
+/// build speed up to `gain_cap`. Past that, air control only turns the speed the player already has (a slide boost
+/// or a jetpack burst is never added to).
+fn air_accel(v: Vec3, wish_dir: Vec3, wish_speed: f32, accel: f32, gain_cap: f32, cap: f32, dt: f32) -> Vec3 {
     let mut vh = horizontal(v);
     if wish_dir.length_squared() > 0.0 {
+        let before = vh.length().max(wish_speed).max(gain_cap);
         let add = wish_speed - vh.dot(wish_dir);
         if add > 0.0 {
             vh += wish_dir * add.min(accel * dt);
         }
+        vh = vh.clamp_length_max(before);
     }
     vh = vh.clamp_length_max(cap.max(0.0));
     Vec3::new(vh.x, v.y, vh.z)
@@ -753,10 +758,18 @@ fn step_air(
             st.vel.y + net * dt
         };
         let cap_h = m.jetpack.horizontal_cap * mods.fx.move_mult;
-        st.vel = air_accel(st.vel, wish, cap_h, m.jetpack.air_accel, horizontal(st.vel).length().max(cap_h), dt);
+        st.vel = air_accel(st.vel, wish, cap_h, m.jetpack.air_accel, cap_h, horizontal(st.vel).length().max(cap_h), dt);
     } else {
         st.vel.y = (st.vel.y - m.air.gravity * dt).max(-m.air.terminal_speed);
-        st.vel = air_accel(st.vel, wish, m.air.air_wish_speed, m.air.air_accel, m.air.max_horizontal_speed, dt);
+        st.vel = air_accel(
+            st.vel,
+            wish,
+            m.air.air_wish_speed,
+            m.air.air_accel,
+            m.air.air_strafe_max_speed,
+            m.air.max_horizontal_speed,
+            dt,
+        );
     }
 
     let falling = st.vel.y <= 0.0;

@@ -49,6 +49,8 @@ fn superseded(path: &str) -> bool {
         || gun_tuning_round_1(path)
         || recoil_and_bloom_round_2(path)
         || recoil_roles_round_3(path)
+        // Playtest round 3: more steering in the air, without strafe-jump speed gains (DESIGN_DELTAS.md section 15).
+        || path == "movement.slice.json.movement.air.air_wish_speed"
 }
 
 /// Playtest round 3 (DESIGN_DELTAS.md section 15): the Mako's pattern is a T, looping its two full sweeps, and

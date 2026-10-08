@@ -683,3 +683,62 @@ fn a_player_inside_a_ceiling_never_rises_through_it() {
         }
     }
 }
+
+/// Playtest round 3, "you can't move left or right when airborne": from a standing jump, holding a strafe key
+/// steers the player sideways at up to `air_wish_speed` (3.2 m/s) before they land.
+#[test]
+fn a_standing_jump_can_steer_sideways() {
+    let d = GameData::embedded();
+    let level = flat_level();
+    let m = mods(&d, WeightClass::None);
+    let mut st = spawn(&d, Vec3::ZERO);
+    step(&d, &level, &mut st, &input(Vec2::ZERO, Buttons::JUMP), &m, DT);
+    assert_eq!(st.mode, MoveMode::Air);
+    let mut fastest: f32 = 0.0;
+    while st.mode == MoveMode::Air {
+        step(&d, &level, &mut st, &input(Vec2::X, 0), &m, DT);
+        fastest = fastest.max(st.horizontal_speed());
+    }
+    assert!(fastest > 3.0, "sideways in the air: {fastest} m/s");
+    assert!(st.pos.x.abs() > 0.8, "moved sideways {} m during the jump", st.pos.x);
+}
+
+/// "a form of strafe jumping should be allowed": strafing while turning in the air builds speed past a sprint, but
+/// never past `air_strafe_max_speed` (9 m/s), and a player already faster than that only turns.
+#[test]
+fn strafe_jumping_gains_speed_up_to_its_cap() {
+    let d = GameData::embedded();
+    let level = flat_level();
+    let m = mods(&d, WeightClass::None);
+    let cap = d.movement.air.air_strafe_max_speed;
+    let mut st = spawn(&d, Vec3::ZERO);
+    run(&d, &level, &mut st, input(Vec2::Y, Buttons::SPRINT), &m, 60);
+    let takeoff = st.horizontal_speed();
+    assert!((takeoff - 7.0).abs() < 1e-3);
+    let mut best: f32 = 0.0;
+    for (side, turn) in [(Vec2::X, -0.03_f32), (Vec2::NEG_X, 0.03), (Vec2::X, -0.06), (Vec2::NEG_X, 0.06)] {
+        let mut s = st;
+        step(&d, &level, &mut s, &input(Vec2::Y, Buttons::JUMP | Buttons::SPRINT), &m, DT);
+        let mut yaw = 0.0;
+        while s.mode == MoveMode::Air {
+            yaw += turn;
+            let mut inp = input(side, 0);
+            inp.yaw = yaw;
+            step(&d, &level, &mut s, &inp, &m, DT);
+            assert!(s.horizontal_speed() <= cap + 1e-3, "{side:?}: {} > {cap}", s.horizontal_speed());
+            best = best.max(s.horizontal_speed());
+        }
+    }
+    assert!(best > takeoff + 0.3, "a strafe jump gains speed: {best} from {takeoff}");
+    // Already faster than the cap (a slide boost): air control turns that speed but never adds to it.
+    let mut s = st;
+    step(&d, &level, &mut s, &input(Vec2::Y, Buttons::JUMP | Buttons::SPRINT), &m, DT);
+    s.vel.z = -11.0;
+    let fast = s.horizontal_speed();
+    for _ in 0..20 {
+        let mut inp = input(Vec2::X, 0);
+        inp.yaw -= 0.05;
+        step(&d, &level, &mut s, &inp, &m, DT);
+        assert!(s.horizontal_speed() <= fast + 1e-3);
+    }
+}
