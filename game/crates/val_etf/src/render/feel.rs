@@ -168,6 +168,8 @@ pub struct GunFeel {
     pub land: Landing,
     pub kick_damping: f32,
     pub ads_mult: f32,
+    /// Aimed, the share of the sway's shift across the view (x, y) that stays.
+    pub ads_shift_mult: f32,
     pub ads_kick_mult: f32,
     pub sprint_pose: SprintPose,
 }

@@ -76,11 +76,16 @@
             spring: (hz: 3.5, damping: 0.5),
         ),
         kick_damping: 0.6,
-        // Aimed, the sway (breath, drag, bob, landing) is this share, so the sight stays on the aim point, and the
-        // kick this share.
+        // Aimed, the sway's turns (breath, drag, bob, landing) are this share, so the sight stays near the aim
+        // point, and the kick this share. The sway's shift across the view is `ads_shift_mult` of itself aimed:
+        // shifting the gun slides the sight's reticle (a few centimetres from the eye) off the aim by about a
+        // degree per millimetre, while turning it moves the reticle only by the turn. Aimed, the sway's roll turns
+        // the gun about the view axis, not its barrel, for the same reason.
         ads_mult: 0.08,
+        ads_shift_mult: 0.0,
         ads_kick_mult: 0.35,
-        // Sprinting the gun is lowered and turned in; it eases there and back over `ease_s`.
+        // Sprinting the gun is lowered and turned in; it eases down over `ease_s`, and comes back up with the
+        // simulation's bring-up (sprint_to_fire_s), so it is up on the tick the first shot can go.
         sprint_pose: (shift: (0.05, -0.06, 0.04), yaw_deg: 28.6, ease_s: 0.08),
     ),
     // Tracers fly from the muzzle (through a magnified scope: from the scope's centre) to where the shot ended.

@@ -41,8 +41,10 @@ impl Plugin for RenderPlugin {
             .init_resource::<tracer_fx::Tracers>()
             .init_resource::<hit_fx::HitMemory>()
             .init_resource::<hit_fx::ShardAssets>()
+            .init_resource::<SmoothedAds>()
             .add_message::<hit_fx::HaloHit>()
             .add_systems(Startup, setup_menu_camera)
+            .add_systems(FixedPostUpdate, record_ads)
             .add_systems(
                 OnEnter(AppState::InGame),
                 (spawn_level, spawn_view_camera, tracer_fx::spawn_tracer_mesh, hit_fx::spawn_marker_layer),
@@ -122,6 +124,30 @@ struct BodyTint(Handle<StandardMaterial>);
 /// beside it, not under it (see [`PlayerPose`]).
 #[derive(Component)]
 struct Body;
+
+/// The ADS blend between fixed ticks. The simulation moves it once a tick, so the zoom and the gun coming up
+/// stepped at the tick rate (8 steps for the Mako's ADS at 60 Hz) while the eye moved smoothly; this keeps the
+/// last two ticks' values and blends them by the overstep, like the eye's position.
+#[derive(Resource, Debug, Default, Clone, Copy, PartialEq)]
+pub struct SmoothedAds {
+    prev: f32,
+    curr: f32,
+}
+
+impl SmoothedAds {
+    /// The blend `overstep` (0..1) of the way from the last tick's ADS to this tick's.
+    pub fn at(&self, overstep: f32) -> f32 {
+        self.prev + (self.curr - self.prev) * overstep.clamp(0.0, 1.0)
+    }
+
+    pub fn record(&mut self, ads: f32) {
+        (self.prev, self.curr) = (self.curr, ads);
+    }
+}
+
+fn record_ads(me: Query<&PlayerWeapon, With<Controlled>>, mut ads: ResMut<SmoothedAds>) {
+    ads.record(me.iter().next().map_or(0.0, |w| w.0.ads));
+}
 
 /// One arc of a third-person player's halo: its zone, tier, and the ring's radius (its mesh is centred on the
 /// halo's middle, the arc `radius` out at [`arc_angle`]).
@@ -828,10 +854,11 @@ fn update_camera(
     control: Res<LocalControl>,
     settings: Res<Settings>,
     fixed: Res<Time<Fixed>>,
+    smoothed_ads: Res<SmoothedAds>,
     rig: Res<ViewmodelRig>,
     feel: Res<camera_fx::ViewFeel>,
     data: Res<feel::FeelData>,
-    me: Query<(&PlayerMove, Option<&Smoothed>, &PlayerWeapon, &PlayerLoadout, &Vitals), With<Controlled>>,
+    me: Query<(&PlayerMove, Option<&Smoothed>, &PlayerLoadout, &Vitals), With<Controlled>>,
     mut camera: Query<
         (&mut Transform, &mut Projection),
         (With<ViewCamera>, Without<Viewmodel>, Without<ViewmodelLens>),
@@ -840,7 +867,7 @@ fn update_camera(
     mut viewmodel: Query<(&mut Transform, &mut Visibility), With<Viewmodel>>,
     mut logged: Local<Option<(f32, f32)>>,
 ) {
-    let Some((mv, smoothed, weapon, loadout, vitals)) = me.iter().next() else { return };
+    let Some((mv, smoothed, loadout, vitals)) = me.iter().next() else { return };
     let m = &settings.mouse;
     if *logged != Some((m.fov_h, m.viewmodel_fov)) {
         *logged = Some((m.fov_h, m.viewmodel_fov));
@@ -851,7 +878,8 @@ fn update_camera(
             m.viewmodel_fov
         );
     }
-    let ads = weapon.0.ads;
+    // Blended between ticks (the sim's ADS steps at the tick rate), as the eye's position is.
+    let ads = smoothed_ads.at(fixed.overstep_fraction());
     let fov = camera_fov(m, loadout.0.weapon.zoom, ads);
     for (_, mut projection) in &mut camera {
         let want = fov.to_radians();
@@ -879,7 +907,10 @@ fn update_camera(
     }
     let now = if dead { camera_fx::Feel::default() } else { feel.now };
     for (mut t, _) in &mut camera {
-        let punch = visual_punch(control.punch, settings.hud.screen_shake);
+        // Aimed, the visual kick is calmed like the shot shake (`feel.ron` camera.ads_shot_mult): both are the
+        // same per-shot camera kick, and both lift the sight off where the bullets go while they last.
+        let calm = 1.0 + (data.camera.ads_shot_mult - 1.0) * ads.clamp(0.0, 1.0);
+        let punch = visual_punch(control.punch, settings.hud.screen_shake) * calm;
         let pitch = if dead { -0.6 } else { control.pitch + punch.to_radians() };
         let view = Quat::from_euler(EulerRot::YXZ, control.yaw, pitch, 0.0);
         t.translation = eye + view * now.camera.shift;
@@ -893,7 +924,7 @@ fn update_camera(
         // Eased in and out (`feel.ron`).
         t.translation += Vec3::from(sprint.shift) * now.sprint;
         t.rotation = Quat::from_rotation_y(sprint.yaw_deg.to_radians() * now.sprint) * t.rotation;
-        *t = now.gun.move_gun(*t);
+        *t = now.gun.move_gun(*t, now.ads);
         if let Some(left) = inspect {
             *t = inspect_pose(&rig, left);
         }
@@ -926,6 +957,18 @@ pub fn inspect_pose(rig: &ViewmodelRig, left: bool) -> Transform {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    /// Finding ads-blend-steps-at-tick-rate: between two ticks the ADS blend moves smoothly.
+    #[test]
+    fn the_ads_blend_is_smooth_between_ticks() {
+        let mut ads = SmoothedAds::default();
+        ads.record(0.25);
+        ads.record(0.375);
+        assert_eq!(ads.at(0.0), 0.25);
+        assert_eq!(ads.at(0.5), 0.3125);
+        assert_eq!(ads.at(1.0), 0.375);
+        assert_eq!(ads.at(7.0), 0.375, "never past the last tick");
+    }
 
     /// Ramps (the Showhome gables and stairs) draw the brush the sim collides with, wound so back-face culling
     /// keeps the outside: every triangle faces away from the wedge, its stored normal agrees with its winding,
