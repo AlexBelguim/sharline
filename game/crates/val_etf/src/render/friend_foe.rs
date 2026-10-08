@@ -491,7 +491,7 @@ fn demo_friend_foe(
             Puppet,
             Name::new(format!("Demo player {name}")),
             PlayerId(0xD3_0000 + i as u64),
-            PlayerInfo { name: name.into(), team },
+            PlayerInfo { name: name.into(), team, bot: false },
             PlayerMove(vetf_sim::movement::MoveState::spawn(feet, 0.0)),
             PlayerLook { yaw, pitch: 0.0 },
             PlayerWeapon(vetf_sim::weapon::WeaponState::new(&data, &loadout.weapon)),

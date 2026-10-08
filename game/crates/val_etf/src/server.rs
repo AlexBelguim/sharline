@@ -30,6 +30,7 @@ pub struct ServerPlugin;
 impl Plugin for ServerPlugin {
     fn build(&self, app: &mut App) {
         app.init_resource::<PendingClaims>()
+            .init_resource::<crate::bots::BotRequests>()
             .add_message::<PlayerDied>()
             .add_observer(on_new_link)
             .add_observer(on_link_connected)
@@ -190,14 +191,14 @@ pub struct PlayerDied {
     pub zone: Option<Zone>,
 }
 
-struct PendingClaim {
+pub(crate) struct PendingClaim {
     link: Entity,
     claim: ShotClaim,
     age: u32,
 }
 
 #[derive(Resource, Default)]
-struct PendingClaims(Vec<PendingClaim>);
+pub(crate) struct PendingClaims(Vec<PendingClaim>);
 
 /// Claims wait at most this many ticks for the host to simulate the matching shot.
 const CLAIM_WAIT_TICKS: u32 = 30;
@@ -317,22 +318,14 @@ fn on_link_connected(
         .collect();
     let id = peer.to_bits();
     let spawn = spawn_for(&data, &level, mode, team, &enemies, spawn_roll(id, players.iter().count() as u64, 0));
-    let loadout = default_loadout(&data, mode);
+    let name = if peer.is_local() { session.local_name.clone() } else { "AGENT".into() };
     let player = commands
-        .spawn((
-            Name::new(format!("Player {id:x}")),
-            PlayerId(id),
-            PlayerInfo { name: if peer.is_local() { session.local_name.clone() } else { "AGENT".into() }, team },
-            PlayerMove(MoveState::spawn(spawn.pos, loadout_fuel(&data, &loadout))),
-            PlayerLook { yaw: spawn.yaw, pitch: 0.0 },
-            PlayerWeapon(WeaponState::new(&data, &loadout.weapon)),
-            PlayerItems(ItemState::new(&loadout.kit)),
-            fresh_vitals(&data, &loadout, mode),
-            PlayerLoadout(loadout),
-            Score::default(),
-            PlayerNet::default(),
-            // Dealt when the match starts (`deal_agents`); none in the lobby and the range.
-            PlayerAgent::default(),
+        .spawn(new_player(
+            &data,
+            mode,
+            id,
+            PlayerInfo { name, team, bot: false },
+            spawn,
             ServerPlayer::new(trigger.entity, peer),
         ))
         .insert((
@@ -345,6 +338,36 @@ fn on_link_connected(
         ))
         .id();
     info!("spawned player {player} for {peer:?} on team {team:?}");
+}
+
+/// A new player's gameplay components and the host's bookkeeping, fresh at `spawn` in `mode`'s default loadout
+/// (a hello or a respawn brings their own): what a joining client and a test bot both get. The caller adds
+/// the replication.
+pub(crate) fn new_player(
+    data: &GameData,
+    mode: MatchMode,
+    id: u64,
+    info: PlayerInfo,
+    spawn: SpawnPoint,
+    sp: ServerPlayer,
+) -> impl Bundle {
+    let loadout = default_loadout(data, mode);
+    (
+        Name::new(format!("Player {id:x}")),
+        PlayerId(id),
+        info,
+        PlayerMove(MoveState::spawn(spawn.pos, loadout_fuel(data, &loadout))),
+        PlayerLook { yaw: spawn.yaw, pitch: 0.0 },
+        PlayerWeapon(WeaponState::new(data, &loadout.weapon)),
+        PlayerItems(ItemState::new(&loadout.kit)),
+        fresh_vitals(data, &loadout, mode),
+        PlayerLoadout(loadout),
+        Score::default(),
+        PlayerNet::default(),
+        // Dealt when the match starts (`deal_agents`); none in the lobby and the range.
+        PlayerAgent::default(),
+        sp,
+    )
 }
 
 /// `rules.ron`'s default loadout as a choice (the command line without overrides asks for the same).
@@ -384,13 +407,13 @@ fn fresh_vitals(data: &GameData, l: &Loadout, mode: MatchMode) -> Vitals {
 
 /// A spawn pick's random number in [0, 1), from the player, their deaths and the tick (deterministic, so a
 /// test run is repeatable).
-fn spawn_roll(player: u64, deaths: u64, tick: u64) -> f32 {
+pub(crate) fn spawn_roll(player: u64, deaths: u64, tick: u64) -> f32 {
     vetf_sim::rng::SplitMix::from_parts(&[player, deaths, tick, 0x0053_5041_574e]).next_f32()
 }
 
 /// Where a player (re)spawns: free-for-all picks from every spawn (see [`pick_ffa_spawn`]); otherwise the
 /// team's spawn farthest from living enemies.
-fn spawn_for(
+pub(crate) fn spawn_for(
     data: &GameData,
     level: &Level,
     mode: MatchMode,
@@ -635,6 +658,7 @@ fn receive_lobby_actions(
     mut players: Query<(&mut PlayerInfo, &mut PlayerNet, &mut Vitals, &mut Score, &ServerPlayer)>,
     mut matches: Query<&mut MatchState>,
     mut hosted: Option<ResMut<HostedMatch>>,
+    mut bots: ResMut<crate::bots::BotRequests>,
     data: Res<Data>,
 ) {
     let Some(mut m) = matches.iter_mut().next() else { return };
@@ -692,6 +716,10 @@ fn receive_lobby_actions(
                         }
                     }
                 }
+                // The host's test bots (`bots.rs` checks the seats).
+                LobbyAction::AddBot if from_host => bots.0.push(crate::bots::BotRequest::Add),
+                LobbyAction::RemoveBot if from_host => bots.0.push(crate::bots::BotRequest::Remove),
+                LobbyAction::AddBot | LobbyAction::RemoveBot => {}
                 LobbyAction::Start => {
                     if from_host {
                         info!("the host starts the match");
@@ -859,7 +887,7 @@ fn receive_claims(
 }
 
 #[allow(clippy::type_complexity, clippy::too_many_arguments)]
-fn simulate_authoritative(
+pub(crate) fn simulate_authoritative(
     data: Res<Data>,
     level: Option<Res<CurrentLevel>>,
     timeline: Res<LocalTimeline>,
@@ -876,6 +904,7 @@ fn simulate_authoritative(
             &mut PlayerLook,
             &mut ServerPlayer,
             Has<Controlled>,
+            Option<&mut crate::bots::BotControl>,
         ),
         With<Replicate>,
     >,
@@ -886,7 +915,7 @@ fn simulate_authoritative(
     mut local_events: MessageWriter<LocalPlayerEvents>,
     mut deaths: MessageWriter<PlayerDied>,
     mut feedback: ResMut<crate::client::Feedback>,
-    claims: Res<PendingClaims>,
+    mut claims: ResMut<PendingClaims>,
     infos: Query<&PlayerInfo>,
 ) {
     let Some(level) = level else { return };
@@ -896,17 +925,26 @@ fn simulate_authoritative(
     let mut fired = Vec::new();
     let keep = (data.combat.shot_validation.history_s * data.net.tick_hz as f32).ceil() as u32;
     let server = server.iter().next();
-    for (entity, id, input, mut mv, mut weapon, mut items, loadout, mut vitals, mut look, mut sp, local) in &mut players
+    for (entity, id, input, mut mv, mut weapon, mut items, loadout, mut vitals, mut look, mut sp, local, mut bot) in
+        &mut players
     {
         if vitals.health.dead {
             continue;
         }
-        let frame = input.map(|a| a.0.frame().sanitized()).unwrap_or_default();
+        // A test bot's input comes from its brain (`bots::drive_bots`), everyone else's over the network.
+        let frame = match &bot {
+            Some(b) => b.frame.sanitized(),
+            None => input.map(|a| a.0.frame().sanitized()).unwrap_or_default(),
+        };
         look.yaw = frame.yaw;
         look.pitch = frame.pitch;
         let mut wounds = vitals.wounds;
         let ev = player::step(&data, &level, &loadout.0, &mut mv.0, &mut weapon.0, &mut items.0, &mut wounds, &frame);
         vitals.wounds = wounds;
+        if let Some(b) = bot.as_mut() {
+            // Its recoil and burst (next tick, in its brain).
+            b.last_shot = ev.weapon.shot;
+        }
         if local {
             let trigger = crate::sound::TriggerTick::of(&weapon.0);
             local_events.write(LocalPlayerEvents { player: id.0, events: ev, trigger });
@@ -972,6 +1010,7 @@ fn simulate_authoritative(
                 dir,
                 range,
                 local,
+                bot: bot.is_some(),
             });
             if local {
                 local_shots.write(LocalShot { shot, player: id.0, origin, yaw: frame.yaw, pitch: frame.pitch });
@@ -982,18 +1021,30 @@ fn simulate_authoritative(
     // the level, which takes a bullet hole. A shot into a player left a hole on the wall behind them (finding F8).
     for s in fired {
         let world_hit = level.world.raycast(s.origin, s.dir, s.range);
-        let body_t = if s.local {
-            // The host sees everyone where they are now.
-            let team = infos.get(s.shooter).ok().and_then(|i| i.team);
-            players
-                .iter()
-                .filter(|(e, .., vitals, _, _, _)| *e != s.shooter && !vitals.health.dead)
-                .filter(|(e, ..)| hostile(team, infos.get(*e).ok().and_then(|i| i.team)))
-                .filter_map(|(_, _, _, mv, _, _, _, _, look, _, _)| {
-                    let pose = Pose { pos: mv.0.pos, yaw: look.yaw, stance: mv.0.stance };
-                    vetf_sim::hitbox::raycast(&data, &pose, s.origin, s.dir, s.range).map(|(_, t)| t)
-                })
-                .reduce(f32::min)
+        // The host's own shots and its bots' see everyone where they are now: the first enemy body on the line.
+        let body = (s.local || s.bot)
+            .then(|| {
+                let team = infos.get(s.shooter).ok().and_then(|i| i.team);
+                players
+                    .iter()
+                    .filter(|(e, .., vitals, _, _, _, _)| *e != s.shooter && !vitals.health.dead)
+                    .filter(|(e, ..)| hostile(team, infos.get(*e).ok().and_then(|i| i.team)))
+                    .filter_map(|(_, pid, _, mv, _, _, _, _, look, ..)| {
+                        let pose = Pose { pos: mv.0.pos, yaw: look.yaw, stance: mv.0.stance };
+                        vetf_sim::hitbox::raycast(&data, &pose, s.origin, s.dir, s.range).map(|(z, t)| (pid.0, z, t))
+                    })
+                    .min_by(|a, b| a.2.total_cmp(&b.2))
+            })
+            .flatten();
+        // A bot has no client to claim its hits: the host claims for it, and the claim goes through the same
+        // check and damage as everyone's (`resolve_claims`).
+        if s.bot
+            && let Some(claim) = bot_claim(s.seq, s.origin, s.dir, tick, world_hit, body)
+        {
+            claims.0.push(PendingClaim { link: s.link, claim, age: 0 });
+        }
+        let body_t = if s.local || s.bot {
+            body.map(|b| b.2)
         } else {
             // A joined player's own client decided what the shot hit, against the bodies it saw: its claim
             // (sent with the shot, so it is usually here before the host simulates the shot).
@@ -1032,6 +1083,26 @@ struct HostShot {
     dir: Vec3,
     range: f32,
     local: bool,
+    /// A test bot's shot (`bots.rs`).
+    bot: bool,
+}
+
+/// What a test bot's shot hit, as a claim for the host's normal check (`resolve_claims`): the first enemy
+/// `body` on its line (victim id, zone, distance) unless the level stops it first. `None` for a miss.
+pub(crate) fn bot_claim(
+    seq: u32,
+    origin: Vec3,
+    dir: Vec3,
+    tick: u32,
+    world_hit: Option<(f32, Vec3)>,
+    body: Option<(u64, Zone, f32)>,
+) -> Option<ShotClaim> {
+    let (victim, zone, t) = body?;
+    if world_hit.is_some_and(|(d, _)| d <= t) {
+        return None;
+    }
+    let hit = vetf_sim::hitbox::HitClaim { origin, dir, view_tick: tick as f32, zone, point: origin + dir * t };
+    Some(ShotClaim { seq, victim, hit })
 }
 
 /// Where a shot's tracer ends and the normal of the level surface it marks: at the first body it met
@@ -1350,6 +1421,19 @@ mod shot_tests {
         assert_eq!(shot_end(o, d, 50.0, None, None), (Vec3::Z * 50.0, None), "into the sky");
         assert_eq!(shot_end(o, d, 50.0, None, Some(20.0)), (Vec3::Z * 20.0, None));
     }
+
+    /// A bot's shot is claimed for it when an enemy body is on its line before the level, at that point.
+    #[test]
+    fn a_bots_hit_is_claimed_only_in_front_of_the_wall() {
+        let (o, d) = (Vec3::new(0.0, 1.6, 0.0), Vec3::NEG_Z);
+        let body = Some((7, Zone::Head, 12.0));
+        let claim = bot_claim(3, o, d, 500, Some((20.0, Vec3::Z)), body).expect("the body is in front");
+        assert_eq!((claim.seq, claim.victim, claim.hit.zone), (3, 7, Zone::Head));
+        assert_eq!((claim.hit.point, claim.hit.view_tick), (Vec3::new(0.0, 1.6, -12.0), 500.0));
+        assert!(bot_claim(3, o, d, 500, Some((8.0, Vec3::Z)), body).is_none(), "the wall first");
+        assert!(bot_claim(3, o, d, 500, None, None).is_none(), "a miss");
+        assert!(bot_claim(3, o, d, 500, None, body).is_some(), "nothing behind them");
+    }
 }
 
 #[cfg(test)]
@@ -1550,7 +1634,7 @@ mod system_tests {
         app.world_mut()
             .spawn((
                 PlayerId(id),
-                PlayerInfo { name: format!("P{id}"), team },
+                PlayerInfo { name: format!("P{id}"), team, bot: false },
                 fresh_vitals(&d, &l, MatchMode::Ffa),
                 Score::default(),
                 PlayerMove(MoveState::spawn(Vec3::ZERO, 1.0)),
@@ -2497,5 +2581,186 @@ mod tests {
         assert_eq!(bypass_roll(7, 3, 9), bypass_roll(7, 3, 9));
         let under = (0..1000).filter(|i| bypass_roll(7, *i, 9) < 0.2).count();
         assert!((150..250).contains(&under), "{under}");
+    }
+}
+
+/// Test bots (`bots.rs`) on a host: they take seats by the lobby's rules, and a bot's shots go through the
+/// normal shot check and damage, with kill credit, and it respawns.
+#[cfg(test)]
+mod bot_tests {
+    use super::*;
+    use crate::bots::{Bot, BotControl, BotRequest, BotRequests, Tuning, bot_id};
+    use lightyear::prelude::client::ClientPlugins;
+    use vetf_sim::bot::BotTuning;
+    use vetf_sim::input::Buttons;
+    use vetf_sim::movement::collision::{Brush, BrushKind};
+
+    /// A flat floor with one spawn at the origin, looking north (-Z).
+    fn arena() -> Level {
+        let mut level = Level { name: "arena".into(), kill_y: -20.0, ..Level::default() };
+        let floor = Brush::cuboid(Vec3::new(-60.0, -1.0, -60.0), Vec3::new(60.0, 0.0, 60.0), BrushKind::Solid);
+        level.world.push(floor);
+        level.spawns.push(SpawnPoint { pos: Vec3::ZERO, yaw: 0.0, team: None });
+        level
+    }
+
+    /// A host's world: lightyear's plugins and a started server (no links), the data, the arena, a match, and
+    /// the host's tick in order: bot requests, bot brains, the simulation, the shot check, deaths, respawns.
+    fn host(mode: MatchMode, phase: MatchPhase, max_players: u32) -> App {
+        let tick = std::time::Duration::from_secs_f64(1.0 / 60.0);
+        let mut app = App::new();
+        app.add_plugins((MinimalPlugins, bevy::state::app::StatesPlugin));
+        app.add_plugins((ServerPlugins { tick_duration: tick }, ClientPlugins { tick_duration: tick }));
+        app.add_plugins(vetf_net::ProtocolPlugin { input_redundancy: 1 });
+        app.finish();
+        app.cleanup();
+        app.world_mut().spawn((Name::new("Server"), Server::default(), Linked, Started));
+        app.add_message::<PlayerDied>().add_message::<LocalShot>().add_message::<LocalPlayerEvents>();
+        let d = GameData::embedded();
+        let rules = d.rules.deathmatch(mode);
+        app.world_mut().spawn(MatchState {
+            mode,
+            map: "arena".into(),
+            score_a: 0,
+            score_b: 0,
+            score_limit: rules.score_limit,
+            time_left_s: rules.time_limit_s,
+            phase,
+            lobby_name: String::new(),
+            max_players,
+            rules: d.rules.rulesets.get(mode),
+        });
+        app.insert_resource(Data(Arc::new(d)));
+        app.insert_resource(CurrentLevel(Arc::new(arena())));
+        app.init_resource::<PendingClaims>().init_resource::<crate::client::Feedback>();
+        app.init_resource::<BotRequests>().init_resource::<LocalTimeline>();
+        app.insert_resource(Tuning(BotTuning { aim_error_deg: 0.0, ..BotTuning::embedded() }));
+        app.add_systems(
+            Update,
+            (
+                crate::bots::apply_bot_requests,
+                crate::bots::drive_bots,
+                simulate_authoritative,
+                resolve_claims,
+                handle_deaths,
+                respawn_players,
+            )
+                .chain(),
+        );
+        app
+    }
+
+    /// The host's own player (id 0, no input: it stands still looking north) at `pos`.
+    fn host_player(app: &mut App, pos: Vec3, team: Option<Team>) -> Entity {
+        let d = GameData::embedded();
+        let mode = app.world_mut().query::<&MatchState>().single(app.world()).unwrap().mode;
+        let spawn = SpawnPoint { pos, yaw: 0.0, team };
+        let sp = ServerPlayer::new(Entity::PLACEHOLDER, PeerId::Local(0));
+        let info = PlayerInfo { name: "HOST".into(), team, bot: false };
+        app.world_mut()
+            .spawn((new_player(&d, mode, 0, info, spawn, sp), Replicate::to_clients(NetworkTarget::All)))
+            .id()
+    }
+
+    fn tick(app: &mut App) {
+        app.world_mut().resource_mut::<LocalTimeline>().apply_delta(1);
+        app.update();
+    }
+
+    fn bots(app: &mut App) -> Vec<(Entity, u32, PlayerInfo)> {
+        let mut q = app.world_mut().query::<(Entity, &Bot, &PlayerInfo)>();
+        let mut v: Vec<_> = q.iter(app.world()).map(|(e, b, i)| (e, b.n, i.clone())).collect();
+        v.sort_by_key(|b| b.1);
+        v
+    }
+
+    fn request(app: &mut App, r: BotRequest, n: usize) {
+        app.world_mut().resource_mut::<BotRequests>().0.extend(std::iter::repeat_n(r, n));
+    }
+
+    /// ADD BOT in a team deathmatch lobby: each bot on the team with fewer players, named BOT 1, 2, ..., marked
+    /// as a bot, until the seats run out; REMOVE BOT takes the last one and frees its seat and number. In the
+    /// lobby they are READY and hold their fire.
+    #[test]
+    fn bots_take_seats_on_the_smaller_team_and_hold_fire_in_the_lobby() {
+        let mut app = host(MatchMode::Tdm, MatchPhase::Lobby, 4);
+        // The host faces north, 15 m in front of the spawn the bots get.
+        host_player(&mut app, Vec3::new(0.0, 0.0, -15.0), Some(Team::A));
+        request(&mut app, BotRequest::Add, 5);
+        tick(&mut app);
+        let got: Vec<(u32, String, Option<Team>, bool)> =
+            bots(&mut app).into_iter().map(|(_, n, i)| (n, i.name, i.team, i.bot)).collect();
+        assert_eq!(
+            got,
+            [
+                (1, "BOT 1".into(), Some(Team::B), true),
+                (2, "BOT 2".into(), Some(Team::A), true),
+                (3, "BOT 3".into(), Some(Team::B), true),
+            ],
+            "4 seats: the host and three bots, the rest refused"
+        );
+        let ids: Vec<u64> = app.world_mut().query::<(&PlayerId, &Bot)>().iter(app.world()).map(|(i, _)| i.0).collect();
+        assert!(ids.iter().all(|id| *id != 0) && ids.contains(&bot_id(1)));
+        for _ in 0..120 {
+            tick(&mut app);
+            let mut q = app.world_mut().query::<(&BotControl, &PlayerNet)>();
+            for (c, net) in q.iter(app.world()) {
+                assert!(!c.frame.buttons.held(Buttons::FIRE), "no shots in the lobby");
+                assert!(net.ready, "bots are READY");
+            }
+        }
+        request(&mut app, BotRequest::Remove, 1);
+        tick(&mut app);
+        assert_eq!(bots(&mut app).iter().map(|b| b.1).collect::<Vec<_>>(), [1, 2], "the last one added goes");
+        request(&mut app, BotRequest::Add, 1);
+        tick(&mut app);
+        assert_eq!(bots(&mut app).iter().map(|b| (b.1, b.2.team)).next_back(), Some((3, Some(Team::B))), "seat reused");
+        request(&mut app, BotRequest::Remove, 9);
+        tick(&mut app);
+        assert!(bots(&mut app).is_empty(), "removing more than there are is fine");
+    }
+
+    /// A live free-for-all: the bot sees the host's head, turns, fires; its shots go through the host's normal
+    /// claim check and damage (the halo first, then health), the host dies with the bot credited (the kill, the
+    /// death screen's killer and recap), and the bot, killed in turn, presses RESPAWN and comes back.
+    #[test]
+    fn a_bot_shoots_through_the_normal_path_scores_the_kill_and_respawns() {
+        let d = GameData::embedded();
+        let mut app = host(MatchMode::Ffa, MatchPhase::Live, 8);
+        let me = host_player(&mut app, Vec3::new(0.0, 0.0, -15.0), None);
+        request(&mut app, BotRequest::Add, 1);
+        let full = *app.world().get::<Vitals>(me).unwrap();
+        let mut hurt = false;
+        for _ in 0..1800 {
+            tick(&mut app);
+            let v = app.world().get::<Vitals>(me).unwrap();
+            hurt |= v.halo != full.halo || v.health != full.health;
+            if v.health.dead {
+                break;
+            }
+        }
+        assert!(hurt, "the bot's shots did damage");
+        let bot = bots(&mut app)[0].0;
+        let v = *app.world().get::<Vitals>(me).unwrap();
+        assert!(v.health.dead, "the bot killed the host");
+        assert_eq!(app.world().get::<Score>(bot).unwrap().kills, 1, "kill credit");
+        assert_eq!(app.world().get::<Score>(me).unwrap().deaths, 1);
+        let sp = app.world().get::<ServerPlayer>(me).unwrap();
+        assert_eq!(sp.death.and_then(|(k, _)| k), Some(bot_id(1)), "the death screen's killer");
+        let recap = sp.life.recap(Some(bot_id(1)), None);
+        assert!(!recap.taken.is_empty(), "and its recap");
+        assert!(v.awaiting_respawn, "the host waits on the death screen");
+        // The host shoots back (as its claim would): the bot dies, and presses RESPAWN once the timer is out.
+        app.world_mut().write_message(PlayerDied { victim: bot, killer: Some(me), zone: Some(Zone::Head) });
+        tick(&mut app);
+        assert!(app.world().get::<Vitals>(bot).unwrap().health.dead);
+        let timer = (d.rules.ffa.respawn_s / d.tick_dt()).ceil() as usize + 3;
+        for _ in 0..timer {
+            tick(&mut app);
+        }
+        assert!(!app.world().get::<Vitals>(bot).unwrap().health.dead, "the bot respawned on its own");
+        assert!(app.world().get::<Vitals>(me).unwrap().health.dead, "the host still waits for RESPAWN");
+        tick(&mut app);
+        assert!(!app.world().get::<Bot>(bot).unwrap().fresh, "a new brain for the new life");
     }
 }

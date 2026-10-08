@@ -6,6 +6,7 @@
 // Bevy systems take their dependencies as parameters and filter with tuple types.
 #![allow(clippy::too_many_arguments, clippy::type_complexity)]
 
+mod bots;
 mod client;
 mod config;
 mod death;
@@ -131,6 +132,8 @@ fn main() -> AppExit {
         video::VideoPlugin,
         weapon_models::WeaponModelsPlugin,
     ));
+    // Test bots the host runs (after the host's systems it orders itself around).
+    app.add_plugins(bots::BotsPlugin);
     // Showhome's hedges and lawn grass (after the map materials it reads).
     app.add_plugins(foliage::FoliagePlugin);
     // The art exports are already in Bevy's design frame; the ground interprets their RGBA blend masks.

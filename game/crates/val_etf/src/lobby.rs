@@ -1,7 +1,7 @@
 //! The lobby (hub spec 05, mockup 06): the room before a deathmatch. Team deathmatch shows both teams with
 //! halo, ping and READY; free-for-all shows one player list with its seats (no teams, no SWITCH TEAM). Then
 //! how friends join, with COPY; the match settings, where the host picks the mode; and LEAVE, LOADOUT,
-//! SWITCH TEAM (teams only), READY and (host only) START MATCH. It is a screen over the match while the
+//! SWITCH TEAM (teams only), READY and (host only) ADD BOT, REMOVE BOT and START MATCH. It is a screen over the match while the
 //! match is in `MatchPhase::Lobby`, so the match underneath takes no input; START MATCH, or the end of a
 //! match (back here), moves everyone on.
 //!
@@ -49,6 +49,9 @@ enum LobbyBtn {
     Ready,
     Start,
     Copy,
+    /// The host's test bots (`bots.rs`).
+    AddBot,
+    RemoveBot,
 }
 
 /// The lobby name and the status line under it.
@@ -235,6 +238,8 @@ fn bottom_bar(r: &mut ChildSpawnerCommands, fonts: &UiFonts, host: bool) {
         b.spawn((LobbyBtn::Ready, button(fonts, "Ready", BtnKind::Ally, BtnSize::M)));
         b.spawn((ReadyCount, fonts.role(TextRole::Hint, ""), Node { margin: UiRect::horizontal(px(6)), ..default() }));
         if host {
+            b.spawn((LobbyBtn::RemoveBot, button(fonts, "Remove bot", BtnKind::Normal, BtnSize::M)));
+            b.spawn((LobbyBtn::AddBot, button(fonts, "Add bot", BtnKind::Normal, BtnSize::M)));
             b.spawn((LobbyBtn::Start, button(fonts, "Start match", BtnKind::Primary, BtnSize::M)));
         } else {
             b.spawn((WaitingForHost, fonts.role(TextRole::Hint, "Waiting for the host to start")));
@@ -273,6 +278,8 @@ fn buttons(
             LobbyBtn::SwitchTeam => Some(LobbyAction::SwitchTeam),
             LobbyBtn::Ready => Some(LobbyAction::Ready(!me.iter().next().is_some_and(|n| n.ready))),
             LobbyBtn::Start => Some(LobbyAction::Start),
+            LobbyBtn::AddBot => Some(LobbyAction::AddBot),
+            LobbyBtn::RemoveBot => Some(LobbyAction::RemoveBot),
         };
         if let Some(action) = send {
             for mut s in &mut senders {
@@ -369,6 +376,8 @@ struct Seat {
     weight: vetf_sim::data::WeightClass,
     ping_ms: u16,
     ready: bool,
+    /// A test bot the host runs.
+    bot: bool,
     /// The agent the host dealt (none in the lobby: agents are dealt at random when the match starts).
     agent: Option<String>,
 }
@@ -414,6 +423,7 @@ fn refresh(
             weight: loadout.0.weight,
             ping_ms: net.map_or(0, |n| n.ping_ms),
             ready: net.is_some_and(|n| n.ready),
+            bot: info.bot,
             agent: agent.and_then(|a| a.0.clone()),
         })
         .collect();
@@ -430,9 +440,16 @@ fn refresh(
         let mode = mode_title(m.mode);
         t.0 = format!("{mode} · {} · {}/{} PLAYERS", m.map.to_uppercase(), seats.len(), m.max_players);
     }
-    // No teams to switch between in free-for-all.
+    // No teams to switch between in free-for-all; ADD BOT while a seat is free, REMOVE BOT while there is a bot.
+    let bots = seats.iter().filter(|s| s.bot).count();
     for (b, _, mut node) in &mut btns {
-        let display = if *b == LobbyBtn::SwitchTeam && !teams { Display::None } else { Display::Flex };
+        let shown = match b {
+            LobbyBtn::SwitchTeam => teams,
+            LobbyBtn::AddBot => crate::bots::can_add_bot(m.max_players, seats.len()),
+            LobbyBtn::RemoveBot => bots > 0,
+            _ => true,
+        };
+        let display = if shown { Display::Flex } else { Display::None };
         if node.display != display {
             node.display = display;
         }
@@ -644,13 +661,17 @@ fn seat_row(c: &mut ChildSpawnerCommands, fonts: &UiFonts, images: &UiImages, s:
                     if s.me {
                         t.spawn(tag("· YOU"));
                     }
+                    if s.bot {
+                        t.spawn(tag("BOT"));
+                    }
                 });
                 n.spawn(Node { column_gap: px(6), align_items: AlignItems::Center, ..default() }).with_children(|h| {
                     h.spawn(arc_chip(images, s.tiers));
                     h.spawn(weight_squares(weight_lit(s.weight)));
                 });
             });
-        row.spawn(fonts.text(format!("{} MS", s.ping_ms), Face::Display, 600, 15.0, TEXT_MID, 0.06));
+        let ping = if s.bot { "BOT".to_string() } else { format!("{} MS", s.ping_ms) };
+        row.spawn(fonts.text(ping, Face::Display, 600, 15.0, TEXT_MID, 0.06));
         let (label, color) = if s.ready { ("READY", ALLY) } else { ("NOT READY", TEXT_LOW) };
         row.spawn((
             Node {

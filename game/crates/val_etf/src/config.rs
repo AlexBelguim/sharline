@@ -98,6 +98,8 @@ pub struct Cli {
     pub exit_after: Option<f32>,
     /// Drive the local player with a simple bot (smoke tests).
     pub bot: bool,
+    /// `--bots N`: the host adds N test bots (`bots.rs`) once its game is up, for solo testing.
+    pub bots: u32,
     /// Start looking this way (degrees, 0 = north / -Z, 90 = west); the bot then holds this heading.
     pub yaw: Option<f32>,
     /// Open a menu for screenshots: `reload` (the magazine radial), `heal` / `heal-region` (the heal ring),
@@ -151,6 +153,7 @@ impl Default for Cli {
             screenshot_after: 3.0,
             exit_after: None,
             bot: false,
+            bots: 0,
             yaw: None,
             demo_ui: None,
             esc_at: Vec::new(),
@@ -195,6 +198,7 @@ impl Cli {
                 "--screenshot-after" => cli.screenshot_after = val().parse().unwrap_or(3.0),
                 "--exit-after" => cli.exit_after = val().parse().ok(),
                 "--bot" => cli.bot = true,
+                "--bots" => cli.bots = val().parse().unwrap_or(0),
                 "--yaw" => cli.yaw = val().parse().ok(),
                 "--demo-ui" => cli.demo_ui = Some(val()),
                 "--esc-at" => cli.esc_at = val().split(',').filter_map(|t| t.trim().parse().ok()).collect(),
@@ -216,12 +220,15 @@ impl Cli {
                         "val_etf [--host showhome|range [--live] [--mode tdm|ffa]] [--join CODE|IP[:PORT]] [--name NAME]\n\
                          \x20       [--port PORT]\n\
                          \x20       [--width W --height H] [--screenshot PATH [--screenshot-after S]] [--exit-after S] [--bot] [--yaw DEG]\n\
+                         \x20       [--bots N]\n\
                          \x20       [--weapon ID] [--ammo std|ap1..3|rip1..3|slug1..2] [--mags std,ap2,..]\n\
                          \x20       [--armor PRESET] [--attach A,B]\n\
                          \x20       [--demo-ui reload|heal|heal-region|hud|board|menu-join|menu-join-ip|menu-host|\n\
                          \x20                  loadout|loadout-ammo|loadout-attach|ads|inspect|inspect-left]\n\
                          \x20       [--esc-at S,S,..] [--allow-input]\n\
                          \n\
+                         --bots N (host) adds N test bots once the game is up (ADD BOT in the lobby does the same):\n\
+                         \x20 they stand still and shoot at your head when they see you (game/assets/data/bots.ron).\n\
                          --name overrides the name saved from the main menu (EDIT NAME) for this run.\n\
                          --port sets the HOST GAME port (default: net.ron, 47820).\n\
                          --monitor N opens the window on monitor N (0 = leftmost). Automated runs (--exit-after,\n\

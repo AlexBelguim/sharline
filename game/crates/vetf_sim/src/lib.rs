@@ -3,6 +3,7 @@
 //! Everything here is plain Rust (no Bevy) so it can be unit-tested quickly and run identically on the
 //! host and on predicting clients. Numbers come from `game/assets/data/*.ron` via [`data::GameData`].
 
+pub mod bot;
 pub mod combat;
 pub mod data;
 pub mod gear;

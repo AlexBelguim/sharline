@@ -19,7 +19,7 @@ use vetf_sim::player::{Loadout, Wounds};
 use vetf_sim::weapon::WeaponState;
 
 /// Bumped whenever the protocol changes; part of the netcode protocol id, so old builds cannot connect.
-pub const PROTOCOL_VERSION: u64 = 8;
+pub const PROTOCOL_VERSION: u64 = 9;
 
 /// netcode.io protocol id shared by host and clients.
 pub fn protocol_id() -> u64 {
@@ -39,6 +39,8 @@ pub struct PlayerId(pub u64);
 pub struct PlayerInfo {
     pub name: String,
     pub team: Option<Team>,
+    /// A test bot the host runs (no client behind it): the lobby and the scoreboard mark it.
+    pub bot: bool,
 }
 
 /// Movement state. Predicted by the owner, interpolated for everyone else.
@@ -152,6 +154,10 @@ pub enum LobbyAction {
     Start,
     /// The host's match settings: team deathmatch or free-for-all (the gun range stays the range).
     SetMode(MatchMode),
+    /// The host adds a test bot (if a seat is free; in team deathmatch to the team with fewer players), or
+    /// removes the last one added.
+    AddBot,
+    RemoveBot,
 }
 
 // ---------------------------------------------------------------------------------------------- input
@@ -546,6 +552,8 @@ mod tests {
             LobbyAction::Start,
             LobbyAction::SetMode(MatchMode::Ffa),
             LobbyAction::SetMode(MatchMode::Tdm),
+            LobbyAction::AddBot,
+            LobbyAction::RemoveBot,
         ] {
             roundtrip(&action);
         }
@@ -575,7 +583,9 @@ mod tests {
         }
         roundtrip(&MatchPhase::Ended { winner: Some(Team::B), player: None });
         // A player without a team (free-for-all and the range) roundtrips too.
-        roundtrip(&PlayerInfo { name: "LARK".into(), team: None });
+        roundtrip(&PlayerInfo { name: "LARK".into(), team: None, bot: false });
+        // A test bot is marked as one.
+        roundtrip(&PlayerInfo { name: "BOT 1".into(), team: Some(Team::B), bot: true });
         // The bytes the wire carries: the mode is its own variant, so a free-for-all never decodes as team
         // deathmatch.
         assert_ne!(roundtrip(&MatchMode::Ffa), roundtrip(&MatchMode::Tdm));
@@ -645,8 +655,8 @@ mod tests {
         roundtrip(&PlayerAgent(None));
         assert_eq!(PlayerAgent::default(), PlayerAgent(None));
         assert_eq!(
-            PROTOCOL_VERSION, 8,
-            "the agent and the deathmatch picks took 6, dropping ADS MOVE 7, the death screen (respawn request,              life recap, awaiting respawn) 8"
+            PROTOCOL_VERSION, 9,
+            "agent + deathmatch picks 6, no ADS MOVE 7, death screen 8, test bots (bot mark, ADD/REMOVE BOT) 9"
         );
     }
 

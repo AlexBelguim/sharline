@@ -138,7 +138,7 @@ folder).
 
 ### Command line (automation and testing)
 `val_etf [--host showhome|range [--live] [--mode tdm|ffa]] [--join CODE|IP[:PORT]] [--name NAME] [--port PORT] [--width W --height H]
-[--screenshot PATH --screenshot-after S] [--exit-after S] [--bot] [--yaw DEG]
+[--screenshot PATH --screenshot-after S] [--exit-after S] [--bot] [--yaw DEG] [--bots N]
 [--weapon ID] [--ammo AMMO | --mags std,ap2,..] [--armor PRESET] [--attach A,B]
 [--demo-ui reload|heal|heal-region|hud|menu-join|menu-join-ip|menu-host]`
 
@@ -163,6 +163,10 @@ folder).
   exe was built (`target/debug`, `target/release`, `target/<triple>/release`) or an `assets` folder next to a
   copied exe.
 - `--bot` drives the local player.
+- `--bots N` (when hosting) adds N test bots once the game is up, like pressing ADD BOT N times in the lobby: for
+  solo testing. A bot is a player the host runs itself (no client): it takes a seat (in team deathmatch on the
+  team with fewer players), plays the default loadout, stands where it spawns and shoots at your head when it
+  sees you. Its numbers are in `assets/data/bots.ron`.
 - `--yaw` makes the bot hold a heading and shoot, which is useful for testing hits over the network.
 - `--mags` lists magazines in slot order (up to six); `--ammo` loads every default magazine with one ammo.
 - `--demo-ui reload|heal|heal-region` opens a ring menu for screenshots (the heal ones also hurt the host's player).

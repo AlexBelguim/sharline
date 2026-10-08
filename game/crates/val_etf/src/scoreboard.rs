@@ -103,6 +103,8 @@ struct Row {
     kills: u16,
     deaths: u16,
     ping_ms: u16,
+    /// A test bot: its ping reads BOT.
+    bot: bool,
     /// The agent the host dealt for the match (None: not dealt, e.g. the gun range).
     agent: Option<String>,
 }
@@ -154,6 +156,7 @@ fn rebuild(
             kills: score.kills,
             deaths: score.deaths,
             ping_ms: net.map_or(0, |n| n.ping_ms),
+            bot: info.bot,
             agent: agent.and_then(|a| a.0.clone()),
         })
         .collect();
@@ -439,7 +442,8 @@ fn player_row(blk: &mut ChildSpawnerCommands, fonts: &UiFonts, images: &UiImages
             });
         }
         row.spawn(cell(true)).with_children(|c| {
-            c.spawn(fonts.text(r.ping_ms.to_string(), Face::Display, 600, 16.0, TEXT_MID, 0.0));
+            let ping = if r.bot { "BOT".to_string() } else { r.ping_ms.to_string() };
+            c.spawn(fonts.text(ping, Face::Display, 600, 16.0, TEXT_MID, 0.0));
         });
     });
 }
@@ -489,6 +493,7 @@ mod tests {
             kills,
             deaths,
             ping_ms: 0,
+            bot: false,
             agent: None,
         }
     }

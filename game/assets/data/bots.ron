@@ -1,0 +1,29 @@
+// The test bot (user direction 2026-10-09: "a simple and quick bot so i can solo test ... just a stationary that
+// aims at my head when in sight"). The host adds bots from the lobby (ADD BOT / REMOVE BOT) or with
+// `--bots N`; each one takes a seat, plays the default deathmatch loadout, stands where it spawned and shoots
+// at an enemy's head it can see. Its gun follows the normal rules (fire rate, recoil, magazines, reloads), and
+// its hits go through the host's normal shot check and damage. Engine-free brain: vetf_sim/src/bot.rs.
+//
+// Units: seconds, metres, degrees.
+(
+    // Callsign: "BOT 1", "BOT 2", ...
+    name: "BOT",
+    // It sees enemy heads up to this far away (with nothing that stops bullets in between).
+    range_m: 60.0,
+    // Seconds an enemy's head must be in sight before it starts turning and shooting.
+    reaction_s: 0.45,
+    // A target out of sight for longer than this is forgotten: the next sighting waits for the reaction again.
+    forget_s: 1.0,
+    // How fast it turns its view (also how it pulls the gun back down against the recoil).
+    turn_deg_per_s: 240.0,
+    // Its aim point lands up to this far (degrees, any direction) off the head's centre; a new offset is rolled
+    // for every burst.
+    aim_error_deg: 0.6,
+    // It pulls the trigger once its view is within this angle of its aim point.
+    fire_cone_deg: 1.5,
+    // Rounds per burst, then a pause (0 rounds: no bursts, it keeps firing).
+    burst_shots: 5,
+    burst_pause_s: 0.6,
+    // Aim down sights while shooting.
+    ads: true,
+)

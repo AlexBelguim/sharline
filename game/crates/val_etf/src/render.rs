@@ -1090,7 +1090,11 @@ mod tests {
         loadout.weight = WeightClass::Light;
         let player = app
             .world_mut()
-            .spawn((PlayerId(7), PlayerInfo { name: "LARK".into(), team: None }, PlayerLoadout(loadout.clone())))
+            .spawn((
+                PlayerId(7),
+                PlayerInfo { name: "LARK".into(), team: None, bot: false },
+                PlayerLoadout(loadout.clone()),
+            ))
             .id();
         app.update();
         let light = halo_arcs(&mut app);

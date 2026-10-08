@@ -488,3 +488,27 @@ point limit".
 - Pinned by `loadout::apply` tests (Esc within / over the points, the double-Esc discard, edits applied as made
   while dead, the RESPAWN button's states).
 
+## 22. Test bots for solo testing (2026-10-09)
+The user: "after death screen could you add a simple and quick bot so i can solo test, maybe add bot button in the
+lobby screen, just a stationary that aims at my head when in sight is fine". Not in the design docs (they plan no
+AI players in the slice); a testing aid:
+- **What a bot is:** a player the host simulates like its own, with no client, link or process (`src/bots.rs`; the
+  `--bot` client mode is unchanged). It takes a seat (bots count against MAX PLAYERS, so they can fill a lobby
+  that joiners would otherwise get), joins the team with fewer players in team deathmatch, is named BOT 1, BOT 2,
+  ..., plays `rules.ron`'s default loadout, is always READY, and presses RESPAWN as soon as the timer allows.
+  The lobby, the scoreboard and the replicated `PlayerInfo` mark it as a bot (protocol 9).
+- **What it does:** stands still where it spawned; once an enemy's head has been in its line of sight within
+  `range_m` for `reaction_s`, it turns toward the head at `turn_deg_per_s` with an aim error of up to
+  `aim_error_deg` (rolled per burst) and fires in bursts when its view is on the aim point, with the normal fire
+  rate, recoil (the kick turns its view, it pulls back at its turn speed), magazines and reloads (when the
+  magazine in the gun is empty). Never in the lobby or after the match has ended. Numbers: `assets/data/bots.ron`.
+- **Its hits:** it has no client to claim them, so the host claims for it (the first enemy body on the shot's
+  line, as the host sees everyone now) and the claim goes through the normal check and damage, so halos, kill
+  credit, the kill feed and the death screen's killer and recap all work. Its hit confirms and its own recap have
+  nowhere to go and are dropped.
+- **Lobby:** the host gets ADD BOT (while a seat is free) and REMOVE BOT (the last one added, while there is a
+  bot); `--bots N` adds N when the game is up.
+- Pinned by `vetf_sim::bot` tests (in sight / out of sight / out of range, reaction, turn speed, bursts, recoil,
+  semi-automatic pulls, reloads, the aim error), the server's
+  `a_bot_shoots_through_the_normal_path_scores_the_kill_and_respawns` and
+  `bots_take_seats_on_the_smaller_team_and_hold_fire_in_the_lobby`, and `bots::tests`.

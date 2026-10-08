@@ -108,6 +108,11 @@ pub fn raycast(data: &GameData, pose: &Pose, origin: Vec3, dir: Vec3, max_dist: 
         .min_by(|a, b| a.1.total_cmp(&b.1))
 }
 
+/// The centre of a pose's hitbox for `zone` (the head: where a bot aims).
+pub fn zone_center(data: &GameData, pose: &Pose, zone: Zone) -> Option<Vec3> {
+    zone_boxes(data, pose).find(|b| b.zone == zone).map(|b| b.center)
+}
+
 // ---------------------------------------------------------------------------------------------- history
 
 /// Recent poses of one player, one per tick, for rewinding.
@@ -279,6 +284,16 @@ mod tests {
         let (zone, _) = raycast(&d, &p, Vec3::new(0.11, 0.4, 0.0), Vec3::NEG_Z, 100.0).unwrap();
         assert_eq!(zone, Zone::Legs);
         assert!(raycast(&d, &p, Vec3::new(1.0, 1.6, 0.0), Vec3::NEG_Z, 100.0).is_none());
+    }
+
+    /// A ray through the head's centre hits the head (a bot aims there).
+    #[test]
+    fn the_head_centre_is_in_the_head() {
+        let d = GameData::embedded();
+        let p = stand(Vec3::new(3.0, 0.0, -10.0));
+        let head = zone_center(&d, &p, Zone::Head).unwrap();
+        let eye = Vec3::new(0.0, 1.6, 0.0);
+        assert_eq!(raycast(&d, &p, eye, (head - eye).normalize(), 100.0).map(|h| h.0), Some(Zone::Head));
     }
 
     #[test]
