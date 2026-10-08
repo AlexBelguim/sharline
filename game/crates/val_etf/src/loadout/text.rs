@@ -242,6 +242,23 @@ pub fn points(n: u32) -> String {
     if n == 0 { "FREE".into() } else { pts(n) }
 }
 
+/// The points used against the mode's total, always on show in team deathmatch and free-for-all:
+/// `POINTS 7 / 8`.
+pub fn points_total(used: u32, budget: u32) -> String {
+    format!("POINTS {used} / {budget}")
+}
+
+/// The MAG card's label in team deathmatch and free-for-all: the type picked is the one carried, `mags` of
+/// it (`MAG ×6`).
+pub fn mag_slot_label(mags: u8) -> String {
+    format!("MAG ×{mags}")
+}
+
+/// The MAG popover's note in team deathmatch and free-for-all: `YOU CARRY 6 · ALL WITH YOUR AMMO`.
+pub fn mag_carry(mags: u8) -> String {
+    format!("YOU CARRY {mags} · ALL WITH YOUR AMMO")
+}
+
 /// RESULT header: `T2 × 3 ZONES = 6 PTS`, `H2 · T3 · A1 · L0 = 6 PTS`, `NO HALO · 0 PTS`.
 pub fn result_header(halo: &HaloChoice) -> String {
     let score = halo.score();
@@ -461,6 +478,10 @@ mod tests {
         assert_eq!(arcs_line(&t2.tiers), "H2 T2 A2 L0");
         assert_eq!((points(0), points(1), points(4)), ("FREE".into(), "1 PT".into(), "4 PTS".into()));
         assert_eq!((pts(0), pts(1)), ("0 PTS".into(), "1 PT".into()));
+        assert_eq!(points_total(7, 8), "POINTS 7 / 8");
+        assert_eq!(points_total(9, 8), "POINTS 9 / 8");
+        assert_eq!(mag_slot_label(6), "MAG ×6");
+        assert_eq!(mag_carry(6), "YOU CARRY 6 · ALL WITH YOUR AMMO");
         let mixed = halo(Core::Bulwark, 2, 3, 1, 0);
         assert_eq!(tier_label(&mixed), Some(("T1–T3".into(), 3)));
         assert_eq!(result_header(&mixed), "H2 · T3 · A1 · L0 = 6 PTS");

@@ -109,9 +109,15 @@ pub fn build(v: &View, p: &mut ChildSpawnerCommands) {
         Pop::Slot(_) => 621.0,
         Pop::Mag(_) => 731.0,
     };
-    let (title, micro) = match pop {
-        Pop::Slot(cat) => (format!("{} · {} PARTS", cat.label(), rows.len()), "HOVER = PREVIEW + STAT DELTA"),
-        Pop::Mag(i) => (format!("MAG {} · AMMO", i + 1), "HOVER = STAT DELTA · COST"),
+    let (title, micro) = match (pop, &draft.fixed) {
+        // Team deathmatch and free-for-all: the magazine type picked here is the one carried, six of it.
+        (Pop::Slot(AttachmentCategory::Mag), Some(kit)) => {
+            (format!("MAG · {} TYPES", rows.len()), text::mag_carry(kit.mags))
+        }
+        (Pop::Slot(cat), _) => {
+            (format!("{} · {} PARTS", cat.label(), rows.len()), "HOVER = PREVIEW + STAT DELTA".into())
+        }
+        (Pop::Mag(i), _) => (format!("MAG {} · AMMO", i + 1), "HOVER = STAT DELTA · COST".into()),
     };
     let f = v.fonts;
     let mut panel = p.spawn((
@@ -294,16 +300,16 @@ fn spawn_row(
                             ));
                         }
                     }
-                    // Team deathmatch and free-for-all: a magazine type's points (six of it are carried).
-                    if let (RowKind::Part(Some(id)), Pop::Slot(AttachmentCategory::Mag), Some(kit)) =
-                        (&row.kind, pop, &draft.fixed)
+                    // Team deathmatch and free-for-all: every part's points (FREE muted; a magazine type has
+                    // its price), red when picking it would go over the total.
+                    if let (RowKind::Part(id), Pop::Slot(cat)) = (&row.kind, pop)
+                        && let Some(pts) = draft.part_points(cat, id.as_deref())
                     {
-                        let with = draft.gear_with(v.data, |x| x.set_part(AttachmentCategory::Mag, Some(id), v.data));
+                        let with = draft.gear_with(v.data, |x| x.set_part(cat, id.as_deref(), v.data));
                         let over = !row.equipped && pushes_over(v.ctx.budget, draft.gear(v.data).total(), with.total());
-                        n.spawn(f.role_color(
-                            TextRole::Micro,
-                            text::points(kit.mag_points(id)),
-                            if over { BAD } else { TEXT_MID },
+                        n.spawn((
+                            f.role_color(TextRole::Micro, text::points(pts), super::view::price_color(pts, over)),
+                            TextLayout::no_wrap(),
                         ));
                     }
                     if row.equipped {

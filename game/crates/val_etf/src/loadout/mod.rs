@@ -382,7 +382,8 @@ pub enum Act {
     Zone(Zone),
     ZoneCheck(Zone),
     Row(usize),
-    /// The deathmatch layout: a magazine type (its index in the attachment data).
+    /// The deathmatch layout: a magazine type (its index in the attachment data). No card shows it (the MAG
+    /// slot's popover picks the type); the scripted demo picks (`demo_picks`) click it.
     MagType(usize),
     /// The deathmatch layout: an armor tier (1-based).
     Armor(u8),
@@ -841,12 +842,9 @@ fn keys(
         }
     }
     if keys.just_pressed(KeyCode::KeyR) {
-        // The deathmatch layout: the ammo row back to standard, the magazine row to the gun's standard one.
+        // The deathmatch layout: the ammo row back to standard (the MAG slot resets like any slot).
         if ui.pop.is_none() && matches!(hovered, Some(Act::Ammo(_))) {
             edit.draft.set_ammo(AmmoChoice::STANDARD, &data);
-        }
-        if ui.pop.is_none() && matches!(hovered, Some(Act::MagType(_))) {
-            edit.draft.reset_part(AttachmentCategory::Mag, &data);
         }
         let target = match ui.pop {
             Some(p) => Some(p),

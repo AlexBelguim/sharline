@@ -287,9 +287,26 @@ impl Draft {
         self.equipped(AttachmentCategory::Mag, data)
     }
 
-    /// The magazine types this gun takes, in data order (the standard one first).
+    /// The magazine types this gun takes, in data order (the standard one first): the MAG slot's popover.
+    #[cfg(test)]
     pub fn mag_options<'a>(&self, data: &'a GameData) -> Vec<&'a AttachmentSpec> {
         parts_for(data, &self.weapon, AttachmentCategory::Mag)
+    }
+
+    /// Team deathmatch and free-for-all: the points of part `id` (None: an empty slot) in slot `cat`. Only
+    /// the magazine type has a price (`mag_points`); every other part, and an empty slot, is free. None in
+    /// the gun range (parts are not priced there).
+    pub fn part_points(&self, cat: AttachmentCategory, id: Option<&str>) -> Option<u32> {
+        let kit = self.fixed.as_ref()?;
+        Some(match (cat, id) {
+            (AttachmentCategory::Mag, Some(id)) => kit.mag_points(id),
+            _ => 0,
+        })
+    }
+
+    /// The points of what slot `cat` holds now (what its card shows; None in the gun range).
+    pub fn slot_points(&self, cat: AttachmentCategory, data: &GameData) -> Option<u32> {
+        self.part_points(cat, self.equipped(cat, data).map(|a| a.id.as_str()))
     }
 
     // ------------------------------------------------------------------------------------------ budget
@@ -670,6 +687,39 @@ mod tests {
         assert_eq!(range.armor_tier(), None);
         assert!(!range.set_armor_tier(2));
         assert_eq!(range.gear(&d).mags, 0);
+    }
+
+    /// Every attachment card shows the points of what it holds, all the time (DIRECTION_LOG: "points should
+    /// show here for whatever options selected"): the magazine type has its price, every other part and an
+    /// empty slot are free, and the gun range prices no parts.
+    #[test]
+    fn every_slot_shows_its_points_in_a_deathmatch() {
+        let d = GameData::embedded();
+        let c = LoadoutChoice {
+            weapon: "ar7_mako".into(),
+            mags: vec![AmmoChoice::STANDARD],
+            attachments: vec!["optic_holo".into(), "mag_drum60".into()],
+            halo: HaloChoice { core: Core::Mender, tiers: ZoneTable::splat(1) },
+            agent: "kestrel".into(),
+        };
+        let kit = d.rules.fixed_loadout(vetf_net::MatchMode::Tdm).cloned().unwrap();
+        let mut dr = Draft::from_choice(&c, &BTreeMap::new(), &d, Some(kit.clone()));
+        assert_eq!(dr.slot_points(AttachmentCategory::Mag, &d), Some(2), "the drum");
+        assert_eq!(dr.slot_points(AttachmentCategory::Mag, &d), Some(dr.gear(&d).mags), "what the total counts");
+        assert_eq!(dr.slot_points(AttachmentCategory::Optic, &d), Some(0), "an optic is free");
+        assert_eq!(dr.slot_points(AttachmentCategory::Side, &d), Some(0), "an empty slot is free");
+        // the popover's options: each magazine type at its own price
+        let prices: Vec<u32> =
+            dr.mag_options(&d).iter().map(|m| dr.part_points(AttachmentCategory::Mag, Some(&m.id)).unwrap()).collect();
+        assert_eq!(prices, [0, 1, 2], "standard, extended, drum");
+        assert_eq!(dr.part_points(AttachmentCategory::Optic, Some("optic_holo")), Some(0));
+        assert_eq!(dr.part_points(AttachmentCategory::Under, None), Some(0));
+        dr.set_part(AttachmentCategory::Mag, Some("mag_45"), &d);
+        assert_eq!(dr.slot_points(AttachmentCategory::Mag, &d), Some(1), "follows the pick");
+        // the gun range: no prices on parts
+        let range = Draft::from_choice(&c, &BTreeMap::new(), &d, None);
+        assert_eq!(range.slot_points(AttachmentCategory::Mag, &d), None);
+        assert_eq!(range.part_points(AttachmentCategory::Mag, Some("mag_drum60")), None);
     }
 
     #[test]

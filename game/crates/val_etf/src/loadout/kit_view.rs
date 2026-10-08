@@ -1,6 +1,6 @@
-//! The deathmatch layout (team deathmatch and free-for-all, DIRECTION_LOG 17). Under the gun and its
-//! attachments, the MAGAZINE row: the gun's magazine types (everyone carries six of the one they pick). On
-//! the right, the ARMOR row (ONE tier, T1-T4, each a fixed combination of arc tiers on the one halo, with
+//! The deathmatch layout (team deathmatch and free-for-all, DIRECTION_LOG 17). The gun and its attachments
+//! use the shared cards; the MAG slot is the magazine type (everyone carries six of the one they pick, all
+//! with the one ammo type; no separate magazine row). On the right, the ARMOR row (ONE tier, T1-T4, each a fixed combination of arc tiers on the one halo, with
 //! its weight class), the AMMO row (ONE type for all six magazines, priced once) and the RESULT: the weight
 //! class, the halo's figures and the points used against the mode's total. Every card shows its points, in
 //! red when picking it would go over the total.
@@ -10,7 +10,7 @@ use super::focus::Focusable;
 use super::halo::{Centre, HaloLook, spawn_halo};
 use super::model::{Draft, pushes_over};
 use super::text::{self, Tone};
-use super::view::{Section, View, col_header, section, tier_looks};
+use super::view::{Section, View, col_header, price_color, section, tier_looks};
 use crate::ui_kit::*;
 use bevy::prelude::*;
 use vetf_sim::data::AmmoKind;
@@ -71,46 +71,12 @@ impl View<'_> {
         pushes_over(self.ctx.budget, d.gear(self.data).total(), d.gear_with(self.data, f).total())
     }
 
-    /// A card's points: `FREE`, `2 PTS`; red when picking it would go over the total.
+    /// A card's points, always on show: `FREE` (muted), `2 PTS`; red when picking it would go over the total.
     fn price(&self, b: &mut ChildSpawnerCommands, pts: u32, over: bool) {
         b.spawn((
-            self.fonts.role_color(TextRole::Micro, text::points(pts), if over { BAD } else { TEXT_MID }),
+            self.fonts.role_color(TextRole::Micro, text::points(pts), price_color(pts, over)),
             TextLayout::no_wrap(),
         ));
-    }
-
-    /// MAGAZINE: the gun's magazine types; everyone carries six of the one picked.
-    pub(super) fn mag_types(&self, p: &mut ChildSpawnerCommands) {
-        let f = self.fonts;
-        let d = &self.edit.draft;
-        let Some(kit) = &d.fixed else { return };
-        let current = d.mag_type(self.data).map(|m| m.id.clone());
-        let micro = format!("YOU CARRY {} · ALL WITH YOUR AMMO", kit.mags);
-        p.spawn(col_header(f, "MAGAZINE", &micro, TextRole::H2Small, 8.0));
-        p.spawn(Node { height: px(56), column_gap: px(6), ..default() }).with_children(|row| {
-            for m in d.mag_options(self.data) {
-                let Some(i) = self.data.attachments.attachments.iter().position(|a| a.id == m.id) else { continue };
-                let on = current.as_deref() == Some(m.id.as_str());
-                let over = !on && self.over_with(|x| x.set_part(m.cat, Some(&m.id), self.data));
-                row.spawn(pick_card(Act::MagType(i), on, TEAL, TEAL)).with_children(|b| {
-                    b.spawn(Node { column_gap: px(8), align_items: AlignItems::Center, ..default() }).with_children(
-                        |n| {
-                            n.spawn((
-                                f.role_color(
-                                    TextRole::SlotValue,
-                                    m.display_name(),
-                                    if on { TEXT_HI } else { TEXT_MID },
-                                ),
-                                TextLayout::no_wrap(),
-                            ));
-                            n.spawn(spacer());
-                            self.price(n, kit.mag_points(&m.id), over);
-                        },
-                    );
-                    b.spawn((f.role(TextRole::Sub, m.blurb.clone()), TextLayout::no_wrap()));
-                });
-            }
-        });
     }
 
     /// ARMOR: the halo as others see it, and ONE row of tiers (each a fixed combination of arc tiers).

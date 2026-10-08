@@ -324,10 +324,14 @@ Skipped in the sync test by `recoil_and_bloom_round_2()`; pinned by the tests in
   it gets six magazines of slot 1's ammo. It refuses an unknown gun, no magazine or more than six, a halo arc
   above its cap, ammo the gun cannot load, misfit or doubled attachments, and anything over the points. The
   `LoadoutChoice` message keeps its fields.
-- **The screen:** the gun, its attachments and a MAGAZINE row (six carried); then ONE ARMOR row (T1-T4 with weight
-  class, arcs and points), ONE AMMO row, and the points used / total split into armor, ammo and magazine. A card's
-  points turn red when picking it would push the loadout over the total. Q / E and the arrows walk gun ->
-  attachments -> magazine -> armor -> ammo -> BACK / CONFIRM. The main menu has no LOADOUT entry for now; the
+- **The screen:** the gun and its attachments, where the MAG card is the magazine pick (it reads `MAG ×6`; its
+  popover says "YOU CARRY 6 · ALL WITH YOUR AMMO"; no separate MAGAZINE row, user: "the one you select is just
+  what you get"); then ONE ARMOR row (NO HALO, T1-T4 with weight class, arcs and points), ONE AMMO row, and the
+  points used / total split into armor, ammo and magazine. Every pick shows its points all the time: each
+  attachment card shows what it holds (`2 PTS`; a muted `FREE` for anything that costs nothing), every option in
+  the popovers, every armor and ammo card; the top bar always shows `POINTS n / 8` (red when over, CONFIRM off).
+  A card's points turn red when picking it would push the loadout over the total. Q / E and the arrows walk gun
+  -> attachments (MAG among them) -> armor -> ammo -> BACK / CONFIRM. The main menu has no LOADOUT entry for now; the
   lobby's LOADOUT and the ESC menu open the screen. A loadout confirmed in the lobby is worn at once.
 - The HUD's vitals header reads `HALO / MEDIUM` (the weight class tells halos apart); the lobby's match settings
   list the mode's loadout rule and that agents are random.

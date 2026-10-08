@@ -1,5 +1,6 @@
 //! Keyboard and gamepad-style focus on the Loadout page: Q / E switch column (the gun range: agent, weapon,
-//! halo; the deathmatch layout: the gun with its parts and magazine type, then armor tier and ammo), the
+//! halo; the deathmatch layout: the gun with its parts (the MAG slot is the magazine type), then armor tier
+//! and ammo), the
 //! arrow keys move inside a column (Left / Right within a row of items, Up / Down between rows), Enter
 //! activates. BACK and CONFIRM are the last row of the last column. The focused item gets the teal focus ring (2 px, offset 2), drawn only while the keyboard is in
 //! use.
@@ -43,17 +44,11 @@ pub fn columns(draft: &Draft, data: &GameData, ui: &LoadoutUiData, arc: Zone) ->
     // has a problem).
     let finish = vec![Act::Back, Act::Confirm];
     if let Some(kit) = &draft.fixed {
-        // Deathmatch: the gun, its parts and its magazine type; then the armor tiers, the ammo row and the
-        // buttons.
-        let mags = draft
-            .mag_options(data)
-            .iter()
-            .filter_map(|m| data.attachments.attachments.iter().position(|a| a.id == m.id))
-            .map(Act::MagType)
-            .collect();
+        // Deathmatch: the gun and its parts (the MAG slot's popover picks the magazine type: no row of its
+        // own); then the armor tiers, the ammo row and the buttons.
         let armor = kit.armor_picks().map(|(t, _)| Act::Armor(t)).collect();
         let ammo = draft.ammo_options(data).into_iter().map(Act::Ammo).collect();
-        return Columns { cols: vec![vec![tabs, slots, mags], vec![armor, ammo, finish]], start: 0 };
+        return Columns { cols: vec![vec![tabs, slots], vec![armor, ammo, finish]], start: 0 };
     }
     let agents = (0..ui.agents.len()).map(|i| vec![Act::Agent(i)]).collect();
     let mags = (0..=draft.mags.len().min(MAX_MAGS - 1)).map(Act::Mag).collect();
@@ -211,10 +206,11 @@ mod tests {
         assert_eq!(step(&cols, Some(Act::Back), Move::Up), Some(Act::Zone(Zone::Head)));
     }
 
-    /// The deathmatch layout: Q / E between the gun column (weapon tabs, attachment slots, magazine types) and
-    /// the picks column (NO HALO and the armor tiers T1-T4, then the ammo row).
+    /// The deathmatch layout: Q / E between the gun column (weapon tabs, attachment slots; the MAG slot is
+    /// the magazine type, no row of its own) and the picks column (NO HALO and the armor tiers T1-T4, then
+    /// the ammo row).
     #[test]
-    fn the_deathmatch_layout_focuses_gun_and_magazine_then_armor_then_ammo() {
+    fn the_deathmatch_layout_focuses_gun_and_parts_then_armor_then_ammo() {
         use vetf_sim::data::{AmmoChoice, AmmoKind};
         let d = GameData::embedded();
         let ui = LoadoutUiData::embedded();
@@ -224,15 +220,23 @@ mod tests {
         let cols = columns(&draft, &d, &ui, Zone::Torso);
         assert_eq!(cols.cols.len(), 2, "no agent column");
         assert_eq!(cols.start, 0);
-        let mag = |id: &str| Act::MagType(d.attachments.attachments.iter().position(|a| a.id == id).unwrap());
-        assert_eq!(cols.cols[0][2], [mag("mag_30"), mag("mag_45"), mag("mag_drum60")], "the Mako's magazines");
+        assert_eq!(cols.cols[0].len(), 2, "weapon tabs and attachment slots: no magazine row");
+        assert!(cols.cols.iter().flatten().flatten().all(|a| !matches!(a, Act::MagType(_))));
+        let slots = &cols.cols[0][1];
+        assert!(slots.contains(&Act::Slot(AttachmentCategory::Mag)), "the MAG slot picks the magazine type");
         let rows = &cols.cols[1];
         assert_eq!(rows.len(), 3, "armor, ammo, the buttons");
         assert_eq!(rows[0], (0..=4).map(Act::Armor).collect::<Vec<_>>(), "NO HALO first, then T1-T4");
         assert_eq!(rows[1][0], Act::Ammo(AmmoChoice::STANDARD));
         let start = step(&cols, None, Move::Down);
         assert_eq!(start, Some(Act::Weapon(0)), "focus starts on the gun");
-        assert_eq!(step(&cols, Some(Act::Slot(AttachmentCategory::Optic)), Move::Down), Some(mag("mag_30")));
+        let optic = Some(Act::Slot(AttachmentCategory::Optic));
+        assert_eq!(step(&cols, start, Move::Down), optic, "down from the gun to its parts");
+        assert_eq!(step(&cols, optic, Move::Down), optic, "the parts are the column's last row");
+        assert_eq!(step(&cols, optic, Move::Up), start);
+        let last = slots.last().copied();
+        assert_eq!(step(&cols, last, Move::Right), last, "the row's end");
+        assert_eq!(step(&cols, last, Move::NextColumn), Some(Act::Armor(0)), "E from the parts to the armor");
         let right = step(&cols, start, Move::NextColumn);
         assert_eq!(right, Some(Act::Armor(0)));
         assert_eq!(step(&cols, right, Move::NextColumn), right, "the last column");

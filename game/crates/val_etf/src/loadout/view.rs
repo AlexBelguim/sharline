@@ -39,8 +39,6 @@ pub enum Section {
     Halo,
     Popover,
     Ghost,
-    /// The deathmatch layout: the magazine type (under the attachments).
-    MagType,
     /// The deathmatch layout: the armor tier of the one halo.
     Armor,
     /// The deathmatch layout: one ammo type for every magazine.
@@ -101,11 +99,12 @@ impl View<'_> {
                 self.st.save_as,
                 self.ctx,
                 d.problems(self.data, self.ctx.budget),
+                d.gear(self.data).total(),
             )),
             Section::Agents => hash_of(&d.agent),
             Section::Tabs => hash_of(&d.weapon),
             Section::Preview => hash_of(&(&d.weapon, parts, self.st.pop, preview)),
-            Section::Slots => hash_of(&(&d.weapon, parts, self.st.pop)),
+            Section::Slots => hash_of(&(&d.weapon, parts, self.st.pop, self.ctx)),
             Section::Mags => hash_of(&(
                 &d.mags,
                 &d.weapon,
@@ -118,7 +117,6 @@ impl View<'_> {
             Section::Popover => hash_of(&(self.st.pop, &d.weapon, parts, &d.mags, d.halo, self.ctx)),
             Section::Ghost => hash_of(&self.st.drag.filter(|g| g.active).map(|g| (g.from, d.mags.get(g.from)))),
             // Every pick card turns red when it would go over the total: each depends on the other picks.
-            Section::MagType => hash_of(&(d.halo, &d.mags, &d.weapon, parts, self.ctx)),
             Section::Armor => hash_of(&(d.halo, &d.mags, &d.weapon, parts, self.ctx)),
             Section::Ammo => hash_of(&(&d.mags, &d.weapon, d.halo, parts, self.ctx, self.st.flash[0] > 0.0)),
             Section::Result => hash_of(&(d.halo, &d.mags, &d.weapon, parts, self.ctx)),
@@ -137,7 +135,6 @@ impl View<'_> {
             Section::Halo => self.halo_column(p),
             Section::Popover => popover::build(self, p),
             Section::Ghost => self.ghost(p),
-            Section::MagType => self.mag_types(p),
             Section::Armor => self.armor(p),
             Section::Ammo => self.ammo(p),
             Section::Result => self.kit_result(p),
@@ -172,7 +169,7 @@ fn dashed(images: &UiImages, color: Color) -> impl Bundle {
 }
 
 /// The page frame: background, sections and footer. Sections fill themselves in [`refresh`]. `simple`: the
-/// deathmatch layout (the gun, its parts and its magazine type on the left; armor tier, ammo and points on the
+/// deathmatch layout (the gun and its parts, the MAG slot being the magazine type, on the left; armor tier, ammo and points on the
 /// right; no agents, no magazine strip); else the gun range's (agents, gun with its magazines, halo).
 pub fn spawn_root(commands: &mut Commands, z: i32, simple: bool) {
     let bg = page_background(50.0, 35.0, [(0x18202B, 0.0), (0x0A0D12, 55.0), (0x06080B, 100.0)]);
@@ -228,12 +225,14 @@ pub fn spawn_root(commands: &mut Commands, z: i32, simple: bool) {
                     section(Section::Slots),
                     Node { height: px(76), margin: UiRect::top(px(10)), column_gap: px(6), ..default() },
                 ));
-                // The gun range's six ordered magazines, or the deathmatch layout's one magazine type.
-                let mags = if simple { Section::MagType } else { Section::Mags };
-                w.spawn((
-                    section(mags),
-                    Node { margin: UiRect::top(px(10)), flex_direction: FlexDirection::Column, ..default() },
-                ));
+                // The gun range's six ordered magazines. The deathmatch layout has no magazine row: the MAG
+                // slot's pick is the magazine type, and everyone carries six of it.
+                if !simple {
+                    w.spawn((
+                        section(Section::Mags),
+                        Node { margin: UiRect::top(px(10)), flex_direction: FlexDirection::Column, ..default() },
+                    ));
+                }
                 w.spawn((section(Section::Stats), Node { margin: UiRect::top(px(10)), ..default() }));
             });
             if simple {
@@ -471,9 +470,24 @@ impl View<'_> {
             super::model::Problem::OverBudget { used, budget } => Some((*used, *budget)),
             _ => None,
         });
+        // Team deathmatch and free-for-all: the points used against the total, always on show (red when over).
+        if self.ctx.simple()
+            && let Some(budget) = self.ctx.budget
+        {
+            let used = d.gear(self.data).total();
+            let color = if used > budget { BAD } else { TEXT_HI };
+            p.spawn((
+                f.text(text::points_total(used, budget), Face::Display, 700, 16.0, color, 0.0),
+                TextLayout::no_wrap(),
+            ));
+        }
         if let Some((used, budget)) = over {
-            let what = if self.ctx.simple() { "the points" } else { "gear budget" };
-            p.spawn(raw(f, TextRole::Hint, format!("Over {what}: {used} / {budget} pts"), BAD));
+            let hint = if self.ctx.simple() {
+                format!("Over by {}: lower the armor, the ammo or the magazine", used - budget)
+            } else {
+                format!("Over gear budget: {used} / {budget} pts")
+            };
+            p.spawn(raw(f, TextRole::Hint, hint, BAD));
         } else if self.ctx.lobby {
             p.spawn(raw(f, TextRole::Hint, "Lobby: you wear it as soon as you confirm", TEXT_MID));
         } else if self.ctx.in_match {
@@ -900,10 +914,24 @@ impl View<'_> {
                 CARD,
                 Active(on),
             ));
+            // Team deathmatch and free-for-all: the MAG slot is the magazine type, carried six times, and every
+            // card shows the points of what it holds (FREE muted).
+            let label = match (&d.fixed, cat) {
+                (Some(kit), AttachmentCategory::Mag) => text::mag_slot_label(kit.mags),
+                _ => cat.label().to_string(),
+            };
+            let pts = d.slot_points(cat, self.data).filter(|_| fits);
             card.with_children(|c| {
                 c.spawn(Node { column_gap: px(6), align_items: AlignItems::Center, ..default() }).with_children(|h| {
                     h.spawn((icon(self.images, view_icon(cat), 16.0, if on { TEAL } else { TEXT_MID }), Ink));
-                    h.spawn((f.role(TextRole::TableHead, cat.label()), Ink));
+                    h.spawn((f.role(TextRole::TableHead, label), Ink));
+                    if let Some(pts) = pts {
+                        h.spawn(spacer());
+                        h.spawn((
+                            f.role_color(TextRole::Micro, text::points(pts), price_color(pts, false)),
+                            TextLayout::no_wrap(),
+                        ));
+                    }
                 });
                 c.spawn((
                     f.role_color(TextRole::SlotValue, value, color),
@@ -1649,6 +1677,17 @@ impl View<'_> {
 }
 
 // ---------------------------------------------------------------------------------------------- helpers
+
+/// A pick's points: red when picking it would go over the total, a muted FREE, else the card's ink.
+pub(super) fn price_color(pts: u32, over: bool) -> Color {
+    if over {
+        BAD
+    } else if pts == 0 {
+        TEXT_LOW
+    } else {
+        TEXT_MID
+    }
+}
 
 fn chip_node() -> Node {
     Node {
