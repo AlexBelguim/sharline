@@ -57,6 +57,10 @@ Opens from the lobby's **LOADOUT** and the ESC menu's **LOADOUT**; presets **A /
   starts, kept for the match. No halo pick: everyone wears the one halo (Mender). The host shapes whatever a client
   sends the same way and refuses what is over the points. In the lobby a confirmed loadout is worn at once; in a
   match it applies at the next spawn.
+- **Applying:** CONFIRM, or Esc / BACK when the picks are within the points. Over the points the first Esc shows
+  a notice and a second Esc discards the edits. Opened from the death screen there is no CONFIRM: valid edits go
+  to the host as they are made, and **RESPAWN** (with its timer) takes CONFIRM's place; over the points it reads
+  OVER THE POINTS and stays blocked until the picks are fixed.
 - **Keys:** Q / E switch column, the arrows move, Enter picks; BACK and CONFIRM close the focus order. 1 / 2 / 3
   load a preset, R resets the slot (or the ammo / magazine row) under the focus.
 - **Gun range:** the full screen: agent, halo core, a tier per arc and up to six magazines, each with its own ammo

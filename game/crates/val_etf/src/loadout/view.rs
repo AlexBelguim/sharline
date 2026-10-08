@@ -2,6 +2,7 @@
 //! is a fixed frame of section containers; each section rebuilds its children when the inputs it shows
 //! change (a hash of them), so hover and drag states elsewhere are left alone.
 
+use super::apply::RespawnBtn;
 use super::focus::Focusable;
 use super::halo::{Centre, HaloImages, HaloLook, spawn_halo};
 use super::model::{WeaponStats, parts_with, weapon_stats};
@@ -11,6 +12,7 @@ use super::ui_data::{Accent, LoadoutUiData, TagSide, bar_frac};
 use super::{Act, LoadoutEdit, LoadoutUi, Pop, SaveAsField, ScreenCtx, hash_of};
 use crate::AppState;
 use crate::config::Data;
+use crate::death::DeathState;
 use crate::screens::{Screen, ScreenRoot};
 use crate::ui_kit::*;
 use bevy::prelude::*;
@@ -20,7 +22,8 @@ use bevy::ui::{
     VisualBox,
 };
 use bevy::window::PrimaryWindow;
-use vetf_net::MatchState;
+use lightyear::prelude::Controlled;
+use vetf_net::{MatchState, Vitals};
 use vetf_sim::GameData;
 use vetf_sim::Zone;
 use vetf_sim::data::{AmmoChoice, AmmoKind, AttachmentCategory, Core, WeightClass};
@@ -69,6 +72,10 @@ pub struct View<'a> {
     pub edit: &'a LoadoutEdit,
     pub st: &'a LoadoutUi,
     pub ctx: ScreenCtx,
+    /// Over the death screen: RESPAWN in CONFIRM's place, with its timer.
+    pub respawn: Option<RespawnBtn>,
+    /// The first Esc over the points showed its notice.
+    pub warned: bool,
 }
 
 impl View<'_> {
@@ -98,6 +105,8 @@ impl View<'_> {
                 self.edit.file.active,
                 self.st.save_as,
                 self.ctx,
+                self.respawn,
+                self.warned,
                 d.problems(self.data, self.ctx.budget),
                 d.gear(self.data).total(),
             )),
@@ -307,10 +316,27 @@ pub fn refresh(
     st: Res<LoadoutUi>,
     state: Res<State<AppState>>,
     matches: Query<&MatchState>,
+    (death, me): (Option<Res<DeathState>>, Query<&Vitals, With<Controlled>>),
 ) {
     let Some(halo) = halo else { return };
-    let ctx = ScreenCtx::new(&data, state.get(), &matches);
-    let v = View { fonts: &fonts, images: &images, halo: &halo, data: &data, ui: &ui_data, edit: &edit, st: &st, ctx };
+    let ctx = ScreenCtx::new(&data, state.get(), &matches, death.as_deref());
+    let respawn = death.filter(|_| ctx.dead).map(|d| {
+        let left = me.iter().next().map_or(f32::MAX, crate::death::respawn_left);
+        RespawnBtn::new(left, edit.valid(&data, ctx.budget), d.asked)
+    });
+    let warned = super::apply::warned(&edit, &st);
+    let v = View {
+        fonts: &fonts,
+        images: &images,
+        halo: &halo,
+        data: &data,
+        ui: &ui_data,
+        edit: &edit,
+        st: &st,
+        ctx,
+        respawn,
+        warned,
+    };
     for (e, s, mut key) in &mut sections {
         let k = v.key(*s);
         if key.0 == Some(k) {
@@ -481,13 +507,17 @@ impl View<'_> {
                 TextLayout::no_wrap(),
             ));
         }
-        if let Some((used, budget)) = over {
+        if self.warned {
+            p.spawn(raw(f, TextRole::Hint, "Over the points: fix it, or press Esc again to discard", BAD));
+        } else if let Some((used, budget)) = over {
             let hint = if self.ctx.simple() {
                 format!("Over by {}: lower the armor, the ammo or the magazine", used - budget)
             } else {
                 format!("Over gear budget: {used} / {budget} pts")
             };
             p.spawn(raw(f, TextRole::Hint, hint, BAD));
+        } else if self.ctx.dead {
+            p.spawn(raw(f, TextRole::Hint, "Dead: your picks go into your next life", TEXT_MID));
         } else if self.ctx.lobby {
             p.spawn(raw(f, TextRole::Hint, "Lobby: you wear it as soon as you confirm", TEXT_MID));
         } else if self.ctx.in_match {
@@ -495,8 +525,13 @@ impl View<'_> {
         }
         // Both are the last row of the keyboard focus (focus::columns), so the keyboard can finish the edit.
         p.spawn((Act::Back, Focusable, button_with_key(f, "BACK", "ESC", BtnKind::Normal, BtnSize::M)));
-        let mut confirm = p.spawn((Act::Confirm, Focusable, button(f, "CONFIRM", BtnKind::Primary, BtnSize::M)));
-        if !problems.is_empty() {
+        // Over the death screen CONFIRM's place is RESPAWN with its timer (the edits are already applied).
+        let (label, enabled) = match self.respawn {
+            Some(r) => (r.label(), r.enabled()),
+            None => ("CONFIRM".to_string(), problems.is_empty()),
+        };
+        let mut confirm = p.spawn((Act::Confirm, Focusable, button(f, &label, BtnKind::Primary, BtnSize::M)));
+        if !enabled {
             confirm.insert(Disabled);
         }
     }

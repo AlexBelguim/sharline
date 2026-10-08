@@ -7,15 +7,20 @@
 //!   ammo, the custom halo (a core and a tier per arc) and the result.
 //!
 //! It opens over the lobby or the match (`Screen::Loadout`: the lobby's LOADOUT, the ESC menu's LOADOUT);
-//! the main menu has no LOADOUT entry for now. In a match, CONFIRM sends a `LoadoutUpdate` that the host
-//! applies at the next spawn (at once in the lobby).
+//! the main menu has no LOADOUT entry for now. In a match, CONFIRM (or Esc within the points) sends a
+//! `LoadoutUpdate` that the host applies at the next spawn (at once in the lobby). Over the death screen
+//! there is no CONFIRM: valid edits go out as they are made and RESPAWN takes them into the next life
+//! (see [`apply`]).
 //!
 //! Contract with the other screens:
 //! - [`ActiveLoadout`] is what this player asks the host for (sent in `Hello`, applied at each spawn).
-//!   CONFIRM updates it and saves it into the active preset (`loadouts.ron`).
+//!   Applying (CONFIRM, Esc, or each edit while dead) updates it and saves it into the active preset
+//!   (`loadouts.ron`).
 //! - [`summary`] formats it for the main menu's player card and the ESC menu.
-//! - Open the screen with `Screens::push(Screen::Loadout)`; Esc (after the popover) or BACK pops it.
+//! - Open the screen with `Screens::push(Screen::Loadout)`; Esc (after the popover) or BACK leaves it,
+//!   applying the edits within the points (a second Esc discards them over the points).
 
+mod apply;
 mod focus;
 mod halo;
 mod kit_view;
@@ -33,9 +38,12 @@ pub use text::{ammo_short, halo_name, tier_label};
 
 use crate::AppState;
 use crate::config::{Cli, Data};
+use crate::death::DeathState;
 use crate::net::Session;
 use crate::screens::{EscPress, EscSystems, Screen, ScreenRoot, Screens, screen_on_top};
 use crate::ui_kit::*;
+use apply::{EscOutcome, RespawnBtn};
+use bevy::ecs::system::SystemParam;
 use bevy::input_focus::{FocusCause, InputFocus};
 use bevy::prelude::*;
 use bevy::text::{EditableText, TextEdit};
@@ -45,7 +53,7 @@ use halo::HaloImages;
 use lightyear::prelude::*;
 use std::hash::{Hash, Hasher};
 use ui_data::LoadoutUiData;
-use vetf_net::{LoadoutChoice, LoadoutUpdate, MatchMode, MatchState, ReliableChannel};
+use vetf_net::{LoadoutChoice, LoadoutUpdate, MatchMode, MatchState, ReliableChannel, RespawnRequest, Vitals};
 use vetf_sim::GameData;
 use vetf_sim::ZoneTable;
 use vetf_sim::data::{AmmoChoice, AmmoKind, AttachmentCategory, Core, WeightClass};
@@ -66,6 +74,7 @@ impl Plugin for LoadoutScreenPlugin {
                     focus::keyboard_focus,
                     presses,
                     mag_release,
+                    apply_while_dead,
                     right_click,
                     esc.in_set(EscSystems::Top),
                     keys,
@@ -240,11 +249,25 @@ pub fn summary(choice: &LoadoutChoice, data: &GameData, mode: MatchMode) -> Load
 
 // ---------------------------------------------------------------------------------------------- state
 
-/// The edit in progress while the screen is open (dropped when it closes: BACK discards it).
+/// The edit in progress while the screen is open (dropped when it closes).
 #[derive(Resource, Debug, Clone)]
 pub struct LoadoutEdit {
     pub draft: Draft,
     pub file: LoadoutsFile,
+    /// The picks as last applied (or as opened): what Esc compares the draft with.
+    pub base: LoadoutChoice,
+}
+
+impl LoadoutEdit {
+    /// The picks differ from the last applied ones.
+    pub fn changed(&self) -> bool {
+        self.draft.choice() != self.base
+    }
+
+    /// Within the points and the caps: the host would take it.
+    pub fn valid(&self, data: &GameData, budget: Option<u32>) -> bool {
+        self.draft.problems(data, budget).is_empty()
+    }
 }
 
 /// What the attachment popover shows.
@@ -287,6 +310,9 @@ pub struct LoadoutUi {
     pub keyboard: bool,
     /// Enter on the focused item: handled like a click on the next pass.
     pub activate: Option<Act>,
+    /// The first Esc over the points showed the notice, for the draft with this hash (a second Esc on the
+    /// same picks discards them).
+    pub esc_warned: Option<u64>,
 }
 
 impl Default for LoadoutUi {
@@ -302,6 +328,7 @@ impl Default for LoadoutUi {
             focus: None,
             keyboard: false,
             activate: None,
+            esc_warned: None,
         }
     }
 }
@@ -327,6 +354,8 @@ pub struct ScreenCtx {
     pub in_match: bool,
     /// Over the lobby: the host puts a confirmed loadout on at once (no fighting yet).
     pub lobby: bool,
+    /// Over the death screen: no CONFIRM, valid edits apply as they are made and RESPAWN takes its place.
+    pub dead: bool,
     pub mode: MatchMode,
     pub budget: Option<u32>,
     /// The mode sells picks (team deathmatch, free-for-all: `rules.ron` `deathmatch_loadout`): the
@@ -337,11 +366,12 @@ pub struct ScreenCtx {
 }
 
 impl ScreenCtx {
-    fn new(data: &GameData, state: &AppState, matches: &Query<&MatchState>) -> Self {
+    fn new(data: &GameData, state: &AppState, matches: &Query<&MatchState>, death: Option<&DeathState>) -> Self {
         let in_match = matches!(state, AppState::InGame | AppState::Connecting);
         let m = matches.iter().next().filter(|_| in_match);
         let lobby = m.is_some_and(|m| m.phase == vetf_net::MatchPhase::Lobby);
-        Self { lobby, ..Self::for_mode(data, in_match, m.map(|m| m.mode)) }
+        let dead = in_match && death.is_some_and(|d| d.dead);
+        Self { lobby, dead, ..Self::for_mode(data, in_match, m.map(|m| m.mode)) }
     }
 
     /// `mode`: the match's, None over the menu (or before the match state arrives).
@@ -352,7 +382,7 @@ impl ScreenCtx {
         };
         let mode = mode.unwrap_or(MatchMode::Tdm);
         let simple = data.rules.fixed_loadout(mode).is_some();
-        Self { in_match, lobby: false, mode, budget: gear_budget(data, mode), simple, note }
+        Self { in_match, lobby: false, dead: false, mode, budget: gear_budget(data, mode), simple, note }
     }
 
     /// The deathmatch layout: the gun with its parts and magazine type, an armor tier, one ammo type, points.
@@ -523,7 +553,7 @@ fn open_screen(
         }
         return;
     }
-    let ctx = ScreenCtx::new(&data, state.get(), &matches);
+    let ctx = ScreenCtx::new(&data, state.get(), &matches, None);
     let kit = ctx.kit(&data);
     // The host switched the lobby between the deathmatch modes: same layout, the new mode's picks (today
     // both modes sell the same ones, so this only matters once they differ).
@@ -547,7 +577,7 @@ fn open_screen(
     if let Some(i) = file.presets.iter().position(|p| shaped(p) == draft.choice()) {
         file.active = i;
     }
-    commands.insert_resource(LoadoutEdit { draft, file });
+    commands.insert_resource(LoadoutEdit { base: draft.choice(), draft, file });
     *ui = LoadoutUi::default();
     let depth = screens.iter().position(|s| s.same_kind(Screen::Loadout)).unwrap_or(0) as i32;
     view::spawn_root(&mut commands, 100 + depth * 10, ctx.simple());
@@ -563,35 +593,100 @@ fn load_preset(edit: &mut LoadoutEdit, ui: &mut LoadoutUi, i: usize, data: &Game
     ui.flash = [0.0; 6];
 }
 
-#[allow(clippy::too_many_arguments)]
-fn confirm(
+/// What applying a loadout needs: the active loadout and the link to the host.
+#[derive(SystemParam)]
+pub struct Applier<'w, 's> {
+    active: ResMut<'w, ActiveLoadout>,
+    session: Res<'w, Session>,
+    senders: Query<'w, 's, &'static mut MessageSender<LoadoutUpdate>, With<Client>>,
+}
+
+impl Applier<'_, '_> {
+    /// Apply the edit if the host would take it: save it into the active preset, make it the active
+    /// loadout and send it to the host in a match (the next spawn takes it; the lobby puts it on at once).
+    /// False (nothing done) over the points.
+    fn apply(&mut self, edit: &mut LoadoutEdit, ctx: &ScreenCtx, data: &GameData) -> bool {
+        if !edit.valid(data, ctx.budget) {
+            return false;
+        }
+        let choice = edit.draft.choice();
+        let i = edit.file.active;
+        edit.file.presets[i].loadout = choice.clone();
+        edit.file.attachments = edit.draft.parts.clone();
+        if let Err(e) = edit.file.save() {
+            warn!("loadout presets not saved: {e}");
+        }
+        edit.base = choice.clone();
+        self.active.0 = choice.clone();
+        if ctx.in_match
+            && let Some(client) = self.session.client
+            && let Ok(mut sender) = self.senders.get_mut(client)
+        {
+            sender.send::<ReliableChannel>(LoadoutUpdate { loadout: choice });
+            info!("loadout sent; it applies at the next spawn");
+        }
+        true
+    }
+}
+
+/// Esc or BACK: apply within the points and close; over them, a notice first and a second press discards.
+fn leave(
+    edit: &mut LoadoutEdit,
+    ui: &mut LoadoutUi,
+    ctx: &ScreenCtx,
+    data: &GameData,
+    applier: &mut Applier,
+    screens: &mut Screens,
+) {
+    match apply::esc_step(edit, ui, data, ctx.budget) {
+        EscOutcome::Warn => {}
+        EscOutcome::Apply => {
+            applier.apply(edit, ctx, data);
+            screens.pop();
+        }
+        EscOutcome::Close | EscOutcome::Discard => {
+            screens.pop();
+        }
+    }
+}
+
+/// The death screen's RESPAWN, from this screen: the edits (already applied as they were made) go into the
+/// next life. Blocked over the points or while the timer runs.
+fn respawn_from_here(
     edit: &mut LoadoutEdit,
     ctx: &ScreenCtx,
     data: &GameData,
-    active: &mut ActiveLoadout,
+    applier: &mut Applier,
     screens: &mut Screens,
-    session: &Session,
-    senders: &mut Query<&mut MessageSender<LoadoutUpdate>, With<Client>>,
+    (death, left, senders): (
+        Option<&mut DeathState>,
+        f32,
+        &mut Query<&mut MessageSender<RespawnRequest>, With<Client>>,
+    ),
 ) {
-    if !edit.draft.problems(data, ctx.budget).is_empty() {
+    let Some(death) = death else { return };
+    if !RespawnBtn::new(left, edit.valid(data, ctx.budget), death.asked).enabled() || !applier.apply(edit, ctx, data) {
         return;
     }
-    let choice = edit.draft.choice();
-    let i = edit.file.active;
-    edit.file.presets[i].loadout = choice.clone();
-    edit.file.attachments = edit.draft.parts.clone();
-    if let Err(e) = edit.file.save() {
-        warn!("loadout presets not saved: {e}");
-    }
-    active.0 = choice.clone();
-    if ctx.in_match
-        && let Some(client) = session.client
-        && let Ok(mut sender) = senders.get_mut(client)
-    {
-        sender.send::<ReliableChannel>(LoadoutUpdate { loadout: choice });
-        info!("loadout sent; it applies at the next spawn");
-    }
+    crate::death::ask_respawn(death, senders);
     screens.pop();
+}
+
+/// While dead, a valid edit is applied as soon as it is made (so the host's fallback respawn takes it too).
+fn apply_while_dead(
+    mut edit: ResMut<LoadoutEdit>,
+    mut applier: Applier,
+    data: Res<Data>,
+    (state, matches, death): (Res<State<AppState>>, Query<&MatchState>, Option<Res<DeathState>>),
+) {
+    if !edit.is_changed() {
+        return;
+    }
+    let ctx = ScreenCtx::new(&data, state.get(), &matches, death.as_deref());
+    let valid = edit.valid(&data, ctx.budget);
+    if apply::apply_now(ctx.dead, valid, &edit.draft.choice(), &edit.base) {
+        applier.apply(&mut edit, &ctx, &data);
+    }
 }
 
 /// Mouse presses on everything but the magazine cards (those act on release, so they can be dragged).
@@ -604,11 +699,11 @@ fn presses(
     mut edit: ResMut<LoadoutEdit>,
     mut ui: ResMut<LoadoutUi>,
     (data, ui_data, state, matches): (Res<Data>, Res<LoadoutUiData>, Res<State<AppState>>, Query<&MatchState>),
-    (mut active, mut screens, session, mut senders): (
-        ResMut<ActiveLoadout>,
-        ResMut<Screens>,
-        Res<Session>,
-        Query<&mut MessageSender<LoadoutUpdate>, With<Client>>,
+    (mut screens, mut applier): (ResMut<Screens>, Applier),
+    (mut death, me, mut respawns): (
+        Option<ResMut<DeathState>>,
+        Query<&Vitals, With<Controlled>>,
+        Query<&mut MessageSender<RespawnRequest>, With<Client>>,
     ),
     (windows, scale, cards): (
         Query<&Window, With<PrimaryWindow>>,
@@ -616,7 +711,7 @@ fn presses(
         Query<(&Act, &ComputedNode, &UiGlobalTransform)>,
     ),
 ) {
-    let ctx = ScreenCtx::new(&data, state.get(), &matches);
+    let ctx = ScreenCtx::new(&data, state.get(), &matches, death.as_deref());
     let pressed: Option<(Act, bool)> = q.iter().find(|(i, ..)| **i == Interaction::Pressed).map(|(_, a, d)| (*a, d));
     // Enter on the keyboard focus acts like a click (magazines open their picker: no drag).
     let from_keys = ui.activate.take();
@@ -650,10 +745,17 @@ fn presses(
     match act {
         Act::Preset(i) => load_preset(edit, &mut ui, i, &data),
         Act::SaveAs => ui.save_as = true,
-        Act::Back => {
-            screens.pop();
+        Act::Back => leave(edit, &mut ui, &ctx, &data, &mut applier, &mut screens),
+        Act::Confirm if ctx.dead => {
+            let left = me.iter().next().map_or(f32::MAX, crate::death::respawn_left);
+            let death = death.as_deref_mut();
+            respawn_from_here(edit, &ctx, &data, &mut applier, &mut screens, (death, left, &mut respawns));
         }
-        Act::Confirm => confirm(edit, &ctx, &data, &mut active, &mut screens, &session, &mut senders),
+        Act::Confirm => {
+            if applier.apply(edit, &ctx, &data) {
+                screens.pop();
+            }
+        }
         Act::Agent(i) => {
             if let Some(a) = ui_data.agents.get(i) {
                 edit.draft.agent = a.id.clone();
@@ -805,16 +907,28 @@ fn right_click(
     }
 }
 
-/// Esc closes the + SAVE AS name field, else the popover. With neither open it is left to the stack's
-/// default BACK (`screens::back_on_esc`), which pops the screen and so discards unconfirmed edits.
-fn esc(mut esc: ResMut<EscPress>, mut ui: ResMut<LoadoutUi>) {
-    if !(ui.save_as || ui.pop.is_some()) || !esc.take() {
+/// Esc closes the + SAVE AS name field, else the popover, else leaves the screen like BACK ([`leave`]:
+/// applied within the points; over them a notice, and a second Esc discards).
+#[allow(clippy::too_many_arguments)]
+fn esc(
+    mut esc: ResMut<EscPress>,
+    mut ui: ResMut<LoadoutUi>,
+    mut edit: ResMut<LoadoutEdit>,
+    mut applier: Applier,
+    mut screens: ResMut<Screens>,
+    data: Res<Data>,
+    (state, matches, death): (Res<State<AppState>>, Query<&MatchState>, Option<Res<DeathState>>),
+) {
+    if !esc.take() {
         return;
     }
     if ui.save_as {
         ui.save_as = false;
-    } else {
+    } else if ui.pop.is_some() {
         ui.close_pop();
+    } else {
+        let ctx = ScreenCtx::new(&data, state.get(), &matches, death.as_deref());
+        leave(&mut edit, &mut ui, &ctx, &data, &mut applier, &mut screens);
     }
 }
 
@@ -1083,11 +1197,25 @@ pub(crate) mod tests {
         let ctx = app
             .world_mut()
             .run_system_once(move |q: Query<&MatchState>| {
-                (ScreenCtx::new(&data, &AppState::InGame, &q), ScreenCtx::new(&data, &AppState::MainMenu, &q))
+                (
+                    ScreenCtx::new(&data, &AppState::InGame, &q, None),
+                    ScreenCtx::new(&data, &AppState::MainMenu, &q, None),
+                )
             })
             .unwrap();
         assert_eq!((ctx.0.mode, ctx.0.budget), (MatchMode::Ffa, Some(10)), "in the match");
         assert_eq!(ctx.1.mode, MatchMode::Tdm, "over the menu");
+    }
+
+    /// Bevy refuses a system whose queries clash when it is first run (the missing resources only make
+    /// these runs return an error).
+    #[test]
+    fn the_apply_systems_have_no_conflicting_queries() {
+        let mut world = World::new();
+        let _ = world.run_system_once(presses);
+        let _ = world.run_system_once(esc);
+        let _ = world.run_system_once(apply_while_dead);
+        let _ = world.run_system_once(view::refresh);
     }
 
     #[test]

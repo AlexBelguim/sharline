@@ -314,7 +314,10 @@ fn keep_esc(mut esc: ResMut<EscPress>, mut screens: ResMut<Screens>) {
 }
 
 /// Send RESPAWN once per death.
-fn ask_respawn(state: &mut DeathState, senders: &mut Query<&mut MessageSender<RespawnRequest>, With<Client>>) {
+pub(crate) fn ask_respawn(
+    state: &mut DeathState,
+    senders: &mut Query<&mut MessageSender<RespawnRequest>, With<Client>>,
+) {
     if state.asked {
         return;
     }
@@ -326,7 +329,7 @@ fn ask_respawn(state: &mut DeathState, senders: &mut Query<&mut MessageSender<Re
 }
 
 /// Seconds until RESPAWN can be pressed (0: now).
-fn respawn_left(v: &Vitals) -> f32 {
+pub(crate) fn respawn_left(v: &Vitals) -> f32 {
     v.respawn_s.max(0.0)
 }
 

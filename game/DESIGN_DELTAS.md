@@ -472,3 +472,19 @@ where". After `design/ui/mockups/death.html` (mockup 10), with these differences
   `a_death_waits_for_respawn_with_a_recap_then_starts_a_new_life` and
   `a_life_recap_reaches_the_host_and_only_the_dead_player`, and `death` tests (the death cam's target, turn and
   zoom, line of sight, the rough reads, the layout).
+
+## 21. Loadout edits apply without CONFIRM (2026-10-09)
+The user: "after loadout changes you should not have to press confirm, this can be replaced with the respawn
+button with timer if dead, just confirm when still alive is fine but just esc should also work if not above
+point limit".
+- **Alive** (menu, lobby, a match where it applies at the next spawn): CONFIRM still applies; Esc and BACK now
+  apply too when the picks are within the points (they used to discard). Over the points the first Esc shows
+  "Over the points: fix it, or press Esc again to discard" and a second Esc on the same picks discards them.
+- **Dead** (the Loadout screen over the death screen): no CONFIRM. Each valid edit is saved and sent to the host
+  as it is made, so the host's fallback respawn takes it too; CONFIRM's place is RESPAWN with its timer, which
+  also respawns. Over the points RESPAWN reads OVER THE POINTS and is blocked until fixed (rather than spawning
+  you with the last valid loadout, which would not be what the screen shows); the fallback respawn still comes
+  with the last valid one. The host's check of every loadout is unchanged.
+- Pinned by `loadout::apply` tests (Esc within / over the points, the double-Esc discard, edits applied as made
+  while dead, the RESPAWN button's states).
+
