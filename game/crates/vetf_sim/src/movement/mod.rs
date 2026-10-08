@@ -129,6 +129,9 @@ pub struct MoveModifiers {
     pub fx: WeightEffects,
     /// Held weapon x attachments x item in use x wounds, applied to every ground speed.
     pub speed_mult: f32,
+    /// The part of `speed_mult` the loadout sets (held weapon x attachments): it scales the slide threshold with
+    /// the halo weight, so every loadout slides from its own run, while items and wounds do not lower it.
+    pub gear_mult: f32,
     pub legs_broken: bool,
 }
 
@@ -138,6 +141,7 @@ impl MoveModifiers {
             weight: WeightClass::None,
             fx: data.armor.effects(WeightClass::None),
             speed_mult: 1.0,
+            gear_mult: 1.0,
             legs_broken: false,
         }
     }
@@ -479,14 +483,21 @@ fn step_ground(
     }
 }
 
-/// Crouch starts a slide (from the ground, or on landing) when moving at least `slide.min_entry_speed`, within
-/// `slide.entry_max_angle_deg` of where the player faces: a run or a sprint forward slides, a crouch while
+/// Crouch starts a slide (from the ground, or on landing) when moving at least `slide.min_entry_speed` (scaled by
+/// the halo weight and the gear, like the run itself, so a Heavy halo with a slow gun still slides from its run),
+/// within `slide.entry_max_angle_deg` of where the player faces: a run or a sprint forward slides, a crouch while
 /// strafing or backpedalling does not.
 fn can_slide(m: &MovementSpec, st: &MoveState, fwd: Vec3, mods: &MoveModifiers) -> bool {
     let vh = horizontal(st.vel);
     let speed = vh.length();
     let cone = m.slide.entry_max_angle_deg.to_radians().cos();
-    !mods.legs_broken && speed >= m.slide.min_entry_speed && vh.dot(fwd) >= speed * cone - 1e-4
+    let min = slide_entry_speed(m, mods);
+    !mods.legs_broken && speed >= min && vh.dot(fwd) >= speed * cone - 1e-4
+}
+
+/// The speed a slide needs for this player: `slide.min_entry_speed` scaled by the halo weight and the gear.
+pub fn slide_entry_speed(m: &MovementSpec, mods: &MoveModifiers) -> f32 {
+    m.slide.min_entry_speed * mods.fx.move_mult * mods.gear_mult
 }
 
 fn enter_air(st: &mut MoveState) {

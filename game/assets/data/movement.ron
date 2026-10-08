@@ -39,7 +39,9 @@
     ),
     fall_damage: (free_drop_m: 7.0, legs_hp_per_m: 12.0),
     slide: (
-        // Below jog (4.8) and backpedal (4.08 = jog x 0.85), well above walk (2.6) and crouch (2.4).
+        // Below jog (4.8) and backpedal (4.08 = jog x 0.85), well above walk (2.6) and crouch (2.4). Scaled like the
+        // run itself by the halo weight and the gun with its attachments (Heavy + Warden: 3.27 against a 3.93 jog),
+        // so every loadout slides from its own run; an item in use or a wound slow does not lower it.
         min_entry_speed: 4.0,
         // Moving within this angle of the facing: run or sprint forward (diagonals included), not a strafe.
         entry_max_angle_deg: 60.0,
