@@ -11,8 +11,10 @@ use vetf_sim::ZoneTable;
 use vetf_sim::combat::{HaloSpec, HaloState, Health, falloff, resolve_hit};
 use vetf_sim::data::{AmmoChoice, AmmoKind, AmmoSpec, ArmorStats, RecoilSpec, WeaponClass};
 use vetf_sim::hitbox::{self, Pose};
-use vetf_sim::movement::Stance;
-use vetf_sim::weapon::{fire_interval_ticks, shot_direction, shot_seed};
+use vetf_sim::movement::{MoveMode, Stance};
+use vetf_sim::weapon::{
+    ADS_AIMED, WeaponAction, WeaponEnv, WeaponLoadout, WeaponState, fire_interval_ticks, shot_direction, shot_seed,
+};
 
 const NEVER: f32 = 1.0;
 const SKINK: &str = "sk9_skink";
@@ -452,7 +454,10 @@ fn a_learned_pull_keeps_an_aimed_mako_spray_on_a_torso_at_15_m() {
     let torso = d.hitboxes.boxes.iter().find(|b| b.zone == Zone::Torso).unwrap();
     let aim = (target.pos + Vec3::new(torso.center.0, torso.center.1, torso.center.2) - eye).normalize();
     let (yaw0, pitch0) = ((-aim.x).atan2(-aim.z), aim.y.asin());
-    let spread = w.spread_deg.ads_still;
+    // Standing still and aimed there is no random spread at all now (DESIGN_DELTAS.md section 12; this pin used the
+    // old 0.08 deg `ads_still` cone), so the learned pull puts every round exactly where it aims.
+    let spread = cone(&d, MAKO, &still(), 1.0, 0.0);
+    assert_eq!(spread, 0.0);
     let zones = |pulled: bool| -> Vec<Option<Zone>> {
         (0..ROUNDS)
             .map(|i| {
@@ -470,4 +475,72 @@ fn a_learned_pull_keeps_an_aimed_mako_spray_on_a_torso_at_15_m() {
     let free = zones(false);
     let left = free.iter().position(|z| *z != Some(Zone::Torso)).expect("the climb leaves the torso");
     assert!(left < 4, "without pulling down the spray leaves the torso at round {}: {free:?}", left + 1);
+}
+
+fn still() -> WeaponEnv {
+    WeaponEnv {
+        mode: MoveMode::Ground,
+        sprinting: false,
+        crouched: false,
+        speed_frac: 0.0,
+        broken_arms: false,
+        hands_busy: false,
+    }
+}
+
+/// The random cone (degrees) of `weapon`'s next shot in `env` (default parts), `ads` of the way aimed, with `bloom`
+/// (hip degrees) of sustained-fire bloom built up.
+fn cone(d: &GameData, weapon: &str, env: &WeaponEnv, ads: f32, bloom: f32) -> f32 {
+    let l = WeaponLoadout::resolve(d, weapon, &[AmmoChoice::STANDARD], &[]).unwrap();
+    let mut s = WeaponState::new(d, &l);
+    s.action = WeaponAction::Ready;
+    (s.ads, s.bloom_deg) = (ads, bloom);
+    s.spread_deg(d, l.spec(d), &l, env)
+}
+
+/// Playtest round 2 (DIRECTION_LOG 16 and 17): aimed shots stay accurate on the move. Aimed at the head of a target
+/// 25 m away (the Warden: 50 m), with the most sustained-fire bloom built up, every shot hits the head (real
+/// hitboxes, 512 shooters each) whatever the shooter does: walking, crouch walking, jogging, sprinting, sliding, in
+/// the air, on a zipline or the jetpack. From the hip the same shots miss the head most of the time: hip fire keeps
+/// its movement penalty.
+#[test]
+fn aimed_shots_on_the_move_hit_a_head() {
+    let d = GameData::embedded();
+    let speed = &d.movement.speed;
+    let sprint = speed.sprint / speed.jog;
+    let ground =
+        |speed_frac: f32, crouched: bool| WeaponEnv { speed_frac, crouched, sprinting: speed_frac > 1.0, ..still() };
+    let states = [
+        ("walk", ground(speed.walk / speed.jog, false)),
+        ("crouch walk", ground(speed.crouch / speed.jog, true)),
+        ("jog", ground(1.0, false)),
+        ("sprint", ground(sprint, false)),
+        ("slide", WeaponEnv { mode: MoveMode::Slide, speed_frac: 2.0, ..still() }),
+        ("air", WeaponEnv { mode: MoveMode::Air, speed_frac: sprint, ..still() }),
+        ("zipline", WeaponEnv { mode: MoveMode::Zipline, speed_frac: 11.0 / speed.jog, ..still() }),
+        ("jetpack", WeaponEnv { mode: MoveMode::Jetpack, speed_frac: 1.0, ..still() }),
+    ];
+    let head = d.hitboxes.boxes.iter().find(|b| b.zone == Zone::Head).unwrap();
+    let eye = Vec3::Y * d.movement.eye_height.stand;
+    for (weapon, range) in [(MAKO, 25.0), (SKINK, 25.0), (WARDEN, 50.0)] {
+        let target = Pose { pos: Vec3::new(0.0, 0.0, -range), yaw: 0.0, stance: Stance::Stand };
+        let aim = (target.pos + Vec3::new(head.center.0, head.center.1, head.center.2) - eye).normalize();
+        let (yaw, pitch) = ((-aim.x).atan2(-aim.z), aim.y.asin());
+        let heads = |spread: f32| {
+            (0..512)
+                .filter(|i| {
+                    let dir = shot_direction(yaw, pitch, spread, shot_seed(3, *i));
+                    hitbox::raycast(&d, &target, eye, dir, 200.0).map(|(z, _)| z) == Some(Zone::Head)
+                })
+                .count()
+        };
+        let bloom = d.weapon(weapon).unwrap().spread_deg.bloom_max_hip;
+        let mut hip_heads = 0;
+        for (name, env) in states {
+            let aimed = cone(&d, weapon, &env, ADS_AIMED, bloom);
+            assert_eq!(heads(aimed), 512, "{weapon} {name}: aimed cone {aimed} deg");
+            hip_heads += heads(cone(&d, weapon, &env, 0.0, bloom));
+        }
+        assert!(hip_heads < 512 * states.len() / 4, "{weapon}: hip fire on the move hits the head {hip_heads} times");
+    }
 }

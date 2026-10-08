@@ -294,28 +294,39 @@ impl AmmoFile {
     }
 }
 
-/// Spread cone half-angles (degrees). Aimed (fully in), a gun has `ads_still` whatever the player does: the
-/// movement, air, slide, zipline and jetpack values are hip-fire penalties only (user direction 2026-10-08).
+/// Random spread (cone half-angles, degrees) while moving: the bloom on top of the fixed recoil pattern (user
+/// direction 2026-10-08, DIRECTION_LOG 17). Standing still (on the ground, under `move_threshold_frac` of jog
+/// speed, any stance) a gun has no random spread at all, hip or aimed: the pattern is the whole story. Moving, hip
+/// fire opens with speed and state (walk < jog < sprint, and the slide, air, zipline and jetpack floors) and with
+/// sustained fire; aimed, the same cone is scaled down to `ads_move_mult`, so aimed shots stay accurate.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct SpreadSpec {
-    pub ads_still: f32,
-    pub hip_still: f32,
-    pub crouch_mult: f32,
-    pub move_full_hip: f32,
-    /// Movement below this fraction of jog speed counts as standing still.
+    /// On the ground below this fraction of jog speed counts as standing still: no random spread.
     pub move_threshold_frac: f32,
+    /// Crouched (on the ground), the moving cone and its bloom are this much tighter.
+    pub crouch_mult: f32,
+    /// Hip-fire cone at walking speed, at jog speed (`move_full_hip`) and at sprint speed or faster; linear in
+    /// between (from 0 at `move_threshold_frac`).
+    pub walk_hip: f32,
+    pub move_full_hip: f32,
+    pub sprint_hip: f32,
+    /// Hip-fire floors in the air, in a slide, on a zipline and on the jetpack.
     pub air: f32,
     pub slide: f32,
     pub zipline: f32,
     pub jetpack: f32,
-    #[serde(default)]
-    pub bloom_per_shot_ads: f32,
+    /// Aimed (from [`crate::weapon::ADS_AIMED`]), the movement cone is the hip cone (before hip attachments) times
+    /// this.
+    pub ads_move_mult: f32,
+    /// Sustained fire while moving: each shot adds `bloom_per_shot_hip` (times how much the player moves) up to
+    /// `bloom_max_hip`. Aimed, the same bloom counts at `bloom_max_ads / bloom_max_hip`.
     #[serde(default)]
     pub bloom_max_ads: f32,
     #[serde(default)]
     pub bloom_per_shot_hip: f32,
     #[serde(default)]
     pub bloom_max_hip: f32,
+    /// The bloom settles at `bloom_decay_deg_per_s` (hip degrees) once no shot came for `bloom_decay_delay_s`.
     #[serde(default)]
     pub bloom_decay_delay_s: f32,
     #[serde(default)]
@@ -366,10 +377,12 @@ pub struct PatternRecoilSpec {
     pub view_punch_return_s: f32,
 }
 
+/// One fixed kick per shot (no randomness: the same every shot, so it can be learned).
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct KickRecoilSpec {
     pub kick_pitch_deg: f32,
-    pub kick_yaw_rand_deg: f32,
+    /// Yaw right (+) per shot.
+    pub kick_yaw_deg: f32,
     pub recover_frac: f32,
     pub recover_s: f32,
 }
@@ -1258,6 +1271,26 @@ impl GameData {
             }
             if w.rpm <= 0.0 {
                 return bad(format!("{}: rpm must be positive", w.id));
+            }
+            // Moving is never more accurate than standing still (no random spread): every cone is 0 or more, and
+            // the still threshold sits under the slowest gait, so a crouch walk counts as moving.
+            let (sp, speed) = (&w.spread_deg, &self.movement.speed);
+            let cones = [sp.walk_hip, sp.move_full_hip, sp.sprint_hip, sp.air, sp.slide, sp.zipline, sp.jetpack];
+            let blooms = [sp.ads_move_mult, sp.bloom_max_ads, sp.bloom_per_shot_hip, sp.bloom_max_hip];
+            let threshold_ok =
+                sp.move_threshold_frac > 0.0 && sp.move_threshold_frac * speed.jog < speed.walk.min(speed.crouch);
+            let gaits_ok = speed.walk < speed.jog && speed.jog < speed.sprint;
+            if cones.iter().chain(&blooms).any(|c| c.is_nan() || *c < 0.0)
+                || !(0.0..=1.0).contains(&sp.crouch_mult)
+                || sp.crouch_mult == 0.0
+                || !threshold_ok
+                || !gaits_ok
+            {
+                return bad(format!(
+                    "{}: spread cones must be >= 0, crouch_mult in (0, 1], and the still threshold under walk and \
+                     crouch speed",
+                    w.id
+                ));
             }
             if let RecoilSpec::Pattern(p) = &w.recoil
                 && !self.recoil_patterns.contains_key(&p.pattern)
