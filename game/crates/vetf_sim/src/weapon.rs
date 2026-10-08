@@ -1454,6 +1454,32 @@ mod tests {
         assert!((s.spread_deg(&d, l.spec(&d), &l, &run) - 2.6).abs() < 1e-5, "the next run starts fresh");
     }
 
+    /// On the run, hip fire opens with every shot of a spray (the first one has only the movement cone) and closes
+    /// back to the movement cone once the trigger is let go, while still running.
+    #[test]
+    fn hip_bloom_grows_through_a_spray_and_settles_after() {
+        for gun in ["ar7_mako", "sk9_skink"] {
+            let (d, l, mut s) = setup(gun);
+            let spec = l.spec(&d);
+            let run = WeaponEnv { speed_frac: 1.0, ..still() };
+            let base = s.spread_deg(&d, spec, &l, &run);
+            let cones: Vec<f32> = (0..60)
+                .filter_map(|_| s.step(&d, &l, &input(Buttons::FIRE), &run).shot.map(|s| s.spread_deg))
+                .collect();
+            assert!(cones.len() >= 10, "{gun}");
+            assert_eq!(cones[0], base, "{gun}: the first shot has the movement cone alone");
+            assert!(cones.windows(2).all(|w| w[1] > w[0]), "{gun}: every shot opens it more: {cones:?}");
+            let after: Vec<f32> = (0..60)
+                .map(|_| {
+                    s.step(&d, &l, &input(0), &run);
+                    s.spread_deg(&d, spec, &l, &run)
+                })
+                .collect();
+            assert!(after.windows(2).all(|w| w[1] <= w[0]), "{gun}: it only closes: {after:?}");
+            assert!((after[59] - base).abs() < 1e-5, "{gun}: back to the movement cone: {}", after[59]);
+        }
+    }
+
     /// From a sprint, aim and trigger held: the shot goes off no later than the first tick the gun is aimed, for
     /// every gun, with its default parts and with its fastest-aiming build (review: the faster ADS of playtest round
     /// 1 waited on the raise from the sprint pose, so a run gained nothing from it).

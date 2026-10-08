@@ -1272,23 +1272,28 @@ impl GameData {
             if w.rpm <= 0.0 {
                 return bad(format!("{}: rpm must be positive", w.id));
             }
-            // Moving is never more accurate than standing still (no random spread): every cone is 0 or more, and
-            // the still threshold sits under the slowest gait, so a crouch walk counts as moving.
+            // Moving is never more accurate than standing still (no random spread there), and faster is never
+            // tighter (DIRECTION_LOG 17): hip cones 0 < walk <= jog <= sprint <= every air / slide / zipline / jetpack
+            // floor, aimed fire no wider than hip, and the still threshold under the slowest gait, so a crouch walk
+            // counts as moving.
             let (sp, speed) = (&w.spread_deg, &self.movement.speed);
-            let cones = [sp.walk_hip, sp.move_full_hip, sp.sprint_hip, sp.air, sp.slide, sp.zipline, sp.jetpack];
-            let blooms = [sp.ads_move_mult, sp.bloom_max_ads, sp.bloom_per_shot_hip, sp.bloom_max_hip];
+            let floors = [sp.air, sp.slide, sp.zipline, sp.jetpack];
+            let blooms = [sp.bloom_max_ads, sp.bloom_per_shot_hip, sp.bloom_max_hip];
+            let cones_ok = sp.walk_hip > 0.0
+                && sp.walk_hip <= sp.move_full_hip
+                && sp.move_full_hip <= sp.sprint_hip
+                && floors.iter().all(|f| *f >= sp.sprint_hip)
+                && (0.0..=1.0).contains(&sp.ads_move_mult)
+                && blooms.iter().all(|b| *b >= 0.0)
+                && sp.bloom_max_ads <= sp.bloom_max_hip;
             let threshold_ok =
                 sp.move_threshold_frac > 0.0 && sp.move_threshold_frac * speed.jog < speed.walk.min(speed.crouch);
             let gaits_ok = speed.walk < speed.jog && speed.jog < speed.sprint;
-            if cones.iter().chain(&blooms).any(|c| c.is_nan() || *c < 0.0)
-                || !(0.0..=1.0).contains(&sp.crouch_mult)
-                || sp.crouch_mult == 0.0
-                || !threshold_ok
-                || !gaits_ok
-            {
+            if !cones_ok || !(sp.crouch_mult > 0.0 && sp.crouch_mult <= 1.0) || !threshold_ok || !gaits_ok {
                 return bad(format!(
-                    "{}: spread cones must be >= 0, crouch_mult in (0, 1], and the still threshold under walk and \
-                     crouch speed",
+                    "{}: hip cones must rise 0 < walk <= jog <= sprint <= air / slide / zipline / jetpack, aimed \
+                     (ads_move_mult in [0, 1], bloom_max_ads <= bloom_max_hip) no wider than hip, crouch_mult in \
+                     (0, 1], and the still threshold under walk and crouch speed",
                     w.id
                 ));
             }
@@ -1583,5 +1588,30 @@ mod tests {
         let mut d = GameData::embedded();
         d.weapons.weapons[0].mag_default = "optic_holo".into();
         assert!(d.validate().is_err());
+    }
+
+    /// Spread tuning can never make moving as accurate as standing still, a faster state tighter than a slower one,
+    /// or aimed fire wider than hip fire (DIRECTION_LOG 17).
+    #[test]
+    fn spread_that_rewards_moving_is_rejected() {
+        let ok = GameData::embedded();
+        assert!(ok.validate().is_ok());
+        type Break = fn(&mut SpreadSpec);
+        let broken: [(&str, Break); 9] = [
+            ("no cone at a walk", |s| s.walk_hip = 0.0),
+            ("a jog tighter than a walk", |s| s.move_full_hip = s.walk_hip * 0.5),
+            ("a sprint tighter than a jog", |s| s.sprint_hip = s.move_full_hip * 0.5),
+            ("a slide tighter than a sprint", |s| s.slide = s.sprint_hip * 0.5),
+            ("the air tighter than a sprint", |s| s.air = s.sprint_hip * 0.5),
+            ("aimed wider than hip", |s| s.ads_move_mult = 1.5),
+            ("aimed bloom past hip bloom", |s| s.bloom_max_ads = s.bloom_max_hip + 1.0),
+            ("no still threshold", |s| s.move_threshold_frac = 0.0),
+            ("a NaN cone", |s| s.zipline = f32::NAN),
+        ];
+        for (why, f) in broken {
+            let mut d = ok.clone();
+            f(&mut d.weapons.weapons[0].spread_deg);
+            assert!(d.validate().is_err(), "{why}");
+        }
     }
 }

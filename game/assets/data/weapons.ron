@@ -46,7 +46,7 @@
             // walking, 2.6 jogging, 3.0 sprinting, sliding, on a zipline or the jetpack, 4.0 in the air, plus up to
             // 1.6 of sustained-fire bloom (14 moving shots, 1.1 s). Aimed: x0.04 and at most 0.04 of bloom, so at
             // most 0.2 deg (8.7 cm at 25 m: inside a head). The bloom waits longer than any automatic fire interval
-            // (aimed 600 rpm: 0.1 s) before it settles, so it builds through a spray, and settles in about 0.7 s.
+            // (aimed 612 rpm: 0.1 s) before it settles, so it builds through a spray, and settles in about 0.7 s.
             spread_deg: (
                 move_threshold_frac: 0.1,
                 crouch_mult: 0.85,
