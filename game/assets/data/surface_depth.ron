@@ -1,0 +1,40 @@
+// Parallax depth on the Showhome surfaces (src/map_materials.rs). The depth, AO and extra normal maps are made by
+// assets/fx/depth/build_depth.py, which reproduces the texture library's own structure (joints, beads, slabs,
+// shingle butts) so the relief lands exactly on what the albedo paints. Depth maps carve INTO the face: the face
+// is the top of the relief, so silhouettes never disagree with it.
+(
+    // Per VIDEO quality PRESET. `layers`: steep-parallax steps at a grazing view (1 looking straight at the face);
+    // 0 turns parallax and its AO off (the surfaces then look as before). `relief_steps` > 0 refines the hit with
+    // that many binary-search steps (relief mapping, sharper joints, no stair steps); 0 = parallax occlusion
+    // mapping (one extra sample). Every step is one texture sample per pixel on these surfaces.
+    quality: (
+        low: (layers: 0, relief_steps: 0),
+        medium: (layers: 8, relief_steps: 0),
+        high: (layers: 12, relief_steps: 4),
+        ultra: (layers: 20, relief_steps: 6),
+    ),
+    // Albedo (map_materials.rs) -> its relief. `maps`: <maps>_depth.png (16-bit, white = deepest) and
+    // <maps>_orm.png (R = AO) in textures/showhome/. `depth_cm`: how deep white is; build_depth.py prints the depth
+    // each map was modelled at (out/depth.json), which is what these start at: scale to taste, but more than
+    // about 2 cm starts to swim at box edges. `normal`: a normal map made from the same heights for a surface the
+    // library has none for. `occlusion`: use the AO (default true).
+    surfaces: {
+        // 0.6 m slabs: 9 mm sanded joints, 4 mm rolled edges, slabs up to 0.8 mm off their neighbours.
+        "paving_slabs": (maps: "paving_slabs", depth_cm: 1.18),
+        // 4 cm printed beads, 6 mm grooves.
+        "printed_concrete_layers": (maps: "printed_concrete_layers", depth_cm: 0.76),
+        // Shingle courses rising 12 mm to their butt edge, side joints and the shadow line under each butt.
+        "roof_shingle_dark": (maps: "roof_shingle_dark", depth_cm: 1.33),
+        // 12 mm shadow-gap joints between the 1.2 x 2.4 m panels.
+        "fibercement_sage": (maps: "fibercement_panel_joints", depth_cm: 1.2),
+        "fibercement_clay": (maps: "fibercement_panel_joints", depth_cm: 1.2),
+        // Pebble domes 10 mm proud (heights partly from Krea2, see build_depth.py). 16 mm turned the drive into a
+        // dark, noisy speckle at a grazing view.
+        "gravel": (maps: "gravel", depth_cm: 1.0, normal: Some("gravel_normal")),
+        // Aggregate 2 mm proud: below a pixel of parallax at a 4 m repeat, so no depth (it would cost on the whole
+        // street for nothing); the normal map and AO from the same heights carry it.
+        "asphalt": (maps: "asphalt", depth_cm: 0.0, normal: Some("asphalt_normal")),
+        // Blade tips 8 mm above the ground between them: subtle on purpose.
+        "grass_lawn": (maps: "grass_lawn", depth_cm: 0.8, normal: Some("grass_lawn_normal")),
+    },
+)

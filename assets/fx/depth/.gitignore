@@ -1,0 +1,3 @@
+# Look-dev previews and bytecode: build_depth.py regenerates the previews on every run.
+preview/
+__pycache__/

@@ -1,6 +1,7 @@
 //! The VIDEO settings put to work (hub spec 10): window mode and resolution, V-sync, a frame limiter,
 //! brightness, anti-aliasing, shadows, bloom, the cheap screen effects (contact shadows, motion blur,
-//! vignette) and the performance overlay. Every change applies at once.
+//! vignette), the map's parallax surface depth (by quality preset) and the performance overlay. Every change
+//! applies at once.
 //!
 //! Not applied: render scale (it needs a render-to-texture 3D camera), stylized outlines and particles (the
 //! blockout renderer has neither) and SSR (Bevy's only works with deferred rendering).
@@ -10,8 +11,9 @@
 //! `--demo-ui overlay`), so screenshots compare cleanly with the mockups.
 
 use crate::config::Cli;
+use crate::map_materials::SurfaceDepthLevel;
 use crate::render::ViewCamera;
-use crate::settings::{Aa, Bloom as BloomLevel, Overlay, Resolution, Settings, SettingsData, VideoSettings};
+use crate::settings::{Aa, Bloom as BloomLevel, Overlay, Preset, Resolution, Settings, SettingsData, VideoSettings};
 use crate::settings::{Shadows, WindowModeChoice};
 use crate::ui_kit::{self as kit, Face, UiFonts, abs};
 use bevy::anti_alias::{fxaa::Fxaa, smaa::Smaa, taa::TemporalAntiAliasing};
@@ -40,8 +42,9 @@ impl Plugin for VideoPlugin {
             app.add_plugins(FrameTimeDiagnosticsPlugin::default());
         }
         app.insert_resource(FrameClock(Instant::now()))
+            .init_resource::<SurfaceDepthLevel>()
             .add_systems(Startup, spawn_overlay)
-            .add_systems(Update, (apply_window, apply_camera, apply_shadows, update_overlay))
+            .add_systems(Update, (apply_window, apply_camera, apply_shadows, apply_surface_depth, update_overlay))
             .add_systems(Last, limit_frame_rate);
     }
 }
@@ -338,6 +341,29 @@ fn apply_shadows(
     }
 }
 
+// ---------------------------------------------------------------------------------------------- surface depth
+
+/// The map's parallax depth (`map_materials`, `surface_depth.ron`) follows the quality PRESET: off on LOW, more
+/// layers on HIGH / ULTRA. `VETF_SURFACE_DEPTH=off|low|medium|high|ultra` overrides it (before / after shots).
+pub fn surface_depth_preset(preset: Preset, env: Option<&str>) -> Preset {
+    match env.map(|s| s.trim().to_ascii_lowercase()).as_deref() {
+        Some("off" | "low") => Preset::Low,
+        Some("medium") => Preset::Medium,
+        Some("high") => Preset::High,
+        Some("ultra") => Preset::Ultra,
+        _ => preset,
+    }
+}
+
+fn apply_surface_depth(
+    settings: Res<Settings>,
+    mut level: ResMut<SurfaceDepthLevel>,
+    mut env: Local<Option<Option<String>>>,
+) {
+    let env = env.get_or_insert_with(|| std::env::var("VETF_SURFACE_DEPTH").ok());
+    level.set_if_neq(SurfaceDepthLevel(surface_depth_preset(settings.video.preset, env.as_deref())));
+}
+
 // ---------------------------------------------------------------------------------------------- overlay
 
 #[derive(Component)]
@@ -497,6 +523,14 @@ mod tests {
         assert_eq!(shadow_setup(Shadows::Low, d), (1024, 1));
         assert_eq!(shadow_setup(Shadows::Medium, d), (2048, 2));
         assert_eq!(shadow_setup(Shadows::High, d), (4096, 4));
+    }
+
+    #[test]
+    fn surface_depth_follows_the_preset() {
+        assert_eq!(surface_depth_preset(Preset::Medium, None), Preset::Medium);
+        assert_eq!(surface_depth_preset(Preset::Ultra, Some("off")), Preset::Low);
+        assert_eq!(surface_depth_preset(Preset::Low, Some(" High ")), Preset::High);
+        assert_eq!(surface_depth_preset(Preset::High, Some("nonsense")), Preset::High);
     }
 
     #[test]

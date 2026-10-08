@@ -1,0 +1,74 @@
+{
+ "asphalt": {
+  "ao_mean": 0.986,
+  "ao_min": 0.843,
+  "depth_cm": 0.22,
+  "repeat_m": 4.0
+ },
+ "asphalt_cracked": {
+  "align_ratio": 0.631,
+  "ao_mean": 0.982,
+  "ao_min": 0.72,
+  "depth_cm": 0.82,
+  "misaligned_ratio": 1.009,
+  "repeat_m": 4.0
+ },
+ "fibercement_panel_joints": {
+  "align_ratio": 0.585,
+  "ao_mean": 0.991,
+  "ao_min": 0.72,
+  "depth_cm": 1.2,
+  "misaligned_ratio": 0.992,
+  "repeat_m": 4.8
+ },
+ "garden_soil": {
+  "ao_mean": 0.938,
+  "ao_min": 0.75,
+  "depth_cm": 1.2,
+  "repeat_m": 1.0
+ },
+ "grass_lawn": {
+  "ao_mean": 0.976,
+  "ao_min": 0.85,
+  "depth_cm": 0.8,
+  "repeat_m": 2.0
+ },
+ "gravel": {
+  "ao_mean": 0.943,
+  "ao_min": 0.85,
+  "depth_cm": 1.001,
+  "repeat_m": 1.0
+ },
+ "kerb_concrete": {
+  "align_ratio": 0.552,
+  "ao_mean": 0.994,
+  "ao_min": 0.72,
+  "depth_cm": 0.683,
+  "misaligned_ratio": 1.002,
+  "repeat_m": 2.0
+ },
+ "paving_slabs": {
+  "align_ratio": 0.639,
+  "ao_mean": 0.984,
+  "ao_min": 0.72,
+  "depth_cm": 1.176,
+  "misaligned_ratio": 1.012,
+  "repeat_m": 2.4
+ },
+ "printed_concrete_layers": {
+  "align_ratio": 0.86,
+  "ao_mean": 0.958,
+  "ao_min": 0.72,
+  "depth_cm": 0.757,
+  "misaligned_ratio": 1.049,
+  "repeat_m": 1.28
+ },
+ "roof_shingle_dark": {
+  "align_ratio": 0.542,
+  "ao_mean": 0.989,
+  "ao_min": 0.72,
+  "depth_cm": 1.331,
+  "misaligned_ratio": 1.01,
+  "repeat_m": 2.0
+ }
+}
