@@ -12,3 +12,4 @@
 *.md text eol=lf
 *.toml text eol=lf
 *.json text eol=lf
+game/assets/maps/**/*.png filter=lfs diff=lfs merge=lfs -text

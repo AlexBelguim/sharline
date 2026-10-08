@@ -1,0 +1,483 @@
+{
+  "_doc": "v2 1024 square trim sheet. U repeats4m, unchanged15 strip UV rectangles. V density512px/m; U256px/m. Height0..0.006m. OpenGL normals; ORM=AO,roughness,metalness.",
+  "texture": "trim_sheet_house.png",
+  "normal": "trim_sheet_house_normal.png",
+  "orm": "trim_sheet_house_orm.png",
+  "size_px": [
+    1024,
+    1024
+  ],
+  "px_per_m": {
+    "u": 256,
+    "v": 512
+  },
+  "u_repeat_m": 4.0,
+  "strips": [
+    {
+      "name": "window_frame_dark",
+      "use": "Dark aluminium window frames and mullions (the slim dark frames of the concept's big windows).",
+      "px": [
+        0,
+        0,
+        1024,
+        64
+      ],
+      "uv_gltf": [
+        0.0,
+        0.0,
+        1.0,
+        0.0625
+      ],
+      "uv_blender": [
+        0.0,
+        0.9375,
+        1.0,
+        1.0
+      ],
+      "profile_width_m": 0.125,
+      "u_repeat_m": 4.0,
+      "roughness": 0.45,
+      "metallic": 0.0,
+      "albedo_srgb": [
+        54,
+        49,
+        54
+      ]
+    },
+    {
+      "name": "window_frame_cream",
+      "use": "Cream window / glazing frames (the light frames inside the big window surrounds).",
+      "px": [
+        0,
+        64,
+        1024,
+        128
+      ],
+      "uv_gltf": [
+        0.0,
+        0.0625,
+        1.0,
+        0.125
+      ],
+      "uv_blender": [
+        0.0,
+        0.875,
+        1.0,
+        0.9375
+      ],
+      "profile_width_m": 0.125,
+      "u_repeat_m": 4.0,
+      "roughness": 0.55,
+      "metallic": 0.0,
+      "albedo_srgb": [
+        221,
+        211,
+        191
+      ]
+    },
+    {
+      "name": "window_surround_cream",
+      "use": "Deep cream window surrounds / reveals around the big picture windows (about 25 cm deep).",
+      "px": [
+        0,
+        128,
+        1024,
+        256
+      ],
+      "uv_gltf": [
+        0.0,
+        0.125,
+        1.0,
+        0.25
+      ],
+      "uv_blender": [
+        0.0,
+        0.75,
+        1.0,
+        0.875
+      ],
+      "profile_width_m": 0.25,
+      "u_repeat_m": 4.0,
+      "roughness": 0.7,
+      "metallic": 0.0,
+      "albedo_srgb": [
+        221,
+        211,
+        191
+      ]
+    },
+    {
+      "name": "door_frame_cream",
+      "use": "Door frames / architraves and the door canopy edge.",
+      "px": [
+        0,
+        256,
+        1024,
+        320
+      ],
+      "uv_gltf": [
+        0.0,
+        0.25,
+        1.0,
+        0.3125
+      ],
+      "uv_blender": [
+        0.0,
+        0.6875,
+        1.0,
+        0.75
+      ],
+      "profile_width_m": 0.125,
+      "u_repeat_m": 4.0,
+      "roughness": 0.6,
+      "metallic": 0.0,
+      "albedo_srgb": [
+        221,
+        211,
+        191
+      ]
+    },
+    {
+      "name": "sill_cream",
+      "use": "Window sills and ledges (top + rounded nose + drip groove).",
+      "px": [
+        0,
+        320,
+        1024,
+        384
+      ],
+      "uv_gltf": [
+        0.0,
+        0.3125,
+        1.0,
+        0.375
+      ],
+      "uv_blender": [
+        0.0,
+        0.625,
+        1.0,
+        0.6875
+      ],
+      "profile_width_m": 0.125,
+      "u_repeat_m": 4.0,
+      "roughness": 0.7,
+      "metallic": 0.0,
+      "albedo_srgb": [
+        221,
+        211,
+        191
+      ]
+    },
+    {
+      "name": "coping_cream",
+      "use": "Rounded coping on the printed-concrete parapets / roof-terrace walls and chimney caps.",
+      "px": [
+        0,
+        384,
+        1024,
+        480
+      ],
+      "uv_gltf": [
+        0.0,
+        0.375,
+        1.0,
+        0.46875
+      ],
+      "uv_blender": [
+        0.0,
+        0.53125,
+        1.0,
+        0.625
+      ],
+      "profile_width_m": 0.1875,
+      "u_repeat_m": 4.0,
+      "roughness": 0.75,
+      "metallic": 0.0,
+      "albedo_srgb": [
+        214,
+        200,
+        176
+      ]
+    },
+    {
+      "name": "gutter_dark",
+      "use": "Half-round gutters (outside face) and, mapped around a cylinder, downpipes.",
+      "px": [
+        0,
+        480,
+        1024,
+        544
+      ],
+      "uv_gltf": [
+        0.0,
+        0.46875,
+        1.0,
+        0.53125
+      ],
+      "uv_blender": [
+        0.0,
+        0.46875,
+        1.0,
+        0.53125
+      ],
+      "profile_width_m": 0.125,
+      "u_repeat_m": 4.0,
+      "roughness": 0.4,
+      "metallic": 0.0,
+      "albedo_srgb": [
+        64,
+        64,
+        70
+      ]
+    },
+    {
+      "name": "fascia_dark",
+      "use": "Roof fascia / barge boards along the eaves and gable edges.",
+      "px": [
+        0,
+        544,
+        1024,
+        640
+      ],
+      "uv_gltf": [
+        0.0,
+        0.53125,
+        1.0,
+        0.625
+      ],
+      "uv_blender": [
+        0.0,
+        0.375,
+        1.0,
+        0.46875
+      ],
+      "profile_width_m": 0.1875,
+      "u_repeat_m": 4.0,
+      "roughness": 0.55,
+      "metallic": 0.0,
+      "albedo_srgb": [
+        70,
+        66,
+        70
+      ]
+    },
+    {
+      "name": "railing_cap_steel",
+      "use": "Brushed stainless handrail cap and glass-railing clamps on the roof terraces (metallic).",
+      "px": [
+        0,
+        640,
+        1024,
+        672
+      ],
+      "uv_gltf": [
+        0.0,
+        0.625,
+        1.0,
+        0.65625
+      ],
+      "uv_blender": [
+        0.0,
+        0.34375,
+        1.0,
+        0.375
+      ],
+      "profile_width_m": 0.0625,
+      "u_repeat_m": 4.0,
+      "roughness": 0.3,
+      "metallic": 1.0,
+      "albedo_srgb": [
+        176,
+        178,
+        182
+      ]
+    },
+    {
+      "name": "vent_louvre",
+      "use": "Wall vents / AC grille: horizontal louvres; frame it with window_frame_dark.",
+      "px": [
+        0,
+        672,
+        1024,
+        800
+      ],
+      "uv_gltf": [
+        0.0,
+        0.65625,
+        1.0,
+        0.78125
+      ],
+      "uv_blender": [
+        0.0,
+        0.21875,
+        1.0,
+        0.34375
+      ],
+      "profile_width_m": 0.25,
+      "u_repeat_m": 4.0,
+      "roughness": 0.5,
+      "metallic": 0.0,
+      "albedo_srgb": [
+        120,
+        122,
+        128
+      ]
+    },
+    {
+      "name": "garage_door_slats",
+      "use": "Garage door / carport store: dark wood-look horizontal slats (2 boards per strip height).",
+      "px": [
+        0,
+        800,
+        1024,
+        928
+      ],
+      "uv_gltf": [
+        0.0,
+        0.78125,
+        1.0,
+        0.90625
+      ],
+      "uv_blender": [
+        0.0,
+        0.09375,
+        1.0,
+        0.21875
+      ],
+      "profile_width_m": 0.25,
+      "u_repeat_m": 4.0,
+      "roughness": 0.65,
+      "metallic": 0.0,
+      "albedo_srgb": [
+        83,
+        72,
+        66
+      ]
+    },
+    {
+      "name": "solar_frame",
+      "use": "Solar module frame edges (anodised aluminium) and roof-window frames.",
+      "px": [
+        0,
+        928,
+        1024,
+        960
+      ],
+      "uv_gltf": [
+        0.0,
+        0.90625,
+        1.0,
+        0.9375
+      ],
+      "uv_blender": [
+        0.0,
+        0.0625,
+        1.0,
+        0.09375
+      ],
+      "profile_width_m": 0.0625,
+      "u_repeat_m": 4.0,
+      "roughness": 0.35,
+      "metallic": 0.6,
+      "albedo_srgb": [
+        62,
+        64,
+        72
+      ]
+    },
+    {
+      "name": "flashing_dark",
+      "use": "Lead-grey flashing around the chimney and roof edges, ridge capping.",
+      "px": [
+        0,
+        960,
+        1024,
+        992
+      ],
+      "uv_gltf": [
+        0.0,
+        0.9375,
+        1.0,
+        0.96875
+      ],
+      "uv_blender": [
+        0.0,
+        0.03125,
+        1.0,
+        0.0625
+      ],
+      "profile_width_m": 0.0625,
+      "u_repeat_m": 4.0,
+      "roughness": 0.5,
+      "metallic": 0.3,
+      "albedo_srgb": [
+        88,
+        90,
+        96
+      ]
+    },
+    {
+      "name": "seal_rubber",
+      "use": "Rubber gaskets / glazing seals (thin dark line between frame and glass).",
+      "px": [
+        0,
+        992,
+        1024,
+        1008
+      ],
+      "uv_gltf": [
+        0.0,
+        0.96875,
+        1.0,
+        0.984375
+      ],
+      "uv_blender": [
+        0.0,
+        0.015625,
+        1.0,
+        0.03125
+      ],
+      "profile_width_m": 0.0312,
+      "u_repeat_m": 4.0,
+      "roughness": 0.8,
+      "metallic": 0.0,
+      "albedo_srgb": [
+        30,
+        30,
+        33
+      ]
+    },
+    {
+      "name": "plain_dark",
+      "use": "Flat frame_dark colour for tiny parts (hinges, handles' backplates, bolts).",
+      "px": [
+        0,
+        1008,
+        1024,
+        1024
+      ],
+      "uv_gltf": [
+        0.0,
+        0.984375,
+        1.0,
+        1.0
+      ],
+      "uv_blender": [
+        0.0,
+        0.0,
+        1.0,
+        0.015625
+      ],
+      "profile_width_m": 0.0312,
+      "u_repeat_m": 4.0,
+      "roughness": 0.5,
+      "metallic": 0.0,
+      "albedo_srgb": [
+        54,
+        49,
+        54
+      ]
+    }
+  ],
+  "height": "trim_sheet_house_height.png"
+}

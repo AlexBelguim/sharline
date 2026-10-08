@@ -10,7 +10,7 @@ pub mod hit_fx;
 mod tracer_fx;
 
 use crate::AppState;
-use crate::client::{Feedback, LocalControl, Smoothed};
+use crate::client::{LocalControl, Smoothed};
 use crate::config::{CurrentLevel, Data};
 use crate::settings::{MouseSettings, Settings, vertical_fov, zoomed_fov};
 use crate::weapon_models::{GunLook, Scope, WeaponModels, face_ahead};
@@ -189,6 +189,21 @@ fn spawn_level(
     mut materials: ResMut<Assets<StandardMaterial>>,
 ) {
     let showhome = level.name.eq_ignore_ascii_case("showhome");
+    if showhome {
+        // Showhome's real art scenes and sagging zipline are loaded by ShowhomeKitPlugin. The simulation
+        // still uses these brushes for collision; drawing them too would obscure the kit with boxes.
+        commands.spawn((
+            DirectionalLight {
+                color: Color::linear_rgb(1.0, 0.84, 0.66),
+                illuminance: 9000.0,
+                shadow_maps_enabled: true,
+                ..default()
+            },
+            crate::showhome_kit::sun_transform(),
+            DespawnOnExit(AppState::InGame),
+        ));
+        return;
+    }
     let textures = textures.filter(|_| showhome);
     let mut mats: HashMap<Look, Handle<StandardMaterial>> = HashMap::new();
     let mut mat = |look: Look, materials: &mut Assets<StandardMaterial>| {
@@ -945,24 +960,6 @@ pub fn inspect_pose(rig: &ViewmodelRig, left: bool) -> Transform {
     let middle = rig.ads.scale * rig.muzzle * 0.25;
     let ahead = 0.5 + middle.length();
     Transform { translation: Vec3::new(0.0, -0.03, -ahead) - rotation * middle, rotation, scale: rig.ads.scale }
-}
-
-/// Each tracer is a short streak flying from the muzzle to the hit, bright at the head and fading at the tail.
-fn draw_tracers(feedback: Res<Feedback>, mut gizmos: Gizmos) {
-    for (from, to, t, own) in &feedback.tracers {
-        let len = from.distance(*to);
-        if len < 0.01 {
-            continue;
-        }
-        let dir = (*to - *from) / len;
-        let head = (t * TRACER_SPEED).min(len);
-        let tail = (head - TRACER_LEN).max(0.0);
-        if head <= tail {
-            continue;
-        }
-        let c = if *own { Color::srgb(1.0, 0.92, 0.6) } else { Color::srgb(1.0, 0.75, 0.45) };
-        gizmos.line_gradient(*from + dir * tail, *from + dir * head, c.with_alpha(0.0), c);
-    }
 }
 
 #[cfg(test)]

@@ -1,0 +1,1069 @@
+{
+  "version": 2,
+  "identity_scene_load": true,
+  "frame": "glTF Y up; design-to-Bevy=(x,z,-y)",
+  "files": [
+    {
+      "source": "assets\\maps\\showhome\\kit\\houses.glb",
+      "destination": "game\\assets\\maps\\showhome\\houses.glb",
+      "bytes": 11566312,
+      "sha256": "a810f551975bdb257127e33f97104a1775badff1cee005f659c1a5ef50073bb5"
+    },
+    {
+      "source": "assets\\maps\\showhome\\kit\\ground.glb",
+      "destination": "game\\assets\\maps\\showhome\\ground.glb",
+      "bytes": 31424508,
+      "sha256": "d1dee9a337753e2cc75add5ec13f0c69ec5fd6c83be24e505b36fb6017b6c1d5"
+    },
+    {
+      "source": "assets\\maps\\showhome\\kit\\props_placed.glb",
+      "destination": "game\\assets\\maps\\showhome\\props_placed.glb",
+      "bytes": 9734700,
+      "sha256": "ae1d1a1ed83042fb7ccc8827d40b0491e8f610850e5e1e4c47ebc5baa3607d48"
+    },
+    {
+      "source": "assets\\maps\\showhome\\backdrop\\backdrop.glb",
+      "destination": "game\\assets\\maps\\showhome\\backdrop.glb",
+      "bytes": 20146000,
+      "sha256": "14922ea3f836f0e3375d8061a20900e33b67353871121d13cf87b8ecbd2bd02b"
+    },
+    {
+      "source": "assets\\maps\\showhome\\kit\\ground_steps.json",
+      "destination": "game\\assets\\maps\\showhome\\ground_steps.json",
+      "bytes": 1628766,
+      "sha256": "745a3895c6751c79bff490133771d8ce20d0e4f8b3a81b1c6cc61e8fb81fd3af"
+    },
+    {
+      "source": "assets\\maps\\showhome\\kit\\ground_blend_contract.json",
+      "destination": "game\\assets\\maps\\showhome\\ground_blend_contract.json",
+      "bytes": 46124,
+      "sha256": "eca4c5804594db93f73654dcebfcc0d8d355960d0601de7b5467914e25e398f7"
+    },
+    {
+      "source": "assets\\maps\\showhome\\kit\\props_placements.json",
+      "destination": "game\\assets\\maps\\showhome\\props_placements.json",
+      "bytes": 18565,
+      "sha256": "5fcc36814286f7be38df0cdefaca412f4cd48c572473dc6ddc84f9124f1abfe7"
+    },
+    {
+      "source": "assets\\maps\\showhome\\textures\\v2\\asphalt.png",
+      "destination": "game\\assets\\maps\\showhome\\textures\\v2\\asphalt.png",
+      "bytes": 176831,
+      "sha256": "6ea1b6404d5caf38a92a6fc4a1c92b07e6af5623b571a16328d319217c324997"
+    },
+    {
+      "source": "assets\\maps\\showhome\\textures\\v2\\asphalt_cracked.png",
+      "destination": "game\\assets\\maps\\showhome\\textures\\v2\\asphalt_cracked.png",
+      "bytes": 208545,
+      "sha256": "a96aaaa9d7f9d9b7cd6ab1adcbfbfc655933413c055e1c62ce35844b6b53f61e"
+    },
+    {
+      "source": "assets\\maps\\showhome\\textures\\v2\\asphalt_cracked_height.png",
+      "destination": "game\\assets\\maps\\showhome\\textures\\v2\\asphalt_cracked_height.png",
+      "bytes": 1601341,
+      "sha256": "8d0f61c30b21910f5ddf4e25310c5d98406c52ceb5ab0087b9ad4efc8d710582"
+    },
+    {
+      "source": "assets\\maps\\showhome\\textures\\v2\\asphalt_cracked_normal.png",
+      "destination": "game\\assets\\maps\\showhome\\textures\\v2\\asphalt_cracked_normal.png",
+      "bytes": 229992,
+      "sha256": "70eb0a8e25ea545dc68d77f8c5975b1b3e1f7c160f2549ee4e9a03f85865eabd"
+    },
+    {
+      "source": "assets\\maps\\showhome\\textures\\v2\\asphalt_cracked_orm.png",
+      "destination": "game\\assets\\maps\\showhome\\textures\\v2\\asphalt_cracked_orm.png",
+      "bytes": 21165,
+      "sha256": "524afa3d01cdedba32e2dbce1509fdbbfdebebff9753fc964e8117542e9a118f"
+    },
+    {
+      "source": "assets\\maps\\showhome\\textures\\v2\\asphalt_height.png",
+      "destination": "game\\assets\\maps\\showhome\\textures\\v2\\asphalt_height.png",
+      "bytes": 1590825,
+      "sha256": "2fce78e5d8f545b79fe1a5af0ac298f923a73e3404d4f7ff8eeae9b0a166cc1c"
+    },
+    {
+      "source": "assets\\maps\\showhome\\textures\\v2\\asphalt_normal.png",
+      "destination": "game\\assets\\maps\\showhome\\textures\\v2\\asphalt_normal.png",
+      "bytes": 169763,
+      "sha256": "b6f73a4283bc2e5317971c6749e258c88a952fcb7d50c5da9fb0c47533720e1b"
+    },
+    {
+      "source": "assets\\maps\\showhome\\textures\\v2\\asphalt_orm.png",
+      "destination": "game\\assets\\maps\\showhome\\textures\\v2\\asphalt_orm.png",
+      "bytes": 11386,
+      "sha256": "fc8e3e8c49d9573550d97cde0a1fee8ddc7626af15f32411ded8009a8220971b"
+    },
+    {
+      "source": "assets\\maps\\showhome\\textures\\v2\\asphalt_patched.png",
+      "destination": "game\\assets\\maps\\showhome\\textures\\v2\\asphalt_patched.png",
+      "bytes": 179908,
+      "sha256": "d216405a80c26f376415b55cb803d3d458db2695bdc0d99ca57e785a2a5ad575"
+    },
+    {
+      "source": "assets\\maps\\showhome\\textures\\v2\\asphalt_patched_height.png",
+      "destination": "game\\assets\\maps\\showhome\\textures\\v2\\asphalt_patched_height.png",
+      "bytes": 1587761,
+      "sha256": "ab786faa23e17bea5f5c016317e30a1873deb97b7be28a46249f0e7fa38f34d5"
+    },
+    {
+      "source": "assets\\maps\\showhome\\textures\\v2\\asphalt_patched_normal.png",
+      "destination": "game\\assets\\maps\\showhome\\textures\\v2\\asphalt_patched_normal.png",
+      "bytes": 202249,
+      "sha256": "d438331837c81e89efc6931ffa749486846adfa16344c8e52630ebac70414cd0"
+    },
+    {
+      "source": "assets\\maps\\showhome\\textures\\v2\\asphalt_patched_orm.png",
+      "destination": "game\\assets\\maps\\showhome\\textures\\v2\\asphalt_patched_orm.png",
+      "bytes": 6347,
+      "sha256": "cffa0214c781703786ae4e4c9f3224b86105882f3708d3692dc2b858ea2fb065"
+    },
+    {
+      "source": "assets\\maps\\showhome\\textures\\v2\\bark_mulch.png",
+      "destination": "game\\assets\\maps\\showhome\\textures\\v2\\bark_mulch.png",
+      "bytes": 85606,
+      "sha256": "ee93606351cfe3e0d6c8247289a5555b813a78133fbdaea41256e4b3d766f7c2"
+    },
+    {
+      "source": "assets\\maps\\showhome\\textures\\v2\\bark_mulch_height.png",
+      "destination": "game\\assets\\maps\\showhome\\textures\\v2\\bark_mulch_height.png",
+      "bytes": 918767,
+      "sha256": "bcace2db63aa57d3816bc2d707d863a0555608ddd0b87ebc0844961c56d702b4"
+    },
+    {
+      "source": "assets\\maps\\showhome\\textures\\v2\\bark_mulch_normal.png",
+      "destination": "game\\assets\\maps\\showhome\\textures\\v2\\bark_mulch_normal.png",
+      "bytes": 423646,
+      "sha256": "5810042401703c7f9188cb47efa69afe1790aacfd4176fa482fad3b1808133e2"
+    },
+    {
+      "source": "assets\\maps\\showhome\\textures\\v2\\bark_mulch_orm.png",
+      "destination": "game\\assets\\maps\\showhome\\textures\\v2\\bark_mulch_orm.png",
+      "bytes": 114766,
+      "sha256": "56b8b8832a294182516cdcfc1eb11b4b75f200186e9e83ec12c6552069bee27e"
+    },
+    {
+      "source": "assets\\maps\\showhome\\textures\\v2\\cardboard.png",
+      "destination": "game\\assets\\maps\\showhome\\textures\\v2\\cardboard.png",
+      "bytes": 76151,
+      "sha256": "8d34a7fe77114b8067f15bd7ee9f4da8e1328d328c8aab25ebdaa69daef2f3bf"
+    },
+    {
+      "source": "assets\\maps\\showhome\\textures\\v2\\cardboard_height.png",
+      "destination": "game\\assets\\maps\\showhome\\textures\\v2\\cardboard_height.png",
+      "bytes": 627398,
+      "sha256": "954ea74a41585e19c19c15f0d1ea572057963513bb201507f6ab74097f1902cf"
+    },
+    {
+      "source": "assets\\maps\\showhome\\textures\\v2\\cardboard_normal.png",
+      "destination": "game\\assets\\maps\\showhome\\textures\\v2\\cardboard_normal.png",
+      "bytes": 57373,
+      "sha256": "ad3c0a653d896b3e8d34f091ba0c3eba0754e90fb3b612cc8963535b86d0d7d2"
+    },
+    {
+      "source": "assets\\maps\\showhome\\textures\\v2\\cardboard_orm.png",
+      "destination": "game\\assets\\maps\\showhome\\textures\\v2\\cardboard_orm.png",
+      "bytes": 5721,
+      "sha256": "3b413e83bdcd6a29a078e0a12cc6d06f2b124339aa69d608c4a1d8678aecbe9f"
+    },
+    {
+      "source": "assets\\maps\\showhome\\textures\\v2\\concrete_smooth.png",
+      "destination": "game\\assets\\maps\\showhome\\textures\\v2\\concrete_smooth.png",
+      "bytes": 110492,
+      "sha256": "d0d805ead64aa1c666760f1c44e9f6c4edb6c54d3a6f309fdbdcc34fd955820d"
+    },
+    {
+      "source": "assets\\maps\\showhome\\textures\\v2\\concrete_smooth_height.png",
+      "destination": "game\\assets\\maps\\showhome\\textures\\v2\\concrete_smooth_height.png",
+      "bytes": 865391,
+      "sha256": "1a470d06d52354e86f470a6d8b856865f4aa21a2ac80a0614704cc4254bb4e22"
+    },
+    {
+      "source": "assets\\maps\\showhome\\textures\\v2\\concrete_smooth_normal.png",
+      "destination": "game\\assets\\maps\\showhome\\textures\\v2\\concrete_smooth_normal.png",
+      "bytes": 56253,
+      "sha256": "a1dce470305881e11cd4413f9256fb9140a786deee5ea123498ca39c6c96b4b1"
+    },
+    {
+      "source": "assets\\maps\\showhome\\textures\\v2\\concrete_smooth_orm.png",
+      "destination": "game\\assets\\maps\\showhome\\textures\\v2\\concrete_smooth_orm.png",
+      "bytes": 4545,
+      "sha256": "ec7b22229ba76e43d4697dd76f98a50624d85226ad1f6fdeae0bf4efa0de0b50"
+    },
+    {
+      "source": "assets\\maps\\showhome\\textures\\v2\\construction_sand.png",
+      "destination": "game\\assets\\maps\\showhome\\textures\\v2\\construction_sand.png",
+      "bytes": 176274,
+      "sha256": "028e6914a89ca571af9cfaef89ab5257692da7fe6c06fd6645829dda5c7b0f36"
+    },
+    {
+      "source": "assets\\maps\\showhome\\textures\\v2\\construction_sand_height.png",
+      "destination": "game\\assets\\maps\\showhome\\textures\\v2\\construction_sand_height.png",
+      "bytes": 1320556,
+      "sha256": "529b329d7aa37297fc832e4cab3db114ac8c57ef77c8d4c18ae999f31aaf14c4"
+    },
+    {
+      "source": "assets\\maps\\showhome\\textures\\v2\\construction_sand_normal.png",
+      "destination": "game\\assets\\maps\\showhome\\textures\\v2\\construction_sand_normal.png",
+      "bytes": 94745,
+      "sha256": "a6ae2b46a86d3e052608d2498ee342a1b93c39e77dd990e80fbd35d2afcd4fae"
+    },
+    {
+      "source": "assets\\maps\\showhome\\textures\\v2\\construction_sand_orm.png",
+      "destination": "game\\assets\\maps\\showhome\\textures\\v2\\construction_sand_orm.png",
+      "bytes": 7815,
+      "sha256": "4ee33c0e3e69d96b0bfca54d15965d6582db651af1a67a52b7ba333f6fed645c"
+    },
+    {
+      "source": "assets\\maps\\showhome\\textures\\v2\\edging_strip.png",
+      "destination": "game\\assets\\maps\\showhome\\textures\\v2\\edging_strip.png",
+      "bytes": 97081,
+      "sha256": "1d214729a3a30fffeca17c0a9dfc51b9c4b0777f7203d9263d26f9588ea49303"
+    },
+    {
+      "source": "assets\\maps\\showhome\\textures\\v2\\edging_strip_height.png",
+      "destination": "game\\assets\\maps\\showhome\\textures\\v2\\edging_strip_height.png",
+      "bytes": 4357,
+      "sha256": "e17ed8fe386399f54697ba006ca6b10503d1a9e887c32c5dcebc8734c84ef8bc"
+    },
+    {
+      "source": "assets\\maps\\showhome\\textures\\v2\\edging_strip_normal.png",
+      "destination": "game\\assets\\maps\\showhome\\textures\\v2\\edging_strip_normal.png",
+      "bytes": 4721,
+      "sha256": "2adea09414ccc2504588efac317bd071da79bd3aeffeda1a9087ea696525787c"
+    },
+    {
+      "source": "assets\\maps\\showhome\\textures\\v2\\edging_strip_orm.png",
+      "destination": "game\\assets\\maps\\showhome\\textures\\v2\\edging_strip_orm.png",
+      "bytes": 4604,
+      "sha256": "85ffec60b8569d3c3309209b2444f277a3df9d794e6d7d2bc8a7fec87c133e66"
+    },
+    {
+      "source": "assets\\maps\\showhome\\textures\\v2\\fibercement_clay.png",
+      "destination": "game\\assets\\maps\\showhome\\textures\\v2\\fibercement_clay.png",
+      "bytes": 200060,
+      "sha256": "b7eec63a6185b0d88dbe51744e9baf655d547e8c634ea46c57e8414214cf79ef"
+    },
+    {
+      "source": "assets\\maps\\showhome\\textures\\v2\\fibercement_clay_height.png",
+      "destination": "game\\assets\\maps\\showhome\\textures\\v2\\fibercement_clay_height.png",
+      "bytes": 4342,
+      "sha256": "33b9394b8936436305fa46d9af4c6fffa21f79f25c00160f73be8801c4bc7b31"
+    },
+    {
+      "source": "assets\\maps\\showhome\\textures\\v2\\fibercement_clay_normal.png",
+      "destination": "game\\assets\\maps\\showhome\\textures\\v2\\fibercement_clay_normal.png",
+      "bytes": 4761,
+      "sha256": "1037578c3e0284b1f67ecd1112c3c7bc2fe28939c9d007969ceef27d75df77ba"
+    },
+    {
+      "source": "assets\\maps\\showhome\\textures\\v2\\fibercement_clay_orm.png",
+      "destination": "game\\assets\\maps\\showhome\\textures\\v2\\fibercement_clay_orm.png",
+      "bytes": 14128,
+      "sha256": "e1e8c74ffe9f9e9df1a057e6f89789c3dd0f673eea064c7131d8f451f40a19d5"
+    },
+    {
+      "source": "assets\\maps\\showhome\\textures\\v2\\fibercement_clay_weathered.png",
+      "destination": "game\\assets\\maps\\showhome\\textures\\v2\\fibercement_clay_weathered.png",
+      "bytes": 198945,
+      "sha256": "c10db3620f37fb75eaaa0d7b34b8e16c5b1f6b11f10410bd7e0ddb212e5ccea2"
+    },
+    {
+      "source": "assets\\maps\\showhome\\textures\\v2\\fibercement_clay_weathered_height.png",
+      "destination": "game\\assets\\maps\\showhome\\textures\\v2\\fibercement_clay_weathered_height.png",
+      "bytes": 4342,
+      "sha256": "33b9394b8936436305fa46d9af4c6fffa21f79f25c00160f73be8801c4bc7b31"
+    },
+    {
+      "source": "assets\\maps\\showhome\\textures\\v2\\fibercement_clay_weathered_normal.png",
+      "destination": "game\\assets\\maps\\showhome\\textures\\v2\\fibercement_clay_weathered_normal.png",
+      "bytes": 4761,
+      "sha256": "1037578c3e0284b1f67ecd1112c3c7bc2fe28939c9d007969ceef27d75df77ba"
+    },
+    {
+      "source": "assets\\maps\\showhome\\textures\\v2\\fibercement_clay_weathered_orm.png",
+      "destination": "game\\assets\\maps\\showhome\\textures\\v2\\fibercement_clay_weathered_orm.png",
+      "bytes": 14088,
+      "sha256": "2d99136c3f3a8c6df3eca2f28cf4f75af0f43274970084fd6bb3892af11fccfc"
+    },
+    {
+      "source": "assets\\maps\\showhome\\textures\\v2\\fibercement_panel.png",
+      "destination": "game\\assets\\maps\\showhome\\textures\\v2\\fibercement_panel.png",
+      "bytes": 55431,
+      "sha256": "cc481e0f4616fb577ecf878651a3aa82480020fcdbfb4e046dc1f28f34167cf9"
+    },
+    {
+      "source": "assets\\maps\\showhome\\textures\\v2\\fibercement_panel_height.png",
+      "destination": "game\\assets\\maps\\showhome\\textures\\v2\\fibercement_panel_height.png",
+      "bytes": 588664,
+      "sha256": "58d917ef5ce45bdd9df9fdbc7ad59566d9f48de42ed470597437df8708d7e558"
+    },
+    {
+      "source": "assets\\maps\\showhome\\textures\\v2\\fibercement_panel_normal.png",
+      "destination": "game\\assets\\maps\\showhome\\textures\\v2\\fibercement_panel_normal.png",
+      "bytes": 21945,
+      "sha256": "58641fbb8473e00cb8d476bceac900ecf8c8b64222496d6a57554007e64ea189"
+    },
+    {
+      "source": "assets\\maps\\showhome\\textures\\v2\\fibercement_panel_orm.png",
+      "destination": "game\\assets\\maps\\showhome\\textures\\v2\\fibercement_panel_orm.png",
+      "bytes": 8485,
+      "sha256": "373167e6dd5440c76937c24167918eee4dad0aa9ae005c2a4c9fa5f2cd99423a"
+    },
+    {
+      "source": "assets\\maps\\showhome\\textures\\v2\\fibercement_sage.png",
+      "destination": "game\\assets\\maps\\showhome\\textures\\v2\\fibercement_sage.png",
+      "bytes": 185983,
+      "sha256": "6a7b621e5f852de379e37a5e77a18b29c25bb1eff29c60733073e221da864797"
+    },
+    {
+      "source": "assets\\maps\\showhome\\textures\\v2\\fibercement_sage_height.png",
+      "destination": "game\\assets\\maps\\showhome\\textures\\v2\\fibercement_sage_height.png",
+      "bytes": 4342,
+      "sha256": "33b9394b8936436305fa46d9af4c6fffa21f79f25c00160f73be8801c4bc7b31"
+    },
+    {
+      "source": "assets\\maps\\showhome\\textures\\v2\\fibercement_sage_normal.png",
+      "destination": "game\\assets\\maps\\showhome\\textures\\v2\\fibercement_sage_normal.png",
+      "bytes": 4761,
+      "sha256": "1037578c3e0284b1f67ecd1112c3c7bc2fe28939c9d007969ceef27d75df77ba"
+    },
+    {
+      "source": "assets\\maps\\showhome\\textures\\v2\\fibercement_sage_orm.png",
+      "destination": "game\\assets\\maps\\showhome\\textures\\v2\\fibercement_sage_orm.png",
+      "bytes": 12685,
+      "sha256": "076664582f5ec3048e16f4d93e0f724d5e0065165c8850e2baf353e6fee24ee1"
+    },
+    {
+      "source": "assets\\maps\\showhome\\textures\\v2\\fibercement_sage_weathered.png",
+      "destination": "game\\assets\\maps\\showhome\\textures\\v2\\fibercement_sage_weathered.png",
+      "bytes": 193003,
+      "sha256": "19ac8b106b6bc9e4acb07ef67ee3bd8ee2b24f883d0b71c5f15374d20fcfa4c2"
+    },
+    {
+      "source": "assets\\maps\\showhome\\textures\\v2\\fibercement_sage_weathered_height.png",
+      "destination": "game\\assets\\maps\\showhome\\textures\\v2\\fibercement_sage_weathered_height.png",
+      "bytes": 4342,
+      "sha256": "33b9394b8936436305fa46d9af4c6fffa21f79f25c00160f73be8801c4bc7b31"
+    },
+    {
+      "source": "assets\\maps\\showhome\\textures\\v2\\fibercement_sage_weathered_normal.png",
+      "destination": "game\\assets\\maps\\showhome\\textures\\v2\\fibercement_sage_weathered_normal.png",
+      "bytes": 4761,
+      "sha256": "1037578c3e0284b1f67ecd1112c3c7bc2fe28939c9d007969ceef27d75df77ba"
+    },
+    {
+      "source": "assets\\maps\\showhome\\textures\\v2\\fibercement_sage_weathered_orm.png",
+      "destination": "game\\assets\\maps\\showhome\\textures\\v2\\fibercement_sage_weathered_orm.png",
+      "bytes": 12670,
+      "sha256": "2ba8b6002865760e0865198751bf4c6c33924a7a87f4a7c9d9c002acb3a39146"
+    },
+    {
+      "source": "assets\\maps\\showhome\\textures\\v2\\foundation_slab.png",
+      "destination": "game\\assets\\maps\\showhome\\textures\\v2\\foundation_slab.png",
+      "bytes": 115058,
+      "sha256": "ecac98a4ac0d3dcdcd5a12c549efe34746bf5c5531d7b03b9c8640e3527c45f5"
+    },
+    {
+      "source": "assets\\maps\\showhome\\textures\\v2\\foundation_slab_height.png",
+      "destination": "game\\assets\\maps\\showhome\\textures\\v2\\foundation_slab_height.png",
+      "bytes": 4343,
+      "sha256": "d2cea1e6307874f2e4879eb25a33163d2a64c9a60dd49ae5bfd9295bb2934126"
+    },
+    {
+      "source": "assets\\maps\\showhome\\textures\\v2\\foundation_slab_normal.png",
+      "destination": "game\\assets\\maps\\showhome\\textures\\v2\\foundation_slab_normal.png",
+      "bytes": 4962,
+      "sha256": "09aaddaba179f05a48be0b0b119831c3901fd4d20519f96689103df93a100019"
+    },
+    {
+      "source": "assets\\maps\\showhome\\textures\\v2\\foundation_slab_orm.png",
+      "destination": "game\\assets\\maps\\showhome\\textures\\v2\\foundation_slab_orm.png",
+      "bytes": 6492,
+      "sha256": "274d41561a5fe0c99762db26fb817c7ebc8f128695b96ee4bed57dbd4f4dc910"
+    },
+    {
+      "source": "assets\\maps\\showhome\\textures\\v2\\garden_soil.png",
+      "destination": "game\\assets\\maps\\showhome\\textures\\v2\\garden_soil.png",
+      "bytes": 185282,
+      "sha256": "7aef40134189fccef8d7af00ebcf5bf66c1082d6cb8297244aad45b93de62197"
+    },
+    {
+      "source": "assets\\maps\\showhome\\textures\\v2\\garden_soil_height.png",
+      "destination": "game\\assets\\maps\\showhome\\textures\\v2\\garden_soil_height.png",
+      "bytes": 1542961,
+      "sha256": "9318e2cd82bca442692248484c4197c36f91057085999b1c827f2632a368691f"
+    },
+    {
+      "source": "assets\\maps\\showhome\\textures\\v2\\garden_soil_normal.png",
+      "destination": "game\\assets\\maps\\showhome\\textures\\v2\\garden_soil_normal.png",
+      "bytes": 590232,
+      "sha256": "d1ea1607ee97ce3a1c4eacb99a72aa0d3f38ea426b4585f03d712d3c890db4e3"
+    },
+    {
+      "source": "assets\\maps\\showhome\\textures\\v2\\garden_soil_orm.png",
+      "destination": "game\\assets\\maps\\showhome\\textures\\v2\\garden_soil_orm.png",
+      "bytes": 14139,
+      "sha256": "58e7730535470ff5d0561335e5bb530779248f2879c4199a4a7ac62d96676914"
+    },
+    {
+      "source": "assets\\maps\\showhome\\textures\\v2\\grass_lawn.png",
+      "destination": "game\\assets\\maps\\showhome\\textures\\v2\\grass_lawn.png",
+      "bytes": 292046,
+      "sha256": "de2a1bff16e21a8cd76af9b4d65eb29082f00f7d8587e82f46fe29c2c3614622"
+    },
+    {
+      "source": "assets\\maps\\showhome\\textures\\v2\\grass_lawn_dry.png",
+      "destination": "game\\assets\\maps\\showhome\\textures\\v2\\grass_lawn_dry.png",
+      "bytes": 297066,
+      "sha256": "eaa0b99ac18e2e309d848f265816a32eb5f7c9750df0d7f13e2632cf16207fc6"
+    },
+    {
+      "source": "assets\\maps\\showhome\\textures\\v2\\grass_lawn_dry_height.png",
+      "destination": "game\\assets\\maps\\showhome\\textures\\v2\\grass_lawn_dry_height.png",
+      "bytes": 1818018,
+      "sha256": "6cec6bdb90817b8576e151b2db1deb18757954bd6fbacfaa83d1119a01fc2ba8"
+    },
+    {
+      "source": "assets\\maps\\showhome\\textures\\v2\\grass_lawn_dry_normal.png",
+      "destination": "game\\assets\\maps\\showhome\\textures\\v2\\grass_lawn_dry_normal.png",
+      "bytes": 1427341,
+      "sha256": "24465f821dc93cdfdb5333d36d9b802997a62c7c7752f473497c00635e38f884"
+    },
+    {
+      "source": "assets\\maps\\showhome\\textures\\v2\\grass_lawn_dry_orm.png",
+      "destination": "game\\assets\\maps\\showhome\\textures\\v2\\grass_lawn_dry_orm.png",
+      "bytes": 16600,
+      "sha256": "f642bf8fc484fb94ad97346be72d4d283df0c6096b09149c8d828d4635731b59"
+    },
+    {
+      "source": "assets\\maps\\showhome\\textures\\v2\\grass_lawn_height.png",
+      "destination": "game\\assets\\maps\\showhome\\textures\\v2\\grass_lawn_height.png",
+      "bytes": 1823119,
+      "sha256": "6227002f979a926367603a1a39e0e8785a139ce7729bda8ba56d1473ba8576c2"
+    },
+    {
+      "source": "assets\\maps\\showhome\\textures\\v2\\grass_lawn_normal.png",
+      "destination": "game\\assets\\maps\\showhome\\textures\\v2\\grass_lawn_normal.png",
+      "bytes": 1623356,
+      "sha256": "992e85398d0707af579146c1d1f30b733588b15c05e3ccfab08e11e3872aab87"
+    },
+    {
+      "source": "assets\\maps\\showhome\\textures\\v2\\grass_lawn_orm.png",
+      "destination": "game\\assets\\maps\\showhome\\textures\\v2\\grass_lawn_orm.png",
+      "bytes": 33032,
+      "sha256": "8ed70086beb3af768e18b80b4f7741a860cb50ca452a56328815c83cb182cc99"
+    },
+    {
+      "source": "assets\\maps\\showhome\\textures\\v2\\grass_verge_weeds.png",
+      "destination": "game\\assets\\maps\\showhome\\textures\\v2\\grass_verge_weeds.png",
+      "bytes": 301981,
+      "sha256": "d7ea7f312e25268fe1462bb8e7610840beb5c4c4075a7c13a1ec8e2486c040e4"
+    },
+    {
+      "source": "assets\\maps\\showhome\\textures\\v2\\grass_verge_weeds_height.png",
+      "destination": "game\\assets\\maps\\showhome\\textures\\v2\\grass_verge_weeds_height.png",
+      "bytes": 1823424,
+      "sha256": "f00648dbaedb69d028a82a5380463e8c607580048bb20e78a65d5c6e74063c5c"
+    },
+    {
+      "source": "assets\\maps\\showhome\\textures\\v2\\grass_verge_weeds_normal.png",
+      "destination": "game\\assets\\maps\\showhome\\textures\\v2\\grass_verge_weeds_normal.png",
+      "bytes": 1695530,
+      "sha256": "6955f4cc73e4bdd361bf0d4b3ce0c30cf8a14574577b8d4d74a442188e981aeb"
+    },
+    {
+      "source": "assets\\maps\\showhome\\textures\\v2\\grass_verge_weeds_orm.png",
+      "destination": "game\\assets\\maps\\showhome\\textures\\v2\\grass_verge_weeds_orm.png",
+      "bytes": 26909,
+      "sha256": "1fb27a060ee04f0462d13710f3238215b65de05b257c2d2524ca222aad891ab2"
+    },
+    {
+      "source": "assets\\maps\\showhome\\textures\\v2\\gravel.png",
+      "destination": "game\\assets\\maps\\showhome\\textures\\v2\\gravel.png",
+      "bytes": 186411,
+      "sha256": "ad486e6bd3d2bac810bafe87d6747fb7d5e8581416831df1a2a2aa396c6760cd"
+    },
+    {
+      "source": "assets\\maps\\showhome\\textures\\v2\\gravel_compacted.png",
+      "destination": "game\\assets\\maps\\showhome\\textures\\v2\\gravel_compacted.png",
+      "bytes": 174877,
+      "sha256": "d428d2d1ab5197e02412fd94e3e85447bd322dbd9a2a6c48fe73865d7ae2af93"
+    },
+    {
+      "source": "assets\\maps\\showhome\\textures\\v2\\gravel_compacted_height.png",
+      "destination": "game\\assets\\maps\\showhome\\textures\\v2\\gravel_compacted_height.png",
+      "bytes": 1269284,
+      "sha256": "c70ea5ff334c9b18930133f36c980e4f0b6351b992fbdeec56db0cd5424b7071"
+    },
+    {
+      "source": "assets\\maps\\showhome\\textures\\v2\\gravel_compacted_normal.png",
+      "destination": "game\\assets\\maps\\showhome\\textures\\v2\\gravel_compacted_normal.png",
+      "bytes": 354991,
+      "sha256": "c2073c4826049da7121304d60cfe320ebc42fd4942d8833e390cbacf12bfe441"
+    },
+    {
+      "source": "assets\\maps\\showhome\\textures\\v2\\gravel_compacted_orm.png",
+      "destination": "game\\assets\\maps\\showhome\\textures\\v2\\gravel_compacted_orm.png",
+      "bytes": 156389,
+      "sha256": "13f1d43e42db33704b9b519e92effa9fa6efa51390e6c38f5d4260a1dfd989f4"
+    },
+    {
+      "source": "assets\\maps\\showhome\\textures\\v2\\gravel_height.png",
+      "destination": "game\\assets\\maps\\showhome\\textures\\v2\\gravel_height.png",
+      "bytes": 1348116,
+      "sha256": "cc77b860851c641fdbb74a83698f952ce4eb646a67d43e90f24929c68c6126bd"
+    },
+    {
+      "source": "assets\\maps\\showhome\\textures\\v2\\gravel_normal.png",
+      "destination": "game\\assets\\maps\\showhome\\textures\\v2\\gravel_normal.png",
+      "bytes": 577676,
+      "sha256": "8cb3dc8c8425127f7d8c56bf001bbbb2d855a753f8d3defeb814e97eebf65364"
+    },
+    {
+      "source": "assets\\maps\\showhome\\textures\\v2\\gravel_orm.png",
+      "destination": "game\\assets\\maps\\showhome\\textures\\v2\\gravel_orm.png",
+      "bytes": 161851,
+      "sha256": "794ef3dc63f323c22e6e8bbecc9628591af8803e92bd64aaae89b0344e48d381"
+    },
+    {
+      "source": "assets\\maps\\showhome\\textures\\v2\\kerb_concrete.png",
+      "destination": "game\\assets\\maps\\showhome\\textures\\v2\\kerb_concrete.png",
+      "bytes": 93784,
+      "sha256": "6f5722e9aa188ffc2a32d71989d4843571ccddee2d0c1a8522b6297d6d6d8571"
+    },
+    {
+      "source": "assets\\maps\\showhome\\textures\\v2\\kerb_concrete_height.png",
+      "destination": "game\\assets\\maps\\showhome\\textures\\v2\\kerb_concrete_height.png",
+      "bytes": 4357,
+      "sha256": "e17ed8fe386399f54697ba006ca6b10503d1a9e887c32c5dcebc8734c84ef8bc"
+    },
+    {
+      "source": "assets\\maps\\showhome\\textures\\v2\\kerb_concrete_normal.png",
+      "destination": "game\\assets\\maps\\showhome\\textures\\v2\\kerb_concrete_normal.png",
+      "bytes": 4717,
+      "sha256": "908eaecae9cb0a844e3c53b05ba96dfbbb0da3b59402b05b2464b620414b949b"
+    },
+    {
+      "source": "assets\\maps\\showhome\\textures\\v2\\kerb_concrete_orm.png",
+      "destination": "game\\assets\\maps\\showhome\\textures\\v2\\kerb_concrete_orm.png",
+      "bytes": 4604,
+      "sha256": "85ffec60b8569d3c3309209b2444f277a3df9d794e6d7d2bc8a7fec87c133e66"
+    },
+    {
+      "source": "assets\\maps\\showhome\\textures\\v2\\macro_ground.png",
+      "destination": "game\\assets\\maps\\showhome\\textures\\v2\\macro_ground.png",
+      "bytes": 693445,
+      "sha256": "7122abc7f413c22d3ff5cb469826e780a10897da9f32183d7ba166b696f3cc4b"
+    },
+    {
+      "source": "assets\\maps\\showhome\\textures\\v2\\macro_walls.png",
+      "destination": "game\\assets\\maps\\showhome\\textures\\v2\\macro_walls.png",
+      "bytes": 678974,
+      "sha256": "151b49e2a9935df64558a6c57e49ca6202ef87f058039c45a6054c2bc64aa13c"
+    },
+    {
+      "source": "assets\\maps\\showhome\\textures\\v2\\metal_corrugated_site.png",
+      "destination": "game\\assets\\maps\\showhome\\textures\\v2\\metal_corrugated_site.png",
+      "bytes": 111643,
+      "sha256": "893382e4901f5ee9eaa31715804333eda82e4807ac5410e94b8cee145966607c"
+    },
+    {
+      "source": "assets\\maps\\showhome\\textures\\v2\\metal_corrugated_site_height.png",
+      "destination": "game\\assets\\maps\\showhome\\textures\\v2\\metal_corrugated_site_height.png",
+      "bytes": 5108,
+      "sha256": "79a923481976e3a0aacfb100dc24a73429d916712dacba6b9a9eaeeaf78336ee"
+    },
+    {
+      "source": "assets\\maps\\showhome\\textures\\v2\\metal_corrugated_site_normal.png",
+      "destination": "game\\assets\\maps\\showhome\\textures\\v2\\metal_corrugated_site_normal.png",
+      "bytes": 4872,
+      "sha256": "5a6916144657440b0c6cd1884ee8a670b25a617a0f089c385c9155c2e7fb7866"
+    },
+    {
+      "source": "assets\\maps\\showhome\\textures\\v2\\metal_corrugated_site_orm.png",
+      "destination": "game\\assets\\maps\\showhome\\textures\\v2\\metal_corrugated_site_orm.png",
+      "bytes": 4664,
+      "sha256": "317e5d52ae94a2fb002dcd94746f6bda20b6f522d8e468430b433eb0cef01d37"
+    },
+    {
+      "source": "assets\\maps\\showhome\\textures\\v2\\metal_painted_yellow.png",
+      "destination": "game\\assets\\maps\\showhome\\textures\\v2\\metal_painted_yellow.png",
+      "bytes": 99608,
+      "sha256": "af77b67d355df61422d1a3bb1ea73cb86cbd1ee8cb276652ff9484a71ae461b5"
+    },
+    {
+      "source": "assets\\maps\\showhome\\textures\\v2\\metal_painted_yellow_height.png",
+      "destination": "game\\assets\\maps\\showhome\\textures\\v2\\metal_painted_yellow_height.png",
+      "bytes": 865391,
+      "sha256": "1a470d06d52354e86f470a6d8b856865f4aa21a2ac80a0614704cc4254bb4e22"
+    },
+    {
+      "source": "assets\\maps\\showhome\\textures\\v2\\metal_painted_yellow_normal.png",
+      "destination": "game\\assets\\maps\\showhome\\textures\\v2\\metal_painted_yellow_normal.png",
+      "bytes": 55378,
+      "sha256": "5acb8f3057f8340a321ff2b70aea686d510deea2e3430c8c525e363dde39ecb9"
+    },
+    {
+      "source": "assets\\maps\\showhome\\textures\\v2\\metal_painted_yellow_orm.png",
+      "destination": "game\\assets\\maps\\showhome\\textures\\v2\\metal_painted_yellow_orm.png",
+      "bytes": 5192,
+      "sha256": "51f31bedf8fd0a46aa6b307c0324d319700dccee499ff095e7e95cf40408dda3"
+    },
+    {
+      "source": "assets\\maps\\showhome\\textures\\v2\\metal_scaffold_tube.png",
+      "destination": "game\\assets\\maps\\showhome\\textures\\v2\\metal_scaffold_tube.png",
+      "bytes": 75883,
+      "sha256": "50ecbe86f063026316d7ee42153fed4b39b3cc3d278aebd0776bb4bb7c6a35ce"
+    },
+    {
+      "source": "assets\\maps\\showhome\\textures\\v2\\metal_scaffold_tube_height.png",
+      "destination": "game\\assets\\maps\\showhome\\textures\\v2\\metal_scaffold_tube_height.png",
+      "bytes": 865391,
+      "sha256": "1a470d06d52354e86f470a6d8b856865f4aa21a2ac80a0614704cc4254bb4e22"
+    },
+    {
+      "source": "assets\\maps\\showhome\\textures\\v2\\metal_scaffold_tube_normal.png",
+      "destination": "game\\assets\\maps\\showhome\\textures\\v2\\metal_scaffold_tube_normal.png",
+      "bytes": 55414,
+      "sha256": "df551fcba2acfc9b861f835853ca5cdd4c5483136e69459ba05cb6fa3b718fd8"
+    },
+    {
+      "source": "assets\\maps\\showhome\\textures\\v2\\metal_scaffold_tube_orm.png",
+      "destination": "game\\assets\\maps\\showhome\\textures\\v2\\metal_scaffold_tube_orm.png",
+      "bytes": 13240,
+      "sha256": "5d83fc6acaf699ab2a39b8ca5df394a6890ee376368e790ff23a1da5c8908e34"
+    },
+    {
+      "source": "assets\\maps\\showhome\\textures\\v2\\paving_slabs.png",
+      "destination": "game\\assets\\maps\\showhome\\textures\\v2\\paving_slabs.png",
+      "bytes": 102650,
+      "sha256": "00a82e1ea00bed7a146d4e1eedf672aa9ebd017cd38c83eb742ffb74e26ec695"
+    },
+    {
+      "source": "assets\\maps\\showhome\\textures\\v2\\paving_slabs_height.png",
+      "destination": "game\\assets\\maps\\showhome\\textures\\v2\\paving_slabs_height.png",
+      "bytes": 4343,
+      "sha256": "d2cea1e6307874f2e4879eb25a33163d2a64c9a60dd49ae5bfd9295bb2934126"
+    },
+    {
+      "source": "assets\\maps\\showhome\\textures\\v2\\paving_slabs_moss.png",
+      "destination": "game\\assets\\maps\\showhome\\textures\\v2\\paving_slabs_moss.png",
+      "bytes": 134322,
+      "sha256": "f914de04badf7a7a8ab9a971eb26fb6aa1cd76aa208b83ff26569d7e22b42376"
+    },
+    {
+      "source": "assets\\maps\\showhome\\textures\\v2\\paving_slabs_moss_height.png",
+      "destination": "game\\assets\\maps\\showhome\\textures\\v2\\paving_slabs_moss_height.png",
+      "bytes": 4343,
+      "sha256": "d2cea1e6307874f2e4879eb25a33163d2a64c9a60dd49ae5bfd9295bb2934126"
+    },
+    {
+      "source": "assets\\maps\\showhome\\textures\\v2\\paving_slabs_moss_normal.png",
+      "destination": "game\\assets\\maps\\showhome\\textures\\v2\\paving_slabs_moss_normal.png",
+      "bytes": 4962,
+      "sha256": "d1f09ddb717b128b3d41d46ad9e1b796b04f71aae130f006b8321eebe7ab1788"
+    },
+    {
+      "source": "assets\\maps\\showhome\\textures\\v2\\paving_slabs_moss_orm.png",
+      "destination": "game\\assets\\maps\\showhome\\textures\\v2\\paving_slabs_moss_orm.png",
+      "bytes": 6938,
+      "sha256": "cd9a8945f385acf4e05f7780775690675202518fd73c6cd8b46fe87b76e2af09"
+    },
+    {
+      "source": "assets\\maps\\showhome\\textures\\v2\\paving_slabs_normal.png",
+      "destination": "game\\assets\\maps\\showhome\\textures\\v2\\paving_slabs_normal.png",
+      "bytes": 4962,
+      "sha256": "d1f09ddb717b128b3d41d46ad9e1b796b04f71aae130f006b8321eebe7ab1788"
+    },
+    {
+      "source": "assets\\maps\\showhome\\textures\\v2\\paving_slabs_orm.png",
+      "destination": "game\\assets\\maps\\showhome\\textures\\v2\\paving_slabs_orm.png",
+      "bytes": 4737,
+      "sha256": "704b8ed19b45c747ee852d9ae34d87abe47cc8bc1caf5533fc88f238bae9ba3c"
+    },
+    {
+      "source": "assets\\maps\\showhome\\textures\\v2\\picket_wood_white.png",
+      "destination": "game\\assets\\maps\\showhome\\textures\\v2\\picket_wood_white.png",
+      "bytes": 87342,
+      "sha256": "dd043a6e97347f96a3dccc1532c247f49f141ecd604fff85ca45505a0c4aec52"
+    },
+    {
+      "source": "assets\\maps\\showhome\\textures\\v2\\picket_wood_white_height.png",
+      "destination": "game\\assets\\maps\\showhome\\textures\\v2\\picket_wood_white_height.png",
+      "bytes": 627398,
+      "sha256": "954ea74a41585e19c19c15f0d1ea572057963513bb201507f6ab74097f1902cf"
+    },
+    {
+      "source": "assets\\maps\\showhome\\textures\\v2\\picket_wood_white_normal.png",
+      "destination": "game\\assets\\maps\\showhome\\textures\\v2\\picket_wood_white_normal.png",
+      "bytes": 60153,
+      "sha256": "3126652db3f1eebe463cc946f8d1ec0b5d4ae3216424836c193f7d2f7dcdc27a"
+    },
+    {
+      "source": "assets\\maps\\showhome\\textures\\v2\\picket_wood_white_orm.png",
+      "destination": "game\\assets\\maps\\showhome\\textures\\v2\\picket_wood_white_orm.png",
+      "bytes": 5573,
+      "sha256": "7760595d599c937f348c8442123a251872bddd979ed75c45dc1c35d11b795e3c"
+    },
+    {
+      "source": "assets\\maps\\showhome\\textures\\v2\\printed_concrete_layers.png",
+      "destination": "game\\assets\\maps\\showhome\\textures\\v2\\printed_concrete_layers.png",
+      "bytes": 178269,
+      "sha256": "0b1e26daa5fb692262086389ea97ec0127a4e16a3761e0ffa3deec5b587d29a6"
+    },
+    {
+      "source": "assets\\maps\\showhome\\textures\\v2\\printed_concrete_layers_dusty.png",
+      "destination": "game\\assets\\maps\\showhome\\textures\\v2\\printed_concrete_layers_dusty.png",
+      "bytes": 186761,
+      "sha256": "ed7a93a2981a1ac56878107b7dedf96628bccec835e0de0ef7f884f04d2c073b"
+    },
+    {
+      "source": "assets\\maps\\showhome\\textures\\v2\\printed_concrete_layers_dusty_height.png",
+      "destination": "game\\assets\\maps\\showhome\\textures\\v2\\printed_concrete_layers_dusty_height.png",
+      "bytes": 7316,
+      "sha256": "e7b8e1daca15d7cce965de8d5cb020e27ef73a9ef9a1f489e5f81b2ca0111441"
+    },
+    {
+      "source": "assets\\maps\\showhome\\textures\\v2\\printed_concrete_layers_dusty_normal.png",
+      "destination": "game\\assets\\maps\\showhome\\textures\\v2\\printed_concrete_layers_dusty_normal.png",
+      "bytes": 7284,
+      "sha256": "5e297dcf9d4d21d7d8bb4f2b30fed503b431a883f1d56b1011857090839b16bb"
+    },
+    {
+      "source": "assets\\maps\\showhome\\textures\\v2\\printed_concrete_layers_dusty_orm.png",
+      "destination": "game\\assets\\maps\\showhome\\textures\\v2\\printed_concrete_layers_dusty_orm.png",
+      "bytes": 6092,
+      "sha256": "7a69eb03bb0090324a4a06c44943ad301c79cd0e3537e900f8a9354329244d12"
+    },
+    {
+      "source": "assets\\maps\\showhome\\textures\\v2\\printed_concrete_layers_height.png",
+      "destination": "game\\assets\\maps\\showhome\\textures\\v2\\printed_concrete_layers_height.png",
+      "bytes": 7316,
+      "sha256": "e7b8e1daca15d7cce965de8d5cb020e27ef73a9ef9a1f489e5f81b2ca0111441"
+    },
+    {
+      "source": "assets\\maps\\showhome\\textures\\v2\\printed_concrete_layers_normal.png",
+      "destination": "game\\assets\\maps\\showhome\\textures\\v2\\printed_concrete_layers_normal.png",
+      "bytes": 7284,
+      "sha256": "5e297dcf9d4d21d7d8bb4f2b30fed503b431a883f1d56b1011857090839b16bb"
+    },
+    {
+      "source": "assets\\maps\\showhome\\textures\\v2\\printed_concrete_layers_orm.png",
+      "destination": "game\\assets\\maps\\showhome\\textures\\v2\\printed_concrete_layers_orm.png",
+      "bytes": 5965,
+      "sha256": "896afb8b57ce107ea84d407cb5b3ae41ef825911c9219a3039425b0c62f7e037"
+    },
+    {
+      "source": "assets\\maps\\showhome\\textures\\v2\\roof_ridge_verge.png",
+      "destination": "game\\assets\\maps\\showhome\\textures\\v2\\roof_ridge_verge.png",
+      "bytes": 58556,
+      "sha256": "20b4d0389a62e3d66ee89f9d5f678af0b5b6ad33c5c5573c3d3e233d95c0f1da"
+    },
+    {
+      "source": "assets\\maps\\showhome\\textures\\v2\\roof_ridge_verge_height.png",
+      "destination": "game\\assets\\maps\\showhome\\textures\\v2\\roof_ridge_verge_height.png",
+      "bytes": 4374,
+      "sha256": "665e541c1a2513d069d31e8dd25c30a2d7d4fc84d6c060dd70fe6df8740b68f4"
+    },
+    {
+      "source": "assets\\maps\\showhome\\textures\\v2\\roof_ridge_verge_normal.png",
+      "destination": "game\\assets\\maps\\showhome\\textures\\v2\\roof_ridge_verge_normal.png",
+      "bytes": 4741,
+      "sha256": "6f9d4ac0b86d8ae4fcfa43d8346cfd32a09929dd107debcf41799c0c8db6bd61"
+    },
+    {
+      "source": "assets\\maps\\showhome\\textures\\v2\\roof_ridge_verge_orm.png",
+      "destination": "game\\assets\\maps\\showhome\\textures\\v2\\roof_ridge_verge_orm.png",
+      "bytes": 9727,
+      "sha256": "fecaf69a3a893e09de59e6766e00d0a1a598e330056cfe18461019928411b485"
+    },
+    {
+      "source": "assets\\maps\\showhome\\textures\\v2\\roof_shingle_dark.png",
+      "destination": "game\\assets\\maps\\showhome\\textures\\v2\\roof_shingle_dark.png",
+      "bytes": 70854,
+      "sha256": "69299d23c8be881be4a8635858da50f51922ddf8a2f06ebbb1ea3efb2c470ae5"
+    },
+    {
+      "source": "assets\\maps\\showhome\\textures\\v2\\roof_shingle_dark_height.png",
+      "destination": "game\\assets\\maps\\showhome\\textures\\v2\\roof_shingle_dark_height.png",
+      "bytes": 17634,
+      "sha256": "f2a4f07e253808b702c0c8b1f55c0d43a41754193e33b3d4e5d87edf8ba2ad6e"
+    },
+    {
+      "source": "assets\\maps\\showhome\\textures\\v2\\roof_shingle_dark_lichen.png",
+      "destination": "game\\assets\\maps\\showhome\\textures\\v2\\roof_shingle_dark_lichen.png",
+      "bytes": 77471,
+      "sha256": "f0abc7016979eed209c6a3f862e8baf6950f2eb5e6a4357889d6302089ad1d26"
+    },
+    {
+      "source": "assets\\maps\\showhome\\textures\\v2\\roof_shingle_dark_lichen_height.png",
+      "destination": "game\\assets\\maps\\showhome\\textures\\v2\\roof_shingle_dark_lichen_height.png",
+      "bytes": 17634,
+      "sha256": "f2a4f07e253808b702c0c8b1f55c0d43a41754193e33b3d4e5d87edf8ba2ad6e"
+    },
+    {
+      "source": "assets\\maps\\showhome\\textures\\v2\\roof_shingle_dark_lichen_normal.png",
+      "destination": "game\\assets\\maps\\showhome\\textures\\v2\\roof_shingle_dark_lichen_normal.png",
+      "bytes": 17166,
+      "sha256": "9358d465c4531ded48671d8c81ac88aa3641533b994923943b4c43067e39bcd6"
+    },
+    {
+      "source": "assets\\maps\\showhome\\textures\\v2\\roof_shingle_dark_lichen_orm.png",
+      "destination": "game\\assets\\maps\\showhome\\textures\\v2\\roof_shingle_dark_lichen_orm.png",
+      "bytes": 10881,
+      "sha256": "7985b9e15542bf1be89d47a019ce215d8a00e8a312005689b845675d23460cb3"
+    },
+    {
+      "source": "assets\\maps\\showhome\\textures\\v2\\roof_shingle_dark_normal.png",
+      "destination": "game\\assets\\maps\\showhome\\textures\\v2\\roof_shingle_dark_normal.png",
+      "bytes": 17166,
+      "sha256": "9358d465c4531ded48671d8c81ac88aa3641533b994923943b4c43067e39bcd6"
+    },
+    {
+      "source": "assets\\maps\\showhome\\textures\\v2\\roof_shingle_dark_orm.png",
+      "destination": "game\\assets\\maps\\showhome\\textures\\v2\\roof_shingle_dark_orm.png",
+      "bytes": 10927,
+      "sha256": "621c1409230616d97dd507073758d34cce4a03a041af2b549d81fb778de057ad"
+    },
+    {
+      "source": "assets\\maps\\showhome\\textures\\v2\\timber_pallets.png",
+      "destination": "game\\assets\\maps\\showhome\\textures\\v2\\timber_pallets.png",
+      "bytes": 54828,
+      "sha256": "7ff7f87d8226949ba9f97223fde134b29ebdb30dc3689eddc3e7c1e5b300e8c4"
+    },
+    {
+      "source": "assets\\maps\\showhome\\textures\\v2\\timber_pallets_height.png",
+      "destination": "game\\assets\\maps\\showhome\\textures\\v2\\timber_pallets_height.png",
+      "bytes": 4687,
+      "sha256": "cfae567615bda75db83a1cce2a253ffb0461279d22ff835081a64243a3639630"
+    },
+    {
+      "source": "assets\\maps\\showhome\\textures\\v2\\timber_pallets_normal.png",
+      "destination": "game\\assets\\maps\\showhome\\textures\\v2\\timber_pallets_normal.png",
+      "bytes": 5372,
+      "sha256": "b5f842ee72423a073a5e57fd31e482368bd3b2ed6fea433e87b606b008dbc4b5"
+    },
+    {
+      "source": "assets\\maps\\showhome\\textures\\v2\\timber_pallets_orm.png",
+      "destination": "game\\assets\\maps\\showhome\\textures\\v2\\timber_pallets_orm.png",
+      "bytes": 5633,
+      "sha256": "3aae2e57daa643cebba105c711721f6fecc2d176eec32afd550d068e242a99f9"
+    },
+    {
+      "source": "assets\\maps\\showhome\\textures\\v2\\trim_sheet_house.png",
+      "destination": "game\\assets\\maps\\showhome\\textures\\v2\\trim_sheet_house.png",
+      "bytes": 93298,
+      "sha256": "ec52557ef22d344822d5e9e0dfa372df28ba7538f1901280b5a0b171de25d248"
+    },
+    {
+      "source": "assets\\maps\\showhome\\textures\\v2\\trim_sheet_house_height.png",
+      "destination": "game\\assets\\maps\\showhome\\textures\\v2\\trim_sheet_house_height.png",
+      "bytes": 6311,
+      "sha256": "68d632f8221bcd2af38c4f2c57d6ad2e6500940f6502803e08c27099535c2a4a"
+    },
+    {
+      "source": "assets\\maps\\showhome\\textures\\v2\\trim_sheet_house_normal.png",
+      "destination": "game\\assets\\maps\\showhome\\textures\\v2\\trim_sheet_house_normal.png",
+      "bytes": 5960,
+      "sha256": "e7a94d801170b9fd68ab3354a38abaa580c3f2f4798c9b15b0e0f96e6b8aa4dc"
+    },
+    {
+      "source": "assets\\maps\\showhome\\textures\\v2\\trim_sheet_house_orm.png",
+      "destination": "game\\assets\\maps\\showhome\\textures\\v2\\trim_sheet_house_orm.png",
+      "bytes": 5287,
+      "sha256": "7edbceafe088452f28e741a7e57356ec6e422a9d64785b13faf27f34864851cd"
+    },
+    {
+      "source": "assets\\maps\\showhome\\textures\\v2\\truck_paint_white.png",
+      "destination": "game\\assets\\maps\\showhome\\textures\\v2\\truck_paint_white.png",
+      "bytes": 131026,
+      "sha256": "8f260462937822ec0bf89d4bfb66b21c2f0e92c864bf7ddb20e500ee6cb6cefe"
+    },
+    {
+      "source": "assets\\maps\\showhome\\textures\\v2\\truck_paint_white_height.png",
+      "destination": "game\\assets\\maps\\showhome\\textures\\v2\\truck_paint_white_height.png",
+      "bytes": 865391,
+      "sha256": "1a470d06d52354e86f470a6d8b856865f4aa21a2ac80a0614704cc4254bb4e22"
+    },
+    {
+      "source": "assets\\maps\\showhome\\textures\\v2\\truck_paint_white_normal.png",
+      "destination": "game\\assets\\maps\\showhome\\textures\\v2\\truck_paint_white_normal.png",
+      "bytes": 55367,
+      "sha256": "ec66b0f748cf8e83c9b50130af7e06a7f6c4b9d166c70895441a314404888342"
+    },
+    {
+      "source": "assets\\maps\\showhome\\textures\\v2\\truck_paint_white_orm.png",
+      "destination": "game\\assets\\maps\\showhome\\textures\\v2\\truck_paint_white_orm.png",
+      "bytes": 4545,
+      "sha256": "585defd00e53b62dda8e016678b400cd3207dc267f9665b01ee2f373ce67685b"
+    },
+    {
+      "source": "assets\\maps\\showhome\\textures\\v2\\wood_boards_stained.png",
+      "destination": "game\\assets\\maps\\showhome\\textures\\v2\\wood_boards_stained.png",
+      "bytes": 52430,
+      "sha256": "854765c0a40213a291ed8ba6339f3144e50e5717316d93774d83f9bd0f38bff7"
+    },
+    {
+      "source": "assets\\maps\\showhome\\textures\\v2\\wood_boards_stained_height.png",
+      "destination": "game\\assets\\maps\\showhome\\textures\\v2\\wood_boards_stained_height.png",
+      "bytes": 4687,
+      "sha256": "cfae567615bda75db83a1cce2a253ffb0461279d22ff835081a64243a3639630"
+    },
+    {
+      "source": "assets\\maps\\showhome\\textures\\v2\\wood_boards_stained_normal.png",
+      "destination": "game\\assets\\maps\\showhome\\textures\\v2\\wood_boards_stained_normal.png",
+      "bytes": 5381,
+      "sha256": "f4d41a8b07d2da30ce5dad47a2ab9901657d2e43f6d0ae80f8b46832982780d2"
+    },
+    {
+      "source": "assets\\maps\\showhome\\textures\\v2\\wood_boards_stained_orm.png",
+      "destination": "game\\assets\\maps\\showhome\\textures\\v2\\wood_boards_stained_orm.png",
+      "bytes": 4902,
+      "sha256": "b6f7b19c3f654af6efc48be2b00e476889d7d85f71f0552b989852c8e48c1b3c"
+    },
+    {
+      "source": "assets\\maps\\showhome\\textures\\v2\\worksite_mud_tracks.png",
+      "destination": "game\\assets\\maps\\showhome\\textures\\v2\\worksite_mud_tracks.png",
+      "bytes": 172398,
+      "sha256": "7e5d71643a687e3a59d343540bedf91181917a0d889049ff1428acefa5e97000"
+    },
+    {
+      "source": "assets\\maps\\showhome\\textures\\v2\\worksite_mud_tracks_height.png",
+      "destination": "game\\assets\\maps\\showhome\\textures\\v2\\worksite_mud_tracks_height.png",
+      "bytes": 1110141,
+      "sha256": "084de2f31ea7d3963c4c120c80f5c9c3752f3d471d96f6567b921c1ba78fa40b"
+    },
+    {
+      "source": "assets\\maps\\showhome\\textures\\v2\\worksite_mud_tracks_normal.png",
+      "destination": "game\\assets\\maps\\showhome\\textures\\v2\\worksite_mud_tracks_normal.png",
+      "bytes": 158031,
+      "sha256": "a7beed54035ddf072645f5fd80463be19a9b751cab08efdfbb495741a6c6fb80"
+    },
+    {
+      "source": "assets\\maps\\showhome\\textures\\v2\\worksite_mud_tracks_orm.png",
+      "destination": "game\\assets\\maps\\showhome\\textures\\v2\\worksite_mud_tracks_orm.png",
+      "bytes": 47655,
+      "sha256": "c04b41c0eb0bd30b907ff81f3f7dc90a8c0b9661d65e89236dce8f00048e0090"
+    },
+    {
+      "source": "assets\\maps\\showhome\\textures\\v2\\worksite_packed_dirt.png",
+      "destination": "game\\assets\\maps\\showhome\\textures\\v2\\worksite_packed_dirt.png",
+      "bytes": 247828,
+      "sha256": "19723bbff146d96c7639b271c12d0f33b4099db6d9972063b96a52597a6fd39b"
+    },
+    {
+      "source": "assets\\maps\\showhome\\textures\\v2\\worksite_packed_dirt_height.png",
+      "destination": "game\\assets\\maps\\showhome\\textures\\v2\\worksite_packed_dirt_height.png",
+      "bytes": 1463624,
+      "sha256": "a43203af5bc49f6d02d95beadd7dcb4361cb99ddbc22b6b126bbd3e7204d8725"
+    },
+    {
+      "source": "assets\\maps\\showhome\\textures\\v2\\worksite_packed_dirt_normal.png",
+      "destination": "game\\assets\\maps\\showhome\\textures\\v2\\worksite_packed_dirt_normal.png",
+      "bytes": 230311,
+      "sha256": "5cee594f5c2a1df1ed88a9d952c5bfee130f06425e6496d8070a11c1ee060170"
+    },
+    {
+      "source": "assets\\maps\\showhome\\textures\\v2\\worksite_packed_dirt_orm.png",
+      "destination": "game\\assets\\maps\\showhome\\textures\\v2\\worksite_packed_dirt_orm.png",
+      "bytes": 11196,
+      "sha256": "b8ef1800f169fb0967df221e345bd3f0d903ae775a00471b46e798ac8c078d92"
+    },
+    {
+      "source": "assets\\maps\\showhome\\textures\\v2\\worn_dirt.png",
+      "destination": "game\\assets\\maps\\showhome\\textures\\v2\\worn_dirt.png",
+      "bytes": 153587,
+      "sha256": "dce040f079e8855548aca168ef0fb23b6ee98c37b84e9db737dfbd534f45e4ea"
+    },
+    {
+      "source": "assets\\maps\\showhome\\textures\\v2\\worn_dirt_height.png",
+      "destination": "game\\assets\\maps\\showhome\\textures\\v2\\worn_dirt_height.png",
+      "bytes": 1463253,
+      "sha256": "0e3729415ede6f4ea1f975dcc8f8ca3c5db8f54f38bea71cab027623b4ab280b"
+    },
+    {
+      "source": "assets\\maps\\showhome\\textures\\v2\\worn_dirt_normal.png",
+      "destination": "game\\assets\\maps\\showhome\\textures\\v2\\worn_dirt_normal.png",
+      "bytes": 382189,
+      "sha256": "e941bb0ee80d86f21bada633fadf98121d2457befbc54f2f9037ed2d2e3f91a9"
+    },
+    {
+      "source": "assets\\maps\\showhome\\textures\\v2\\worn_dirt_orm.png",
+      "destination": "game\\assets\\maps\\showhome\\textures\\v2\\worn_dirt_orm.png",
+      "bytes": 6641,
+      "sha256": "1ebd7d6418f0ea5856a0394672ee4b08b6144992664501857c2d383d02eaa581"
+    },
+    {
+      "source": "assets\\maps\\showhome\\textures\\v2\\manifest.json",
+      "destination": "game\\assets\\maps\\showhome\\textures\\v2\\manifest.json",
+      "bytes": 29897,
+      "sha256": "e46bbb25f3d9d12add240961515ab8b671448c52f97c5a8fdbb716bffdd44a01"
+    },
+    {
+      "source": "assets\\maps\\showhome\\textures\\v2\\trims.json",
+      "destination": "game\\assets\\maps\\showhome\\textures\\v2\\trims.json",
+      "bytes": 9271,
+      "sha256": "bbbec58952aa74ec246e85f4c4b20372d3ed6699a56f157e850037dc0b6d1d26"
+    },
+    {
+      "source": "assets\\maps\\showhome\\backdrop\\sky\\sky_cube_irradiance_strip.png",
+      "destination": "game\\assets\\maps\\showhome\\sky\\sky_cube_irradiance_strip.png",
+      "bytes": 74112,
+      "sha256": "d4ad9ab8f519becbe4923fb4ed1fa61a6617ee22acdbeaa8b02f0f0ba7a8414d"
+    },
+    {
+      "source": "assets\\maps\\showhome\\backdrop\\sky\\sky_cube_nx.png",
+      "destination": "game\\assets\\maps\\showhome\\sky\\sky_cube_nx.png",
+      "bytes": 347557,
+      "sha256": "27f0a0e67cf00e6acd8780e331a6ebe30f36b78230f4a4d5960e1bf2b1a19c7f"
+    },
+    {
+      "source": "assets\\maps\\showhome\\backdrop\\sky\\sky_cube_ny.png",
+      "destination": "game\\assets\\maps\\showhome\\sky\\sky_cube_ny.png",
+      "bytes": 5338,
+      "sha256": "394ed18a5cb747522206e6363fe2776f50f1166d1fd6c37736f3e357ff98be1a"
+    },
+    {
+      "source": "assets\\maps\\showhome\\backdrop\\sky\\sky_cube_nz.png",
+      "destination": "game\\assets\\maps\\showhome\\sky\\sky_cube_nz.png",
+      "bytes": 340661,
+      "sha256": "4ee369c169f0587529c0842f316a60f9cadb4d972b0353b00bf30f613666ced7"
+    },
+    {
+      "source": "assets\\maps\\showhome\\backdrop\\sky\\sky_cube_px.png",
+      "destination": "game\\assets\\maps\\showhome\\sky\\sky_cube_px.png",
+      "bytes": 353365,
+      "sha256": "67c4c130eea2c16dcb05246068acfd2cee3e8ab12c207530b5bef8889798cc16"
+    },
+    {
+      "source": "assets\\maps\\showhome\\backdrop\\sky\\sky_cube_py.png",
+      "destination": "game\\assets\\maps\\showhome\\sky\\sky_cube_py.png",
+      "bytes": 701912,
+      "sha256": "c3e30c4256d2658551b46c306b0a36260237cfde1b7f409fbc7216b5ad57c807"
+    },
+    {
+      "source": "assets\\maps\\showhome\\backdrop\\sky\\sky_cube_pz.png",
+      "destination": "game\\assets\\maps\\showhome\\sky\\sky_cube_pz.png",
+      "bytes": 354565,
+      "sha256": "5259656fa8e5e0b388ff246db7dc2e9a0e46873cfc413644e211ea2898b05aa8"
+    },
+    {
+      "source": "assets\\maps\\showhome\\backdrop\\sky\\sky_cube_strip.png",
+      "destination": "game\\assets\\maps\\showhome\\sky\\sky_cube_strip.png",
+      "bytes": 2113020,
+      "sha256": "4da4cb06f7660671d4bf48932702e12cef950cfcdd0f7e63084dc037512670e8"
+    },
+    {
+      "source": "assets\\maps\\showhome\\backdrop\\sky\\sky_equirect.png",
+      "destination": "game\\assets\\maps\\showhome\\sky\\sky_equirect.png",
+      "bytes": 2614703,
+      "sha256": "b29d5f11cf0b5384b14c1405f1b7d2ca302f4ab9a9e1a17cc3969e09ea66ff51"
+    },
+    {
+      "source": "assets\\maps\\showhome\\backdrop\\sky\\PROMPT.md",
+      "destination": "game\\assets\\maps\\showhome\\sky\\PROMPT.md",
+      "bytes": 1464,
+      "sha256": "ae4ae837c4c58028fd35eadc4860c55a404aad8b1d8cf8889fd97aaf2f38ec4b"
+    }
+  ]
+}

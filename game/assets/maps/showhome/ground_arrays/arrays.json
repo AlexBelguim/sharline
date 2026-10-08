@@ -1,0 +1,206 @@
+{
+  "version": 1,
+  "width": 1024,
+  "height": 1024,
+  "colour_rows": 39,
+  "height_rows": 40,
+  "macro_layer": 39,
+  "height_format": "R16Uint, manual bilinear /65535, exact PNG16",
+  "materials": {
+    "fibercement_sage": {
+      "index": 0,
+      "repeat_m": 4.8,
+      "height_range_m": 0.009
+    },
+    "fibercement_sage_weathered": {
+      "index": 1,
+      "repeat_m": 4.8,
+      "height_range_m": 0.009
+    },
+    "fibercement_clay": {
+      "index": 2,
+      "repeat_m": 4.8,
+      "height_range_m": 0.009
+    },
+    "fibercement_clay_weathered": {
+      "index": 3,
+      "repeat_m": 4.8,
+      "height_range_m": 0.009
+    },
+    "printed_concrete_layers": {
+      "index": 4,
+      "repeat_m": 1.28,
+      "height_range_m": 0.009
+    },
+    "printed_concrete_layers_dusty": {
+      "index": 5,
+      "repeat_m": 1.28,
+      "height_range_m": 0.009
+    },
+    "trim_sheet_house": {
+      "index": 6,
+      "repeat_m": 4,
+      "height_range_m": 0.006
+    },
+    "roof_shingle_dark": {
+      "index": 7,
+      "repeat_m": 2,
+      "height_range_m": 0.01
+    },
+    "roof_shingle_dark_lichen": {
+      "index": 8,
+      "repeat_m": 2,
+      "height_range_m": 0.01
+    },
+    "roof_ridge_verge": {
+      "index": 9,
+      "repeat_m": 2,
+      "height_range_m": 0.008
+    },
+    "paving_slabs": {
+      "index": 10,
+      "repeat_m": 2.4,
+      "height_range_m": 0.01
+    },
+    "paving_slabs_moss": {
+      "index": 11,
+      "repeat_m": 2.4,
+      "height_range_m": 0.01
+    },
+    "kerb_concrete": {
+      "index": 12,
+      "repeat_m": 2,
+      "height_range_m": 0.009
+    },
+    "edging_strip": {
+      "index": 13,
+      "repeat_m": 2,
+      "height_range_m": 0.006
+    },
+    "asphalt": {
+      "index": 14,
+      "repeat_m": 4,
+      "height_range_m": 0.003
+    },
+    "asphalt_patched": {
+      "index": 15,
+      "repeat_m": 4,
+      "height_range_m": 0.004
+    },
+    "asphalt_cracked": {
+      "index": 16,
+      "repeat_m": 4,
+      "height_range_m": 0.004
+    },
+    "grass_lawn": {
+      "index": 17,
+      "repeat_m": 2,
+      "height_range_m": 0.014
+    },
+    "grass_lawn_dry": {
+      "index": 18,
+      "repeat_m": 2,
+      "height_range_m": 0.01
+    },
+    "grass_verge_weeds": {
+      "index": 19,
+      "repeat_m": 2,
+      "height_range_m": 0.016
+    },
+    "garden_soil": {
+      "index": 20,
+      "repeat_m": 1,
+      "height_range_m": 0.014
+    },
+    "worn_dirt": {
+      "index": 21,
+      "repeat_m": 1,
+      "height_range_m": 0.01
+    },
+    "bark_mulch": {
+      "index": 22,
+      "repeat_m": 1,
+      "height_range_m": 0.024
+    },
+    "gravel": {
+      "index": 23,
+      "repeat_m": 1,
+      "height_range_m": 0.028
+    },
+    "gravel_compacted": {
+      "index": 24,
+      "repeat_m": 1,
+      "height_range_m": 0.015
+    },
+    "worksite_packed_dirt": {
+      "index": 25,
+      "repeat_m": 6,
+      "height_range_m": 0.022
+    },
+    "worksite_mud_tracks": {
+      "index": 26,
+      "repeat_m": 6,
+      "height_range_m": 0.032
+    },
+    "construction_sand": {
+      "index": 27,
+      "repeat_m": 6,
+      "height_range_m": 0.022
+    },
+    "foundation_slab": {
+      "index": 28,
+      "repeat_m": 2.4,
+      "height_range_m": 0.008
+    },
+    "timber_pallets": {
+      "index": 29,
+      "repeat_m": 2,
+      "height_range_m": 0.007
+    },
+    "wood_boards_stained": {
+      "index": 30,
+      "repeat_m": 2,
+      "height_range_m": 0.008
+    },
+    "metal_corrugated_site": {
+      "index": 31,
+      "repeat_m": 2,
+      "height_range_m": 0.018
+    },
+    "metal_scaffold_tube": {
+      "index": 32,
+      "repeat_m": 1,
+      "height_range_m": 0.0008
+    },
+    "fibercement_panel": {
+      "index": 33,
+      "repeat_m": 2.4,
+      "height_range_m": 0.00035
+    },
+    "concrete_smooth": {
+      "index": 34,
+      "repeat_m": 2,
+      "height_range_m": 0.003
+    },
+    "picket_wood_white": {
+      "index": 35,
+      "repeat_m": 1,
+      "height_range_m": 0.003
+    },
+    "metal_painted_yellow": {
+      "index": 36,
+      "repeat_m": 2,
+      "height_range_m": 0.001
+    },
+    "truck_paint_white": {
+      "index": 37,
+      "repeat_m": 3,
+      "height_range_m": 0.0005
+    },
+    "cardboard": {
+      "index": 38,
+      "repeat_m": 1,
+      "height_range_m": 0.001
+    }
+  }
+}

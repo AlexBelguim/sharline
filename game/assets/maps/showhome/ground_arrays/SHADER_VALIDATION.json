@@ -1,0 +1,6 @@
+{
+  "naga_WGSL_body_pass": true,
+  "source": "game/assets/shaders/showhome_ground.wgsl",
+  "bevy_boundary_stubs": true,
+  "full_Bevy_pipeline_runtime_smoke_required": true
+}

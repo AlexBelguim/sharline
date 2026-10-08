@@ -28,6 +28,8 @@ mod screens;
 mod server;
 mod settings;
 mod shared;
+mod showhome_ground;
+mod showhome_kit;
 mod sound;
 mod ui_kit;
 mod user_config;
@@ -125,6 +127,8 @@ fn main() -> AppExit {
     ));
     // Showhome's hedges and lawn grass (after the map materials it reads).
     app.add_plugins(foliage::FoliagePlugin);
+    // The art exports are already in Bevy's design frame; the ground interprets their RGBA blend masks.
+    app.add_plugins((showhome_kit::ShowhomeKitPlugin, showhome_ground::ShowhomeGroundPlugin));
     // Hub screens over the menu or the match.
     app.add_plugins((
         screens::ScreensPlugin,

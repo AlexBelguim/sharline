@@ -1,0 +1,1179 @@
+{
+  "version": 2,
+  "axes": "Blender design x=east y=north z=up; glTF=(x,z,-y)",
+  "normal_convention": "OpenGL: red +U, green +V (toward top of PNG)",
+  "colour_spaces": {
+    "albedo": "sRGB",
+    "normal": "linear",
+    "orm": "linear",
+    "height": "linear16"
+  },
+  "wall_joint_grid": {
+    "repeat_m": 4.8,
+    "panel_m": [
+      1.2,
+      2.4
+    ],
+    "u": [
+      0.125,
+      0.375,
+      0.625,
+      0.875
+    ],
+    "v": [
+      0.25,
+      0.75
+    ],
+    "groove_width_m": 0.014,
+    "groove_depth_m": 0.009
+  },
+  "materials": {
+    "fibercement_sage": {
+      "use": "1.2 x 2.4 m fibre cement panels; jointed sheet",
+      "repeat_m": 4.8,
+      "tint_linear": [
+        1,
+        1,
+        1
+      ],
+      "palette": "fibercement_sage",
+      "target_linear": [
+        0.2833,
+        0.3179,
+        0.1689
+      ],
+      "roughness": 0.65,
+      "metalness": 0,
+      "height_min_m": 0,
+      "height_max_m": 0.009,
+      "height_range_m": 0.009,
+      "structure": "panels",
+      "brush": "painted_panels",
+      "variant": "clean",
+      "maps": {
+        "albedo": "fibercement_sage.png",
+        "normal": "fibercement_sage_normal.png",
+        "orm": "fibercement_sage_orm.png",
+        "height": "fibercement_sage_height.png"
+      }
+    },
+    "fibercement_sage_weathered": {
+      "use": "Soft painted water streaks below joints",
+      "repeat_m": 4.8,
+      "tint_linear": [
+        1,
+        1,
+        1
+      ],
+      "palette": "fibercement_sage",
+      "target_linear": [
+        0.2833,
+        0.3179,
+        0.1689
+      ],
+      "roughness": 0.67,
+      "metalness": 0,
+      "height_min_m": 0,
+      "height_max_m": 0.009,
+      "height_range_m": 0.009,
+      "structure": "panels",
+      "brush": "painted_panels",
+      "variant": "weathered",
+      "maps": {
+        "albedo": "fibercement_sage_weathered.png",
+        "normal": "fibercement_sage_weathered_normal.png",
+        "orm": "fibercement_sage_weathered_orm.png",
+        "height": "fibercement_sage_weathered_height.png"
+      }
+    },
+    "fibercement_clay": {
+      "use": "1.2 x 2.4 m fibre cement panels; jointed sheet",
+      "repeat_m": 4.8,
+      "tint_linear": [
+        1,
+        1,
+        1
+      ],
+      "palette": "fibercement_clay",
+      "target_linear": [
+        0.6245,
+        0.2383,
+        0.1158
+      ],
+      "roughness": 0.65,
+      "metalness": 0,
+      "height_min_m": 0,
+      "height_max_m": 0.009,
+      "height_range_m": 0.009,
+      "structure": "panels",
+      "brush": "painted_panels",
+      "variant": "clean",
+      "maps": {
+        "albedo": "fibercement_clay.png",
+        "normal": "fibercement_clay_normal.png",
+        "orm": "fibercement_clay_orm.png",
+        "height": "fibercement_clay_height.png"
+      }
+    },
+    "fibercement_clay_weathered": {
+      "use": "Soft painted water streaks below joints",
+      "repeat_m": 4.8,
+      "tint_linear": [
+        1,
+        1,
+        1
+      ],
+      "palette": "fibercement_clay",
+      "target_linear": [
+        0.6245,
+        0.2383,
+        0.1158
+      ],
+      "roughness": 0.67,
+      "metalness": 0,
+      "height_min_m": 0,
+      "height_max_m": 0.009,
+      "height_range_m": 0.009,
+      "structure": "panels",
+      "brush": "painted_panels",
+      "variant": "weathered",
+      "maps": {
+        "albedo": "fibercement_clay_weathered.png",
+        "normal": "fibercement_clay_weathered_normal.png",
+        "orm": "fibercement_clay_weathered_orm.png",
+        "height": "fibercement_clay_weathered_height.png"
+      }
+    },
+    "printed_concrete_layers": {
+      "use": "Horizontal printed beads at 40 mm pitch",
+      "repeat_m": 1.28,
+      "tint_linear": [
+        1,
+        1,
+        1
+      ],
+      "palette": "printed_concrete",
+      "target_linear": [
+        0.6724,
+        0.5776,
+        0.4342
+      ],
+      "roughness": 0.8,
+      "metalness": 0,
+      "height_min_m": 0,
+      "height_max_m": 0.009,
+      "height_range_m": 0.009,
+      "structure": "beads",
+      "brush": "painted_ground",
+      "variant": "clean",
+      "maps": {
+        "albedo": "printed_concrete_layers.png",
+        "normal": "printed_concrete_layers_normal.png",
+        "orm": "printed_concrete_layers_orm.png",
+        "height": "printed_concrete_layers_height.png"
+      }
+    },
+    "printed_concrete_layers_dusty": {
+      "use": "Printed beads with soft dusty base wash",
+      "repeat_m": 1.28,
+      "tint_linear": [
+        1,
+        1,
+        1
+      ],
+      "palette": "printed_concrete",
+      "target_linear": [
+        0.6724,
+        0.5776,
+        0.4342
+      ],
+      "roughness": 0.82,
+      "metalness": 0,
+      "height_min_m": 0,
+      "height_max_m": 0.009,
+      "height_range_m": 0.009,
+      "structure": "beads",
+      "brush": "painted_ground",
+      "variant": "dusty",
+      "maps": {
+        "albedo": "printed_concrete_layers_dusty.png",
+        "normal": "printed_concrete_layers_dusty_normal.png",
+        "orm": "printed_concrete_layers_dusty_orm.png",
+        "height": "printed_concrete_layers_dusty_height.png"
+      }
+    },
+    "trim_sheet_house": {
+      "use": "Frames, sills, coping, gutters, fascia, flashing; see trims.json",
+      "repeat_m": 4,
+      "tint_linear": [
+        1,
+        1,
+        1
+      ],
+      "palette": "trim_cream",
+      "target_linear": [
+        0.7231,
+        0.6514,
+        0.521
+      ],
+      "roughness": 0.65,
+      "metalness": 0,
+      "height_min_m": 0,
+      "height_max_m": 0.006,
+      "height_range_m": 0.006,
+      "structure": "trim",
+      "brush": "painted_ground",
+      "variant": "clean",
+      "maps": {
+        "albedo": "trim_sheet_house.png",
+        "normal": "trim_sheet_house_normal.png",
+        "orm": "trim_sheet_house_orm.png",
+        "height": "trim_sheet_house_height.png"
+      }
+    },
+    "roof_shingle_dark": {
+      "use": "Half-bond shingles, 500 x 250 mm",
+      "repeat_m": 2,
+      "tint_linear": [
+        1,
+        1,
+        1
+      ],
+      "palette": "roof_dark",
+      "target_linear": [
+        0.0931,
+        0.0782,
+        0.0802
+      ],
+      "roughness": 0.7,
+      "metalness": 0,
+      "height_min_m": 0,
+      "height_max_m": 0.01,
+      "height_range_m": 0.01,
+      "structure": "shingles",
+      "brush": "painted_ground",
+      "variant": "clean",
+      "maps": {
+        "albedo": "roof_shingle_dark.png",
+        "normal": "roof_shingle_dark_normal.png",
+        "orm": "roof_shingle_dark_orm.png",
+        "height": "roof_shingle_dark_height.png"
+      }
+    },
+    "roof_shingle_dark_lichen": {
+      "use": "Sparse subtle painted lichen spots",
+      "repeat_m": 2,
+      "tint_linear": [
+        1,
+        1,
+        1
+      ],
+      "palette": "roof_dark",
+      "target_linear": [
+        0.0931,
+        0.0782,
+        0.0802
+      ],
+      "roughness": 0.74,
+      "metalness": 0,
+      "height_min_m": 0,
+      "height_max_m": 0.01,
+      "height_range_m": 0.01,
+      "structure": "shingles",
+      "brush": "painted_ground",
+      "variant": "lichen",
+      "maps": {
+        "albedo": "roof_shingle_dark_lichen.png",
+        "normal": "roof_shingle_dark_lichen_normal.png",
+        "orm": "roof_shingle_dark_lichen_orm.png",
+        "height": "roof_shingle_dark_lichen_height.png"
+      }
+    },
+    "roof_ridge_verge": {
+      "use": "Ridge cap and verge pieces, joints every .5 m along U",
+      "repeat_m": 2,
+      "tint_linear": [
+        1,
+        1,
+        1
+      ],
+      "palette": "roof_dark",
+      "target_linear": [
+        0.0931,
+        0.0782,
+        0.0802
+      ],
+      "roughness": 0.7,
+      "metalness": 0,
+      "height_min_m": 0,
+      "height_max_m": 0.008,
+      "height_range_m": 0.008,
+      "structure": "ridge",
+      "brush": "painted_ground",
+      "variant": "clean",
+      "maps": {
+        "albedo": "roof_ridge_verge.png",
+        "normal": "roof_ridge_verge_normal.png",
+        "orm": "roof_ridge_verge_orm.png",
+        "height": "roof_ridge_verge_height.png"
+      }
+    },
+    "paving_slabs": {
+      "use": "600 mm paving slabs, 10 mm recessed joints",
+      "repeat_m": 2.4,
+      "tint_linear": [
+        1,
+        1,
+        1
+      ],
+      "palette": "paving",
+      "target_linear": [
+        0.4296,
+        0.3599,
+        0.3251
+      ],
+      "roughness": 0.8,
+      "metalness": 0,
+      "height_min_m": 0,
+      "height_max_m": 0.01,
+      "height_range_m": 0.01,
+      "structure": "slabs",
+      "brush": "painted_ground",
+      "variant": "clean",
+      "maps": {
+        "albedo": "paving_slabs.png",
+        "normal": "paving_slabs_normal.png",
+        "orm": "paving_slabs_orm.png",
+        "height": "paving_slabs_height.png"
+      }
+    },
+    "paving_slabs_moss": {
+      "use": "Paving with soft moss only in the joints",
+      "repeat_m": 2.4,
+      "tint_linear": [
+        1,
+        1,
+        1
+      ],
+      "palette": "paving",
+      "target_linear": [
+        0.4296,
+        0.3599,
+        0.3251
+      ],
+      "roughness": 0.84,
+      "metalness": 0,
+      "height_min_m": 0,
+      "height_max_m": 0.01,
+      "height_range_m": 0.01,
+      "structure": "slabs",
+      "brush": "painted_ground",
+      "variant": "moss",
+      "maps": {
+        "albedo": "paving_slabs_moss.png",
+        "normal": "paving_slabs_moss_normal.png",
+        "orm": "paving_slabs_moss_orm.png",
+        "height": "paving_slabs_moss_height.png"
+      }
+    },
+    "kerb_concrete": {
+      "use": "One metre kerb units, U runs along kerb",
+      "repeat_m": 2,
+      "tint_linear": [
+        1,
+        1,
+        1
+      ],
+      "palette": "kerb",
+      "target_linear": [
+        0.346,
+        0.29,
+        0.2673
+      ],
+      "roughness": 0.8,
+      "metalness": 0,
+      "height_min_m": 0,
+      "height_max_m": 0.009,
+      "height_range_m": 0.009,
+      "structure": "kerb",
+      "brush": "painted_ground",
+      "variant": "clean",
+      "maps": {
+        "albedo": "kerb_concrete.png",
+        "normal": "kerb_concrete_normal.png",
+        "orm": "kerb_concrete_orm.png",
+        "height": "kerb_concrete_height.png"
+      }
+    },
+    "edging_strip": {
+      "use": "Concrete garden edging; one metre units along U",
+      "repeat_m": 2,
+      "tint_linear": [
+        1,
+        1,
+        1
+      ],
+      "palette": "kerb",
+      "target_linear": [
+        0.346,
+        0.29,
+        0.2673
+      ],
+      "roughness": 0.8,
+      "metalness": 0,
+      "height_min_m": 0,
+      "height_max_m": 0.006,
+      "height_range_m": 0.006,
+      "structure": "kerb",
+      "brush": "painted_ground",
+      "variant": "clean",
+      "maps": {
+        "albedo": "edging_strip.png",
+        "normal": "edging_strip_normal.png",
+        "orm": "edging_strip_orm.png",
+        "height": "edging_strip_height.png"
+      }
+    },
+    "asphalt": {
+      "use": "Fresh calm violet grey asphalt",
+      "repeat_m": 4,
+      "tint_linear": [
+        1,
+        1,
+        1
+      ],
+      "palette": "asphalt",
+      "target_linear": [
+        0.162,
+        0.1413,
+        0.1441
+      ],
+      "roughness": 0.85,
+      "metalness": 0,
+      "height_min_m": 0,
+      "height_max_m": 0.003,
+      "height_range_m": 0.003,
+      "structure": "asphalt",
+      "brush": "painted_ground",
+      "variant": "clean",
+      "maps": {
+        "albedo": "asphalt.png",
+        "normal": "asphalt_normal.png",
+        "orm": "asphalt_orm.png",
+        "height": "asphalt_height.png"
+      }
+    },
+    "asphalt_patched": {
+      "use": "Repaired square patches, same average as fresh asphalt",
+      "repeat_m": 4,
+      "tint_linear": [
+        1,
+        1,
+        1
+      ],
+      "palette": "asphalt",
+      "target_linear": [
+        0.162,
+        0.1413,
+        0.1441
+      ],
+      "roughness": 0.87,
+      "metalness": 0,
+      "height_min_m": 0,
+      "height_max_m": 0.004,
+      "height_range_m": 0.004,
+      "structure": "asphalt",
+      "brush": "painted_ground",
+      "variant": "patched",
+      "maps": {
+        "albedo": "asphalt_patched.png",
+        "normal": "asphalt_patched_normal.png",
+        "orm": "asphalt_patched_orm.png",
+        "height": "asphalt_patched_height.png"
+      }
+    },
+    "asphalt_cracked": {
+      "use": "Sparse cracks sealed with broad tar lines",
+      "repeat_m": 4,
+      "tint_linear": [
+        1,
+        1,
+        1
+      ],
+      "palette": "asphalt",
+      "target_linear": [
+        0.162,
+        0.1413,
+        0.1441
+      ],
+      "roughness": 0.82,
+      "metalness": 0,
+      "height_min_m": 0,
+      "height_max_m": 0.004,
+      "height_range_m": 0.004,
+      "structure": "asphalt",
+      "brush": "painted_ground",
+      "variant": "cracked",
+      "maps": {
+        "albedo": "asphalt_cracked.png",
+        "normal": "asphalt_cracked_normal.png",
+        "orm": "asphalt_cracked_orm.png",
+        "height": "asphalt_cracked_height.png"
+      }
+    },
+    "grass_lawn": {
+      "use": "Lush lawn ground; foliage cards intentionally on hold",
+      "repeat_m": 2,
+      "tint_linear": [
+        1,
+        1,
+        1
+      ],
+      "palette": "grass",
+      "target_linear": [
+        0.2086,
+        0.2623,
+        0.0423
+      ],
+      "roughness": 0.9,
+      "metalness": 0,
+      "height_min_m": 0,
+      "height_max_m": 0.014,
+      "height_range_m": 0.014,
+      "structure": "grass",
+      "brush": "painted_ground",
+      "variant": "clean",
+      "maps": {
+        "albedo": "grass_lawn.png",
+        "normal": "grass_lawn_normal.png",
+        "orm": "grass_lawn_orm.png",
+        "height": "grass_lawn_height.png"
+      }
+    },
+    "grass_lawn_dry": {
+      "use": "Dry patchy lawn, same family mean",
+      "repeat_m": 2,
+      "tint_linear": [
+        1,
+        1,
+        1
+      ],
+      "palette": "grass",
+      "target_linear": [
+        0.2086,
+        0.2623,
+        0.0423
+      ],
+      "roughness": 0.93,
+      "metalness": 0,
+      "height_min_m": 0,
+      "height_max_m": 0.01,
+      "height_range_m": 0.01,
+      "structure": "grass",
+      "brush": "painted_ground",
+      "variant": "dry",
+      "maps": {
+        "albedo": "grass_lawn_dry.png",
+        "normal": "grass_lawn_dry_normal.png",
+        "orm": "grass_lawn_dry_orm.png",
+        "height": "grass_lawn_dry_height.png"
+      }
+    },
+    "grass_verge_weeds": {
+      "use": "Verge with simple broad painted weed marks",
+      "repeat_m": 2,
+      "tint_linear": [
+        1,
+        1,
+        1
+      ],
+      "palette": "grass",
+      "target_linear": [
+        0.2086,
+        0.2623,
+        0.0423
+      ],
+      "roughness": 0.9,
+      "metalness": 0,
+      "height_min_m": 0,
+      "height_max_m": 0.016,
+      "height_range_m": 0.016,
+      "structure": "grass",
+      "brush": "painted_ground",
+      "variant": "weeds",
+      "maps": {
+        "albedo": "grass_verge_weeds.png",
+        "normal": "grass_verge_weeds_normal.png",
+        "orm": "grass_verge_weeds_orm.png",
+        "height": "grass_verge_weeds_height.png"
+      }
+    },
+    "garden_soil": {
+      "use": "Soft garden soil",
+      "repeat_m": 1,
+      "tint_linear": [
+        1,
+        1,
+        1
+      ],
+      "palette": "garden_soil",
+      "target_linear": [
+        0.117,
+        0.0685,
+        0.0395
+      ],
+      "roughness": 0.95,
+      "metalness": 0,
+      "height_min_m": 0,
+      "height_max_m": 0.014,
+      "height_range_m": 0.014,
+      "structure": "soil",
+      "brush": "painted_ground",
+      "variant": "clean",
+      "maps": {
+        "albedo": "garden_soil.png",
+        "normal": "garden_soil_normal.png",
+        "orm": "garden_soil_orm.png",
+        "height": "garden_soil_height.png"
+      }
+    },
+    "worn_dirt": {
+      "use": "Trodden garden dirt without photographic grit",
+      "repeat_m": 1,
+      "tint_linear": [
+        1,
+        1,
+        1
+      ],
+      "palette": "garden_soil",
+      "target_linear": [
+        0.117,
+        0.0685,
+        0.0395
+      ],
+      "roughness": 0.93,
+      "metalness": 0,
+      "height_min_m": 0,
+      "height_max_m": 0.01,
+      "height_range_m": 0.01,
+      "structure": "soil",
+      "brush": "painted_ground",
+      "variant": "worn",
+      "maps": {
+        "albedo": "worn_dirt.png",
+        "normal": "worn_dirt_normal.png",
+        "orm": "worn_dirt_orm.png",
+        "height": "worn_dirt_height.png"
+      }
+    },
+    "bark_mulch": {
+      "use": "Broad stylized bark pieces, same soil family mean",
+      "repeat_m": 1,
+      "tint_linear": [
+        1,
+        1,
+        1
+      ],
+      "palette": "garden_soil",
+      "target_linear": [
+        0.117,
+        0.0685,
+        0.0395
+      ],
+      "roughness": 0.96,
+      "metalness": 0,
+      "height_min_m": 0,
+      "height_max_m": 0.024,
+      "height_range_m": 0.024,
+      "structure": "bark",
+      "brush": "painted_timber",
+      "variant": "clean",
+      "maps": {
+        "albedo": "bark_mulch.png",
+        "normal": "bark_mulch_normal.png",
+        "orm": "bark_mulch_orm.png",
+        "height": "bark_mulch_height.png"
+      }
+    },
+    "gravel": {
+      "use": "Loose stylized pebbles",
+      "repeat_m": 1,
+      "tint_linear": [
+        1,
+        1,
+        1
+      ],
+      "palette": "gravel",
+      "target_linear": [
+        0.4204,
+        0.3191,
+        0.2511
+      ],
+      "roughness": 0.9,
+      "metalness": 0,
+      "height_min_m": 0,
+      "height_max_m": 0.028,
+      "height_range_m": 0.028,
+      "structure": "gravel",
+      "brush": "painted_ground",
+      "variant": "clean",
+      "maps": {
+        "albedo": "gravel.png",
+        "normal": "gravel_normal.png",
+        "orm": "gravel_orm.png",
+        "height": "gravel_height.png"
+      }
+    },
+    "gravel_compacted": {
+      "use": "Compacted gravel path",
+      "repeat_m": 1,
+      "tint_linear": [
+        1,
+        1,
+        1
+      ],
+      "palette": "gravel",
+      "target_linear": [
+        0.4204,
+        0.3191,
+        0.2511
+      ],
+      "roughness": 0.92,
+      "metalness": 0,
+      "height_min_m": 0,
+      "height_max_m": 0.015,
+      "height_range_m": 0.015,
+      "structure": "gravel",
+      "brush": "painted_ground",
+      "variant": "compacted",
+      "maps": {
+        "albedo": "gravel_compacted.png",
+        "normal": "gravel_compacted_normal.png",
+        "orm": "gravel_compacted_orm.png",
+        "height": "gravel_compacted_height.png"
+      }
+    },
+    "worksite_packed_dirt": {
+      "use": "Packed worksite dirt",
+      "repeat_m": 6,
+      "tint_linear": [
+        1,
+        1,
+        1
+      ],
+      "palette": "construction_sand",
+      "target_linear": [
+        0.5596,
+        0.3909,
+        0.2658
+      ],
+      "roughness": 0.95,
+      "metalness": 0,
+      "height_min_m": 0,
+      "height_max_m": 0.022,
+      "height_range_m": 0.022,
+      "structure": "soil",
+      "brush": "painted_ground",
+      "variant": "packed",
+      "maps": {
+        "albedo": "worksite_packed_dirt.png",
+        "normal": "worksite_packed_dirt_normal.png",
+        "orm": "worksite_packed_dirt_orm.png",
+        "height": "worksite_packed_dirt_height.png"
+      }
+    },
+    "worksite_mud_tracks": {
+      "use": "Two repeating tyre track lanes in painted mud",
+      "repeat_m": 6,
+      "tint_linear": [
+        1,
+        1,
+        1
+      ],
+      "palette": "construction_sand",
+      "target_linear": [
+        0.5596,
+        0.3909,
+        0.2658
+      ],
+      "roughness": 0.8,
+      "metalness": 0,
+      "height_min_m": 0,
+      "height_max_m": 0.032,
+      "height_range_m": 0.032,
+      "structure": "tracks",
+      "brush": "painted_ground",
+      "variant": "clean",
+      "maps": {
+        "albedo": "worksite_mud_tracks.png",
+        "normal": "worksite_mud_tracks_normal.png",
+        "orm": "worksite_mud_tracks_orm.png",
+        "height": "worksite_mud_tracks_height.png"
+      }
+    },
+    "construction_sand": {
+      "use": "Soft construction sand; no stamped round blotches",
+      "repeat_m": 6,
+      "tint_linear": [
+        1,
+        1,
+        1
+      ],
+      "palette": "construction_sand",
+      "target_linear": [
+        0.5596,
+        0.3909,
+        0.2658
+      ],
+      "roughness": 0.95,
+      "metalness": 0,
+      "height_min_m": 0,
+      "height_max_m": 0.022,
+      "height_range_m": 0.022,
+      "structure": "sand",
+      "brush": "painted_ground",
+      "variant": "clean",
+      "maps": {
+        "albedo": "construction_sand.png",
+        "normal": "construction_sand_normal.png",
+        "orm": "construction_sand_orm.png",
+        "height": "construction_sand_height.png"
+      }
+    },
+    "foundation_slab": {
+      "use": "Printed concrete foundation slab, .6 m sections",
+      "repeat_m": 2.4,
+      "tint_linear": [
+        1,
+        1,
+        1
+      ],
+      "palette": "printed_concrete",
+      "target_linear": [
+        0.6724,
+        0.5776,
+        0.4342
+      ],
+      "roughness": 0.84,
+      "metalness": 0,
+      "height_min_m": 0,
+      "height_max_m": 0.008,
+      "height_range_m": 0.008,
+      "structure": "slabs",
+      "brush": "painted_ground",
+      "variant": "clean",
+      "maps": {
+        "albedo": "foundation_slab.png",
+        "normal": "foundation_slab_normal.png",
+        "orm": "foundation_slab_orm.png",
+        "height": "foundation_slab_height.png"
+      }
+    },
+    "timber_pallets": {
+      "use": "Unbranded pallet timber; V follows board length",
+      "repeat_m": 2,
+      "tint_linear": [
+        1,
+        1,
+        1
+      ],
+      "palette": "shed_wood",
+      "target_linear": [
+        0.0873,
+        0.0651,
+        0.0543
+      ],
+      "roughness": 0.8,
+      "metalness": 0,
+      "height_min_m": 0,
+      "height_max_m": 0.007,
+      "height_range_m": 0.007,
+      "structure": "boards",
+      "brush": "painted_timber",
+      "variant": "clean",
+      "maps": {
+        "albedo": "timber_pallets.png",
+        "normal": "timber_pallets_normal.png",
+        "orm": "timber_pallets_orm.png",
+        "height": "timber_pallets_height.png"
+      }
+    },
+    "wood_boards_stained": {
+      "use": "Stained garden boards and fences",
+      "repeat_m": 2,
+      "tint_linear": [
+        1,
+        1,
+        1
+      ],
+      "palette": "shed_wood",
+      "target_linear": [
+        0.0873,
+        0.0651,
+        0.0543
+      ],
+      "roughness": 0.8,
+      "metalness": 0,
+      "height_min_m": 0,
+      "height_max_m": 0.008,
+      "height_range_m": 0.008,
+      "structure": "boards",
+      "brush": "painted_timber",
+      "variant": "stained",
+      "maps": {
+        "albedo": "wood_boards_stained.png",
+        "normal": "wood_boards_stained_normal.png",
+        "orm": "wood_boards_stained_orm.png",
+        "height": "wood_boards_stained_height.png"
+      }
+    },
+    "metal_corrugated_site": {
+      "use": "Painted cream corrugated site fence; .1 m flutes",
+      "repeat_m": 2,
+      "tint_linear": [
+        1,
+        1,
+        1
+      ],
+      "palette": "trim_cream",
+      "target_linear": [
+        0.7231,
+        0.6514,
+        0.521
+      ],
+      "roughness": 0.6,
+      "metalness": 0,
+      "height_min_m": 0,
+      "height_max_m": 0.018,
+      "height_range_m": 0.018,
+      "structure": "corrugated",
+      "brush": "painted_ground",
+      "variant": "clean",
+      "maps": {
+        "albedo": "metal_corrugated_site.png",
+        "normal": "metal_corrugated_site_normal.png",
+        "orm": "metal_corrugated_site_orm.png",
+        "height": "metal_corrugated_site_height.png"
+      }
+    },
+    "metal_scaffold_tube": {
+      "use": "Muted galvanized scaffold metal",
+      "repeat_m": 1,
+      "tint_linear": [
+        1,
+        1,
+        1
+      ],
+      "palette": "metal_chip",
+      "target_linear": [
+        0.123,
+        0.1036,
+        0.1115
+      ],
+      "roughness": 0.48,
+      "metalness": 0.8,
+      "height_min_m": 0,
+      "height_max_m": 0.0008,
+      "height_range_m": 0.0008,
+      "structure": "smooth",
+      "brush": "painted_ground",
+      "variant": "clean",
+      "maps": {
+        "albedo": "metal_scaffold_tube.png",
+        "normal": "metal_scaffold_tube_normal.png",
+        "orm": "metal_scaffold_tube_orm.png",
+        "height": "metal_scaffold_tube_height.png"
+      }
+    },
+    "fibercement_panel": {
+      "use": "Seam-free neutral painted panel face; real mesh seams supply depth",
+      "repeat_m": 2.4,
+      "tint_linear": [
+        1,
+        1,
+        1
+      ],
+      "palette": [
+        0.7,
+        0.7,
+        0.7
+      ],
+      "target_linear": [
+        0.7,
+        0.7,
+        0.7
+      ],
+      "roughness": 0.65,
+      "metalness": 0,
+      "height_min_m": 0,
+      "height_max_m": 0.00035,
+      "height_range_m": 0.00035,
+      "structure": "smooth",
+      "brush": "painted_panels",
+      "variant": "clean",
+      "maps": {
+        "albedo": "fibercement_panel.png",
+        "normal": "fibercement_panel_normal.png",
+        "orm": "fibercement_panel_orm.png",
+        "height": "fibercement_panel_height.png"
+      }
+    },
+    "concrete_smooth": {
+      "use": "Cast concrete blocks, rocks, coping and poles",
+      "repeat_m": 2,
+      "tint_linear": [
+        1,
+        1,
+        1
+      ],
+      "palette": "pole_concrete",
+      "target_linear": [
+        0.4473,
+        0.3783,
+        0.3431
+      ],
+      "roughness": 0.8,
+      "metalness": 0,
+      "height_min_m": 0,
+      "height_max_m": 0.003,
+      "height_range_m": 0.003,
+      "structure": "smooth",
+      "brush": "painted_ground",
+      "variant": "clean",
+      "maps": {
+        "albedo": "concrete_smooth.png",
+        "normal": "concrete_smooth_normal.png",
+        "orm": "concrete_smooth_orm.png",
+        "height": "concrete_smooth_height.png"
+      }
+    },
+    "picket_wood_white": {
+      "use": "Painted white pickets; V follows timber length",
+      "repeat_m": 1,
+      "tint_linear": [
+        1,
+        1,
+        1
+      ],
+      "palette": "picket_white",
+      "target_linear": [
+        0.7605,
+        0.7084,
+        0.6105
+      ],
+      "roughness": 0.65,
+      "metalness": 0,
+      "height_min_m": 0,
+      "height_max_m": 0.003,
+      "height_range_m": 0.003,
+      "structure": "smooth",
+      "brush": "painted_timber",
+      "variant": "clean",
+      "maps": {
+        "albedo": "picket_wood_white.png",
+        "normal": "picket_wood_white_normal.png",
+        "orm": "picket_wood_white_orm.png",
+        "height": "picket_wood_white_height.png"
+      }
+    },
+    "metal_painted_yellow": {
+      "use": "Crane and barrier yellow painted metal",
+      "repeat_m": 2,
+      "tint_linear": [
+        1,
+        1,
+        1
+      ],
+      "palette": "crane_yellow",
+      "target_linear": [
+        0.6172,
+        0.2961,
+        0.0482
+      ],
+      "roughness": 0.55,
+      "metalness": 0,
+      "height_min_m": 0,
+      "height_max_m": 0.001,
+      "height_range_m": 0.001,
+      "structure": "smooth",
+      "brush": "painted_ground",
+      "variant": "clean",
+      "maps": {
+        "albedo": "metal_painted_yellow.png",
+        "normal": "metal_painted_yellow_normal.png",
+        "orm": "metal_painted_yellow_orm.png",
+        "height": "metal_painted_yellow_height.png"
+      }
+    },
+    "truck_paint_white": {
+      "use": "Plain white painted props and delivery vehicle",
+      "repeat_m": 3,
+      "tint_linear": [
+        1,
+        1,
+        1
+      ],
+      "palette": "truck_white",
+      "target_linear": [
+        0.8,
+        0.7378,
+        0.7005
+      ],
+      "roughness": 0.42,
+      "metalness": 0,
+      "height_min_m": 0,
+      "height_max_m": 0.0005,
+      "height_range_m": 0.0005,
+      "structure": "smooth",
+      "brush": "painted_ground",
+      "variant": "clean",
+      "maps": {
+        "albedo": "truck_paint_white.png",
+        "normal": "truck_paint_white_normal.png",
+        "orm": "truck_paint_white_orm.png",
+        "height": "truck_paint_white_height.png"
+      }
+    },
+    "cardboard": {
+      "use": "Plain kraft cardboard for unbranded site bags",
+      "repeat_m": 1,
+      "tint_linear": [
+        1,
+        1,
+        1
+      ],
+      "palette": "cardboard",
+      "target_linear": [
+        0.6322,
+        0.3732,
+        0.18
+      ],
+      "roughness": 0.85,
+      "metalness": 0,
+      "height_min_m": 0,
+      "height_max_m": 0.001,
+      "height_range_m": 0.001,
+      "structure": "smooth",
+      "brush": "painted_timber",
+      "variant": "clean",
+      "maps": {
+        "albedo": "cardboard.png",
+        "normal": "cardboard_normal.png",
+        "orm": "cardboard_orm.png",
+        "height": "cardboard_height.png"
+      }
+    }
+  },
+  "macro_masks": {
+    "macro_ground": {
+      "repeat_m": 32,
+      "linear": true,
+      "encoding": "16bit grayscale"
+    },
+    "macro_walls": {
+      "repeat_m": 32,
+      "linear": true,
+      "encoding": "16bit grayscale"
+    }
+  }
+}

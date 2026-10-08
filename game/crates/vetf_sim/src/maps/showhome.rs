@@ -9,6 +9,9 @@ use super::{Builder, Dir, FloorPlan, Opening, Rect, WallDef, box_walls, design, 
 use crate::level::{Level, SpawnPoint, Team, Zipline};
 use crate::movement::collision::{BrushKind, Look as L};
 
+#[path = "showhome_steps.rs"]
+mod ground_steps;
+
 pub const MAP_W: f32 = 72.0;
 pub const MAP_H: f32 = 48.0;
 /// Mirror axis.
@@ -345,9 +348,11 @@ pub fn showhome() -> Level {
         spawns.push(SpawnPoint { pos, yaw: design_yaw(180.0 - yaw), team: Some(Team::B) });
     }
     let [a, z] = ZIPLINE;
+    let mut world = b.finish();
+    ground_steps::add(&mut world);
     Level {
         name: "Showhome".into(),
-        world: b.finish(),
+        world,
         ziplines: vec![Zipline { a: design(a.0, a.1, a.2), b: design(z.0, z.1, z.2) }],
         spawns,
         kill_y: KILL_Y,
@@ -608,7 +613,10 @@ mod tests {
                     }
                     let end = trace.last().unwrap();
                     assert_eq!(end.mode, MoveMode::Ground, "{x} {y} {mv}: {end:?}");
-                    assert!((end.pos.y - end_z).abs() < 0.01, "{x} {y} {mv}: ended at {:?}", end.pos);
+                    // The north landing may rest on the registered patio restraint or kerb.
+                    let landing_height = if end_z == 0.0 { 0.122 } else { end_z + 0.01 };
+                    assert!(end.pos.y >= end_z - 0.01 && end.pos.y <= landing_height,
+                        "{x} {y} {mv}: ended at {:?}", end.pos);
                 }
             }
         }
