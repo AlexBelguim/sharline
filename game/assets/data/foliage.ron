@@ -55,13 +55,16 @@
         wind_amplitude: 0.022,
     ),
     grass: (
-        // The mown lawn: shells over the art kit's lawn surfaces (ground.glb, M_GND_Grass), coloured from the lawn's
-        // own ground texture. Layer 0 is a dark thatch just above the ground; the others carry the strands.
+        // The mown lawn: stacked layers over the art kit's lawn surfaces (ground.glb, M_GND_Grass), coloured from the
+        // lawn's own ground texture, drawn in one pass (each pixel's view ray steps down through the layers to the
+        // first strand). Layer 0 is a dark thatch just above the ground; the others carry the strands.
         lawn: (
-            // Shell layers, the thatch included (0 = the flat lawn only).
-            layers: (0, 6, 10, 14),
+            // Layers, the thatch included (0 = the flat lawn only). More layers cost only shader arithmetic.
+            layers: (0, 8, 14, 18),
             // Height of the longest strands (a mown lawn is 3-5 cm).
             height: 0.04,
+            // A grazing view ray runs at most this many times the height through the grass (12 x 4 cm = 48 cm).
+            max_run: 12.0,
             // Strands: one per cell of two overlapping jittered grids `spacing` apart (the second 1.31x larger and
             // turned); root radius as a share of a cell; the shortest strand as a share of `height`; tip lean as a
             // share of a cell.
@@ -87,7 +90,7 @@
             // Strands thin out where the ground blend masks (worn dirt R, gravel G, mud A) go from the first value
             // to the second (a triangle past the second in one mask is left out).
             dirt_thin: (0.30, 0.62),
-            // Lawn chunk size: one mesh per chunk, drawn once per layer.
+            // Lawn chunk size: one mesh per chunk, drawn once (chunks past fade_end are not drawn).
             chunk: 8.0,
             // Wind: sway of the strand tips (metres), the sheen of gusts running over the lawn (share of brightness),
             // and the sway speed relative to the wind frequency.

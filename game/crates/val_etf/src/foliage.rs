@@ -8,8 +8,8 @@
 //! and toward the ground, and the shader adds light wrap and sun-through-leaves translucency. One mesh per hedge
 //! for the cards, one for the core; only the core casts shadows.
 //!
-//! **Grass**: the mown lawn (shells over the art kit's lawn surfaces) and the taller tufts at its edges, in
-//! [`grass`] (`assets/shaders/grass.wgsl`).
+//! **Grass**: the mown lawn (stacked layers over the art kit's lawn surfaces, drawn in one pass) and the taller
+//! tufts at its edges, in [`grass`] (`assets/shaders/grass.wgsl`).
 //!
 //! The hedge cards sway in the wind in the vertex shader (`assets/shaders/foliage.wgsl`, a StandardMaterial
 //! extension, used for the prepass too so depth and motion vectors match). Every look number is in
@@ -47,10 +47,7 @@ impl Plugin for FoliagePlugin {
             .init_resource::<FoliageState>()
             .add_systems(Startup, load_assets)
             .add_systems(Update, finish_textures)
-            .add_systems(
-                Update,
-                (build_foliage, show_hedge_boxes, tick_wind).chain().run_if(in_state(AppState::InGame)),
-            );
+            .add_systems(Update, (build_foliage, show_hedge_boxes).chain().run_if(in_state(AppState::InGame)));
         grass::plugin(app);
         // `VETF_GPU_PROFILE=1`: GPU time per render pass in the log every two seconds (measuring foliage cost).
         if std::env::var_os("VETF_GPU_PROFILE").is_some() {
@@ -145,6 +142,12 @@ fn load_data() -> FoliageData {
     }
 }
 
+/// `VETF_FOLIAGE`, read once (the systems that build foliage check it every frame).
+fn foliage_env() -> Option<&'static str> {
+    static ENV: std::sync::OnceLock<Option<String>> = std::sync::OnceLock::new();
+    ENV.get_or_init(|| std::env::var("VETF_FOLIAGE").ok()).as_deref()
+}
+
 /// The quality level foliage is built for: the VIDEO preset (0 LOW .. 3 ULTRA), or `VETF_FOLIAGE`. `None` = off.
 pub fn quality(preset: Preset, env: Option<&str>) -> Option<usize> {
     match env.map(|e| e.trim().to_ascii_lowercase()) {
@@ -169,11 +172,7 @@ pub type FoliageMaterial = ExtendedMaterial<StandardMaterial, FoliageExt>;
 pub struct FoliageUniform {
     pub wind_dir: Vec4,
     pub wind: Vec4,
-    pub time: Vec4,
-    pub fade: Vec4,
     pub light: Vec4,
-    pub root_tint: Vec4,
-    pub tip_tint: Vec4,
 }
 
 #[derive(Asset, AsBindGroup, Reflect, Debug, Clone, Default)]
@@ -202,9 +201,6 @@ pub fn hedge_uniform(d: &FoliageData) -> FoliageUniform {
         wind_dir: d.wind.dir().extend(0.0),
         wind: Vec4::new(h.wind_amplitude, w.frequency * std::f32::consts::TAU, wave_number(w), w.gust),
         light: Vec4::new(h.wrap, h.translucency, h.shadow_probe, h.translucency_power),
-        root_tint: Vec4::ONE,
-        tip_tint: Vec4::ONE,
-        ..default()
     }
 }
 
@@ -730,7 +726,7 @@ struct FoliageRoot;
 /// The highest eye a player reaches on Showhome (the pylon pad perch, z 4 + 1.6 m) plus a margin.
 const MAX_EYE: f32 = 7.0;
 
-/// Build (or rebuild, when the preset changes) the hedge shells and cores and the lawn chunks.
+/// Build (or rebuild, when the preset changes) the hedge shells and cores (the lawn is `grass::build_grass`).
 fn build_foliage(
     mut commands: Commands,
     level: Option<Res<CurrentLevel>>,
@@ -746,12 +742,11 @@ fn build_foliage(
 ) {
     let (Some(level), Some(assets)) = (level, assets) else { return };
     let preset = settings.map_or(Preset::High, |s| s.video.preset);
-    let env = std::env::var("VETF_FOLIAGE").ok();
-    let q = quality(preset, env.as_deref());
-    let want = (level.name.clone(), q);
-    if !roots.is_empty() && state.built.as_ref() == Some(&want) {
+    let q = quality(preset, foliage_env());
+    if !roots.is_empty() && state.built.as_ref().is_some_and(|(name, bq)| *name == level.name && *bq == q) {
         return;
     }
+    let want = (level.name.clone(), q);
     for e in &roots {
         commands.entity(e).despawn();
     }
@@ -769,7 +764,7 @@ fn build_foliage(
     let Some(q) = q.filter(|_| level.name.eq_ignore_ascii_case("showhome")) else { return };
     let t0 = std::time::Instant::now();
     if let Some(mut m) = materials.get_mut(&assets.hedge) {
-        m.extension.params = FoliageUniform { time: m.extension.params.time, ..hedge_uniform(&data) };
+        m.extension.params = hedge_uniform(&data);
     }
     let play = play_area(&level, 2.0);
     let solids: Vec<&Brush> = level
@@ -855,16 +850,6 @@ fn show_hedge_boxes(
     }
 }
 
-/// The shader's clock (this frame and the last, for motion vectors).
-fn tick_wind(time: Res<Time>, assets: Option<Res<FoliageAssets>>, mut materials: ResMut<Assets<FoliageMaterial>>) {
-    let Some(assets) = assets else { return };
-    let t = time.elapsed_secs_wrapped();
-    if let Some(mut m) = materials.get_mut(&assets.hedge) {
-        let last = m.extension.params.time.x;
-        m.extension.params.time = Vec4::new(t, last, 0.0, 0.0);
-    }
-}
-
 /// Logs the smoothed GPU time of every render pass, and the frame time (`VETF_GPU_PROFILE`).
 fn log_gpu_passes(store: Res<bevy::diagnostic::DiagnosticsStore>, time: Res<Time>, mut next: Local<f32>) {
     if time.elapsed_secs() < *next {
@@ -907,7 +892,7 @@ mod tests {
         let g = embedded().grass;
         let (l, t) = (&g.lawn, &g.tufts);
         // LOW: the flat lawn only. MEDIUM: fewer layers and tufts. HIGH and ULTRA: the full lawn.
-        assert_eq!(l.layers[0], 0, "LOW draws no lawn shells");
+        assert_eq!(l.layers[0], 0, "LOW draws no lawn layers");
         assert_eq!(t.density[0], 0.0, "LOW draws no tufts");
         assert!(l.layers[1] >= 3 && l.layers[1] < l.layers[2] && l.layers[2] <= l.layers[3]);
         assert!(t.density[1] > 0.0 && t.density[1] < t.density[2] && t.density[2] <= t.density[3]);

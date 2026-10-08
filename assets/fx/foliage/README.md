@@ -40,10 +40,13 @@ lawn. In the game they read as evenly spaced fan-shaped clumps with hard shadows
 silly"). It was replaced by a procedural lawn with no textures of its own (`game/crates/val_etf/src/foliage/grass.rs`,
 `game/assets/shaders/grass.wgsl`):
 
-- **Mown lawn**: shell texturing over the art kit's lawn surfaces (`ground.glb`, `M_GND_Grass`). Ten stacked layers
-  (HIGH) up to 4 cm; a fragment survives only inside a strand of two overlapping jittered grids. Colours come from
-  the lawn's own ground texture, darker at the roots, with slow colour patches and a wind sheen. Strands thin out
-  where the ground blend masks show worn dirt, and with distance, where the colour settles back to the ground.
+- **Mown lawn**: shell texturing over the art kit's lawn surfaces (`ground.glb`, `M_GND_Grass`), drawn in one pass:
+  the lawn is lifted to the top of the grass (4 cm) and each pixel's view ray steps down through the stacked layers
+  (8 / 14 / 18 on MEDIUM / HIGH / ULTRA) to the first strand of two overlapping jittered grids, else a dark thatch.
+  The first try drew one copy of the lawn per layer; one pass gives the same fuzz for about a quarter of the GPU
+  time (the lighting runs once per pixel). Colours come from the lawn's own ground texture, darker at the roots,
+  with slow colour patches and a wind sheen. Strands thin out where the ground blend masks show worn dirt, and
+  with distance, where the colour settles back to the ground.
 - **Tufts** (10-25 cm): blade strips along the lawn's outline and the feet of fences, walls, hedges and houses, in
   noise patches, never on dirt, paths or gravel.
-- Neither casts shadows.
+- Neither casts shadows. The wind runs in the shaders on the view's clock: nothing is updated per frame on the CPU.

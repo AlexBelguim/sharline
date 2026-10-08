@@ -1,20 +1,21 @@
 //! Lawn grass on Showhome: a mown lawn over the art kit's lawn surfaces, and taller tufts at its edges.
 //!
-//! **Mown lawn** (shell texturing): the kit's lawn triangles (`ground.glb`, material `M_GND_Grass`) are cut into
-//! chunks and drawn once per layer (a [`MeshTag`] per layer, so the layers of a chunk are one instanced draw).
-//! The shader lifts each copy by its layer's height (3-5 cm in all) and keeps only the fragments inside a
-//! strand, so the lawn reads as dense, very short fuzz. Layer 0 is a dark thatch, so the gaps between strands
-//! are darker toward the roots. Colours come from the lawn's own ground texture; strands thin out where the
-//! ground blend masks show worn dirt, gravel or mud, and with distance, where the colour also settles back to
-//! the plain ground (no line where the grass ends). Chunks past the fade distance are not drawn.
+//! **Mown lawn** (shell texturing in one pass): the kit's lawn triangles (`ground.glb`, material `M_GND_Grass`)
+//! are cut into chunks, lifted to the top of the grass (3-5 cm) and drawn once. The shader follows each pixel's
+//! view ray down through the stacked layers to the first strand (or the dark thatch under them), so the lawn
+//! reads as dense, very short fuzz, darker toward the roots, and the lighting runs once per pixel rather than
+//! once per layer. Colours come from the lawn's own ground texture; strands thin out where the ground blend
+//! masks show worn dirt, gravel or mud, and with distance, where the colour also settles back to the plain
+//! ground (no line where the grass ends). Chunks past the fade distance are not drawn.
 //!
 //! **Tufts** (10-25 cm): a few blade strips around a root, only where real lawns grow them: along the lawn's
 //! edges (kerbs, edging, paths, beds) and the foot of anything standing on it (fences, walls, hedges, houses),
 //! in irregular noise patches, thinning where the ground masks show worn dirt. They shrink into the lawn with
 //! distance. One mesh per chunk.
 //!
-//! Neither casts shadows. Both sway in the wind (`assets/shaders/grass.wgsl`). Every number is in
-//! `assets/data/foliage.ron` (`grass`), per VIDEO quality preset: LOW draws neither.
+//! Neither casts shadows. Both sway in the wind on the view's clock (`assets/shaders/grass.wgsl`): nothing is
+//! updated per frame on the CPU. Every number is in `assets/data/foliage.ron` (`grass`), per VIDEO quality
+//! preset: LOW draws neither.
 //!
 //! `VETF_GRASS=off|lawn|tufts` keeps only that part (GPU cost measurements); `VETF_FOLIAGE` sets the level.
 
@@ -29,7 +30,7 @@ use bevy::asset::RenderAssetUsages;
 use bevy::camera::primitives::Aabb;
 use bevy::gltf::GltfMaterialName;
 use bevy::light::NotShadowCaster;
-use bevy::mesh::{Indices, MeshTag, PrimitiveTopology, VertexAttributeValues};
+use bevy::mesh::{Indices, PrimitiveTopology, VertexAttributeValues};
 use bevy::pbr::{ExtendedMaterial, MaterialExtension, MaterialPlugin};
 use bevy::prelude::*;
 use bevy::render::render_resource::{AsBindGroup, ShaderType};
@@ -47,7 +48,10 @@ const LAWN_MATERIAL: &str = "M_GND_Grass";
 pub(super) fn plugin(app: &mut App) {
     app.add_plugins(MaterialPlugin::<GrassMaterial>::default())
         .init_resource::<GrassState>()
-        .add_systems(Update, (build_grass, cull_grass, tick_grass).chain().run_if(in_state(AppState::InGame)))
+        .add_systems(
+            Update,
+            (build_grass, cull_grass, refresh_grass_textures).chain().run_if(in_state(AppState::InGame)),
+        )
         // The grass is despawned with the match; build it again next time.
         .add_systems(OnExit(AppState::InGame), |mut state: ResMut<GrassState>| *state = GrassState::default());
 }
@@ -61,13 +65,15 @@ pub struct GrassData {
     pub tufts: TuftData,
 }
 
-/// The mown lawn (shells).
+/// The mown lawn (stacked layers a view ray steps through, drawn in one pass).
 #[derive(Debug, Clone, PartialEq, Deserialize)]
 pub struct LawnData {
-    /// Shell layers, the thatch included (0 = no lawn shells).
+    /// Layers a view ray steps through, the thatch included (0 = no lawn).
     pub layers: [u32; 4],
     /// Height of the top layer (m).
     pub height: f32,
+    /// A grazing view ray runs at most this many times the grass height through it.
+    pub max_run: f32,
     /// Strand cell size (m), root radius (share of a cell), shortest strand (share of `height`), tip lean
     /// (share of a cell).
     pub spacing: f32,
@@ -136,7 +142,7 @@ pub type GrassMaterial = ExtendedMaterial<StandardMaterial, GrassExt>;
 pub struct GrassUniform {
     pub wind_dir: Vec4,
     pub wind: Vec4,
-    pub time: Vec4,
+    pub march: Vec4,
     pub shape: Vec4,
     pub fade: Vec4,
     pub shade: Vec4,
@@ -233,7 +239,7 @@ fn wind_lanes(w: &WindData, amplitude: f32, speed: f32) -> (Vec4, Vec4) {
     )
 }
 
-/// The lawn (shell) uniform for quality level `q`.
+/// The lawn uniform for quality level `q`.
 pub fn lawn_uniform(d: &FoliageData, q: usize, look: &LawnLook) -> GrassUniform {
     let l = &d.grass.lawn;
     let (wind_dir, wind) = wind_lanes(&d.wind, l.wind_sway, l.sway_speed);
@@ -242,7 +248,7 @@ pub fn lawn_uniform(d: &FoliageData, q: usize, look: &LawnLook) -> GrassUniform 
     GrassUniform {
         wind_dir,
         wind,
-        time: Vec4::new(0.0, 0.0, l.layers[q] as f32, l.height),
+        march: Vec4::new(l.layers[q] as f32, l.height, 1.0 / l.max_run.max(1.0), 0.0),
         shape: Vec4::new(l.spacing, l.radius, l.shortest, l.lean),
         fade: Vec4::new(l.fade_start[q], l.fade_end[q], l.dirt_thin.0, l.dirt_thin.1),
         shade: Vec4::new(l.root_shade, l.tip_lift, l.value_jitter, l.patch_strength),
@@ -263,7 +269,7 @@ pub fn tuft_uniform(d: &FoliageData, q: usize, look: &LawnLook) -> GrassUniform 
     GrassUniform {
         wind_dir,
         wind,
-        time: Vec4::ZERO,
+        march: Vec4::ZERO,
         shape: Vec4::ZERO,
         fade: Vec4::new(t.fade_start[q], t.fade_end[q], 0.0, 0.0),
         shade: Vec4::new(t.root_shade, t.tip_lift, 0.0, 0.0),
@@ -298,7 +304,7 @@ fn grass_material(params: GrassUniform, look: &LawnLook, alpha_mode: AlphaMode, 
 
 // ---------------------------------------------------------------------------------------------- lawn surfaces
 
-/// Lawn triangles in world space, with the attributes the shells need (as exported in ground.glb).
+/// Lawn triangles in world space, with the attributes the lawn shader needs (as exported in ground.glb).
 #[derive(Clone, Debug, Default, PartialEq)]
 pub struct LawnSurface {
     pub positions: Vec<Vec3>,
@@ -352,7 +358,7 @@ impl LawnSurface {
     }
 
     pub fn triangles(&self) -> impl Iterator<Item = [usize; 3]> + '_ {
-        self.indices.chunks_exact(3).map(|t| [t[0] as usize, t[1] as usize, t[2] as usize])
+        self.indices.as_chunks::<3>().0.iter().map(|t| t.map(|i| i as usize))
     }
 
     /// The triangle's corners.
@@ -413,12 +419,13 @@ pub fn split_chunks(
     out
 }
 
-/// A lawn chunk as a mesh (positions relative to `origin`), the kit lawn's own vertex layout.
-fn shell_mesh(s: &LawnSurface, origin: Vec3) -> Mesh {
+/// A lawn chunk as a mesh (positions relative to `origin`, lifted by `lift`), the kit lawn's own vertex layout.
+pub fn lawn_mesh(s: &LawnSurface, origin: Vec3, lift: f32) -> Mesh {
+    let top = Vec3::Y * lift;
     Mesh::new(PrimitiveTopology::TriangleList, RenderAssetUsages::RENDER_WORLD)
         .with_inserted_attribute(
             Mesh::ATTRIBUTE_POSITION,
-            s.positions.iter().map(|p| (*p - origin).to_array()).collect::<Vec<_>>(),
+            s.positions.iter().map(|p| (*p - origin + top).to_array()).collect::<Vec<_>>(),
         )
         .with_inserted_attribute(Mesh::ATTRIBUTE_NORMAL, s.normals.iter().map(|n| n.to_array()).collect::<Vec<_>>())
         .with_inserted_attribute(Mesh::ATTRIBUTE_UV_0, s.uvs.iter().map(|u| u.to_array()).collect::<Vec<_>>())
@@ -715,7 +722,22 @@ pub fn tuft_blades(tufts: &[Tuft], origin: Vec3, t: &TuftData) -> BladeMesh {
 #[derive(Resource, Default)]
 struct GrassState {
     built: Option<(String, Option<usize>, usize, (bool, bool))>,
+    /// A look at the kit found lawn meshes still loading: look again next frame.
+    waiting: bool,
     materials: Vec<Handle<GrassMaterial>>,
+}
+
+/// Once the grass is built, is a new look at the kit's lawns needed? Only when something the grass depends on
+/// changed (the level, the settings, kit meshes arriving) or a lawn mesh was still loading; otherwise
+/// `build_grass` does no work in a frame.
+pub fn grass_needs_check(
+    built: bool,
+    waiting: bool,
+    level_changed: bool,
+    settings_changed: bool,
+    arrivals: bool,
+) -> bool {
+    !built || waiting || level_changed || settings_changed || arrivals
 }
 
 #[derive(Component)]
@@ -744,6 +766,12 @@ fn parts(env: Option<&str>) -> (bool, bool) {
     }
 }
 
+/// `VETF_GRASS`, read once.
+fn grass_env() -> Option<&'static str> {
+    static ENV: std::sync::OnceLock<Option<String>> = std::sync::OnceLock::new();
+    ENV.get_or_init(|| std::env::var("VETF_GRASS").ok()).as_deref()
+}
+
 fn is_lawn(name: &str) -> bool {
     let canonical = name
         .rsplit_once('.')
@@ -764,32 +792,58 @@ fn build_grass(
         (&Mesh3d, &MeshMaterial3d<ShowhomeGroundMaterial>, &GltfMaterialName, &GlobalTransform),
         With<ShowhomeKitMesh>,
     >,
+    arrivals: Query<
+        (),
+        (
+            With<ShowhomeKitMesh>,
+            Or<(Added<ShowhomeKitMesh>, Changed<Mesh3d>, Changed<MeshMaterial3d<ShowhomeGroundMaterial>>)>,
+        ),
+    >,
     ground_materials: Res<Assets<ShowhomeGroundMaterial>>,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<GrassMaterial>>,
 ) {
     let Some(level) = level else { return };
+    let settings_changed = settings.as_ref().is_some_and(|s| s.is_changed());
+    if !grass_needs_check(
+        state.built.is_some(),
+        state.waiting,
+        level.is_changed(),
+        settings_changed,
+        !arrivals.is_empty(),
+    ) {
+        return;
+    }
     if !level.name.eq_ignore_ascii_case("showhome") {
         return;
     }
     let preset = settings.map_or(Preset::High, |s| s.video.preset);
-    let q = quality(preset, std::env::var("VETF_FOLIAGE").ok().as_deref());
-    let keep = parts(std::env::var("VETF_GRASS").ok().as_deref());
-    // The kit's lawns, once their ground material is installed and their meshes have loaded.
+    let q = quality(preset, super::foliage_env());
+    let keep = parts(grass_env());
+    // The kit's lawns, once their ground material is installed and their meshes have loaded (nothing is copied
+    // until the grass is actually rebuilt).
     let mut sources = Vec::new();
     let mut look = None;
     for (mesh, material, name, transform) in &lawns {
         if !is_lawn(&name.0) {
             continue;
         }
-        let (Some(mesh), Some(material)) = (meshes.get(&mesh.0), ground_materials.get(&material.0)) else { return };
+        let (true, Some(material)) = (meshes.contains(&mesh.0), ground_materials.get(&material.0)) else {
+            state.waiting = true;
+            return;
+        };
         look.get_or_insert_with(|| LawnLook::of(material));
-        sources.push((mesh.clone(), *transform));
+        sources.push((mesh.0.id(), *transform));
     }
-    let want = (level.name.clone(), q, sources.len(), keep);
-    if state.built.as_ref() == Some(&want) {
+    state.waiting = false;
+    if state
+        .built
+        .as_ref()
+        .is_some_and(|(name, bq, n, bk)| *name == level.name && *bq == q && *n == sources.len() && *bk == keep)
+    {
         return;
     }
+    let want = (level.name.clone(), q, sources.len(), keep);
     let Some(look) = look else { return };
     for e in &roots {
         commands.entity(e).despawn();
@@ -807,10 +861,11 @@ fn build_grass(
         ))
         .id();
     let t0 = std::time::Instant::now();
-    let surfaces: Vec<LawnSurface> = sources.iter().filter_map(|(m, t)| LawnSurface::from_mesh(m, t)).collect();
+    let surfaces: Vec<LawnSurface> =
+        sources.iter().filter_map(|(m, t)| meshes.get(*m).and_then(|m| LawnSurface::from_mesh(m, t))).collect();
     let g = &data.grass;
 
-    // Mown lawn: one mesh per chunk, one instance per layer.
+    // Mown lawn: one mesh per chunk, lifted to the top of the grass.
     let (mut chunks, mut shell_tris) = (0usize, 0usize);
     let layers = g.lawn.layers[q];
     if keep.0 && layers >= 2 {
@@ -826,21 +881,16 @@ fn build_grass(
             let radius = Vec2::new(hi.x - lo.x, hi.z - lo.z).length() * 0.5;
             shell_tris += s.indices.len() / 3;
             chunks += 1;
-            let mesh = meshes.add(shell_mesh(&s, origin));
-            // Top layer first: drawn front to back within the instanced draw where the GPU keeps the order.
-            for layer in (0..layers).rev() {
-                commands.spawn((
-                    Name::new("Lawn shell"),
-                    GrassChunk { centre, radius, reach },
-                    Mesh3d(mesh.clone()),
-                    MeshMaterial3d(material.clone()),
-                    MeshTag(layer),
-                    Transform::from_translation(origin),
-                    aabb,
-                    NotShadowCaster,
-                    ChildOf(root),
-                ));
-            }
+            commands.spawn((
+                Name::new("Lawn"),
+                GrassChunk { centre, radius, reach },
+                Mesh3d(meshes.add(lawn_mesh(&s, origin, g.lawn.height))),
+                MeshMaterial3d(material.clone()),
+                Transform::from_translation(origin),
+                aabb,
+                NotShadowCaster,
+                ChildOf(root),
+            ));
         }
     }
 
@@ -895,24 +945,61 @@ fn build_grass(
     );
 }
 
-/// Grass chunks past their fade distance are not drawn.
-fn cull_grass(camera: Query<&GlobalTransform, With<ViewCamera>>, mut chunks: Query<(&GrassChunk, &mut Visibility)>) {
+/// Grass chunks past their fade distance are not drawn. Checked again only once the camera has moved
+/// `CULL_STEP` (the chunks' reach has that much slack) or new chunks were built.
+fn cull_grass(
+    camera: Query<&GlobalTransform, With<ViewCamera>>,
+    mut chunks: Query<(&GrassChunk, &mut Visibility)>,
+    added: Query<(), Added<GrassChunk>>,
+    mut last: Local<Option<Vec2>>,
+) {
     let Some(cam) = camera.iter().next() else { return };
     let eye = cam.translation();
     let eye = Vec2::new(eye.x, eye.z);
+    if added.is_empty() && last.is_some_and(|l| l.distance(eye) < CULL_STEP) {
+        return;
+    }
+    *last = Some(eye);
     for (c, mut v) in &mut chunks {
-        let near = eye.distance(c.centre) - c.radius < c.reach;
+        let near = chunk_drawn(eye, c.centre, c.radius, c.reach);
         v.set_if_neq(if near { Visibility::Inherited } else { Visibility::Hidden });
     }
 }
 
-/// The shader's clock (the wind). Touching the materials also rebuilds their bind groups, so the lawn picks up the
-/// ground arrays' mip chains once `showhome_kit` has made them.
-fn tick_grass(time: Res<Time>, state: Res<GrassState>, mut materials: ResMut<Assets<GrassMaterial>>) {
-    let t = time.elapsed_secs_wrapped();
+/// How far the camera moves before the chunks' distances are checked again (m).
+pub const CULL_STEP: f32 = 1.0;
+
+/// Is a chunk (centre and radius, x/z) drawn after a check from `eye`? Its grass has faded out completely at
+/// `reach` (the shader's fade end), and the chunk is kept `CULL_STEP` beyond that, so wherever the camera goes
+/// before the next check, nothing still visible is ever hidden (no popping).
+pub fn chunk_drawn(eye: Vec2, centre: Vec2, radius: f32, reach: f32) -> bool {
+    eye.distance(centre) - radius < reach + CULL_STEP
+}
+
+/// When one of the ground arrays the grass samples changes (`showhome_kit` gives them their mip chains after
+/// load), touch the grass materials so their bind groups pick up the new texture. Nothing runs otherwise.
+fn refresh_grass_textures(
+    mut events: MessageReader<AssetEvent<Image>>,
+    state: Res<GrassState>,
+    mut materials: ResMut<Assets<GrassMaterial>>,
+) {
+    let changed: Vec<AssetId<Image>> = events
+        .read()
+        .filter_map(|e| match e {
+            AssetEvent::Modified { id } => Some(*id),
+            _ => None,
+        })
+        .collect();
+    if changed.is_empty() {
+        return;
+    }
     for h in &state.materials {
-        if let Some(mut m) = materials.get_mut(h) {
-            m.extension.params.time.x = t;
+        let uses = materials.get(h).is_some_and(|m| {
+            let x = &m.extension;
+            [&x.albedo, &x.normal, &x.orm, &x.height].iter().any(|t| changed.contains(&t.id()))
+        });
+        if uses && let Some(m) = materials.get_mut(h) {
+            let _ = m.into_inner();
         }
     }
 }
@@ -1087,6 +1174,89 @@ mod tests {
         }
         // Same seeds, same blades.
         assert_eq!(tuft_blades(&tufts, origin, &t).offsets, m.offsets);
+    }
+
+    #[test]
+    fn the_lawn_mesh_is_lifted_to_the_top_of_the_grass() {
+        let s = lawn(2.0, 3.0, 1.0, 1.0, |p| Vec4::new(p.x * 0.1, 0.0, 0.0, 0.0));
+        let origin = Vec3::new(0.0, 0.0, 8.0);
+        let mesh = lawn_mesh(&s, origin, 0.04);
+        let positions = mesh.attribute(Mesh::ATTRIBUTE_POSITION).and_then(|a| a.as_float3()).expect("positions");
+        assert_eq!(positions.len(), s.positions.len());
+        for (p, q) in positions.iter().zip(&s.positions) {
+            assert!((Vec3::from(*p) - (*q - origin + Vec3::Y * 0.04)).length() < 1e-6, "{p:?} {q}");
+        }
+        // The ground masks ride along as vertex colours (the shader thins the strands over dirt with them).
+        let Some(VertexAttributeValues::Float32x4(masks)) = mesh.attribute(Mesh::ATTRIBUTE_COLOR) else {
+            panic!("no masks")
+        };
+        assert_eq!(masks.iter().map(|m| Vec4::from(*m)).collect::<Vec<_>>(), s.masks);
+        assert_eq!(mesh.indices().map(|i| i.len()), Some(s.indices.len()));
+    }
+
+    #[test]
+    fn the_lawn_uniform_follows_the_preset() {
+        let d = super::super::embedded();
+        let l = &d.grass.lawn;
+        let look = LawnLook {
+            albedo: Handle::default(),
+            normal: Handle::default(),
+            orm: Handle::default(),
+            height: Handle::default(),
+            base_layer: 3,
+            macro_layer: 7,
+            tint: Vec3::new(0.9, 1.0, 0.8),
+            macro_repeat: 12.0,
+            macro_strength: 0.3,
+            normal_scale: 0.5,
+        };
+        for q in 1..4 {
+            let u = lawn_uniform(&d, q, &look);
+            assert_eq!(u.march.x, l.layers[q] as f32);
+            assert_eq!(u.march.y, l.height);
+            // A grazing ray is capped at max_run times the height.
+            assert!((u.march.z - 1.0 / l.max_run).abs() < 1e-6 && u.march.z > 0.0 && u.march.z <= 1.0);
+            assert_eq!((u.fade.x, u.fade.y), (l.fade_start[q], l.fade_end[q]));
+            assert_eq!(u.layers, UVec4::new(3, 7, 0, 0), "the lawn's own ground layers");
+            let t = tuft_uniform(&d, q, &look);
+            assert_eq!(t.fade.y, d.grass.tufts.fade_end[q]);
+            assert_eq!(t.march, Vec4::ZERO, "tufts do not march");
+        }
+        // More layers on the higher presets; the shader needs at least the thatch and one strand layer.
+        assert!(l.layers[1] >= 2 && l.layers[1] < l.layers[2] && l.layers[2] <= l.layers[3]);
+    }
+
+    #[test]
+    fn culled_chunks_never_hide_grass_that_is_still_drawn() {
+        // The camera checks from `seen`, then wanders up to CULL_STEP before the next check. Any point of the
+        // chunk closer to the camera than the fade end (where the shader still draws grass) must be in a drawn
+        // chunk; chunks far past the fade end are dropped.
+        let mut rng = SplitMix::new(11);
+        let (centre, radius, reach) = (Vec2::new(4.0, -2.0), 5.7, 14.0);
+        for _ in 0..20_000 {
+            let seen = centre + Vec2::new(rng.next_signed(), rng.next_signed()) * 30.0;
+            let a = rng.next_f32() * std::f32::consts::TAU;
+            let eye = seen + Vec2::new(a.cos(), a.sin()) * rng.next_f32() * CULL_STEP * 0.999;
+            let b = rng.next_f32() * std::f32::consts::TAU;
+            let point = centre + Vec2::new(b.cos(), b.sin()) * rng.next_f32() * radius;
+            if eye.distance(point) < reach {
+                assert!(chunk_drawn(seen, centre, radius, reach), "seen {seen}, eye {eye}, point {point}");
+            }
+        }
+        assert!(!chunk_drawn(centre + Vec2::new(reach + radius + CULL_STEP + 0.5, 0.0), centre, radius, reach));
+        assert!(chunk_drawn(centre, centre, radius, reach));
+    }
+
+    #[test]
+    fn the_grass_is_looked_at_again_only_when_something_changed() {
+        // Built and nothing changed: no work in a frame.
+        assert!(!grass_needs_check(true, false, false, false, false));
+        // Not built yet, a lawn mesh still loading, the level, the settings or the kit meshes changed: look again.
+        assert!(grass_needs_check(false, false, false, false, false));
+        assert!(grass_needs_check(true, true, false, false, false));
+        assert!(grass_needs_check(true, false, true, false, false));
+        assert!(grass_needs_check(true, false, false, true, false));
+        assert!(grass_needs_check(true, false, false, false, true));
     }
 
     #[test]

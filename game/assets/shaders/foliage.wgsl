@@ -2,9 +2,10 @@
 // grass.wgsl.)
 //
 // A StandardMaterial extension. The vertex stage (main pass and prepass, so depth and motion vectors match)
-// sways the cards in the wind. The fragment stage is the standard PBR one plus a light wrap past the terminator
-// and sun-through-leaves translucency, dimmed where the hedge stands in another object's shadow. The prepass
-// fragment is StandardMaterial's (alpha mask from the base colour texture).
+// sways the cards in the wind, on the view's clock (globals.time: nothing is updated per frame on the CPU). The
+// fragment stage is the standard PBR one plus a light wrap past the terminator and sun-through-leaves
+// translucency, dimmed where the hedge stands in another object's shadow. The prepass fragment is
+// StandardMaterial's (alpha mask from the base colour texture).
 //
 // Vertex data (see foliage.rs): POSITION, NORMAL (bent outward from the hedge's rounded volume), TANGENT,
 // UV_0 (atlas), COLOR rgb = AO and tint, a = sway weight
@@ -17,8 +18,13 @@
 
 #ifdef PREPASS_PIPELINE
 #import bevy_pbr::prepass_io::{Vertex, VertexOutput}
+#import bevy_render::globals::Globals
+// The prepass view bind group carries the globals at binding 1 (bevy_pbr prepass/mod.rs); no bevy_pbr module
+// declares them there.
+@group(0) @binding(1) var<uniform> globals: Globals;
 #else
 #import bevy_pbr::{
+    mesh_view_bindings::globals,
     forward_io::{Vertex, VertexOutput, FragmentOutput},
     pbr_fragment::pbr_input_from_standard_material,
     pbr_functions::{alpha_discard, apply_pbr_lighting, main_pass_post_lighting_processing},
@@ -33,15 +39,8 @@ struct Foliage {
     wind_dir: vec4<f32>,
     // x: sway amplitude (m), y: angular frequency (rad/s), z: wave number along the wind (rad/m), w: gust lean
     wind: vec4<f32>,
-    // x: time (s), y: last frame's time (for motion vectors)
-    time: vec4<f32>,
-    // unused
-    fade: vec4<f32>,
     // x: wrap, y: translucency, z: shadow probe distance toward the sun (0 = none), w: translucency exponent
     light: vec4<f32>,
-    // unused
-    root_tint: vec4<f32>,
-    tip_tint: vec4<f32>,
 }
 
 @group(#{MATERIAL_BIND_GROUP}) @binding(100) var<uniform> foliage: Foliage;
@@ -74,8 +73,9 @@ fn place(local: vec3<f32>, world_from_local: mat4x4<f32>, color: vec4<f32>) -> P
     var out: Placed;
     let base = mesh_functions::mesh_position_local_to_world(world_from_local, vec4<f32>(local, 1.0)).xyz;
     let weight = color.a;
-    out.world = base + wind_offset(base, weight, foliage.time.x);
-    out.previous = base + wind_offset(base, weight, foliage.time.y);
+    // This frame and the last (for motion vectors).
+    out.world = base + wind_offset(base, weight, globals.time);
+    out.previous = base + wind_offset(base, weight, globals.time - globals.delta_time);
     out.color = vec4<f32>(color.rgb, 1.0);
     return out;
 }

@@ -1,18 +1,20 @@
 // Lawn grass for Showhome (val_etf/src/foliage/grass.rs): the mown lawn and the taller tufts at its edges.
 //
 // A StandardMaterial extension, main pass only: the grass stays out of the depth prepass (so screen-space contact
-// shadows never see the strands; grass casts no shadow of any kind) and out of the shadow maps. Both kinds take their colour from the lawn's own ground texture (the base layer of the Showhome ground arrays,
-// at the lawn's UV, with the ground's tint and macro variation) and light like the lawn, so they read as part of
-// it rather than as objects on it. Neither casts shadows.
+// shadows never see it) and out of the shadow maps, so it casts no shadow of any kind. Both kinds take their
+// colour from the lawn's own ground texture (the base layer of the Showhome ground arrays, at the lawn's UV, with
+// the ground's tint and macro variation) and light like the lawn, so they read as part of it rather than as
+// objects on it. The wind runs on the view's clock (globals.time): nothing is updated per frame on the CPU.
 //
-// Mown lawn (shells; mesh without UV_1): the kit's lawn triangles (ground.glb, M_GND_Grass) drawn once per layer
-// (MeshTag = layer), each copy lifted by its layer's height. Layer 0 is a dark thatch just above the ground; on
-// the others a fragment survives only inside a strand: one per cell of two overlapping jittered grids, each
-// strand with its own height and lean, tapering to its tip. Strands thin out where the ground masks show worn
-// dirt, gravel or mud, and with distance, where the colour also settles to the plain ground; past the fade
-// distance only the ground is left. Wind bends the tips and runs a soft sheen over the lawn.
-//   POSITION, NORMAL, TANGENT, UV_0 (the ground's UV), COLOR = ground blend masks (R dirt, G gravel, B moss,
-//   A mud), as exported.
+// Mown lawn (mesh without UV_1): the kit's lawn triangles (ground.glb, M_GND_Grass) lifted to the top of the
+// grass, drawn once. Each fragment follows its view ray down through `layers` stacked layers (shell texturing in
+// one pass: the lighting runs once per pixel, not once per layer) and stops at the first strand it meets: one per
+// cell of two overlapping jittered grids, each strand with its own height and lean, tapering to its tip, bent by
+// the wind. A ray that meets no strand ends on a dark thatch just above the ground. Strands and thatch thin out
+// where the ground masks show worn dirt, gravel or mud, and with distance, where the colour has already settled
+// to the plain ground; there the ground under the lawn shows through (no line where the grass ends).
+//   POSITION (lifted by the grass height), NORMAL, TANGENT, UV_0 (the ground's UV), COLOR = ground blend masks
+//   (R dirt, G gravel, B moss, A mud), as exported.
 //
 // Tufts (mesh with UV_1): blade strips around a root, shrinking into the lawn with distance.
 //   POSITION = the tuft's root (chunk frame), COLOR xyz = this corner's offset from the root, w = height along
@@ -20,7 +22,7 @@
 
 #import bevy_pbr::{
     mesh_functions,
-    mesh_view_bindings::view,
+    mesh_view_bindings::{view, globals},
     view_transformations::position_world_to_clip,
 }
 
@@ -35,8 +37,9 @@ struct Grass {
     wind_dir: vec4<f32>,
     // x: tip sway (m), y: angular frequency (rad/s), z: wave number along the wind (rad/m), w: gust lean
     wind: vec4<f32>,
-    // x: time (s), y: last frame's time, z: layer count, w: lawn height (m)
-    time: vec4<f32>,
+    // lawn: x layer count, y grass height (m), z the shallowest descent of a view ray (per metre; caps how far a
+    // grazing ray runs through the grass), w unused
+    march: vec4<f32>,
     // lawn strands: x cell size (m), y root radius (share of a cell), z shortest strand (share), w tip lean (share)
     shape: vec4<f32>,
     // x: fade start, y: fade end (m from the camera), z, w: ground mask range over which strands thin out
@@ -73,8 +76,8 @@ struct Varying {
     @location(2) uv: vec2<f32>,
     // Lawn: the ground blend masks. Tufts: unused.
     @location(3) masks: vec4<f32>,
-    // Lawn: x layer height (0 thatch .. 1 top), y ground macro factor. Tufts: x height along the blade,
-    // y macro factor, z blade value, w distance fade (0 near .. 1 gone).
+    // Lawn: y ground macro factor. Tufts: x height along the blade, y macro factor, z blade value, w distance
+    // fade (0 near .. 1 gone).
     @location(4) data: vec4<f32>,
     @location(5) world_tangent: vec4<f32>,
     @location(6) @interpolate(flat) instance_index: u32,
@@ -88,16 +91,10 @@ fn pcg(v: u32) -> u32 {
     return (w >> 22u) ^ w;
 }
 
-// Four random numbers in 0..1 for an integer cell.
+// Four random numbers in 0..1 (8 bits each) for an integer cell: one hash, sliced.
 fn hash4(cell: vec2<i32>, salt: u32) -> vec4<f32> {
-    var h = pcg(bitcast<u32>(cell.x) ^ pcg(bitcast<u32>(cell.y) ^ salt));
-    let a = h;
-    h = pcg(h);
-    let b = h;
-    h = pcg(h);
-    let c = h;
-    h = pcg(h);
-    return vec4<f32>(vec4<u32>(a, b, c, h) >> vec4<u32>(8u)) / 16777216.0;
+    let h = pcg(bitcast<u32>(cell.x) ^ pcg(bitcast<u32>(cell.y) ^ salt));
+    return vec4<f32>((vec4<u32>(h) >> vec4<u32>(0u, 8u, 16u, 24u)) & vec4<u32>(255u)) * (1.0 / 255.0);
 }
 
 // Smooth value noise, 0..1.
@@ -151,8 +148,8 @@ fn wind_push(p: vec2<f32>, t: f32) -> vec2<f32> {
 }
 
 // Distance fade: 0 near, 1 at (and past) the fade end.
-fn distance_fade(world: vec3<f32>) -> f32 {
-    return smoothstep(grass.fade.x, grass.fade.y, distance(view.world_position.xyz, world));
+fn distance_fade(d: f32) -> f32 {
+    return smoothstep(grass.fade.x, grass.fade.y, d);
 }
 
 // ------------------------------------------------------------------------------------------------- lawn strands
@@ -187,34 +184,59 @@ fn strand_grid(q: vec2<f32>, spacing: f32, salt: u32, h: f32, keep: f32, bend: v
     return s;
 }
 
-// Is there lawn at this shell fragment? `h` = layer height (0..1), `masks` = ground blend masks.
-fn lawn_strand(world: vec3<f32>, h: f32, masks: vec4<f32>, t: f32) -> Strand {
-    let fade = distance_fade(world);
-    let dirt = max(max(masks.r, masks.g), masks.a);
-    let ground_keep = 1.0 - smoothstep(grass.fade.z, grass.fade.w, dirt);
-    let keep = ground_keep * (1.0 - fade);
-    var s: Strand;
-    if h <= 0.0 {
-        // Thatch: everywhere the lawn is green, dissolving over the dirt and with distance.
-        let r = hash4(vec2<i32>(floor(world.xz / grass.shape.x)), 7u);
-        s.value = r.z;
-        s.hit = select(0.0, 1.0, r.w < keep);
-        return s;
-    }
-    let bend = wind_push(world.xz, t);
-    s = strand_grid(world.xz, grass.shape.x, 1u, h, keep, bend);
+// Is there a strand at `p` (x/z) at layer height `h` (0..1)?
+fn strands(p: vec2<f32>, h: f32, keep: f32, bend: vec2<f32>) -> Strand {
+    var s = strand_grid(p, grass.shape.x, 1u, h, keep, bend);
     if s.hit < 0.5 {
         // The second grid, larger and turned, breaks up the first one's rows.
-        let q = vec2<f32>(0.8 * world.x - 0.6 * world.z, 0.6 * world.x + 0.8 * world.z);
+        let q = vec2<f32>(0.8 * p.x - 0.6 * p.y, 0.6 * p.x + 0.8 * p.y);
         s = strand_grid(q, grass.shape.x * 1.31, 2u, h, keep, bend);
     }
     return s;
 }
 
-// The layer height (0..1) of shell layer `layer`.
-fn layer_height(layer: u32) -> f32 {
-    let n = max(grass.time.z, 2.0);
-    return f32(layer) / (n - 1.0);
+struct LawnHit {
+    // where the ray met a strand or the thatch (world)
+    world: vec3<f32>,
+    // its layer height (0 thatch .. 1 top)
+    h: f32,
+    // the strand's own random number
+    value: f32,
+    // 0: nothing there (the ground shows), 1: lawn
+    found: f32,
+}
+
+// Follow the view ray from `top` (on the lifted lawn) down through the layers to the first strand, else the
+// thatch. `keep` = share of strands and thatch that grow here (dirt and distance thin them out).
+fn march_lawn(top: vec3<f32>, view_dir: vec3<f32>, keep: f32, t: f32) -> LawnHit {
+    var out: LawnHit;
+    let height = grass.march.y;
+    let n = max(grass.march.x, 2.0);
+    // Metres along the ray per metre of height; grazing rays are capped (they would run far through the grass).
+    let run = 1.0 / max(-view_dir.y, grass.march.z);
+    let bend = wind_push(top.xz, t);
+    let count = u32(n);
+    for (var k = count - 1u; k >= 1u; k -= 1u) {
+        let h = f32(k) / (n - 1.0);
+        let along = (1.0 - h) * height * run;
+        let p = top + view_dir * along;
+        let s = strands(p.xz, h, keep, bend);
+        if s.hit > 0.5 {
+            out.world = vec3<f32>(p.x, top.y - height + h * height, p.z);
+            out.h = h;
+            out.value = s.value;
+            out.found = 1.0;
+            return out;
+        }
+    }
+    // Thatch: everywhere the lawn is green, dissolving over the dirt and with distance.
+    let p = top + view_dir * (height * run);
+    let r = hash4(vec2<i32>(floor(p.xz / grass.shape.x)), 7u);
+    out.world = vec3<f32>(p.x, top.y - height + 0.0015, p.z);
+    out.h = 0.0;
+    out.value = r.z;
+    out.found = select(0.0, 1.0, r.w < keep);
+    return out;
 }
 
 // ------------------------------------------------------------------------------------------------- vertex
@@ -235,20 +257,18 @@ fn vertex(v: Vertex) -> Varying {
     var world = base;
 #ifdef VERTEX_UVS_B
     // Tuft blade corner: shrink toward the root with distance, sway by the height along the blade.
-    let fade = distance_fade(base);
+    let fade = distance_fade(distance(view.world_position.xyz, base));
     let s = 1.0 - fade;
     let sway = color.w * color.w * s;
     let offset = color.xyz * s;
-    let push = wind_push(base.xz, grass.time.x) * sway;
+    let push = wind_push(base.xz, globals.time) * sway;
     // Bend: the tip moves sideways and drops a little (keeps the blade's length).
     world = base + offset + vec3<f32>(push.x, -0.3 * length(push), push.y);
     out.data = vec4<f32>(color.w, ground_macro(base), v.uv_b.x, fade);
     out.masks = vec4<f32>(0.0);
 #else
-    // Lawn shell: the lawn lifted by this layer's height (the thatch sits 1.5 mm up).
-    let h = layer_height(mesh_functions::get_tag(v.instance_index));
-    world = base + vec3<f32>(0.0, max(h * grass.time.w, 0.0015), 0.0);
-    out.data = vec4<f32>(h, ground_macro(base), 0.0, 0.0);
+    // Lawn: already lifted to the top of the grass (grass.rs).
+    out.data = vec4<f32>(0.0, ground_macro(base), 0.0, 0.0);
     out.masks = color;
 #endif
     out.world_position = vec4<f32>(world, 1.0);
@@ -268,14 +288,15 @@ fn vertex(v: Vertex) -> Varying {
 
 // ------------------------------------------------------------------------------------------------- fragment
 
-
 @fragment
 fn fragment(in: Varying, @builtin(front_facing) is_front: bool) -> FragmentOutput {
-    let world = in.world_position.xyz;
     let duv_dx = dpdx(in.uv);
     let duv_dy = dpdy(in.uv);
+    let dxz_dx = dpdx(in.world_position.xz);
+    let dxz_dy = dpdy(in.world_position.xz);
     let base_layer = i32(grass.layers.x);
     let macro_factor = in.data.y;
+    let t = globals.time;
 
     var vo: VertexOutput;
     vo.position = in.position;
@@ -319,27 +340,42 @@ fn fragment(in: Varying, @builtin(front_facing) is_front: bool) -> FragmentOutpu
     pbr.material.perceptual_roughness = orm.g;
     pbr.diffuse_occlusion *= vec3<f32>(mix(orm.r, 1.0, along));
 #else
-    // ---- Lawn shell.
-    let h = in.data.x;
-    let strand = lawn_strand(world, h, in.masks, grass.time.x);
-    let lawn = textureSampleGrad(ground_albedo, ground_sampler, in.uv, base_layer, duv_dx, duv_dy).rgb;
-    let orm = textureSampleGrad(ground_orm, ground_sampler, in.uv, base_layer, duv_dx, duv_dy).rgb;
-    let nmap = textureSampleGrad(ground_normal, ground_sampler, in.uv, base_layer, duv_dx, duv_dy).rgb * 2.0 - 1.0;
-    if strand.hit < 0.5 {
+    // ---- Mown lawn.
+    let top = in.world_position.xyz;
+    let to_top = top - view.world_position.xyz;
+    let d = length(to_top);
+    if d >= grass.fade.y {
         discard;
     }
+    let dirt = max(max(in.masks.r, in.masks.g), in.masks.a);
+    let keep = (1.0 - smoothstep(grass.fade.z, grass.fade.w, dirt)) * (1.0 - distance_fade(d));
+    let hit = march_lawn(top, to_top / max(d, 1e-4), keep, t);
+    if hit.found < 0.5 {
+        discard;
+    }
+    let h = hit.h;
+    // The ground texture where the ray met the grass (as each shell layer would sample it), so the lawn's own
+    // texture runs up the strands: the UV moves with x/z as the screen derivatives say (affine on a triangle).
+    let det = dxz_dx.x * dxz_dy.y - dxz_dx.y * dxz_dy.x;
+    var uv = in.uv;
+    if abs(det) > 1e-12 {
+        let xz_from_screen_inv = mat2x2<f32>(dxz_dy.y, -dxz_dx.y, -dxz_dy.x, dxz_dx.x) * (1.0 / det);
+        uv += mat2x2<f32>(duv_dx, duv_dy) * xz_from_screen_inv * (hit.world.xz - top.xz);
+    }
+    let lawn = textureSampleGrad(ground_albedo, ground_sampler, uv, base_layer, duv_dx, duv_dy).rgb;
+    let orm = textureSampleGrad(ground_orm, ground_sampler, uv, base_layer, duv_dx, duv_dy).rgb;
+    let nmap = textureSampleGrad(ground_normal, ground_sampler, uv, base_layer, duv_dx, duv_dy).rgb * 2.0 - 1.0;
     // The colour settles to the plain ground before the strands thin out, so the far lawn is the ground's
-    // colour with a little texture, and nothing changes where the shells end.
-    let d = distance(view.world_position.xyz, world);
+    // colour with a little texture, and nothing changes where the lawn ends.
     let fade = smoothstep(grass.fade.x * 0.5, mix(grass.fade.x, grass.fade.y, 0.6), d);
     // Darker toward the roots, lighter and a little warmer at the tips; each strand a little different.
     var shade = mix(grass.shade.x, grass.shade.y, pow(h, 0.85));
-    shade *= 1.0 + grass.shade.z * (strand.value * 2.0 - 1.0) * h;
+    shade *= 1.0 + grass.shade.z * (hit.value * 2.0 - 1.0) * h;
     // Slow, irregular patches (mown stripes, drier spots), and the sheen of a gust running over the lawn.
-    let patch_noise = value_noise(world.xz / grass.tip.w) * 0.65 + value_noise(world.xz / grass.tip.w * 2.7 + 17.0) * 0.35;
+    let patch_noise = value_noise(top.xz / grass.tip.w) * 0.65 + value_noise(top.xz / grass.tip.w * 2.7 + 17.0) * 0.35;
     shade *= 1.0 + grass.shade.w * (patch_noise * 2.0 - 1.0);
     let patch_tint = mix(grass.lush.rgb, grass.dry.rgb, smoothstep(0.2, 0.8, patch_noise));
-    shade *= 1.0 + grass.ground.y * h * h * wind_wave(world.xz * 0.6, grass.time.x * 0.8) * gust(world.xz, grass.time.x);
+    shade *= 1.0 + grass.ground.y * h * h * wind_wave(top.xz * 0.6, t * 0.8) * gust(top.xz, t);
     shade = mix(shade, 1.0, fade);
     let tint = mix(vec3<f32>(1.0), grass.tip.rgb, h * (1.0 - fade)) * mix(patch_tint, vec3<f32>(1.0), fade);
     let colour = lawn * grass.ground_tint.rgb * macro_factor * tint * shade;
@@ -349,6 +385,8 @@ fn fragment(in: Varying, @builtin(front_facing) is_front: bool) -> FragmentOutpu
     let tbn = calculate_tbn_mikktspace(in.world_normal, in.world_tangent);
     N = normalize(tbn * vec3<f32>(nmap.xy * grass.ground.z, nmap.z));
 #endif
+    // Lit where the ray met the grass (so the houses' shadows fall on it where they fall on the ground).
+    vo.world_position = vec4<f32>(hit.world, 1.0);
     var pbr = pbr_input_from_standard_material(vo, is_front);
     pbr.N = N;
     pbr.material.perceptual_roughness = orm.g;
@@ -362,4 +400,3 @@ fn fragment(in: Varying, @builtin(front_facing) is_front: bool) -> FragmentOutpu
     out.color = main_pass_post_lighting_processing(pbr, out.color);
     return out;
 }
-
