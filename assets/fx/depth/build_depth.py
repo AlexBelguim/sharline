@@ -7,19 +7,28 @@ the same Krea2 raws the albedo used (or, for the organic surfaces, from the albe
 
 Heights are modelled in METRES (0 = the face of the mesh, negative = carved into it), then written as Bevy depth
 maps: 16-bit greyscale, 0 (black) = the top, 65535 (white) = the deepest point. The depth that white stands for is
-printed per map and written to out/depth.json; game/assets/data/surface_depth.ron must use it (`depth_cm`), so a
-designer can still scale it there.
+printed per map and written to out/depth.json; game/assets/data/surface_depth.ron must use it (`depth_cm`).
 
-Outputs (out/):  <maps>_depth.png   16-bit, linear data, the parallax depth
-                 <maps>_orm.png     glTF / Bevy ORM: R = ambient occlusion from the height field, G = 1, B = 0
-                 <name>_normal.png  only for surfaces that had no normal map (OpenGL / glTF convention)
-                 depth.json         depth_cm per map + alignment checks
+The structured surfaces use STYLIZED profiles, not real-world ones: a 9 mm joint moves the image by less than a
+pixel and nobody sees it. Joints are V grooves whose walls lie inside the dark band the albedo paints (at a grazing
+view the far wall of a groove is what shows, and a square groove would hide its painted floor behind the near lip
+and show the light slab albedo on its far wall instead), with a chamfer / rolled edge that catches the sun. Their
+normal maps are made from the same heights (`*_relief_normal.png`): Bevy's occlusion texture only darkens
+indirect light, so in sun the normal map is what carries the relief.
+
+Outputs (out/):  <maps>_depth.png          16-bit, linear data, the parallax depth
+                 <maps>_orm.png            glTF / Bevy ORM: R = ambient occlusion from the height field, G = 1, B = 0
+                 <maps>_relief_normal.png  normal map from the same heights (OpenGL / glTF convention)
+                 depth.json                depth_cm per map + alignment checks
 Previews (preview/): <maps>_check.png: albedo | depth | AO | relief lit by a low sun | albedo x structure overlay.
 
     python -B build_depth.py [name ...] [--game]     (--game also copies the maps the game uses into
                                                       game/assets/textures/showhome/)
 Run it with the ComfyUI venv python or any python with numpy + Pillow. `-B` keeps Python from writing a
 __pycache__ into the library's _src folder (its texlib is imported, never modified).
+
+The library is found next to this script (../../maps/showhome/textures); SHOWHOME_TEXTURES=<folder> points it
+elsewhere (a worktree without the library reads the main checkout's copy that way, read-only).
 """
 import json
 import os
@@ -31,13 +40,24 @@ sys.dont_write_bytecode = True
 import numpy as np
 from PIL import Image
 
-LIB = r"F:\git\val etf\assets\maps\showhome\textures"
+HERE = os.path.dirname(os.path.abspath(__file__))
+
+
+def library_dir():
+    """The Showhome texture library: $SHOWHOME_TEXTURES, else next to this script (repo assets/maps/...)."""
+    env = os.environ.get("SHOWHOME_TEXTURES")
+    lib = env or os.path.normpath(os.path.join(HERE, "..", "..", "maps", "showhome", "textures"))
+    if not os.path.isfile(os.path.join(lib, "_src", "texlib.py")):
+        sys.exit(f"no Showhome texture library at {lib} (set SHOWHOME_TEXTURES to the folder that holds _src/)")
+    return lib
+
+
+LIB = library_dir()
 SRC = os.path.join(LIB, "_src")
 RAW = os.path.join(SRC, "raw")
 sys.path.insert(0, SRC)
 import texlib as T  # noqa: E402  (the library's helpers, read-only)
 
-HERE = os.path.dirname(os.path.abspath(__file__))
 OUT = os.path.join(HERE, "out")
 PREV = os.path.join(HERE, "preview")
 KREA = os.path.join(HERE, "raw")
@@ -128,31 +148,43 @@ def save8(a, path):
 # structure is procedural: the albedo must be darker inside `mask` (joints / grooves / butts) than outside),
 # normal=True to write a new normal map (only where the library has none).
 
+def v_groove(dist, top_px, top_m, bottom_px, bottom_m):
+    """A joint's cross-section by distance (px) from its centre line: `top_m` at `top_px`, falling in a straight
+    wall to `bottom_m` at `bottom_px` (flat floor inside that), 0 outside `top_px` (add the edge separately)."""
+    t = np.clip((top_px - dist) / max(top_px - bottom_px, 1e-6), 0, 1)
+    return np.where(dist < top_px, top_m + (bottom_m - top_m) * t, 0.0).astype(np.float32)
+
+
 def paving_slabs():
-    """build_textures.paving_slabs: 4 x 4 slabs of 0.6 m, 5 px sanded joints, 5 px rounded slab edge. Joints sit
-    9 mm deep on their sand, the slab edge rolls off 4 mm, and each slab sits up to 0.8 mm off its neighbours."""
-    n, sp, jw = 4, S // 4, 5
+    """build_textures.paving_slabs: 4 x 4 slabs of 0.6 m (256 px, 2.34 mm/px), a 5 px sand joint painted from
+    2 to 3 px off the joint centre. Stylized: a 6 mm rolled edge (elliptic, 5 mm drop, it catches the sun) from 5 to
+    2.5 px, then a V joint inside the painted band down to the sand 2 cm deep. Slabs sit up to 0.6 mm off their
+    neighbours."""
+    n, sp = 4, S // 4
     y, x = np.mgrid[0:S, 0:S]
     jx = np.minimum(x % sp, sp - x % sp).astype(np.float32)
     jy = np.minimum(y % sp, sp - y % sp).astype(np.float32)
     dist = np.minimum(jx, jy)
-    joint = np.clip(jw / 2 + 0.5 - dist, 0, 1)
-    bevel = np.clip((dist - jw / 2) / 5.0, 0, 1)
+    joint = np.clip(3.0 - dist, 0, 1)                       # the albedo's sand band (jw = 5)
     sid = (y // sp) * n + (x // sp)
     grain = ai_detail("concrete_smooth_s12", 40, 0.9)
-    lip = np.random.default_rng(2301).uniform(-0.0008, 0.0008, n * n).astype(np.float32)
-    slab = lip[sid] - 0.004 * (1.0 - bevel ** 0.6) + 0.00012 * grain
-    sand = -0.009 + 0.0006 * T.fft_blur(grain, 1.0)
-    h = slab * (1 - joint) + sand * joint
+    lip = np.random.default_rng(2301).uniform(-0.0006, 0.0006, n * n).astype(np.float32)
+    e = np.clip((5.0 - dist) / 2.5, 0, 0.98)                # 0 on the slab .. 1 at the joint wall
+    roll_edge = -0.005 * (1.0 - np.sqrt(1.0 - e * e))       # elliptic bullnose: 5.9 mm wide, 5 mm down
+    slab = lip[sid] * (1 - e) + roll_edge + 0.00003 * grain   # grain as strong as the library normal's
+    groove = v_groove(dist, 2.5, -0.005, 0.5, -0.020) + 0.0006 * T.fft_blur(grain, 1.0) * (dist < 1.5)
+    h = np.where(dist < 2.5, groove, slab)
     sh = (sp // 2, sp // 2)
     roll = lambda a: np.roll(a, sh, axis=(0, 1))  # noqa: E731
-    return dict(h=roll(h), repeat=2.4, ao_radius=0.02, albedo="paving_slabs", check=roll(joint) > 0.5)
+    return dict(h=roll(h.astype(np.float32)), repeat=2.4, ao_radius=0.02, albedo="paving_slabs",
+                check=roll(joint) > 0.5, normal=True)
 
 
 def printed_concrete_layers():
     """build_textures.printed_concrete_layers: 32 level beads per repeat (4 cm each, 32 px), the same sub-pixel
-    waviness along each bead. The grooves are 6 mm deep; each layer stands up to 0.4 mm proud of its neighbours
-    and the extrusion streaks of the albedo add a 0.15 mm ripple along the bead."""
+    waviness along each bead. Stylized: round beads with 1.5 cm grooves between them (the albedo's sin^0.6 bead,
+    so its cavity tone sits in the groove); each layer stands up to 0.6 mm proud of its neighbours and the
+    paint and extrusion streaks add the fine surface the library normal had."""
     N, P = 32, S // 32
     rows = np.arange(S, dtype=np.float32)[:, None] + P / 2
     wob = T.periodic_noise(S, S, None, 3, aniso=(P * 0.6, 110)) * 0.6
@@ -162,16 +194,18 @@ def printed_concrete_layers():
     bead = np.sin(np.pi * t) ** 0.6
     streak = T.periodic_noise(S, S, None, 5, aniso=(1.4, 70))
     paint = T.fft_blur(ai_detail("concrete_smooth_s11", 50, 0.9), 3.0)
-    proud = np.random.default_rng(3201).uniform(-0.0004, 0.0004, N).astype(np.float32)
-    h = 0.006 * (bead - 1.0) + bead * proud[layer] + 0.00015 * streak * bead + 0.0002 * paint
-    return dict(h=h.astype(np.float32), repeat=1.28, ao_radius=0.015, albedo="printed_concrete_layers",
-                check=bead < 0.35)
+    proud = np.random.default_rng(3201).uniform(-0.0006, 0.0006, N).astype(np.float32)
+    h = 0.015 * (bead - 1.0) + bead * proud[layer] + 0.00003 * streak * bead + 0.00004 * paint
+    return dict(h=h.astype(np.float32), repeat=1.28, ao_radius=0.02, albedo="printed_concrete_layers",
+                check=bead < 0.35, normal=True)
 
 
 def roof_shingle_dark():
-    """build_textures.roof_shingle_dark: 8 courses x 4 shingles (50 x 25 cm), half bond with the same random
-    shifts. Each course is a wedge rising to its butt edge (12 mm), the thin shadow line under the butt and the
-    3-4 px side joints go to the bottom; each shingle sits up to 0.6 mm off its neighbours."""
+    """build_textures.roof_shingle_dark: 8 courses x 4 shingles (50 x 25 cm, 1.95 mm/px), half bond with the same
+    random shifts; image top = toward the ridge. Stylized: each course is a wedge rising 2 cm from its thin top to
+    its butt; the butt face is the 3.5 px shadow line the albedo paints (a steep slope, so a view from the eaves
+    sees the dark paint on it), and the side joints are V grooves 3 mm below the course. Shingles sit up to 0.8 mm
+    off their neighbours."""
     rows, per, rh, sw = 8, 4, S // 8, S // 4
     rng = np.random.default_rng(17)
     y = np.arange(S)[:, None] + np.zeros((1, S), np.int64)
@@ -184,33 +218,38 @@ def roof_shingle_dark():
     tx = np.minimum(xs % sw, sw - xs % sw).astype(np.float32)
     sid = r * per + c
     joint = np.clip(2.0 - tx, 0, 1)
-    butt = np.clip((ty - (1 - 3.5 / rh)) * rh / 3.5, 0, 1)
+    b0 = 1 - 3.5 / rh
+    butt = np.clip((ty - b0) * rh / 3.5, 0, 1)
     grain = T.fft_blur(ai_detail("concrete_smooth_s12", 30, 1.0), 1.0)
-    wedge = (0.3 + 0.7 * ty) * (1 - joint) * (1 - butt)
-    var = np.random.default_rng(1701).uniform(-0.0006, 0.0006, rows * per).astype(np.float32)
-    h = 0.012 * (wedge - 1.0) + var[sid] * (1 - joint) * (1 - butt) + 0.0002 * grain
+    step = 0.020
+    course = np.where(ty < b0, -step * (1.0 - ty / b0), -step * butt)   # wedge up to the butt, then its face
+    var = np.random.default_rng(1701).uniform(-0.0008, 0.0008, rows * per).astype(np.float32)
+    side = v_groove(tx, 2.5, 0.0, 0.5, -0.003)
+    h = course + var[sid] * (1 - butt) + side + 0.0001 * grain
     sh = (rh // 2, 37)
     roll = lambda a: np.roll(a, sh, axis=(0, 1))  # noqa: E731
-    return dict(h=roll(h.astype(np.float32)), repeat=2.0, ao_radius=0.02, albedo="roof_shingle_dark",
-                check=roll(np.maximum(joint, butt)) > 0.5)
+    return dict(h=roll(h.astype(np.float32)), repeat=2.0, ao_radius=0.025, albedo="roof_shingle_dark",
+                check=roll(np.maximum(joint, butt)) > 0.5, normal=True)
 
 
 def fibercement_panel_joints():
-    """build_textures.fibercement_panels_jointed: 4 x 2 panels of 1.2 x 2.4 m, 4 px shadow-gap joints with a
-    3 px edge. The gaps are 12 mm deep, the panel edge eases off 4 mm. Shared by the sage, clay and grey versions."""
-    pw, ph, jw = 256, 512, 4
+    """build_textures.fibercement_panels_jointed: 4 x 2 panels of 1.2 x 2.4 m (4.69 mm/px); the albedo darkens
+    the gap 42 % to 1.5 px off the joint centre (fading out by 2.5 px) and the edge 8 % out to 5 px. Stylized: a
+    2.5 px (12 mm) chamfer from 4.5 px down 6 mm, then a 45 degree V gap 1.5 cm deep whose walls lie in the dark
+    band. Shared by the sage, clay and grey versions."""
+    pw, ph = 256, 512
     x = np.arange(S)[None, :]
     y = np.arange(S)[:, None]
     jx = np.minimum(x % pw, pw - x % pw)
     jy = np.minimum(y % ph, ph - y % ph)
     dist = np.minimum(jx + 0 * y, jy + 0 * x).astype(np.float32)
-    joint = np.clip((jw / 2 + 0.5 - dist), 0, 1)
-    edge = np.clip(1.0 - (dist - jw / 2) / 3.0, 0, 1) * (1 - joint)
-    h = 0.012 * (-joint - 0.35 * edge)
+    joint = np.clip(2.5 - dist, 0, 1)
+    chamfer = np.where(dist < 4.5, -0.006 * np.clip((4.5 - dist) / 2.5, 0, 1), 0.0)
+    h = np.where(dist < 2.0, v_groove(dist, 2.0, -0.006, 0.0, -0.015), chamfer)
     sh = (ph // 2, pw // 2)
     roll = lambda a: np.roll(a, sh, axis=(0, 1))  # noqa: E731
     return dict(h=roll(h.astype(np.float32)), repeat=4.8, ao_radius=0.03, albedo="fibercement_sage",
-                check=roll(joint) > 0.5, depth_px=512)
+                check=roll(joint) > 0.5, depth_px=1024, normal=True)
 
 
 def kerb_concrete():
@@ -307,21 +346,31 @@ def krea_alignment(name, path, sigma=10):
 
 
 def gravel():
-    """Gravel: rounded pebbles about 2-4 cm across, standing 10 mm out of the gaps (16 mm read as a dark, noisy
-    speckle at a grazing view: the concept's ground is low contrast). The normal map keeps the rounder 16 mm
-    pebbles (normal_gain). Krea2's height picture of this very albedo (correlation 0.95 at zero shift, see
-    krea_alignment) gives each pebble a clean dome, which the albedo's luminance alone cannot (a darker pebble is
-    not a lower one). The depth map is 512 px: its pebbles alias less far away."""
+    """Gravel: rounded pebbles about 2-4 cm across. Krea2's height picture of this very albedo (correlation 0.95 at
+    zero shift, see krea_alignment) gives each pebble a clean dome, which the albedo's luminance alone cannot (a
+    darker pebble is not a lower one).
+    Kept soft for the low-contrast concept ground: 10 mm pebbles at 1.6x normal gain turned the drive into a dark
+    1-pixel speckle 4-10 m out and 11 % darker at your feet. Now the depth map is the pebbles low-passed (no
+    sub-pebble detail) at 256 px and only 5 mm deep (and the RON keeps gravel on plain occlusion parallax), the
+    normal map is gentle (GRAVEL_NORMAL_GAIN) and the AO floor is 0.92."""
     h = _organic("gravel", 10, 0.8, 0.010, krea="krea_height_gravel_s11.png", mix=0.75)
-    return dict(h=h, repeat=1.0, ao_radius=0.012, ao_floor=0.85, albedo="gravel", normal=True, normal_gain=1.6,
-                depth_px=512)
+    soft = T.fft_blur(h, 3.0)                         # pebble domes only (3 mm), no grit between them
+    soft = 0.005 * (unit_range(soft, 0.5, 99.5) - 1.0)
+    return dict(h=h, depth_h=soft, repeat=1.0, ao_radius=0.012, ao_floor=0.92, albedo="gravel", normal=True,
+                normal_gain=GRAVEL_NORMAL_GAIN, depth_px=256)
 
 
 def grass_lawn():
-    """Lawn: blade tips (the lighter strokes) up to 8 mm above the darker ground between them. Subtle on purpose.
-    Half from Krea2's height picture of the albedo (correlation 0.95), half from the albedo."""
+    """Lawn: blade tips (the lighter strokes) up to 8 mm above the darker ground between them: the normal map and
+    AO. Half from Krea2's height picture of the albedo (correlation 0.95), half from the albedo.
+    `--lawn-clumps` (test only) also writes a clump depth map: the low-frequency part of the same height, 2.5 cm
+    deep; the RON keeps the lawn's parallax off (see surface_depth.ron for why)."""
     h = _organic("grass_lawn", 12, 0.8, 0.008, krea="krea_height_grass_lawn_s11.png", mix=0.5)
-    return dict(h=h, repeat=2.0, ao_radius=0.012, ao_floor=0.85, albedo="grass_lawn", normal=True, depth_px=512)
+    r = dict(h=h, repeat=2.0, ao_radius=0.012, ao_floor=0.85, albedo="grass_lawn", normal=True, depth_px=512)
+    if "--lawn-clumps" in sys.argv:
+        clump = unit_range(T.fft_blur(h, 6.0), 0.5, 99.5)
+        r["depth_h"] = 0.025 * (clump - 1.0) + 0.3 * h
+    return r
 
 
 def garden_soil():
@@ -345,10 +394,13 @@ BUILDERS = {
 
 # What the game uses (game/assets/data/surface_depth.ron): copied into game/assets/textures/showhome/ by --game.
 # Asphalt has AO and a normal map but no parallax (its 2 mm aggregate is under a pixel of offset).
-GAME_DEPTH = ["paving_slabs", "printed_concrete_layers", "roof_shingle_dark", "fibercement_panel_joints", "gravel",
-              "grass_lawn"]
-GAME_ORM = GAME_DEPTH + ["asphalt"]
-GAME_NORMALS = ["asphalt", "gravel", "grass_lawn"]
+# The lawn has AO and a normal map but no parallax (any depth that does not swim is invisible on it).
+GAME_DEPTH = ["paving_slabs", "printed_concrete_layers", "roof_shingle_dark", "fibercement_panel_joints", "gravel"]
+GAME_ORM = GAME_DEPTH + ["asphalt", "grass_lawn"]
+GAME_NORMALS = GAME_ORM
+# Gravel's normal map strength (1 = the 10 mm pebbles as modelled): the measured brightness of the drive at your
+# feet must stay within 2 % of the flat albedo (assets/fx/depth/measure.py gravel).
+GRAVEL_NORMAL_GAIN = 0.5
 
 # AO: how dark a fully enclosed texel may get (the albedos already carry a painted cavity tone: keep it gentle;
 # 0.55 doubled the joints' darkness in shade).
@@ -390,8 +442,10 @@ def build(name):
     r = BUILDERS[name]()
     h = r["h"].astype(np.float32)
     texel = r["repeat"] / S
-    hmax, hmin = float(h.max()), float(h.min())
-    depth01 = (hmax - h) / max(hmax - hmin, 1e-9)
+    # The depth map may be a softer height than the one the normal map and AO come from (gravel, lawn clumps).
+    hd = r.get("depth_h", h).astype(np.float32)
+    hmax, hmin = float(hd.max()), float(hd.min())
+    depth01 = (hmax - hd) / max(hmax - hmin, 1e-9)
     depth_cm = (hmax - hmin) * 100.0
     save16(downsample(depth01, r.get("depth_px", S)), os.path.join(OUT, f"{name}_depth.png"))
     # AO relative to the surface's own open level (its 90th percentile = 1): an evenly bumpy surface (gravel)
@@ -406,7 +460,7 @@ def build(name):
     save8(orm, os.path.join(OUT, f"{name}_orm.png"))
     if r.get("normal"):
         nrm = normal_from_height_m(h, texel, r.get("normal_gain", 1.0))
-        save8(nrm, os.path.join(OUT, f"{name}_normal.png"))
+        save8(nrm, os.path.join(OUT, f"{name}_relief_normal.png"))
     rgb = albedo(r["albedo"])
     info = dict(depth_cm=round(depth_cm, 3), repeat_m=r["repeat"], ao_min=round(float(ao.min()), 3),
                 ao_mean=round(float(ao.mean()), 3))
@@ -418,13 +472,16 @@ def build(name):
         ratio = float(lum[m].mean() / lum[~m].mean())
         shifted = float(lum[np.roll(m, (S // 7, S // 5), axis=(0, 1))].mean() / lum.mean())
         info.update(align_ratio=round(ratio, 3), misaligned_ratio=round(shifted, 3))
-    check_sheet(name, rgb, depth01, ao, h, texel)
+    check_sheet(name, rgb, depth01, ao, h * r.get("normal_gain", 1.0), texel)
     print(f"{name:28s} {json.dumps(info)}", flush=True)
     return info
 
 
 def main():
     args = [a for a in sys.argv[1:] if not a.startswith("--")]
+    if "--lawn-clumps" in sys.argv:
+        global OUT
+        OUT = os.path.join(HERE, "out_test")
     game = "--game" in sys.argv
     os.makedirs(OUT, exist_ok=True)
     os.makedirs(PREV, exist_ok=True)
@@ -435,7 +492,7 @@ def main():
     with open(jpath, "w") as f:
         json.dump(allinfo, f, indent=1, sort_keys=True)
     if game:
-        for names, suffix in ((GAME_DEPTH, "_depth"), (GAME_ORM, "_orm"), (GAME_NORMALS, "_normal")):
+        for names, suffix in ((GAME_DEPTH, "_depth"), (GAME_ORM, "_orm"), (GAME_NORMALS, "_relief_normal")):
             for n in names:
                 shutil.copy2(os.path.join(OUT, n + suffix + ".png"), os.path.join(GAME, n + suffix + ".png"))
         print("copied into", GAME)

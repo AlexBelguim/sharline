@@ -6,8 +6,9 @@
 //! material whose image never arrives is not drawn at all.
 //!
 //! Parallax depth (`assets/data/surface_depth.ron`, see the section at the end): paving, printed walls, roofs,
-//! cladding joints, gravel and lawn get a depth map, AO and sometimes a normal map made from the same heights.
-//! How many parallax layers they march follows the quality preset ([`SurfaceDepthLevel`], set by `video.rs`).
+//! cladding joints and gravel get a depth map, and they plus asphalt and the lawn get AO and a normal map made
+//! from the same heights. The quality preset ([`SurfaceDepthLevel`], set by `video.rs`) picks how many parallax
+//! layers they march; LOW leaves them exactly as they were without it (and never loads those images).
 
 use crate::render::team_color;
 use crate::settings::Preset;
@@ -22,6 +23,8 @@ use std::collections::HashMap;
 use vetf_sim::level::Team;
 use vetf_sim::movement::collision::Look;
 
+mod strafe;
+
 pub struct MapMaterialsPlugin;
 
 impl Plugin for MapMaterialsPlugin {
@@ -29,6 +32,7 @@ impl Plugin for MapMaterialsPlugin {
         app.init_resource::<SurfaceDepthLevel>()
             .add_systems(Startup, load)
             .add_systems(Update, (build_mipmaps, apply_surface_depth));
+        strafe::plugin(app);
     }
 }
 
@@ -95,6 +99,8 @@ pub struct ShowhomeMaterials {
     /// The materials with parallax depth / AO, switched by [`apply_surface_depth`].
     relief: Vec<ReliefMaterial>,
     depth: SurfaceDepthData,
+    /// Relief images already asked for (surfaces can share them), by file name.
+    relief_images: HashMap<String, Handle<Image>>,
 }
 
 struct Pending {
@@ -119,21 +125,9 @@ fn load(
     images: Res<Assets<Image>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
 ) {
-    let mut sources: HashMap<(String, bool), Pending> = HashMap::new();
-    let mut image = |name: &str, srgb: bool, fallback: [u8; 4]| {
-        sources
-            .entry((name.to_string(), srgb))
-            .or_insert_with(|| Pending {
-                source: server
-                    .load_builder()
-                    .with_settings(move |s: &mut ImageLoaderSettings| s.is_srgb = srgb)
-                    .load(format!("{DIR}/{name}.png")),
-                done: images.reserve_handle(),
-                srgb,
-                fallback,
-            })
-            .done
-            .clone()
+    let mut sources: HashMap<(&str, bool), Pending> = HashMap::new();
+    let mut image = |name: &'static str, srgb: bool, fallback: [u8; 4]| {
+        sources.entry((name, srgb)).or_insert_with(|| request(&server, &images, name, srgb, fallback)).done.clone()
     };
     let depth = SurfaceDepthData::load();
     let mut relief = Vec::new();
@@ -149,7 +143,7 @@ fn load(
             }
             _ => Color::WHITE,
         };
-        let mut material = StandardMaterial {
+        let material = StandardMaterial {
             base_color: tint,
             base_color_texture: Some(image(
                 surf.albedo,
@@ -161,19 +155,15 @@ fn load(
             uv_transform: Affine2::from_scale(Vec2::splat(1.0 / surf.repeat_m)),
             ..default()
         };
-        // Parallax depth, AO and a normal map made from the same heights (surface_depth.ron).
-        let rel = depth.surfaces.get(surf.albedo).map(|r| {
-            if let Some(n) = &r.normal {
-                material.normal_map_texture = Some(image(n, false, FLAT_NORMAL));
-            }
-            material.parallax_depth_scale = parallax_scale(r.depth_cm, surf.repeat_m);
-            let depth_map = (r.depth_cm > 0.0).then(|| image(&format!("{}_depth", r.maps), false, FLAT_DEPTH));
-            let occlusion = r.occlusion.then(|| image(&format!("{}_orm", r.maps), false, OPEN_ORM));
-            (depth_map, occlusion)
-        });
-        let handle = materials.add(material);
-        if let Some((depth_map, occlusion)) = rel {
-            relief.push(ReliefMaterial { material: handle.clone(), depth_map, occlusion });
+        // Parallax depth, AO and a normal map from the same heights (surface_depth.ron), switched on by
+        // `apply_surface_depth` once the preset asks for them and their images have loaded.
+        let spec = depth.surfaces.get(surf.albedo).cloned();
+        let parallax_depth_scale =
+            spec.as_ref().map_or(material.parallax_depth_scale, |r| parallax_scale(r.depth_cm, surf.repeat_m));
+        let base_normal = material.normal_map_texture.clone();
+        let handle = materials.add(StandardMaterial { parallax_depth_scale, ..material });
+        if let Some(spec) = spec {
+            relief.push(ReliefMaterial { material: handle.clone(), spec, base_normal, maps: None, shown: None });
         }
         out.insert(look, handle);
     }
@@ -182,7 +172,21 @@ fn load(
         pending: sources.into_values().collect(),
         relief,
         depth,
+        relief_images: HashMap::new(),
     });
+}
+
+/// Start loading `textures/showhome/<name>.png`; `build_mipmaps` fills the reserved handle once it has loaded.
+fn request(server: &AssetServer, images: &Assets<Image>, name: &str, srgb: bool, fallback: [u8; 4]) -> Pending {
+    Pending {
+        source: server
+            .load_builder()
+            .with_settings(move |s: &mut ImageLoaderSettings| s.is_srgb = srgb)
+            .load(format!("{DIR}/{name}.png")),
+        done: images.reserve_handle(),
+        srgb,
+        fallback,
+    }
 }
 
 /// A normal map texel that leaves the surface as it is (+Z in tangent space).
@@ -307,13 +311,23 @@ impl DepthQuality {
         self.layers >= 1.0
     }
 
-    pub fn method(self) -> ParallaxMappingMethod {
-        if self.relief_steps > 0 {
+    /// Relief mapping with this preset's steps, unless the surface asks for plain occlusion parallax.
+    pub fn method(self, surface: Option<DepthMethod>) -> ParallaxMappingMethod {
+        if self.relief_steps > 0 && surface != Some(DepthMethod::Occlusion) {
             ParallaxMappingMethod::Relief { max_steps: self.relief_steps }
         } else {
             ParallaxMappingMethod::Occlusion
         }
     }
+}
+
+/// A surface's own parallax method (`method` in the RON), whatever the preset.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Deserialize)]
+pub enum DepthMethod {
+    /// Parallax occlusion mapping: one refinement sample (softer; gravel).
+    Occlusion,
+    /// Relief mapping with the preset's `relief_steps`.
+    Relief,
 }
 
 #[derive(Debug, Clone, PartialEq, Deserialize)]
@@ -336,7 +350,7 @@ impl DepthQualities {
 }
 
 /// One albedo's relief: `<maps>_depth.png` (white = `depth_cm` deep), `<maps>_orm.png` (R = AO), and a normal
-/// map that replaces the surface's own (or gives it one).
+/// map from the same heights that replaces the surface's own (or gives it one) while the relief is on.
 #[derive(Debug, Clone, PartialEq, Deserialize)]
 pub struct SurfaceRelief {
     pub maps: String,
@@ -345,6 +359,20 @@ pub struct SurfaceRelief {
     pub normal: Option<String>,
     #[serde(default = "yes")]
     pub occlusion: bool,
+    #[serde(default)]
+    pub method: Option<DepthMethod>,
+}
+
+impl SurfaceRelief {
+    /// The image files (in `textures/showhome/`, without `.png`) this relief uses, each with the texel that
+    /// stands in for it if it fails to load.
+    fn files(&self) -> ReliefMaps<(String, [u8; 4])> {
+        ReliefMaps {
+            depth: (self.depth_cm > 0.0).then(|| (format!("{}_depth", self.maps), FLAT_DEPTH)),
+            occlusion: self.occlusion.then(|| (format!("{}_orm", self.maps), OPEN_ORM)),
+            normal: self.normal.clone().map(|n| (n, FLAT_NORMAL)),
+        }
+    }
 }
 
 fn yes() -> bool {
@@ -386,41 +414,92 @@ pub fn parallax_scale(depth_cm: f32, repeat_m: f32) -> f32 {
     depth_cm.max(0.0) / 100.0 / repeat_m.max(1e-3)
 }
 
-/// A material with parallax depth and / or AO, and the maps it gets back when its level turns them on.
-struct ReliefMaterial {
-    material: Handle<StandardMaterial>,
-    depth_map: Option<Handle<Image>>,
-    occlusion: Option<Handle<Image>>,
+/// The three relief images of a surface (each optional).
+#[derive(Debug, Clone, Default, PartialEq)]
+struct ReliefMaps<T> {
+    depth: Option<T>,
+    occlusion: Option<T>,
+    normal: Option<T>,
 }
 
-/// Put one preset's parallax on a material. Off (LOW) takes the depth map and the AO away, so the surface costs
-/// and looks exactly as it did without them.
+impl<T> ReliefMaps<T> {
+    fn all(&self) -> impl Iterator<Item = &T> {
+        [&self.depth, &self.occlusion, &self.normal].into_iter().flatten()
+    }
+}
+
+/// A material with parallax depth / AO / a relief normal map.
+struct ReliefMaterial {
+    material: Handle<StandardMaterial>,
+    spec: SurfaceRelief,
+    /// The surface's own (library) normal map, which it shows while the relief is off.
+    base_normal: Option<Handle<Image>>,
+    /// The relief images, once a preset above LOW has asked for them (LOW never loads them).
+    maps: Option<ReliefMaps<Handle<Image>>>,
+    /// The quality the material shows now; `None` = as created (no relief).
+    shown: Option<DepthQuality>,
+}
+
+/// Put one preset's relief on a material. Off (LOW), or before its images exist, it has its own normal map and
+/// no depth map or AO: it looks and costs exactly as it did without this work.
 fn set_relief(
     m: &mut StandardMaterial,
     q: DepthQuality,
-    depth_map: Option<&Handle<Image>>,
-    ao: Option<&Handle<Image>>,
+    method: Option<DepthMethod>,
+    maps: Option<&ReliefMaps<Handle<Image>>>,
+    base_normal: Option<&Handle<Image>>,
 ) {
-    m.depth_map = depth_map.filter(|_| q.on()).cloned();
-    m.occlusion_texture = ao.filter(|_| q.on()).cloned();
+    let on = maps.filter(|_| q.on());
+    m.depth_map = on.and_then(|r| r.depth.clone());
+    m.occlusion_texture = on.and_then(|r| r.occlusion.clone());
+    m.normal_map_texture = on.and_then(|r| r.normal.as_ref()).or(base_normal).cloned();
     m.max_parallax_layer_count = q.layers.max(1.0);
-    m.parallax_mapping_method = q.method();
+    m.parallax_mapping_method = q.method(method);
 }
 
-/// The level changed (or the materials were just made): switch every relief material to it.
+/// Keep every relief material at the current level. The first time a level above LOW wants the relief, its
+/// images start loading; a material switches to the relief only once all of its images are ready (so nothing
+/// blinks out while they load), and back off at once.
 fn apply_surface_depth(
     level: Res<SurfaceDepthLevel>,
-    lib: Option<Res<ShowhomeMaterials>>,
+    lib: Option<ResMut<ShowhomeMaterials>>,
+    server: Res<AssetServer>,
+    images: Res<Assets<Image>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
 ) {
-    let Some(lib) = lib else { return };
-    if !level.is_changed() && !lib.is_added() {
-        return;
-    }
-    let q = lib.depth.quality.of(level.0);
-    for r in &lib.relief {
+    let Some(mut lib) = lib else { return };
+    let ShowhomeMaterials { relief, pending, depth, relief_images, .. } = &mut *lib;
+    let q = depth.quality.of(level.0);
+    for r in relief.iter_mut() {
+        if q.on() && r.maps.is_none() {
+            let files = r.spec.files();
+            let mut get = |f: Option<(String, [u8; 4])>| {
+                f.map(|(name, fallback)| {
+                    relief_images
+                        .entry(name.clone())
+                        .or_insert_with(|| {
+                            let p = request(&server, &images, &name, false, fallback);
+                            let done = p.done.clone();
+                            pending.push(p);
+                            done
+                        })
+                        .clone()
+                })
+            };
+            r.maps = Some(ReliefMaps {
+                depth: get(files.depth),
+                occlusion: get(files.occlusion),
+                normal: get(files.normal),
+            });
+        }
+        // Wanted on but still loading: stay as it is.
+        let ready = r.maps.as_ref().is_some_and(|m| m.all().all(|h| images.contains(h)));
+        if (q.on() && !ready) || r.shown == Some(q) {
+            continue;
+        }
         if let Some(mut m) = materials.get_mut(&r.material) {
-            set_relief(&mut m, q, r.depth_map.as_ref(), r.occlusion.as_ref());
+            set_relief(&mut m, q, r.spec.method, r.maps.as_ref(), r.base_normal.as_ref());
+            r.shown = Some(q);
         }
     }
 }
@@ -503,39 +582,74 @@ mod tests {
         assert!(!d.quality.low.on());
         let (m, h, u) = (d.quality.medium, d.quality.high, d.quality.ultra);
         assert!(m.on() && m.layers <= h.layers && h.layers <= u.layers);
-        assert!(matches!(h.method(), ParallaxMappingMethod::Relief { .. }));
-        assert!(u.relief_steps >= h.relief_steps);
+        assert!(m.relief_steps <= h.relief_steps && h.relief_steps <= u.relief_steps);
+        // Every enabled preset is relief mapping, so a preset change never compiles another shader variant.
+        for q in [m, h, u] {
+            assert!(matches!(q.method(None), ParallaxMappingMethod::Relief { .. }), "{q:?}");
+        }
         // Every entry names an albedo the map uses and maps that exist next to it.
         let albedos: Vec<&str> = LOOKS.iter().filter_map(|l| surface(*l)).map(|s| s.albedo).collect();
         let dir = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../assets").join(DIR);
         for (albedo, r) in &d.surfaces {
             assert!(albedos.contains(&albedo.as_str()), "{albedo} is not a Showhome albedo");
-            assert!((0.0..=3.0).contains(&r.depth_cm), "{albedo}: {} cm", r.depth_cm);
-            let mut files = vec![format!("{}_orm", r.maps)];
-            files.extend((r.depth_cm > 0.0).then(|| format!("{}_depth", r.maps)));
-            files.extend(r.normal.clone());
-            for f in files {
+            // Walls 1.5 cm or so, floors and roofs about 2 cm: deeper swims at box edges.
+            assert!((0.0..=2.5).contains(&r.depth_cm), "{albedo}: {} cm", r.depth_cm);
+            let files = r.files();
+            for (f, _) in files.all() {
                 assert!(dir.join(format!("{f}.png")).is_file(), "{albedo}: {f}.png is missing");
             }
+            assert_eq!(files.depth.is_some(), r.depth_cm > 0.0);
         }
-        assert!(d.surfaces.contains_key("paving_slabs") && d.surfaces.contains_key("printed_concrete_layers"));
+        for key in ["paving_slabs", "printed_concrete_layers", "roof_shingle_dark", "fibercement_sage"] {
+            assert!(d.surfaces[key].depth_cm >= 1.4, "{key} must read at a glance");
+        }
+        // Gravel stays on plain occlusion parallax on every preset (relief mapping speckled it).
+        assert_eq!(d.surfaces["gravel"].method, Some(DepthMethod::Occlusion));
+        assert_eq!(h.method(Some(DepthMethod::Occlusion)), ParallaxMappingMethod::Occlusion);
         // Bevy's depth scale is per UV unit: 1.2 cm over a 2.4 m repeat.
         assert!((parallax_scale(1.2, 2.4) - 0.005).abs() < 1e-7);
         assert_eq!(parallax_scale(-1.0, 2.0), 0.0);
     }
 
     #[test]
-    fn low_takes_the_relief_away() {
+    fn low_gives_the_surface_its_own_look_back() {
         let d = SurfaceDepthData::embedded();
-        let (depth, ao) = (Handle::<Image>::default(), Handle::<Image>::default());
-        let mut m = StandardMaterial::default();
-        set_relief(&mut m, d.quality.high, Some(&depth), Some(&ao));
-        assert!(m.depth_map.is_some() && m.occlusion_texture.is_some());
+        let images = Assets::<Image>::default();
+        let library_normal = images.reserve_handle();
+        let maps = ReliefMaps {
+            depth: Some(images.reserve_handle()),
+            occlusion: Some(images.reserve_handle()),
+            normal: Some(images.reserve_handle()),
+        };
+        let mut m = StandardMaterial { normal_map_texture: Some(library_normal.clone()), ..default() };
+        set_relief(&mut m, d.quality.high, None, Some(&maps), Some(&library_normal));
+        assert_eq!(m.depth_map, maps.depth);
+        assert_eq!(m.occlusion_texture, maps.occlusion);
+        assert_eq!(m.normal_map_texture, maps.normal, "the relief brings its own normal map");
         assert_eq!(m.max_parallax_layer_count, d.quality.high.layers);
-        set_relief(&mut m, d.quality.low, Some(&depth), Some(&ao));
+        // LOW: no depth, no AO, the library's normal map again (the old look and cost).
+        set_relief(&mut m, d.quality.low, None, Some(&maps), Some(&library_normal));
         assert!(m.depth_map.is_none() && m.occlusion_texture.is_none());
-        // A surface with AO but no depth (asphalt) keeps no depth map on any level.
-        set_relief(&mut m, d.quality.ultra, None, Some(&ao));
-        assert!(m.depth_map.is_none() && m.occlusion_texture.is_some());
+        assert_eq!(m.normal_map_texture, Some(library_normal.clone()));
+        // Not loaded yet (or LOW never loaded them): the same old look on any preset.
+        set_relief(&mut m, d.quality.ultra, None, None, Some(&library_normal));
+        assert!(m.depth_map.is_none() && m.occlusion_texture.is_none());
+        assert_eq!(m.normal_map_texture, Some(library_normal));
+        // A surface the library has no normal map for (asphalt) gets none back on LOW; no depth map on any level.
+        let flat = ReliefMaps { depth: None, ..maps.clone() };
+        set_relief(&mut m, d.quality.ultra, None, Some(&flat), None);
+        assert!(m.depth_map.is_none() && m.occlusion_texture.is_some() && m.normal_map_texture.is_some());
+        set_relief(&mut m, d.quality.low, None, Some(&flat), None);
+        assert!(m.normal_map_texture.is_none() && m.occlusion_texture.is_none());
+    }
+
+    #[test]
+    fn relief_files_follow_the_data() {
+        let d = SurfaceDepthData::embedded();
+        // LOW asks for no relief at all; a surface without depth asks for no depth map.
+        assert!(!d.quality.low.on());
+        let asphalt = d.surfaces["asphalt"].files();
+        assert!(asphalt.depth.is_none() && asphalt.occlusion.is_some() && asphalt.normal.is_some());
+        assert_eq!(d.surfaces["gravel"].files().all().count(), 3);
     }
 }
