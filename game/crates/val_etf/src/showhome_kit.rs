@@ -18,6 +18,7 @@ use bevy::image::{ImageAddressMode, ImageLoaderSettings, ImageSampler, ImageSamp
 use bevy::light::{NotShadowCaster, Skybox};
 use bevy::prelude::*;
 use bevy::render::render_resource::{TextureDataOrder, TextureFormat, TextureViewDescriptor, TextureViewDimension};
+use bevy::tasks::{AsyncComputeTaskPool, Task, futures::check_ready};
 use bevy::world_serialization::WorldInstanceReady;
 use serde::Deserialize;
 use std::collections::{HashMap, HashSet};
@@ -71,6 +72,10 @@ struct KitScene {
     failure_reported: bool,
 }
 
+/// The kit's scenes and sky, kept after a match as a cache: the next Showhome match spawns at once instead of
+/// reloading 200 MB of GLBs. What that keeps resident is mostly on the GPU: the textures' CPU copies are dropped
+/// once their mips are built (`finish_kit_mips`), the meshes stay in both worlds (the bullet marks' surfaces
+/// read them).
 #[derive(Resource, Default)]
 struct ShowhomeKitAssets {
     scenes: Vec<KitScene>,
@@ -294,6 +299,27 @@ struct KitMipState {
     /// materials change (scanning every kit material every frame cost about 0.06 ms a frame for nothing).
     settled: bool,
     ground_materials: usize,
+    /// Mip chains being built off the main thread.
+    jobs: Vec<MipJob>,
+}
+
+/// One image's mip chain in the making (on the async compute pool): the base level's bytes go in, the
+/// layer-major chain and its level count come out.
+struct MipJob {
+    handle: Handle<Image>,
+    bytes: usize,
+    task: Task<Option<(Vec<u8>, u32)>>,
+}
+
+/// At most this many bytes of base levels are copied into mip jobs at once (one 39-layer ground array is
+/// 156 MiB; its job holds that and the chain it builds).
+const MIP_JOB_BYTES: usize = 200 << 20;
+/// At most this many mip jobs start in one frame.
+const MIP_JOBS_PER_FRAME: usize = 4;
+
+/// Whether a mip job may start for an image of `bytes`: always when none runs, else within the byte budget.
+fn mip_job_fits(running: &[usize], bytes: usize) -> bool {
+    running.is_empty() || running.iter().sum::<usize>() + bytes <= MIP_JOB_BYTES
 }
 
 /// RGBA arrays are layer-major: all mips of layer 0, then all mips of layer 1, and so on.
@@ -318,6 +344,13 @@ pub(crate) fn rgba_layer_mips(
     Some((out, levels))
 }
 
+/// Builds the kit's and the ground arrays' missing mip chains (glTF-embedded PNGs and the packed arrays carry
+/// none, and tiling textures shimmer without them) on the async compute pool, so the main thread (the host's
+/// simulation on a listen server) never stalls: building them here took 0.45-0.83 s per ground array and 15-23
+/// ms a frame for 7-8 s after a Showhome match started (map-kit review K2). A finished image then lives in the
+/// render world only: its CPU copy (789 MiB for the kit, 624 MiB for the arrays) is dropped once uploaded
+/// (map-kit review K3, K4).
+#[allow(clippy::too_many_arguments)]
 fn finish_kit_mips(
     level: Res<CurrentLevel>,
     mut state: ResMut<KitMipState>,
@@ -334,11 +367,40 @@ fn finish_kit_mips(
     if !is_showhome(&level) {
         return;
     }
-    if state.settled && changed.is_empty() && ground.len() == state.ground_materials {
+    // Finished jobs: the chain goes into its image, which then lives in the render world only.
+    let mut finished = Vec::new();
+    state.jobs.retain_mut(|job| match check_ready(&mut job.task) {
+        Some(out) => {
+            finished.push((job.handle.clone(), out));
+            false
+        }
+        None => true,
+    });
+    for (handle, out) in finished {
+        state.done.insert(handle.id());
+        let Some((data, levels)) = out else {
+            warn!("Invalid kit RGBA mip input: {:?}", handle.id());
+            continue;
+        };
+        let Some(mut image) = images.get_mut(&handle) else { continue };
+        image.data = Some(data);
+        image.data_order = TextureDataOrder::LayerMajor;
+        image.texture_descriptor.mip_level_count = levels;
+        image.sampler = ImageSampler::Descriptor(ImageSamplerDescriptor {
+            address_mode_u: ImageAddressMode::Repeat,
+            address_mode_v: ImageAddressMode::Repeat,
+            anisotropy_clamp: 8,
+            ..ImageSamplerDescriptor::linear()
+        });
+        image.asset_usage = RenderAssetUsages::RENDER_WORLD;
+        refresh_materials(handle.id(), &mut materials, &mut ground);
+        info!("Showhome image {:?} finished: {} mip levels", handle.id(), levels);
+    }
+    if state.jobs.is_empty() && state.settled && changed.is_empty() && ground.len() == state.ground_materials {
         return;
     }
     state.ground_materials = ground.len();
-    state.settled = true;
+    state.settled = state.jobs.is_empty();
     let mut candidates = Vec::new();
     for (part, handle) in &used {
         let priority = match part.0 {
@@ -368,91 +430,86 @@ fn finish_kit_mips(
     }
     candidates.sort_by_key(|(priority, _)| *priority);
     let mut seen = HashSet::new();
+    let mut started = 0;
+    let KitMipState { done, jobs, settled, .. } = &mut *state;
     for (_, handle) in candidates {
-        if state.done.contains(&handle.id()) || !seen.insert(handle.id()) {
+        let id = handle.id();
+        if done.contains(&id) || !seen.insert(id) || jobs.iter().any(|j| j.handle.id() == id) {
             continue;
         }
-        let Some(mut image) = images.get_mut(&handle) else {
-            if handle.path().is_none() || server.is_loaded_with_dependencies(handle.id()) {
-                state.done.insert(handle.id());
+        let Some(image) = images.get(&handle) else {
+            if handle.path().is_none() || server.is_loaded_with_dependencies(id) {
+                done.insert(id);
             } else {
-                state.settled = false; // still loading
+                *settled = false; // still loading
             }
             continue;
         };
         let format = image.texture_descriptor.format;
-        if !matches!(format, TextureFormat::Rgba8UnormSrgb | TextureFormat::Rgba8Unorm) {
-            state.done.insert(handle.id());
-            continue;
-        }
-        if image.texture_descriptor.mip_level_count > 1 {
-            state.done.insert(handle.id());
-            continue;
-        }
-        let Some(base) = image.data.as_ref() else {
-            state.done.insert(handle.id());
+        let Some(base) = image.data.as_ref().filter(|_| {
+            matches!(format, TextureFormat::Rgba8UnormSrgb | TextureFormat::Rgba8Unorm)
+                && image.texture_descriptor.mip_level_count == 1
+        }) else {
+            done.insert(id);
             continue;
         };
-        let Some((data, levels)) = rgba_layer_mips(
-            base.clone(),
-            image.width() as usize,
-            image.height() as usize,
-            image.texture_descriptor.array_layer_count() as usize,
-            format == TextureFormat::Rgba8UnormSrgb,
-        ) else {
-            warn!("Invalid kit RGBA mip input: {:?}", handle.id());
-            state.done.insert(handle.id());
-            continue;
-        };
-        image.data = Some(data);
-        image.data_order = TextureDataOrder::LayerMajor;
-        image.texture_descriptor.mip_level_count = levels;
-        image.sampler = ImageSampler::Descriptor(ImageSamplerDescriptor {
-            address_mode_u: ImageAddressMode::Repeat,
-            address_mode_v: ImageAddressMode::Repeat,
-            anisotropy_clamp: 8,
-            ..ImageSamplerDescriptor::linear()
-        });
-        state.done.insert(handle.id());
-        // Refresh material bind groups that may already reference the old single-level texture view.
-        let changed: Vec<_> = materials
-            .iter()
-            .filter_map(|(id, material)| {
-                [
-                    &material.base_color_texture,
-                    &material.normal_map_texture,
-                    &material.metallic_roughness_texture,
-                    &material.occlusion_texture,
-                    &material.emissive_texture,
-                ]
+        let running: Vec<usize> = jobs.iter().map(|j| j.bytes).collect();
+        if started >= MIP_JOBS_PER_FRAME || !mip_job_fits(&running, base.len()) {
+            *settled = false; // more next frame
+            break;
+        }
+        // A copy, so the image stays as it is (and drawn) until its chain is ready.
+        let (base, w, h) = (base.clone(), image.width() as usize, image.height() as usize);
+        let (layers, srgb) =
+            (image.texture_descriptor.array_layer_count() as usize, format == TextureFormat::Rgba8UnormSrgb);
+        let bytes = base.len();
+        let task = AsyncComputeTaskPool::get().spawn(async move { rgba_layer_mips(base, w, h, layers, srgb) });
+        jobs.push(MipJob { handle, bytes, task });
+        started += 1;
+        *settled = false;
+    }
+}
+
+/// Refresh the bind groups of the materials that may already reference an image's old single-level view.
+fn refresh_materials(
+    image: AssetId<Image>,
+    materials: &mut Assets<StandardMaterial>,
+    ground: &mut Assets<crate::showhome_ground::ShowhomeGroundMaterial>,
+) {
+    let changed: Vec<_> = materials
+        .iter()
+        .filter_map(|(id, material)| {
+            [
+                &material.base_color_texture,
+                &material.normal_map_texture,
+                &material.metallic_roughness_texture,
+                &material.occlusion_texture,
+                &material.emissive_texture,
+            ]
+            .into_iter()
+            .flatten()
+            .any(|h| h.id() == image)
+            .then_some(id)
+        })
+        .collect();
+    for id in changed {
+        if let Some(material) = materials.get_mut(id) {
+            let _ = material.into_inner();
+        }
+    }
+    let changed: Vec<_> = ground
+        .iter()
+        .filter_map(|(id, material)| {
+            [&material.extension.albedo, &material.extension.normal, &material.extension.orm]
                 .into_iter()
-                .flatten()
-                .any(|image| image.id() == handle.id())
+                .any(|h| h.id() == image)
                 .then_some(id)
-            })
-            .collect();
-        for id in changed {
-            if let Some(material) = materials.get_mut(id) {
-                let _ = material.into_inner();
-            }
+        })
+        .collect();
+    for id in changed {
+        if let Some(material) = ground.get_mut(id) {
+            let _ = material.into_inner();
         }
-        let changed: Vec<_> = ground
-            .iter()
-            .filter_map(|(id, material)| {
-                [&material.extension.albedo, &material.extension.normal, &material.extension.orm]
-                    .into_iter()
-                    .any(|image| image.id() == handle.id())
-                    .then_some(id)
-            })
-            .collect();
-        for id in changed {
-            if let Some(material) = ground.get_mut(id) {
-                let _ = material.into_inner();
-            }
-        }
-        info!("Showhome image {:?} finished: {} mip levels", handle.id(), levels);
-        state.settled = false; // there may be more
-        break; // One image per frame keeps asynchronous kit loading responsive.
     }
 }
 
@@ -722,6 +779,16 @@ mod tests {
         assert_eq!(depth.texture_descriptor.format, TextureFormat::R16Float);
         assert_eq!(depth.asset_usage, RenderAssetUsages::RENDER_WORLD);
         assert_eq!(depth.data.as_deref(), Some(&[0u8, 0, 0, 60, 0, 56][..]));
+    }
+
+    /// The mip jobs keep their copies within a budget: one big array at a time, small images beside it.
+    #[test]
+    fn mip_jobs_stay_within_their_byte_budget() {
+        let array = 156 << 20;
+        assert!(mip_job_fits(&[], array), "the first job always starts");
+        assert!(!mip_job_fits(&[array], array), "a second array waits");
+        assert!(mip_job_fits(&[array], 4 << 20), "a 1024 px image fits beside it");
+        assert!(mip_job_fits(&[], MIP_JOB_BYTES * 2), "an oversized image still gets its turn alone");
     }
 
     /// Materials that never take depth are remembered as such: glass, metal, untextured, no height map.
