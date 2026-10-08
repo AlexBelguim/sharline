@@ -1,16 +1,14 @@
-// Foliage cards for Showhome (val_etf/src/foliage.rs): the leaf-cluster shell of the hedges and the lawn grass.
+// Foliage cards for Showhome (val_etf/src/foliage.rs): the leaf-cluster shell of the hedges. (The lawn grass is
+// grass.wgsl.)
 //
 // A StandardMaterial extension. The vertex stage (main pass and prepass, so depth and motion vectors match)
-// sways the cards in the wind; grass cards also turn about their root to face the camera, thin out with distance
-// and shrink to nothing at the fade distance. The fragment stage is the standard PBR one plus a light wrap past
-// the terminator and sun-through-leaves translucency, dimmed where the hedge stands in another object's shadow.
-// The prepass fragment is StandardMaterial's (alpha mask from the base colour texture).
+// sways the cards in the wind, on the view's clock (globals.time: nothing is updated per frame on the CPU). The
+// fragment stage is the standard PBR one plus a light wrap past the terminator and sun-through-leaves
+// translucency, dimmed where the hedge stands in another object's shadow. The prepass fragment is
+// StandardMaterial's (alpha mask from the base colour texture).
 //
-// Vertex data (see foliage.rs):
-//   hedge: POSITION, NORMAL (bent outward from the hedge's rounded volume), TANGENT, UV_0 (atlas),
-//          COLOR rgb = AO and tint, a = sway weight
-//   grass: POSITION = root + (side, height, 0) in the chunk's frame (chunks are only translated), NORMAL = up,
-//          UV_0 (atlas), UV_1 = (side, height), COLOR rgb = tint, a = rank (0..1, which clumps survive thinning)
+// Vertex data (see foliage.rs): POSITION, NORMAL (bent outward from the hedge's rounded volume), TANGENT,
+// UV_0 (atlas), COLOR rgb = AO and tint, a = sway weight
 
 #import bevy_pbr::{
     mesh_functions,
@@ -20,8 +18,13 @@
 
 #ifdef PREPASS_PIPELINE
 #import bevy_pbr::prepass_io::{Vertex, VertexOutput}
+#import bevy_render::globals::Globals
+// The prepass view bind group carries the globals at binding 1 (bevy_pbr prepass/mod.rs); no bevy_pbr module
+// declares them there.
+@group(0) @binding(1) var<uniform> globals: Globals;
 #else
 #import bevy_pbr::{
+    mesh_view_bindings::globals,
     forward_io::{Vertex, VertexOutput, FragmentOutput},
     pbr_fragment::pbr_input_from_standard_material,
     pbr_functions::{alpha_discard, apply_pbr_lighting, main_pass_post_lighting_processing},
@@ -32,19 +35,12 @@
 #endif
 
 struct Foliage {
-    // xyz: the direction the wind blows toward (world, horizontal, unit); w: 0 = hedge cards, 1 = grass
+    // xyz: the direction the wind blows toward (world, horizontal, unit); w: unused (0)
     wind_dir: vec4<f32>,
     // x: sway amplitude (m), y: angular frequency (rad/s), z: wave number along the wind (rad/m), w: gust lean
     wind: vec4<f32>,
-    // x: time (s), y: last frame's time (for motion vectors)
-    time: vec4<f32>,
-    // grass: x fade start, y fade end, z thin start (m), w share of clumps left at fade start
-    fade: vec4<f32>,
     // x: wrap, y: translucency, z: shadow probe distance toward the sun (0 = none), w: translucency exponent
     light: vec4<f32>,
-    // grass root and tip tints (rgb)
-    root_tint: vec4<f32>,
-    tip_tint: vec4<f32>,
 }
 
 @group(#{MATERIAL_BIND_GROUP}) @binding(100) var<uniform> foliage: Foliage;
@@ -72,40 +68,14 @@ struct Placed {
     color: vec4<f32>,
 }
 
-// Where a vertex goes this frame and the last (wind, and for grass the billboard and distance fade).
-fn place(local: vec3<f32>, world_from_local: mat4x4<f32>, color_in: vec4<f32>, side_height: vec2<f32>) -> Placed {
+// Where a vertex goes this frame and the last: swayed by the corner's weight.
+fn place(local: vec3<f32>, world_from_local: mat4x4<f32>, color: vec4<f32>) -> Placed {
     var out: Placed;
     let base = mesh_functions::mesh_position_local_to_world(world_from_local, vec4<f32>(local, 1.0)).xyz;
-    let t = foliage.time.x;
-    let t_prev = foliage.time.y;
-    var color = color_in;
-    if foliage.wind_dir.w < 0.5 {
-        // Hedge card: sway by the corner's weight.
-        let weight = color.a;
-        out.world = base + wind_offset(base, weight, t);
-        out.previous = base + wind_offset(base, weight, t_prev);
-    } else {
-        // Grass clump: stand the card up at its root, facing the camera about the vertical.
-        let side = side_height.x;
-        let height = side_height.y;
-        let root = base - vec3<f32>(side, height, 0.0);
-        let to_cam = view.world_position.xyz - root;
-        let dist = length(to_cam);
-        var flat = to_cam.xz;
-        let flat_len = length(flat);
-        flat = select(vec2<f32>(0.0, 1.0), flat / max(flat_len, 1e-5), flat_len > 1e-4);
-        let right = vec3<f32>(flat.y, 0.0, -flat.x);
-        // Thin out with distance (higher ranks go first), then shrink everything to nothing.
-        let density = mix(1.0, foliage.fade.w, smoothstep(foliage.fade.z, foliage.fade.x, dist));
-        let keep = saturate((density - color.a) * 10.0);
-        let fade = 1.0 - smoothstep(foliage.fade.x, foliage.fade.y, dist);
-        let s = keep * fade;
-        let tip = select(0.0, 1.0, height > 1e-4);
-        let corner = root + right * (side * s) + vec3<f32>(0.0, height * s, 0.0);
-        out.world = corner + wind_offset(root, tip * s, t);
-        out.previous = corner + wind_offset(root, tip * s, t_prev);
-        color = vec4<f32>(color.rgb * mix(foliage.root_tint.rgb, foliage.tip_tint.rgb, tip), color.a);
-    }
+    let weight = color.a;
+    // This frame and the last (for motion vectors).
+    out.world = base + wind_offset(base, weight, globals.time);
+    out.previous = base + wind_offset(base, weight, globals.time - globals.delta_time);
     out.color = vec4<f32>(color.rgb, 1.0);
     return out;
 }
@@ -120,13 +90,7 @@ fn vertex(vertex: Vertex) -> VertexOutput {
 #else
     let color_in = vec4<f32>(1.0);
 #endif
-#ifdef VERTEX_UVS_B
-    let side_height = vertex.uv_b;
-#else
-    let side_height = vec2<f32>(0.0);
-#endif
-
-    let placed = place(vertex.position, world_from_local, color_in, side_height);
+    let placed = place(vertex.position, world_from_local, color_in);
     out.world_position = vec4<f32>(placed.world, 1.0);
     out.position = position_world_to_clip(placed.world);
 
@@ -189,9 +153,9 @@ fn fragment(in: VertexOutput, @builtin(front_facing) is_front: bool) -> Fragment
         L = lights.directional_lights[0].direction_to_light;
     }
     // Cards are lit as if they stood `probe` metres further toward the sun: out of the hedge, so its core and
-    // the other cards never shadow a hedge card (no acne; the bent normals and the AO do the self-shading), and
-    // above the lawn, so grass tufts do not contact-shadow each other into dark blobs. Houses and walls still
-    // shadow both. Only the sun's shadow depends on the position here (no point lights on the map).
+    // the other cards never shadow a hedge card (no acne; the bent normals and the AO do the self-shading).
+    // Houses and walls still shadow them. Only the sun's shadow depends on the position here (no point lights
+    // on the map).
     let probe = foliage.light.z;
     if probe > 0.0 {
         pbr_input.world_position = vec4<f32>(surface.xyz + L * probe, 1.0);
