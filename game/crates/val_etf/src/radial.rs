@@ -10,6 +10,7 @@
 use crate::AppState;
 use crate::client::LocalControl;
 use crate::config::Data;
+use crate::settings::RadialTuning;
 use crate::ui_kit::{self as kit, Face, UiFonts};
 use bevy::prelude::*;
 use lightyear::prelude::Controlled;
@@ -17,16 +18,10 @@ use vetf_net::{PlayerItems, PlayerLoadout, PlayerWeapon, Vitals};
 use vetf_sim::Zone;
 use vetf_sim::items::{ItemScope, would_help};
 
-/// How far (screen px; mouse counts at 800 DPI, see [`px_per_count`]) the cursor must move off the centre to select
-/// anything. The Gameplay tab shows it on its RADIAL POINTER row.
-pub const DEADZONE: f32 = 24.0;
-/// Cursor pixels per inch of mouse travel: at 800 DPI one count is one pixel, like a desktop cursor.
-const PX_PER_INCH: f32 = 800.0;
-
 /// Ring cursor pixels per mouse count at the player's DPI (the Mouse & Aim tab), so the hand travels the same
-/// distance on any mouse.
-pub fn px_per_count(dpi: u32) -> f32 {
-    PX_PER_INCH / dpi.max(1) as f32
+/// distance on any mouse: settings.ron `radial.px_per_inch` per inch of travel.
+pub fn px_per_count(dpi: u32, tuning: &RadialTuning) -> f32 {
+    tuning.px_per_inch / dpi.max(1) as f32
 }
 
 /// An open ring menu.
@@ -39,24 +34,22 @@ pub struct Radial {
     /// How far out the options sit (px); the cursor is held within it, so it can rest on a chip and turning
     /// back toward another one stays quick.
     pub reach: f32,
-}
-
-impl Default for Radial {
-    fn default() -> Self {
-        Self::new(0)
-    }
+    /// How far (px) the cursor must move off the centre to select anything (settings.ron
+    /// `radial.dead_zone_px`; the Gameplay tab shows it on its RADIAL POINTER row).
+    pub dead_zone: f32,
 }
 
 impl Radial {
     /// The main ring (magazines, heal items).
-    pub fn new(options: usize) -> Self {
-        Self { pointer: Vec2::ZERO, options, reach: ring_radius(options, CHIP, RING_R) }
+    pub fn new(options: usize, tuning: &RadialTuning) -> Self {
+        let dead_zone = tuning.dead_zone_px;
+        Self { pointer: Vec2::ZERO, options, reach: ring_radius(options, CHIP, RING_R, dead_zone), dead_zone }
     }
 
     /// The heal ring's second ring, of body regions around the picked item.
-    pub fn regions() -> Self {
-        let n = REGION_ORDER.len();
-        Self { pointer: Vec2::ZERO, options: n, reach: ring_radius(n, REGION_CHIP, REGION_R) }
+    pub fn regions(tuning: &RadialTuning) -> Self {
+        let (n, dead_zone) = (REGION_ORDER.len(), tuning.dead_zone_px);
+        Self { pointer: Vec2::ZERO, options: n, reach: ring_radius(n, REGION_CHIP, REGION_R, dead_zone), dead_zone }
     }
 
     /// Move the cursor by a mouse delta, already in screen px (see [`px_per_count`]).
@@ -66,7 +59,7 @@ impl Radial {
 
     /// The option under the cursor (0-based), or `None` in the dead zone.
     pub fn selected(&self) -> Option<usize> {
-        sector(self.pointer, self.options, DEADZONE)
+        sector(self.pointer, self.options, self.dead_zone)
     }
 }
 
@@ -83,7 +76,7 @@ pub fn sector(pointer: Vec2, n: usize, deadzone: f32) -> Option<usize> {
 }
 
 /// The heal ring: items first; a region item opens a second ring of regions around it.
-#[derive(Debug, Clone, Copy, PartialEq, Default)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub struct HealMenu {
     pub ring: Radial,
     /// The region item picked on the first ring (kit slot), while its region ring is open.
@@ -92,8 +85,8 @@ pub struct HealMenu {
 }
 
 impl HealMenu {
-    pub fn new(items: usize) -> Self {
-        Self { ring: Radial::new(items), item: None, regions: Radial::regions() }
+    pub fn new(items: usize, tuning: &RadialTuning) -> Self {
+        Self { ring: Radial::new(items, tuning), item: None, regions: Radial::regions(tuning) }
     }
 }
 
@@ -148,22 +141,22 @@ const SECTOR_GAP: f32 = 4.0;
 
 /// True when every one of `n` chips of size `chip` on a ring of radius `r` lies wholly inside its own sector
 /// (with [`SECTOR_GAP`] to spare) and clear of the dead zone.
-fn chips_fit(n: usize, chip: Vec2, r: f32) -> bool {
+fn chips_fit(n: usize, chip: Vec2, r: f32, dead_zone: f32) -> bool {
     let h = chip / 2.0 + SECTOR_GAP;
     (0..n).all(|i| {
         let c = option_offset(i, n, r);
         // Sectors are convex (at most a half plane) for two options or more, so the corners decide.
         let corners = [Vec2::new(-h.x, -h.y), Vec2::new(h.x, -h.y), Vec2::new(h.x, h.y), Vec2::new(-h.x, h.y)];
         let nearest = Vec2::ZERO.clamp(c - h, c + h);
-        nearest.length() > DEADZONE && (n == 1 || corners.iter().all(|&k| sector(c + k, n, 0.0) == Some(i)))
+        nearest.length() > dead_zone && (n == 1 || corners.iter().all(|&k| sector(c + k, n, 0.0) == Some(i)))
     })
 }
 
 /// The radius for a ring of `n` chips of size `chip`: `base`, or wider when the chips would cross into their
 /// neighbours' sectors (seven or eight heal items), so the chip under the cursor is always the selection.
-pub fn ring_radius(n: usize, chip: Vec2, base: f32) -> f32 {
+pub fn ring_radius(n: usize, chip: Vec2, base: f32, dead_zone: f32) -> f32 {
     let mut r = base;
-    while !chips_fit(n, chip, r) && r < base * 4.0 {
+    while !chips_fit(n, chip, r, dead_zone) && r < base * 4.0 {
         r += 1.0;
     }
     r
@@ -511,15 +504,23 @@ fn draw_ring(
 mod tests {
     use super::*;
 
+    fn tuning() -> RadialTuning {
+        crate::settings::embedded().radial
+    }
+
+    fn dead() -> f32 {
+        tuning().dead_zone_px
+    }
+
     #[test]
     fn sectors_start_at_the_top_and_go_clockwise() {
-        assert_eq!(sector(Vec2::new(0.0, -50.0), 6, DEADZONE), Some(0), "up");
-        assert_eq!(sector(Vec2::new(50.0, -30.0), 6, DEADZONE), Some(1), "up and right");
-        assert_eq!(sector(Vec2::new(0.0, 50.0), 6, DEADZONE), Some(3), "down");
-        assert_eq!(sector(Vec2::new(-50.0, -30.0), 6, DEADZONE), Some(5), "up and left");
-        assert_eq!(sector(Vec2::new(50.0, 0.0), 4, DEADZONE), Some(1), "right of four");
-        assert_eq!(sector(Vec2::new(3.0, 4.0), 6, DEADZONE), None, "dead zone");
-        assert_eq!(sector(Vec2::new(0.0, -50.0), 0, DEADZONE), None);
+        assert_eq!(sector(Vec2::new(0.0, -50.0), 6, dead()), Some(0), "up");
+        assert_eq!(sector(Vec2::new(50.0, -30.0), 6, dead()), Some(1), "up and right");
+        assert_eq!(sector(Vec2::new(0.0, 50.0), 6, dead()), Some(3), "down");
+        assert_eq!(sector(Vec2::new(-50.0, -30.0), 6, dead()), Some(5), "up and left");
+        assert_eq!(sector(Vec2::new(50.0, 0.0), 4, dead()), Some(1), "right of four");
+        assert_eq!(sector(Vec2::new(3.0, 4.0), 6, dead()), None, "dead zone");
+        assert_eq!(sector(Vec2::new(0.0, -50.0), 0, dead()), None);
     }
 
     /// Every pointer direction picks the option drawn in that direction, for every ring size in use (1 to 8
@@ -540,13 +541,13 @@ mod tests {
                 let a = deg.to_radians();
                 // Clockwise from up on a +y-down screen: up is (0, -1), right is (1, 0).
                 let dir = Vec2::new(a.sin(), -a.cos());
-                for len in [DEADZONE + 1.0, 100.0, 400.0] {
-                    assert_eq!(sector(dir * len, n, DEADZONE), Some(want), "{deg} deg of {n}");
+                for len in [dead() + 1.0, 100.0, 400.0] {
+                    assert_eq!(sector(dir * len, n, dead()), Some(want), "{deg} deg of {n}");
                 }
                 let drawn = option_offset(want, n, 100.0).normalize();
                 assert!(drawn.angle_to(dir).abs().to_degrees() <= width / 2.0 + 1e-3, "{deg} deg of {n}");
             }
-            assert_eq!(sector(Vec2::new(1.0, -1.0), n, DEADZONE), None, "dead zone");
+            assert_eq!(sector(Vec2::new(1.0, -1.0), n, dead()), None, "dead zone");
         }
     }
 
@@ -554,9 +555,9 @@ mod tests {
     /// selection (a ring grows when its chips would cross into their neighbours' sectors).
     #[test]
     fn the_chip_under_the_cursor_is_the_selection() {
-        let rings = (1..=MAX_OPTIONS).map(|n| (n, Radial::new(n), CHIP, RING_R)).chain([(
+        let rings = (1..=MAX_OPTIONS).map(|n| (n, Radial::new(n, &tuning()), CHIP, RING_R)).chain([(
             REGION_ORDER.len(),
-            Radial::regions(),
+            Radial::regions(&tuning()),
             REGION_CHIP,
             REGION_R,
         )]);
@@ -566,7 +567,7 @@ mod tests {
                 let c = option_offset(i, n, ring.reach);
                 for (u, v) in (0..=10).flat_map(|u| (0..=10).map(move |v| (u as f32 / 10.0, v as f32 / 10.0))) {
                     let p = c - chip / 2.0 + chip * Vec2::new(u, v);
-                    assert_eq!(sector(p, n, DEADZONE), Some(i), "{n}: {p} on chip {i}");
+                    assert_eq!(sector(p, n, dead()), Some(i), "{n}: {p} on chip {i}");
                     if p.length() <= ring.reach {
                         let mut r = ring;
                         r.steer(p);
@@ -580,13 +581,13 @@ mod tests {
                 assert!((r.pointer - c).length() < 1e-3, "{n}: {} rests on {c}", r.pointer);
             }
         }
-        assert_eq!(Radial::new(5).reach, RING_R, "five heal items fit the standard ring");
-        assert!(Radial::new(8).reach > RING_R, "eight do not");
+        assert_eq!(Radial::new(5, &tuning()).reach, RING_R, "five heal items fit the standard ring");
+        assert!(Radial::new(8, &tuning()).reach > RING_R, "eight do not");
     }
 
     #[test]
     fn pointer_is_clamped_and_turns_quickly() {
-        let mut r = Radial::new(6);
+        let mut r = Radial::new(6, &tuning());
         r.steer(Vec2::new(0.0, -5000.0));
         assert!((r.pointer.length() - r.reach).abs() < 1e-3);
         assert_eq!(r.selected(), Some(0));
@@ -596,8 +597,18 @@ mod tests {
 
     #[test]
     fn the_cursor_moves_the_same_hand_distance_at_any_dpi() {
-        assert_eq!(px_per_count(800), 1.0);
-        assert_eq!(px_per_count(1600), 0.5);
-        assert_eq!(px_per_count(0), 800.0, "a zero DPI cannot divide by zero");
+        let t = tuning();
+        assert_eq!(t.px_per_inch, 800.0, "at 800 DPI one count is one px, like a desktop cursor");
+        assert_eq!(px_per_count(800, &t), 1.0);
+        assert_eq!(px_per_count(1600, &t), 0.5);
+        assert_eq!(px_per_count(0, &t), 800.0, "a zero DPI cannot divide by zero");
+        // the cursor tuning comes from the data: a faster cursor and a wider dead zone apply
+        let fast = RadialTuning { px_per_inch: 1200.0, dead_zone_px: 40.0 };
+        assert_eq!(px_per_count(800, &fast), 1.5);
+        let mut r = Radial::new(6, &fast);
+        r.steer(Vec2::new(0.0, -30.0));
+        assert_eq!(r.selected(), None, "inside the wider dead zone");
+        r.steer(Vec2::new(0.0, -15.0));
+        assert_eq!(r.selected(), Some(0));
     }
 }

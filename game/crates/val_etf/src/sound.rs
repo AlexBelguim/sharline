@@ -27,7 +27,8 @@
 //! Scripted runs (`--screenshot`, `--demo-ui`, `--exit-after`) play every sound muted, so tests on the user's
 //! desktop stay quiet, and log each sound at info level (`sound: <id> ...`); `VETF_SOUND=1` makes them audible
 //! (also while the test window is in the background). `--host ... --bot --demo-ui dry-fire` empties the host's
-//! magazine now and then, so the log shows shots, dry clicks, reloads and steps.
+//! magazine now and then, so the log shows shots, dry clicks, reloads and steps (`dry-fire-sprint`: the bot
+//! sprints and only taps the trigger).
 
 use crate::AppState;
 use crate::config::{Cli, CurrentLevel, Data};
@@ -1588,12 +1589,14 @@ fn ambience(
 // ---------------------------------------------------------------------------------------------- demo
 
 fn demo_is_dry_fire(cli: Res<Cli>) -> bool {
-    cli.host.is_some() && cli.demo_ui.as_deref() == Some("dry-fire")
+    cli.host.is_some() && matches!(cli.demo_ui.as_deref(), Some("dry-fire" | "dry-fire-sprint"))
 }
 
 /// `--host ... --bot --demo-ui dry-fire`: a second into the match, and then at most every 5 s, empty the
 /// magazine in the host's own gun once it has fired from it, so the bot's next trigger pulls click (once each)
-/// until its reload tap swaps magazines. A test of the dry click and the reload sounds.
+/// until its reload tap swaps magazines. A test of the dry click and the reload sounds. `dry-fire-sprint` does
+/// the same while the bot holds sprint and only taps the trigger (`client::bot_controls`): quick pulls on the
+/// run, the gun still coming up.
 fn demo_dry_fire(
     time: Res<Time>,
     mut me: Query<(&mut PlayerWeapon, &PlayerLoadout), With<Controlled>>,
