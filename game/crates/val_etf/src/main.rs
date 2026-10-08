@@ -21,6 +21,7 @@ mod lobby;
 mod map_materials;
 mod menu;
 mod net;
+mod perf_probe;
 mod radial;
 mod render;
 mod scoreboard;
@@ -140,6 +141,8 @@ fn main() -> AppExit {
         impacts::ImpactsPlugin,
     ));
     app.add_systems(Update, place_window);
+    // Frame statistics for measuring changes; nothing of it is added unless VETF_PERF=1 (perf_probe.rs).
+    app.add_plugins(perf_probe::PerfProbePlugin);
     app.add_systems(Startup, || info!("assets from {}", config::assets_root().display()));
     // First launch on this machine: ask for a callsign over the main menu.
     app.add_plugins(first_run::FirstRunPlugin);
