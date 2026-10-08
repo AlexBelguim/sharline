@@ -351,10 +351,12 @@ fn gather_input(
     let kit: Vec<HealOption> = me.map(|(l, it, v, _)| heal_options(&data, &l.0, &it.0, v)).unwrap_or_default();
     // Screenshot and demo runs ignore the desktop's mouse: it must not turn the view.
     let mouse_delta = if cli.ignores_desktop_input() { Vec2::ZERO } else { motion.delta };
-    heal_input(&mut control, kb, &input, mouse_delta, &kit);
+    // The ring menus steer an on-screen cursor in pixels, the same hand distance at any DPI.
+    let ring_delta = mouse_delta * crate::radial::px_per_count(m.dpi);
+    heal_input(&mut control, kb, &input, ring_delta, &kit);
     let dt = time.delta_secs();
     let tap_reload = control.heal.is_none()
-        && reload_input(&mut control, kb, &input, mouse_delta, dt, mags, g.radial_hold_s, g.radial_pick);
+        && reload_input(&mut control, kb, &input, ring_delta, dt, mags, g.radial_hold_s, g.radial_pick);
     let ring_open = control.heal.is_some() || control.reload_radial.is_some();
     if ring_open {
         control.mouse_block = true;
@@ -456,7 +458,7 @@ fn heal_input(control: &mut LocalControl, kb: &Keybinds, input: &BindInput, mous
                 }
                 ItemScope::Region => {
                     menu.item = Some(i);
-                    menu.regions = Radial::new(REGION_ORDER.len());
+                    menu.regions = Radial::regions();
                 }
             }
         }
@@ -800,7 +802,8 @@ fn automation(
     if cli.bot && *state.get() == AppState::InGame {
         bot_controls(&cli, t, t - in_game_since.unwrap_or(t), &mut control);
     }
-    // Open a ring menu for screenshots.
+    // Open a ring menu for screenshots, the cursor resting on the second option (the bottom region).
+    let on_option = |r: &mut Radial, i: usize| r.steer(crate::radial::option_offset(i, r.options, r.reach));
     if let Some(demo) = cli.demo_ui.as_deref()
         && in_game_since.is_some_and(|s| t - s > 1.0)
         && let Some((lo, _)) = me.iter().next()
@@ -808,7 +811,7 @@ fn automation(
         match demo {
             "reload" => {
                 let mut radial = Radial::new(lo.0.weapon.mags.len());
-                radial.steer(Vec2::new(40.0, -12.0));
+                on_option(&mut radial, 1);
                 control.reload_radial = Some(radial);
             }
             // The HUD with wounds (see server::demo_wounds) and a mag check card.
@@ -818,10 +821,10 @@ fn automation(
             }
             "heal" | "heal-region" => {
                 let mut menu = HealMenu::new(lo.0.kit.len());
-                menu.ring.steer(Vec2::new(30.0, -40.0));
+                on_option(&mut menu.ring, 1);
                 if demo == "heal-region" {
                     menu.item = menu.ring.selected();
-                    menu.regions.steer(Vec2::new(0.0, 40.0));
+                    on_option(&mut menu.regions, 2);
                 }
                 control.heal = Some(menu);
             }

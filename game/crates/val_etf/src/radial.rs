@@ -1,7 +1,11 @@
 //! Quick ring menus: the magazine radial (hold Reload for the Gameplay tab's radial hold time) and the heal
-//! ring (Heal); `client` reads their keys from the key map. While one is open, mouse movement steers a
-//! pointer instead of the view; the sector the pointer is in is the selection. Option 1 sits at the top and
-//! the rest follow clockwise, so the same slot is always in the same direction.
+//! ring (Heal); `client` reads their keys from the key map. While one is open, mouse movement steers a cursor
+//! instead of the view; the sector the cursor is in is the selection. Option 1 sits at the top and the rest
+//! follow clockwise, so the same slot is always in the same direction.
+//!
+//! The cursor is drawn exactly where it is, in screen pixels, and reaches out as far as the option chips: push
+//! toward an option and the cursor lands on it. Each ring is wide enough that every chip lies wholly inside its
+//! own sector ([`ring_radius`]), so whatever chip the cursor is over is the one that lights up.
 
 use crate::AppState;
 use crate::client::LocalControl;
@@ -13,31 +17,54 @@ use vetf_net::{PlayerItems, PlayerLoadout, PlayerWeapon, Vitals};
 use vetf_sim::Zone;
 use vetf_sim::items::{ItemScope, would_help};
 
-/// How far (in mouse counts) the pointer must move off the centre to select anything.
-pub const DEADZONE: f32 = 18.0;
-/// The pointer is clamped to this radius, so turning back towards another slot is quick.
-pub const POINTER_RADIUS: f32 = 60.0;
+/// How far (screen px; mouse counts at 800 DPI, see [`px_per_count`]) the cursor must move off the centre to select
+/// anything. The Gameplay tab shows it on its RADIAL POINTER row.
+pub const DEADZONE: f32 = 24.0;
+/// Cursor pixels per inch of mouse travel: at 800 DPI one count is one pixel, like a desktop cursor.
+const PX_PER_INCH: f32 = 800.0;
+
+/// Ring cursor pixels per mouse count at the player's DPI (the Mouse & Aim tab), so the hand travels the same
+/// distance on any mouse.
+pub fn px_per_count(dpi: u32) -> f32 {
+    PX_PER_INCH / dpi.max(1) as f32
+}
 
 /// An open ring menu.
-#[derive(Debug, Clone, Copy, PartialEq, Default)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub struct Radial {
-    /// Pointer offset from the centre, in mouse counts (+x right, +y down, like mouse motion).
+    /// Cursor offset from the ring's centre, in screen px (+x right, +y down, like mouse motion).
     pub pointer: Vec2,
     /// How many options the ring has.
     pub options: usize,
+    /// How far out the options sit (px); the cursor is held within it, so it can rest on a chip and turning
+    /// back toward another one stays quick.
+    pub reach: f32,
+}
+
+impl Default for Radial {
+    fn default() -> Self {
+        Self::new(0)
+    }
 }
 
 impl Radial {
+    /// The main ring (magazines, heal items).
     pub fn new(options: usize) -> Self {
-        Self { pointer: Vec2::ZERO, options }
+        Self { pointer: Vec2::ZERO, options, reach: ring_radius(options, CHIP, RING_R) }
     }
 
-    /// Move the pointer by a mouse delta.
+    /// The heal ring's second ring, of body regions around the picked item.
+    pub fn regions() -> Self {
+        let n = REGION_ORDER.len();
+        Self { pointer: Vec2::ZERO, options: n, reach: ring_radius(n, REGION_CHIP, REGION_R) }
+    }
+
+    /// Move the cursor by a mouse delta, already in screen px (see [`px_per_count`]).
     pub fn steer(&mut self, delta: Vec2) {
-        self.pointer = (self.pointer + delta).clamp_length_max(POINTER_RADIUS);
+        self.pointer = (self.pointer + delta).clamp_length_max(self.reach);
     }
 
-    /// The option under the pointer (0-based), or `None` in the dead zone.
+    /// The option under the cursor (0-based), or `None` in the dead zone.
     pub fn selected(&self) -> Option<usize> {
         sector(self.pointer, self.options, DEADZONE)
     }
@@ -66,7 +93,7 @@ pub struct HealMenu {
 
 impl HealMenu {
     pub fn new(items: usize) -> Self {
-        Self { ring: Radial::new(items), item: None, regions: Radial::new(REGION_ORDER.len()) }
+        Self { ring: Radial::new(items), item: None, regions: Radial::regions() }
     }
 }
 
@@ -114,6 +141,32 @@ pub const REGION_ORDER: [Zone; 4] = [Zone::Head, Zone::Torso, Zone::Legs, Zone::
 pub fn option_offset(i: usize, n: usize, r: f32) -> Vec2 {
     let angle = std::f32::consts::TAU * i as f32 / n.max(1) as f32;
     Vec2::new(angle.sin() * r, -angle.cos() * r)
+}
+
+/// Gap (px) kept between a chip and the edges of its sector.
+const SECTOR_GAP: f32 = 4.0;
+
+/// True when every one of `n` chips of size `chip` on a ring of radius `r` lies wholly inside its own sector
+/// (with [`SECTOR_GAP`] to spare) and clear of the dead zone.
+fn chips_fit(n: usize, chip: Vec2, r: f32) -> bool {
+    let h = chip / 2.0 + SECTOR_GAP;
+    (0..n).all(|i| {
+        let c = option_offset(i, n, r);
+        // Sectors are convex (at most a half plane) for two options or more, so the corners decide.
+        let corners = [Vec2::new(-h.x, -h.y), Vec2::new(h.x, -h.y), Vec2::new(h.x, h.y), Vec2::new(-h.x, h.y)];
+        let nearest = Vec2::ZERO.clamp(c - h, c + h);
+        nearest.length() > DEADZONE && (n == 1 || corners.iter().all(|&k| sector(c + k, n, 0.0) == Some(i)))
+    })
+}
+
+/// The radius for a ring of `n` chips of size `chip`: `base`, or wider when the chips would cross into their
+/// neighbours' sectors (seven or eight heal items), so the chip under the cursor is always the selection.
+pub fn ring_radius(n: usize, chip: Vec2, base: f32) -> f32 {
+    let mut r = base;
+    while !chips_fit(n, chip, r) && r < base * 4.0 {
+        r += 1.0;
+    }
+    r
 }
 
 // ---------------------------------------------------------------------------------------------- drawing
@@ -168,12 +221,13 @@ const RING_R: f32 = 165.0;
 const CHIP: Vec2 = Vec2::new(132.0, 66.0);
 const REGION_R: f32 = 128.0;
 const REGION_CHIP: Vec2 = Vec2::new(112.0, 52.0);
+/// The cursor dot's size (px).
+const CURSOR: f32 = 14.0;
 const MAX_OPTIONS: usize = 8;
 const MAX_LAYERS: usize = 2;
 
 const INK: Color = kit::TEXT_HI;
 const MUTED: Color = kit::TEXT_MID;
-const TEAL: Color = kit::TEAL;
 const CHIP_BG: Color = kit::PANEL_HI;
 const CHIP_SELECTED: Color = Color::srgba(0.0, 0.45, 0.42, 0.95);
 
@@ -218,16 +272,21 @@ fn spawn_ring(mut commands: Commands, fonts: Res<UiFonts>) {
             Node { position_type: PositionType::Absolute, width: px(160), ..default() },
             ChildOf(root),
         ));
+        // The cursor, drawn over the chips (it rests on them): light with a dark rim, so it shows on the teal
+        // of a lit chip as well as on the dark ones.
         commands.spawn((
             RingPointer(layer),
             Node {
                 position_type: PositionType::Absolute,
-                width: px(10),
-                height: px(10),
+                width: px(CURSOR),
+                height: px(CURSOR),
+                border: UiRect::all(px(3)),
                 border_radius: BorderRadius::MAX,
                 ..default()
             },
-            BackgroundColor(TEAL),
+            BackgroundColor(INK),
+            BorderColor::all(Color::srgba(0.0, 0.0, 0.0, 0.75)),
+            ZIndex(10),
             ChildOf(root),
         ));
         for i in 0..MAX_OPTIONS {
@@ -297,7 +356,7 @@ fn fill_rings(
             options,
             selected: radial.selected(),
             pointer: radial.pointer,
-            radius: RING_R,
+            radius: radial.reach,
             chip: CHIP,
             key_size: 24.0,
             ..default()
@@ -325,7 +384,7 @@ fn fill_rings(
         options,
         selected: if menu.item.is_some() { menu.item } else { menu.ring.selected() },
         pointer: menu.ring.pointer,
-        radius: RING_R,
+        radius: menu.ring.reach,
         chip: CHIP,
         key_size: 17.0,
         focus: menu.item,
@@ -357,8 +416,8 @@ fn fill_rings(
         options,
         selected: menu.regions.selected(),
         pointer: menu.regions.pointer,
-        centre: option_offset(item, lo.0.kit.len(), RING_R),
-        radius: REGION_R,
+        centre: option_offset(item, lo.0.kit.len(), menu.ring.reach),
+        radius: menu.regions.reach,
         chip: REGION_CHIP,
         key_size: 18.0,
         ..default()
@@ -399,9 +458,16 @@ fn draw_ring(
         node.top = px(at.y);
         node.width = px(layer.chip.x);
         node.height = px(layer.chip.y);
-        let selected = layer.selected == Some(chip.1) && opt.enabled;
-        bg.0 = if selected { CHIP_SELECTED } else { CHIP_BG };
-        *border = BorderColor::all(if opt.current || layer.focus == Some(chip.1) { INK } else { Color::NONE });
+        // The chip under the cursor lights up; a dimmed one only gets an outline (it cannot be picked).
+        let hovered = layer.selected == Some(chip.1);
+        bg.0 = if hovered && opt.enabled { CHIP_SELECTED } else { CHIP_BG };
+        *border = BorderColor::all(if opt.current || layer.focus == Some(chip.1) {
+            INK
+        } else if hovered {
+            MUTED
+        } else {
+            Color::NONE
+        });
     }
     for (k, mut t, mut c, mut font) in &mut keys {
         let Some(layer) = view.layers.get(k.0) else { continue };
@@ -431,7 +497,7 @@ fn draw_ring(
     for (p, mut node) in &mut pointers {
         match view.layers.get(p.0).filter(|_| p.0 == active) {
             Some(layer) => {
-                let at = layer.centre + layer.pointer / POINTER_RADIUS * (layer.radius * 0.45) - Vec2::splat(5.0);
+                let at = layer.centre + layer.pointer - Vec2::splat(CURSOR / 2.0);
                 node.display = Display::Flex;
                 node.left = px(at.x);
                 node.top = px(at.y);
@@ -456,21 +522,82 @@ mod tests {
         assert_eq!(sector(Vec2::new(0.0, -50.0), 0, DEADZONE), None);
     }
 
+    /// Every pointer direction picks the option drawn in that direction, for every ring size in use (1 to 8
+    /// heal items, 1 to 6 magazines, 4 regions): option `i` is centred at `i * 360 / n` degrees clockwise
+    /// from straight up, on screen where +y is down.
     #[test]
-    fn layout_matches_selection() {
-        for n in 1..=6 {
-            for i in 0..n {
-                assert_eq!(sector(option_offset(i, n, 40.0), n, DEADZONE), Some(i), "{i} of {n}");
+    fn every_direction_picks_the_option_drawn_there() {
+        for n in 1..=MAX_OPTIONS {
+            let width = 360.0 / n as f32;
+            for tenth in 0..3600 {
+                let deg = tenth as f32 / 10.0;
+                // Skip the exact borders between two sectors.
+                let off_border = ((deg + width / 2.0) % width).min(width - (deg + width / 2.0) % width);
+                if n > 1 && off_border < 0.05 {
+                    continue;
+                }
+                let want = ((deg + width / 2.0) / width) as usize % n;
+                let a = deg.to_radians();
+                // Clockwise from up on a +y-down screen: up is (0, -1), right is (1, 0).
+                let dir = Vec2::new(a.sin(), -a.cos());
+                for len in [DEADZONE + 1.0, 100.0, 400.0] {
+                    assert_eq!(sector(dir * len, n, DEADZONE), Some(want), "{deg} deg of {n}");
+                }
+                let drawn = option_offset(want, n, 100.0).normalize();
+                assert!(drawn.angle_to(dir).abs().to_degrees() <= width / 2.0 + 1e-3, "{deg} deg of {n}");
             }
+            assert_eq!(sector(Vec2::new(1.0, -1.0), n, DEADZONE), None, "dead zone");
         }
     }
 
+    /// The cursor is drawn where it is and can rest on any chip; wherever on a chip it rests, that chip is the
+    /// selection (a ring grows when its chips would cross into their neighbours' sectors).
     #[test]
-    fn pointer_is_clamped() {
+    fn the_chip_under_the_cursor_is_the_selection() {
+        let rings = (1..=MAX_OPTIONS).map(|n| (n, Radial::new(n), CHIP, RING_R)).chain([(
+            REGION_ORDER.len(),
+            Radial::regions(),
+            REGION_CHIP,
+            REGION_R,
+        )]);
+        for (n, ring, chip, base) in rings {
+            assert!(ring.reach >= base && ring.reach < base * 1.5, "{n}: radius {}", ring.reach);
+            for i in 0..n {
+                let c = option_offset(i, n, ring.reach);
+                for (u, v) in (0..=10).flat_map(|u| (0..=10).map(move |v| (u as f32 / 10.0, v as f32 / 10.0))) {
+                    let p = c - chip / 2.0 + chip * Vec2::new(u, v);
+                    assert_eq!(sector(p, n, DEADZONE), Some(i), "{n}: {p} on chip {i}");
+                    if p.length() <= ring.reach {
+                        let mut r = ring;
+                        r.steer(p);
+                        assert_eq!((r.pointer, r.selected()), (p, Some(i)), "{n}: cursor on chip {i}");
+                    }
+                }
+                // Pushing on past a chip leaves the cursor resting on its centre.
+                let mut r = ring;
+                r.steer(c * 0.5);
+                r.steer(c * 3.0);
+                assert!((r.pointer - c).length() < 1e-3, "{n}: {} rests on {c}", r.pointer);
+            }
+        }
+        assert_eq!(Radial::new(5).reach, RING_R, "five heal items fit the standard ring");
+        assert!(Radial::new(8).reach > RING_R, "eight do not");
+    }
+
+    #[test]
+    fn pointer_is_clamped_and_turns_quickly() {
         let mut r = Radial::new(6);
-        r.steer(Vec2::new(0.0, -500.0));
-        assert!((r.pointer.length() - POINTER_RADIUS).abs() < 1e-3);
-        r.steer(Vec2::new(0.0, 2.0 * POINTER_RADIUS));
-        assert_eq!(r.selected(), Some(3), "a short flick reaches the opposite slot");
+        r.steer(Vec2::new(0.0, -5000.0));
+        assert!((r.pointer.length() - r.reach).abs() < 1e-3);
+        assert_eq!(r.selected(), Some(0));
+        r.steer(Vec2::new(0.0, 2.0 * r.reach));
+        assert_eq!(r.selected(), Some(3), "one ring's width of travel reaches the opposite slot");
+    }
+
+    #[test]
+    fn the_cursor_moves_the_same_hand_distance_at_any_dpi() {
+        assert_eq!(px_per_count(800), 1.0);
+        assert_eq!(px_per_count(1600), 0.5);
+        assert_eq!(px_per_count(0), 800.0, "a zero DPI cannot divide by zero");
     }
 }
