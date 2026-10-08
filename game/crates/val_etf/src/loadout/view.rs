@@ -479,8 +479,9 @@ impl View<'_> {
         } else if self.ctx.in_match {
             p.spawn(raw(f, TextRole::Hint, "In match: changes apply on your next spawn", WARN));
         }
-        p.spawn((Act::Back, button_with_key(f, "BACK", "ESC", BtnKind::Normal, BtnSize::M)));
-        let mut confirm = p.spawn((Act::Confirm, button(f, "CONFIRM", BtnKind::Primary, BtnSize::M)));
+        // Both are the last row of the keyboard focus (focus::columns), so the keyboard can finish the edit.
+        p.spawn((Act::Back, Focusable, button_with_key(f, "BACK", "ESC", BtnKind::Normal, BtnSize::M)));
+        let mut confirm = p.spawn((Act::Confirm, Focusable, button(f, "CONFIRM", BtnKind::Primary, BtnSize::M)));
         if !problems.is_empty() {
             confirm.insert(Disabled);
         }
