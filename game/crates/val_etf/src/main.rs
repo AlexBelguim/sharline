@@ -65,6 +65,8 @@ fn main() -> AppExit {
     let mut app = App::new();
     app.add_plugins(
         DefaultPlugins
+            // Bevy's task pools, or VETF_THREADS threads (render/executor.rs).
+            .set(render::executor::task_pools(std::env::var("VETF_THREADS").ok().as_deref()))
             .set(WindowPlugin {
                 primary_window: Some(Window {
                     title: "SHARD/LINE (prototype)".into(),

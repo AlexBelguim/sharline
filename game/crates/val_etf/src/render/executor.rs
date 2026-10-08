@@ -10,7 +10,12 @@
 //!
 //! The executors only change how systems are dispatched, not their order: the same ordering constraints and
 //! the same sync points apply. `VETF_EXECUTOR=multi` puts Bevy's default back (to compare).
+//!
+//! `VETF_THREADS=N` caps Bevy's task pools at N threads in all (default: Bevy's, about one per core). The
+//! profiler measured 8 threads at 238 fps against 219 with the default (1080p, before the executor change); the
+//! two were not measured together, so the cap is opt-in, for comparing on a given machine.
 
+use bevy::app::TaskPoolOptions;
 use bevy::core_pipeline::Core3d;
 use bevy::ecs::intern::Interned;
 use bevy::ecs::schedule::{ScheduleLabel, SingleThreadedExecutor};
@@ -24,6 +29,15 @@ pub struct ExecutorPlugin;
 /// Bevy's multi-threaded executor everywhere (`multi`).
 pub fn single_threaded(env: Option<&str>) -> bool {
     !env.is_some_and(|v| v.trim().eq_ignore_ascii_case("multi"))
+}
+
+/// Bevy's task pools: its default, or `VETF_THREADS` threads in all (at least 2: the frame's par_iter systems
+/// and asset loading share them).
+pub fn task_pools(env: Option<&str>) -> TaskPoolPlugin {
+    match env.and_then(|v| v.trim().parse::<usize>().ok()).filter(|n| *n > 0) {
+        Some(n) => TaskPoolPlugin { task_pool_options: TaskPoolOptions::with_num_threads(n.max(2)) },
+        None => TaskPoolPlugin::default(),
+    }
 }
 
 /// The main world's per-frame schedules that run single-threaded.
@@ -59,5 +73,15 @@ mod tests {
         assert!(single_threaded(Some("single")));
         assert!(!single_threaded(Some(" Multi ")));
         assert_eq!(main_schedules().len(), 5);
+    }
+
+    #[test]
+    fn threads_only_when_asked_for() {
+        let threads = |env| task_pools(env).task_pool_options.max_total_threads;
+        assert_eq!(threads(None), TaskPoolOptions::default().max_total_threads);
+        assert_eq!(threads(Some("x")), TaskPoolOptions::default().max_total_threads);
+        assert_eq!(threads(Some("0")), TaskPoolOptions::default().max_total_threads);
+        assert_eq!(threads(Some(" 8 ")), 8);
+        assert_eq!(threads(Some("1")), 2);
     }
 }
