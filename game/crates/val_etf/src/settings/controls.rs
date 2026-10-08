@@ -121,7 +121,8 @@ pub struct DisplayInfo {
 #[derive(Resource, Debug, Default)]
 pub struct UiState {
     pub preview_bg: PreviewBg,
-    /// A sensitivity typed into the import box (until APPLY); otherwise it shows the current equivalent.
+    /// A sensitivity staged for the import box's APPLY; otherwise (and once committed) it shows the current
+    /// equivalent.
     pub import_sens: Option<f32>,
     pub display: DisplayInfo,
     /// The open dropdown and its list entity.
@@ -238,7 +239,13 @@ pub fn set_num(s: &mut Settings, ui: &mut UiState, d: &SettingsData, k: Num, v: 
     match k {
         Num::Dpi => s.mouse.dpi = v.round() as u32,
         Num::Cm => s.mouse.cm_per_360 = v,
-        Num::ImportSens => ui.import_sens = Some(v),
+        // A sensitivity committed in the import box (Enter, or a click away such as DONE) sets the turn at
+        // once: typed and left, it used to wait for APPLY and was lost when the screen closed.
+        Num::ImportSens => {
+            let cm = cm_from_sens(v, s.mouse.dpi, d.import_yaw.of(s.mouse.import_game));
+            s.mouse.cm_per_360 = range(d, Num::Cm).snap(cm);
+            ui.import_sens = None;
+        }
         Num::Optic(i) => {
             for o in optic_ids(d, i) {
                 s.mouse.optic_mult.insert(o.clone(), v);
@@ -1496,6 +1503,38 @@ mod tests {
         assert!((get_num(&s, &ui, d, Num::ImportSens) - 0.4).abs() < 0.001);
         set_choice(&mut s, &mut ui, d, Ch::ImportGame, ImportGame::Cs2.index());
         assert!((get_num(&s, &ui, d, Num::ImportSens) - 1.273).abs() < 0.001);
+    }
+
+    /// Typing another game's sensitivity and pressing Enter (or clicking DONE) sets the turn, without APPLY,
+    /// and the in-match look follows it.
+    #[test]
+    fn a_typed_import_sensitivity_sets_the_turn_without_apply() {
+        use bevy::ecs::system::RunSystemOnce;
+        let d = embedded();
+        let mut w = World::new();
+        w.insert_resource(d.defaults.clone());
+        w.insert_resource(d.clone());
+        w.init_resource::<InputFocus>();
+        w.init_resource::<ButtonInput<MouseButton>>();
+        w.insert_resource(PlayerProfile::default());
+        w.init_resource::<crate::net::Session>();
+        let hip = crate::client::look_per_count(w.resource::<Settings>(), None, 1.0, 0.0);
+        // Valorant 0.2 at the default 800 DPI: twice the default 40.8 cm
+        let field = w.spawn_empty().id();
+        let editing = Editing { entity: field, kind: FieldKind::Num(Num::ImportSens), text: "0.2".into() };
+        w.insert_resource(UiState { editing: Some(editing), ..default() });
+        w.run_system_once(commit_left_edit).unwrap();
+        let s = w.resource::<Settings>();
+        assert!((s.mouse.cm_per_360 - 81.6).abs() < 0.05, "{}", s.mouse.cm_per_360);
+        assert_eq!(w.resource::<UiState>().import_sens, None, "the box shows the new turn's equivalent");
+        let now = crate::client::look_per_count(s, None, 1.0, 0.0);
+        assert!((now / hip - 0.5).abs() < 1e-3, "half as fast: {}", now / hip);
+        // CS2 / Apex 1.0 at 1600 DPI = 25.98 cm
+        let (mut s, mut ui) = (d.defaults.clone(), UiState::default());
+        s.mouse.dpi = 1600;
+        s.mouse.import_game = ImportGame::Apex;
+        set_num(&mut s, &mut ui, d, Num::ImportSens, 1.0);
+        assert!((s.mouse.cm_per_360 - 26.0).abs() < 0.05, "{}", s.mouse.cm_per_360);
     }
 
     #[test]

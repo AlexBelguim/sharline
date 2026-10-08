@@ -434,3 +434,12 @@ of each pylon mast, and a ride to the end used to stop with the rider hanging in
   grab fails.
 - Pinned by `vetf_sim::movement` tests (a cable between two pylons, a beam across the line, jumping off near the
   end) and map tests that ride Showhome's cable to both pylons and the range's S5 line both ways.
+
+## 19. The sensitivity import box applies when committed (2026-10-08)
+The user asked whether the sensitivity setting works. The whole path checks out (cm/360 and DPI to the in-match
+look, every frame with no smoothing or frame-time scaling; per-optic ADS multipliers; invert Y; saved to
+`settings.ron`; a change from the match's Esc menu applies on resume). One trap: a sensitivity typed into
+MOUSE & AIM's "Import from another game" box only took effect after APPLY, and was dropped when the screen closed.
+- Enter, or a click away from the box (DONE, BACK, another control), now converts it to cm/360 at once. APPLY
+  still works the same.
+- Pinned by `settings::controls` test `a_typed_import_sensitivity_sets_the_turn_without_apply`.

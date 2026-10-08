@@ -8,7 +8,7 @@ use crate::settings::controls::{
     set_num, slider, switch, text_as, unit,
 };
 use crate::settings::{
-    CrosshairSettings, PreviewBg, SWATCHES, Settings, SettingsData, cm_from_sens, crosshair_rects, fmt_num, hex_string,
+    CrosshairSettings, PreviewBg, SWATCHES, Settings, SettingsData, crosshair_rects, fmt_num, hex_string,
     parse_crosshair_code, rgb_color, ruler_px, sens_for,
 };
 use crate::ui_kit::{self as kit, Art, BtnKind, BtnSize, TextRole};
@@ -419,9 +419,7 @@ pub fn plugin(app: &mut App) {
 /// then shows the current equivalent again.
 fn import(s: &mut Settings, ui: &mut UiState, d: &SettingsData) {
     let sens = get_num(s, ui, d, Num::ImportSens);
-    let cm = cm_from_sens(sens, s.mouse.dpi, d.import_yaw.of(s.mouse.import_game));
-    set_num(s, ui, d, Num::Cm, cm);
-    ui.import_sens = None;
+    set_num(s, ui, d, Num::ImportSens, sens);
 }
 
 /// A pasted crosshair code (lines held to their ranges); `None` when the text is not a code.
