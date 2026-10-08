@@ -610,9 +610,7 @@ fn fire_claims(
         control.recoil.on_shot(spec, pitch_deg, s.shot.kick_pitch);
         control.pitch = (control.pitch + s.shot.kick_pitch.to_radians()).clamp(-MAX_PITCH, MAX_PITCH);
         control.yaw -= s.shot.kick_yaw.to_radians();
-        if let vetf_sim::data::RecoilSpec::Pattern(p) = &spec.recoil {
-            control.punch = p.view_punch_visual_deg;
-        }
+        control.punch = vetf_sim::recoil::view_punch(spec);
 
         let dir = shot_direction(s.yaw, s.pitch, s.shot.spread_deg, shot_seed(s.player, s.shot.seq));
         let range = spec.max_range_m;
@@ -663,7 +661,7 @@ fn recoil_recovery(
     let pitch_deg = control.pitch.to_degrees();
     let down = control.recoil.tick(spec, pitch_deg, dt);
     control.pitch -= down.to_radians();
-    control.punch = (control.punch - dt * 2.0).max(0.0);
+    control.punch = vetf_sim::recoil::settle_punch(spec, control.punch, dt);
 }
 
 /// Host feedback. Each receiver gets its own query: lightyear inserts a `MessageReceiver<M>` only once the

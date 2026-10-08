@@ -374,6 +374,9 @@ pub struct PatternRecoilSpec {
     pub recover_deg_per_s: f32,
     /// Purely visual camera punch per shot (does not move the aim).
     pub view_punch_visual_deg: f32,
+    /// Seconds the visual punch takes to settle back (linearly). Shorter than the fire interval, so every shot
+    /// reads as its own kick and the screen centre is back on the aim before the next one.
+    pub view_punch_return_s: f32,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -1400,8 +1403,8 @@ mod tests {
     fn recoil_pattern_loops_for_long_mags() {
         let d = GameData::embedded();
         let p = &d.recoil_patterns["mako_recoil_pattern"];
-        assert_eq!(p.kick(1), (0.55, 0.0));
-        assert_eq!(p.kick(29), (0.02, -0.1));
+        assert_eq!(p.kick(1), (1.0, 0.0));
+        assert_eq!(p.kick(29), (0.35, -0.06));
         // shot 30 continues from index 20 (shot 21), and the loop has period 9
         assert_eq!(p.kick(30), p.kick(21));
         assert_eq!(p.kick(38), p.kick(29));

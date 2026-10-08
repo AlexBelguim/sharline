@@ -36,13 +36,14 @@
     // aimed (its eyepiece is a lens, not a window); `prism`, `rifle` or `thermal` picks its picture.
     // `projector`: the fold-out sight's flaps open with its ADS_Open clip over `flap_open_s` as the gun comes up
     // (and close on release); its hologram shows from `hologram_from_ads` of the ADS blend, fading in over
-    // `hologram_fade_s`. `pose`: the moving nodes turn to the export's `pose_<pose>_quat_gltf_xyzw` extras.
+    // `hologram_fade_s`. Both must keep up with the fastest ADS of a gun it fits (tested), so the sight is open
+    // when the gun is up. `pose`: the moving nodes turn to the export's `pose_<pose>_quat_gltf_xyzw` extras.
     parts: [
         // optics
         (id: "optic_reddot", file: "models/weapons/optics/ATT_optic_reddot.glb", socket: "Optic"),
         (id: "optic_holo", file: "models/weapons/optics/ATT_optic_holo.glb", socket: "Optic"),
         (id: "optic_projector", file: "models/weapons/optics/ATT_optic_projector.glb", socket: "Optic",
-            projector: Some((flap_open_s: 0.12, hologram_from_ads: 0.8, hologram_fade_s: 0.08))),
+            projector: Some((flap_open_s: 0.08, hologram_from_ads: 0.8, hologram_fade_s: 0.03))),
         (id: "optic_3x", file: "models/weapons/optics/ATT_optic_3x.glb", socket: "Optic", scope: Some(prism)),
         (id: "optic_sniper", file: "models/weapons/optics/ATT_optic_sniper.glb", socket: "Optic", scope: Some(rifle)),
         (id: "optic_thermal", file: "models/weapons/optics/ATT_optic_thermal.glb", socket: "Optic", scope: Some(thermal)),

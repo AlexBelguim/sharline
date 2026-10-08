@@ -35,6 +35,20 @@ fn superseded(path: &str) -> bool {
         || path == "weapons.slice.json.weapons[0].recoil.ads_mult"
         // Each halo arc has its own shield pool, so a preset's total capacity differs.
         || (path.starts_with("armors.slice.json.presets[") && path.ends_with(".capacity"))
+        || gun_tuning_round_1(path)
+}
+
+/// Playtest round 1 gun tuning (DESIGN_DELTAS.md section 9): a harder-hitting Mako with a stronger, learnable
+/// recoil pattern that never recovers mid-spray, and much faster ADS on every gun.
+fn gun_tuning_round_1(path: &str) -> bool {
+    const MAKO: &str = "weapons.slice.json.weapons[0].";
+    const WARDEN: &str = "weapons.slice.json.weapons[1].";
+    let mako = ["damage", "falloff", "min_damage", "zone_mult.head", "ads_s"];
+    let mako_recoil = ["recover_frac", "recover_delay_s", "recover_deg_per_s", "view_punch_visual_deg"];
+    path.strip_prefix(MAKO).is_some_and(|k| mako.contains(&k))
+        || path.strip_prefix(MAKO).and_then(|k| k.strip_prefix("recoil.")).is_some_and(|k| mako_recoil.contains(&k))
+        || path == format!("{WARDEN}ads_s")
+        || path == "mako_recoil_pattern.json.kicks"
 }
 
 /// Check that every leaf in `design` exists in `game` with the same value. Extra game keys are allowed.
