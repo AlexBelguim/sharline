@@ -225,25 +225,17 @@ the AR kills faster; the SMG is weak at range; aiming down sights is much faster
 - No design JSON covers match rules, so the sync test has nothing to skip.
 
 ## 12. Recoil and bloom after playtest round 2 (2026-10-08)
-User direction (DIRECTION_LOG 17): "the recoil patterns when standing still should be a fixed pattern for each gun
-with no rng on a rng bloom when moving, like when moving it should kinda function like apex gunplay but should not
-be better than standing still", with item 16's "aimed shots are accurate in every state". Skipped in the sync test
-by `recoil_and_bloom_round_2()` in `design_sync.rs`; pinned in `weapon.rs` and `tests/balance.rs`, and drawn by
-`cargo run -p vetf_sim --example recoil_probe` (every gun's magazine on a wall at 10 and 25 m, standing, walking and
-sprinting, hip and aimed; `-- trace` prints the view's climb and drift over time instead).
+User direction (DIRECTION_LOG 17, with 16's "aimed shots are accurate in every state"): a fixed pattern with no
+randomness standing still, Apex-style random bloom on the move, and moving never better than standing still.
+Skipped in the sync test by `recoil_and_bloom_round_2()`; pinned by the tests in `weapon.rs` and `tests/balance.rs`.
 
-- **Standing still** (on the ground under `spread_deg.move_threshold_frac` of jog speed, now 0.1 = 0.48 m/s, in any
-  stance): **no random spread at all**, hip or aimed. Every shot goes exactly where the view points, and the only
-  thing that moves the aim is the gun's fixed recoil, so two sprays are identical for every player, seed and time.
-  The first aimed shot is exact.
-  - The design's `hip_still` (Mako 0.7°, Warden 6°) and `ads_still` (0.08°, 0°) are gone, and so is the design's
-    0.3 / 0.2 movement threshold.
-  - The Warden's kick is fixed: `kick_yaw_rand_deg` 0.4 (random either way) → `kick_yaw_deg` 0.2 (always right).
-    One 3.5° kick per shot, 70 % back in 0.35 s, as before.
-  - The Mako's and Skink's patterns are unchanged (section 9). Crouching lightens the pattern (`crouch_mult` 0.9)
-    only while standing still, so a crouch walk never kicks lighter than standing still.
-- **Moving** adds a random cone on top of the same pattern, Apex-style. It is still seeded by player and shot number,
-  so the predicting client and the host agree.
+- **Standing still** (on the ground under `spread_deg.move_threshold_frac` 0.1 of jog speed = 0.48 m/s, any stance):
+  **no random spread, hip or aimed.** Every shot goes where the view points, and only the gun's fixed recoil moves
+  the aim, so two sprays are identical for every player, seed and time. The first aimed shot is exact.
+  - Gone: `hip_still` (Mako 0.7°, Warden 6°), `ads_still` (0.08°, 0°), `bloom_per_shot_ads`, the design's 0.3 / 0.2
+    threshold. The Warden's kick is fixed: `kick_yaw_rand_deg` 0.4 (random) → `kick_yaw_deg` 0.2 (always right).
+  - The Mako and Skink patterns are unchanged (section 9). A crouch lightens the pattern (x0.9) only standing still.
+- **Moving** adds a random cone on top of the same pattern, seeded by player and shot number (client and host agree).
 
   | Hip cone (°) | walk | jog | sprint | slide | zipline | jetpack | air | sustained fire |
   | --- | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -251,40 +243,26 @@ sprinting, hip and aimed; `-- trace` prints the view's climb and drift over time
   | Skink | 1.0 | 2.6 | 3.0 | 3.0 | 3.0 | 3.0 | 4.0 | +0.072 a shot, up to +1.6 |
   | Warden | 4.0 | 8.0 | 9.0 | 9.0 | 9.0 | 10.0 | 9.0 | – |
 
-  - Hip: 0 at the threshold, then linear through `walk_hip` (new) at walking speed, `move_full_hip` at jog speed
-    and `sprint_hip` (new) at sprint speed. The air, slide, zipline and jetpack values are floors, now at least a
-    sprint's (design: Mako slide 1.8, zipline 2.0; Warden air 8, slide 6, zipline 6). Crouched, everything is x0.85.
-  - Sustained fire: `bloom_per_shot_hip` per shot, times how much you move (0 still, 1 from jog speed or off the
-    ground), up to `bloom_max_hip`. It now waits `bloom_decay_delay_s` 0.15 s (design 0.08, shorter than the
-    Mako's 0.083 s between shots, so it barely built up) before it settles at 3°/s.
-  - Aimed: the movement cone x `ads_move_mult` (new: 0.04 Mako and Skink, 0.01 Warden) plus the bloom x
-    `bloom_max_ads / bloom_max_hip` (0.04 / 1.6). That is at most 0.2° on the Mako and Skink (8.7 cm at 25 m) and
-    0.1° on the Warden (8.7 cm at 50 m), so every aimed shot on the move at a head 25 m away (Warden: 50 m) hits it.
-    `bloom_per_shot_ads` is gone, and `bloom_max_ads` drops from 0.8 to 0.04.
-  - Never better than standing still: every cone is 0 or more (the data validation checks it), and the pattern is
-    the same one (heavier when crouched). Stop, and the next shot is exact again. Bloom left over from the run only
-    counts on the move, and it settles in about 0.7 s.
-- **Crosshair:** it opens by the live random cone. Standing still, every gun shows the plain cross, because every gun
-  is exact there. On the move it opens by the real cone, and the Warden's hip cone opens it widest. This replaces
-  the "over the resting hip spread" rule, which also hid the Warden's 6° hip cone.
-- **Raise from a sprint:** with aim held, the raise from the sprint pose takes no longer than the ADS, so an aimed
-  shot never waits on it once the gun is aimed. `sprint_to_fire_s` is now about the ADS time, so a hip shot from a
-  run comes as fast: Mako 0.2 → 0.12, Skink 0.15 → 0.10, Warden 0.32 → 0.20. (A raise shortened by aim stays
-  short if aim is let go: with the fastest-aiming parts a one-tick aim flick brings the gun up 1-2 ticks sooner
-  for a hip shot. Accepted; it needs no extra replicated state.)
-- **Trigger pulls on the run:** an empty gun clicks on the pull itself (a tap used to click after it was let go,
-  so no sound played). A pull during a bolt cycle is dropped, the same as standing still; only a pull that waits on
-  nothing but the raise fires when the gun is up.
-- **Slides:** `slide.min_entry_speed` (4.0) scales with the halo weight and the gun's and attachments' speed, but not
-  with items or wounds, so every loadout slides from its own jog (Heavy + Warden: 3.27 m/s against a 3.93 m/s jog).
-- **ADS MOVE is gone:** aiming never slows you (section 10), so the 3× scope's `ads_move` and the loadout's ADS
-  MOVE stat line are removed. The protocol is version 6.
-- **Balance tests:** the aimed Mako spray at 15 m (`a_learned_pull_keeps_an_aimed_mako_spray_on_a_torso_at_15_m`)
-  used the old 0.08° `ads_still` cone; standing still it is now 0, so the learned pull puts every round exactly
-  where it aims (the free spray still leaves the torso within 4 rounds). New: `aimed_shots_on_the_move_hit_a_head`
-  (real hitboxes, 512 seeds, every moving state, the most bloom: every aimed round hits a head at 25 m, Warden 50 m;
-  hip fire mostly misses it).
-- **Design follow-up (local session):** in `weapons.slice.json`, drop `hip_still`, `ads_still`,
-  `bloom_per_shot_ads` and `kick_yaw_rand_deg`; add `walk_hip`, `sprint_hip`, `ads_move_mult` and `kick_yaw_deg`;
-  and take the new threshold, floors, bloom and `sprint_to_fire_s` values. In `attachments_stats.slice.json`, drop
-  `ads_move`. Then delete `recoil_and_bloom_round_2()` and the `ads_move` line in `superseded()`.
+  - Linear in speed between `walk_hip` (new), `move_full_hip` and `sprint_hip` (new); the slide, air, zipline and
+    jetpack values are floors, at least a sprint's (design: Mako slide 1.8, zipline 2.0; Warden air 8, slide 6,
+    zipline 6). Crouched x0.85. Sustained fire adds `bloom_per_shot_hip` x how much you move; it settles at 3°/s after
+    `bloom_decay_delay_s` 0.15 s (design 0.08, shorter than the Mako's fire interval, so it barely built).
+  - Aimed: the cone x `ads_move_mult` (new: 0.04, Warden 0.01) plus the bloom x `bloom_max_ads / bloom_max_hip`
+    (`bloom_max_ads` 0.8 → 0.04). At most 0.2° (8.7 cm at 25 m) on the Mako and Skink, 0.1° (8.7 cm at 50 m) on the
+    Warden: aimed shots on the move stay on a head.
+  - The data check rejects any tuning where moving could beat standing still or a faster state is tighter: hip cones
+    0 < walk ≤ jog ≤ sprint ≤ every floor, `ads_move_mult` in [0, 1], `bloom_max_ads` ≤ `bloom_max_hip`.
+- **Crosshair:** opens by the live random cone: the plain cross for every gun standing still (they are exact there),
+  the real cone on the move (the Warden's hip cone widest). This replaces "over the resting hip spread".
+- **Raise from a sprint:** with aim held the raise takes no longer than the ADS, so an aimed shot never waits once
+  aimed. `sprint_to_fire_s` Mako 0.2 → 0.12, Skink 0.15 → 0.10, Warden 0.32 → 0.20. A raise shortened by aim stays
+  short if aim is let go (at most 1-2 ticks sooner for a hip shot with the fastest-aiming parts; accepted).
+- **Trigger on the run:** an empty gun clicks on the pull itself; a pull during a bolt cycle is dropped, as standing
+  still. **Slides:** `slide.min_entry_speed` 4.0 scales with the halo weight and the gear (not items or wounds), so
+  every loadout slides from its own jog. **ADS MOVE** (`ads_move`) is gone from attachments and the loadout; protocol 6.
+- **Balance tests:** the aimed Mako spray at 15 m used the 0.08° `ads_still` cone; it is now exact standing still.
+  New: `aimed_shots_on_the_move_hit_a_head` (real hitboxes, 512 seeds, every moving state, full bloom).
+- **Design follow-up (local session):** in `weapons.slice.json` drop `hip_still`, `ads_still`, `bloom_per_shot_ads`,
+  `kick_yaw_rand_deg`; add `walk_hip`, `sprint_hip`, `ads_move_mult`, `kick_yaw_deg`; take the new threshold, floors,
+  bloom and `sprint_to_fire_s` values. In `attachments_stats.slice.json` drop `ads_move`. Then delete
+  `recoil_and_bloom_round_2()` and the `ads_move` line in `superseded()`.
