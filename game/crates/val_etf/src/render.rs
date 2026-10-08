@@ -35,6 +35,7 @@ impl Plugin for RenderPlugin {
                 Update,
                 (
                     attach_player_visuals,
+                    tint_bodies,
                     sync_held_guns,
                     update_player_visuals,
                     sync_viewmodel,
@@ -77,6 +78,10 @@ struct ViewmodelLens;
 
 #[derive(Component)]
 struct PlayerVisual;
+
+/// A player's body material, recoloured when their team or the mode changes (see [`body_color`]).
+#[derive(Component)]
+struct BodyTint(Handle<StandardMaterial>);
 
 /// A third-person player's body under its root: the capsule, head and halo, squashed when crouched. The gun is
 /// beside it, not under it (see [`PlayerPose`]).
@@ -322,6 +327,32 @@ pub fn team_color(team: Option<Team>) -> Color {
     }
 }
 
+/// The colour another player's body is drawn in: their team's, or in free-for-all the enemy colour (HUD &
+/// ACCESSIBILITY's team colours), since everyone else is an enemy there.
+pub fn body_color(team: Option<Team>, mode: Option<MatchMode>, enemy: Color) -> Color {
+    if mode == Some(MatchMode::Ffa) { enemy } else { team_color(team) }
+}
+
+/// Keep every body in the colour [`body_color`] gives (a lobby can switch between team deathmatch and
+/// free-for-all, and players between teams).
+fn tint_bodies(
+    matches: Query<&MatchState>,
+    settings: Res<Settings>,
+    players: Query<(&PlayerInfo, &BodyTint)>,
+    mut materials: ResMut<Assets<StandardMaterial>>,
+) {
+    let mode = matches.iter().next().map(|m| m.mode);
+    let enemy = settings.team_colors().1;
+    for (info, tint) in &players {
+        let want = body_color(info.team, mode, enemy).darker(0.25);
+        if materials.get(&tint.0).is_some_and(|m| m.base_color != want)
+            && let Some(mut m) = materials.get_mut(&tint.0)
+        {
+            m.base_color = want;
+        }
+    }
+}
+
 /// Arc centre angle in the player's local frame (facing -Z): front = head, left = arms, back = torso,
 /// right = legs (seen from above), per the halo spec.
 fn arc_angle(zone: Zone) -> f32 {
@@ -357,6 +388,7 @@ fn attach_player_visuals(
             WeightClass::Medium => 0.016,
             _ => 0.011,
         };
+        commands.entity(e).insert(BodyTint(body_mat.clone()));
         commands.entity(e).insert((PlayerVisual, Transform::default(), Visibility::default())).with_children(|p| {
             p.spawn((Body, Transform::default(), Visibility::default())).with_children(|b| {
                 b.spawn((

@@ -52,7 +52,8 @@ pub struct Kits {
 impl Kits {
     pub fn get(&self, mode: Mode) -> &[KitEntry] {
         match mode {
-            Mode::Tdm => &self.tdm,
+            // Free-for-all hands out the deathmatch kit.
+            Mode::Tdm | Mode::Ffa => &self.tdm,
             Mode::Range => &self.range,
         }
     }

@@ -19,7 +19,7 @@ use vetf_sim::player::{Loadout, Wounds};
 use vetf_sim::weapon::WeaponState;
 
 /// Bumped whenever the protocol changes; part of the netcode protocol id, so old builds cannot connect.
-pub const PROTOCOL_VERSION: u64 = 4;
+pub const PROTOCOL_VERSION: u64 = 5;
 
 /// netcode.io protocol id shared by host and clients.
 pub fn protocol_id() -> u64 {
@@ -99,13 +99,17 @@ pub enum MatchPhase {
     Lobby,
     Live,
     Ended {
+        /// Team deathmatch: the winning team (`None`: a draw, or a mode without teams).
         winner: Option<Team>,
+        /// Free-for-all: the winning player's [`PlayerId`] (`None`: a draw, or a team mode).
+        player: Option<u64>,
     },
 }
 
 /// One replicated entity per match.
 #[derive(Component, Serialize, Deserialize, Clone, Debug, PartialEq)]
 pub struct MatchState {
+    /// Team deathmatch, free-for-all or the gun range. The host can change it in the lobby.
     pub mode: MatchMode,
     pub map: String,
     pub score_a: u32,
@@ -115,19 +119,29 @@ pub struct MatchState {
     pub phase: MatchPhase,
     /// The host's lobby name (HOST GAME), shown in the lobby.
     pub lobby_name: String,
-    /// Players including the host (HOST GAME's MAX PLAYERS): half of it per team.
+    /// Players including the host (HOST GAME's MAX PLAYERS): half of it per team in team deathmatch.
     pub max_players: u32,
     /// What this mode switches on (status effects, regional items). Clients use it for the HUD and menus.
     pub rules: Ruleset,
 }
 
+impl MatchState {
+    /// Players are split into two teams (team deathmatch).
+    pub fn has_teams(&self) -> bool {
+        self.mode.has_teams()
+    }
+}
+
 /// What a player does in the lobby. The host checks each one: only in the lobby, a team switch only to a
-/// team with a free slot, and only the host's own player can start the match.
+/// team with a free slot (and only in a mode with teams), and only the host's own player can start the
+/// match or change its mode.
 #[derive(Serialize, Deserialize, Clone, Copy, Debug, PartialEq, Eq)]
 pub enum LobbyAction {
     Ready(bool),
     SwitchTeam,
     Start,
+    /// The host's match settings: team deathmatch or free-for-all (the gun range stays the range).
+    SetMode(MatchMode),
 }
 
 // ---------------------------------------------------------------------------------------------- input
@@ -415,7 +429,7 @@ mod tests {
             score_b: 4,
             score_limit: 50,
             time_left_s: 12.5,
-            phase: MatchPhase::Ended { winner: None },
+            phase: MatchPhase::Ended { winner: None, player: None },
             lobby_name: "ASH'S GAME".into(),
             max_players: 10,
             rules: d.rules.rulesets.tdm,
@@ -423,10 +437,46 @@ mod tests {
         // The lobby: its phase, READY and the actions players send.
         roundtrip(&MatchPhase::Lobby);
         roundtrip(&PlayerNet { ping_ms: 48, ready: true });
-        for action in [LobbyAction::Ready(true), LobbyAction::Ready(false), LobbyAction::SwitchTeam, LobbyAction::Start]
-        {
+        for action in [
+            LobbyAction::Ready(true),
+            LobbyAction::Ready(false),
+            LobbyAction::SwitchTeam,
+            LobbyAction::Start,
+            LobbyAction::SetMode(MatchMode::Ffa),
+            LobbyAction::SetMode(MatchMode::Tdm),
+        ] {
             roundtrip(&action);
         }
+    }
+
+    /// Free-for-all: the mode, its rules and limits, and a winning player survive the wire.
+    #[test]
+    fn free_for_all_match_state_roundtrips() {
+        let d = GameData::embedded();
+        let ffa = MatchState {
+            mode: MatchMode::Ffa,
+            map: "showhome".into(),
+            score_a: 0,
+            score_b: 0,
+            score_limit: d.rules.ffa.score_limit,
+            time_left_s: d.rules.ffa.time_limit_s,
+            phase: MatchPhase::Ended { winner: None, player: Some(0x5eed_0001) },
+            lobby_name: "ASH'S GAME".into(),
+            max_players: d.rules.ffa.max_players,
+            rules: d.rules.rulesets.ffa,
+        };
+        roundtrip(&ffa);
+        assert!(!ffa.has_teams());
+        for mode in MatchMode::ALL {
+            roundtrip(&mode);
+            roundtrip(&MatchState { mode, phase: MatchPhase::Live, ..ffa.clone() });
+        }
+        roundtrip(&MatchPhase::Ended { winner: Some(Team::B), player: None });
+        // A player without a team (free-for-all and the range) roundtrips too.
+        roundtrip(&PlayerInfo { name: "LARK".into(), team: None });
+        // The same bytes the binary wire format carries (lightyear uses bincode-style serde): the mode is
+        // its own variant, so a free-for-all never decodes as team deathmatch.
+        assert_ne!(ron::to_string(&MatchMode::Ffa).unwrap(), ron::to_string(&MatchMode::Tdm).unwrap());
     }
 
     /// The Loadout screen's output: six ordered magazines with mixed ammo, a mixed-tier custom halo and

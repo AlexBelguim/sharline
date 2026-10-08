@@ -145,6 +145,7 @@ impl NavItem {
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub(crate) enum HostItem {
     Name,
+    Mode,
     Access,
     MaxPlayers,
     Port,

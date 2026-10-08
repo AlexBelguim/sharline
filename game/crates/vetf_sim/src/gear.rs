@@ -98,10 +98,11 @@ pub fn gear_cost(data: &GameData, weapon: &WeaponSpec, halo: &HaloChoice, mags: 
     }
 }
 
-/// The gear budget of a mode: team deathmatch has one, the gun range has no limit.
+/// The gear budget of a mode: the deathmatches have one, the gun range has no limit.
 pub fn gear_budget(data: &GameData, mode: Mode) -> Option<u32> {
     match mode {
         Mode::Tdm => Some(data.rules.tdm.gear_budget),
+        Mode::Ffa => Some(data.rules.ffa.gear_budget),
         Mode::Range => None,
     }
 }
@@ -169,5 +170,6 @@ mod tests {
         assert_eq!(gear_cost(&d, mako, &h, &[rip]).ammo, 0);
         assert_eq!(gear_budget(&d, Mode::Tdm), Some(d.rules.tdm.gear_budget));
         assert_eq!(gear_budget(&d, Mode::Range), None);
+        assert_eq!(gear_budget(&d, Mode::Ffa), Some(d.rules.ffa.gear_budget));
     }
 }

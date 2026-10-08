@@ -1,4 +1,4 @@
-// Match rules for team deathmatch on Showhome, and the default loadout.
+// Match rules for team deathmatch and free-for-all on Showhome, and the default loadout.
 (
     tdm: (
         // Halo arc tiers (loadout-capped) + the gear cost of every magazine must fit: AP's price in this
@@ -11,12 +11,26 @@
         max_players: 10,          // 5 v 5 max on Showhome
         kill_refill_mags: 1,      // user direction 2026-10-07: every kill refills one magazine
     ),
+    // Free-for-all deathmatch on Showhome (user direction 2026-10-08: "i want a free for all deathmatch").
+    // Everyone against everyone: no teams, the player with the most kills wins (tie: fewer deaths, then the
+    // first to reach that score). Placeholders until the design gives values.
+    ffa: (
+        gear_budget: 13,          // same as team deathmatch (the Loadout screen prices against it)
+        score_limit: 25,          // first player to 25 kills
+        time_limit_s: 600.0,      // placeholder, like team deathmatch
+        respawn_s: 3.0,           // placeholder: a little quicker than team deathmatch, no team to wait for
+        spawn_protection_s: 1.5,  // placeholder, like team deathmatch
+        max_players: 8,           // 8 at most on Showhome
+        kill_refill_mags: 1,      // like team deathmatch: every kill refills one magazine
+        spawn_slack_m: 6.0,       // spawn at random among the points within 6 m of the farthest from enemies
+    ),
     // What each mode switches on (user direction, see game/DESIGN_DELTAS.md). Team deathmatch is the
     // gunplay and netcode test bed: per-region shields and health, but no bleeding and no broken-limb
     // penalties, and only the high-end items that heal every region or restore every arc at once.
     // The gun range runs the full extraction rules.
     rulesets: (
         tdm: (bleeding: false, injuries: false, regional_items: false),
+        ffa: (bleeding: false, injuries: false, regional_items: false),
         range: (bleeding: true, injuries: true, regional_items: true),
     ),
     default_loadout: (

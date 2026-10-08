@@ -114,3 +114,17 @@ Once the design docs and JSON are updated, delete the entry here and in `superse
   network diagram uses 47820. The game uses **47820** (`assets/data/net.ron`). The mockup should be updated.
 - **Placeholders:** the TDM time limit and spawn protection length have no design value yet. Both are marked as
   placeholders in `assets/data/rules.ron`.
+
+## 9. Free-for-all deathmatch (2026-10-08)
+- **Design:** the slice has team deathmatch only.
+- **Now (user direction: "i want a free for all deathmatch"):** a second match mode on Showhome, through the same
+  host / lobby flow (HOST GAME's MODE, the lobby's match settings, `--mode ffa`).
+  - Everyone against everyone: no teams, damage between all players, every other player drawn as an enemy.
+  - `ffa` in `rules.ron`: first to **25 kills**, 10 min, **3 s respawn**, 1.5 s spawn protection, **8 players**,
+    one magazine refilled per kill, the TDM gear budget. All placeholders, like the TDM ones. Its ruleset has the
+    same switches as team deathmatch (no bleeding, no broken limbs, whole-body items only), and it hands out the
+    deathmatch healing kit.
+  - Spawns: any spawn of either side; among those within `spawn_slack_m` (6 m) of the farthest from living
+    enemies, one at random.
+  - The winner has the most kills; a tie goes to fewer deaths, then to whoever reached that score first.
+- No design JSON covers match rules, so the sync test has nothing to skip.

@@ -55,8 +55,11 @@ pub struct HostSettings {
     /// Empty: "<PLAYER NAME>'S GAME" (see [`HostSettings::lobby_name_for`]). Not replicated yet.
     pub lobby_name: String,
     pub access: JoinAccess,
-    /// Players including the host: even, 2 up to [`max_players_cap`].
+    /// Players including the host: even, 2 up to [`max_players_cap`] (free-for-all: up to its own cap,
+    /// [`max_players_cap_for`]).
     pub max_players: u32,
+    /// Team deathmatch or free-for-all (HOST GAME's MODE, `--mode`). The gun range is always the range.
+    pub mode: vetf_net::MatchMode,
     /// The UDP port to host on: `--port`, else `net.ron`.
     pub port: u16,
     /// Not in the protocol yet (the panel shows the field disabled).
@@ -71,6 +74,7 @@ impl HostSettings {
             lobby_name: String::new(),
             access: JoinAccess::JoinCode,
             max_players: max_players_cap(data),
+            mode: vetf_net::MatchMode::Tdm,
             port: cli_port.unwrap_or(data.net.port),
             password: None,
         }
@@ -86,10 +90,15 @@ impl HostSettings {
 impl FromWorld for HostSettings {
     fn from_world(world: &mut World) -> Self {
         let port = world.get_resource::<Cli>().and_then(|c| c.port);
-        match world.get_resource::<Data>() {
+        let mode = world.get_resource::<Cli>().and_then(|c| c.mode);
+        let mut host = match world.get_resource::<Data>() {
             Some(data) => Self::new(data, port),
             None => Self::new(&GameData::embedded(), port),
+        };
+        if let Some(mode) = mode {
+            host.mode = mode;
         }
+        host
     }
 }
 
@@ -100,8 +109,13 @@ pub fn default_lobby_name(player: &str) -> String {
 /// The most players a hosted game takes (host included): the mode's limit and the netcode's remote slots
 /// plus the host, rounded down to an even number (teams of equal size).
 pub fn max_players_cap(data: &GameData) -> u32 {
-    let cap = data.rules.tdm.max_players.min(data.net.max_remote_clients + 1);
-    (cap - cap % 2).max(2)
+    max_players_cap_for(data, vetf_net::MatchMode::Tdm)
+}
+
+/// The most players a game of `mode` takes (host included): the mode's limit and the netcode's remote slots
+/// plus the host; even in team deathmatch.
+pub fn max_players_cap_for(data: &GameData, mode: vetf_net::MatchMode) -> u32 {
+    crate::server::mode_max_players(data, mode, data.net.max_remote_clients + 1)
 }
 
 /// Netcode client slots for a game of `max_players`: the host plays through a local link, not a netcode
@@ -239,7 +253,8 @@ fn handle_requests(
                     session.host_error = true;
                     continue;
                 }
-                let max_players = host.max_players.clamp(2, max_players_cap(&data));
+                let mode = if map.eq_ignore_ascii_case("range") { vetf_net::MatchMode::Range } else { host.mode };
+                let max_players = host.max_players.clamp(2, max_players_cap_for(&data, mode));
                 session.internet_error = None;
                 if host.access == JoinAccess::JoinCode {
                     match Bridge::host(port, netcode_max_clients(max_players)) {
@@ -291,7 +306,7 @@ fn handle_requests(
                     info!("friends join at {addr}");
                 }
                 let lobby_name = session.lobby_name.clone().unwrap_or_default();
-                crate::server::spawn_match(&mut commands, &data, map, lobby_name, host.max_players, *lobby);
+                crate::server::spawn_match(&mut commands, &data, map, mode, lobby_name, max_players, *lobby);
                 next.set(AppState::Connecting);
             }
             NetRequest::Join { address } => {
@@ -575,6 +590,11 @@ mod tests {
         assert!(cap <= d.rules.tdm.max_players && cap <= d.net.max_remote_clients + 1);
         let h = HostSettings::new(&d, None);
         assert_eq!((h.port, h.max_players), (d.net.port, cap));
+        assert_eq!(h.mode, vetf_net::MatchMode::Tdm, "team deathmatch unless HOST GAME or --mode says otherwise");
+        // Free-for-all seats its own number (8), and need not be even.
+        let ffa = max_players_cap_for(&d, vetf_net::MatchMode::Ffa);
+        assert_eq!(ffa, d.rules.ffa.max_players.min(d.net.max_remote_clients + 1));
+        assert!(ffa <= cap);
         assert_eq!(HostSettings::new(&d, Some(50000)).port, 50000, "--port overrides net.ron");
         // The host plays over a local link: a 10-player game takes 9 netcode slots.
         assert_eq!(netcode_max_clients(10), 9);

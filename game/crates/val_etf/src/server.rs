@@ -1,5 +1,5 @@
 //! Host authority: player spawns, the authoritative simulation, shot-claim validation, damage, deaths,
-//! respawns and team-deathmatch rules. Runs only while hosting.
+//! respawns and the match rules (team deathmatch and free-for-all). Runs only while hosting.
 
 use crate::config::{Cli, CurrentLevel, Data};
 use crate::net::{Role, Session};
@@ -47,7 +47,7 @@ impl Plugin for ServerPlugin {
             .add_systems(FixedUpdate, simulate_authoritative.in_set(SimSystems::Simulate).run_if(is_hosting))
             .add_systems(
                 FixedUpdate,
-                (resolve_claims, handle_deaths, respawn_players, run_match)
+                (resolve_claims, handle_deaths, sync_teams, respawn_players, run_match)
                     .chain()
                     .in_set(SimSystems::Resolve)
                     .run_if(is_hosting),
@@ -86,6 +86,24 @@ pub struct ServerPlayer {
     pub choice: Option<LoadoutChoice>,
     /// Who last damaged this player (kill credit for bleeding out).
     pub last_attacker: Option<Entity>,
+    /// When this player reached their kill count (a host-wide kill number; lower is earlier): breaks a
+    /// free-for-all tie on kills and deaths. Meaningless while they have no kills.
+    pub kill_seq: u64,
+}
+
+/// What the host set up in HOST GAME: the mode before the match entity exists (the host's own player can
+/// connect first), and the player slots the netcode was opened with (MAX PLAYERS), so a mode change in the
+/// lobby never promises more seats than that.
+#[derive(Resource, Debug, Clone, Copy, PartialEq)]
+pub struct HostedMatch {
+    pub mode: MatchMode,
+    pub slots: u32,
+}
+
+/// Can a player of team `a` hurt one of team `b`? Players without a team (free-for-all, the gun range)
+/// are everyone's enemy.
+pub fn hostile(a: Option<Team>, b: Option<Team>) -> bool {
+    a.is_none() || b.is_none() || a != b
 }
 
 #[derive(Message, Debug, Clone, Copy)]
@@ -109,35 +127,46 @@ const CLAIM_WAIT_TICKS: u32 = 30;
 /// Seconds between the end of a match and the next one.
 const INTERMISSION_S: f32 = 8.0;
 
-/// The match entity. A team deathmatch starts in the lobby unless `lobby` is false (`--live`); the range
-/// is always live.
+/// The match entity. A deathmatch (team or free-for-all) starts in the lobby unless `lobby` is false
+/// (`--live`); the range is always live, whatever `mode` asks for.
 pub fn spawn_match(
     commands: &mut Commands,
     data: &GameData,
     map: &str,
+    mode: MatchMode,
     lobby_name: String,
     max_players: u32,
     lobby: bool,
 ) {
-    let range = map.eq_ignore_ascii_case("range");
+    let mode = if map.eq_ignore_ascii_case("range") { MatchMode::Range } else { mode };
+    let rules = data.rules.deathmatch(mode);
+    commands.insert_resource(HostedMatch { mode, slots: max_players });
     commands.spawn((
         Name::new("Match"),
         MatchState {
-            mode: if range { MatchMode::Range } else { MatchMode::Tdm },
+            mode,
             map: map.to_lowercase(),
             score_a: 0,
             score_b: 0,
-            score_limit: data.rules.tdm.score_limit,
-            time_left_s: data.rules.tdm.time_limit_s,
-            phase: if lobby && !range { MatchPhase::Lobby } else { MatchPhase::Live },
+            score_limit: rules.score_limit,
+            time_left_s: rules.time_limit_s,
+            phase: if lobby && mode.is_deathmatch() { MatchPhase::Lobby } else { MatchPhase::Live },
             lobby_name,
-            max_players,
-            rules: if range { data.rules.rulesets.range } else { data.rules.rulesets.tdm },
+            max_players: mode_max_players(data, mode, max_players),
+            rules: data.rules.rulesets.get(mode),
         },
         Replicate::to_clients(NetworkTarget::All),
         // A session that ends must not leave its mode and rules to the next one.
         DespawnOnEnter(crate::AppState::MainMenu),
     ));
+}
+
+/// A mode's seats for a game hosted with `slots` players: the mode's limit (`rules.ron`) and the slots,
+/// even in team deathmatch (teams of equal size), at least 2.
+pub fn mode_max_players(data: &GameData, mode: MatchMode, slots: u32) -> u32 {
+    let n = slots.min(data.rules.deathmatch(mode).max_players);
+    let n = if mode.has_teams() { n - n % 2 } else { n };
+    n.max(2)
 }
 
 /// Every new link (remote clients and the host's own) needs a replication sender.
@@ -163,6 +192,7 @@ fn on_link_connected(
     links: Query<&RemoteId, With<ClientOf>>,
     players: Query<(&PlayerInfo, &PlayerMove, &Vitals)>,
     matches: Query<&MatchState>,
+    hosted: Option<Res<HostedMatch>>,
     session: Res<Session>,
     data: Res<Data>,
     level: Option<Res<CurrentLevel>>,
@@ -173,24 +203,27 @@ fn on_link_connected(
     }
     let (Ok(remote), Some(level)) = (links.get(trigger.entity), level) else { return };
     let peer = remote.0;
-    // The match entity may not exist yet when the host's own client connects; the level decides.
-    let tdm =
-        !level.name.eq_ignore_ascii_case("range") && matches.iter().next().is_none_or(|m| m.mode == MatchMode::Tdm);
-    let team = tdm.then(|| {
+    // The match entity may not exist yet when the host's own client connects: HOST GAME's mode decides.
+    let mode = matches
+        .iter()
+        .next()
+        .map(|m| m.mode)
+        .or(hosted.map(|h| h.mode))
+        .unwrap_or(if level.name.eq_ignore_ascii_case("range") { MatchMode::Range } else { MatchMode::Tdm });
+    let team = mode.has_teams().then(|| {
         let a = players.iter().filter(|(i, _, _)| i.team == Some(Team::A)).count();
         let b = players.iter().filter(|(i, _, _)| i.team == Some(Team::B)).count();
         if a <= b { Team::A } else { Team::B }
     });
     let enemies: Vec<Vec3> = players
         .iter()
-        .filter(|(i, _, _)| i.team != team || team.is_none())
+        .filter(|(i, _, _)| hostile(team, i.team))
         .filter(|(_, _, v)| !v.health.dead)
         .map(|(_, m, _)| m.0.pos)
         .collect();
-    let spawn = pick_spawn(&level, team, &enemies);
-    let mode = if tdm { MatchMode::Tdm } else { MatchMode::Range };
-    let loadout = Loadout::default_for(&data, mode);
     let id = peer.to_bits();
+    let spawn = spawn_for(&data, &level, mode, team, &enemies, spawn_roll(id, players.iter().count() as u64, 0));
+    let loadout = Loadout::default_for(&data, mode);
     let player = commands
         .spawn((
             Name::new(format!("Player {id:x}")),
@@ -200,7 +233,7 @@ fn on_link_connected(
             PlayerLook { yaw: spawn.yaw, pitch: 0.0 },
             PlayerWeapon(WeaponState::new(&data, &loadout.weapon)),
             PlayerItems(ItemState::new(&loadout.kit)),
-            fresh_vitals(&data, &loadout),
+            fresh_vitals(&data, &loadout, mode),
             PlayerLoadout(loadout),
             Score::default(),
             PlayerNet::default(),
@@ -211,6 +244,7 @@ fn on_link_connected(
                 shots: VecDeque::new(),
                 choice: None,
                 last_attacker: None,
+                kill_seq: 0,
             },
         ))
         .insert((
@@ -229,14 +263,51 @@ fn loadout_fuel(data: &GameData, l: &Loadout) -> f32 {
     data.movement.jetpack.fuel_s * data.armor.effects(l.weight).fuel
 }
 
-fn fresh_vitals(data: &GameData, l: &Loadout) -> Vitals {
+fn fresh_vitals(data: &GameData, l: &Loadout, mode: MatchMode) -> Vitals {
     Vitals {
         health: Health::new(data.armor.zone_hp),
         halo: HaloState::full(&l.halo),
         wounds: Wounds::default(),
         respawn_s: 0.0,
-        protected_s: data.rules.tdm.spawn_protection_s,
+        protected_s: data.rules.deathmatch(mode).spawn_protection_s,
     }
+}
+
+/// A spawn pick's random number in [0, 1), from the player, their deaths and the tick (deterministic, so a
+/// test run is repeatable).
+fn spawn_roll(player: u64, deaths: u64, tick: u64) -> f32 {
+    vetf_sim::rng::SplitMix::from_parts(&[player, deaths, tick, 0x0053_5041_574e]).next_f32()
+}
+
+/// Where a player (re)spawns: free-for-all picks from every spawn (see [`pick_ffa_spawn`]); otherwise the
+/// team's spawn farthest from living enemies.
+fn spawn_for(
+    data: &GameData,
+    level: &Level,
+    mode: MatchMode,
+    team: Option<Team>,
+    enemies: &[Vec3],
+    roll: f32,
+) -> SpawnPoint {
+    match mode {
+        MatchMode::Ffa => pick_ffa_spawn(level, enemies, data.rules.ffa.spawn_slack_m, roll),
+        MatchMode::Tdm | MatchMode::Range => pick_spawn(level, team, enemies),
+    }
+}
+
+/// Free-for-all: any spawn of either side. The ones within `slack_m` of the farthest from every living
+/// enemy are candidates, and `roll` (in [0, 1)) picks one, so players do not always appear at the same
+/// point. With no living enemies every spawn is a candidate.
+pub fn pick_ffa_spawn(level: &Level, enemies: &[Vec3], slack_m: f32, roll: f32) -> SpawnPoint {
+    let nearest = |s: &SpawnPoint| enemies.iter().map(|e| e.distance(s.pos)).fold(f32::INFINITY, f32::min);
+    let best = level.spawns.iter().map(nearest).fold(f32::NEG_INFINITY, f32::max);
+    let candidates: Vec<&SpawnPoint> =
+        level.spawns.iter().filter(|s| enemies.is_empty() || nearest(s) >= best - slack_m.max(0.0)).collect();
+    if candidates.is_empty() {
+        return SpawnPoint { pos: Vec3::new(0.0, 0.5, 0.0), yaw: 0.0, team: None };
+    }
+    let i = ((roll.clamp(0.0, 1.0) * candidates.len() as f32) as usize).min(candidates.len() - 1);
+    *candidates[i]
 }
 
 /// The spawn (of our team) farthest from any living enemy.
@@ -355,7 +426,7 @@ fn receive_hellos(
                 if let Ok(l) = chosen {
                     *w = PlayerWeapon(WeaponState::new(&data, &l.weapon));
                     *it = PlayerItems(ItemState::new(&l.kit));
-                    *v = fresh_vitals(&data, &l);
+                    *v = fresh_vitals(&data, &l, mode);
                     mv.0.fuel = loadout_fuel(&data, &l);
                     *lo = PlayerLoadout(l);
                     // Kept for every respawn (a LoadoutUpdate replaces it).
@@ -398,6 +469,7 @@ fn receive_lobby_actions(
     mut links: Query<(Entity, &mut MessageReceiver<LobbyAction>), With<ClientOf>>,
     mut players: Query<(&mut PlayerInfo, &mut PlayerNet, &mut Vitals, &mut Score, &ServerPlayer)>,
     mut matches: Query<&mut MatchState>,
+    hosted: Option<Res<HostedMatch>>,
     data: Res<Data>,
 ) {
     let Some(mut m) = matches.iter_mut().next() else { return };
@@ -408,6 +480,7 @@ fn receive_lobby_actions(
                 continue;
             }
             let Some(team) = players.iter().find(|p| p.4.link == link).map(|p| p.0.team) else { continue };
+            let from_host = players.iter().any(|p| p.4.link == link && p.4.peer.is_local());
             let free = |to: Team, players: &Query<(&mut PlayerInfo, &mut PlayerNet, &mut Vitals, &mut Score, &ServerPlayer)>| {
                 (players.iter().filter(|p| p.0.team == Some(to)).count() as u32) < (m.max_players / 2).max(1)
             };
@@ -419,7 +492,25 @@ fn receive_lobby_actions(
                         }
                     }
                 }
+                LobbyAction::SetMode(mode) => {
+                    let slots = hosted.as_ref().map_or(m.max_players, |h| h.slots);
+                    let Some(max) = lobby_mode_change(&data, &m, mode, slots, players.iter().count() as u32, from_host)
+                    else {
+                        continue;
+                    };
+                    info!("the host switches the lobby to {mode:?} ({max} players)");
+                    let rules = data.rules.deathmatch(mode);
+                    m.mode = mode;
+                    m.max_players = max;
+                    m.score_limit = rules.score_limit;
+                    m.rules = data.rules.rulesets.get(mode);
+                    // Teams follow on the next tick (`sync_teams`); everyone respawns for the new mode.
+                    reset_match(&mut m, &data, None, players.iter_mut().map(|(_, n, v, s, _)| (n, v, s)));
+                }
                 LobbyAction::SwitchTeam => {
+                    if !m.has_teams() {
+                        continue;
+                    }
                     let Some(to) = team.map(Team::other).filter(|t| free(*t, &players)) else { continue };
                     for (mut info, mut net, mut v, _, p) in &mut players {
                         if p.link == link {
@@ -433,7 +524,7 @@ fn receive_lobby_actions(
                     }
                 }
                 LobbyAction::Start => {
-                    if players.iter().any(|p| p.4.link == link && p.4.peer.is_local()) {
+                    if from_host {
                         info!("the host starts the match");
                         reset_match(
                             &mut m,
@@ -448,7 +539,65 @@ fn receive_lobby_actions(
     }
 }
 
-/// A fresh match (in `phase`, if given): scores, the deathmatch clock, everyone's score and READY, and
+/// The lobby's seats after the host asks to change its mode to `mode`, or `None` when the change is refused:
+/// only the host, only in the lobby, only between the deathmatch modes (the range stays the range), and
+/// never to fewer seats than players already in the lobby. `slots` is what HOST GAME opened.
+fn lobby_mode_change(
+    data: &GameData,
+    m: &MatchState,
+    mode: MatchMode,
+    slots: u32,
+    players: u32,
+    from_host: bool,
+) -> Option<u32> {
+    if !from_host || m.phase != MatchPhase::Lobby || !m.mode.is_deathmatch() || !mode.is_deathmatch() {
+        return None;
+    }
+    if m.mode == mode {
+        return None;
+    }
+    let max = mode_max_players(data, mode, slots);
+    if players > max {
+        warn!("{mode:?} seats {max}, but {players} players are in the lobby: mode not changed");
+        return None;
+    }
+    Some(max)
+}
+
+/// Teams follow the mode: none in free-for-all and the range; in team deathmatch a player without one
+/// (after a switch from free-for-all, or one who joined before the match existed) joins the smaller team.
+fn sync_teams(matches: Query<&MatchState>, mut players: Query<(&PlayerId, &mut PlayerInfo)>) {
+    let Some(m) = matches.iter().next() else { return };
+    if !m.has_teams() {
+        for (_, mut info) in &mut players {
+            if info.team.is_some() {
+                info.team = None;
+            }
+        }
+        return;
+    }
+    let count = |t: Team, players: &Query<(&PlayerId, &mut PlayerInfo)>| {
+        players.iter().filter(|(_, i)| i.team == Some(t)).count()
+    };
+    let (mut a, mut b) = (count(Team::A, &players), count(Team::B, &players));
+    let mut free: Vec<u64> = players.iter().filter(|(_, i)| i.team.is_none()).map(|(id, _)| id.0).collect();
+    // By id (the host is 0), so the host lands on team A.
+    free.sort_unstable();
+    for id in free {
+        let team = if a <= b { Team::A } else { Team::B };
+        if team == Team::A {
+            a += 1;
+        } else {
+            b += 1;
+        }
+        if let Some((_, mut info)) = players.iter_mut().find(|(p, _)| p.0 == id) {
+            info!("{} joins team {team:?}", info.name);
+            info.team = Some(team);
+        }
+    }
+}
+
+/// A fresh match (in `phase`, if given): scores, the mode's clock, everyone's score and READY, and
 /// everyone respawns on the next tick. Also the host's RESTART MATCH / BACK TO LOBBY (`esc_menu.rs`).
 pub(crate) fn reset_match<'a>(
     m: &mut MatchState,
@@ -458,8 +607,8 @@ pub(crate) fn reset_match<'a>(
 ) {
     m.score_a = 0;
     m.score_b = 0;
-    if m.mode == MatchMode::Tdm {
-        m.time_left_s = data.rules.tdm.time_limit_s;
+    if m.mode.is_deathmatch() {
+        m.time_left_s = data.rules.deathmatch(m.mode).time_limit_s;
     }
     if let Some(phase) = phase {
         m.phase = phase;
@@ -690,7 +839,7 @@ fn resolve_claims(
         if victim_e == shooter.entity
             || vitals.health.dead
             || vitals.protected_s > 0.0
-            || (shooter.team.is_some() && shooter.team == vinfo.team)
+            || !hostile(shooter.team, vinfo.team)
         {
             continue;
         }
@@ -748,12 +897,12 @@ fn resolve_claims(
         if report.killed {
             deaths.write(PlayerDied { victim: victim_e, killer: Some(shooter.entity), zone: Some(zone) });
         }
-        // Volt core: a breaking arc shocks the victim's enemies nearby.
+        // Volt core: a breaking arc shocks the victim's enemies nearby (in free-for-all: everyone else).
         if report.shield_broke && halo_spec.core == Some(Core::Volt) {
             let pulse = &data.combat.volt_pulse;
             let victim_team = vinfo.team;
-            for (_, _, info, _, mut v, m, _) in &mut players {
-                if info.team != victim_team && m.0.pos.distance(victim_pos) <= pulse.radius_m {
+            for (e, _, info, _, mut v, m, _) in &mut players {
+                if e != victim_e && hostile(info.team, victim_team) && m.0.pos.distance(victim_pos) <= pulse.radius_m {
                     v.wounds.volt_slow_s = pulse.duration_s;
                 }
             }
@@ -762,42 +911,54 @@ fn resolve_claims(
     pending.0 = keep;
 }
 
-#[allow(clippy::too_many_arguments)]
+/// A kill's mark on the match: whether it counts (a live deathmatch, an enemy killed), and in team deathmatch
+/// a point for the killer's team. Free-for-all reads each player's kills instead, so nothing is added here.
+fn score_kill(m: &mut MatchState, killer: Option<Team>, victim: Option<Team>) -> bool {
+    if !m.mode.is_deathmatch() || m.phase != MatchPhase::Live || !hostile(killer, victim) {
+        return false;
+    }
+    match killer.filter(|_| m.has_teams()) {
+        Some(Team::A) => m.score_a += 1,
+        Some(Team::B) => m.score_b += 1,
+        None => {}
+    }
+    true
+}
+
+#[allow(clippy::too_many_arguments, clippy::type_complexity)]
 fn handle_deaths(
     data: Res<Data>,
     mut died: MessageReader<PlayerDied>,
-    mut players: Query<(&PlayerId, &PlayerInfo, &mut Vitals, &mut Score, &mut PlayerMove)>,
+    mut players: Query<(&PlayerId, &PlayerInfo, &mut Vitals, &mut Score, &mut PlayerMove, &mut ServerPlayer)>,
     mut weapons: Query<(&mut PlayerWeapon, &PlayerLoadout)>,
     mut matches: Query<&mut MatchState>,
     server: Query<&Server>,
     mut feed: ServerMultiMessageSender,
+    mut kills: Local<u64>,
 ) {
+    let mode = matches.iter().next().map_or(MatchMode::Tdm, |m| m.mode);
     for d in died.read() {
-        let Ok((vid, vinfo, mut v, mut score, mut mv)) = players.get_mut(d.victim) else { continue };
+        let Ok((vid, vinfo, mut v, mut score, mut mv, _)) = players.get_mut(d.victim) else { continue };
         v.health.dead = true;
-        v.respawn_s = data.rules.tdm.respawn_s;
+        v.respawn_s = data.rules.deathmatch(mode).respawn_s;
         score.deaths += 1;
         mv.0.vel = Vec3::ZERO;
         let (victim_id, victim_team) = (vid.0, vinfo.team);
         let mut killer_id = None;
         if let Some(k) = d.killer.filter(|k| *k != d.victim)
-            && let Ok((kid, kinfo, _, mut kscore, _)) = players.get_mut(k)
+            && let Ok((kid, kinfo, _, mut kscore, _, mut ksp)) = players.get_mut(k)
         {
             kscore.kills += 1;
             killer_id = Some(kid.0);
+            // When they reached this kill count: the free-for-all tie-break.
+            *kills += 1;
+            ksp.kill_seq = *kills;
             if let Some(mut m) = matches.iter_mut().next()
-                && m.mode == MatchMode::Tdm
-                && m.phase == MatchPhase::Live
-                && kinfo.team != victim_team
+                && score_kill(&mut m, kinfo.team, victim_team)
             {
-                match kinfo.team {
-                    Some(Team::A) => m.score_a += 1,
-                    Some(Team::B) => m.score_b += 1,
-                    None => {}
-                }
                 // Every kill tops up a magazine (user direction), so a good run keeps going.
                 if let Ok((mut w, l)) = weapons.get_mut(k) {
-                    w.0.refill_mags(data.rules.tdm.kill_refill_mags, l.0.weapon.mag_capacity);
+                    w.0.refill_mags(data.rules.deathmatch(m.mode).kill_refill_mags, l.0.weapon.mag_capacity);
                 }
             }
         }
@@ -814,8 +975,11 @@ fn handle_deaths(
 fn respawn_players(
     data: Res<Data>,
     level: Option<Res<CurrentLevel>>,
+    timeline: Res<LocalTimeline>,
     mut players: Query<(
+        &PlayerId,
         &PlayerInfo,
+        &Score,
         &mut Vitals,
         &mut PlayerMove,
         &mut PlayerLook,
@@ -829,9 +993,10 @@ fn respawn_players(
     let Some(level) = level else { return };
     let mode = match_mode(&matches);
     let dt = data.tick_dt();
-    let living: Vec<(Option<Team>, Vec3)> =
-        players.iter().filter(|(_, v, ..)| !v.health.dead).map(|(i, _, m, ..)| (i.team, m.0.pos)).collect();
-    for (info, mut v, mut mv, mut look, mut w, mut it, mut lo, mut sp) in &mut players {
+    let tick = timeline.tick().0 as u64;
+    let mut living: Vec<(Option<Team>, Vec3)> =
+        players.iter().filter(|p| !p.3.health.dead).map(|p| (p.1.team, p.4.0.pos)).collect();
+    for (id, info, score, mut v, mut mv, mut look, mut w, mut it, mut lo, mut sp) in &mut players {
         if !v.health.dead {
             continue;
         }
@@ -842,10 +1007,13 @@ fn respawn_players(
         if let Some(l) = sp.choice.as_ref().and_then(|c| loadout_from_choice(&data, c, mode).ok()) {
             lo.0 = l;
         }
-        let enemies: Vec<Vec3> =
-            living.iter().filter(|(t, _)| t.is_none() || *t != info.team).map(|(_, p)| *p).collect();
-        let spawn = pick_spawn(&level, info.team, &enemies);
-        *v = fresh_vitals(&data, &lo.0);
+        let enemies: Vec<Vec3> = living.iter().filter(|(t, _)| hostile(info.team, *t)).map(|(_, p)| *p).collect();
+        let spawn = spawn_for(&data, &level, mode, info.team, &enemies, spawn_roll(id.0, score.deaths as u64, tick));
+        // Players spawning on the same tick (the start of a match) keep away from each other too.
+        if mode == MatchMode::Ffa {
+            living.push((info.team, spawn.pos));
+        }
+        *v = fresh_vitals(&data, &lo.0, mode);
         mv.0 = MoveState::spawn(spawn.pos, loadout_fuel(&data, &lo.0));
         *look = PlayerLook { yaw: spawn.yaw, pitch: 0.0 };
         w.0 = WeaponState::new(&data, &lo.0.weapon);
@@ -856,14 +1024,60 @@ fn respawn_players(
     }
 }
 
+/// One player's standing in a free-for-all.
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct Standing {
+    pub id: u64,
+    pub kills: u16,
+    pub deaths: u16,
+    /// When they reached their kill count (lower is earlier; see [`ServerPlayer::kill_seq`]).
+    pub kill_seq: u64,
+}
+
+/// The free-for-all winner: the most kills, then the fewest deaths, then whoever reached that kill count
+/// first. `None` is a draw (nobody scored and the deaths tie too).
+pub fn ffa_winner(standings: &[Standing]) -> Option<u64> {
+    // Without kills there is no "first to reach it".
+    let key = |s: &Standing| (std::cmp::Reverse(s.kills), s.deaths, if s.kills > 0 { s.kill_seq } else { 0 });
+    let mut ranked: Vec<&Standing> = standings.iter().collect();
+    ranked.sort_by_key(|s| key(s));
+    match ranked.as_slice() {
+        [] => None,
+        [one] => Some(one.id),
+        [first, second, ..] => (key(first) != key(second)).then_some(first.id),
+    }
+}
+
+/// How a live match ends, if it does now: a team reaches the score limit (team deathmatch), a player does
+/// (free-for-all), or the clock runs out.
+pub fn match_result(m: &MatchState, standings: &[Standing]) -> Option<MatchPhase> {
+    let limit = m.score_limit;
+    let out_of_time = m.time_left_s <= 0.0;
+    match m.mode {
+        MatchMode::Tdm if m.score_a >= limit || m.score_b >= limit || out_of_time => {
+            let winner = match m.score_a.cmp(&m.score_b) {
+                std::cmp::Ordering::Greater => Some(Team::A),
+                std::cmp::Ordering::Less => Some(Team::B),
+                std::cmp::Ordering::Equal => None,
+            };
+            Some(MatchPhase::Ended { winner, player: None })
+        }
+        MatchMode::Ffa if standings.iter().any(|s| s.kills as u32 >= limit) || out_of_time => {
+            Some(MatchPhase::Ended { winner: None, player: ffa_winner(standings) })
+        }
+        _ => None,
+    }
+}
+
+#[allow(clippy::type_complexity)]
 fn run_match(
     data: Res<Data>,
     mut matches: Query<&mut MatchState>,
-    mut players: Query<(&mut PlayerNet, &mut Vitals, &mut Score)>,
+    mut players: Query<(&PlayerId, &mut PlayerNet, &mut Vitals, &mut Score, &ServerPlayer)>,
     mut intermission: Local<f32>,
 ) {
     let Some(mut m) = matches.iter_mut().next() else { return };
-    if m.mode != MatchMode::Tdm {
+    if !m.mode.is_deathmatch() {
         return;
     }
     let dt = data.tick_dt();
@@ -872,23 +1086,26 @@ fn run_match(
         MatchPhase::Lobby => {}
         MatchPhase::Live => {
             m.time_left_s = (m.time_left_s - dt).max(0.0);
-            let limit = m.score_limit;
-            if m.score_a >= limit || m.score_b >= limit || m.time_left_s <= 0.0 {
-                let winner = match m.score_a.cmp(&m.score_b) {
-                    std::cmp::Ordering::Greater => Some(Team::A),
-                    std::cmp::Ordering::Less => Some(Team::B),
-                    std::cmp::Ordering::Equal => None,
-                };
-                m.phase = MatchPhase::Ended { winner };
+            let standings: Vec<Standing> = players
+                .iter()
+                .map(|(id, _, _, s, sp)| Standing { id: id.0, kills: s.kills, deaths: s.deaths, kill_seq: sp.kill_seq })
+                .collect();
+            if let Some(end) = match_result(&m, &standings) {
+                m.phase = end;
                 *intermission = INTERMISSION_S;
-                info!("match over: {winner:?} wins {}-{}", m.score_a, m.score_b);
+                info!("match over: {end:?}, {}-{}", m.score_a, m.score_b);
             }
         }
         MatchPhase::Ended { .. } => {
             *intermission -= dt;
             if *intermission <= 0.0 {
                 // Back to the lobby: teams, loadouts and READY for the next one.
-                reset_match(&mut m, &data, Some(MatchPhase::Lobby), players.iter_mut());
+                reset_match(
+                    &mut m,
+                    &data,
+                    Some(MatchPhase::Lobby),
+                    players.iter_mut().map(|(_, n, v, s, _)| (n, v, s)),
+                );
             }
         }
     }
@@ -900,6 +1117,170 @@ mod tests {
     use vetf_sim::ZoneTable;
     use vetf_sim::data::{AmmoChoice, AmmoKind};
     use vetf_sim::gear::HaloChoice;
+
+    fn spawn_ring() -> Level {
+        // Team A's spawns on the west, team B's on the east (like Showhome), 10 m apart.
+        let mut level = Level::default();
+        for x in [0.0, 10.0, 20.0] {
+            level.spawns.push(SpawnPoint { pos: Vec3::new(x, 0.0, 0.0), yaw: 0.0, team: Some(Team::A) });
+        }
+        for x in [80.0, 90.0, 100.0] {
+            level.spawns.push(SpawnPoint { pos: Vec3::new(x, 0.0, 0.0), yaw: 0.0, team: Some(Team::B) });
+        }
+        level
+    }
+
+    #[test]
+    fn free_for_all_spawns_on_either_side_far_from_enemies() {
+        let level = spawn_ring();
+        // An enemy on team B's side: the farthest points are team A's, whatever team the spawn was drawn for.
+        let enemy = [Vec3::new(95.0, 0.0, 0.0)];
+        assert_eq!(pick_ffa_spawn(&level, &enemy, 0.0, 0.99).pos.x, 0.0, "no slack: always the farthest");
+        // With 12 m of slack the two westmost spawns (95 and 85 m away) are candidates, never the third (75 m).
+        let picks: Vec<f32> = (0..20).map(|i| pick_ffa_spawn(&level, &enemy, 12.0, i as f32 / 20.0).pos.x).collect();
+        assert!(picks.iter().all(|x| *x == 0.0 || *x == 10.0), "{picks:?}");
+        assert!(picks.contains(&0.0) && picks.contains(&10.0), "a little randomness: {picks:?}");
+        // An enemy on team A's side: team B's spawns are just as good for anyone in free-for-all.
+        let west = [Vec3::new(5.0, 0.0, 0.0)];
+        assert_eq!(pick_ffa_spawn(&level, &west, 0.0, 0.0).pos.x, 100.0);
+        // The nearest enemy counts: one at each end leaves the middle spawns.
+        let both = [Vec3::new(-10.0, 0.0, 0.0), Vec3::new(110.0, 0.0, 0.0)];
+        let mid = pick_ffa_spawn(&level, &both, 0.0, 0.5).pos.x;
+        assert!(mid == 20.0 || mid == 80.0, "{mid}");
+        // Nobody alive: any spawn of either side, by the roll.
+        let all: Vec<f32> = (0..6).map(|i| pick_ffa_spawn(&level, &[], 6.0, i as f32 / 6.0).pos.x).collect();
+        assert_eq!(all, vec![0.0, 10.0, 20.0, 80.0, 90.0, 100.0]);
+        // A roll of 1.0 (out of range) still picks a spawn; a level without spawns falls back to the origin.
+        assert_eq!(pick_ffa_spawn(&level, &[], 0.0, 1.0).pos.x, 100.0);
+        assert_eq!(pick_ffa_spawn(&Level::default(), &enemy, 6.0, 0.3).pos, Vec3::new(0.0, 0.5, 0.0));
+    }
+
+    #[test]
+    fn free_for_all_spawns_come_from_the_rules_and_rolls_repeat() {
+        let d = GameData::embedded();
+        let level = vetf_sim::maps::showhome();
+        let enemy = [level.spawns[0].pos];
+        for i in 0..8 {
+            let roll = spawn_roll(7, i, 1200);
+            assert_eq!(roll, spawn_roll(7, i, 1200), "deterministic");
+            assert!((0.0..1.0).contains(&roll));
+            let s = spawn_for(&d, &level, MatchMode::Ffa, None, &enemy, roll);
+            let far = level.spawns.iter().map(|p| p.pos.distance(enemy[0])).fold(0.0, f32::max);
+            assert!(s.pos.distance(enemy[0]) >= far - d.rules.ffa.spawn_slack_m - 1e-3);
+        }
+        // Team deathmatch keeps to the team's side.
+        let s = spawn_for(&d, &level, MatchMode::Tdm, Some(Team::B), &enemy, 0.0);
+        assert_eq!(s.team, Some(Team::B));
+    }
+
+    #[test]
+    fn everyone_is_an_enemy_without_teams() {
+        assert!(hostile(None, None), "free-for-all");
+        assert!(hostile(Some(Team::A), None) && hostile(None, Some(Team::B)));
+        assert!(hostile(Some(Team::A), Some(Team::B)));
+        assert!(!hostile(Some(Team::B), Some(Team::B)), "team mates");
+    }
+
+    fn standing(id: u64, kills: u16, deaths: u16, kill_seq: u64) -> Standing {
+        Standing { id, kills, deaths, kill_seq }
+    }
+
+    #[test]
+    fn the_free_for_all_winner_has_most_kills_then_fewest_deaths_then_got_there_first() {
+        assert_eq!(ffa_winner(&[]), None);
+        assert_eq!(ffa_winner(&[standing(3, 0, 0, 0)]), Some(3), "alone wins");
+        assert_eq!(ffa_winner(&[standing(1, 9, 2, 40), standing(2, 12, 7, 50), standing(3, 4, 0, 30)]), Some(2));
+        // Same kills: fewer deaths.
+        assert_eq!(ffa_winner(&[standing(1, 12, 5, 40), standing(2, 12, 3, 50)]), Some(2));
+        // Same kills and deaths: the first to reach that score.
+        assert_eq!(ffa_winner(&[standing(1, 12, 3, 52), standing(2, 12, 3, 47)]), Some(2));
+        // Nobody scored and the deaths tie: a draw (stale kill numbers from an earlier match do not count).
+        assert_eq!(ffa_winner(&[standing(1, 0, 1, 90), standing(2, 0, 1, 12)]), None);
+        assert_eq!(ffa_winner(&[standing(1, 0, 2, 0), standing(2, 0, 1, 0)]), Some(2));
+    }
+
+    fn live(mode: MatchMode) -> MatchState {
+        let d = GameData::embedded();
+        let rules = d.rules.deathmatch(mode);
+        MatchState {
+            mode,
+            map: "showhome".into(),
+            score_a: 0,
+            score_b: 0,
+            score_limit: rules.score_limit,
+            time_left_s: rules.time_limit_s,
+            phase: MatchPhase::Live,
+            lobby_name: String::new(),
+            max_players: rules.max_players,
+            rules: d.rules.rulesets.get(mode),
+        }
+    }
+
+    #[test]
+    fn a_free_for_all_ends_at_the_score_limit_or_the_clock() {
+        let m = live(MatchMode::Ffa);
+        assert_eq!(m.score_limit, 25);
+        let close = [standing(1, 24, 3, 80), standing(2, 20, 1, 70)];
+        assert_eq!(match_result(&m, &close), None, "nobody at 25 yet");
+        let won = [standing(1, 25, 3, 81), standing(2, 20, 1, 70)];
+        assert_eq!(match_result(&m, &won), Some(MatchPhase::Ended { winner: None, player: Some(1) }));
+        // Team scores mean nothing in free-for-all.
+        let mut odd = m.clone();
+        odd.score_a = 99;
+        assert_eq!(match_result(&odd, &close), None);
+        // Time: the leader wins.
+        let timed_out = MatchState { time_left_s: 0.0, ..m.clone() };
+        assert_eq!(match_result(&timed_out, &close), Some(MatchPhase::Ended { winner: None, player: Some(1) }));
+        assert_eq!(
+            match_result(&timed_out, &[standing(1, 0, 0, 0), standing(2, 0, 0, 0)]),
+            Some(MatchPhase::Ended { winner: None, player: None }),
+            "a draw"
+        );
+    }
+
+    #[test]
+    fn kills_count_against_every_enemy_in_free_for_all() {
+        let mut ffa = live(MatchMode::Ffa);
+        assert!(score_kill(&mut ffa, None, None), "no teams: everyone is an enemy");
+        assert_eq!((ffa.score_a, ffa.score_b), (0, 0), "free-for-all reads players' kills, not team scores");
+        let mut tdm = live(MatchMode::Tdm);
+        assert!(score_kill(&mut tdm, Some(Team::B), Some(Team::A)));
+        assert_eq!((tdm.score_a, tdm.score_b), (0, 1));
+        assert!(!score_kill(&mut tdm, Some(Team::A), Some(Team::A)), "a team kill does not count");
+        assert!(!score_kill(&mut live(MatchMode::Range), None, None), "the range keeps no score");
+        let mut lobby = MatchState { phase: MatchPhase::Lobby, ..live(MatchMode::Ffa) };
+        assert!(!score_kill(&mut lobby, None, None), "not before START MATCH");
+    }
+
+    #[test]
+    fn team_deathmatch_still_ends_on_team_scores() {
+        let mut m = live(MatchMode::Tdm);
+        let ace = [standing(1, 60, 0, 1)];
+        assert_eq!(match_result(&m, &ace), None, "a player's kills do not end a team match");
+        m.score_b = m.score_limit;
+        assert_eq!(match_result(&m, &ace), Some(MatchPhase::Ended { winner: Some(Team::B), player: None }));
+        assert_eq!(match_result(&live(MatchMode::Range), &ace), None, "the range never ends");
+    }
+
+    #[test]
+    fn the_host_switches_the_lobby_between_the_deathmatch_modes() {
+        let d = GameData::embedded();
+        let lobby = MatchState { phase: MatchPhase::Lobby, max_players: 10, ..live(MatchMode::Tdm) };
+        // Free-for-all seats at most 8 (rules.ron), team deathmatch 10 and even.
+        assert_eq!(lobby_mode_change(&d, &lobby, MatchMode::Ffa, 10, 3, true), Some(8));
+        assert_eq!(lobby_mode_change(&d, &lobby, MatchMode::Ffa, 10, 3, false), None, "only the host");
+        assert_eq!(lobby_mode_change(&d, &lobby, MatchMode::Ffa, 10, 9, true), None, "9 players do not fit");
+        assert_eq!(lobby_mode_change(&d, &lobby, MatchMode::Tdm, 10, 3, true), None, "already team deathmatch");
+        assert_eq!(lobby_mode_change(&d, &lobby, MatchMode::Range, 10, 3, true), None, "the range is a map");
+        let ffa = MatchState { mode: MatchMode::Ffa, max_players: 7, ..lobby.clone() };
+        assert_eq!(lobby_mode_change(&d, &ffa, MatchMode::Tdm, 7, 2, true), Some(6), "even for teams");
+        let live_ffa = MatchState { phase: MatchPhase::Live, ..ffa };
+        assert_eq!(lobby_mode_change(&d, &live_ffa, MatchMode::Tdm, 7, 2, true), None, "only in the lobby");
+        assert_eq!(mode_max_players(&d, MatchMode::Ffa, 10), 8);
+        assert_eq!(mode_max_players(&d, MatchMode::Ffa, 5), 5, "odd is fine without teams");
+        assert_eq!(mode_max_players(&d, MatchMode::Tdm, 5), 4);
+        assert_eq!(mode_max_players(&d, MatchMode::Tdm, 1), 2);
+    }
 
     #[test]
     fn spawn_picks_far_from_enemies() {
