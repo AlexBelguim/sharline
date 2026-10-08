@@ -422,8 +422,8 @@ fn damage_per_second_by_range() {
 }
 
 /// Recoil is the skill check now, and it must stay learnable. The Mako's pattern is a T (playtest round 3,
-/// DESIGN_DELTAS.md section 15): a player who learned it (pull down hard to the 8th round and on to the 10th, then
-/// against the sideways sweep: right to its turn at the 16th round, then back left to the 20th) keeps a 20-round
+/// DESIGN_DELTAS.md section 15): a player who learned it (pull down hard to the 8th round and on to the 15th, then
+/// against the sideways sweep: right to its turn at the 21st round, then back left to the 24th) keeps a 24-round
 /// aimed spray on the torso of a target 15 m away. The learned pull only knows the turning points and pulls in
 /// straight lines between them. Without pulling down, the climb leaves the torso within four rounds; pulling down
 /// but not sideways, the sweep carries it off the torso: the bar needs real horizontal control.
@@ -433,9 +433,9 @@ fn a_learned_pull_keeps_an_aimed_mako_spray_on_a_torso_at_15_m() {
     let w = d.weapon(MAKO).unwrap();
     let RecoilSpec::Pattern(p) = &w.recoil else { panic!("the Mako has a pattern") };
     let pattern = d.recoil_pattern(w).unwrap();
-    const ROUNDS: usize = 20;
+    const ROUNDS: usize = 24;
     // Rounds (0-based) the learned pull aims through: the knee of the climb, the top of the stem, the sweep's turn.
-    const KNOTS: [usize; 5] = [0, 7, 9, 15, ROUNDS - 1];
+    const KNOTS: [usize; 5] = [0, 7, 14, 20, ROUNDS - 1];
     // The view climb (pitch, yaw right; degrees) each round leaves with: the aimed kicks of the rounds before it.
     let mut climb = vec![(0.0_f32, 0.0_f32)];
     for n in 1..ROUNDS as u32 {
@@ -478,7 +478,7 @@ fn a_learned_pull_keeps_an_aimed_mako_spray_on_a_torso_at_15_m() {
     assert!(left < 4, "without pulling down the spray leaves the torso at round {}: {free:?}", left + 1);
     let only_down = zones(true, false);
     let off = only_down.iter().position(|z| *z != Some(Zone::Torso)).expect("the sweep leaves the torso");
-    assert!(off >= 10, "the stem needs no sideways pull: round {}: {only_down:?}", off + 1);
+    assert!(off >= 15, "the stem needs no sideways pull: round {}: {only_down:?}", off + 1);
 }
 
 fn still() -> WeaponEnv {

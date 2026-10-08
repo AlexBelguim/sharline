@@ -1080,14 +1080,15 @@ mod tests {
     fn recoil_follows_pattern() {
         let (d, l, mut s) = setup("ar7_mako");
         let mut kicks = vec![];
-        while kicks.len() < 10 {
+        while kicks.len() < 16 {
             if let Some(shot) = s.step(&d, &l, &input(Buttons::FIRE), &still()).shot {
                 kicks.push((shot.kick_pitch, shot.kick_yaw));
             }
         }
-        assert_eq!(kicks[0], (1.0, 0.0));
-        assert_eq!(kicks[1], (1.1, 0.0));
-        assert_eq!(kicks[9], (0.3, 0.3), "the T's bar starts after round 10");
+        assert_eq!(kicks[0], (0.95, 0.0));
+        assert_eq!(kicks[1], (1.05, 0.0));
+        assert_eq!(kicks[13], (0.8, 0.0), "the stem: rounds 1-15 straight up");
+        assert_eq!(kicks[14], (0.45, 0.48), "the T's bar starts after round 15");
     }
 
     /// Fire `shots` rounds from a standstill (hip, or fully aimed) and add up the view kick (pitch, yaw).
@@ -1115,13 +1116,13 @@ mod tests {
     }
 
     /// Playtest round 1, "the recoil is way too low on the AR": the Mako's climb after 10 rounds is about twice the
-    /// design's (4.37 deg). Round 3 made the pattern a T (DESIGN_DELTAS.md section 15): the same strong climb over
-    /// the first 10 (9.1 deg, was 8.87), then a nearly level sideways sweep, so after 20 it has climbed 9.86 deg (was
-    /// 12.64, the round-2 column kept climbing) and sits 0.85 deg left on its way across. Aimed, every kick is x0.7.
+    /// design's (4.37 deg). Round 3 made the pattern a T (DESIGN_DELTAS.md section 15) and the user tuned it: a
+    /// 15-round stem, about 70 % more climb and a 60 % wider bar. After 10 rounds it has climbed 11.9 deg straight
+    /// up; after 20 it has climbed 16.9 deg and swung 4.16 deg right into the bar. Aimed, every kick is x0.7.
     #[test]
     fn the_mako_climb_is_pinned() {
         let near = |a: (f32, f32), b: (f32, f32)| (a.0 - b.0).abs() < 1e-3 && (a.1 - b.1).abs() < 1e-3;
-        for (shots, hip) in [(10, (9.1, 0.3)), (20, (9.86, -0.85))] {
+        for (shots, hip) in [(10, (11.9, 0.0)), (20, (16.9, 4.16))] {
             let got = spray_kick("ar7_mako", shots, false);
             assert!(near(got, hip), "hip {shots}: {got:?}");
             let got = spray_kick("ar7_mako", shots, true);

@@ -6,44 +6,52 @@
 // (attachments.ron, DESIGN_DELTAS.md section 15).
 {
     "mako_recoil_pattern": (
-        // Playtest round 3 (DIRECTION_LOG 18): a T. The stem: kicks 1-9 climb straight up (8.8 deg, no yaw), so
-        // rounds 1-10 stack in a column. The bar: the climb flattens (0.3 deg falling to 0.05 a shot) and the gun
-        // swings right over kicks 10-15 (+2.6 deg), left across over 16-23 (-5.2 deg), and right again over 24-31
-        // (+5.2 deg). Past kick 31 the two full sweeps loop (from kick 16), so a 45 or a drum keeps sweeping
-        // across the same bar, centred on the stem. Aimed, every kick is x0.7.
-        loop_from_index: 15,
+        // Playtest round 3 (DIRECTION_LOG 18), tuned by the user after testing (standard stock, no grip): a T.
+        // HOW TO TUNE: each kick is the view rotation in degrees (pitch up +, yaw right +) after shot `after_shot`;
+        // aimed fire takes `ads_mult` (weapons.ron, 0.7) of every kick. Stocks scale the pitch, grips the yaw
+        // (attachments.ron recoil_v / recoil_h). Past the last kick the pattern loops from `loop_from_index`.
+        // The stem: kicks 1-14 go straight up (15.65 deg hip), so rounds 1-15 stack in one column. The bar: the
+        // climb flattens and the gun sweeps right over kicks 15-20 (+4.16 deg), left across over 21-28 (-8.32), right
+        // again over 29-36 (+8.32); a 45 or the drum keeps sweeping the same bar from kick 21. Against the first T:
+        // a 15-round stem (was 10), about 70 % more total climb over a 30-round mag, a 60 % wider bar.
+        loop_from_index: 20,
         kicks: [
-            (after_shot: 1, pitch: 1.0, yaw: 0.0),
-            (after_shot: 2, pitch: 1.1, yaw: 0.0),
+            (after_shot: 1, pitch: 0.95, yaw: 0.0),
+            (after_shot: 2, pitch: 1.05, yaw: 0.0),
             (after_shot: 3, pitch: 1.15, yaw: 0.0),
-            (after_shot: 4, pitch: 1.15, yaw: 0.0),
-            (after_shot: 5, pitch: 1.1, yaw: 0.0),
-            (after_shot: 6, pitch: 1.0, yaw: 0.0),
-            (after_shot: 7, pitch: 0.9, yaw: 0.0),
-            (after_shot: 8, pitch: 0.8, yaw: 0.0),
-            (after_shot: 9, pitch: 0.6, yaw: 0.0),
-            (after_shot: 10, pitch: 0.3, yaw: 0.3),
-            (after_shot: 11, pitch: 0.2, yaw: 0.45),
-            (after_shot: 12, pitch: 0.12, yaw: 0.55),
-            (after_shot: 13, pitch: 0.08, yaw: 0.55),
-            (after_shot: 14, pitch: 0.06, yaw: 0.45),
-            (after_shot: 15, pitch: 0.05, yaw: 0.3),
-            (after_shot: 16, pitch: 0.05, yaw: -0.35),
-            (after_shot: 17, pitch: 0.05, yaw: -0.6),
-            (after_shot: 18, pitch: 0.05, yaw: -0.8),
-            (after_shot: 19, pitch: 0.05, yaw: -0.85),
-            (after_shot: 20, pitch: 0.05, yaw: -0.85),
-            (after_shot: 21, pitch: 0.05, yaw: -0.8),
-            (after_shot: 22, pitch: 0.05, yaw: -0.6),
-            (after_shot: 23, pitch: 0.05, yaw: -0.35),
-            (after_shot: 24, pitch: 0.05, yaw: 0.35),
-            (after_shot: 25, pitch: 0.05, yaw: 0.6),
-            (after_shot: 26, pitch: 0.05, yaw: 0.8),
-            (after_shot: 27, pitch: 0.05, yaw: 0.85),
-            (after_shot: 28, pitch: 0.05, yaw: 0.85),
-            (after_shot: 29, pitch: 0.05, yaw: 0.8),
-            (after_shot: 30, pitch: 0.05, yaw: 0.6),
-            (after_shot: 31, pitch: 0.05, yaw: 0.35),
+            (after_shot: 4, pitch: 1.25, yaw: 0.0),
+            (after_shot: 5, pitch: 1.3, yaw: 0.0),
+            (after_shot: 6, pitch: 1.3, yaw: 0.0),
+            (after_shot: 7, pitch: 1.3, yaw: 0.0),
+            (after_shot: 8, pitch: 1.25, yaw: 0.0),
+            (after_shot: 9, pitch: 1.2, yaw: 0.0),
+            (after_shot: 10, pitch: 1.15, yaw: 0.0),
+            (after_shot: 11, pitch: 1.05, yaw: 0.0),
+            (after_shot: 12, pitch: 1.0, yaw: 0.0),
+            (after_shot: 13, pitch: 0.9, yaw: 0.0),
+            (after_shot: 14, pitch: 0.8, yaw: 0.0),
+            (after_shot: 15, pitch: 0.45, yaw: 0.48),
+            (after_shot: 16, pitch: 0.3, yaw: 0.72),
+            (after_shot: 17, pitch: 0.2, yaw: 0.88),
+            (after_shot: 18, pitch: 0.12, yaw: 0.88),
+            (after_shot: 19, pitch: 0.1, yaw: 0.72),
+            (after_shot: 20, pitch: 0.08, yaw: 0.48),
+            (after_shot: 21, pitch: 0.08, yaw: -0.56),
+            (after_shot: 22, pitch: 0.08, yaw: -0.96),
+            (after_shot: 23, pitch: 0.08, yaw: -1.28),
+            (after_shot: 24, pitch: 0.08, yaw: -1.36),
+            (after_shot: 25, pitch: 0.08, yaw: -1.36),
+            (after_shot: 26, pitch: 0.08, yaw: -1.28),
+            (after_shot: 27, pitch: 0.08, yaw: -0.96),
+            (after_shot: 28, pitch: 0.08, yaw: -0.56),
+            (after_shot: 29, pitch: 0.08, yaw: 0.56),
+            (after_shot: 30, pitch: 0.08, yaw: 0.96),
+            (after_shot: 31, pitch: 0.08, yaw: 1.28),
+            (after_shot: 32, pitch: 0.08, yaw: 1.36),
+            (after_shot: 33, pitch: 0.08, yaw: 1.36),
+            (after_shot: 34, pitch: 0.08, yaw: 1.28),
+            (after_shot: 35, pitch: 0.08, yaw: 0.96),
+            (after_shot: 36, pitch: 0.08, yaw: 0.56),
         ],
     ),
     "skink_recoil_pattern": (

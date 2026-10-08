@@ -188,12 +188,12 @@ mod tests {
     }
 
     /// Playtest round 3 (DIRECTION_LOG 18): the Mako's pattern is a T, for every magazine (30, 45, the 60 drum).
-    /// The stem: rounds 1-10 climb straight up, hard. The bar: the climb flattens and the gun sweeps right, then
+    /// The stem: rounds 1-15 climb straight up, hard (the user's tune: a 15-round stem, a 60 % wider bar). The bar: the climb flattens and the gun sweeps right, then
     /// left across, then right again, each sweep wide enough that it needs real sideways control, the bar centred
     /// on the stem and roughly level.
     #[test]
     fn the_mako_pattern_is_a_t() {
-        const STEM: usize = 10;
+        const STEM: usize = 15;
         let d = GameData::embedded();
         let p = &d.recoil_patterns["mako_recoil_pattern"];
         for mag in [30, 45, 60] {
@@ -201,7 +201,7 @@ mod tests {
             // The stem: no sideways drift at all, and a strong climb (hip degrees; aimed x0.7).
             let stem_climb = at[STEM - 1].0;
             assert!(at[..STEM].iter().all(|r| r.1 == 0.0), "{mag}: the stem is straight up");
-            assert!((7.0..=11.0).contains(&stem_climb), "{mag}: stem climb {stem_climb}");
+            assert!((13.0..=19.0).contains(&stem_climb), "{mag}: stem climb {stem_climb}");
             // The bar: mostly sideways. Even over a drum its climb is a small part of the stem's, its sideways travel many times that.
             let bar = &at[STEM - 1..];
             let rise = bar[bar.len() - 1].0 - bar[0].0;
@@ -230,9 +230,9 @@ mod tests {
                 assert!((6..=10).contains(len), "{mag}: sweep {} over {len} rounds", i + 2);
                 assert!(yaw.abs() > 1.5 * sweeps[0].0, "{mag}: sweep {} crosses the bar: {yaw}", i + 2);
             }
-            // The bar's width is data-sane: 3-8 deg hip (2.1-5.6 aimed), and centred on the stem within half a degree.
+            // The bar's width is data-sane: 6-12 deg hip (4.2-8.4 aimed), and centred on the stem within half a degree.
             let (lo, hi) = bar.iter().fold((f32::MAX, f32::MIN), |(lo, hi), r| (lo.min(r.1), hi.max(r.1)));
-            assert!((3.0..=8.0).contains(&(hi - lo)), "{mag}: bar width {}", hi - lo);
+            assert!((6.0..=12.0).contains(&(hi - lo)), "{mag}: bar width {}", hi - lo);
             assert!((hi + lo).abs() < 0.5, "{mag}: the bar is centred on the stem: {lo} .. {hi}");
         }
     }

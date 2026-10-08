@@ -1609,12 +1609,12 @@ mod tests {
     fn recoil_pattern_loops_for_long_mags() {
         let d = GameData::embedded();
         let p = &d.recoil_patterns["mako_recoil_pattern"];
-        assert_eq!(p.kick(1), (1.0, 0.0));
-        assert_eq!(p.kick(31), (0.05, 0.35));
-        // shot 32 continues from index 15 (shot 16): the two full sweeps of the T's bar, period 16
-        assert_eq!(p.kick(32), p.kick(16));
-        assert_eq!(p.kick(47), p.kick(31));
-        assert_eq!(p.kick(48), p.kick(16));
+        assert_eq!(p.kick(1), (0.95, 0.0));
+        assert_eq!(p.kick(36), (0.08, 0.56));
+        // shot 37 continues from index 20 (shot 21): the two full sweeps of the T's bar, period 16
+        assert_eq!(p.kick(37), p.kick(21));
+        assert_eq!(p.kick(52), p.kick(36));
+        assert_eq!(p.kick(53), p.kick(21));
         assert_eq!(p.kick(59), p.kick(27));
     }
 
