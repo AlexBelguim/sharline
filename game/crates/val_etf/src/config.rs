@@ -104,7 +104,8 @@ pub struct Cli {
     /// MAG 1), `loadout-attach` (its attachment list on the optic slot). The heal and hud ones also hurt
     /// the host's own player. On the main menu: `menu-join` (JOIN GAME, code tab), `menu-join-ip` (direct
     /// IP tab), `menu-host` (HOST GAME). `first-run`, `first-run-invalid`, `first-run-valid`: the
-    /// first-launch callsign prompt (`first_run.rs`).
+    /// first-launch callsign prompt (`first_run.rs`). In a match: `ads` (held aim down sights), `inspect` /
+    /// `inspect-left` (the gun across the view, a side to the camera).
     pub demo_ui: Option<String>,
     /// `--esc-at 4,5.5`: press Esc at these seconds after start-up (automated tests of the Esc routing).
     pub esc_at: Vec<f32>,
@@ -206,7 +207,8 @@ impl Cli {
                          \x20       [--weapon ID] [--ammo std|ap1..3|rip1..3|slug1..2] [--mags std,ap2,..]\n\
                          \x20       [--armor PRESET] [--attach A,B]\n\
                          \x20       [--demo-ui reload|heal|heal-region|hud|board|menu-join|menu-join-ip|menu-host|\n\
-                         \x20                  loadout|loadout-ammo|loadout-attach] [--esc-at S,S,..] [--allow-input]\n\
+                         \x20                  loadout|loadout-ammo|loadout-attach|ads|inspect|inspect-left]\n\
+                         \x20       [--esc-at S,S,..] [--allow-input]\n\
                          \n\
                          --name overrides the name saved from the main menu (EDIT NAME) for this run.\n\
                          --port sets the HOST GAME port (default: net.ron, 47820).\n\

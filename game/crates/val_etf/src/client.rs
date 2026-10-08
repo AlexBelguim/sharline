@@ -388,6 +388,8 @@ fn gather_input(
     };
     let [sprint, crouch, ads] =
         hold_buttons(settings.hud.hold_toggle, m.ads_input, g.auto_sprint, &mut control.toggles, keys);
+    // `--demo-ui ads` holds aim down sights (held, not a one-tick pulse: a frame can run two ticks).
+    let ads = ads || cli.demo_ui.as_deref() == Some("ads");
 
     let mut bits = 0u16;
     for (bit, on) in [
@@ -805,8 +807,6 @@ fn automation(
                 *demo_checked = true;
                 control.latched |= Buttons::MAG_CHECK;
             }
-            // Aimed down sights: the optic's zoom and the viewmodel through it.
-            "ads" => control.latched |= Buttons::ADS,
             "heal" | "heal-region" => {
                 let mut menu = HealMenu::new(lo.0.kit.len());
                 menu.ring.steer(Vec2::new(30.0, -40.0));

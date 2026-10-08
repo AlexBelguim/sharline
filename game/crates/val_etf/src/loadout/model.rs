@@ -473,6 +473,19 @@ mod tests {
         assert_eq!(dr.equipped(AttachmentCategory::Optic, &d).map(|a| a.id.as_str()), Some("optic_holo"));
     }
 
+    /// The fold-out projector is offered in the optic slot of both modelled guns and can be equipped.
+    #[test]
+    fn the_projector_is_a_pickable_optic() {
+        let (d, mut dr) = draft();
+        for gun in ["ar7_mako", "vk50_warden"] {
+            let optics: Vec<&str> =
+                parts_for(&d, gun, AttachmentCategory::Optic).iter().map(|a| a.id.as_str()).collect();
+            assert!(optics.contains(&"optic_projector"), "{gun}: {optics:?}");
+        }
+        dr.set_part(AttachmentCategory::Optic, Some("optic_projector"), &d);
+        assert_eq!(dr.equipped(AttachmentCategory::Optic, &d).map(|a| a.id.as_str()), Some("optic_projector"));
+    }
+
     #[test]
     fn ammo_rows_are_what_the_gun_can_load() {
         let (d, mut dr) = draft();

@@ -7,6 +7,7 @@
         // optics
         (id: "optic_reddot", cat: optic, fits: ["ar7_mako", "vk50_warden", "sk9_skink"], name: "RED DOT", blurb: "Fastest sight.", zoom: Some(1.15), ads_time: Some(0.95), move: Some(1.0), default_for: ["sk9_skink"]),
         (id: "optic_holo", cat: optic, fits: ["ar7_mako", "vk50_warden", "sk9_skink"], name: "HOLO", blurb: "Wide window, quick to pick up targets.", zoom: Some(1.25), ads_time: Some(1.0), default_for: ["ar7_mako"]),
+        (id: "optic_projector", cat: optic, fits: ["ar7_mako", "vk50_warden"], name: "PROJECTOR", blurb: "Fold-out hologram. Nothing in the way.", zoom: Some(1.2)),
         (id: "optic_3x", cat: optic, fits: ["ar7_mako", "vk50_warden"], name: "3× SCOPE", short: "3×", blurb: "3× zoom. Glints past 40 m.", zoom: Some(3.0), ads_time: Some(1.15), sway: Some(1.1), ads_move: Some(0.95),
             other: Some("scope glint >= 40 m")),
         (id: "optic_sniper", cat: optic, fits: ["vk50_warden"], name: "6/12× SCOPE", short: "6/12×", blurb: "Scroll for 6× or 12×. Glints past 25 m.", zoom: Some([6.0, 12.0]), ads_time: Some(1.0), default_for: ["vk50_warden"],

@@ -5,7 +5,7 @@ use crate::AppState;
 use crate::client::{Feedback, LocalControl, Smoothed, TRACER_LEN, TRACER_SPEED};
 use crate::config::{CurrentLevel, Data};
 use crate::settings::{MouseSettings, Settings, vertical_fov, zoomed_fov};
-use crate::weapon_models::{GunLook, WeaponModels, face_ahead};
+use crate::weapon_models::{GunLook, Scope, WeaponModels, face_ahead};
 use bevy::asset::RenderAssetUsages;
 use bevy::light::NotShadowCaster;
 use bevy::mesh::{Indices, PrimitiveTopology};
@@ -551,8 +551,8 @@ pub struct ViewmodelRig {
     pub hip: Transform,
     pub ads: Transform,
     pub muzzle: Vec3,
-    /// A magnified optic: fully aimed, the scope view replaces the gun (`weapon_models::scoped`).
-    pub scope: bool,
+    /// A magnified optic's picture: fully aimed, the scope view replaces the gun (`weapon_models::scoped`).
+    pub scope: Option<Scope>,
 }
 
 impl ViewmodelRig {
@@ -567,7 +567,7 @@ impl ViewmodelRig {
             hip: Transform::from_translation(VIEWMODEL_HIP).with_scale(scale),
             ads: Transform::from_translation(VIEWMODEL_ADS).with_scale(scale),
             muzzle,
-            scope: false,
+            scope: None,
         }
     }
 
@@ -767,16 +767,40 @@ fn update_camera(
         let pitch = if dead { -0.6 } else { control.pitch + punch.to_radians() };
         t.rotation = Quat::from_euler(EulerRot::YXZ, control.yaw, pitch, 0.0);
     }
+    let inspect = cli.demo_ui.as_deref().and_then(inspect_side);
     for (mut t, mut v) in &mut viewmodel {
         *t = rig.pose(ads);
         if mv.0.sprinting {
             t.translation += Vec3::new(0.05, -0.06, 0.04);
             t.rotation = Quat::from_rotation_y(0.5) * t.rotation;
         }
+        if let Some(left) = inspect {
+            *t = inspect_pose(&rig, left);
+        }
         // Through a magnified optic the scope view takes over from the gun.
         let hidden = dead || crate::weapon_models::scoped(&rig, ads);
         *v = if hidden { Visibility::Hidden } else { Visibility::Inherited };
     }
+}
+
+/// `--demo-ui inspect` / `inspect-left`: which side of the gun faces the camera (`true` for the left).
+fn inspect_side(demo: &str) -> Option<bool> {
+    match demo {
+        "inspect" => Some(false),
+        "inspect-left" => Some(true),
+        _ => None,
+    }
+}
+
+/// The gun held across the view with its right (or left) side to the camera, the muzzle toward that side of the
+/// screen, so screenshots show how the attachments sit. Its middle (a quarter of the way from the grip to the
+/// muzzle, the stock being behind the grip) sits in front of the eye, further away for a longer gun.
+pub fn inspect_pose(rig: &ViewmodelRig, left: bool) -> Transform {
+    let turn = Quat::from_rotation_y(if left { FRAC_PI_2 } else { -FRAC_PI_2 });
+    let rotation = turn * rig.ads.rotation;
+    let middle = rig.ads.scale * rig.muzzle * 0.25;
+    let ahead = 0.5 + middle.length();
+    Transform { translation: Vec3::new(0.0, -0.03, -ahead) - rotation * middle, rotation, scale: rig.ads.scale }
 }
 
 /// Each tracer is a short streak flying from the muzzle to the hit, bright at the head and fading at the tail.
@@ -927,7 +951,7 @@ mod tests {
             Some(r#"{"eye_relief_m": 0.0541}"#),
         )]);
         let row = ModelData::embedded().guns.iter().find(|g| g.weapon == "ar7_mako").unwrap();
-        first_person_rig(row, &base, Some((&holo, false))).unwrap()
+        first_person_rig(row, &base, Some((&holo, None))).unwrap()
     }
 
     /// Own tracers start at the gun on screen: right of and below the crosshair from the hip, in front of the
@@ -985,6 +1009,24 @@ mod tests {
             assert!((got - want).length() < 1e-4, "{cam}: {got} vs {want}");
         }
         assert!((viewmodel_lens(68.0, 68.0) - 1.0).abs() < 1e-6);
+    }
+
+    /// `--demo-ui inspect`: the gun across the view, its right side to the camera and the muzzle to the right
+    /// (`inspect-left` the mirror), in front of the eye.
+    #[test]
+    fn inspect_turns_a_side_of_the_gun_to_the_camera() {
+        let rig = mako_rig();
+        assert_eq!(inspect_side("inspect"), Some(false));
+        assert_eq!(inspect_side("inspect-left"), Some(true));
+        assert_eq!(inspect_side("ads"), None);
+        for (left, side) in [(false, Vec3::NEG_X), (true, Vec3::X)] {
+            let pose = inspect_pose(&rig, left);
+            assert!((pose.rotation * side).z > 0.99, "left {left}: that side faces the camera");
+            let grip = pose.transform_point(Vec3::ZERO);
+            let muzzle = pose.transform_point(rig.muzzle);
+            assert_eq!(muzzle.x > grip.x, !left, "the muzzle toward that side of the screen");
+            assert!(grip.z < -0.4 && muzzle.z < -0.4 && grip.x.abs() < 0.5, "{grip} {muzzle}");
+        }
     }
 
     #[test]

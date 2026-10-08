@@ -30,7 +30,7 @@
     // One ADS row per group of optics (attachments.ron ids). Multipliers are saved per optic id, so new
     // optics only need a row here.
     optic_rows: [
-        (label: "Holo / red dot · 1.25×", optics: ["optic_holo", "optic_reddot"]),
+        (label: "Holo / red dot · 1.25×", optics: ["optic_holo", "optic_reddot", "optic_projector"]),
         (label: "3× prism", optics: ["optic_3x"]),
         (label: "Thermal 4×", optics: ["optic_thermal"]),
         (label: "Sniper 6× / 12×", sub: Some("Per zoom step, same feel at every step"), optics: ["optic_sniper"]),

@@ -120,8 +120,9 @@ folder).
   a few seconds in, to test the lobby over the network.
 - `--demo-ui settings-gameplay|settings-mouse|settings-keybinds|settings-video|settings-audio|settings-hud` opens
   that Settings tab from the main menu. `--demo-ui esc|esc-stop|esc-restart` opens the ESC menu or one of its
-  confirms over a hosted match. `ads` holds aim down sights, `hud-fx` shows the damage flash and `overlay`
-  keeps the performance overlay in a scripted run.
+  confirms over a hosted match. `ads` holds aim down sights, `inspect` / `inspect-left` hold the gun across the
+  view with its right / left side to the camera (to check attachments), `hud-fx` shows the damage flash and
+  `overlay` keeps the performance overlay in a scripted run.
 - `--port` sets HOST GAME's port (and so `--host`'s).
 - `VETF_ASSETS` points the game at another asset folder. Without it the game finds `game/assets` from wherever the
   exe was built (`target/debug`, `target/release`, `target/<triple>/release`) or an `assets` folder next to a

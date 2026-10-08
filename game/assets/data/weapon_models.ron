@@ -6,6 +6,10 @@
 // Poses use view axes, in metres and degrees: +X right, +Y up, -Z ahead of the eye. They place the grip (the
 // gun's origin), and the gun is turned so its muzzle points ahead.
 (
+    // How the optics draw in the game. The exports' window glass (alpha 0.30) greys the target out under the
+    // range lights, so the 1x sights' `_Glass` gets `glass_alpha`; reticles glow at their emissive times
+    // `reticle_glow`, so the dot reads against a bright wall.
+    optics: (glass_alpha: 0.1, reticle_glow: 3.0),
     guns: [
         (
             weapon: "ar7_mako",
@@ -29,14 +33,19 @@
         ),
     ],
     // `id` is the gameplay id (attachments.ron). `scope`: a magnified optic seen through the scope view when
-    // aimed (its eyepiece is a lens, not a window).
+    // aimed (its eyepiece is a lens, not a window); `prism`, `rifle` or `thermal` picks its picture.
+    // `projector`: the fold-out sight's flaps open with its ADS_Open clip over `flap_open_s` as the gun comes up
+    // (and close on release); its hologram shows from `hologram_from_ads` of the ADS blend, fading in over
+    // `hologram_fade_s`. `pose`: the moving nodes turn to the export's `pose_<pose>_quat_gltf_xyzw` extras.
     parts: [
         // optics
         (id: "optic_reddot", file: "models/weapons/optics/ATT_optic_reddot.glb", socket: "Optic"),
         (id: "optic_holo", file: "models/weapons/optics/ATT_optic_holo.glb", socket: "Optic"),
-        (id: "optic_3x", file: "models/weapons/optics/ATT_optic_3x.glb", socket: "Optic", scope: true),
-        (id: "optic_sniper", file: "models/weapons/optics/ATT_optic_sniper.glb", socket: "Optic", scope: true),
-        (id: "optic_thermal", file: "models/weapons/optics/ATT_optic_thermal.glb", socket: "Optic", scope: true),
+        (id: "optic_projector", file: "models/weapons/optics/ATT_optic_projector.glb", socket: "Optic",
+            projector: Some((flap_open_s: 0.12, hologram_from_ads: 0.8, hologram_fade_s: 0.08))),
+        (id: "optic_3x", file: "models/weapons/optics/ATT_optic_3x.glb", socket: "Optic", scope: Some(prism)),
+        (id: "optic_sniper", file: "models/weapons/optics/ATT_optic_sniper.glb", socket: "Optic", scope: Some(rifle)),
+        (id: "optic_thermal", file: "models/weapons/optics/ATT_optic_thermal.glb", socket: "Optic", scope: Some(thermal)),
         // stocks
         (id: "mako_stock_standard", file: "models/weapons/mako/MAKO_stock_standard.glb", socket: "Stock"),
         (id: "mako_stock_precision", file: "models/weapons/mako/MAKO_stock_precision.glb", socket: "Stock"),
@@ -54,7 +63,8 @@
         (id: "grip_angled", file: "models/weapons/tactical/ATT_grip_angled.glb", socket: "Under"),
         (id: "grip_stub", file: "models/weapons/tactical/ATT_grip_stub.glb", socket: "Under"),
         (id: "ugl_launcher", file: "models/weapons/tactical/ATT_ugl_launcher.glb", socket: "Under"),
-        (id: "bipod", file: "models/weapons/tactical/ATT_bipod.glb", socket: "Under"),
+        // The bipod is exported deployed; nothing deploys it in play yet, so it rides folded under the handguard.
+        (id: "bipod", file: "models/weapons/tactical/ATT_bipod.glb", socket: "Under", pose: Some("folded")),
         // side rail: the shooter's right (the _R export; ATT_*_L would go on Side_L)
         (id: "laser", file: "models/weapons/tactical/ATT_laser_R.glb", socket: "Side_R"),
         (id: "flashlight", file: "models/weapons/tactical/ATT_flashlight_R.glb", socket: "Side_R"),
