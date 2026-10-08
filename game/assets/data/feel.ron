@@ -117,8 +117,9 @@
         gap_px: 4.0,
         head_scale: 1.25,
         kill_scale: 1.5,
-        // A shield that broke and a kill also get a ring this wide.
+        // A shield that broke and a kill also get a ring this wide, its line `ring_border_px` thick.
         ring_px: 30.0,
+        ring_border_px: 2.0,
         // A shot that hit on our screen waits this long for the host's confirm.
         remember_s: 2.0,
     ),
@@ -132,6 +133,10 @@
         pulse_scale: 0.3,
         crack: (count: 6, size_m: 0.045, speed_mps: 1.8, life_s: 0.4),
         shatter: (count: 20, size_m: 0.06, speed_mps: 3.6, life_s: 0.8),
+        // How the shards fly off the arc: `scatter` of a random direction added to straight out, plus `lift` up;
+        // speed and size vary by +/- `speed_jitter` and +`size_jitter` of the crack's or shatter's; they start up to
+        // `spread` of the halo's radius apart and lose `drag_per_s` of their speed each second.
+        shards: (scatter: 0.8, lift: 0.4, speed_jitter: 0.25, size_jitter: 0.4, spread: 0.3, drag_per_s: 2.0),
         gravity_mps2: 6.5,
         spin_rps: 4.0,
         ring_s: 0.3,

@@ -196,7 +196,7 @@ pub(crate) fn spawn_marker_layer(mut commands: Commands, feel: Res<FeelData>, mu
                 top: px(-h.ring_px * 0.5),
                 width: px(h.ring_px),
                 height: px(h.ring_px),
-                border: UiRect::all(px(2)),
+                border: UiRect::all(px(h.ring_border_px)),
                 border_radius: BorderRadius::MAX,
                 ..default()
             },
@@ -415,13 +415,14 @@ pub(crate) fn crack_halos(
         let mut state = if *seed == 0 { 0x2545_F491 } else { *seed };
         let n = (spec.count as usize).min(room);
         room -= n;
+        let fly = &f.shards;
         for _ in 0..n {
             let mut r = || next_random(&mut state) * 2.0 - 1.0;
-            let scatter = Vec3::new(r(), r(), r()) * 0.8 + Vec3::Y * 0.4;
+            let scatter = Vec3::new(r(), r(), r()) * fly.scatter + Vec3::Y * fly.lift;
             let dir = (out + scatter).normalize_or(Vec3::Y);
-            let speed = spec.speed_mps * (0.75 + 0.25 * r());
+            let speed = spec.speed_mps * (1.0 - fly.speed_jitter + fly.speed_jitter * r());
             let axis = Vec3::new(r(), r(), r()).normalize_or(Vec3::X);
-            let size = spec.size_m * (0.8 + 0.4 * r().abs());
+            let size = spec.size_m * (1.0 - fly.size_jitter * 0.5 + fly.size_jitter * r().abs());
             commands.spawn((
                 Shard {
                     vel: dir * speed,
@@ -433,7 +434,7 @@ pub(crate) fn crack_halos(
                 },
                 Mesh3d(mesh.clone()),
                 MeshMaterial3d(material.clone()),
-                Transform::from_translation(spot + scatter * arc.radius * 0.3).with_scale(Vec3::splat(size)),
+                Transform::from_translation(spot + scatter * arc.radius * fly.spread).with_scale(Vec3::splat(size)),
                 NotShadowCaster,
                 NotShadowReceiver,
                 DespawnOnExit(AppState::InGame),
@@ -500,7 +501,7 @@ pub(crate) fn fly_shards(
             continue;
         }
         s.vel.y -= f.gravity_mps2 * dt;
-        s.vel *= (1.0 - 2.0 * dt).max(0.0);
+        s.vel *= (-f.shards.drag_per_s.max(0.0) * dt).exp();
         t.translation += s.vel * dt;
         t.rotate(Quat::from_axis_angle(s.axis, s.spin * dt));
         let k = s.age / s.life;
