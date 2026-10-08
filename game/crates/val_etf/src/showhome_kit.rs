@@ -286,7 +286,14 @@ fn report_failed_scenes(level: Res<CurrentLevel>, server: Res<AssetServer>, mut 
 }
 
 #[derive(Resource, Default)]
-struct KitMipState(HashSet<AssetId<Image>>);
+struct KitMipState {
+    /// Images that have their mips (or need none).
+    done: HashSet<AssetId<Image>>,
+    /// The last scan left nothing to do: scan again only when the kit's meshes, their materials or the ground
+    /// materials change (scanning every kit material every frame cost about 0.06 ms a frame for nothing).
+    settled: bool,
+    ground_materials: usize,
+}
 
 /// RGBA arrays are layer-major: all mips of layer 0, then all mips of layer 1, and so on.
 pub(crate) fn rgba_layer_mips(
@@ -318,10 +325,19 @@ fn finish_kit_mips(
     mut materials: ResMut<Assets<StandardMaterial>>,
     mut ground: ResMut<Assets<crate::showhome_ground::ShowhomeGroundMaterial>>,
     used: Query<(&ShowhomeKitMesh, &MeshMaterial3d<StandardMaterial>)>,
+    changed: Query<
+        (),
+        (With<ShowhomeKitMesh>, Or<(Added<ShowhomeKitMesh>, Changed<MeshMaterial3d<StandardMaterial>>)>),
+    >,
 ) {
     if !is_showhome(&level) {
         return;
     }
+    if state.settled && changed.is_empty() && ground.len() == state.ground_materials {
+        return;
+    }
+    state.ground_materials = ground.len();
+    state.settled = true;
     let mut candidates = Vec::new();
     for (part, handle) in &used {
         let priority = match part.0 {
@@ -352,26 +368,28 @@ fn finish_kit_mips(
     candidates.sort_by_key(|(priority, _)| *priority);
     let mut seen = HashSet::new();
     for (_, handle) in candidates {
-        if state.0.contains(&handle.id()) || !seen.insert(handle.id()) {
+        if state.done.contains(&handle.id()) || !seen.insert(handle.id()) {
             continue;
         }
         let Some(mut image) = images.get_mut(&handle) else {
             if handle.path().is_none() || server.is_loaded_with_dependencies(handle.id()) {
-                state.0.insert(handle.id());
+                state.done.insert(handle.id());
+            } else {
+                state.settled = false; // still loading
             }
             continue;
         };
         let format = image.texture_descriptor.format;
         if !matches!(format, TextureFormat::Rgba8UnormSrgb | TextureFormat::Rgba8Unorm) {
-            state.0.insert(handle.id());
+            state.done.insert(handle.id());
             continue;
         }
         if image.texture_descriptor.mip_level_count > 1 {
-            state.0.insert(handle.id());
+            state.done.insert(handle.id());
             continue;
         }
         let Some(base) = image.data.as_ref() else {
-            state.0.insert(handle.id());
+            state.done.insert(handle.id());
             continue;
         };
         let Some((data, levels)) = rgba_layer_mips(
@@ -382,7 +400,7 @@ fn finish_kit_mips(
             format == TextureFormat::Rgba8UnormSrgb,
         ) else {
             warn!("Invalid kit RGBA mip input: {:?}", handle.id());
-            state.0.insert(handle.id());
+            state.done.insert(handle.id());
             continue;
         };
         image.data = Some(data);
@@ -394,7 +412,7 @@ fn finish_kit_mips(
             anisotropy_clamp: 8,
             ..ImageSamplerDescriptor::linear()
         });
-        state.0.insert(handle.id());
+        state.done.insert(handle.id());
         // Refresh material bind groups that may already reference the old single-level texture view.
         let changed: Vec<_> = materials
             .iter()
@@ -432,6 +450,7 @@ fn finish_kit_mips(
             }
         }
         info!("Showhome image {:?} finished: {} mip levels", handle.id(), levels);
+        state.settled = false; // there may be more
         break; // One image per frame keeps asynchronous kit loading responsive.
     }
 }
