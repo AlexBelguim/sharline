@@ -11,6 +11,7 @@ use crate::map_materials::{
 };
 use crate::render::ViewCamera;
 use bevy::asset::AssetId;
+use bevy::asset::RenderAssetUsages;
 use bevy::camera::primitives::Aabb;
 use bevy::gltf::{GltfMaterialExtras, GltfMaterialName, GltfMeshName};
 use bevy::image::{ImageAddressMode, ImageLoaderSettings, ImageSampler, ImageSamplerDescriptor};
@@ -483,8 +484,10 @@ impl KitHeight {
     }
 }
 
+/// A kit height map: its PNG16 (kept in the main world only, read once on the CPU and dropped) until it has
+/// become the depth image the materials sample (kept in the render world only).
 struct PendingHeight {
-    source: Handle<Image>,
+    source: Option<Handle<Image>>,
     depth: Option<Handle<Image>>,
     failed: bool,
 }
@@ -497,10 +500,12 @@ struct KitDepthTarget {
 
 #[derive(Resource)]
 struct KitDepthState {
-    settings: SurfaceDepthData,
     families: HashMap<String, HeightMetrics>,
     heights: HashMap<String, PendingHeight>,
     targets: HashMap<AssetId<StandardMaterial>, KitDepthTarget>,
+    /// Materials that take no depth (glass, metal, untextured, no height map). That depends only on their glTF
+    /// fields, which never change, so each is looked at once instead of re-parsed every frame.
+    rejected: HashSet<AssetId<StandardMaterial>>,
 }
 
 impl Default for KitDepthState {
@@ -509,10 +514,10 @@ impl Default for KitDepthState {
             serde_json::from_str(include_str!("../../../assets/maps/showhome/textures/v2/manifest.json"))
                 .expect("deployed Showhome v2 manifest is valid");
         Self {
-            settings: SurfaceDepthData::load(),
             families: manifest.materials,
             heights: HashMap::new(),
             targets: HashMap::new(),
+            rejected: HashSet::new(),
         }
     }
 }
@@ -551,9 +556,40 @@ fn height_to_depth_f16(bytes: &[u8]) -> Vec<u8> {
     r16_to_f16(&inverted)
 }
 
+/// The depth map a kit material takes, `None` for one that never takes any.
+fn kit_depth_target(
+    name: &str,
+    extras: &str,
+    material: &StandardMaterial,
+    families: &HashMap<String, HeightMetrics>,
+) -> Option<KitHeight> {
+    // A textured glTF ORM uses metallicFactor=1 even on a matte surface: its blue texels are zero.
+    // Use the manifest's physical metalness in that case, and scalar metalness for untextured PBR.
+    if !material_depth_allowed(name, material) {
+        return None;
+    }
+    kit_height_spec(name, extras, families)
+}
+
+/// The PNG16 becomes a depth image: inverted, R16Float (filterable), repeating, and only in the render world.
+fn depth_image(height: &Image) -> Option<Image> {
+    let bytes = height.data.as_ref()?;
+    let mut depth = height.clone();
+    depth.data = Some(height_to_depth_f16(bytes));
+    depth.texture_descriptor.format = TextureFormat::R16Float;
+    depth.asset_usage = RenderAssetUsages::RENDER_WORLD;
+    depth.sampler = ImageSampler::Descriptor(ImageSamplerDescriptor {
+        address_mode_u: ImageAddressMode::Repeat,
+        address_mode_v: ImageAddressMode::Repeat,
+        ..ImageSamplerDescriptor::linear()
+    });
+    Some(depth)
+}
+
 fn apply_kit_depth(
     level: Res<CurrentLevel>,
     quality: Res<SurfaceDepthLevel>,
+    data: Res<SurfaceDepthData>,
     mut state: ResMut<KitDepthState>,
     server: Res<AssetServer>,
     mut images: ResMut<Assets<Image>>,
@@ -564,53 +600,61 @@ fn apply_kit_depth(
         return;
     }
     for (handle, name, extras) in &imported {
-        if state.targets.contains_key(&handle.id()) {
+        let id = handle.id();
+        if state.targets.contains_key(&id) || state.rejected.contains(&id) {
             continue;
         }
         let Some(material) = materials.get(&handle.0) else { continue };
-        // A textured glTF ORM uses metallicFactor=1 even on a matte surface: its blue texels are zero.
-        // Use the manifest's physical metalness in that case, and scalar metalness for untextured PBR.
-        if !material_depth_allowed(&name.0, material) {
-            continue;
+        match kit_depth_target(&name.0, &extras.value, material, &state.families) {
+            Some(spec) => {
+                state.targets.insert(id, KitDepthTarget { material: handle.0.clone(), spec, shown: None });
+            }
+            None => {
+                state.rejected.insert(id);
+            }
         }
-        let Some(spec) = kit_height_spec(&name.0, &extras.value, &state.families) else { continue };
-        state.targets.insert(handle.id(), KitDepthTarget { material: handle.0.clone(), spec, shown: None });
     }
-    let q = state.settings.quality.of(quality.0);
+    let q = data.quality.of(quality.0);
     if q.on() {
-        let paths: Vec<String> = state.targets.values().map(|t| t.spec.path.clone()).collect();
-        for path in paths {
-            state.heights.entry(path.clone()).or_insert_with(|| PendingHeight {
-                source: server.load_builder().with_settings(|s: &mut ImageLoaderSettings| s.is_srgb = false).load(path),
+        let KitDepthState { targets, heights, .. } = &mut *state;
+        for target in targets.values() {
+            heights.entry(target.spec.path.clone()).or_insert_with(|| PendingHeight {
+                // Read once on the CPU (below) and never drawn: main world only.
+                source: Some(
+                    server
+                        .load_builder()
+                        .with_settings(|s: &mut ImageLoaderSettings| {
+                            s.is_srgb = false;
+                            s.asset_usage = RenderAssetUsages::MAIN_WORLD;
+                        })
+                        .load(target.spec.path.clone()),
+                ),
                 depth: None,
                 failed: false,
             });
         }
     }
+    // At most one height becomes a depth image per frame (several arriving together would hitch).
     for (path, pending) in &mut state.heights {
-        if pending.depth.is_some() || pending.failed {
-            continue;
-        }
-        if server.load_state(&pending.source).is_failed() {
+        let Some(source) = pending.source.as_ref() else { continue };
+        if server.load_state(source).is_failed() {
             warn!("Showhome height could not load; retaining geometry and normals: {path}");
-            pending.failed = true;
+            (pending.failed, pending.source) = (true, None);
             continue;
         }
-        let Some(mut image) = images.get(&pending.source).cloned() else { continue };
-        if image.texture_descriptor.format != TextureFormat::R16Uint {
-            warn!("Showhome height must be PNG16 grayscale; found {:?}: {path}", image.texture_descriptor.format);
-            pending.failed = true;
+        let Some(height) = images.get(source) else { continue };
+        if height.texture_descriptor.format != TextureFormat::R16Uint {
+            warn!("Showhome height must be PNG16 grayscale; found {:?}: {path}", height.texture_descriptor.format);
+            (pending.failed, pending.source) = (true, None);
             continue;
         }
-        let Some(bytes) = image.data.as_ref() else { continue };
-        image.data = Some(height_to_depth_f16(bytes));
-        image.texture_descriptor.format = TextureFormat::R16Float;
-        image.sampler = ImageSampler::Descriptor(ImageSamplerDescriptor {
-            address_mode_u: ImageAddressMode::Repeat,
-            address_mode_v: ImageAddressMode::Repeat,
-            ..ImageSamplerDescriptor::linear()
-        });
-        pending.depth = Some(images.add(image));
+        let Some(depth) = depth_image(height) else { continue };
+        // The source is not needed any more (this was its last handle).
+        if let Some(source) = pending.source.take() {
+            images.remove(&source);
+        }
+        pending.depth = Some(images.add(depth));
+        break;
     }
     let KitDepthState { targets, heights, .. } = &mut *state;
     for target in targets.values_mut() {
@@ -666,6 +710,32 @@ mod tests {
     fn png16_high_faces_become_zero_depth_and_grooves_become_deep() {
         let depths = height_to_depth_f16(&[255, 255, 0, 0, 255, 127]);
         assert_eq!(depths, [0, 0, 0, 60, 0, 56]); // F16: 0, 1, 0.5; no eight-bit quantization.
+        // The depth image lives in the render world only (the PNG16 was the main world's, read once).
+        let height = Image::new(
+            bevy::render::render_resource::Extent3d { width: 3, height: 1, depth_or_array_layers: 1 },
+            bevy::render::render_resource::TextureDimension::D2,
+            vec![255, 255, 0, 0, 255, 127],
+            TextureFormat::R16Uint,
+            RenderAssetUsages::MAIN_WORLD,
+        );
+        let depth = depth_image(&height).unwrap();
+        assert_eq!(depth.texture_descriptor.format, TextureFormat::R16Float);
+        assert_eq!(depth.asset_usage, RenderAssetUsages::RENDER_WORLD);
+        assert_eq!(depth.data.as_deref(), Some(&[0u8, 0, 0, 60, 0, 56][..]));
+    }
+
+    /// Materials that never take depth are remembered as such: glass, metal, untextured, no height map.
+    #[test]
+    fn materials_without_depth_are_rejected_once() {
+        let mut families = HashMap::new();
+        families
+            .insert("concrete_smooth".into(), HeightMetrics { repeat_m: 2.0, height_range_m: 0.004, metalness: 0.0 });
+        let textured = StandardMaterial { base_color_texture: Some(Handle::default()), ..default() };
+        let extras = r#"{"height_map":"assets/maps/showhome/textures/v2/concrete_smooth_height.png"}"#;
+        assert!(kit_depth_target("M_SH_Concrete", extras, &textured, &families).is_some());
+        assert!(kit_depth_target("M_SH_GlassFrost", extras, &textured, &families).is_none());
+        assert!(kit_depth_target("M_SH_Concrete", "{}", &textured, &families).is_none(), "no height map");
+        assert!(kit_depth_target("M_SH_Concrete", extras, &StandardMaterial::default(), &families).is_none());
     }
 
     #[test]
