@@ -175,6 +175,7 @@ struct MagsBox;
 fn title(m: Option<&MatchState>) -> String {
     match m {
         Some(m) if m.mode == MatchMode::Tdm => format!("TEAM DEATHMATCH · {}", m.map.to_uppercase()),
+        Some(m) if m.mode == MatchMode::Ffa => format!("FREE-FOR-ALL · {}", m.map.to_uppercase()),
         _ => "GUN RANGE · FREE PRACTICE".into(),
     }
 }
@@ -653,7 +654,7 @@ fn refresh_card(
     time: Res<Time>,
     fonts: Res<UiFonts>,
     matches: Query<&MatchState>,
-    players: Query<(&PlayerId, &PlayerInfo, Option<&PlayerNet>, Has<Controlled>)>,
+    players: Query<(&PlayerId, &PlayerInfo, Option<&PlayerNet>, Has<Controlled>, Option<&Score>)>,
     mut texts: Query<(&CardText, &mut Text)>,
     mut copy_btn: Query<&mut Node, With<CopyBtn>>,
     mags: Query<Entity, With<MagsBox>>,
@@ -679,7 +680,13 @@ fn refresh_card(
     let (code, kind) = join_lines(&join);
     let s = summary(&active.0, &data);
     let halo_cost = active.0.halo.capped(data.armor.loadout_tier_caps).score();
-    let (ally, enemy) = m.map_or((0, 0), |m| scores(m, my_team));
+    // Free-for-all: your kills and the best of everyone else's (the HUD's score boxes).
+    let ffa_kills = |me: bool| players.iter().filter(|p| p.3 == me).filter_map(|p| p.4.map(|s| s.kills as u32)).max();
+    let (ally, enemy) = match m {
+        Some(m) if m.mode == MatchMode::Ffa => (ffa_kills(true).unwrap_or(0), ffa_kills(false).unwrap_or(0)),
+        Some(m) => scores(m, my_team),
+        None => (0, 0),
+    };
     let (clock_text, ended) = m.map_or((String::new(), false), clock);
     let copy_label = if copied.recent(time.elapsed_secs()) { "COPIED" } else { join.copy_label() };
     for (which, mut t) in &mut texts {
@@ -1090,7 +1097,7 @@ mod tests {
         assert_eq!(scores(&m, Some(Team::B)), (32, 28), "your team's score comes first");
         assert_eq!(scores(&m, Some(Team::A)), (28, 32));
         assert_eq!(clock(&m), ("06:41".into(), false), "whole seconds, rounded up");
-        assert_eq!(clock(&tdm(400.2, MatchPhase::Ended { winner: None })), ("MATCH OVER".into(), true));
+        assert_eq!(clock(&tdm(400.2, MatchPhase::Ended { winner: None, player: None })), ("MATCH OVER".into(), true));
         assert_eq!(players_line(10, 10, 5, 5, true), "10 / 10 · 5 v 5");
         assert_eq!(players_line(3, 10, 3, 0, false), "3 / 10");
     }

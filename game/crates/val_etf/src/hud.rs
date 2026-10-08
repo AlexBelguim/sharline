@@ -6,8 +6,9 @@
 //!   the mode's rules have them.
 //! - **No weapon panel.** A mag check leaves a small card (estimate + which magazine and ammo); reloads,
 //!   item use and fire-mode changes show briefly under the crosshair.
-//! - Score (top centre, ally/enemy colours), kill feed (top right), crosshair and damage direction stay. Hit
-//!   markers are drawn on the player hit, not here (`render::hit_fx`).
+//! - Score (top centre, ally/enemy colours: your team and theirs, or in free-for-all your kills and the
+//!   leader's), kill feed (top right), crosshair and damage direction stay. Hit markers are drawn on the player
+//!   hit, not here (`render::hit_fx`).
 //!
 //! The settings shape it as they change: HUD scale, safe area and the 16:9 width scale and place the HUD
 //! (the crosshair keeps its own size), the crosshair and hit markers follow MOUSE & AIM, and the kill feed
@@ -738,15 +739,41 @@ fn update_action(
     }
 }
 
-/// The top-centre header for a mode: (team score boxes shown, title, subline). The range has no teams, so it
-/// shows only what the place is; team deathmatch shows the clock and the score limit between the scores.
+/// The top-centre header for a mode: (score boxes shown, title, subline). The range has no teams, so it
+/// shows only what the place is; the deathmatches show the clock and the score limit between the scores
+/// (team deathmatch: the two teams'; free-for-all: your kills and the leader's).
 fn score_header(mode: MatchMode, time_left_s: f32, score_limit: u32) -> (bool, String, String) {
+    let clock = || {
+        let s = time_left_s.max(0.0) as u32;
+        format!("{:02}:{:02}", s / 60, s % 60)
+    };
     match mode {
         MatchMode::Range => (false, "GUN RANGE".into(), "FREE PRACTICE".into()),
-        MatchMode::Tdm => {
-            let s = time_left_s.max(0.0) as u32;
-            (true, format!("{:02}:{:02}", s / 60, s % 60), format!("TDM  /  FIRST TO {score_limit}"))
+        MatchMode::Tdm => (true, clock(), format!("TDM  /  FIRST TO {score_limit}")),
+        MatchMode::Ffa => (true, clock(), format!("FFA  /  FIRST TO {score_limit}")),
+    }
+}
+
+/// Free-for-all's score boxes: your kills, and the leader's (the best of everyone else, so while you lead it
+/// is whoever is chasing you).
+fn ffa_scores(scores: &[(u16, bool)]) -> (u32, u32) {
+    let mine = scores.iter().find(|(_, me)| *me).map_or(0, |(k, _)| *k);
+    let best = scores.iter().filter(|(_, me)| !*me).map(|(k, _)| *k).max().unwrap_or(0);
+    (mine as u32, best as u32)
+}
+
+/// The end-of-match banner in free-for-all: VICTORY when you won, else who did, with the top two scores.
+fn ffa_banner(winner: Option<u64>, me: u64, players: &[(u64, String, u16)]) -> String {
+    let kills = |id: u64| players.iter().find(|p| p.0 == id).map_or(0, |p| p.2);
+    let mine = kills(me);
+    let best_other = players.iter().filter(|p| p.0 != me).map(|p| p.2).max().unwrap_or(0);
+    match winner {
+        Some(w) if w == me => format!("VICTORY  {mine} - {best_other}"),
+        Some(w) => {
+            let name = players.iter().find(|p| p.0 == w).map_or("A PLAYER".into(), |p| p.1.to_uppercase());
+            format!("{name} WINS  {} - {mine}", kills(w))
         }
+        None => format!("DRAW  {mine} - {best_other}"),
     }
 }
 
@@ -754,6 +781,7 @@ fn score_header(mode: MatchMode, time_left_s: f32, score_limit: u32) -> (bool, S
 fn update_score(
     matches: Query<&MatchState>,
     me: Query<&PlayerInfo, With<Controlled>>,
+    scores: Query<(&Score, Has<Controlled>), With<PlayerId>>,
     mut ally: Query<&mut Text, (With<ScoreAlly>, Without<ScoreEnemy>, Without<MatchClock>, Without<MatchSub>)>,
     mut enemy: Query<&mut Text, (With<ScoreEnemy>, Without<ScoreAlly>, Without<MatchClock>, Without<MatchSub>)>,
     mut clock: Query<&mut Text, (With<MatchClock>, Without<ScoreAlly>, Without<ScoreEnemy>, Without<MatchSub>)>,
@@ -765,7 +793,13 @@ fn update_score(
     let Some(m) = matches.iter().next() else { return };
     // Scores are relative: your team on the left in the ally colour.
     let mine = me.iter().next().and_then(|i| i.team);
-    let (a, b) = if mine == Some(Team::B) { (m.score_b, m.score_a) } else { (m.score_a, m.score_b) };
+    let (a, b) = if m.mode == MatchMode::Ffa {
+        ffa_scores(&scores.iter().map(|(s, me)| (s.kills, me)).collect::<Vec<_>>())
+    } else if mine == Some(Team::B) {
+        (m.score_b, m.score_a)
+    } else {
+        (m.score_a, m.score_b)
+    };
     for mut t in &mut ally {
         t.0 = a.to_string();
     }
@@ -1026,15 +1060,19 @@ fn update_feed(
 }
 
 fn update_overlays(
-    me: Query<(&Vitals, &PlayerInfo), With<Controlled>>,
+    me: Query<(&Vitals, &PlayerInfo, &PlayerId), With<Controlled>>,
+    players: Query<(&PlayerId, &PlayerInfo, &Score)>,
     matches: Query<&MatchState>,
     banner: Query<&Children, With<CenterBanner>>,
     mut texts: Query<&mut Text>,
 ) {
-    let Some((v, info)) = me.iter().next() else { return };
+    let Some((v, info, my_id)) = me.iter().next() else { return };
     let m = matches.iter().next();
     let mut msg = String::new();
-    if let Some(MatchPhase::Ended { winner }) = m.map(|m| m.phase) {
+    if let Some(MatchPhase::Ended { player, .. }) = m.filter(|m| m.mode == MatchMode::Ffa).map(|m| m.phase) {
+        let all: Vec<(u64, String, u16)> = players.iter().map(|(id, i, s)| (id.0, i.name.clone(), s.kills)).collect();
+        msg = ffa_banner(player, my_id.0, &all);
+    } else if let Some(MatchPhase::Ended { winner, .. }) = m.map(|m| m.phase) {
         let (a, b) = m.map_or((0, 0), |m| (m.score_a, m.score_b));
         msg = match winner {
             Some(t) if Some(t) == info.team => format!("VICTORY  {a} - {b}"),
@@ -1094,6 +1132,25 @@ mod tests {
         let (teams, title, sub) = score_header(MatchMode::Tdm, 125.4, 50);
         assert!(teams);
         assert_eq!((title.as_str(), sub.as_str()), ("02:05", "TDM  /  FIRST TO 50"));
+        let (boxes, title, sub) = score_header(MatchMode::Ffa, 59.9, 25);
+        assert!(boxes, "free-for-all shows your kills and the leader's");
+        assert_eq!((title.as_str(), sub.as_str()), ("00:59", "FFA  /  FIRST TO 25"));
+    }
+
+    #[test]
+    fn free_for_all_score_is_your_kills_against_the_leaders() {
+        assert_eq!(ffa_scores(&[(3, true), (7, false), (5, false)]), (3, 7));
+        assert_eq!(ffa_scores(&[(9, true), (7, false)]), (9, 7), "leading: the best of the rest");
+        assert_eq!(ffa_scores(&[(2, true)]), (2, 0), "alone");
+        assert_eq!(ffa_scores(&[]), (0, 0));
+    }
+
+    #[test]
+    fn the_free_for_all_banner_names_the_winner() {
+        let players = vec![(0, "ash".to_string(), 18), (5, "Lark".to_string(), 25), (7, "wren".to_string(), 3)];
+        assert_eq!(ffa_banner(Some(5), 0, &players), "LARK WINS  25 - 18");
+        assert_eq!(ffa_banner(Some(5), 5, &players), "VICTORY  25 - 18");
+        assert_eq!(ffa_banner(None, 7, &players), "DRAW  3 - 25");
     }
 
     #[test]

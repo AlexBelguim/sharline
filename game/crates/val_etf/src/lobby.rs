@@ -1,9 +1,11 @@
-//! The lobby (hub spec 05, mockup 06): the room before a team deathmatch. Both teams with halo, ping and
-//! READY; how friends join, with COPY; the match settings; and LEAVE, LOADOUT, SWITCH TEAM, READY and (host
-//! only) START MATCH. It is a screen over the match while the match is in `MatchPhase::Lobby`, so the match
-//! underneath takes no input; START MATCH, or the end of a match (back here), moves everyone on.
+//! The lobby (hub spec 05, mockup 06): the room before a deathmatch. Team deathmatch shows both teams with
+//! halo, ping and READY; free-for-all shows one player list with its seats (no teams, no SWITCH TEAM). Then
+//! how friends join, with COPY; the match settings, where the host picks the mode; and LEAVE, LOADOUT,
+//! SWITCH TEAM (teams only), READY and (host only) START MATCH. It is a screen over the match while the
+//! match is in `MatchPhase::Lobby`, so the match underneath takes no input; START MATCH, or the end of a
+//! match (back here), moves everyone on.
 //!
-//! Not yet: chat, the host editing the match settings, moving or kicking players.
+//! Not yet: chat, the host editing the other match settings, moving or kicking players.
 
 use crate::AppState;
 use crate::config::{Cli, Data};
@@ -29,6 +31,7 @@ impl Plugin for LobbyPlugin {
                 // Esc does nothing here: LEAVE leaves (the screens over the lobby close with Esc as usual).
                 keep_esc.in_set(EscSystems::Top).run_if(screen_on_top(Screen::Lobby)),
                 buttons,
+                mode_toggle,
                 demo,
                 refresh,
             )
@@ -68,6 +71,21 @@ struct ReadyCount;
 /// Shown to non-hosts where START MATCH is.
 #[derive(Component)]
 struct WaitingForHost;
+/// The host's MODE control in the match settings (team deathmatch or free-for-all).
+#[derive(Component)]
+struct ModeToggle;
+
+/// The modes the host can switch the lobby between, in the toggle's order.
+const MODES: [(MatchMode, &str); 2] = [(MatchMode::Tdm, "Team deathmatch"), (MatchMode::Ffa, "Free-for-all")];
+
+/// The mode's name in the lobby and on the scoreboard.
+pub fn mode_title(mode: MatchMode) -> &'static str {
+    match mode {
+        MatchMode::Tdm => "TEAM DEATHMATCH",
+        MatchMode::Ffa => "FREE-FOR-ALL",
+        MatchMode::Range => "GUN RANGE",
+    }
+}
 
 /// The lobby is open exactly while the match is in its lobby phase.
 fn follow_phase(matches: Query<&MatchState>, mut screens: ResMut<Screens>) {
@@ -132,6 +150,26 @@ fn spawn_root(
             ))
             .with_children(|p| {
                 p.spawn(fonts.role(TextRole::Subtitle, "Match settings"));
+                if host {
+                    // Only the host changes the mode; everyone sees it in the rows below.
+                    p.spawn((
+                        ModeToggle,
+                        SegValue(0),
+                        Node {
+                            height: px(36),
+                            border: UiRect::all(px(1)),
+                            align_self: AlignSelf::Start,
+                            margin: UiRect::vertical(px(4)),
+                            ..default()
+                        },
+                        BorderColor::all(STROKE_HI),
+                    ))
+                    .with_children(|t| {
+                        for (i, (_, label)) in MODES.iter().enumerate() {
+                            t.spawn((segment(fonts, label, TOGGLE, 34.0, false), SegOption(i)));
+                        }
+                    });
+                }
                 p.spawn((SettingsBox, Node { flex_direction: FlexDirection::Column, row_gap: px(8), ..default() }));
             });
             r.spawn(panel_of(
@@ -244,8 +282,46 @@ fn buttons(
     }
 }
 
-/// `--demo-ui lobby-ready | lobby-switch | lobby-start`: press READY; SWITCH TEAM then READY; or READY then
-/// START MATCH, a few seconds in (demo runs ignore the desktop's mouse), to test the lobby over the network.
+/// The host's MODE toggle: a click asks the host to switch the lobby (the toggle then follows the match's
+/// mode, so a refused switch, e.g. too many players for free-for-all, springs back).
+fn mode_toggle(
+    presses: Query<(&Interaction, &SegOption, &ChildOf), Changed<Interaction>>,
+    toggles: Query<(), With<ModeToggle>>,
+    screens: Res<Screens>,
+    time: Res<Time>,
+    mut asked: Local<f32>,
+    mut groups: Query<&mut SegValue, With<ModeToggle>>,
+    matches: Query<&MatchState>,
+    mut senders: Query<&mut MessageSender<LobbyAction>, With<Client>>,
+) {
+    if screens.top() == Some(Screen::Lobby) {
+        for (i, opt, parent) in &presses {
+            if *i != Interaction::Pressed || !toggles.contains(parent.parent()) {
+                continue;
+            }
+            let Some((mode, _)) = MODES.get(opt.0) else { continue };
+            *asked = time.elapsed_secs();
+            for mut s in &mut senders {
+                s.send::<ReliableChannel>(LobbyAction::SetMode(*mode));
+            }
+        }
+    }
+    // Follow the match (not while a click is on its way).
+    let Some(m) = matches.iter().next() else { return };
+    if time.elapsed_secs() - *asked < 1.0 {
+        return;
+    }
+    let want = MODES.iter().position(|(mode, _)| *mode == m.mode).unwrap_or(0);
+    for mut v in &mut groups {
+        if v.0 != want {
+            v.0 = want;
+        }
+    }
+}
+
+/// `--demo-ui lobby-ready | lobby-switch | lobby-start | lobby-ffa`: press READY; SWITCH TEAM then READY; READY
+/// then START MATCH; or (the host) switch to free-for-all, READY and START MATCH, a few seconds in (demo runs
+/// ignore the desktop's mouse), to test the lobby over the network.
 fn demo(
     cli: Res<Cli>,
     time: Res<Time>,
@@ -257,6 +333,10 @@ fn demo(
         Some("lobby-ready") => &[(4.0, LobbyAction::Ready(true))],
         Some("lobby-switch") => &[(4.0, LobbyAction::SwitchTeam), (5.0, LobbyAction::Ready(true))],
         Some("lobby-start") => &[(4.0, LobbyAction::Ready(true)), (7.0, LobbyAction::Start)],
+        // The host switches a team deathmatch lobby to free-for-all, readies and starts it.
+        Some("lobby-ffa") => {
+            &[(4.0, LobbyAction::SetMode(MatchMode::Ffa)), (5.0, LobbyAction::Ready(true)), (12.0, LobbyAction::Start)]
+        }
         _ => return,
     };
     let Some((at, action)) = plan.get(*step) else { return };
@@ -271,6 +351,7 @@ fn demo(
 
 /// One player's row.
 struct Seat {
+    id: u64,
     name: String,
     me: bool,
     host: bool,
@@ -295,7 +376,7 @@ fn refresh(
     cols: Query<(Entity, &TeamCol)>,
     join_box: Query<Entity, With<JoinBox>>,
     settings_box: Query<Entity, With<SettingsBox>>,
-    btns: Query<(&LobbyBtn, &Children)>,
+    mut btns: Query<(&LobbyBtn, &Children, &mut Node)>,
     mut texts: ParamSet<(
         Query<&mut Text, With<LobbyName>>,
         Query<&mut Text, With<LobbyStatus>>,
@@ -313,6 +394,7 @@ fn refresh(
     let seats: Vec<Seat> = players
         .iter()
         .map(|(id, info, loadout, net, me)| Seat {
+            id: id.0,
             name: info.name.to_uppercase(),
             me,
             host: id.0 == 0,
@@ -327,12 +409,21 @@ fn refresh(
     let i_am_ready = seats.iter().any(|s| s.me && s.ready);
     let ready = seats.iter().filter(|s| s.ready).count();
     let per_team = (m.max_players / 2).max(1) as usize;
+    let teams = m.has_teams();
 
     for mut t in &mut texts.p0() {
         t.0 = m.lobby_name.to_uppercase();
     }
     for mut t in &mut texts.p1() {
-        t.0 = format!("TEAM DEATHMATCH · {} · {}/{} PLAYERS", m.map.to_uppercase(), seats.len(), m.max_players);
+        let mode = mode_title(m.mode);
+        t.0 = format!("{mode} · {} · {}/{} PLAYERS", m.map.to_uppercase(), seats.len(), m.max_players);
+    }
+    // No teams to switch between in free-for-all.
+    for (b, _, mut node) in &mut btns {
+        let display = if *b == LobbyBtn::SwitchTeam && !teams { Display::None } else { Display::Flex };
+        if node.display != display {
+            node.display = display;
+        }
     }
     for mut t in &mut texts.p2() {
         t.0 = format!("{ready}/{} READY", seats.len());
@@ -340,7 +431,7 @@ fn refresh(
     // Button labels that follow the state.
     let join = JoinInfo::of(&session, data.net.port);
     let copy_label = if copied.recent(time.elapsed_secs()) { "Copied" } else { join.copy_label() };
-    for (b, children) in &btns {
+    for (b, children, _) in &btns {
         let label = match b {
             LobbyBtn::Ready if i_am_ready => "Cancel ready",
             LobbyBtn::Ready => "Ready",
@@ -359,18 +450,40 @@ fn refresh(
 
     let fonts = &*fonts;
     let images = &*images;
-    for (e, col) in &cols {
-        let ally = my_team.is_none_or(|t| t == col.0);
-        let members: Vec<&Seat> = seats.iter().filter(|s| s.team == Some(col.0)).collect();
-        commands.entity(e).despawn_children().with_children(|c| {
-            team_header(c, fonts, col.0, ally, members.len(), per_team);
-            for s in &members {
-                seat_row(c, fonts, images, s);
-            }
-            for _ in members.len()..per_team {
-                open_slot(c, fonts);
-            }
-        });
+    if teams {
+        for (e, col) in &cols {
+            let ally = my_team.is_none_or(|t| t == col.0);
+            let members: Vec<&Seat> = seats.iter().filter(|s| s.team == Some(col.0)).collect();
+            commands.entity(e).despawn_children().with_children(|c| {
+                team_header(c, fonts, col.0, ally, members.len(), per_team);
+                for s in &members {
+                    seat_row(c, fonts, images, s);
+                }
+                for _ in members.len()..per_team {
+                    open_slot(c, fonts);
+                }
+            });
+        }
+    } else {
+        // Free-for-all: one list of every seat (the host first, then in join order), down the left column
+        // and on down the right one.
+        let mut list: Vec<&Seat> = seats.iter().collect();
+        list.sort_by_key(|s| (!s.host, s.id));
+        let total = (m.max_players as usize).max(list.len());
+        let split = total.div_ceil(2);
+        for (e, col) in &cols {
+            let range = if col.0 == Team::A { 0..split } else { split..total };
+            let first = col.0 == Team::A;
+            commands.entity(e).despawn_children().with_children(|c| {
+                ffa_header(c, fonts, first, list.len(), m.max_players as usize);
+                for i in range {
+                    match list.get(i) {
+                        Some(s) => seat_row(c, fonts, images, s),
+                        None => open_slot(c, fonts),
+                    }
+                }
+            });
+        }
     }
     for e in &join_box {
         commands.entity(e).despawn_children().with_children(|j| {
@@ -381,15 +494,25 @@ fn refresh(
             }
         });
     }
-    let tdm = &data.rules.tdm;
+    let rules = data.rules.deathmatch(m.mode);
     let rows = [
         ("Map", m.map.to_uppercase()),
-        ("Mode", "Team deathmatch".to_uppercase()),
-        ("Score limit", format!("FIRST TO {}", m.score_limit)),
+        ("Mode", mode_title(m.mode).to_string()),
+        (
+            "Score limit",
+            if teams { format!("FIRST TO {}", m.score_limit) } else { format!("FIRST TO {} KILLS", m.score_limit) },
+        ),
         ("Time limit", format!("{} MIN", (m.time_left_s / 60.0).round() as u32)),
-        ("Players", format!("{} V {}", per_team, per_team)),
-        ("Respawn", format!("{} S", tdm.respawn_s)),
-        ("Kill refill", format!("{} MAGAZINE", tdm.kill_refill_mags)),
+        (
+            "Players",
+            if teams {
+                format!("{} V {}", per_team, per_team)
+            } else {
+                format!("{} · EVERYONE FOR THEMSELVES", m.max_players)
+            },
+        ),
+        ("Respawn", format!("{} S", rules.respawn_s)),
+        ("Kill refill", format!("{} MAGAZINE", rules.kill_refill_mags)),
     ];
     for e in &settings_box {
         commands.entity(e).despawn_children().with_children(|s| {
@@ -431,6 +554,30 @@ fn team_header(c: &mut ChildSpawnerCommands, fonts: &UiFonts, team: Team, ally: 
                 r.spawn(fonts.role(TextRole::Hint, format!("{n}/{per_team}")));
             });
             h.spawn((Node { height: px(3), margin: UiRect::top(px(8)), ..default() }, BackgroundColor(color)));
+        },
+    );
+}
+
+/// Free-for-all's list header over both columns: the title and seat count on the left, an empty header on
+/// the right so the rows line up; the rule in the enemy colour (everyone else is one).
+fn ffa_header(c: &mut ChildSpawnerCommands, fonts: &UiFonts, first: bool, n: usize, seats: usize) {
+    c.spawn(Node { flex_direction: FlexDirection::Column, margin: UiRect::bottom(px(6)), ..default() }).with_children(
+        |h| {
+            h.spawn(Node {
+                justify_content: JustifyContent::SpaceBetween,
+                align_items: AlignItems::FlexEnd,
+                ..default()
+            })
+            .with_children(|r| {
+                let (title, count) = if first {
+                    ("Free-for-all".to_string(), format!("{n}/{seats}"))
+                } else {
+                    (" ".into(), String::new())
+                };
+                r.spawn(fonts.role_color(TextRole::TeamName, title, TEXT_HI));
+                r.spawn(fonts.role(TextRole::Hint, count));
+            });
+            h.spawn((Node { height: px(3), margin: UiRect::top(px(8)), ..default() }, BackgroundColor(ENEMY)));
         },
     );
 }

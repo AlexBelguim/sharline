@@ -158,6 +158,16 @@ pub fn max_players_help(cap: u32, tdm_max: u32) -> String {
     format!("2–{cap} · {half} v {half} max on Showhome")
 }
 
+/// MAX PLAYERS help in free-for-all: "2–8 · everyone for themselves".
+pub fn ffa_max_players_help(cap: u32) -> String {
+    format!("2–{cap} · everyone for themselves")
+}
+
+/// CREATE LOBBY's help in free-for-all.
+pub fn ffa_create_help(score_limit: u32) -> String {
+    format!("Opens a Free-for-all lobby on Showhome · first to {score_limit} kills.")
+}
+
 /// A map's mode and name for RECENT: "TDM · Showhome", "Gun range".
 pub fn mode_map_label(map: &str) -> String {
     match map.to_ascii_lowercase().as_str() {
@@ -332,6 +342,8 @@ mod tests {
         let d = GameData::embedded();
         assert_eq!(max_players_help(10, d.rules.tdm.max_players), "2–10 · 5 v 5 max on Showhome");
         assert_eq!(create_help(50), "Starts Team Deathmatch on Showhome · first to 50.");
+        assert_eq!(ffa_max_players_help(d.rules.ffa.max_players), "2–8 · everyone for themselves");
+        assert_eq!(ffa_create_help(25), "Opens a Free-for-all lobby on Showhome · first to 25 kills.");
         let now = 1_700_000_000;
         assert_eq!(recent_subline("showhome", "6000-105E-PC", false, now, now), "TDM · Showhome · code 6000-105E-PC");
         assert_eq!(

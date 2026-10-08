@@ -1,20 +1,23 @@
-//! PLAY > HOST GAME (mockup 04b): lobby name, who can join, max players, port and password, then CREATE
-//! LOBBY. Until the lobby screen exists, CREATE LOBBY starts team deathmatch on Showhome directly. The
-//! values live in [`HostSettings`] (kept across menu visits; the gun range hosts with them too).
+//! PLAY > HOST GAME (mockup 04b): lobby name, mode (team deathmatch or free-for-all), who can join, max
+//! players, port and password, then CREATE LOBBY, which opens the lobby on Showhome. The values live in
+//! [`HostSettings`] (kept across menu visits; the gun range hosts with them too, always as the range).
 
 use super::field::{self, Field, FieldEditor, FieldId, FieldSpec};
 use super::{Click, Ctx, Focus, FocusRing, FocusTarget, HostItem, MenuAction, MenuState, Sub, copy, ring};
 use crate::AppState;
-use crate::net::{HostSettings, JoinAccess, NetRequest, Session, default_lobby_name, max_players_cap, parse_host_port};
+use crate::net::{
+    HostSettings, JoinAccess, NetRequest, Session, default_lobby_name, max_players_cap_for, parse_host_port,
+};
 use crate::screens::Screens;
 use crate::ui_kit::*;
 use bevy::prelude::*;
 use bevy::text::EditableText;
+use vetf_net::MatchMode;
 
 pub(super) fn plugin(app: &mut App) {
     app.add_systems(
         Update,
-        (follow_default_port, settings_from_widgets, visuals).chain().run_if(in_state(AppState::MainMenu)),
+        (follow_default_port, settings_from_widgets, follow_mode, visuals).chain().run_if(in_state(AppState::MainMenu)),
     );
 }
 
@@ -51,9 +54,16 @@ fn access_enabled(_: JoinAccess) -> bool {
     true
 }
 
+/// MODE's segments, in order.
+const MODES: [(MatchMode, &str); 2] = [(MatchMode::Tdm, "Team deathmatch"), (MatchMode::Ffa, "Free-for-all")];
+
+fn mode_index(mode: MatchMode) -> usize {
+    MODES.iter().position(|(m, _)| *m == mode).unwrap_or(0)
+}
+
 /// Keyboard order (the disabled password is skipped).
-pub(super) const ORDER: [HostItem; 5] =
-    [HostItem::Name, HostItem::Access, HostItem::MaxPlayers, HostItem::Port, HostItem::Create];
+pub(super) const ORDER: [HostItem; 6] =
+    [HostItem::Name, HostItem::Mode, HostItem::Access, HostItem::MaxPlayers, HostItem::Port, HostItem::Create];
 
 pub(super) fn step(item: HostItem, delta: i32) -> HostItem {
     let i = ORDER.iter().position(|h| *h == item).unwrap_or(0) as i32;
@@ -69,6 +79,18 @@ pub(super) fn step_access(current: usize, delta: i32) -> usize {
 
 #[derive(Component)]
 pub(super) struct AccessToggle;
+
+/// MODE: team deathmatch or free-for-all.
+#[derive(Component)]
+pub(super) struct ModeToggle;
+
+/// MAX PLAYERS' help (follows the mode).
+#[derive(Component)]
+pub(super) struct MaxHelp;
+
+/// CREATE LOBBY's help (follows the mode).
+#[derive(Component)]
+pub(super) struct CreateHelp;
 
 #[derive(Component)]
 pub(super) struct MaxStepper;
@@ -123,7 +145,7 @@ pub(super) fn spawn_flyout(
 ) {
     let fonts = ctx.fonts;
     let data = ctx.data;
-    let cap = max_players_cap(data);
+    let cap = max_players_cap_for(data, host.mode);
     let access = ACCESS.iter().position(|(a, _)| *a == host.access).unwrap_or(0);
     r.spawn((
         super::Flyout(Sub::Host),
@@ -173,6 +195,28 @@ pub(super) fn spawn_flyout(
                 |_| {},
             );
 
+            g.spawn(fonts.lbl("Mode"));
+            g.spawn((
+                ModeToggle,
+                SegValue(mode_index(host.mode)),
+                FocusRing(Focus::Host(HostItem::Mode)),
+                ring(),
+                Node { height: px(36), border: UiRect::all(px(1)), align_self: AlignSelf::Start, ..default() },
+                BorderColor::all(STROKE_HI),
+            ))
+            .with_children(|t| {
+                for (i, (m, label)) in MODES.iter().enumerate() {
+                    let mut seg = t.spawn((
+                        segment(fonts, label, TOGGLE, 34.0, false),
+                        SegOption(i),
+                        FocusTarget(Focus::Host(HostItem::Mode)),
+                    ));
+                    if *m == host.mode {
+                        seg.insert(Active(true));
+                    }
+                }
+            });
+
             // The label stays centred on the toggle (as in the mockup); the explanation hangs below it.
             g.spawn((
                 fonts.lbl("Who can join"),
@@ -212,13 +256,14 @@ pub(super) fn spawn_flyout(
 
             g.spawn(fonts.lbl("Max players"));
             g.spawn(Node { column_gap: px(10), align_items: AlignItems::Center, ..default() }).with_children(|row| {
+                let (value, step) = max_stepper(host.mode, host.max_players, cap);
                 row.spawn((
-                    stepper(fonts, host.max_players.clamp(2, cap) as i32, 2, cap as i32, 2),
+                    stepper(fonts, value as i32, 2, cap as i32, step),
                     MaxStepper,
                     FocusRing(Focus::Host(HostItem::MaxPlayers)),
                     ring(),
                 ));
-                row.spawn(fonts.role(TextRole::Help, copy::max_players_help(cap, data.rules.tdm.max_players)));
+                row.spawn((MaxHelp, fonts.role(TextRole::Help, max_help(data, host.mode))));
             });
 
             g.spawn(fonts.lbl("Port"));
@@ -273,7 +318,7 @@ pub(super) fn spawn_flyout(
                     FocusRing(Focus::Host(HostItem::Create)),
                     ring(),
                 ));
-                a.spawn(fonts.role(TextRole::Help, copy::create_help(data.rules.tdm.score_limit)));
+                a.spawn((CreateHelp, fonts.role(TextRole::Help, create_help(data, host.mode))));
             });
         p.spawn((
             HostError,
@@ -283,7 +328,73 @@ pub(super) fn spawn_flyout(
     });
 }
 
-/// CREATE LOBBY: host team deathmatch on Showhome (phase 1: the lobby screen comes later).
+/// MAX PLAYERS' value and step for a mode: even and by twos for teams, by ones in free-for-all.
+fn max_stepper(mode: MatchMode, wanted: u32, cap: u32) -> (u32, i32) {
+    let v = wanted.clamp(2, cap.max(2));
+    if mode.has_teams() { ((v - v % 2).max(2), 2) } else { (v, 1) }
+}
+
+fn max_help(data: &vetf_sim::GameData, mode: MatchMode) -> String {
+    let cap = max_players_cap_for(data, mode);
+    match mode {
+        MatchMode::Ffa => copy::ffa_max_players_help(cap),
+        _ => copy::max_players_help(cap, data.rules.tdm.max_players),
+    }
+}
+
+fn create_help(data: &vetf_sim::GameData, mode: MatchMode) -> String {
+    match mode {
+        MatchMode::Ffa => copy::ffa_create_help(data.rules.ffa.score_limit),
+        _ => copy::create_help(data.rules.tdm.score_limit),
+    }
+}
+
+/// A new MODE re-limits MAX PLAYERS (free-for-all seats fewer, by ones) and rewrites the help lines.
+#[allow(clippy::type_complexity)]
+fn follow_mode(
+    host: Res<HostSettings>,
+    data: Res<crate::config::Data>,
+    mut last: Local<Option<MatchMode>>,
+    mut steppers: Query<&mut StepperValue, With<MaxStepper>>,
+    mut toggles: Query<&mut SegValue, With<ModeToggle>>,
+    mut texts: ParamSet<(Query<&mut Text, With<MaxHelp>>, Query<&mut Text, With<CreateHelp>>)>,
+) {
+    if *last == Some(host.mode) {
+        return;
+    }
+    let first = last.is_none();
+    *last = Some(host.mode);
+    let cap = max_players_cap_for(&data, host.mode);
+    for mut s in &mut steppers {
+        let (value, step) = max_stepper(host.mode, s.value.max(0) as u32, cap);
+        let want = StepperValue { value: value as i32, min: 2, max: cap as i32, step };
+        if *s != want {
+            *s = want;
+        }
+    }
+    for mut t in &mut toggles {
+        let i = mode_index(host.mode);
+        if t.0 != i {
+            t.0 = i;
+        }
+    }
+    if first {
+        return;
+    }
+    let (max, create) = (max_help(&data, host.mode), create_help(&data, host.mode));
+    for mut t in &mut texts.p0() {
+        if t.0 != max {
+            t.0.clone_from(&max);
+        }
+    }
+    for mut t in &mut texts.p1() {
+        if t.0 != create {
+            t.0.clone_from(&create);
+        }
+    }
+}
+
+/// CREATE LOBBY: host the chosen mode on Showhome; it opens in the lobby.
 pub(super) fn actions(
     mut actions: MessageReader<MenuAction>,
     create: Query<Has<Disabled>, With<CreateBtn>>,
@@ -296,12 +407,14 @@ pub(super) fn actions(
     }
 }
 
-/// ←/→ on WHO CAN JOIN; ←/→ and -/+ on MAX PLAYERS.
+/// ←/→ on MODE and WHO CAN JOIN; ←/→ and -/+ on MAX PLAYERS.
+#[allow(clippy::type_complexity)]
 pub(super) fn keys(
     keys: Res<ButtonInput<KeyCode>>,
     mut state: ResMut<MenuState>,
     screens: Res<Screens>,
-    mut toggles: Query<&mut SegValue, With<AccessToggle>>,
+    mut toggles: Query<&mut SegValue, (With<AccessToggle>, Without<ModeToggle>)>,
+    mut modes: Query<&mut SegValue, (With<ModeToggle>, Without<AccessToggle>)>,
     mut steppers: Query<(Entity, &mut StepperValue), With<MaxStepper>>,
     step_buttons: Query<(&Interaction, &ChildOf), (Changed<Interaction>, With<StepperButton>)>,
 ) {
@@ -322,6 +435,15 @@ pub(super) fn keys(
     }
     let delta = if more { 1 } else { -1 };
     match state.focus {
+        Focus::Host(HostItem::Mode) if !keys.any_just_pressed([KeyCode::Minus, KeyCode::Equal]) => {
+            for mut v in &mut modes {
+                let next = (v.0 as i32 + delta).clamp(0, MODES.len() as i32 - 1) as usize;
+                if v.0 != next {
+                    v.0 = next;
+                }
+            }
+            state.focus_visible = true;
+        }
         Focus::Host(HostItem::Access) if !keys.any_just_pressed([KeyCode::Minus, KeyCode::Equal]) => {
             for mut v in &mut toggles {
                 let next = step_access(v.0, delta);
@@ -350,6 +472,7 @@ fn settings_from_widgets(
     mut session: ResMut<Session>,
     fields: Query<&Field>,
     toggles: Query<&SegValue, (With<AccessToggle>, Changed<SegValue>)>,
+    modes: Query<&SegValue, (With<ModeToggle>, Changed<SegValue>)>,
     steppers: Query<&StepperValue, (With<MaxStepper>, Changed<StepperValue>)>,
     mut editors: Query<(&FieldEditor, &mut EditableText)>,
     mut last_name: Local<String>,
@@ -387,6 +510,12 @@ fn settings_from_widgets(
         let access = ACCESS.get(v.0).map_or(JoinAccess::JoinCode, |(a, _)| *a);
         if host.access != access {
             host.access = access;
+        }
+    }
+    for v in &modes {
+        let mode = MODES.get(v.0).map_or(MatchMode::Tdm, |(m, _)| *m);
+        if host.mode != mode {
+            host.mode = mode;
         }
     }
     for s in &steppers {
@@ -499,12 +628,28 @@ mod tests {
 
     #[test]
     fn host_focus_wraps_and_lan_only_is_skipped() {
-        assert_eq!(step(HostItem::Name, 1), HostItem::Access);
+        assert_eq!(step(HostItem::Name, 1), HostItem::Mode);
+        assert_eq!(step(HostItem::Mode, 1), HostItem::Access);
         assert_eq!(step(HostItem::Name, -1), HostItem::Create);
         assert_eq!(step(HostItem::Create, 1), HostItem::Name);
         assert_eq!(step_access(0, 1), 1, "LAN ONLY hosts without an internet invite");
         assert_eq!(step_access(2, -1), 1);
         assert_eq!(step_access(2, 1), 2, "no wrap");
         assert_eq!(step_access(0, -1), 0);
+    }
+
+    #[test]
+    fn max_players_follow_the_mode() {
+        let d = vetf_sim::GameData::embedded();
+        let (tdm, ffa) = (max_players_cap_for(&d, MatchMode::Tdm), max_players_cap_for(&d, MatchMode::Ffa));
+        assert_eq!((tdm, ffa), (10, 8));
+        assert_eq!(max_stepper(MatchMode::Tdm, 10, tdm), (10, 2));
+        assert_eq!(max_stepper(MatchMode::Ffa, 10, ffa), (8, 1), "free-for-all seats 8");
+        assert_eq!(max_stepper(MatchMode::Ffa, 5, ffa), (5, 1), "odd is fine without teams");
+        assert_eq!(max_stepper(MatchMode::Tdm, 5, tdm), (4, 2), "teams of equal size");
+        assert_eq!(max_stepper(MatchMode::Tdm, 0, tdm), (2, 2));
+        assert_eq!(mode_index(MatchMode::Ffa), 1);
+        assert!(create_help(&d, MatchMode::Ffa).contains("first to 25 kills"));
+        assert!(max_help(&d, MatchMode::Ffa).starts_with("2–8"));
     }
 }

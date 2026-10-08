@@ -79,6 +79,8 @@ pub struct Cli {
     pub host: Option<String>,
     /// `--live`: `--host showhome` skips the lobby and starts the match at once (tests, screenshots).
     pub live: bool,
+    /// `--mode tdm|ffa`: the mode HOST GAME (and `--host showhome`) starts: team deathmatch or free-for-all.
+    pub mode: Option<vetf_net::MatchMode>,
     /// Join straight away (join code, ip:port or ip).
     pub join: Option<String>,
     /// `--name`, else [`UNNAMED`]. The name saved from the main menu wins unless [`Cli::name_given`].
@@ -137,6 +139,7 @@ impl Default for Cli {
         Cli {
             host: None,
             live: false,
+            mode: None,
             join: None,
             name: default_name(),
             name_given: false,
@@ -172,6 +175,13 @@ impl Cli {
             match a.as_str() {
                 "--host" => cli.host = Some(val()),
                 "--live" => cli.live = true,
+                "--mode" => {
+                    let v = val();
+                    cli.mode = parse_mode(&v);
+                    if cli.mode.is_none() {
+                        eprintln!("unknown --mode {v} (tdm or ffa); using team deathmatch");
+                    }
+                }
                 "--join" => cli.join = Some(val()),
                 "--name" => {
                     cli.name = val();
@@ -202,7 +212,8 @@ impl Cli {
                 }
                 "--help" | "-h" => {
                     println!(
-                        "val_etf [--host showhome|range [--live]] [--join CODE|IP[:PORT]] [--name NAME] [--port PORT]\n\
+                        "val_etf [--host showhome|range [--live] [--mode tdm|ffa]] [--join CODE|IP[:PORT]] [--name NAME]\n\
+                         \x20       [--port PORT]\n\
                          \x20       [--width W --height H] [--screenshot PATH [--screenshot-after S]] [--exit-after S] [--bot] [--yaw DEG]\n\
                          \x20       [--weapon ID] [--ammo std|ap1..3|rip1..3|slug1..2] [--mags std,ap2,..]\n\
                          \x20       [--armor PRESET] [--attach A,B]\n\
@@ -219,7 +230,8 @@ impl Cli {
                          \x20 a HiDPI screen), never grab the mouse, do not take the keyboard focus and ignore the\n\
                          \x20 desktop's mouse and keys (--allow-input keeps them); --bot runs do not grab the mouse.\n\
                          --esc-at presses Esc at those seconds after start-up (tests of the Esc routing).\n\
-                         --host showhome opens the lobby; --live starts the match at once.\n\
+                         --host showhome opens the lobby; --live starts the match at once. --mode ffa hosts a\n\
+                         \x20 free-for-all deathmatch instead of team deathmatch (also preselects HOST GAME's MODE).\n\
                          --demo-ui settings-gameplay|-mouse|-keybinds|-video|-audio|-hud opens that Settings tab from the\n\
                          \x20 main menu; esc | esc-stop | esc-restart opens the ESC menu (or its confirm) over a hosted\n\
                          \x20 match; ads holds aim down sights; hud-fx shows the damage flash; overlay keeps the\n\
@@ -227,7 +239,8 @@ impl Cli {
                          --demo-ui hit-fx keeps hit markers (each kind in turn) and halo cracks going on the nearest\n\
                          \x20 other player (screenshots of the hit feedback).\n\
                          --demo-ui lobby-ready | lobby-switch | lobby-start presses READY, SWITCH TEAM then READY, or\n\
-                         \x20 READY then START MATCH in the lobby (tests of the lobby over the network).\n\
+                         \x20 READY then START MATCH in the lobby (tests of the lobby over the network); lobby-ffa (host)\n\
+                         \x20 switches the lobby to free-for-all, then READY and START MATCH.\n\
                          --demo-ui first-run | first-run-invalid | first-run-valid opens the first-launch callsign\n\
                          \x20 prompt (empty, too short, valid); without a saved profile it opens on its own.\n\
                          --camera x,y,z,tx,ty,tz fixes the view camera (world coordinates) for map screenshots."
@@ -273,6 +286,15 @@ impl Cli {
             || self.mags.is_some()
             || self.armor.is_some()
             || self.attach.is_some()
+    }
+}
+
+/// Parse `--mode`: `tdm` (team deathmatch) or `ffa` (free-for-all).
+pub fn parse_mode(s: &str) -> Option<vetf_net::MatchMode> {
+    match s.trim().to_ascii_lowercase().replace(['-', '_', ' '], "").as_str() {
+        "tdm" | "team" | "teamdeathmatch" => Some(vetf_net::MatchMode::Tdm),
+        "ffa" | "freeforall" | "dm" | "deathmatch" => Some(vetf_net::MatchMode::Ffa),
+        _ => None,
     }
 }
 
@@ -357,6 +379,17 @@ mod tests {
         let ap2 = AmmoChoice { kind: AmmoKind::ArmorPiercing, tier: 2 };
         assert_eq!(parse_mags("std, ap2,laser,ap2"), vec![AmmoChoice::STANDARD, ap2, ap2]);
         assert_eq!(parse_mags("std,std,std,std,std,std,std").len(), 6);
+    }
+
+    #[test]
+    fn mode_option() {
+        use vetf_net::MatchMode;
+        assert_eq!(parse_mode("ffa"), Some(MatchMode::Ffa));
+        assert_eq!(parse_mode("Free-for-all"), Some(MatchMode::Ffa));
+        assert_eq!(parse_mode("TDM"), Some(MatchMode::Tdm));
+        assert_eq!(parse_mode("range"), None, "the range is a map (--host range), not a mode");
+        assert_eq!(parse_mode("ctf"), None);
+        assert_eq!(Cli::default().mode, None);
     }
 
     fn cli() -> Cli {

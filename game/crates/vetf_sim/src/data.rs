@@ -1030,6 +1030,8 @@ pub struct HitboxSpec {
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct RulesFile {
     pub tdm: TdmRules,
+    /// Free-for-all deathmatch on Showhome: everyone against everyone (user direction 2026-10-08).
+    pub ffa: FfaRules,
     pub rulesets: Rulesets,
     pub default_loadout: LoadoutSpec,
 }
@@ -1056,6 +1058,7 @@ impl Ruleset {
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Rulesets {
     pub tdm: Ruleset,
+    pub ffa: Ruleset,
     pub range: Ruleset,
 }
 
@@ -1063,6 +1066,7 @@ impl Rulesets {
     pub fn get(&self, mode: Mode) -> Ruleset {
         match mode {
             Mode::Tdm => self.tdm,
+            Mode::Ffa => self.ffa,
             Mode::Range => self.range,
         }
     }
@@ -1075,7 +1079,38 @@ pub enum Mode {
     Tdm,
     /// Gun range: free practice, no score, full rules.
     Range,
+    /// Free-for-all deathmatch on Showhome: no teams, every other player is an enemy, most kills wins.
+    Ffa,
 }
+
+impl Mode {
+    pub const ALL: [Mode; 3] = [Mode::Tdm, Mode::Ffa, Mode::Range];
+
+    /// Players are split into two teams (team deathmatch only).
+    pub fn has_teams(self) -> bool {
+        self == Mode::Tdm
+    }
+
+    /// A scored match with a clock, a score limit and a lobby (team deathmatch and free-for-all).
+    pub fn is_deathmatch(self) -> bool {
+        matches!(self, Mode::Tdm | Mode::Ffa)
+    }
+}
+
+impl RulesFile {
+    /// A mode's match rules (limits, respawn, spawn protection, kill refill). The gun range respawns and
+    /// protects like team deathmatch.
+    pub fn deathmatch(&self, mode: Mode) -> &TdmRules {
+        match mode {
+            Mode::Ffa => &self.ffa,
+            Mode::Tdm | Mode::Range => &self.tdm,
+        }
+    }
+}
+
+/// Free-for-all has the same match rules as team deathmatch (`max_players` need not be even, and
+/// `spawn_slack_m` adds a little randomness to the spawn pick).
+pub type FfaRules = TdmRules;
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct TdmRules {
@@ -1089,6 +1124,10 @@ pub struct TdmRules {
     /// Magazines a kill tops back up (the killer's emptiest spare first, see `WeaponState::refill_mags`).
     #[serde(default)]
     pub kill_refill_mags: u8,
+    /// Spawn pick: any spawn within this many metres of the farthest one from living enemies may be picked
+    /// at random (0: always the farthest).
+    #[serde(default)]
+    pub spawn_slack_m: f32,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -1310,7 +1349,7 @@ impl GameData {
         if self.armor.preset(&l.armor).is_none() {
             return bad(format!("default loadout: unknown armor {}", l.armor));
         }
-        for mode in [Mode::Tdm, Mode::Range] {
+        for mode in Mode::ALL {
             let kit = self.items.kits.get(mode);
             if kit.len() > crate::items::MAX_KIT {
                 return bad(format!("{mode:?} kit: at most {} items", crate::items::MAX_KIT));
@@ -1494,6 +1533,24 @@ mod tests {
         let a = d.ammo_for(d.weapon("ar7_mako").unwrap(), AmmoChoice::STANDARD).unwrap();
         assert_eq!(a.pen, [1.0; 4]);
         assert_eq!((a.damage_mult, a.flesh_mult, a.spill_mult), (1.0, 1.0, 1.0));
+    }
+
+    /// Free-for-all: its own limits in rules.ron, team deathmatch's switches, no teams.
+    #[test]
+    fn free_for_all_rules() {
+        let d = GameData::embedded();
+        let ffa = d.rules.deathmatch(Mode::Ffa);
+        assert_eq!(ffa, &d.rules.ffa);
+        assert_eq!(d.rules.deathmatch(Mode::Tdm), &d.rules.tdm);
+        assert_eq!(d.rules.deathmatch(Mode::Range), &d.rules.tdm, "the range respawns like team deathmatch");
+        assert_eq!(ffa.score_limit, 25);
+        assert_eq!(ffa.max_players, 8);
+        assert_eq!(ffa.kill_refill_mags, d.rules.tdm.kill_refill_mags);
+        assert!(ffa.spawn_slack_m > 0.0 && d.rules.tdm.spawn_slack_m == 0.0);
+        assert_eq!(d.rules.rulesets.get(Mode::Ffa), d.rules.rulesets.tdm, "same switches as team deathmatch");
+        assert_eq!(d.items.kits.get(Mode::Ffa), d.items.kits.get(Mode::Tdm), "the deathmatch kit");
+        assert!(Mode::Tdm.has_teams() && !Mode::Ffa.has_teams() && !Mode::Range.has_teams());
+        assert!(Mode::Tdm.is_deathmatch() && Mode::Ffa.is_deathmatch() && !Mode::Range.is_deathmatch());
     }
 
     #[test]

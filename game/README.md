@@ -19,9 +19,14 @@ Linux needs the usual Bevy packages: `libasound2-dev libudev-dev libxkbcommon-de
 After mockups 04 / 04b (`design/ui/mockups`). The left nav has **PLAY** (with **HOST GAME** and **JOIN GAME**),
 **GUN RANGE**, **LOADOUT**, **SETTINGS** and **QUIT**; the PLAY flyout opens to its right.
 
-- **PLAY > HOST GAME:** lobby name, who can join, max players (even, 2-10), port (default **UDP 47820**, or
-  `--port`) and password (shown, not available yet). **CREATE LOBBY** starts team deathmatch on Showhome until
-  the lobby screen exists. A busy port is reported in the panel.
+- **PLAY > HOST GAME:** lobby name, **MODE** (team deathmatch or free-for-all), who can join, max players
+  (team deathmatch: even, 2-10; free-for-all: 2-8), port (default **UDP 47820**, or `--port`) and password
+  (shown, not available yet). **CREATE LOBBY** opens the lobby on Showhome, where the host can still switch the
+  mode under MATCH SETTINGS. A busy port is reported in the panel.
+- **Free-for-all:** everyone against everyone, first to 25 kills (`ffa` in `rules.ron`). No teams and no SWITCH
+  TEAM; every other player is an enemy (enemy colour on bodies and in the kill feed). You spawn on either side, at
+  a point far from living enemies (with a little randomness). The HUD shows your kills against the leader's; the
+  scoreboard is one list sorted by kills. The most kills wins (tie: fewer deaths, then whoever got there first).
 - **GUN RANGE** hosts the range the same way, so friends can join it.
 - **PLAY > JOIN GAME:** paste an `SL1-...` internet invite or a direct `ip:port` address.
   Legacy short LAN codes are also accepted. **PASTE** and Ctrl+V use the system clipboard.
@@ -106,7 +111,7 @@ folder).
 | Esc | Match menu: resume, loadout, settings, key reference, leave (or stop hosting) |
 
 ### Command line (automation and testing)
-`val_etf [--host showhome|range [--live]] [--join CODE|IP[:PORT]] [--name NAME] [--port PORT] [--width W --height H]
+`val_etf [--host showhome|range [--live] [--mode tdm|ffa]] [--join CODE|IP[:PORT]] [--name NAME] [--port PORT] [--width W --height H]
 [--screenshot PATH --screenshot-after S] [--exit-after S] [--bot] [--yaw DEG]
 [--weapon ID] [--ammo AMMO | --mags std,ap2,..] [--armor PRESET] [--attach A,B]
 [--demo-ui reload|heal|heal-region|hud|menu-join|menu-join-ip|menu-host]`
@@ -115,9 +120,11 @@ folder).
   `--host`, `--join`, `--bot`, `--screenshot` and `--demo-ui` runs never show the prompt either.
 - `--demo-ui first-run|first-run-invalid|first-run-valid` opens the first-launch callsign prompt (empty, too
   short, valid) for screenshots.
-- `--host showhome` opens the lobby, like CREATE LOBBY; add `--live` to start the match at once.
+- `--host showhome` opens the lobby, like CREATE LOBBY; add `--live` to start the match at once. `--mode ffa`
+  hosts a free-for-all instead of team deathmatch (and preselects HOST GAME's MODE).
   `--demo-ui lobby-ready|lobby-switch|lobby-start` presses READY, SWITCH TEAM then READY, or READY then START MATCH
-  a few seconds in, to test the lobby over the network.
+  a few seconds in, to test the lobby over the network; `lobby-ffa` (host) switches the lobby to free-for-all,
+  readies and starts it.
 - `--demo-ui settings-gameplay|settings-mouse|settings-keybinds|settings-video|settings-audio|settings-hud` opens
   that Settings tab from the main menu. `--demo-ui esc|esc-stop|esc-restart` opens the ESC menu or one of its
   confirms over a hosted match. `ads` holds aim down sights (`sprint` / `sprint-ads` hold sprint, and aim, for a
@@ -181,7 +188,7 @@ The design is a listen server ticking at 60 Hz.
 - Host and join over UDP, verified with two processes.
 - Prediction and interpolation.
 - Shot claims with lag compensation; hits, kills, kill feed and respawn.
-- TDM score, timer and match end.
+- TDM score, timer and match end; free-for-all (`--mode ffa`) kills, timer and match end.
 - Per-arc halo shields and per-zone HP with spill.
 - Three guns: AR-7 Mako, VK-50 Warden and the SK-9 Skink SMG (the only gun that loads RIP).
 - Ammo class × type × tier, picked per magazine (up to six ordered magazines).
