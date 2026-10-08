@@ -460,7 +460,9 @@ pub struct TriggerTick {
     /// The magazine in the gun is empty.
     pub empty: bool,
     /// The gun takes a trigger pull now: ready (not equipping, reloading or checking the magazine) and cooled
-    /// down. A gun still coming up from a sprint takes it too: an empty one clicks on the pull.
+    /// down. A gun still coming up from a sprint takes it too once only the raise is in the way (what is left of
+    /// a bolt cycle is no longer than the raise; an earlier pull is dropped, as standing still): an empty one
+    /// clicks on the pull.
     pub takes_pull: bool,
     /// The gun is up, ready and cooled down, so it would fire now, but the magazine in it is empty.
     pub empty_ready: bool,
@@ -469,7 +471,8 @@ pub struct TriggerTick {
 impl TriggerTick {
     pub fn of(w: &WeaponState) -> Self {
         let empty = w.mag() == 0;
-        let takes_pull = w.is_ready() && w.cooldown == 0;
+        // Standing, `sprint_lock` is 0, so this is "cooled down".
+        let takes_pull = w.is_ready() && w.cooldown <= w.sprint_lock;
         TriggerTick {
             held: w.prev_buttons.held(Buttons::FIRE),
             auto: w.fire_mode == FireMode::Auto,
@@ -2034,6 +2037,57 @@ mod tests {
                 assert_eq!((p.shots, p.own, p.theirs), (4, 2, 2), "{gun}: held through a reload ({p:?})");
             }
         }
+    }
+
+    /// The last round, then a sprint lowers the gun before its bolt cycle is over, then one quick pull on the
+    /// run. Late in the cycle, when the raise outlasts what is left of it, the simulation takes the pull and it
+    /// clicks for the shooter and for everyone near. Earlier the pull is dropped, as it is standing still (the
+    /// sim lane's rule), so nobody else hears it.
+    #[test]
+    fn a_pull_on_the_run_late_in_a_bolt_cycle_clicks_for_everyone() {
+        let d = game();
+        let mut tried = 0;
+        for (gun, mode, _) in guns_and_modes() {
+            for late in [true, false] {
+                let lo = WeaponLoadout::resolve(d, &gun, &[AmmoChoice::STANDARD], &[]).unwrap();
+                let mut ws = WeaponState::new(d, &lo);
+                ws.action = WeaponAction::Ready;
+                ws.fire_mode = mode;
+                ws.rounds = vec![1];
+                let (mut own, mut theirs) = (DryFire::seen(TriggerTick::of(&ws)), DryFire::seen(TriggerTick::of(&ws)));
+                let mut seen_seq = ws.shot_seq;
+                let (mut shots, mut heard_own, mut heard_theirs, mut pulled) = (0, 0, 0, false);
+                for _ in 0..240 {
+                    // In the coming tick the cooldown and the raise each count down one, so the simulation
+                    // compares them as they are now.
+                    let when = if late { ws.cooldown <= ws.sprint_lock } else { ws.cooldown > ws.sprint_lock + 5 };
+                    let pull = !pulled && ws.shot_seq > 0 && ws.lowered() && ws.cooldown > 0 && when;
+                    pulled |= pull;
+                    let fire = ws.shot_seq == 0 || pull;
+                    let b = if fire { Buttons::FIRE } else { 0 };
+                    let input = InputFrame { buttons: Buttons(b), ..Default::default() };
+                    let ev = ws.step(d, &lo, &input, &env(true));
+                    shots += ev.shot.is_some() as u32;
+                    heard_own += own.local(&ev, TriggerTick::of(&ws)) as u32;
+                    heard_theirs += theirs.remote(TriggerTick::of(&ws), ws.shot_seq != seen_seq, false) as u32;
+                    seen_seq = ws.shot_seq;
+                }
+                assert_eq!(shots, 1, "{gun} {mode:?}");
+                if !pulled {
+                    // A gun that cycles faster than it is lowered never meets this case.
+                    continue;
+                }
+                tried += 1;
+                if late {
+                    assert_eq!((heard_own, heard_theirs), (1, 1), "{gun} {mode:?}: a pull late in the cycle");
+                } else {
+                    // (The shooter's own click follows the simulation, which drops this pull from the sim
+                    // lane's change on.)
+                    assert_eq!(heard_theirs, 0, "{gun} {mode:?}: a pull early in the cycle is dropped");
+                }
+            }
+        }
+        assert!(tried >= 2, "the Warden's bolt cycle outlasts the time its gun stays up after a shot");
     }
 
     #[test]
