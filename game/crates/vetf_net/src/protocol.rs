@@ -8,7 +8,7 @@ use lightyear::prelude::*;
 use serde::{Deserialize, Serialize};
 use vetf_sim::Zone;
 use vetf_sim::combat::{HaloState, Health};
-use vetf_sim::data::{AmmoChoice, Ruleset};
+use vetf_sim::data::{AmmoChoice, DeathmatchLoadout, Ruleset};
 use vetf_sim::gear::HaloChoice;
 use vetf_sim::hitbox::HitClaim;
 use vetf_sim::input::{Buttons, InputFrame};
@@ -199,14 +199,43 @@ impl PlayerInput {
 pub struct LoadoutChoice {
     pub weapon: String,
     /// Magazines in slot order: one to six, no gaps, each with its own ammo. Slot 1 starts in the gun, and
-    /// a slot's index is its position on the reload wheel.
+    /// a slot's index is its position on the reload wheel. The deathmatch modes load all of them with slot 1's
+    /// ammo and carry their own count ([`LoadoutChoice::shaped`]).
     pub mags: Vec<AmmoChoice>,
     /// Attachment ids, at most one per category; categories left out use the weapon's defaults.
     pub attachments: Vec<String>,
-    /// The halo: one core and a tier per arc, within the armor data's loadout tier caps.
+    /// The halo: one core and a tier per arc, within the armor data's loadout tier caps. The deathmatch modes
+    /// replace the core with their one halo's.
     pub halo: HaloChoice,
-    /// Agent id (cosmetic for now: agents have no abilities in this build).
+    /// Agent id (cosmetic for now: agents have no abilities in this build, and the deathmatch modes have no
+    /// agent pick).
     pub agent: String,
+}
+
+impl LoadoutChoice {
+    /// The ammo of slot 1 (the magazine that starts in the gun): a deathmatch loadout's one ammo type.
+    pub fn ammo(&self) -> AmmoChoice {
+        self.mags.first().copied().unwrap_or(AmmoChoice::STANDARD)
+    }
+
+    /// This loadout in a mode that fixes part of it (`rules.ron` `loadout`, see
+    /// [`vetf_sim::data::RulesFile::fixed_loadout`]): that mode's halo core and magazine count, every
+    /// magazine loaded with slot 1's ammo. Without fixed parts (the gun range) it is taken as it is. The host
+    /// and the Loadout screen both shape a loadout this way, so a client cannot ask for more than the mode
+    /// gives (another core, a mix of ammo, extra magazines).
+    pub fn shaped(&self, fixed: Option<&DeathmatchLoadout>) -> LoadoutChoice {
+        let Some(fixed) = fixed else { return self.clone() };
+        LoadoutChoice {
+            mags: vec![self.ammo(); fixed.mags as usize],
+            halo: self.halo.with_core(fixed.halo_core),
+            ..self.clone()
+        }
+    }
+
+    /// This loadout as `mode` takes it (see [`LoadoutChoice::shaped`]).
+    pub fn for_mode(&self, data: &vetf_sim::GameData, mode: MatchMode) -> LoadoutChoice {
+        self.shaped(data.rules.fixed_loadout(mode))
+    }
 }
 
 /// Client -> host: a new loadout from the Loadout screen during a match, applied at the next spawn.
@@ -537,6 +566,37 @@ mod tests {
         assert_eq!(back.mags[2], AmmoChoice { kind: AmmoKind::Rip, tier: 3 }, "slot order is kept");
         assert_eq!(back.halo.tiers.legs, 2);
         assert_eq!(protocol_id() ^ 0x5641_4c5f_4554_4600, PROTOCOL_VERSION);
+    }
+
+    /// Team deathmatch and free-for-all take one halo and one ammo type: whatever a client asks for (another
+    /// core, a mix of ammo, six magazines) is shaped to the mode's halo core and magazine count, every
+    /// magazine with slot 1's ammo. The gun range takes the loadout as it is.
+    #[test]
+    fn deathmatch_loadouts_take_the_modes_halo_and_one_ammo_type() {
+        use vetf_sim::ZoneTable;
+        use vetf_sim::data::{AmmoKind, Core};
+        let d = GameData::embedded();
+        let ap = |tier| AmmoChoice { kind: AmmoKind::ArmorPiercing, tier };
+        let rich = LoadoutChoice {
+            weapon: "sk9_skink".into(),
+            mags: vec![ap(3), AmmoChoice::STANDARD, AmmoChoice { kind: AmmoKind::Rip, tier: 1 }, ap(1), ap(2), ap(2)],
+            attachments: vec!["optic_reddot".into()],
+            halo: HaloChoice { core: Core::Volt, tiers: ZoneTable { head: 3, torso: 1, arms: 0, legs: 2 } },
+            agent: "solace".into(),
+        };
+        for mode in [MatchMode::Tdm, MatchMode::Ffa] {
+            let fixed = d.rules.fixed_loadout(mode).unwrap();
+            let s = rich.for_mode(&d, mode);
+            assert_eq!(s.mags, vec![ap(3); fixed.mags as usize], "{mode:?}: slot 1's ammo in every magazine");
+            assert_eq!(s.halo, HaloChoice { core: fixed.halo_core, tiers: rich.halo.tiers }, "{mode:?}: the one halo");
+            assert_eq!((&s.weapon, &s.attachments), (&rich.weapon, &rich.attachments), "the gun stays free");
+            assert_eq!(s.for_mode(&d, mode), s, "shaping twice changes nothing");
+            roundtrip(&LoadoutUpdate { loadout: s });
+        }
+        assert_eq!(rich.for_mode(&d, MatchMode::Range), rich);
+        let none = LoadoutChoice { mags: vec![], ..rich.clone() };
+        assert_eq!(none.ammo(), AmmoChoice::STANDARD);
+        assert!(none.for_mode(&d, MatchMode::Tdm).mags.iter().all(|m| *m == AmmoChoice::STANDARD));
     }
 
     #[test]

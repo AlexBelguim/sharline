@@ -1106,6 +1106,27 @@ impl RulesFile {
             Mode::Tdm | Mode::Range => &self.tdm,
         }
     }
+
+    /// The fixed part of a mode's loadout: the deathmatch modes have one (one halo, one ammo type in a set
+    /// number of magazines); the gun range has none (any halo core, ammo picked per magazine).
+    pub fn fixed_loadout(&self, mode: Mode) -> Option<&DeathmatchLoadout> {
+        match mode {
+            Mode::Tdm => Some(&self.tdm.loadout),
+            Mode::Ffa => Some(&self.ffa.loadout),
+            Mode::Range => None,
+        }
+    }
+}
+
+/// What a deathmatch loadout fixes (user direction 2026-10-08, DIRECTION_LOG 17): these modes have no
+/// abilities, so no agent pick; every player wears the same halo, so no core pick (only a tier per body
+/// part); and every magazine carries the one ammo type the player picks. The gun and its parts stay free.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
+pub struct DeathmatchLoadout {
+    /// The one halo: every player's halo has this core.
+    pub halo_core: Core,
+    /// Magazines every loadout carries, all loaded with the player's ammo type (slot 1 starts in the gun).
+    pub mags: u8,
 }
 
 /// Free-for-all has the same match rules as team deathmatch (`max_players` need not be even, and
@@ -1114,8 +1135,10 @@ pub type FfaRules = TdmRules;
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct TdmRules {
-    /// Halo arc tiers plus ammo gear cost must fit this (AP's price in team deathmatch).
+    /// Halo arc tiers plus the ammo type's gear cost (paid once) must fit this.
     pub gear_budget: u32,
+    /// The halo and magazines every loadout in this mode has (see [`RulesFile::fixed_loadout`]).
+    pub loadout: DeathmatchLoadout,
     pub score_limit: u32,
     pub time_limit_s: f32,
     pub respawn_s: f32,
@@ -1348,6 +1371,13 @@ impl GameData {
         }
         if self.armor.preset(&l.armor).is_none() {
             return bad(format!("default loadout: unknown armor {}", l.armor));
+        }
+        for mode in Mode::ALL {
+            if let Some(fixed) = self.rules.fixed_loadout(mode)
+                && !(1..=crate::weapon::MAX_MAGS).contains(&(fixed.mags as usize))
+            {
+                return bad(format!("{mode:?} loadout: 1..={} magazines", crate::weapon::MAX_MAGS));
+            }
         }
         for mode in Mode::ALL {
             let kit = self.items.kits.get(mode);

@@ -1,9 +1,18 @@
 // Match rules for team deathmatch and free-for-all on Showhome, and the default loadout.
+//
+// Deathmatch loadouts (user direction 2026-10-08, DIRECTION_LOG 17): no agent pick (no abilities in these
+// modes; the jetpack stays), ONE halo for everyone (`loadout.halo_core`: the player only picks a tier per body
+// part, within armor.ron's loadout_tier_caps), and ONE ammo type in every magazine (`loadout.mags` of them).
+// The gear budget prices the halo's arc tiers plus the ammo type's gear_cost (ammo.ron), paid once.
+// Mender is the one halo: of the four cores it is the only one whose special is just numbers (its regen
+// table). Volt's break pulse slows, Phase is immune to slows and Bulwark cuts flinch: ability-like status
+// effects these modes leave out. Mender is also the default loadout's halo, so time-to-kill stays where
+// playtest round 1 tuned it.
 (
     tdm: (
-        // Halo arc tiers (loadout-capped) + the gear cost of every magazine must fit: AP's price in this
-        // test mode.
-        gear_budget: 13,          // balance pass v2: the capped Bulwark Juggernaut (13) is legal
+        // Halo arc tiers (loadout-capped) + the ammo type's gear cost, paid once, must fit.
+        gear_budget: 13,          // every arc at its cap (H4 T4 A3 L2 = 13) with standard ammo, or AP III (6) with 7 tier points
+        loadout: (halo_core: Mender, mags: 4),  // the one halo; four magazines, all of the picked ammo type
         score_limit: 50,          // "TDM - first to 50" (design/ui/mockups/png/01_hud.png)
         time_limit_s: 600.0,      // placeholder: the design does not fix a match length yet
         respawn_s: 4.0,           // design/systems damage_flow: "respawn timer 4 s"
@@ -16,6 +25,7 @@
     // first to reach that score). Placeholders until the design gives values.
     ffa: (
         gear_budget: 13,          // same as team deathmatch (the Loadout screen prices against it)
+        loadout: (halo_core: Mender, mags: 4),  // like team deathmatch
         score_limit: 25,          // first player to 25 kills
         time_limit_s: 600.0,      // placeholder, like team deathmatch
         respawn_s: 3.0,           // placeholder: a little quicker than team deathmatch, no team to wait for
@@ -35,7 +45,8 @@
     ),
     default_loadout: (
         primary: "ar7_mako",
-        // Up to six magazines in slot order, each with its own ammo; slot 1 starts in the gun.
+        // Up to six magazines in slot order, each with its own ammo (the gun range); slot 1 starts in the gun.
+        // The deathmatch modes take slot 1's ammo for `loadout.mags` magazines.
         // Tap reload takes the next slot in order; hold reload opens the radial to pick one.
         mags: [(kind: Standard, tier: 1), (kind: Standard, tier: 1), (kind: Standard, tier: 1), (kind: Standard, tier: 1)],
         attachments: ["optic_holo", "mako_stock_standard", "mag_30"],
