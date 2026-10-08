@@ -5,6 +5,7 @@
 //! sway ([`camera_fx`]), tracers ([`tracer_fx`]), and hit markers and halo cracks on the player hit ([`hit_fx`]).
 
 mod camera_fx;
+pub mod executor;
 pub mod feel;
 pub mod hit_fx;
 mod tracer_fx;

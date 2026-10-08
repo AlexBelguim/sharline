@@ -86,6 +86,8 @@ fn main() -> AppExit {
                 ..default()
             }),
     );
+    // The frame's schedules on the executor that measured faster (render/executor.rs).
+    app.add_plugins(render::executor::ExecutorPlugin);
     // Both lightyear plugin groups, always: the same binary hosts or joins (same tick on both).
     app.add_plugins((
         lightyear::prelude::server::ServerPlugins { tick_duration: tick },
