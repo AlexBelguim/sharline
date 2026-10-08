@@ -54,9 +54,11 @@ pub fn attachment_short(id: &str, data: &GameData) -> String {
             Some(n) => format!("{n} mag"),
             None => id.replace('_', " "),
         },
-        Some(AttachmentCategory::Under) if id.starts_with("grip_") => {
-            format!("{} grip", id.trim_start_matches("grip_"))
-        }
+        // The display name, as the ids can outlive it (`grip_vertical` is the BRACE GRIP).
+        Some(AttachmentCategory::Under) if id.starts_with("grip_") => match spec.map(|s| s.display_name()) {
+            Some(name) if name != id => name.to_lowercase(),
+            _ => format!("{} grip", id.trim_start_matches("grip_")),
+        },
         Some(AttachmentCategory::Under) if id.starts_with("ugl") => "UGL".into(),
         Some(AttachmentCategory::Shield) => "gun shield".into(),
         _ => id.replace('_', " "),
@@ -364,6 +366,7 @@ mod tests {
             ("mag_30", "30 mag"),
             ("mag_drum60", "60 drum"),
             ("grip_angled", "angled grip"),
+            ("grip_vertical", "brace grip"),
             ("ugl_launcher", "UGL"),
             ("laser", "laser"),
             ("shield_front", "gun shield"),

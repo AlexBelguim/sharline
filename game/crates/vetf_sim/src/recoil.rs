@@ -91,7 +91,7 @@ pub fn settle_punch(spec: &WeaponSpec, punch_deg: f32, dt: f32) -> f32 {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::data::{FireMode, GameData};
+    use crate::data::{FireMode, GameData, RecoilPattern};
     use crate::weapon::fire_interval_ticks;
 
     #[test]
@@ -175,21 +175,79 @@ mod tests {
         }
     }
 
-    /// The Skink's pattern is the Mako's x0.6: the same shape to learn, lighter on every shot.
-    #[test]
-    fn the_skink_pattern_is_the_makos_lighter() {
-        let d = GameData::embedded();
-        let (mako, skink) = (&d.recoil_patterns["mako_recoil_pattern"], &d.recoil_patterns["skink_recoil_pattern"]);
-        assert_eq!(mako.kicks.len(), skink.kicks.len());
-        assert_eq!(mako.loop_from_index, skink.loop_from_index);
-        for (m, s) in mako.kicks.iter().zip(&skink.kicks) {
-            assert_eq!(m.after_shot, s.after_shot);
-            assert!(
-                (s.pitch - m.pitch * 0.6).abs() < 1e-4 && (s.yaw - m.yaw * 0.6).abs() < 1e-4,
-                "shot {}",
-                m.after_shot
-            );
+    /// Where each round of a spray goes (pitch up, yaw right; degrees) when nobody pulls: round 1 at the origin,
+    /// round n after the kicks of rounds 1..n-1.
+    fn rounds(p: &RecoilPattern, n: u32) -> Vec<(f32, f32)> {
+        let mut at = vec![(0.0_f32, 0.0_f32)];
+        for shot in 1..n {
+            let (kp, ky) = p.kick(shot);
+            let last = at[at.len() - 1];
+            at.push((last.0 + kp, last.1 + ky));
         }
+        at
+    }
+
+    /// Playtest round 3 (DIRECTION_LOG 18): the Mako's pattern is a T, for every magazine (30, 45, the 60 drum).
+    /// The stem: rounds 1-10 climb straight up, hard. The bar: the climb flattens and the gun sweeps right, then
+    /// left across, then right again, each sweep wide enough that it needs real sideways control, the bar centred
+    /// on the stem and roughly level.
+    #[test]
+    fn the_mako_pattern_is_a_t() {
+        const STEM: usize = 10;
+        let d = GameData::embedded();
+        let p = &d.recoil_patterns["mako_recoil_pattern"];
+        for mag in [30, 45, 60] {
+            let at = rounds(p, mag);
+            // The stem: no sideways drift at all, and a strong climb (hip degrees; aimed x0.7).
+            let stem_climb = at[STEM - 1].0;
+            assert!(at[..STEM].iter().all(|r| r.1 == 0.0), "{mag}: the stem is straight up");
+            assert!((7.0..=11.0).contains(&stem_climb), "{mag}: stem climb {stem_climb}");
+            // The bar: mostly sideways. Even over a drum its climb is a small part of the stem's, its sideways travel many times that.
+            let bar = &at[STEM - 1..];
+            let rise = bar[bar.len() - 1].0 - bar[0].0;
+            let travel: f32 = bar.windows(2).map(|w| (w[1].1 - w[0].1).abs()).sum();
+            assert!(rise >= 0.0 && rise < 0.4 * stem_climb, "{mag}: the bar rises {rise}");
+            assert!(travel > 4.0 * rise, "{mag}: {travel} sideways against {rise} up");
+            // Sweeps: runs of kicks the same way, alternating right / left / right ...
+            let mut sweeps: Vec<(f32, usize)> = vec![];
+            for shot in STEM as u32..mag {
+                let yaw = p.kick(shot).1;
+                assert_ne!(yaw, 0.0, "{mag}: every bar kick moves sideways (shot {shot})");
+                match sweeps.last_mut() {
+                    Some((dir, len)) if dir.signum() == yaw.signum() => {
+                        *dir += yaw;
+                        *len += 1;
+                    }
+                    _ => sweeps.push((yaw, 1)),
+                }
+            }
+            assert!(sweeps.len() >= 3, "{mag}: at least right, left and right again: {sweeps:?}");
+            assert!(sweeps[0].0 > 0.0, "{mag}: the first sweep goes right");
+            assert!(sweeps.windows(2).all(|w| w[0].0.signum() != w[1].0.signum()), "{mag}: alternating");
+            assert!((5..=6).contains(&sweeps[0].1), "{mag}: first sweep over 5-6 rounds: {sweeps:?}");
+            // Every full sweep crosses the bar: 2-4x the first, in 6-10 rounds (the last one may be cut off by the mag).
+            for (i, (yaw, len)) in sweeps[1..sweeps.len() - 1].iter().enumerate() {
+                assert!((6..=10).contains(len), "{mag}: sweep {} over {len} rounds", i + 2);
+                assert!(yaw.abs() > 1.5 * sweeps[0].0, "{mag}: sweep {} crosses the bar: {yaw}", i + 2);
+            }
+            // The bar's width is data-sane: 3-8 deg hip (2.1-5.6 aimed), and centred on the stem within half a degree.
+            let (lo, hi) = bar.iter().fold((f32::MAX, f32::MIN), |(lo, hi), r| (lo.min(r.1), hi.max(r.1)));
+            assert!((3.0..=8.0).contains(&(hi - lo)), "{mag}: bar width {}", hi - lo);
+            assert!((hi + lo).abs() < 0.5, "{mag}: the bar is centred on the stem: {lo} .. {hi}");
+        }
+    }
+
+    /// The Skink keeps its round-2 pattern, the old Mako column x0.6 (the T is the AR's alone): a tall climb with a
+    /// gentle sway, lighter on every shot.
+    #[test]
+    fn the_skink_keeps_its_column() {
+        let d = GameData::embedded();
+        let p = &d.recoil_patterns["skink_recoil_pattern"];
+        assert_eq!((p.kicks.len(), p.loop_from_index), (29, 20));
+        let at = rounds(p, 40);
+        let (lo, hi) = at.iter().fold((f32::MAX, f32::MIN), |(lo, hi), r| (lo.min(r.1), hi.max(r.1)));
+        assert!(hi - lo < 1.0, "a gentle sway: {lo} .. {hi}");
+        assert!((at[20].0 - 7.584).abs() < 1e-3, "{:?}", at[20]);
     }
 
     #[test]

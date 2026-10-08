@@ -421,17 +421,21 @@ fn damage_per_second_by_range() {
     }
 }
 
-/// Recoil is the skill check now, and it must stay learnable. A player who learned the Mako's pattern (pull down
-/// hard to the 8th round, then gently on to the 15th, no sideways correction) keeps a 15-round aimed spray on the
-/// torso of a target 15 m away. Without pulling down, the climb leaves the torso within four rounds.
+/// Recoil is the skill check now, and it must stay learnable. The Mako's pattern is a T (playtest round 3,
+/// DESIGN_DELTAS.md section 15): a player who learned it (pull down hard to the 8th round and on to the 10th, then
+/// against the sideways sweep: right to its turn at the 16th round, then back left to the 20th) keeps a 20-round
+/// aimed spray on the torso of a target 15 m away. The learned pull only knows the turning points and pulls in
+/// straight lines between them. Without pulling down, the climb leaves the torso within four rounds; pulling down
+/// but not sideways, the sweep carries it off the torso: the bar needs real horizontal control.
 #[test]
 fn a_learned_pull_keeps_an_aimed_mako_spray_on_a_torso_at_15_m() {
     let d = GameData::embedded();
     let w = d.weapon(MAKO).unwrap();
     let RecoilSpec::Pattern(p) = &w.recoil else { panic!("the Mako has a pattern") };
     let pattern = d.recoil_pattern(w).unwrap();
-    const ROUNDS: usize = 15;
-    const KNEE: usize = 8;
+    const ROUNDS: usize = 20;
+    // Rounds (0-based) the learned pull aims through: the knee of the climb, the top of the stem, the sweep's turn.
+    const KNOTS: [usize; 5] = [0, 7, 9, 15, ROUNDS - 1];
     // The view climb (pitch, yaw right; degrees) each round leaves with: the aimed kicks of the rounds before it.
     let mut climb = vec![(0.0_f32, 0.0_f32)];
     for n in 1..ROUNDS as u32 {
@@ -439,14 +443,12 @@ fn a_learned_pull_keeps_an_aimed_mako_spray_on_a_torso_at_15_m() {
         let last = climb[climb.len() - 1];
         climb.push((last.0 + kp * p.ads_mult, last.1 + ky * p.ads_mult));
     }
-    // The learned pull: straight down to where round KNEE would go, then on to round ROUNDS.
-    let (k, e) = (KNEE - 1, ROUNDS - 1);
+    // The learned pull (pitch, yaw): straight lines through where the knot rounds would go.
     let pull = |i: usize| {
-        if i <= k {
-            climb[k].0 * i as f32 / k as f32
-        } else {
-            climb[k].0 + (climb[e].0 - climb[k].0) * (i - k) as f32 / (e - k) as f32
-        }
+        let k = KNOTS.windows(2).find(|k| i <= k[1]).unwrap();
+        let t = (i - k[0]) as f32 / (k[1] - k[0]) as f32;
+        let (a, b) = (climb[k[0]], climb[k[1]]);
+        (a.0 + (b.0 - a.0) * t, a.1 + (b.1 - a.1) * t)
     };
     let eye = Vec3::Y * d.movement.eye_height.stand;
     let target = Pose { pos: Vec3::new(0.0, 0.0, -15.0), yaw: 0.0, stance: Stance::Stand };
@@ -457,23 +459,26 @@ fn a_learned_pull_keeps_an_aimed_mako_spray_on_a_torso_at_15_m() {
     // old 0.08 deg `ads_still` cone), so the learned pull puts every round exactly where it aims.
     let spread = cone(&d, MAKO, &still(), 1.0, 0.0);
     assert_eq!(spread, 0.0);
-    let zones = |pulled: bool| -> Vec<Option<Zone>> {
+    let zones = |down: bool, side: bool| -> Vec<Option<Zone>> {
         (0..ROUNDS)
             .map(|i| {
-                let down = if pulled { pull(i) } else { 0.0 };
-                let pitch = pitch0 + (climb[i].0 - down).to_radians();
+                let (pd, ps) = pull(i);
+                let pitch = pitch0 + (climb[i].0 - if down { pd } else { 0.0 }).to_radians();
                 // Yaw right turns the view to negative yaw (as the client applies the kick).
-                let yaw = yaw0 - climb[i].1.to_radians();
+                let yaw = yaw0 - (climb[i].1 - if side { ps } else { 0.0 }).to_radians();
                 let dir = shot_direction(yaw, pitch, spread, shot_seed(7, i as u32 + 1));
                 hitbox::raycast(&d, &target, eye, dir, 100.0).map(|(z, _)| z)
             })
             .collect()
     };
-    let pulled = zones(true);
+    let pulled = zones(true, true);
     assert!(pulled.iter().all(|z| *z == Some(Zone::Torso)), "pulled: {pulled:?}");
-    let free = zones(false);
+    let free = zones(false, false);
     let left = free.iter().position(|z| *z != Some(Zone::Torso)).expect("the climb leaves the torso");
     assert!(left < 4, "without pulling down the spray leaves the torso at round {}: {free:?}", left + 1);
+    let only_down = zones(true, false);
+    let off = only_down.iter().position(|z| *z != Some(Zone::Torso)).expect("the sweep leaves the torso");
+    assert!(off >= 10, "the stem needs no sideways pull: round {}: {only_down:?}", off + 1);
 }
 
 fn still() -> WeaponEnv {

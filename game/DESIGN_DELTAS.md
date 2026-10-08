@@ -350,3 +350,40 @@ Skipped in the sync test by `recoil_and_bloom_round_2()`; pinned by the tests in
 - Pinned by `vetf_sim::movement` tests (a lintel, crouch released or held, a slide off a ledge under a low
   ceiling) and `maps::showhome` (`slide_stopped_under_the_garage_roller_stays_low`: slides into both rollers that
   stop at every point along the way).
+
+## 15. The AR's recoil is a T; stocks take the climb, grips the sweep (2026-10-08)
+User direction (DIRECTION_LOG 18): "recoil of ar should be more like a T with no special stocks", and "stocks and
+front grips will then each lower the vertical or horizontal recoil". Skipped in the sync test by
+`recoil_roles_round_3()`; pinned by `recoil.rs` (`the_mako_pattern_is_a_t`), `weapon.rs`
+(`mako_attachments_scale_the_t_per_axis`, `the_mako_climb_is_pinned`) and `data.rs`
+(`stocks_lower_the_climb_and_grips_the_sweep`).
+
+- **Mako pattern** (`recoil_patterns.ron`, standard stock, no grip; hip degrees, aimed x0.7):
+  - The stem: kicks 1-9 go straight up (no yaw), 8.8° in all, so rounds 1-10 stack in one column. After 10 rounds
+    the climb is 9.1° (round 2: 8.87° with a small wiggle).
+  - The bar: the climb flattens (0.3° a round falling to 0.05°) and the gun sweeps right over rounds 11-16
+    (+2.6°), left across over 17-24 (−5.2°), right again over 25-32 (+5.2°). Past kick 31 it loops the two full
+    sweeps (`loop_from_index` 20 → 15), so a 45 or the 60 drum keeps sweeping the same ±2.6° bar, centred on the
+    stem. The bar rises 1.5° over a 30 and 3° over a drum (round 2 kept climbing 0.35° a round: 15.8° at 30
+    rounds, now 10.3°). The total climb is lower; the skill check moves to the sideways control.
+  - The Skink keeps the round-2 column x0.6 (the T is the AR's alone), so it is no longer "the Mako's x0.6".
+- **Recoil roles** (`attachments.ron`): a stock only sets `recoil_v`, an under-rail part only `recoil_h`; the data
+  check rejects anything else. Every stock and grip lowers its axis by its own amount and pays elsewhere:
+
+  | Part | design | now |
+  | --- | --- | --- |
+  | Mako PRECISION stock | V 0.9, H 0.9 | V 0.8 (ADS x1.1, sway 0.8, move 0.98) |
+  | Mako LIGHT stock | V 1.12, H 1.12 | V 0.92 (ADS x0.88, sway 1.15, sprint-to-fire 0.85) |
+  | Warden FOLDING stock | V 1.1 | V 0.95 (ADS x0.9, sway 1.25, move 1.03) |
+  | VERTICAL GRIP, now **BRACE GRIP** | V 0.88 | H 0.78 (ADS x1.03, new sway 0.95) |
+  | ANGLED GRIP | H 0.94 | H 0.88 (ADS x0.92) |
+  | STUB GRIP | H 0.95 | H 0.94 (hip spread 0.88, sprint-to-fire 0.9) |
+
+  `grip_vertical` keeps its id (its model and saved loadouts); only its name and blurb changed. The front shield
+  keeps its H 0.95 (it is not a grip). The Skink has no stocks or grips. The bipod's deployed bonus is unchanged.
+- **Balance tests:** the learned-pull test now runs 20 aimed rounds at 15 m and pulls against the sweep too (in
+  straight lines between the turning points); pulling down only, the sweep leaves the torso, so the bar needs real
+  sideways control. The stat text test reads RECOIL H for the grips and RECOIL V for the stocks.
+- **Design follow-up (local session):** port the T pattern and `loop_from_index` 15 into
+  `mako_recoil_pattern.json`, the recoil roles into `attachments_stats.slice.json` (and the Skink's note in the
+  weapons doc), then delete `recoil_roles_round_3()`.

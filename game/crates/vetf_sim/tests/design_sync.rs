@@ -48,6 +48,15 @@ fn superseded(path: &str) -> bool {
         || (path.starts_with("attachments_stats.slice.json.attachments[") && path.ends_with(".ads_move"))
         || gun_tuning_round_1(path)
         || recoil_and_bloom_round_2(path)
+        || recoil_roles_round_3(path)
+}
+
+/// Playtest round 3 (DESIGN_DELTAS.md section 15): the Mako's pattern is a T, looping its two full sweeps, and
+/// stocks lower only the vertical recoil, front grips only the horizontal, each by its own amount.
+fn recoil_roles_round_3(path: &str) -> bool {
+    path == "mako_recoil_pattern.json.loop_from_index"
+        || (path.starts_with("attachments_stats.slice.json.attachments[")
+            && (path.ends_with(".recoil_v") || path.ends_with(".recoil_h")))
 }
 
 /// Playtest round 2 recoil and bloom (DESIGN_DELTAS.md section 12): no random spread standing still (no

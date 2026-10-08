@@ -1080,13 +1080,14 @@ mod tests {
     fn recoil_follows_pattern() {
         let (d, l, mut s) = setup("ar7_mako");
         let mut kicks = vec![];
-        for _ in 0..20 {
+        while kicks.len() < 10 {
             if let Some(shot) = s.step(&d, &l, &input(Buttons::FIRE), &still()).shot {
                 kicks.push((shot.kick_pitch, shot.kick_yaw));
             }
         }
         assert_eq!(kicks[0], (1.0, 0.0));
-        assert_eq!(kicks[1], (1.1, 0.05));
+        assert_eq!(kicks[1], (1.1, 0.0));
+        assert_eq!(kicks[9], (0.3, 0.3), "the T's bar starts after round 10");
     }
 
     /// Fire `shots` rounds from a standstill (hip, or fully aimed) and add up the view kick (pitch, yaw).
@@ -1113,21 +1114,86 @@ mod tests {
         kick
     }
 
-    /// Playtest round 1, "the recoil is way too low on the AR": the Mako's climb after 10 and 20 rounds. That is
-    /// about twice the design's over the first 10 (4.37 deg), and it keeps climbing after (the design's went flat:
-    /// 4.89 deg at 20). Aimed, every kick is x0.7.
+    /// Playtest round 1, "the recoil is way too low on the AR": the Mako's climb after 10 rounds is about twice the
+    /// design's (4.37 deg). Round 3 made the pattern a T (DESIGN_DELTAS.md section 15): the same strong climb over
+    /// the first 10 (9.1 deg, was 8.87), then a nearly level sideways sweep, so after 20 it has climbed 9.86 deg (was
+    /// 12.64, the round-2 column kept climbing) and sits 0.85 deg left on its way across. Aimed, every kick is x0.7.
     #[test]
     fn the_mako_climb_is_pinned() {
         let near = |a: (f32, f32), b: (f32, f32)| (a.0 - b.0).abs() < 1e-3 && (a.1 - b.1).abs() < 1e-3;
-        for (shots, hip) in [(10, (8.87, 0.81)), (20, (12.64, -0.37))] {
+        for (shots, hip) in [(10, (9.1, 0.3)), (20, (9.86, -0.85))] {
             let got = spray_kick("ar7_mako", shots, false);
             assert!(near(got, hip), "hip {shots}: {got:?}");
             let got = spray_kick("ar7_mako", shots, true);
             assert!(near(got, (hip.0 * 0.7, hip.1 * 0.7)), "aimed {shots}: {got:?}");
         }
-        // The Skink's first second (20 rounds at 1200 rpm): the Mako's shape x0.6.
+        // The Skink's first second (20 rounds at 1200 rpm): the round-2 Mako column x0.6, unchanged.
         let got = spray_kick("sk9_skink", 20, false);
-        assert!(near(got, (12.64 * 0.6, -0.37 * 0.6)), "skink: {got:?}");
+        assert!(near(got, (7.584, -0.222)), "skink: {got:?}");
+    }
+
+    /// Every kick of a standing Mako spray (pitch, yaw), fully aimed or from the hip, with `parts` fitted.
+    fn mako_spray(parts: &[&str], aimed: bool) -> Vec<(f32, f32)> {
+        let d = GameData::embedded();
+        let parts: Vec<String> = parts.iter().map(|p| p.to_string()).collect();
+        let l = WeaponLoadout::resolve(&d, "ar7_mako", &[AmmoChoice::STANDARD; 4], &parts).unwrap();
+        let mut s = WeaponState::new(&d, &l);
+        s.action = WeaponAction::Ready;
+        spray(&d, &l, &mut s, &still(), aimed, l.mag_capacity as usize)
+            .iter()
+            .map(|s| (s.kick_pitch, s.kick_yaw))
+            .collect()
+    }
+
+    /// Playtest round 3 (DIRECTION_LOG 18): with the standard stock and no grip the Mako sprays the plain T from
+    /// its pattern, the same every time, for every magazine. Attachments change its size per axis, never its shape:
+    /// a stock scales every round's climb by its `recoil_v` and leaves the sweep alone, a front grip scales every
+    /// round's sweep by its `recoil_h` and leaves the climb alone, and the two stack.
+    #[test]
+    fn mako_attachments_scale_the_t_per_axis() {
+        let d = GameData::embedded();
+        let pattern = &d.recoil_patterns["mako_recoil_pattern"];
+        let RecoilSpec::Pattern(p) = &d.weapon("ar7_mako").unwrap().recoil else { panic!("the Mako has a pattern") };
+        let near = |a: f32, b: f32| (a - b).abs() < 1e-5;
+        for mag in ["mag_30", "mag_45", "mag_drum60"] {
+            for aimed in [false, true] {
+                let plain = mako_spray(&[mag], aimed);
+                assert_eq!(
+                    plain,
+                    mako_spray(&[mag, "mako_stock_standard"], aimed),
+                    "{mag}: the standard stock is plain"
+                );
+                assert_eq!(plain, mako_spray(&[mag], aimed), "{mag}: deterministic");
+                let m = if aimed { p.ads_mult } else { p.hip_mult };
+                for (n, k) in plain.iter().enumerate() {
+                    let (kp, ky) = pattern.kick(n as u32 + 1);
+                    assert!(near(k.0, kp * m) && near(k.1, ky * m), "{mag} aimed {aimed} round {}: {k:?}", n + 1);
+                }
+                for parts in [
+                    &["mako_stock_precision"][..],
+                    &["mako_stock_light"],
+                    &["grip_vertical"],
+                    &["grip_angled"],
+                    &["grip_stub"],
+                    &["mako_stock_precision", "grip_vertical"],
+                ] {
+                    let (v, h) = parts
+                        .iter()
+                        .map(|id| d.attachment(id).unwrap())
+                        .fold((1.0, 1.0), |(v, h), a| (v * a.recoil_v.unwrap_or(1.0), h * a.recoil_h.unwrap_or(1.0)));
+                    assert!(v < 1.0 || h < 1.0, "{parts:?} lowers some recoil");
+                    let mut with: Vec<&str> = parts.to_vec();
+                    with.push(mag);
+                    for (n, (k, b)) in mako_spray(&with, aimed).iter().zip(&plain).enumerate() {
+                        assert!(
+                            near(k.0, b.0 * v) && near(k.1, b.1 * h),
+                            "{parts:?} {mag} round {}: {k:?} vs {b:?}",
+                            n + 1
+                        );
+                    }
+                }
+            }
+        }
     }
 
     /// Aiming down sights is fast (playtest round 1): the ADS blend is full after `ads_s`, to the tick.

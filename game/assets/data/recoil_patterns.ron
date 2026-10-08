@@ -2,47 +2,53 @@
 // playtest round 1 (user direction, game/DESIGN_DELTAS.md section 9): recoil control is the skill check.
 // Each kick is the view rotation (degrees, pitch up +, yaw right +) applied after shot `after_shot`.
 // Past the last kick, the pattern loops from `loop_from_index` (0-based) for extended magazines.
+// Attachments scale a pattern per axis, never its shape: stocks scale the pitch, front grips the yaw
+// (attachments.ron, DESIGN_DELTAS.md section 15).
 {
     "mako_recoil_pattern": (
-        // Shots 1-10 climb hard (8.87 deg, about twice the design's 4.37) while drifting a little right; 11-20 keep
-        // climbing (3.77 deg; the design's went flat) and swing back left; the loop keeps climbing 0.35 deg a shot
-        // and sways right then left (its yaw sums to zero). Aimed, every kick is x0.7.
-        loop_from_index: 20,
+        // Playtest round 3 (DIRECTION_LOG 18): a T. The stem: kicks 1-9 climb straight up (8.8 deg, no yaw), so
+        // rounds 1-10 stack in a column. The bar: the climb flattens (0.3 deg falling to 0.05 a shot) and the gun
+        // swings right over kicks 10-15 (+2.6 deg), left across over 16-23 (-5.2 deg), and right again over 24-31
+        // (+5.2 deg). Past kick 31 the two full sweeps loop (from kick 16), so a 45 or a drum keeps sweeping
+        // across the same bar, centred on the stem. Aimed, every kick is x0.7.
+        loop_from_index: 15,
         kicks: [
             (after_shot: 1, pitch: 1.0, yaw: 0.0),
-            (after_shot: 2, pitch: 1.1, yaw: 0.05),
-            (after_shot: 3, pitch: 1.15, yaw: -0.06),
-            (after_shot: 4, pitch: 1.1, yaw: 0.08),
-            (after_shot: 5, pitch: 1.0, yaw: 0.12),
-            (after_shot: 6, pitch: 0.9, yaw: 0.16),
-            (after_shot: 7, pitch: 0.8, yaw: 0.18),
-            (after_shot: 8, pitch: 0.7, yaw: 0.16),
-            (after_shot: 9, pitch: 0.6, yaw: 0.1),
-            (after_shot: 10, pitch: 0.52, yaw: 0.02),
-            (after_shot: 11, pitch: 0.46, yaw: -0.08),
-            (after_shot: 12, pitch: 0.42, yaw: -0.16),
-            (after_shot: 13, pitch: 0.4, yaw: -0.22),
-            (after_shot: 14, pitch: 0.38, yaw: -0.26),
-            (after_shot: 15, pitch: 0.36, yaw: -0.26),
-            (after_shot: 16, pitch: 0.35, yaw: -0.22),
-            (after_shot: 17, pitch: 0.35, yaw: -0.14),
-            (after_shot: 18, pitch: 0.35, yaw: -0.04),
-            (after_shot: 19, pitch: 0.35, yaw: 0.06),
-            (after_shot: 20, pitch: 0.35, yaw: 0.14),
-            (after_shot: 21, pitch: 0.35, yaw: 0.2),
-            (after_shot: 22, pitch: 0.35, yaw: 0.22),
-            (after_shot: 23, pitch: 0.35, yaw: 0.18),
-            (after_shot: 24, pitch: 0.35, yaw: 0.08),
-            (after_shot: 25, pitch: 0.35, yaw: -0.06),
-            (after_shot: 26, pitch: 0.35, yaw: -0.18),
-            (after_shot: 27, pitch: 0.35, yaw: -0.22),
-            (after_shot: 28, pitch: 0.35, yaw: -0.16),
-            (after_shot: 29, pitch: 0.35, yaw: -0.06),
+            (after_shot: 2, pitch: 1.1, yaw: 0.0),
+            (after_shot: 3, pitch: 1.15, yaw: 0.0),
+            (after_shot: 4, pitch: 1.15, yaw: 0.0),
+            (after_shot: 5, pitch: 1.1, yaw: 0.0),
+            (after_shot: 6, pitch: 1.0, yaw: 0.0),
+            (after_shot: 7, pitch: 0.9, yaw: 0.0),
+            (after_shot: 8, pitch: 0.8, yaw: 0.0),
+            (after_shot: 9, pitch: 0.6, yaw: 0.0),
+            (after_shot: 10, pitch: 0.3, yaw: 0.3),
+            (after_shot: 11, pitch: 0.2, yaw: 0.45),
+            (after_shot: 12, pitch: 0.12, yaw: 0.55),
+            (after_shot: 13, pitch: 0.08, yaw: 0.55),
+            (after_shot: 14, pitch: 0.06, yaw: 0.45),
+            (after_shot: 15, pitch: 0.05, yaw: 0.3),
+            (after_shot: 16, pitch: 0.05, yaw: -0.35),
+            (after_shot: 17, pitch: 0.05, yaw: -0.6),
+            (after_shot: 18, pitch: 0.05, yaw: -0.8),
+            (after_shot: 19, pitch: 0.05, yaw: -0.85),
+            (after_shot: 20, pitch: 0.05, yaw: -0.85),
+            (after_shot: 21, pitch: 0.05, yaw: -0.8),
+            (after_shot: 22, pitch: 0.05, yaw: -0.6),
+            (after_shot: 23, pitch: 0.05, yaw: -0.35),
+            (after_shot: 24, pitch: 0.05, yaw: 0.35),
+            (after_shot: 25, pitch: 0.05, yaw: 0.6),
+            (after_shot: 26, pitch: 0.05, yaw: 0.8),
+            (after_shot: 27, pitch: 0.05, yaw: 0.85),
+            (after_shot: 28, pitch: 0.05, yaw: 0.85),
+            (after_shot: 29, pitch: 0.05, yaw: 0.8),
+            (after_shot: 30, pitch: 0.05, yaw: 0.6),
+            (after_shot: 31, pitch: 0.05, yaw: 0.35),
         ],
     ),
     "skink_recoil_pattern": (
-        // The Mako's pattern x0.6: the same learnable shape, lighter on every shot. At 1200 rpm it climbs
-        // 7.58 deg in its first second (20 shots) against the Mako's 9.75 (12 shots).
+        // The round-2 Mako column x0.6 (the T is the AR's alone): a tall climb with a gentle right-then-left sway,
+        // lighter on every shot. At 1200 rpm it climbs 7.58 deg in its first second (20 shots).
         loop_from_index: 20,
         kicks: [
             (after_shot: 1, pitch: 0.6, yaw: 0.0),

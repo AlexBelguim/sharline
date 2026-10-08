@@ -415,11 +415,16 @@ mod tests {
         let base = weapon_stats(&d, mako, &def);
         let with = |id: &str| weapon_stats(&d, mako, &parts_with(&def, AttachmentCategory::Under, d.attachment(id)));
         let angled = stat_deltas(&base, &with("grip_angled"));
-        assert_eq!(angled.iter().map(|x| x.text.as_str()).collect::<Vec<_>>(), ["ADS −0.01 S", "RECOIL H −6 %"]);
-        let vertical = stat_deltas(&base, &with("grip_vertical"));
-        assert_eq!(vertical[0].text, "RECOIL V −12 %");
-        assert_eq!(vertical[0].tone, Tone::Good);
-        // Since ADS got fast (0.13 s), the vertical grip's +3 % is under 0.005 s; the launcher's +15 % shows.
+        assert_eq!(angled.iter().map(|x| x.text.as_str()).collect::<Vec<_>>(), ["RECOIL H −12 %", "ADS −0.01 S"]);
+        // Grips lower only the sideways recoil, stocks only the climb (playtest round 3).
+        let brace = stat_deltas(&base, &with("grip_vertical"));
+        assert_eq!(brace.iter().map(|x| x.text.as_str()).collect::<Vec<_>>(), ["RECOIL H −22 %", "SWAY −5 %"]);
+        assert_eq!(brace[0].tone, Tone::Good);
+        let stock = |id: &str| weapon_stats(&d, mako, &parts_with(&def, AttachmentCategory::Stock, d.attachment(id)));
+        let precision = stat_deltas(&base, &stock("mako_stock_precision"));
+        assert_eq!(precision[0].text, "RECOIL V −20 %");
+        assert!(precision.iter().all(|x| !x.text.starts_with("RECOIL H")), "{precision:?}");
+        // Since ADS got fast (0.13 s), the brace grip's +3 % is under 0.005 s; the launcher's +15 % shows.
         let ugl = stat_deltas(&base, &with("ugl_launcher"));
         assert!(ugl.iter().any(|x| x.text == "ADS +0.02 S" && x.tone == Tone::Bad), "{ugl:?}");
         assert_eq!(stat_deltas(&base, &base)[0].text, "NO CHANGE");

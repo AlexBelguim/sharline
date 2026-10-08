@@ -1386,6 +1386,18 @@ impl GameData {
                 return bad("recoil pattern loop_from_index out of range".into());
             }
         }
+        // Recoil roles (DESIGN_DELTAS.md section 15): a stock scales only the climb, an under-rail part (the front
+        // grips) only the sideways sweep, so neither changes the shape of a pattern on the other axis.
+        for a in &self.attachments.attachments {
+            let wrong_axis = match a.cat {
+                AttachmentCategory::Stock => a.recoil_h.is_some(),
+                AttachmentCategory::Under => a.recoil_v.is_some(),
+                _ => false,
+            };
+            if wrong_axis {
+                return bad(format!("{}: stocks may only set recoil_v and under-rail parts only recoil_h", a.id));
+            }
+        }
         for wc in [WeightClass::None, WeightClass::Light, WeightClass::Medium, WeightClass::Heavy] {
             if !self.armor.weight_effects.contains_key(&wc) {
                 return bad(format!("armor: missing weight_effects for {wc:?}"));
@@ -1556,11 +1568,12 @@ mod tests {
         let d = GameData::embedded();
         let p = &d.recoil_patterns["mako_recoil_pattern"];
         assert_eq!(p.kick(1), (1.0, 0.0));
-        assert_eq!(p.kick(29), (0.35, -0.06));
-        // shot 30 continues from index 20 (shot 21), and the loop has period 9
-        assert_eq!(p.kick(30), p.kick(21));
-        assert_eq!(p.kick(38), p.kick(29));
-        assert_eq!(p.kick(39), p.kick(21));
+        assert_eq!(p.kick(31), (0.05, 0.35));
+        // shot 32 continues from index 15 (shot 16): the two full sweeps of the T's bar, period 16
+        assert_eq!(p.kick(32), p.kick(16));
+        assert_eq!(p.kick(47), p.kick(31));
+        assert_eq!(p.kick(48), p.kick(16));
+        assert_eq!(p.kick(59), p.kick(27));
     }
 
     #[test]
@@ -1580,9 +1593,56 @@ mod tests {
             d.attachment("mako_stock_precision").unwrap(),
             d.attachment("grip_vertical").unwrap(),
         ]);
-        assert!((t.recoil_v - 0.9 * 0.88).abs() < 1e-6);
+        assert!((t.recoil_v - 0.8).abs() < 1e-6);
+        assert!((t.recoil_h - 0.78).abs() < 1e-6);
         assert!((t.ads_time - 1.1 * 1.03).abs() < 1e-6);
+        assert!((t.sway - 0.8 * 0.95).abs() < 1e-6);
         assert_eq!(t.hip_spread, 1.0);
+    }
+
+    /// Playtest round 3 (DIRECTION_LOG 18): stocks lower only the vertical recoil (the climb), front grips only the
+    /// horizontal (the sweep), each by its own amount. A gun's default stock is its plain pattern.
+    #[test]
+    fn stocks_lower_the_climb_and_grips_the_sweep() {
+        let d = GameData::embedded();
+        let (mut stocks, mut grips) = (0, 0);
+        for w in &d.weapons.weapons {
+            let fits = |cat| d.attachments.attachments.iter().filter(move |a| a.cat == cat && a.fits.contains(&w.id));
+            let mut amounts = vec![];
+            for a in fits(AttachmentCategory::Stock) {
+                assert_eq!(a.recoil_h, None, "{}: a stock never touches the sweep", a.id);
+                if a.default_for.contains(&w.id) {
+                    assert_eq!(a.recoil_v, None, "{}: the default stock is the plain pattern", a.id);
+                } else {
+                    let v = a.recoil_v.unwrap_or_else(|| panic!("{}: a stock lowers the climb", a.id));
+                    assert!(v > 0.5 && v < 1.0, "{}: {v}", a.id);
+                    amounts.push(v);
+                    stocks += 1;
+                }
+            }
+            for a in fits(AttachmentCategory::Under) {
+                assert_eq!(a.recoil_v, None, "{}: an under-rail part never touches the climb", a.id);
+                if a.id.starts_with("grip_") {
+                    let h = a.recoil_h.unwrap_or_else(|| panic!("{}: a front grip lowers the sweep", a.id));
+                    assert!(h > 0.5 && h < 1.0, "{}: {h}", a.id);
+                    assert!(!a.display_name().contains("VERTICAL"), "{}: its name promised vertical recoil", a.id);
+                    amounts.push(10.0 + h);
+                    grips += 1;
+                }
+            }
+            let n = amounts.len();
+            amounts.sort_by(f32::total_cmp);
+            amounts.dedup();
+            assert_eq!(amounts.len(), n, "{}: every stock and every grip has its own amount", w.id);
+        }
+        assert_eq!((stocks, grips), (3, 3), "the Mako's precision and light stocks, the Warden's folding, three grips");
+        // The data check holds the roles.
+        let mut bad = GameData::embedded();
+        bad.attachments.attachments.iter_mut().find(|a| a.id == "mako_stock_light").unwrap().recoil_h = Some(0.9);
+        assert!(bad.validate().is_err(), "a stock on the sweep");
+        let mut bad = GameData::embedded();
+        bad.attachments.attachments.iter_mut().find(|a| a.id == "grip_angled").unwrap().recoil_v = Some(0.9);
+        assert!(bad.validate().is_err(), "a grip on the climb");
     }
 
     #[test]
