@@ -334,6 +334,13 @@ fn max_stepper(mode: MatchMode, wanted: u32, cap: u32) -> (u32, i32) {
     if mode.has_teams() { ((v - v % 2).max(2), 2) } else { (v, 1) }
 }
 
+/// The MAX PLAYERS the player wants, after the stepper shows `shown`. The stepper showing the wanted value as
+/// the mode allows it (a MODE switch clamped it) keeps the wanted value, so a look at free-for-all does not
+/// shrink a 5 v 5; any other value was stepped to and becomes the wanted one.
+fn wanted_players(mode: MatchMode, wanted: u32, shown: u32, cap: u32) -> u32 {
+    if shown == max_stepper(mode, wanted, cap).0 { wanted } else { shown }
+}
+
 fn max_help(data: &vetf_sim::GameData, mode: MatchMode) -> String {
     let cap = max_players_cap_for(data, mode);
     match mode {
@@ -366,7 +373,8 @@ fn follow_mode(
     *last = Some(host.mode);
     let cap = max_players_cap_for(&data, host.mode);
     for mut s in &mut steppers {
-        let (value, step) = max_stepper(host.mode, s.value.max(0) as u32, cap);
+        // From the wanted value, not the one shown: TDM 10 -> FFA 8 -> TDM shows 10 again.
+        let (value, step) = max_stepper(host.mode, host.max_players, cap);
         let want = StepperValue { value: value as i32, min: 2, max: cap as i32, step };
         if *s != want {
             *s = want;
@@ -467,8 +475,10 @@ pub(super) fn keys(
 }
 
 /// Copy the panel's widgets into [`HostSettings`].
+#[allow(clippy::too_many_arguments)]
 fn settings_from_widgets(
     mut host: ResMut<HostSettings>,
+    data: Res<crate::config::Data>,
     mut session: ResMut<Session>,
     fields: Query<&Field>,
     toggles: Query<&SegValue, (With<AccessToggle>, Changed<SegValue>)>,
@@ -519,7 +529,8 @@ fn settings_from_widgets(
         }
     }
     for s in &steppers {
-        let n = s.value.max(2) as u32;
+        let cap = max_players_cap_for(&data, host.mode);
+        let n = wanted_players(host.mode, host.max_players, s.value.max(2) as u32, cap);
         if host.max_players != n {
             host.max_players = n;
         }
@@ -651,5 +662,30 @@ mod tests {
         assert_eq!(mode_index(MatchMode::Ffa), 1);
         assert!(create_help(&d, MatchMode::Ffa).contains("first to 25 kills"));
         assert!(max_help(&d, MatchMode::Ffa).starts_with("2–8"));
+    }
+
+    /// A look at free-for-all does not shrink a 5 v 5: MODE's clamp is only shown, the wanted 10 stays and
+    /// team deathmatch shows it again. A value stepped to is kept, in either mode.
+    #[test]
+    fn max_players_survive_a_mode_round_trip() {
+        let d = vetf_sim::GameData::embedded();
+        let (tdm, ffa) = (max_players_cap_for(&d, MatchMode::Tdm), max_players_cap_for(&d, MatchMode::Ffa));
+        let mut wanted = 10;
+        // TDM -> FFA: the stepper shows 8 (follow_mode), which settings_from_widgets reads back next frame.
+        let shown = max_stepper(MatchMode::Ffa, wanted, ffa).0;
+        assert_eq!(shown, 8);
+        wanted = wanted_players(MatchMode::Ffa, wanted, shown, ffa);
+        assert_eq!(wanted, 10, "only shown clamped");
+        // FFA -> TDM: back to 10.
+        assert_eq!(max_stepper(MatchMode::Tdm, wanted, tdm).0, 10);
+        assert_eq!(wanted_players(MatchMode::Tdm, wanted, 10, tdm), 10);
+        // The player steps FFA down to 7: that sticks, and TDM shows 6 (even) but keeps wanting 7.
+        wanted = wanted_players(MatchMode::Ffa, wanted, 7, ffa);
+        assert_eq!(wanted, 7);
+        assert_eq!(max_stepper(MatchMode::Tdm, wanted, tdm).0, 6);
+        assert_eq!(wanted_players(MatchMode::Tdm, wanted, 6, tdm), 7);
+        // ... and the lobby that CREATE LOBBY opens from it.
+        assert_eq!(crate::net::hosted_players(&d, MatchMode::Tdm, 10), 10);
+        assert_eq!(crate::net::hosted_players(&d, MatchMode::Ffa, 10), 8);
     }
 }
