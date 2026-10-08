@@ -1,7 +1,10 @@
 //! Painted Showhome ground: imported COLOR_0 is four independent blend masks.
 //! The four arrays retain sRGB albedo, linear normal/ORM and exact PNG16 heights.
 //! Only named ground materials are replaced; props keep their ordinary vertex colour.
+//! The base layer's relief follows the parallax quality preset (`surface_depth.ron`): off on LOW, at most the
+//! preset's layers elsewhere, and only as many steps as it moves pixels on screen (see the shader).
 
+use crate::map_materials::{DepthQuality, GroundRelief, SurfaceDepthData, SurfaceDepthLevel};
 use bevy::asset::{AssetId, RenderAssetUsages};
 use bevy::gltf::{GltfMaterialExtras, GltfMaterialName};
 use bevy::image::{ImageAddressMode, ImageArrayLayout, ImageLoaderSettings, ImageSampler, ImageSamplerDescriptor};
@@ -22,7 +25,10 @@ impl Plugin for ShowhomeGroundPlugin {
         app.add_plugins(MaterialPlugin::<ShowhomeGroundMaterial>::default())
             .init_resource::<GroundMaterialCache>()
             .add_systems(Startup, load_ground_arrays)
-            .add_systems(Update, install_ground_materials);
+            .add_systems(
+                Update,
+                (apply_ground_depth, install_ground_materials).chain().after(crate::video::apply_surface_depth),
+            );
     }
 }
 
@@ -39,8 +45,10 @@ pub struct GroundParams {
     /// A repeat, A height range, macro repeat, macro strength.
     pub extra: Vec4,
     pub tint: Vec4,
-    /// Parallax enabled, layer count, base normal repeat correction, reserved.
+    /// Relief on (0 = off), most relief steps (the preset's layers), base normal repeat correction, unused.
     pub parallax: Vec4,
+    /// Relief steps per pixel of its whole shift on screen, no relief below this many pixels, unused, unused.
+    pub relief: Vec4,
 }
 
 #[derive(Asset, AsBindGroup, Reflect, Clone, Debug)]
@@ -189,7 +197,13 @@ fn contract(extras: Option<&GltfMaterialExtras>) -> Option<GroundContract> {
     }
 }
 
-fn params(texture: &str, repeat: f32, class: &str, tint: Color) -> Option<GroundParams> {
+/// The relief's switch and step count for a preset (LOW: off), and its screen-space steps (`surface_depth.ron`).
+fn depth_params(q: DepthQuality, relief: GroundRelief) -> (f32, f32, Vec4) {
+    let on = if q.on() { 1.0 } else { 0.0 };
+    (on, q.layers.max(1.0), Vec4::new(relief.steps_per_px.max(0.0), relief.min_px.max(0.0), 0.0, 0.0))
+}
+
+fn params(texture: &str, repeat: f32, class: &str, tint: Color, depth: (f32, f32, Vec4)) -> Option<GroundParams> {
     let info = array_manifest();
     let moss = if class == "earth" { "worksite_mud_tracks" } else { "grass_verge_weeds" };
     let spill = if class == "hard" { "construction_sand" } else { "worksite_mud_tracks" };
@@ -208,14 +222,36 @@ fn params(texture: &str, repeat: f32, class: &str, tint: Color) -> Option<Ground
         ),
         extra: Vec4::new(layers[4].repeat_m, layers[4].height_range_m, 32., 0.12),
         tint: Vec4::new(tint.red, tint.green, tint.blue, 1.),
-        // Physical base height / repeat drives restrained relief without editing map_materials.rs.
-        parallax: Vec4::new(1., 12., layers[0].repeat_m / repeat, 0.),
+        // Physical base height / repeat drives restrained relief.
+        parallax: Vec4::new(depth.0, depth.1, layers[0].repeat_m / repeat, 0.),
+        relief: depth.2,
     })
+}
+
+/// Keep every ground material's relief at the preset's (`SurfaceDepthLevel`): materials made before a preset
+/// change are updated, new ones are made with it (`install_ground_materials`).
+fn apply_ground_depth(
+    level: Res<SurfaceDepthLevel>,
+    data: Res<SurfaceDepthData>,
+    mut materials: ResMut<Assets<ShowhomeGroundMaterial>>,
+) {
+    if !level.is_changed() && !data.is_changed() {
+        return;
+    }
+    let (on, layers, relief) = depth_params(data.quality.of(level.0), data.ground);
+    for (_, m) in materials.iter_mut() {
+        let p = &mut m.extension.params;
+        if p.parallax.x != on || p.parallax.y != layers || p.relief != relief {
+            (p.parallax.x, p.parallax.y, p.relief) = (on, layers, relief);
+        }
+    }
 }
 
 fn install_ground_materials(
     mut commands: Commands,
     server: Res<AssetServer>,
+    level: Res<SurfaceDepthLevel>,
+    depth: Res<SurfaceDepthData>,
     mut arrays: ResMut<GroundArrays>,
     standards: Res<Assets<StandardMaterial>>,
     mut materials: ResMut<Assets<ShowhomeGroundMaterial>>,
@@ -256,7 +292,8 @@ fn install_ground_materials(
                 contract.as_ref().map_or((fallback_texture, fallback_repeat, fallback_class), |c| {
                     (c.base_texture.as_str(), c.base_repeat_m, c.surface_class.as_str())
                 });
-            let Some(params) = params(texture, repeat, class, standard.base_color) else {
+            let depth = depth_params(depth.quality.of(level.0), depth.ground);
+            let Some(params) = params(texture, repeat, class, standard.base_color, depth) else {
                 error!("Showhome ground surface {texture} is missing from the packed arrays");
                 continue;
             };
@@ -292,10 +329,12 @@ fn install_ground_materials(
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::settings::Preset;
 
     #[test]
     fn contract_layer_order_and_physical_ranges() {
-        let p = params("paving_slabs", 2.4, "hard", Color::WHITE).unwrap();
+        let depth = depth_params(SurfaceDepthData::embedded().quality.high, SurfaceDepthData::embedded().ground);
+        let p = params("paving_slabs", 2.4, "hard", Color::WHITE, depth).unwrap();
         let info = array_manifest();
         assert_eq!(p.indices.y, info.materials["worn_dirt"].index);
         assert_eq!(p.indices.z, info.materials["gravel"].index);
@@ -303,8 +342,27 @@ mod tests {
         assert_eq!(p.extra_indices.x, info.materials["construction_sand"].index);
         assert_eq!(p.extra_indices.y, info.macro_layer);
         assert!((p.heights.x - 0.010).abs() < 1e-6);
-        let lawn = params("grass_lawn", 2., "lawn", Color::WHITE).unwrap();
+        let lawn = params("grass_lawn", 2., "lawn", Color::WHITE, depth).unwrap();
         assert_eq!(lawn.extra_indices.x, info.materials["worksite_mud_tracks"].index);
+    }
+
+    /// The relief follows the preset: off on LOW (finding: LOW never reached the ground), the preset's layers as
+    /// the most steps elsewhere, and the screen-space steps from the data.
+    #[test]
+    fn the_relief_follows_the_depth_preset() {
+        let d = SurfaceDepthData::embedded();
+        let at = |p: Preset| {
+            let depth = depth_params(d.quality.of(p), d.ground);
+            params("paving_slabs", 2.4, "hard", Color::WHITE, depth).unwrap()
+        };
+        assert_eq!(at(Preset::Low).parallax.x, 0.0, "LOW: no relief");
+        for p in [Preset::Medium, Preset::High, Preset::Ultra] {
+            let g = at(p);
+            assert_eq!(g.parallax.x, 1.0, "{p:?}");
+            assert_eq!(g.parallax.y, d.quality.of(p).layers, "{p:?}: the preset's layers");
+            assert_eq!((g.relief.x, g.relief.y), (d.ground.steps_per_px, d.ground.min_px));
+        }
+        assert!(at(Preset::Medium).parallax.y < at(Preset::Ultra).parallax.y);
     }
 
     #[test]

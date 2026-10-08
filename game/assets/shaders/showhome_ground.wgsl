@@ -1,4 +1,11 @@
 // Four exact material arrays; COLOR_0 is independent RGBA masks, never opacity.
+//
+// Cost (the ground fills most of the view): a layer is sampled only where it shows. A mask of 0 blends with
+// weight 0, so that layer is skipped; a mask of 1 replaces everything under it, so the layers below the last
+// full mask (the base and its relief included) are never sampled; the height maps only steer partial masks.
+// The base layer's relief marches as many steps as its shift covers pixels on screen (at most the preset's
+// count) and is off where the whole shift is under `relief.y` pixels (far away, or seen from above, it would
+// move nothing). Every pixel gets the texels the full march would give it, to within a pixel of relief.
 #import bevy_pbr::{
     pbr_types,
     pbr_fragment::pbr_input_from_standard_material,
@@ -24,7 +31,10 @@ struct GroundParams {
     heights: vec4<f32>,
     extra: vec4<f32>,
     tint: vec4<f32>,
+    // x: relief on (0 = off: LOW), y: most relief steps (the preset's), z: base normal repeat correction.
     parallax: vec4<f32>,
+    // x: relief steps per pixel of the relief's whole shift on screen, y: no relief below this many pixels.
+    relief: vec4<f32>,
 }
 
 @group(#{MATERIAL_BIND_GROUP}) @binding(100) var<uniform> ground: GroundParams;
@@ -59,12 +69,23 @@ fn height16(uv: vec2<f32>, layer: u32) -> f32 {
     return mix(mix(a, b, f.x), mix(c, d, f.x), f.y) / 65535.0;
 }
 
-fn sample_surface(layer: u32, uv: vec2<f32>, height_range: f32, dx: vec2<f32>, dy: vec2<f32>) -> Surface {
+// Colour, ORM and normal, and the height when a partial blend reads it (`with_height`).
+fn sample_surface(
+    layer: u32,
+    uv: vec2<f32>,
+    height_range: f32,
+    dx: vec2<f32>,
+    dy: vec2<f32>,
+    with_height: bool,
+) -> Surface {
     var s: Surface;
     s.colour = textureSampleGrad(ground_albedo, ground_sampler, uv, i32(layer), dx, dy).rgb;
     s.orm = textureSampleGrad(ground_orm, ground_sampler, uv, i32(layer), dx, dy).rgb;
     s.normal = normalize(textureSampleGrad(ground_normal, ground_sampler, uv, i32(layer), dx, dy).rgb * 2.0 - 1.0);
-    s.height_m = height16(uv, layer) * height_range;
+    s.height_m = 0.0;
+    if with_height {
+        s.height_m = height16(uv, layer) * height_range;
+    }
     return s;
 }
 
@@ -102,13 +123,24 @@ fn layer_height(i: u32) -> f32 {
     return ground.extra.y;
 }
 
+// How many pixels a UV shift `d` spans on screen, through the UV's derivatives (`dx` per pixel across, `dy` per
+// pixel down). A degenerate footprint counts as very long (the full march).
+fn screen_pixels(d: vec2<f32>, dx: vec2<f32>, dy: vec2<f32>) -> f32 {
+    let det = dx.x * dy.y - dx.y * dy.x;
+    if abs(det) < 1e-24 { return 1e6; }
+    return length(vec2<f32>(d.x * dy.y - d.y * dy.x, dx.x * d.y - dx.y * d.x) / det);
+}
+
 // Restrained base relief; depth is physical height / metre repeat. This keeps the
 // existing kit UVs and does not replace the game's other depth/foliage materials.
-fn base_relief(uv: vec2<f32>, tangent_view: vec3<f32>) -> vec2<f32> {
+fn base_relief(uv: vec2<f32>, tangent_view: vec3<f32>, dx: vec2<f32>, dy: vec2<f32>) -> vec2<f32> {
     if ground.parallax.x <= 0.0 { return uv; }
-    let steps = max(ground.parallax.y, 1.0);
-    let delta = -tangent_view.xy / max(abs(tangent_view.z), 0.15)
-        * (ground.heights.x / ground.repeats.x) / steps;
+    // The whole shift (the relief at its deepest) for this view, in UV and in pixels.
+    let shift = -tangent_view.xy / max(abs(tangent_view.z), 0.15) * (ground.heights.x / ground.repeats.x);
+    let pixels = screen_pixels(shift, dx, dy);
+    if pixels < ground.relief.y { return uv; }
+    let steps = clamp(ceil(pixels * ground.relief.x), 1.0, max(ground.parallax.y, 1.0));
+    let delta = shift / steps;
     let depth_step = 1.0 / steps;
     var depth = 0.0;
     var out_uv = uv;
@@ -132,34 +164,71 @@ fn fragment(vertex_output: VertexOutput, @builtin(front_facing) is_front: bool) 
     in.color = vec4<f32>(1.0);
 #endif
     var pbr = pbr_input_from_standard_material(in, is_front);
+    // Every derivative up front, in uniform control flow: the layers sample with explicit gradients.
     var base_uv = vec2<f32>(0.0);
 #ifdef VERTEX_UVS_A
     base_uv = in.uv;
 #endif
-#ifdef VERTEX_TANGENTS
-    let tbn = calculate_tbn_mikktspace(in.world_normal, in.world_tangent);
-    let tangent_view = vec3<f32>(dot(pbr.V, tbn[0]), dot(pbr.V, tbn[1]), dot(pbr.V, tbn[2]));
-    base_uv = base_relief(base_uv, tangent_view);
-#endif
-    var state = sample_surface(ground.indices.x, base_uv, ground.heights.x, dpdx(base_uv), dpdy(base_uv));
-    state.colour *= ground.tint.rgb;
-#ifdef VERTEX_TANGENTS
-    state.normal = normalize(tbn * vec3<f32>(state.normal.xy * ground.parallax.z, state.normal.z));
-#else
-    state.normal = normalize(in.world_normal);
-#endif
+    let uv_dx = dpdx(base_uv);
+    let uv_dy = dpdy(base_uv);
     // Design x/y = Bevy x/-z; PNG/glTF V is flipped relative to Blender V,
     // so repeating overlay UVs are (Bevy x,z) / repeat.
     let world_uv_metres = vec2<f32>(in.world_position.x, in.world_position.z);
     let world_dx = dpdx(world_uv_metres);
     let world_dy = dpdy(world_uv_metres);
-    for (var channel = 0u; channel < 4u; channel += 1u) {
-        let i = channel + 1u;
+
+    // The last full mask replaces every layer under it (-1: none, the base shows).
+    var first = -1;
+    for (var channel = 0; channel < 4; channel += 1) {
+        if masks[channel] >= 1.0 { first = channel; }
+    }
+    // The heights only steer a partial mask above that.
+    var partial = false;
+    for (var channel = first + 1; channel < 4; channel += 1) {
+        partial = partial || (masks[channel] > 0.0 && masks[channel] < 1.0);
+    }
+
+#ifdef VERTEX_TANGENTS
+    let tbn = calculate_tbn_mikktspace(in.world_normal, in.world_tangent);
+    if first < 0 {
+        let tangent_view = vec3<f32>(dot(pbr.V, tbn[0]), dot(pbr.V, tbn[1]), dot(pbr.V, tbn[2]));
+        base_uv = base_relief(base_uv, tangent_view, uv_dx, uv_dy);
+    }
+#endif
+    // The base samples with the relief UV's own derivatives (as before the march was made adaptive): across a
+    // joint they jump, which picks a softer mip there and gives the joints their weight. Uniform control flow.
+    let relief_dx = dpdx(base_uv);
+    let relief_dy = dpdy(base_uv);
+    var state: Surface;
+    if first < 0 {
+        state = sample_surface(ground.indices.x, base_uv, ground.heights.x, relief_dx, relief_dy, partial);
+        state.colour *= ground.tint.rgb;
+#ifdef VERTEX_TANGENTS
+        state.normal = normalize(tbn * vec3<f32>(state.normal.xy * ground.parallax.z, state.normal.z));
+#else
+        state.normal = normalize(in.world_normal);
+#endif
+    }
+    for (var channel = max(first, 0); channel < 4; channel += 1) {
+        let mask = masks[channel];
+        if mask <= 0.0 { continue; }
+        let i = u32(channel) + 1u;
         let repeat = layer_repeat(i);
-        var next = sample_surface(layer_index(i), world_uv_metres / repeat, layer_height(i), world_dx / repeat, world_dy / repeat);
+        var next = sample_surface(
+            layer_index(i),
+            world_uv_metres / repeat,
+            layer_height(i),
+            world_dx / repeat,
+            world_dy / repeat,
+            partial,
+        );
         // Design normal (x,y,z) -> Bevy (x,z,-y), matching the Blender preview.
         next.normal = vec3<f32>(next.normal.x, next.normal.z, -next.normal.y);
-        state = blend_surface(state, next, masks[channel]);
+        if channel == first {
+            state = next;
+        } else {
+            state = blend_surface(state, next, mask);
+        }
     }
     let macro_mask = height16(world_uv_metres / ground.extra.z, ground.extra_indices.y);
     state.colour *= 1.0 + ground.extra.w * (macro_mask - 0.5);

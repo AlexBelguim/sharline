@@ -7,7 +7,8 @@
 //!   The rest of the library painted the old blockout brushes, which Showhome no longer draws (the art kit does),
 //!   so it is not loaded.
 //! - **Parallax quality** (`assets/data/surface_depth.ron`): the quality PRESET ([`SurfaceDepthLevel`], set by
-//!   `video.rs`) picks how far the kit's depth maps (`showhome_kit`) march; LOW turns them off.
+//!   `video.rs`) picks how far the kit's depth maps (`showhome_kit`) and the ground's relief (`showhome_ground`)
+//!   march; LOW turns both off.
 
 use crate::settings::Preset;
 use bevy::asset::RenderAssetUsages;
@@ -236,10 +237,19 @@ impl DepthQualities {
     }
 }
 
+/// The Showhome ground's relief (`showhome_ground.wgsl`): it marches `steps_per_px` steps per pixel that its
+/// deepest shift spans on screen (at most the preset's `layers`), and none where that shift is under `min_px`.
+#[derive(Debug, Clone, Copy, PartialEq, Deserialize)]
+pub struct GroundRelief {
+    pub steps_per_px: f32,
+    pub min_px: f32,
+}
+
 /// `game/assets/data/surface_depth.ron`.
 #[derive(Resource, Debug, Clone, PartialEq, Deserialize)]
 pub struct SurfaceDepthData {
     pub quality: DepthQualities,
+    pub ground: GroundRelief,
 }
 
 const DEPTH_RON: &str = include_str!("../../../assets/data/surface_depth.ron");
@@ -353,6 +363,9 @@ mod tests {
             assert!(matches!(q.method(), ParallaxMappingMethod::Relief { .. }), "{q:?}");
         }
         assert_eq!(d.quality.low.method(), ParallaxMappingMethod::Occlusion);
+        // The ground's relief: at least a step per pixel of shift, and off only below a pixel.
+        assert!(d.ground.steps_per_px >= 1.0, "{:?}", d.ground);
+        assert!((0.0..=1.0).contains(&d.ground.min_px), "{:?}", d.ground);
         // Bevy's depth scale is per UV unit: 1.2 cm over a 2.4 m repeat.
         assert!((parallax_scale(1.2, 2.4) - 0.005).abs() < 1e-7);
         assert_eq!(parallax_scale(-1.0, 2.0), 0.0);

@@ -1,5 +1,5 @@
 // Parallax depth on Showhome (src/map_materials.rs): the art kit's depth maps (src/showhome_kit.rs, heights from
-// the kit's v2 texture manifest).
+// the kit's v2 texture manifest) and the ground's relief (src/showhome_ground.rs, assets/shaders/showhome_ground.wgsl).
 (
     // Per VIDEO quality PRESET. `layers`: steep-parallax steps at a grazing view (1 looking straight at the face);
     // 0 turns parallax off (LOW: the surfaces look and cost as without it, and the kit's height images are not
@@ -13,4 +13,9 @@
         high: (layers: 12, relief_steps: 4),
         ultra: (layers: 20, relief_steps: 6),
     ),
+    // The ground's relief marches `steps_per_px` steps per pixel that its deepest shift spans on screen (at most
+    // the preset's `layers`), and none where that shift is under `min_px` pixels: up close it marches the
+    // preset's full count, farther out (and seen from above) only what can still move a pixel. So a step never
+    // moves the picture by more than a pixel (with 1 per pixel), wherever the full count would have.
+    ground: (steps_per_px: 3.0, min_px: 0.5),
 )

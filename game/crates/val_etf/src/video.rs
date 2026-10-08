@@ -355,7 +355,7 @@ pub fn surface_depth_preset(preset: Preset, env: Option<&str>) -> Preset {
     }
 }
 
-fn apply_surface_depth(
+pub(crate) fn apply_surface_depth(
     settings: Res<Settings>,
     mut level: ResMut<SurfaceDepthLevel>,
     mut env: Local<Option<Option<String>>>,
