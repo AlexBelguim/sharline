@@ -416,6 +416,8 @@ pub struct Ranges {
     pub safe_area: Range,
     pub screen_shake: Range,
     pub radial_hold_s: Range,
+    /// Gameplay ▸ RADIAL POINTER, px (drawn disabled at the data's dead zone until it is a setting).
+    pub radial_dead_zone: Range,
     pub host_port: Range,
 }
 
@@ -485,10 +487,20 @@ pub struct ShadowLevels {
     pub cascades: [usize; 3],
 }
 
+/// The ring menus' cursor (`radial.rs`).
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
+pub struct RadialTuning {
+    /// Cursor px (at 1080p) per inch of mouse travel: the same hand distance at any DPI.
+    pub px_per_inch: f32,
+    /// How far (px) the cursor must move off the centre before an option is picked (Gameplay ▸ RADIAL POINTER).
+    pub dead_zone_px: f32,
+}
+
 /// `game/assets/data/settings.ron`: defaults for a new player and every range and table the screen uses.
 #[derive(Resource, Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct SettingsData {
     pub ranges: Ranges,
+    pub radial: RadialTuning,
     pub import_yaw: ImportYaw,
     pub optic_rows: Vec<OpticRow>,
     /// Brightness ±50 maps to ± this many EV.

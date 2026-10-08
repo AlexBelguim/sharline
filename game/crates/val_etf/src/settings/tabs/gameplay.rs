@@ -23,7 +23,8 @@ type Row = (&'static str, Option<&'static str>, Ctl);
 
 const GAMEPLAY: &[Row] = &[
     ("PLAYER NAME", None, Ctl::Field(FieldKind::PlayerName, 280.0)),
-    ("AUTO-SPRINT", Some("Moving forward sprints · Shift walks"), Ctl::Switch(Tg::AutoSprint)),
+    // No key named: Walk can be rebound (or left on Alt by an old settings file).
+    ("AUTO-SPRINT", Some("Moving forward sprints · hold Walk to walk"), Ctl::Switch(Tg::AutoSprint)),
     // SEPARATE KEY needs a 'Jetpack (hold)' bind, which Keybinds does not have yet.
     ("JETPACK", None, Ctl::Seg(Ch::Jetpack, &[1])),
     // OFF and WHILE HELD wait for the game to honour them (the sim always slides; the card is timed).
@@ -42,10 +43,6 @@ const NETWORK: &[Row] = &[
     // The same value as Video ▸ Performance overlay '+ NETWORK'.
     ("SHOW NET GRAPH", None, Ctl::Switch(Tg::NetGraph)),
 ];
-
-/// The proposed range of the radial pointer's dead zone, in mouse counts (spec 13). There is no setting for it
-/// yet, so its row is drawn disabled at the game's value (`radial::DEADZONE`).
-const POINTER_RANGE: (f32, f32) = (10.0, 30.0);
 
 pub fn build(p: &mut ChildSpawnerCommands, k: &Kit) {
     super::col(p, |c| {
@@ -85,12 +82,12 @@ fn rows(c: &mut ChildSpawnerCommands, k: &Kit, rows: &[Row], more: bool) {
     }
 }
 
-/// RADIAL POINTER: the ring's dead zone, disabled until it is a setting.
+/// RADIAL POINTER: the ring cursor's dead zone in px (settings.ron `radial.dead_zone_px`), on the track of its
+/// proposed range (`ranges.radial_dead_zone`, spec 13); disabled until it is a setting.
 fn pointer_row(c: &mut ChildSpawnerCommands, k: &Kit) {
-    let dead = crate::radial::DEADZONE;
-    let (lo, hi) = POINTER_RANGE;
-    row(c, k, "RADIAL POINTER", Some("Mouse travel before a slot is picked"), true, false, 50.0, |r| {
-        fixed_slider(r, ((dead - lo) / (hi - lo)).clamp(0.0, 1.0), 400.0);
+    let (dead, range) = (k.data.radial.dead_zone_px, k.data.ranges.radial_dead_zone);
+    row(c, k, "RADIAL POINTER", Some("Cursor travel before a slot is picked"), true, false, 50.0, |r| {
+        fixed_slider(r, range.frac(dead), 400.0);
         fixed_field(r, k, &format!("{dead:.0}"), 70.0);
     });
 }
@@ -237,7 +234,17 @@ mod tests {
 
     #[test]
     fn the_pointer_row_shows_the_games_dead_zone_on_its_track() {
-        let (lo, hi) = POINTER_RANGE;
-        assert!((lo..=hi).contains(&crate::radial::DEADZONE));
+        let d = embedded();
+        let (dead, range) = (d.radial.dead_zone_px, d.ranges.radial_dead_zone);
+        assert!((range.min..=range.max).contains(&dead), "{dead} px in {range:?}");
+        assert!(range.frac(dead) > 0.0 && range.frac(dead) < 1.0);
+    }
+
+    /// The copy names no fixed key (review of round 1): Walk can be rebound, and an old settings file whose
+    /// Sprint is on Shift keeps Walk on its own key.
+    #[test]
+    fn the_sprint_copy_names_no_key() {
+        let (_, sub, _) = GAMEPLAY.iter().find(|(l, ..)| *l == "AUTO-SPRINT").unwrap();
+        assert!(!sub.unwrap().to_ascii_uppercase().contains("SHIFT"), "{sub:?}");
     }
 }

@@ -6,6 +6,8 @@
 // assets/audio/h3_test/<category>/<name>_<n>.ogg): copy the picked files to game/assets/audio/<category>/ under
 // the same names, list them in that id's `files` below, and delete the placeholder files no longer listed. The
 // test `sound::tests::the_data_file_parses_and_every_id_and_file_exists` checks every listed file exists.
+// The low-mag cue (weapons/low_mag_click) has no files of its own: it plays the dry click lighter and higher, so
+// list the same files there as in weapons/dry_fire (the test fails until they match).
 //
 // Per sound:
 //   files           variations; each play picks one at random (never the same twice in a row)
@@ -50,8 +52,9 @@
             files: ["weapons/dry_fire.ogg"], category: Weapons, volume: 0.8, pitch_jitter: 0.03,
             spatial: true, ref_distance_m: 1.0, max_distance_m: 8.0,
         ),
-        // The low-mag cue (AUDIO > LOW-MAG CUE, off by default): a lighter trigger click under each shot while
-        // the magazine would check ALMOST EMPTY. Approximate by design, like a mag check: never a count.
+        // The low-mag cue (AUDIO > LOW-MAG CUE, off by default): a lighter trigger click under each shot once the
+        // magazine is about ALMOST EMPTY (see low_mag_cue at the end). Approximate by design, like a mag check:
+        // never a count. Its files are always the same as weapons/dry_fire's.
         "weapons/low_mag_click": (
             files: ["weapons/dry_fire.ogg"], category: Weapons, volume: 0.35, pitch: 1.3, pitch_jitter: 0.03,
         ),
@@ -220,4 +223,9 @@
 
     // Head width for left/right panning of spatial sounds (metres).
     ear_gap_m: 0.3,
+
+    // AUDIO > LOW-MAG CUE (off by default): each magazine starts the lighter click under its shots somewhere
+    // between these fractions of its capacity (drawn when it is first fired from full), around the mag check's
+    // ALMOST EMPTY band (under 15 %). So where it starts is approximate, never a count to count down from.
+    low_mag_cue: (from_frac: 0.10, to_frac: 0.20),
 )

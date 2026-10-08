@@ -8,7 +8,9 @@ use crate::radial::{HealMenu, HealOption, REGION_ORDER, Radial, heal_options};
 use crate::render::hit_fx::ClaimedHit;
 use crate::render::{ViewmodelRig, ads_zoom, camera_fov, own_tracer_start, viewmodel_lens};
 use crate::screens::{EscPress, EscSystems, Screens};
-use crate::settings::{Action, BindInput, HoldToggle, Keybinds, RadialPick, Settings, rad_per_count};
+use crate::settings::{
+    Action, BindInput, HoldToggle, Keybinds, RadialPick, RadialTuning, Settings, SettingsData, rad_per_count,
+};
 use crate::shared::LocalShot;
 use bevy::ecs::system::SystemParam;
 use bevy::input::mouse::{AccumulatedMouseMotion, AccumulatedMouseScroll};
@@ -310,6 +312,7 @@ fn gather_input(
     cli: Res<Cli>,
     data: Res<Data>,
     settings: Res<Settings>,
+    tables: Res<SettingsData>,
     screens: Res<Screens>,
     me: Query<(&PlayerLoadout, &PlayerItems, Option<&Vitals>, Option<&PlayerWeapon>), With<Controlled>>,
     mut control: ResMut<LocalControl>,
@@ -350,11 +353,12 @@ fn gather_input(
     // Screenshot and demo runs ignore the desktop's mouse: it must not turn the view.
     let mouse_delta = if cli.ignores_desktop_input() { Vec2::ZERO } else { motion.delta };
     // The ring menus steer an on-screen cursor in pixels, the same hand distance at any DPI.
-    let ring_delta = mouse_delta * crate::radial::px_per_count(m.dpi);
-    heal_input(&mut control, kb, &input, ring_delta, &kit);
+    let tuning = tables.radial;
+    let ring_delta = mouse_delta * crate::radial::px_per_count(m.dpi, &tuning);
+    heal_input(&mut control, kb, &input, ring_delta, &kit, &tuning);
     let dt = time.delta_secs();
-    let tap_reload = control.heal.is_none()
-        && reload_input(&mut control, kb, &input, ring_delta, dt, mags, g.radial_hold_s, g.radial_pick);
+    let ring = RingSettings { hold_s: g.radial_hold_s, pick: g.radial_pick, tuning };
+    let tap_reload = control.heal.is_none() && reload_input(&mut control, kb, &input, ring_delta, dt, mags, ring);
     let ring_open = control.heal.is_some() || control.reload_radial.is_some();
     if ring_open {
         control.mouse_block = true;
@@ -414,11 +418,12 @@ fn gather_input(
 
 /// Buttons a demo run holds: `--demo-ui ads` aims down sights, for a player and a `--bot` alike (scripted ADS
 /// tests over the network); `sprint` and `sprint-ads` hold sprint (and aim) for a `--bot` running forward (with
-/// `--yaw`, its first seconds). Held, not a one-tick pulse: a frame can run two ticks.
+/// `--yaw`, its first seconds), and so does `dry-fire-sprint` (`sound::demo_dry_fire`, with quick trigger
+/// taps). Held, not a one-tick pulse: a frame can run two ticks.
 fn demo_held(cli: &Cli) -> u16 {
     match cli.demo_ui.as_deref() {
         Some("ads") => Buttons::ADS,
-        Some("sprint") => Buttons::SPRINT,
+        Some("sprint" | "dry-fire-sprint") => Buttons::SPRINT,
         Some("sprint-ads") => Buttons::SPRINT | Buttons::ADS,
         _ => 0,
     }
@@ -426,12 +431,20 @@ fn demo_held(cli: &Cli) -> u16 {
 
 /// Heal ring (the Heal key toggles it). Fire on an item: a whole-body item is used at once; a region item
 /// opens a second ring of regions around it, where Fire picks the region. Aim steps back; Esc or Heal
-/// closes. Dimmed options (none left, or nothing to treat) ignore Fire.
-fn heal_input(control: &mut LocalControl, kb: &Keybinds, input: &BindInput, mouse_delta: Vec2, kit: &[HealOption]) {
+/// closes. Dimmed options (none left, or nothing to treat) ignore Fire. A pick turns a toggled sprint off:
+/// sprinting would stop the item from starting (the Sprint key pressed again sprints, and cancels it).
+fn heal_input(
+    control: &mut LocalControl,
+    kb: &Keybinds,
+    input: &BindInput,
+    mouse_delta: Vec2,
+    kit: &[HealOption],
+    tuning: &RadialTuning,
+) {
     if kb.just_pressed(Action::Heal, input) {
         control.heal = match control.heal {
             Some(_) => None,
-            None if !kit.is_empty() => Some(HealMenu::new(kit.len())),
+            None if !kit.is_empty() => Some(HealMenu::new(kit.len(), tuning)),
             None => None,
         };
         control.reload_radial = None;
@@ -459,10 +472,11 @@ fn heal_input(control: &mut LocalControl, kb: &Keybinds, input: &BindInput, mous
                 ItemScope::Body => {
                     control.item_pick = encode_pick(i as u8, None);
                     control.heal = None;
+                    control.toggles.sprint = false;
                 }
                 ItemScope::Region => {
                     menu.item = Some(i);
-                    menu.regions = Radial::regions();
+                    menu.regions = Radial::regions(tuning);
                 }
             }
         }
@@ -473,8 +487,18 @@ fn heal_input(control: &mut LocalControl, kb: &Keybinds, input: &BindInput, mous
             }
             control.item_pick = encode_pick(i as u8, Some(REGION_ORDER[r]));
             control.heal = None;
+            control.toggles.sprint = false;
         }
     }
+}
+
+/// How the ring menus open and pick: the Gameplay tab's radial hold time and pick mode, and the cursor's tuning
+/// (settings.ron).
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct RingSettings {
+    pub hold_s: f32,
+    pub pick: RadialPick,
+    pub tuning: RadialTuning,
 }
 
 /// Reload key: a tap (released before `hold_s`, the Gameplay tab's radial hold time) reloads the next
@@ -488,9 +512,9 @@ fn reload_input(
     mouse_delta: Vec2,
     dt: f32,
     mags: usize,
-    hold_s: f32,
-    pick: RadialPick,
+    ring: RingSettings,
 ) -> bool {
+    let RingSettings { hold_s, pick, tuning } = ring;
     const DIGITS: [KeyCode; 6] =
         [KeyCode::Digit1, KeyCode::Digit2, KeyCode::Digit3, KeyCode::Digit4, KeyCode::Digit5, KeyCode::Digit6];
     if kb.just_pressed(Action::Reload, input) {
@@ -506,7 +530,7 @@ fn reload_input(
     {
         *held += dt;
         if *held >= hold_s && control.reload_radial.is_none() {
-            control.reload_radial = Some(Radial::new(mags));
+            control.reload_radial = Some(Radial::new(mags, &tuning));
         }
     }
     if let Some(radial) = &mut control.reload_radial {
@@ -765,7 +789,14 @@ fn bot_controls(cli: &Cli, t: f32, since: f32, control: &mut LocalControl) {
             control.pitch = (t * 1.3).sin() * 0.08;
         }
     }
-    let firing = (t * 2.0) as i32 % 3 == 0 && (cli.yaw.is_none() || since > 3.5);
+    // Bursts of half a second every 1.5 s; `dry-fire-sprint` runs forward only (so it sprints) and taps the
+    // trigger for a tenth of a second instead (a hip tap on the run, the gun still coming up from the sprint).
+    let firing = if cli.demo_ui.as_deref() == Some("dry-fire-sprint") {
+        control.movement = Vec2::Y;
+        (t * 10.0) as i32 % 15 == 0
+    } else {
+        (t * 2.0) as i32 % 3 == 0 && (cli.yaw.is_none() || since > 3.5)
+    };
     control.held = demo_held(cli) | if firing { Buttons::FIRE } else { 0 };
     if (t as i32) % 7 == 3 && cli.yaw.is_none() {
         control.held |= Buttons::JUMP;
@@ -781,6 +812,7 @@ fn automation(
     cli: Res<Cli>,
     time: Res<Time>,
     state: Res<State<AppState>>,
+    tables: Option<Res<SettingsData>>,
     me: Query<(&PlayerLoadout, &PlayerItems), With<Controlled>>,
     mut control: ResMut<LocalControl>,
     mut commands: Commands,
@@ -801,13 +833,14 @@ fn automation(
     }
     // Open a ring menu for screenshots, the cursor resting on the second option (the bottom region).
     let on_option = |r: &mut Radial, i: usize| r.steer(crate::radial::option_offset(i, r.options, r.reach));
+    let tuning = tables.map_or_else(|| crate::settings::embedded().radial, |t| t.radial);
     if let Some(demo) = cli.demo_ui.as_deref()
         && in_game_since.is_some_and(|s| t - s > 1.0)
         && let Some((lo, _)) = me.iter().next()
     {
         match demo {
             "reload" => {
-                let mut radial = Radial::new(lo.0.weapon.mags.len());
+                let mut radial = Radial::new(lo.0.weapon.mags.len(), &tuning);
                 on_option(&mut radial, 1);
                 control.reload_radial = Some(radial);
             }
@@ -817,7 +850,7 @@ fn automation(
                 control.latched |= Buttons::MAG_CHECK;
             }
             "heal" | "heal-region" => {
-                let mut menu = HealMenu::new(lo.0.kit.len());
+                let mut menu = HealMenu::new(lo.0.kit.len(), &tuning);
                 on_option(&mut menu.ring, 1);
                 if demo == "heal-region" {
                     menu.item = menu.ring.selected();
@@ -920,12 +953,20 @@ mod tests {
     /// still sprints (and cancels it on purpose).
     #[test]
     fn auto_sprint_waits_for_an_item() {
-        use HoldToggle::Hold;
+        use HoldToggle::{Hold, Toggle};
         let mut t = Toggles::default();
         let healing = HoldKeys { forward: true, item: true, ..default() };
         assert!(!hold_buttons(Hold, Hold, true, &mut t, healing)[0]);
         assert!(hold_buttons(Hold, Hold, true, &mut t, HoldKeys { sprint: (true, true), ..healing })[0]);
         assert!(hold_buttons(Hold, Hold, true, &mut t, HoldKeys { item: false, ..healing })[0], "done: sprinting");
+        // TOGGLE: a Sprint press while an item is in hand sprints and stays on (the frames until the fixed
+        // tick still see the item in hand); the heal pick itself turns the toggle off (`heal_input`)
+        for auto in [false, true] {
+            let mut t = Toggles::default();
+            assert!(!hold_buttons(Toggle, Hold, auto, &mut t, healing)[0], "auto-sprint {auto}: healing");
+            assert!(hold_buttons(Toggle, Hold, auto, &mut t, HoldKeys { sprint: (true, true), ..healing })[0]);
+            assert!(hold_buttons(Toggle, Hold, auto, &mut t, healing)[0], "auto-sprint {auto}: still toggled");
+        }
     }
 
     #[test]
@@ -952,6 +993,10 @@ mod tests {
         assert!(near(look_per_count(&s, None, 1.0, 0.0), 2.0 * hip), "half the distance, twice the turn");
     }
 
+    fn ring(hold_s: f32, pick: RadialPick) -> RingSettings {
+        RingSettings { hold_s, pick, tuning: crate::settings::embedded().radial }
+    }
+
     fn bind_input<'a>(keys: &'a ButtonInput<KeyCode>, mouse: &'a ButtonInput<MouseButton>) -> BindInput<'a> {
         BindInput { keys, mouse, wheel: 0.0, wheel_prev: 0.0 }
     }
@@ -963,11 +1008,11 @@ mod tests {
         let frames = 6;
         for f in 0..frames {
             let delta = if f == frames - 1 { steer } else { Vec2::ZERO };
-            reload_input(c, kb, &bind_input(&keys, &mouse), delta, 0.05, 6, hold_s, pick);
+            reload_input(c, kb, &bind_input(&keys, &mouse), delta, 0.05, 6, ring(hold_s, pick));
             keys.clear();
         }
         keys.release(KeyCode::KeyR);
-        reload_input(c, kb, &bind_input(&keys, &mouse), Vec2::ZERO, 0.05, 6, hold_s, pick)
+        reload_input(c, kb, &bind_input(&keys, &mouse), Vec2::ZERO, 0.05, 6, ring(hold_s, pick))
     }
 
     #[test]
@@ -988,7 +1033,7 @@ mod tests {
         assert!(c.reload_radial.is_some() && c.reload_pick == 0, "still open, nothing picked");
         let (keys, mut mouse) = (ButtonInput::<KeyCode>::default(), ButtonInput::<MouseButton>::default());
         mouse.press(MouseButton::Left);
-        reload_input(&mut c, &kb, &bind_input(&keys, &mouse), Vec2::ZERO, 0.05, 6, 0.2, RadialPick::Click);
+        reload_input(&mut c, &kb, &bind_input(&keys, &mouse), Vec2::ZERO, 0.05, 6, ring(0.2, RadialPick::Click));
         assert_eq!((c.reload_pick, c.reload_radial), (3, None), "Fire picks the slot under the pointer");
         // a rebound reload key: R does nothing any more
         let mut kb = kb;
@@ -1011,6 +1056,7 @@ mod tests {
             .insert_resource(Cli::default())
             .insert_resource(Data(Arc::new(vetf_sim::GameData::embedded())))
             .insert_resource(Settings::default())
+            .insert_resource(crate::settings::embedded().clone())
             .add_systems(Update, gather_input);
         app
     }
@@ -1113,6 +1159,57 @@ mod tests {
         assert_eq!(frame(&mut app, &[KeyCode::KeyB], Vec2::ZERO).0 & Buttons::FIRE_MODE, 0);
     }
 
+    /// The review of round 1: with SPRINT set to TOGGLE, a sprint toggled on before the heal ring opened was
+    /// still on when an item was picked, so SPRINT went out with the pick, the sim refused to start the item
+    /// (sprinting lowers the gun) and the pick was lost. A pick now turns the toggle off; pressing Sprint during
+    /// the item still sprints (cancelling it on purpose) and stays toggled. Auto-sprint on or off.
+    #[test]
+    fn a_heal_pick_turns_a_toggled_sprint_off() {
+        use vetf_sim::items::{ItemState, ItemUse};
+        for auto_sprint in [false, true] {
+            let mut app = input_app();
+            let data = vetf_sim::GameData::embedded();
+            let lo = vetf_sim::player::Loadout::default_for(&data, vetf_sim::data::Mode::Tdm);
+            let items = ItemState::new(&lo.kit);
+            let kit = lo.kit.len();
+            assert_eq!(data.items.spec(&lo.kit[0]).scope, ItemScope::Body, "the TDM kit's first item is whole-body");
+            let me = app.world_mut().spawn((PlayerLoadout(lo), PlayerItems(items), Controlled)).id();
+            {
+                let mut s = app.world_mut().resource_mut::<Settings>();
+                s.hud.hold_toggle = HoldToggle::Toggle;
+                s.gameplay.auto_sprint = auto_sprint;
+            }
+            let sprint = |held: u16| held & Buttons::SPRINT != 0;
+            // toggle sprint on (Alt) while running forward
+            assert!(sprint(frame(&mut app, &[KeyCode::KeyW, KeyCode::AltLeft], Vec2::ZERO).0));
+            assert!(sprint(frame(&mut app, &[KeyCode::KeyW], Vec2::ZERO).0), "toggled on");
+            // B opens the heal ring; push the cursor up onto the first item
+            let tuning = crate::settings::embedded().radial;
+            let up = crate::radial::option_offset(0, kit, Radial::new(kit, &tuning).reach);
+            assert!(sprint(frame(&mut app, &[KeyCode::KeyW, KeyCode::KeyB], up).0), "the ring is open, still running");
+            assert!(app.world().resource::<LocalControl>().heal.is_some());
+            // click: the pick goes out without SPRINT, and the toggle is off
+            app.world_mut().resource_mut::<ButtonInput<MouseButton>>().press(MouseButton::Left);
+            let (held, ..) = frame(&mut app, &[KeyCode::KeyW], Vec2::ZERO);
+            {
+                let mut mouse = app.world_mut().resource_mut::<ButtonInput<MouseButton>>();
+                mouse.release_all();
+                mouse.clear();
+            }
+            let c = app.world().resource::<LocalControl>();
+            assert_eq!(c.item_pick, encode_pick(0, None), "auto-sprint {auto_sprint}: the item is picked");
+            assert!(!sprint(held) && !c.toggles.sprint, "auto-sprint {auto_sprint}: no sprint with the pick");
+            // the item starts (the next tick sends the pick): running on keeps it, as auto-sprint waits
+            app.world_mut().resource_mut::<LocalControl>().item_pick = (0, 0);
+            let using = ItemUse { slot: 0, zone: None, left: 100, total: 100 };
+            app.world_mut().get_mut::<PlayerItems>(me).unwrap().0.using = Some(using);
+            assert!(!sprint(frame(&mut app, &[KeyCode::KeyW], Vec2::ZERO).0), "auto-sprint {auto_sprint}: healing");
+            // pressing Sprint sprints (and cancels the item on purpose), and stays toggled
+            assert!(sprint(frame(&mut app, &[KeyCode::KeyW, KeyCode::AltLeft], Vec2::ZERO).0));
+            assert!(sprint(frame(&mut app, &[KeyCode::KeyW], Vec2::ZERO).0), "auto-sprint {auto_sprint}: toggled");
+        }
+    }
+
     /// `--demo-ui ads` holds aim down sights every frame, for a player and for a `--bot` (review finding: the
     /// bot path skips the keyboard input, so a bot run stopped aiming).
     #[test]
@@ -1141,5 +1238,18 @@ mod tests {
         let sprint_ads = Cli { bot: true, demo_ui: Some("sprint-ads".into()), ..Cli::default() };
         bot_controls(&sprint_ads, 1.0, 1.0, &mut c);
         assert_eq!(c.held & (Buttons::SPRINT | Buttons::ADS), Buttons::SPRINT | Buttons::ADS, "an aimed sprint");
+        // the sprinting dry-fire demo: sprint held, the trigger only tapped (a tenth of a second every 1.5 s)
+        let taps =
+            Cli { bot: true, host: Some("range".into()), demo_ui: Some("dry-fire-sprint".into()), ..Cli::default() };
+        let firing: Vec<bool> = (0..300)
+            .map(|i| {
+                let t = i as f32 / 100.0;
+                bot_controls(&taps, t, t, &mut c);
+                assert_ne!(c.held & Buttons::SPRINT, 0, "sprinting at {t} s");
+                c.held & Buttons::FIRE != 0
+            })
+            .collect();
+        let pulls = firing.windows(2).filter(|w| w[1] && !w[0]).count() + firing[0] as usize;
+        assert_eq!((pulls, firing.iter().filter(|f| **f).count()), (2, 20), "two taps of 0.1 s in 3 s");
     }
 }

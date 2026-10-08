@@ -1,0 +1,39 @@
+// Telling friend from foe (art/DIRECTION_LOG.md item 17; src/render/friend_foe.rs). Visual only: none of it
+// reaches the simulation.
+//
+// In a team mode the local player's teammates get a soft rim glow on their bodies in the ally colour (SETTINGS >
+// HUD > TEAM COLOURS: its colour-blind presets, never red). The glow is drawn with the body, so a wall in front
+// hides it: there is no silhouette through walls. A teammate fully behind cover shows only a small name marker
+// above the head, fading with distance. Everyone else looks plain: one body colour for all, no glow, no team or
+// enemy colour (the halo arcs keep their tier colours: they show armour and weight, not a side). In the
+// extraction mode squad members are the teammates.
+//
+// Units: metres; colours sRGB 0..1; glow strengths are emissive (linear; the halo arcs glow at 1.5).
+(
+    // Every player's body and head, whatever their side (placeholder bodies until the agent models are in).
+    body_color: (0.46, 0.47, 0.50),
+    head_color: (0.62, 0.48, 0.40),
+    rim: (
+        // At the edge of the silhouette.
+        strength: 1.4,
+        // Fresnel exponent: higher keeps the glow to a thinner edge.
+        power: 2.6,
+        // A faint wash over the whole teammate, as a share of the edge's glow.
+        fill: 0.06,
+    ),
+    marker: (
+        // Above the top of the head.
+        above_head_m: 0.35,
+        font_px: 15.0,
+        // A dot under the name, px.
+        dot_px: 6.0,
+        // Full strength up to `near_m`, fading to `far_alpha` at `far_m`; not shown beyond `hide_m`.
+        near_m: 10.0,
+        far_m: 60.0,
+        far_alpha: 0.3,
+        hide_m: 150.0,
+        // Seen from the camera, a teammate counts as in view while any of these heights above the feet (or above
+        // the crouched body's squashed height) is in line of sight; otherwise the marker shows.
+        sight_heights_m: [1.75, 1.2, 0.5],
+    ),
+)
