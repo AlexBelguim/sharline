@@ -841,6 +841,10 @@ pub struct EyeHeightSpec {
     pub crouch: f32,
     pub slide: f32,
     pub transition_s: f32,
+    /// How far (metres) the eye stays from any wall, ceiling or floor: the eye's height is held down under a
+    /// low ceiling (a slide under a garage roller eases the eye down slower than the head goes under), so the
+    /// view and the shots never start inside a wall. At least the camera's near-plane corner distance.
+    pub clearance: f32,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -1348,6 +1352,17 @@ impl GameData {
     /// Cross-reference checks the type system cannot express.
     pub fn validate(&self) -> Result<(), DataError> {
         let bad = |m: String| Err(DataError::Invalid(m));
+        // Every stance's eye sits inside its own box, `clearance` from its top and sides: a settled view never
+        // starts inside a wall or a ceiling the body fits under.
+        let (cap, eye) = (&self.movement.capsule, &self.movement.eye_height);
+        let eye_ok = [(eye.stand, cap.height_stand), (eye.crouch, cap.height_crouch), (eye.slide, cap.height_slide)]
+            .iter()
+            .all(|(e, h)| *e >= eye.clearance && *e + eye.clearance <= *h)
+            && eye.clearance > 0.0
+            && eye.clearance < cap.radius;
+        if !eye_ok {
+            return bad("movement: each eye height must sit `clearance` inside its stance's box".into());
+        }
         for w in &self.weapons.weapons {
             if w.falloff.is_empty() || w.falloff.windows(2).any(|p| p[1].0 <= p[0].0) {
                 return bad(format!("{}: falloff ranges must be strictly increasing", w.id));

@@ -176,6 +176,68 @@ impl CollisionWorld {
         !t.hit() || t.fraction >= 0.999
     }
 
+    /// True when a box (`half` extents) centred at `c` is not inside anything that blocks players.
+    pub fn box_free(&self, c: Vec3, half: Vec3) -> bool {
+        !self.trace_box(c, c, half).start_solid
+    }
+
+    /// The shortest move that gets a box (`half` extents, centred at `c`) out of the player-blocking brushes it
+    /// is inside, if any is found: out through one face of a brush, or of two in turn (a box wedged between a
+    /// floor and a lintel). A move may rise or drop at most `max_y`, so a box is never pushed up through what is
+    /// above it (only out of a floor or a step it sank into) or down through the floor, and goes no further than
+    /// twice the box's own half-diagonal (out of a wall, not through a building). `None` when it is free already
+    /// or no such move works.
+    pub fn push_out(&self, c: Vec3, half: Vec3, max_y: f32) -> Option<Vec3> {
+        if self.box_free(c, half) {
+            return None;
+        }
+        let reach = half.length() * 2.0;
+        let shorter = |push: Vec3, best: Option<Vec3>| {
+            push.y.abs() <= max_y
+                && push.length() <= reach
+                && best.is_none_or(|b: Vec3| push.length_squared() < b.length_squared())
+        };
+        let mut best: Option<Vec3> = None;
+        let mut wedged = Vec::new();
+        for p in self.face_pushes(c, half) {
+            if !shorter(p, best) {
+                continue;
+            }
+            if self.box_free(c + p, half) {
+                best = Some(p);
+            } else {
+                wedged.push(p);
+            }
+        }
+        for p in wedged {
+            for q in self.face_pushes(c + p, half) {
+                if shorter(p + q, best) && self.box_free(c + p + q, half) {
+                    best = Some(p + q);
+                }
+            }
+        }
+        best
+    }
+
+    /// For every player-blocking brush the box is inside: the move out through each of its faces (just past it).
+    fn face_pushes(&self, c: Vec3, half: Vec3) -> Vec<Vec3> {
+        let mut out = Vec::new();
+        let (lo, hi) = (c - half, c + half);
+        for b in &self.brushes {
+            if !b.blocks_players() || b.max.cmplt(lo).any() || b.min.cmpgt(hi).any() {
+                continue;
+            }
+            // The same expanded planes as the trace: inside means behind (or on) every one of them.
+            let depth: Vec<f32> =
+                b.planes.iter().map(|p| c.dot(p.normal) - (p.dist + half.dot(p.normal.abs()))).collect();
+            if depth.iter().any(|d| *d > 0.0) {
+                continue;
+            }
+            out.extend(b.planes.iter().zip(&depth).map(|(p, d)| p.normal * (-d + SKIN * 2.0)));
+        }
+        out
+    }
+
     fn trace_filtered(&self, start: Vec3, end: Vec3, half: Vec3, keep: impl Fn(&Brush) -> bool) -> Trace {
         let mut best = Trace { fraction: 1.0, end, normal: Vec3::ZERO, start_solid: false };
         let lo = start.min(end) - half - Vec3::splat(SKIN);
@@ -303,6 +365,29 @@ mod tests {
         assert_eq!(n, Vec3::NEG_X);
         assert!(!w.line_of_sight(Vec3::new(0.0, 1.0, 0.0), Vec3::new(10.0, 1.0, 0.0)));
         assert!(w.line_of_sight(Vec3::new(0.0, 4.0, 0.0), Vec3::new(10.0, 4.0, 0.0)));
+    }
+
+    /// Out of a floor it sank into: up. Wedged between a floor and a lintel: out sideways, the nearer way, never
+    /// up through the lintel. Free already: no move.
+    #[test]
+    fn push_out_takes_the_shortest_way_but_never_up_through_a_ceiling() {
+        let mut w = floor_world();
+        let half = Vec3::new(0.32, 0.625, 0.32);
+        assert_eq!(w.push_out(Vec3::new(0.0, 0.7, 0.0), half, 0.3), None, "free");
+        let sunk = w.push_out(Vec3::new(0.0, 0.6, 0.0), half, 0.3).unwrap();
+        assert!(sunk.x == 0.0 && sunk.z == 0.0 && (sunk.y - 0.025).abs() < 0.01, "{sunk}");
+        // A thin lintel, 1.1..1.3 m, its south face at z 0.2: the head (1.25 m) is in it.
+        w.push(Brush::cuboid(Vec3::new(-5.0, 1.1, -0.5), Vec3::new(1.5, 1.3, 0.2), BrushKind::Solid));
+        let c = Vec3::new(0.0, 0.625 + SKIN, 0.0);
+        let out = w.push_out(c, half, 0.3).unwrap();
+        assert!(out.y <= 0.0 && (out.z - (0.2 + 0.32)).abs() < 0.01 && out.x == 0.0, "{out}");
+        assert!(w.box_free(c + out, half));
+        // Nothing within reach but up through it: no move at all.
+        assert_eq!(w.push_out(c, half, 0.3).map(|p| p.y > 0.3), Some(false));
+        let mut boxed = CollisionWorld::default();
+        boxed.push(Brush::cuboid(Vec3::new(-50.0, 1.1, -50.0), Vec3::new(50.0, 1.3, 50.0), BrushKind::Solid));
+        boxed.push(Brush::cuboid(Vec3::new(-50.0, -1.0, -50.0), Vec3::new(50.0, 0.0, 50.0), BrushKind::Solid));
+        assert_eq!(boxed.push_out(c, half, 0.3), None, "only through the slab, the floor or far away");
     }
 
     #[test]

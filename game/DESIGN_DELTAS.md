@@ -404,3 +404,22 @@ option before T1.
 - **Impacts: no bullet marks on lawns.** Shots into the mown lawn (`M_GND_Grass`, listed in `no_mark` in
   `impacts.ron`) throw their soil debris but leave no mark: the grass hid marks up close and they popped in
   beyond its fade distance. The user: "no bullet marks on lawns is fine".
+
+## 17. Walls while sliding: the eye and a stuck body stay out of them (2026-10-08)
+
+- The eye eased down toward a slide's height (0.85 m) over `eye_height.transition_s`, slower than a slide carries
+  the head under a garage roller (1.1 m), so the view (and the shots, which leave from the eye) came from inside
+  the lintel for a moment. The eye now stays `eye_height.clearance` (new, 0.08 m) from walls and ceilings: under a
+  low gap it is held down to the open space there. Data validation checks every stance's eye sits that far inside
+  its box.
+- A body that was somehow inside something used to be nudged up 1 cm a tick, which carried a player stuck under a
+  lintel up through it. Now it first goes lower (crouch, then the slide's low stance), else it steps out the
+  shortest way, rising or dropping at most a `step_height` (out of a floor, never through a lintel or a floor).
+- A mantle's move over the ledge starts while the body is still rising; it is now traced, so it no longer cuts
+  through the ledge's edge (it catches up as the body rises; the mantle's time and end point are unchanged).
+- The camera's render-only offsets (the step ease, bob, landing dip, a shot's push back, between ticks) only move
+  the view as far as the eye's clearance box fits. The near plane is 2 cm (was 3 cm), so its corners stay inside
+  that box at the widest FOV on a 32:9 screen.
+- Pinned by `vetf_sim::movement` tests (slides into a wall head-on, at shallow angles, along it and into a corner;
+  the eye under a lintel; a body inside a ceiling), `collision::push_out_*`, and `render` tests (the camera on
+  Showhome's garage rollers with exaggerated offsets; the near plane's reach).

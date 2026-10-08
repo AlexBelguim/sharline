@@ -456,3 +456,144 @@ fn slide_off_a_ledge_under_a_low_ceiling_stays_low() {
     assert!(left_ground);
     assert!((st.pos.y + 2.0).abs() < 0.01, "landed on the lower floor: {st:?}");
 }
+
+/// The eye (a box `eye_height.clearance` around it, where the camera's near plane reaches) is not inside anything.
+fn assert_eye_clear(d: &GameData, level: &Level, st: &MoveState, what: &str) {
+    let r = d.movement.eye_height.clearance;
+    assert!(level.world.box_free(st.eye_pos(), Vec3::splat(r)), "{what}: the eye is inside the level: {st:?}");
+}
+
+/// A floor, a wall across the way north (its face at z -6) and one across the way east (its face at x 4):
+/// a corner at (4, -6).
+fn walls_level() -> Level {
+    let mut level = flat_level();
+    level.world.push(Brush::cuboid(Vec3::new(-20.0, 0.0, -6.5), Vec3::new(20.0, 3.0, -6.0), BrushKind::Solid));
+    level.world.push(Brush::cuboid(Vec3::new(4.0, 0.0, -20.0), Vec3::new(4.5, 3.0, 20.0), BrushKind::Solid));
+    level
+}
+
+/// Item 5 (round 3): seeing into walls while sliding. Slides into a wall head-on, at shallow angles, along it
+/// (steering into it) and into a corner, from starts at many distances so they reach it at every point of the
+/// slide, then the slide ends (crouch let go, or held until it runs out) and the player keeps pushing into it,
+/// jumps and stands. The body's box and the eye never go inside the wall, and the feet stay on the floor.
+#[test]
+fn slides_into_walls_never_go_inside_them() {
+    let d = GameData::embedded();
+    let level = walls_level();
+    let m = mods(&d, WeightClass::None);
+    // (what, start, yaw in degrees, steering while sliding)
+    let mut cases: Vec<(String, Vec3, f32, Vec2)> = Vec::new();
+    for i in 0..8 {
+        let back = i as f32 * 0.6;
+        cases.push((format!("head-on {back}"), Vec3::new(0.0, 0.0, -2.0 + back), 0.0, Vec2::Y));
+        for angle in [5.0, 15.0, 30.0, 60.0, 80.0] {
+            // `angle` degrees off the north wall's face (heading north-east, so the east wall comes after).
+            let yaw = -(90.0 - angle);
+            cases.push((format!("{angle} deg {back}"), Vec3::new(-6.0 - back, 0.0, -3.0), yaw, Vec2::Y));
+        }
+        // Along the north wall, east into the corner, steering into the wall (left).
+        let along = Vec3::new(-4.0 - back, 0.0, -6.0 + 0.33);
+        cases.push((format!("along {back}"), along, -90.0, Vec2::new(-0.7, 0.7)));
+        cases.push((format!("corner {back}"), Vec3::new(1.0 - back, 0.0, -3.0 + back), -45.0, Vec2::Y));
+    }
+    for (what, start, yaw_deg, steer) in cases {
+        for end in ["release", "hold", "jump"] {
+            let at = format!("{what}, {end}");
+            let yaw = yaw_deg.to_radians();
+            let frame =
+                |mv: Vec2, bits: u16| InputFrame { movement: mv, yaw, buttons: Buttons(bits), ..Default::default() };
+            let mut st = spawn(&d, start);
+            let check = |st: &MoveState, tick: usize| {
+                assert_clear(&d, &level, st);
+                assert_eye_clear(&d, &level, st, &format!("{at}, tick {tick}"));
+                // On the ground: on the floor, or on top of a wall a jump mantled onto (3 m).
+                if matches!(st.mode, MoveMode::Ground | MoveMode::Slide) {
+                    let on = st.pos.y < 0.01 || (st.pos.y - 3.0).abs() < 0.01;
+                    assert!(on, "{at}, tick {tick}: rose to {}", st.pos.y);
+                }
+            };
+            let mut slid = false;
+            for t in 0..240 {
+                let inp = match t {
+                    0..25 => frame(Vec2::Y, Buttons::SPRINT),
+                    25..70 => frame(steer, Buttons::CROUCH),
+                    _ => match end {
+                        "release" => frame(steer, 0),
+                        "hold" => frame(steer, Buttons::CROUCH),
+                        _ => frame(steer, if t % 20 < 10 { Buttons::JUMP } else { 0 }),
+                    },
+                };
+                step(&d, &level, &mut st, &inp, &m, DT);
+                slid |= st.mode == MoveMode::Slide;
+                check(&st, t);
+            }
+            assert!(slid, "{at}: never slid");
+        }
+    }
+}
+
+/// Sliding under a low gap the moment the slide starts: the eye eases down toward a slide's height slower than
+/// the head goes under the lintel, so it is held under the lintel instead of looking out of the inside of it.
+#[test]
+fn the_eye_never_goes_into_a_lintel_the_slide_goes_under() {
+    let d = GameData::embedded();
+    let level = lintel_level();
+    let m = mods(&d, WeightClass::None);
+    let mut eye_held = false;
+    // The lintel's south face is at z -3, so a standing box reaches z -2.68: slides that start from 5 cm to
+    // 2.5 m short of that.
+    for i in 0..25 {
+        let slide_at = -3.0 + d.movement.capsule.radius + 0.05 + i as f32 * 0.1;
+        let mut st = spawn(&d, Vec3::new(0.0, 0.0, 4.0));
+        let mut slid = false;
+        for t in 0..200 {
+            let bits = if st.pos.z > slide_at && !slid { Buttons::SPRINT } else { Buttons::CROUCH };
+            step(&d, &level, &mut st, &input(Vec2::Y, bits), &m, DT);
+            slid |= st.mode == MoveMode::Slide;
+            assert_clear(&d, &level, &st);
+            assert_eye_clear(&d, &level, &st, &format!("slide at {slide_at}, tick {t}"));
+            assert!(st.pos.y < 0.01, "rose to {}", st.pos.y);
+            let under = (-3.25 - 0.4..-3.0 + 0.4).contains(&st.pos.z);
+            eye_held |= under && st.eye < d.movement.eye_height.crouch && st.stance == Stance::Slide;
+        }
+        assert!(slid && st.pos.z < -3.6, "slide at {slide_at}: did not get under: {st:?}");
+    }
+    assert!(eye_held, "no slide reached the lintel with the eye still easing down");
+}
+
+/// A player whose box is inside a ceiling (a stance from elsewhere, an edited map) gets out by going low, or
+/// out the shortest way sideways; never up through it (the old 1 cm a tick nudge carried it up through a lintel).
+#[test]
+fn a_player_inside_a_ceiling_never_rises_through_it() {
+    let d = GameData::embedded();
+    let m = mods(&d, WeightClass::None);
+    // Standing under the 1.1 m lintel: the slide stance fits there, so it just goes low.
+    let level = lintel_level();
+    let mut st = spawn(&d, Vec3::new(0.0, SKIN, -3.1));
+    st.stance = Stance::Stand;
+    step(&d, &level, &mut st, &input(Vec2::ZERO, 0), &m, DT);
+    assert_eq!(st.stance, Stance::Slide);
+    assert!((st.pos - Vec3::new(0.0, SKIN, -3.1)).length() < 1e-3, "{st:?}");
+    assert_clear(&d, &level, &st);
+
+    // Under a 0.9 m slab (lower than a slide), 0.3 m in from its south face: out south, on the floor.
+    let mut level = flat_level();
+    level.world.push(Brush::cuboid(Vec3::new(-5.0, 0.9, -4.0), Vec3::new(5.0, 1.2, -3.0), BrushKind::Solid));
+    for (stance, mode) in
+        [(Stance::Stand, MoveMode::Ground), (Stance::Crouch, MoveMode::Ground), (Stance::Slide, MoveMode::Slide)]
+    {
+        for bits in [0, Buttons::JUMP, Buttons::CROUCH] {
+            let mut st = spawn(&d, Vec3::new(0.0, SKIN, -3.3));
+            st.stance = stance;
+            st.mode = mode;
+            st.prev_buttons = Buttons(Buttons::CROUCH);
+            for t in 0..60 {
+                step(&d, &level, &mut st, &input(Vec2::ZERO, bits), &m, DT);
+                assert!(st.pos.y < 0.01 || st.mode == MoveMode::Air && st.pos.z > -3.0 + 0.3, "tick {t}: {st:?}");
+                assert_clear(&d, &level, &st);
+                assert_eye_clear(&d, &level, &st, &format!("{stance:?} {bits}, tick {t}"));
+            }
+            assert!(st.pos.z >= -3.0 + d.movement.capsule.radius, "{stance:?} {bits}: {st:?}");
+        }
+    }
+}

@@ -230,8 +230,50 @@ fn settle_stance(world: &CollisionWorld, m: &MovementSpec, pos: Vec3, want: Stan
     tallest_first[from..].iter().copied().find(|s| fits(world, m, pos, *s)).unwrap_or(Stance::Slide)
 }
 
-/// Quake-style collide-and-slide. Returns the new feet position and velocity.
-fn slide_move(world: &CollisionWorld, pos: Vec3, vel: Vec3, half: Vec3, dt: f32) -> (Vec3, Vec3, bool) {
+/// A player whose box is inside something (a stance that did not fit, a state from elsewhere) gets out before it
+/// moves: first by going lower (crouch, then the slide's low stance), else the slide box steps out the shortest
+/// way, rising or dropping at most a step. Never up through a lintel or a ceiling, nor down through a floor.
+fn unstick(world: &CollisionWorld, m: &MovementSpec, st: &mut MoveState) {
+    if fits(world, m, st.pos, st.stance) {
+        return;
+    }
+    let lower = match st.stance {
+        Stance::Stand => &[Stance::Crouch, Stance::Slide][..],
+        Stance::Crouch => &[Stance::Slide][..],
+        Stance::Slide => &[][..],
+    };
+    if let Some(s) = lower.iter().copied().find(|s| fits(world, m, st.pos, *s)) {
+        st.stance = s;
+        return;
+    }
+    let half = half_extents(m, Stance::Slide);
+    if let Some(push) = world.push_out(center(st.pos, half) + Vec3::Y * SKIN, half, m.ground.step_height) {
+        st.pos += push;
+        st.stance = Stance::Slide;
+        // Whatever it was moving into, it no longer moves into it.
+        if st.vel.dot(push) < 0.0 {
+            st.vel -= push.normalize_or_zero() * st.vel.dot(push.normalize_or_zero());
+        }
+    }
+}
+
+/// The eye's height above the feet at `pos`, held down so the eye (a box `eye_height.clearance` around it) is
+/// never inside anything: above the body's box (the eye easing down toward a slide's height while the head
+/// is already under a garage roller) it goes no higher than the open space over the box allows.
+fn clear_eye(world: &CollisionWorld, m: &MovementSpec, pos: Vec3, stance: Stance, eye: f32) -> f32 {
+    let r = m.eye_height.clearance;
+    let top = stance_height(m, stance) - r;
+    if eye <= top {
+        return eye;
+    }
+    let half = Vec3::splat(r);
+    let tr = world.trace_box(pos + Vec3::Y * top, pos + Vec3::Y * eye, half);
+    if tr.start_solid { top } else { tr.end.y - pos.y }
+}
+
+/// Quake-style collide-and-slide. Returns the new feet position and velocity. A box that starts inside something
+/// steps out the shortest way, rising or dropping at most `max_y` (out of a floor, never up through a lintel).
+fn slide_move(world: &CollisionWorld, pos: Vec3, vel: Vec3, half: Vec3, max_y: f32, dt: f32) -> (Vec3, Vec3, bool) {
     let mut p = center(pos, half);
     let mut v = vel;
     let mut left = dt;
@@ -243,8 +285,11 @@ fn slide_move(world: &CollisionWorld, pos: Vec3, vel: Vec3, half: Vec3, dt: f32)
         }
         let tr = world.trace_box(p, p + v * left, half);
         if tr.start_solid && tr.fraction == 0.0 {
-            // Stuck inside geometry: nudge up and stop this tick.
-            p.y += 0.01;
+            // Stuck inside geometry: step out the shortest way and stop this tick. (It used to nudge up 1 cm a
+            // tick, which carried a player stuck under a lintel up through it.)
+            if let Some(push) = world.push_out(p, half, max_y) {
+                p += push;
+            }
             v = Vec3::ZERO;
             break;
         }
@@ -288,7 +333,8 @@ fn step_slide_move(
     dt: f32,
 ) -> (Vec3, Vec3) {
     let half = half_extents(m, stance);
-    let (p1, v1, blocked) = slide_move(world, pos, vel, half, dt);
+    let max_y = m.ground.step_height;
+    let (p1, v1, blocked) = slide_move(world, pos, vel, half, max_y, dt);
     if !blocked || vel.y > 0.1 {
         return (p1, v1);
     }
@@ -302,7 +348,7 @@ fn step_slide_move(
     for _ in 0..STEP_TRIES {
         let up = world.trace_box(c0, c0 + Vec3::Y * lift, half);
         let raised = up.end - Vec3::Y * half.y;
-        let (p2, v2, blocked2) = slide_move(world, raised, Vec3::new(vel.x, 0.0, vel.z), half, dt);
+        let (p2, v2, blocked2) = slide_move(world, raised, Vec3::new(vel.x, 0.0, vel.z), half, max_y, dt);
         let c2 = center(p2, half);
         let down = world.trace_box(c2, c2 - Vec3::Y * (lift + SKIN * 2.0), half);
         if !(down.hit() && !walkable(m, down.normal)) {
@@ -408,6 +454,10 @@ pub fn step(
         }
     }
 
+    if matches!(st.mode, MoveMode::Ground | MoveMode::Slide | MoveMode::Air | MoveMode::Jetpack) {
+        unstick(world, m, st);
+    }
+
     match st.mode {
         MoveMode::Ground => step_ground(data, world, st, b, prev, fwd, wish, mv, mods, dt, &mut ev),
         MoveMode::Slide => step_slide(data, world, st, b, wish, mods, dt, &mut ev),
@@ -420,6 +470,7 @@ pub fn step(
     let target_eye = stance_eye(m, st.stance);
     let rate = (m.eye_height.stand - m.eye_height.slide) / m.eye_height.transition_s.max(1e-3);
     st.eye += (target_eye - st.eye).clamp(-rate * dt, rate * dt);
+    st.eye = clear_eye(world, m, st.pos, st.stance, st.eye);
 
     // Fell out of the map: the host respawns the player; keep the state sane meanwhile.
     if st.pos.y < level.kill_y {
@@ -798,8 +849,14 @@ fn step_mantle(data: &GameData, world: &CollisionWorld, st: &mut MoveState, dt: 
     let over = ((k - 0.5) / 0.5).clamp(0.0, 1.0);
     let y = mm.from.y + (mm.to.y - mm.from.y) * rise;
     let xz = horizontal(mm.from).lerp(horizontal(mm.to), over);
-    st.pos = Vec3::new(xz.x, y, xz.z);
+    // Up, then over, each traced: the move over starts while the body is still rising, and untraced it cut
+    // through the ledge's edge (the view inside the wall for a moment). Held back, it catches up as it rises.
     st.stance = Stance::Crouch;
+    let half = half_extents(m, Stance::Crouch);
+    let c0 = center(st.pos, half);
+    let up = world.trace_box(c0, Vec3::new(c0.x, y + half.y, c0.z), half);
+    let over = world.trace_box(up.end, Vec3::new(xz.x, up.end.y, xz.z), half);
+    st.pos = over.end - Vec3::Y * half.y;
     if mm.t >= 1.0 {
         st.mantle = None;
         st.mode = MoveMode::Ground;

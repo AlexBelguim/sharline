@@ -27,7 +27,7 @@ use std::f32::consts::{FRAC_PI_2, PI, TAU};
 use vetf_net::*;
 use vetf_sim::data::{WeaponClass, WeightClass};
 use vetf_sim::movement::Stance;
-use vetf_sim::movement::collision::{Brush, Look};
+use vetf_sim::movement::collision::{Brush, CollisionWorld, Look};
 use vetf_sim::{Zone, ZoneTable};
 
 pub struct RenderPlugin;
@@ -714,13 +714,26 @@ pub fn visual_punch(punch_deg: f32, shake_percent: f32) -> f32 {
     punch_deg * (shake_percent / 100.0).clamp(0.0, 1.0)
 }
 
+/// The view camera's near plane (metres). Its corners stay inside the eye's clearance box
+/// (`movement.ron` eye_height.clearance) at the widest FOV setting on a 32:9 screen, so a camera kept that far from
+/// the walls never has its near plane cut into one.
+pub const VIEW_NEAR: f32 = 0.02;
+
+/// The camera's eye this frame. `sim_eye` is this tick's simulated eye, which the simulation keeps
+/// `clearance` clear of the level; `want` is where the render-only offsets put it (between ticks, eased over a
+/// step, the step bob, the landing dip, a shot's push back). The eye goes from `sim_eye` toward `want` only as
+/// far as a box `clearance` around it fits, so whatever the offsets the near plane never cuts into a wall.
+pub fn clear_view_eye(world: &CollisionWorld, sim_eye: Vec3, want: Vec3, clearance: f32) -> Vec3 {
+    world.trace_box(sim_eye, want, Vec3::splat(clearance)).end
+}
+
 fn spawn_view_camera(mut commands: Commands, settings: Res<Settings>) {
     let fov = camera_fov(&settings.mouse, 1.0, 0.0);
     commands
         .spawn((
             ViewCamera,
             Camera3d::default(),
-            Projection::from(PerspectiveProjection { fov: fov.to_radians(), near: 0.03, ..default() }),
+            Projection::from(PerspectiveProjection { fov: fov.to_radians(), near: VIEW_NEAR, ..default() }),
             DistanceFog {
                 color: Color::srgb(0.66, 0.76, 0.86),
                 falloff: FogFalloff::Linear { start: 80.0, end: 420.0 },
@@ -942,9 +955,11 @@ fn update_camera(
     >,
     mut lens: Query<&mut Transform, (With<ViewmodelLens>, Without<Viewmodel>)>,
     mut viewmodel: Query<(&mut Transform, &mut Visibility), With<Viewmodel>>,
+    world: (Res<Data>, Option<Res<CurrentLevel>>),
     mut logged: Local<Option<(f32, f32)>>,
 ) {
     let Some((mv, smoothed, loadout, vitals)) = me.iter().next() else { return };
+    let (game, level) = world;
     let m = &settings.mouse;
     if *logged != Some((m.fov_h, m.viewmodel_fov)) {
         *logged = Some((m.fov_h, m.viewmodel_fov));
@@ -983,6 +998,7 @@ fn update_camera(
         return;
     }
     let now = if dead { camera_fx::Feel::default() } else { feel.now };
+    let clearance = game.movement.eye_height.clearance;
     for (mut t, _) in &mut camera {
         // Aimed, the visual kick is calmed like the shot shake (`feel.ron` camera.ads_shot_mult): both are the
         // same per-shot camera kick, and both lift the sight off where the bullets go while they last.
@@ -990,7 +1006,11 @@ fn update_camera(
         let punch = visual_punch(control.punch, settings.hud.screen_shake) * calm;
         let pitch = if dead { -0.6 } else { control.pitch + punch.to_radians() };
         let view = Quat::from_euler(EulerRot::YXZ, control.yaw, pitch, 0.0);
-        t.translation = eye + view * now.camera.shift;
+        let want = eye + view * now.camera.shift;
+        t.translation = match &level {
+            Some(level) => clear_view_eye(&level.world, mv.0.eye_pos(), want, clearance),
+            None => want,
+        };
         t.rotation = view * now.camera.rotation();
     }
     let inspect = cli.demo_ui.as_deref().and_then(inspect_side);
@@ -1304,5 +1324,101 @@ mod tests {
         assert!((visual_punch(2.0, 60.0) - 1.2).abs() < 1e-6);
         assert_eq!(visual_punch(2.0, 0.0), 0.0);
         assert_eq!(visual_punch(2.0, 250.0), 2.0, "never more than the full kick");
+    }
+
+    /// How far from the eye (metres) the near plane's corners reach at a vertical FOV and a screen aspect.
+    fn near_corner_reach(near: f32, vfov_deg: f32, aspect: f32) -> f32 {
+        let t = (vfov_deg.to_radians() * 0.5).tan();
+        near * (1.0 + t * t * (1.0 + aspect * aspect)).sqrt()
+    }
+
+    /// The near plane's corners stay inside the eye's clearance box at the widest FOV setting, on a 16:9, a 21:9
+    /// and a 32:9 screen (Bevy keeps the vertical FOV, so a wider screen reaches further sideways).
+    #[test]
+    fn the_near_plane_stays_inside_the_eyes_clearance() {
+        let clearance = vetf_sim::GameData::embedded().movement.eye_height.clearance;
+        let widest = vertical_fov(crate::settings::embedded().ranges.fov_h.max);
+        for aspect in [16.0 / 9.0, 21.0 / 9.0, 32.0 / 9.0] {
+            let reach = near_corner_reach(VIEW_NEAR, widest, aspect);
+            assert!(reach < clearance, "{aspect}: the near plane reaches {reach} m, the clearance is {clearance} m");
+        }
+    }
+
+    /// Item 5 (round 3): seeing into walls while sliding. Slides under Showhome's garage rollers from either
+    /// side (and one into the wall beside a roller), stopping at points along the way, then idling and crawling
+    /// on. Every tick the camera, with the render-only offsets blown up far past anything the feel makes (a
+    /// step's ease either way, 0.3 m shifts in every direction, anywhere between the last tick and this one),
+    /// stays the eye's clearance away from the level: the near plane never cuts into a wall.
+    #[test]
+    fn the_camera_never_goes_into_a_wall_whatever_the_offsets() {
+        use vetf_sim::input::{Buttons, InputFrame};
+        use vetf_sim::maps::showhome::MAP_W;
+        use vetf_sim::movement::{MoveMode, MoveModifiers, MoveState, step};
+        let d = vetf_sim::GameData::embedded();
+        let level = vetf_sim::maps::showhome();
+        let world = &level.world;
+        let clearance = d.movement.eye_height.clearance;
+        let mods = MoveModifiers::unarmored(&d);
+        let design = |x: f32, y: f32, z: f32| Vec3::new(x, z, -y);
+        let floor = |x: f32, y: f32| {
+            let from = design(x, y, 0.5);
+            world.trace_box(from, from - Vec3::Y * 5.0, Vec3::ZERO).end.y
+        };
+        let lift = d.movement.ground.step_height;
+        let mut offsets = vec![Vec3::ZERO, Vec3::Y * lift, Vec3::NEG_Y * lift];
+        for a in
+            [Vec3::X, Vec3::Y, Vec3::Z, Vec3::new(1.0, 1.0, 1.0).normalize(), Vec3::new(-1.0, 1.0, 1.0).normalize()]
+        {
+            offsets.extend([a * 0.3, -a * 0.3, a * 0.3 + Vec3::Y * lift]);
+        }
+        let mut ticks = 0;
+        // (lane x, start y, heading: +1 north into the garage, -1 south out of it). From the south, x 13 runs
+        // into the car just inside the roller and x 17.5 into the wall beside it.
+        for x in [13.0, 15.25, 17.5, MAP_W - 15.25] {
+            for (start_y, dir) in [(10.6, 1.0), (21.5, -1.0)] {
+                // Out of the garage only along the lane beside the car (x 12.6..14.5, inside the roller).
+                if dir < 0.0 && !(x == 15.25 || x == MAP_W - 15.25) {
+                    continue;
+                }
+                let yaw = if dir > 0.0 { 0.0 } else { PI };
+                for i in 0..6 {
+                    // Slide 2.5 m short of the roller (design y 16), let go of crouch 0.3 m apart from 2 m short.
+                    let slide_at = 16.0 - dir * 2.5;
+                    let release_at = 16.0 - dir * (2.0 - i as f32 * 0.3);
+                    let mut st = MoveState::spawn(design(x, start_y, floor(x, start_y)), d.movement.jetpack.fuel_s);
+                    let mut slid = false;
+                    for t in 0..240 {
+                        let ahead = |at: f32| (at + st.pos.z) * dir > 0.0; // short of design y `at`
+                        let (mv, bits) = if !slid && ahead(slide_at) {
+                            (Vec2::Y, Buttons::SPRINT)
+                        } else if !slid || (st.mode == MoveMode::Slide && ahead(release_at)) {
+                            (Vec2::Y, Buttons::CROUCH)
+                        } else if t < 200 {
+                            (Vec2::ZERO, 0)
+                        } else {
+                            (Vec2::Y, 0)
+                        };
+                        let input = InputFrame { movement: mv, yaw, buttons: Buttons(bits), ..Default::default() };
+                        let prev = st.pos;
+                        step(&d, &level, &mut st, &input, &mods, 1.0 / 60.0);
+                        slid |= st.mode == MoveMode::Slide;
+                        ticks += 1;
+                        let sim_eye = st.eye_pos();
+                        assert!(world.box_free(sim_eye, Vec3::splat(clearance)), "x {x} {dir} {i} t {t}: {st:?}");
+                        for alpha in [0.0, 0.5, 1.0] {
+                            let feet = prev.lerp(st.pos, alpha);
+                            for off in &offsets {
+                                let want = feet + Vec3::Y * st.eye + *off;
+                                let eye = clear_view_eye(world, sim_eye, want, clearance);
+                                let at = format!("x {x} dir {dir} run {i} tick {t}, alpha {alpha}, offset {off}");
+                                assert!(world.box_free(eye, Vec3::splat(clearance)), "{at}: the camera is in a wall");
+                            }
+                        }
+                    }
+                    assert!(slid, "x {x} dir {dir} run {i}: never slid: {st:?}");
+                }
+            }
+        }
+        assert!(ticks > 5000);
     }
 }

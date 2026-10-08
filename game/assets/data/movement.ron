@@ -6,7 +6,9 @@
 // them through `weight_effects` in armor.ron.
 (
     capsule: (radius: 0.32, height_stand: 1.8, height_crouch: 1.25, height_slide: 1.0),
-    eye_height: (stand: 1.6, crouch: 1.1, slide: 0.85, transition_s: 0.15),
+    // eye_height.clearance: the eye keeps this far from walls and ceilings (it is held down under a low gap
+    // while it eases toward a slide's height), more than the camera's near plane reaches.
+    eye_height: (stand: 1.6, crouch: 1.1, slide: 0.85, transition_s: 0.15, clearance: 0.08),
     // sprint_gun_hold_s: after its last shot the gun stays up this long before a sprint lowers it again.
     speed: (
         walk: 2.6,
