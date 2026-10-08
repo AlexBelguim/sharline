@@ -579,7 +579,8 @@ def pavement(rng):
     """Asphalt, paving and kerb: a shallow chipped pock mark (no deep hole), lighter fresh stone, loose chips and
     a dust splash."""
     m = Mark(rough=0.9)
-    rc, rd = polygon_radius(rng, int(rng.integers(9, 14)), rng.uniform(0.3, 0.4), 0.28)
+    rc, rd = polygon_radius(rng, int(rng.integers(12, 17)), rng.uniform(0.3, 0.4), 0.16)
+    rc = rc * (1.0 + lobes(rng, 2, 5, 0.08))
     crater = inside(edge_px(rc, rd))
     t = np.clip(rd / rc, 0, 1.5)
     fac = facets(rng, int(rng.integers(5, 9)), crater > 0.5, 0.008, 0.05)
@@ -596,7 +597,7 @@ def pavement(rng):
     cov *= (1 - crater)
     h = np.where(cov > 0, np.maximum(h, 0.02 * dome * cov), h)
     m.over(lin((150, 146, 142)), cov)
-    dust(rng, m, rc + 0.01, rng.uniform(0.18, 0.3), 0.32, (192, 186, 180), rays=int(rng.integers(5, 9)))
+    dust(rng, m, rc + 0.01, rng.uniform(0.14, 0.24), 0.26, (192, 186, 180), rays=int(rng.integers(3, 6)))
     m.h = h
     m.fade_out()
     return m
