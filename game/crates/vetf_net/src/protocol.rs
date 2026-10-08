@@ -19,7 +19,7 @@ use vetf_sim::player::{Loadout, Wounds};
 use vetf_sim::weapon::WeaponState;
 
 /// Bumped whenever the protocol changes; part of the netcode protocol id, so old builds cannot connect.
-pub const PROTOCOL_VERSION: u64 = 7;
+pub const PROTOCOL_VERSION: u64 = 8;
 
 /// netcode.io protocol id shared by host and clients.
 pub fn protocol_id() -> u64 {
@@ -74,6 +74,10 @@ pub struct Vitals {
     pub respawn_s: f32,
     /// Seconds of spawn protection left.
     pub protected_s: f32,
+    /// Dead from a death in a live match (not a reset): the player respawns when they ask
+    /// ([`RespawnRequest`]) once `respawn_s` is out, or on their own `rules.ron` `auto_respawn_s` later. The
+    /// death screen shows while it is set.
+    pub awaiting_respawn: bool,
 }
 
 #[derive(Component, Serialize, Deserialize, Clone, Copy, Debug, PartialEq, Default)]
@@ -308,6 +312,10 @@ pub struct KillFeed {
     pub zone: Option<Zone>,
 }
 
+/// Client -> host: respawn me now (the death screen's RESPAWN, once the respawn timer is out).
+#[derive(Serialize, Deserialize, Clone, Copy, Debug, PartialEq, Eq)]
+pub struct RespawnRequest;
+
 /// Host -> everyone but the shooter: draw a tracer.
 #[derive(Serialize, Deserialize, Clone, Copy, Debug, PartialEq)]
 pub struct ShotFx {
@@ -318,7 +326,7 @@ pub struct ShotFx {
 
 // ---------------------------------------------------------------------------------------------- channels
 
-/// Reliable, ordered: hello, kill feed, hit confirms.
+/// Reliable, ordered: hello, kill feed, hit confirms, respawn requests and life recaps.
 pub struct ReliableChannel;
 /// Reliable, unordered: shot claims (each one matters, order does not).
 pub struct ClaimChannel;
@@ -414,10 +422,12 @@ impl Plugin for ProtocolPlugin {
         app.register_message::<LoadoutUpdate>().add_direction(NetworkDirection::ClientToServer);
         app.register_message::<LobbyAction>().add_direction(NetworkDirection::ClientToServer);
         app.register_message::<ShotClaim>().add_direction(NetworkDirection::ClientToServer);
+        app.register_message::<RespawnRequest>().add_direction(NetworkDirection::ClientToServer);
         app.register_message::<HitConfirm>().add_direction(NetworkDirection::ServerToClient);
         app.register_message::<DamageTaken>().add_direction(NetworkDirection::ServerToClient);
         app.register_message::<KillFeed>().add_direction(NetworkDirection::ServerToClient);
         app.register_message::<ShotFx>().add_direction(NetworkDirection::ServerToClient);
+        app.register_message::<crate::recap::LifeRecap>().add_direction(NetworkDirection::ServerToClient);
     }
 }
 
@@ -471,7 +481,17 @@ mod tests {
             wounds: Wounds::default(),
             respawn_s: 0.0,
             protected_s: 1.5,
+            awaiting_respawn: false,
         });
+        roundtrip(&Vitals {
+            health: Health::new(d.armor.zone_hp),
+            halo: HaloState::full(&loadout.halo),
+            wounds: Wounds::default(),
+            respawn_s: -2.5,
+            protected_s: 0.0,
+            awaiting_respawn: true,
+        });
+        roundtrip(&RespawnRequest);
         roundtrip(&ShotClaim {
             seq: 7,
             victim: 42,
@@ -625,9 +645,32 @@ mod tests {
         roundtrip(&PlayerAgent(None));
         assert_eq!(PlayerAgent::default(), PlayerAgent(None));
         assert_eq!(
-            PROTOCOL_VERSION, 7,
-            "the agent and the deathmatch picks took 6, and so did dropping ADS MOVE on its own"
+            PROTOCOL_VERSION, 8,
+            "the agent and the deathmatch picks took 6, dropping ADS MOVE 7, the death screen (respawn request,              life recap, awaiting respawn) 8"
         );
+    }
+
+    /// The death screen's recap: lines with hits per zone, the killer's zone, or none of it (a fall).
+    #[test]
+    fn the_life_recap_roundtrips() {
+        use crate::recap::{Hit, LifeLog};
+        let mut log = LifeLog::default();
+        let h = |shooter, victim, zone, shield, health| Hit {
+            shooter,
+            victim,
+            weapon: "ar7_mako",
+            zone,
+            shield,
+            health,
+            range_m: 21.5,
+            from: Vec3::new(-4.0, 1.6, 12.25),
+        };
+        log.took(&h(7, 1, Zone::Head, 30.0, 35.0));
+        log.took(&h(8, 1, Zone::Legs, 0.0, 22.0));
+        log.dealt(&h(1, 7, Zone::Torso, 42.0, 0.0));
+        roundtrip(&log.recap(Some(7), Some(Zone::Head)));
+        roundtrip(&log.recap(None, None));
+        roundtrip(&LifeLog::default().recap(None, None));
     }
 
     #[test]

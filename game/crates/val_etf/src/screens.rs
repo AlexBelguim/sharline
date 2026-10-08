@@ -56,6 +56,9 @@ pub enum Screen {
     NamePrompt,
     /// The room before a team deathmatch (`lobby.rs`), open while the match is in `MatchPhase::Lobby`.
     Lobby,
+    /// The death screen (`death.rs`): the death cam, the damage recap, LOADOUT and RESPAWN. It sits at the
+    /// bottom of the stack while the local player waits to respawn, under whatever else is open.
+    Death,
 }
 
 impl Screen {
@@ -90,6 +93,17 @@ impl Screens {
 
     pub fn pop(&mut self) -> Option<Screen> {
         self.0.pop()
+    }
+
+    /// Open `s` under everything already open (the death screen: a menu open at the time stays on top).
+    pub fn insert_base(&mut self, s: Screen) {
+        self.0.retain(|x| !x.same_kind(s));
+        self.0.insert(0, s);
+    }
+
+    /// Take `s` (of its kind) out of the stack, leaving the screens opened over it open.
+    pub fn remove(&mut self, s: Screen) {
+        self.0.retain(|x| !x.same_kind(s));
     }
 
     /// Replace the top (e.g. switching Settings tabs).
@@ -384,5 +398,23 @@ mod tests {
         s.push(Screen::Loadout);
         s.push(Screen::Esc);
         assert_eq!(s.iter().copied().collect::<Vec<_>>(), vec![Screen::Loadout, Screen::Esc], "one of each kind");
+    }
+
+    /// The death screen goes under a menu that is already open, and leaves without closing what was opened
+    /// over it (a LOADOUT the player is still editing when the fallback respawn brings them back).
+    #[test]
+    fn the_death_screen_sits_under_open_screens() {
+        let mut s = Screens::default();
+        s.push(Screen::Esc);
+        s.insert_base(Screen::Death);
+        assert_eq!(s.iter().copied().collect::<Vec<_>>(), vec![Screen::Death, Screen::Esc]);
+        assert_eq!(s.top(), Some(Screen::Esc), "the open menu stays on top");
+        s.pop();
+        s.push(Screen::Loadout);
+        assert_eq!(s.top(), Some(Screen::Loadout));
+        s.remove(Screen::Death);
+        assert_eq!(s.iter().copied().collect::<Vec<_>>(), vec![Screen::Loadout], "the loadout stays open");
+        s.remove(Screen::Death);
+        assert_eq!(s.iter().count(), 1, "removing what is not there changes nothing");
     }
 }

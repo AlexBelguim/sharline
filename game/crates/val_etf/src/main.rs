@@ -8,6 +8,7 @@
 
 mod client;
 mod config;
+mod death;
 mod demo_mode;
 mod esc_menu;
 mod first_run;
@@ -141,6 +142,7 @@ fn main() -> AppExit {
         loadout::LoadoutScreenPlugin,
         settings::SettingsScreenPlugin,
         esc_menu::EscMenuPlugin,
+        death::DeathScreenPlugin,
         sound::SoundPlugin,
         impacts::ImpactsPlugin,
     ));

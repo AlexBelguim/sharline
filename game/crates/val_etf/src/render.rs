@@ -955,11 +955,13 @@ fn update_camera(
     >,
     mut lens: Query<&mut Transform, (With<ViewmodelLens>, Without<Viewmodel>)>,
     mut viewmodel: Query<(&mut Transform, &mut Visibility), With<Viewmodel>>,
-    world: (Res<Data>, Option<Res<CurrentLevel>>),
+    world: (Res<Data>, Option<Res<CurrentLevel>>, Res<crate::death::DeathView>),
     mut logged: Local<Option<(f32, f32)>>,
 ) {
     let Some((mv, smoothed, loadout, vitals)) = me.iter().next() else { return };
-    let (game, level) = world;
+    let (game, level, death) = world;
+    // The death screen's death cam: where we died, turning toward the killer (`death.rs`).
+    let death_cam = death.0.filter(|_| vitals.health.dead);
     let m = &settings.mouse;
     if *logged != Some((m.fov_h, m.viewmodel_fov)) {
         *logged = Some((m.fov_h, m.viewmodel_fov));
@@ -972,7 +974,7 @@ fn update_camera(
     }
     // Blended between ticks (the sim's ADS steps at the tick rate), as the eye's position is.
     let ads = smoothed_ads.at(fixed.overstep_fraction());
-    let fov = camera_fov(m, loadout.0.weapon.zoom, ads);
+    let fov = death_cam.map_or_else(|| camera_fov(m, loadout.0.weapon.zoom, ads), |d| d.fov_deg);
     for (_, mut projection) in &mut camera {
         let want = fov.to_radians();
         let stale = matches!(&*projection, Projection::Perspective(p) if (p.fov - want).abs() > 1e-6);
@@ -986,7 +988,11 @@ fn update_camera(
     let alpha = fixed.overstep_fraction();
     let feet = smoothed.map_or(mv.0.pos, |s| s.prev.lerp(s.curr, alpha));
     let dead = vitals.health.dead;
-    let eye = if dead { feet + Vec3::Y * 3.0 } else { feet + Vec3::Y * (mv.0.eye + step.offset) };
+    let eye = match (dead, death_cam) {
+        (true, Some(_)) => feet + Vec3::Y * mv.0.eye,
+        (true, None) => feet + Vec3::Y * 3.0,
+        (false, _) => feet + Vec3::Y * (mv.0.eye + step.offset),
+    };
     if let Some((at, target)) = cli.camera {
         for (mut t, _) in &mut camera {
             *t = Transform::from_translation(at).looking_at(target, Vec3::Y);
@@ -1004,8 +1010,12 @@ fn update_camera(
         // same per-shot camera kick, and both lift the sight off where the bullets go while they last.
         let calm = 1.0 + (data.camera.ads_shot_mult - 1.0) * ads.clamp(0.0, 1.0);
         let punch = visual_punch(control.punch, settings.hud.screen_shake) * calm;
-        let pitch = if dead { -0.6 } else { control.pitch + punch.to_radians() };
-        let view = Quat::from_euler(EulerRot::YXZ, control.yaw, pitch, 0.0);
+        let (yaw, pitch) = match death_cam {
+            Some(d) => (d.yaw, d.pitch),
+            None if dead => (control.yaw, -0.6),
+            None => (control.yaw, control.pitch + punch.to_radians()),
+        };
+        let view = Quat::from_euler(EulerRot::YXZ, yaw, pitch, 0.0);
         let want = eye + view * now.camera.shift;
         t.translation = match &level {
             Some(level) => clear_view_eye(&level.world, mv.0.eye_pos(), want, clearance),

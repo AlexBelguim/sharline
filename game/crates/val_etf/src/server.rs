@@ -41,6 +41,7 @@ impl Plugin for ServerPlugin {
                     receive_loadout_updates,
                     receive_lobby_actions,
                     receive_claims,
+                    receive_respawn_requests,
                     demo_wounds,
                     demo_kill,
                     measure_ping,
@@ -51,7 +52,7 @@ impl Plugin for ServerPlugin {
             .add_systems(FixedUpdate, simulate_authoritative.in_set(SimSystems::Simulate).run_if(is_hosting))
             .add_systems(
                 FixedUpdate,
-                (resolve_claims, handle_deaths, sync_teams, respawn_players, run_match, deal_agents)
+                (resolve_claims, handle_deaths, send_recaps, sync_teams, respawn_players, run_match, deal_agents)
                     .chain()
                     .in_set(SimSystems::Resolve)
                     .run_if(is_hosting),
@@ -93,6 +94,32 @@ pub struct ServerPlayer {
     /// When this player reached their kill count (a host-wide kill number; lower is earlier): breaks a
     /// free-for-all tie on kills and deaths. Meaningless while they have no kills.
     pub kill_seq: u64,
+    /// The damage this life took and dealt, for the death screen's recap (cleared at each spawn).
+    pub life: LifeLog,
+    /// While dead: who killed them (`None`: a fall, the level) and the zone of the killing hit.
+    pub death: Option<(Option<u64>, Option<Zone>)>,
+    /// A recap of this life is to be sent (they died, or a shot they fired before dying landed since).
+    pub recap_due: bool,
+    /// The player pressed RESPAWN on the death screen.
+    pub respawn_asked: bool,
+}
+
+impl ServerPlayer {
+    pub fn new(link: Entity, peer: PeerId) -> Self {
+        Self {
+            link,
+            peer,
+            history: PoseHistory::default(),
+            shots: VecDeque::new(),
+            choice: None,
+            last_attacker: None,
+            kill_seq: 0,
+            life: LifeLog::default(),
+            death: None,
+            recap_due: false,
+            respawn_asked: false,
+        }
+    }
 }
 
 /// What the host set up in HOST GAME: the mode before the match entity exists (the host's own player
@@ -306,15 +333,7 @@ fn on_link_connected(
             PlayerNet::default(),
             // Dealt when the match starts (`deal_agents`); none in the lobby and the range.
             PlayerAgent::default(),
-            ServerPlayer {
-                link: trigger.entity,
-                peer,
-                history: PoseHistory::default(),
-                shots: VecDeque::new(),
-                choice: None,
-                last_attacker: None,
-                kill_seq: 0,
-            },
+            ServerPlayer::new(trigger.entity, peer),
         ))
         .insert((
             Replicate::to_clients(NetworkTarget::All),
@@ -359,6 +378,7 @@ fn fresh_vitals(data: &GameData, l: &Loadout, mode: MatchMode) -> Vitals {
         wounds: Wounds::default(),
         respawn_s: 0.0,
         protected_s: data.rules.deathmatch(mode).spawn_protection_s,
+        awaiting_respawn: false,
     }
 }
 
@@ -665,9 +685,10 @@ fn receive_lobby_actions(
                             info!("{} switches to team {to:?}", info.name);
                             info.team = Some(to);
                             net.ready = false;
-                            // Respawn on the new side.
+                            // Respawn on the new side, at once.
                             v.health.dead = true;
                             v.respawn_s = 0.0;
+                            v.awaiting_respawn = false;
                         }
                     }
                 }
@@ -766,6 +787,8 @@ pub(crate) fn reset_match<'a>(
         net.ready = false;
         v.health.dead = true;
         v.respawn_s = 0.0;
+        // No death screen: everyone is back on the next tick.
+        v.awaiting_respawn = false;
     }
 }
 
@@ -1113,6 +1136,18 @@ fn resolve_claims(
             bypass_roll(shooter.id, p.claim.seq, p.claim.victim),
         );
         vsp.last_attacker = Some(shooter.entity);
+        // The death screen's recap: what this life took, and (below) what the shooter's life dealt.
+        let hit = Hit {
+            shooter: shooter.id,
+            victim: p.claim.victim,
+            weapon: &weapon.id,
+            zone,
+            shield: report.absorbed,
+            health: report.to_hp,
+            range_m: range,
+            from: shooter.shot.origin,
+        };
+        vsp.life.took(&hit);
         vitals.wounds.sync(&mut health, &rules);
         vitals.halo = halo;
         vitals.health = health;
@@ -1153,6 +1188,11 @@ fn resolve_claims(
                     v.wounds.volt_slow_s = pulse.duration_s;
                 }
             }
+        }
+        if let Ok((.., v, _, mut ssp)) = players.get_mut(shooter.entity) {
+            ssp.life.dealt(&hit);
+            // A trade: the shooter died before this shot was confirmed, so their recap gets it too.
+            ssp.recap_due |= v.health.dead;
         }
     }
     pending.0 = keep;
@@ -1195,6 +1235,9 @@ fn handle_deaths(
         let Ok((vid, vinfo, mut v, mut score, mut mv, _)) = players.get_mut(d.victim) else { continue };
         v.health.dead = true;
         v.respawn_s = data.rules.deathmatch(mode).respawn_s;
+        // In a live match the death screen waits for RESPAWN; elsewhere (the lobby, the end of a match) the
+        // timer alone brings them back, as before.
+        v.awaiting_respawn = counts;
         if counts {
             score.deaths += 1;
         }
@@ -1219,7 +1262,52 @@ fn handle_deaths(
             }
         }
         send_to_every_client(&mut feed, KillFeed { killer: killer_id, victim: victim_id, zone: d.zone });
+        if let Ok((.., mut sp)) = players.get_mut(d.victim) {
+            sp.death = Some((killer_id, d.zone));
+            sp.recap_due = true;
+            sp.respawn_asked = false;
+        }
     }
+}
+
+/// The death screen's recap goes to each player who died this tick (and again to a dead player whose last
+/// shots landed since), through their own link's sender: that one reaches the host's own client too (see
+/// [`send_to_every_client`]).
+fn send_recaps(mut players: Query<&mut ServerPlayer>, mut senders: Query<&mut MessageSender<LifeRecap>>) {
+    for mut sp in &mut players {
+        if !sp.recap_due {
+            continue;
+        }
+        sp.recap_due = false;
+        let Some((killer, zone)) = sp.death else { continue };
+        if let Ok(mut s) = senders.get_mut(sp.link) {
+            s.send::<ReliableChannel>(sp.life.recap(killer, zone));
+        }
+    }
+}
+
+/// The death screen's RESPAWN: the player asks to come back (the host still waits for the timer).
+fn receive_respawn_requests(
+    mut links: Query<(Entity, &mut MessageReceiver<RespawnRequest>), With<ClientOf>>,
+    mut players: Query<(&PlayerInfo, &Vitals, &mut ServerPlayer)>,
+) {
+    for (link, mut rx) in &mut links {
+        if rx.receive().count() == 0 {
+            continue;
+        }
+        for (info, v, mut sp) in &mut players {
+            if sp.link == link && v.health.dead {
+                debug!("{} asks to respawn", info.name);
+                sp.respawn_asked = true;
+            }
+        }
+    }
+}
+
+/// Is a dead player respawned now? Once the timer (`respawn_s`, counting down past 0) is out: at once after a
+/// reset or outside a live match, else when they ask (RESPAWN) or, failing that, `auto_s` after the timer.
+pub fn respawn_due(respawn_s: f32, awaiting: bool, asked: bool, auto_s: f32) -> bool {
+    respawn_s <= 0.0 && (!awaiting || asked || respawn_s <= -auto_s.max(0.0))
 }
 
 /// The message senders of every connected client: the joined players' links and the host's own client.
@@ -1365,6 +1453,50 @@ mod routing_tests {
         assert_eq!(got, vec![damage], "the host's damage chevron");
     }
 
+    /// The death screen's recap goes out on the dead player's own link, as `send_recaps` sends it: the host's
+    /// own player gets theirs in its in-process client (a multi-sender would lose it there), and a joined
+    /// player's is queued for them alone.
+    #[test]
+    fn a_life_recap_reaches_the_host_and_only_the_dead_player() {
+        let (mut app, host, joined) = listen_server();
+        let mut log = LifeLog::default();
+        let hit = Hit {
+            shooter: 7,
+            victim: 0,
+            weapon: "ar7_mako",
+            zone: Zone::Head,
+            shield: 30.0,
+            health: 41.0,
+            range_m: 21.0,
+            from: Vec3::new(3.0, 1.6, -18.0),
+        };
+        log.took(&hit);
+        let recap = log.recap(Some(7), Some(Zone::Head));
+        for (dead, link) in [(host, host), (joined[0], joined[0])] {
+            let mut sp = ServerPlayer::new(link, PeerId::Netcode(1));
+            sp.life = log.clone();
+            sp.death = Some((Some(7), Some(Zone::Head)));
+            sp.recap_due = true;
+            let player = app.world_mut().spawn(sp).id();
+            app.world_mut().run_system_once(send_recaps).unwrap();
+            app.update();
+            let got: Vec<LifeRecap> = app
+                .world_mut()
+                .get_mut::<MessageReceiver<LifeRecap>>(host)
+                .map(|mut r| r.receive().collect())
+                .unwrap_or_default();
+            if dead == host {
+                assert_eq!(got, vec![recap.clone()], "the host's own death screen");
+            } else {
+                assert!(got.is_empty(), "nothing for the host when a joined player dies");
+            }
+            assert_eq!(queued::<ReliableChannel>(&app, joined[0]), usize::from(dead != host), "the joined player");
+            assert_eq!(queued::<ReliableChannel>(&app, joined[1]), 0, "nobody else");
+            assert!(!app.world().get::<ServerPlayer>(player).unwrap().recap_due, "sent once");
+            app.world_mut().despawn(player);
+        }
+    }
+
     /// Shot effects go to every joined player but the shooter, and are not queued for the host's own client,
     /// which would never read them.
     #[test]
@@ -1424,15 +1556,7 @@ mod system_tests {
                 PlayerMove(MoveState::spawn(Vec3::ZERO, 1.0)),
                 PlayerWeapon(WeaponState::new(&d, &l.weapon)),
                 PlayerLoadout(l),
-                ServerPlayer {
-                    link: Entity::PLACEHOLDER,
-                    peer: PeerId::Netcode(id),
-                    history: PoseHistory::default(),
-                    shots: VecDeque::new(),
-                    choice: None,
-                    last_attacker: None,
-                    kill_seq: 0,
-                },
+                ServerPlayer::new(Entity::PLACEHOLDER, PeerId::Netcode(id)),
             ))
             .id()
     }
@@ -1498,6 +1622,102 @@ mod system_tests {
             assert!(!takes_damage(phase), "shots are dropped too");
         }
         assert!(takes_damage(MatchPhase::Live));
+    }
+
+    /// The death screen's respawn: after the timer the host waits for RESPAWN, or respawns them anyway
+    /// `auto_respawn_s` later; a reset (or a death outside a live match) brings everyone back at once.
+    #[test]
+    fn respawn_waits_for_the_player_then_falls_back() {
+        let (respawn, auto) = (4.0, 10.0);
+        assert!(!respawn_due(0.5, true, true, auto), "the timer first, even when asked");
+        assert!(!respawn_due(0.0, true, false, auto), "then RESPAWN");
+        assert!(respawn_due(0.0, true, true, auto));
+        assert!(!respawn_due(-9.9, true, false, auto));
+        assert!(respawn_due(-10.0, true, false, auto), "or the fallback");
+        assert!(respawn_due(0.0, false, false, auto), "a reset: at once");
+        assert!(!respawn_due(respawn, false, false, auto));
+        assert!(respawn_due(0.0, true, false, 0.0), "no fallback delay: as before the death screen");
+    }
+
+    /// A kill in a live match: the victim waits on the death screen with a recap of that life, comes back when
+    /// they press RESPAWN, and starts the next life with an empty recap.
+    #[test]
+    fn a_death_waits_for_respawn_with_a_recap_then_starts_a_new_life() {
+        let d = GameData::embedded();
+        let mut app = world(MatchMode::Ffa, MatchPhase::Live);
+        app.insert_resource(CurrentLevel(Arc::new(crate::config::level_by_name("showhome"))));
+        app.init_resource::<LocalTimeline>();
+        let (killer, victim) = (player(&mut app, 1, None), player(&mut app, 2, None));
+        let l = Loadout::default_for(&d, MatchMode::Ffa);
+        for e in [killer, victim] {
+            app.world_mut().entity_mut(e).insert((PlayerLook::default(), PlayerItems(ItemState::new(&l.kit))));
+        }
+        let hit = Hit {
+            shooter: 1,
+            victim: 2,
+            weapon: "ar7_mako",
+            zone: Zone::Torso,
+            shield: 20.0,
+            health: 30.0,
+            range_m: 12.0,
+            from: Vec3::X,
+        };
+        app.world_mut().get_mut::<ServerPlayer>(victim).unwrap().life.took(&hit);
+        app.world_mut().get_mut::<ServerPlayer>(victim).unwrap().life.dealt(&Hit { shooter: 2, victim: 1, ..hit });
+        kill(&mut app, killer, victim);
+        app.world_mut().run_system_once(handle_deaths).unwrap();
+        let sp = app.world().get::<ServerPlayer>(victim).unwrap();
+        assert_eq!(sp.death, Some((Some(1), Some(Zone::Head))));
+        assert!(sp.recap_due);
+        let recap = sp.life.recap(Some(1), Some(Zone::Head));
+        assert_eq!((recap.taken.len(), recap.dealt.len()), (1, 1));
+        assert!(app.world().get::<Vitals>(victim).unwrap().awaiting_respawn);
+        // The timer runs out, and then some: still dead, waiting for RESPAWN.
+        let ticks = (d.rules.ffa.respawn_s / d.tick_dt()).ceil() as usize + 5;
+        for _ in 0..ticks {
+            app.world_mut().run_system_once(respawn_players).unwrap();
+        }
+        let v = *app.world().get::<Vitals>(victim).unwrap();
+        assert!(v.health.dead && v.respawn_s <= 0.0, "waits for RESPAWN");
+        // What RESPAWN does on the host (`receive_respawn_requests`, which reads the link's messages).
+        app.world_mut().run_system_once(receive_respawn_requests).unwrap();
+        app.world_mut().get_mut::<ServerPlayer>(victim).unwrap().respawn_asked = true;
+        app.world_mut().run_system_once(respawn_players).unwrap();
+        let v = *app.world().get::<Vitals>(victim).unwrap();
+        assert!(!v.health.dead && !v.awaiting_respawn, "back in");
+        let sp = app.world().get::<ServerPlayer>(victim).unwrap();
+        assert_eq!(sp.life, LifeLog::default(), "a new life, a new recap");
+        assert_eq!((sp.death, sp.respawn_asked), (None, false));
+        // Nobody presses RESPAWN: the fallback brings them back after `auto_respawn_s`.
+        kill(&mut app, killer, victim);
+        app.world_mut().run_system_once(handle_deaths).unwrap();
+        let auto = ((d.rules.ffa.respawn_s + d.rules.ffa.auto_respawn_s) / d.tick_dt()).ceil() as usize;
+        for _ in 0..auto - 3 {
+            app.world_mut().run_system_once(respawn_players).unwrap();
+        }
+        assert!(app.world().get::<Vitals>(victim).unwrap().health.dead, "not yet");
+        for _ in 0..6 {
+            app.world_mut().run_system_once(respawn_players).unwrap();
+        }
+        assert!(!app.world().get::<Vitals>(victim).unwrap().health.dead, "the fallback");
+        // A death just before the match ends: once it has ended, the timer alone brings them back (the end
+        // board shows instead of the death screen).
+        kill(&mut app, killer, victim);
+        app.world_mut().run_system_once(handle_deaths).unwrap();
+        assert!(app.world().get::<Vitals>(victim).unwrap().awaiting_respawn);
+        let mut q = app.world_mut().query::<&mut MatchState>();
+        q.single_mut(app.world_mut()).unwrap().phase = MatchPhase::Ended { winner: None, player: Some(1) };
+        let timer = (d.rules.ffa.respawn_s / d.tick_dt()).ceil() as usize + 1;
+        for _ in 0..timer {
+            app.world_mut().run_system_once(respawn_players).unwrap();
+        }
+        assert!(!app.world().get::<Vitals>(victim).unwrap().health.dead, "back after the timer alone");
+        // The lobby: no death screen either.
+        let mut q = app.world_mut().query::<&mut MatchState>();
+        q.single_mut(app.world_mut()).unwrap().phase = MatchPhase::Lobby;
+        kill(&mut app, killer, victim);
+        app.world_mut().run_system_once(handle_deaths).unwrap();
+        assert!(!app.world().get::<Vitals>(victim).unwrap().awaiting_respawn);
     }
 
     /// Team deathmatch after free-for-all: everyone without a team joins the smaller one, the host (id 0)
@@ -1644,6 +1864,9 @@ fn respawn_players(
 ) {
     let Some(level) = level else { return };
     let mode = match_mode(&matches);
+    let auto_s = data.rules.deathmatch(mode).auto_respawn_s;
+    // Once the match is over (the end board) nobody waits for RESPAWN any more.
+    let live = matches.iter().next().is_none_or(|m| m.phase == MatchPhase::Live);
     let dt = data.tick_dt();
     let tick = timeline.tick().0 as u64;
     let mut living: Vec<(Option<Team>, Vec3)> =
@@ -1652,8 +1875,9 @@ fn respawn_players(
         if !v.health.dead {
             continue;
         }
-        v.respawn_s -= dt;
-        if v.respawn_s > 0.0 {
+        // Past 0 it keeps counting down to the fallback respawn, and no further.
+        v.respawn_s = (v.respawn_s - dt).max(-auto_s.max(0.0) - dt);
+        if !respawn_due(v.respawn_s, v.awaiting_respawn && live, sp.respawn_asked, auto_s) {
             continue;
         }
         // The player's choice as this mode takes it (a lobby mode change reshapes it), else the default.
@@ -1676,6 +1900,11 @@ fn respawn_players(
         sp.history.clear();
         sp.shots.clear();
         sp.last_attacker = None;
+        // A new life: a new recap.
+        sp.life.clear();
+        sp.death = None;
+        sp.recap_due = false;
+        sp.respawn_asked = false;
     }
 }
 

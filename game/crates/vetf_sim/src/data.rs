@@ -1212,7 +1212,12 @@ pub struct TdmRules {
     pub gear_budget: u32,
     pub score_limit: u32,
     pub time_limit_s: f32,
+    /// Seconds after a death before the death screen's RESPAWN can be pressed.
     pub respawn_s: f32,
+    /// A player who has not pressed RESPAWN is respawned anyway this many seconds after `respawn_s` ran out
+    /// (0: at once, as before the death screen).
+    #[serde(default)]
+    pub auto_respawn_s: f32,
     pub spawn_protection_s: f32,
     pub max_players: u32,
     /// Magazines a kill tops back up (the killer's emptiest spare first, see `WeaponState::refill_mags`).
@@ -1768,6 +1773,12 @@ mod tests {
         assert_eq!(d.items.kits.get(Mode::Ffa), d.items.kits.get(Mode::Tdm), "the deathmatch kit");
         assert!(Mode::Tdm.has_teams() && !Mode::Ffa.has_teams() && !Mode::Range.has_teams());
         assert!(Mode::Tdm.is_deathmatch() && Mode::Ffa.is_deathmatch() && !Mode::Range.is_deathmatch());
+        // The death screen: RESPAWN after the timer, and a fallback respawn for players who never press it.
+        for mode in Mode::ALL {
+            let r = d.rules.deathmatch(mode);
+            assert!(r.respawn_s > 0.0, "{mode:?}: a respawn timer");
+            assert!(r.auto_respawn_s > 0.0, "{mode:?}: time to read the death screen before the fallback");
+        }
     }
 
     #[test]

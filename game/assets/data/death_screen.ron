@@ -1,0 +1,57 @@
+// The death screen (user direction 2026-10-09; src/death.rs, after design/ui/mockups/death.html). Visual
+// only: none of it reaches the simulation. The respawn timer and the fallback respawn are match rules
+// (rules.ron respawn_s, auto_respawn_s).
+//
+// Units: seconds, metres, degrees; layout in px at 1080p (the hub screens' reference canvas, 1920 wide).
+(
+    // The death cam: no replay. The view stays where you died, at your eye, and turns to look at your killer:
+    // their live position while you can see them, else the last spot you saw them at, else where the killing
+    // shot came from.
+    cam: (
+        // How fast the view turns to the target: the share of the remaining angle closed per second is
+        // 1 - e^(-turn_rate).
+        turn_rate: 4.0,
+        // How fast the zoom follows (same law).
+        zoom_rate: 2.0,
+        // Aim at this share of the killer's eye height above their feet (their chest).
+        aim_height: 0.8,
+        // Frame them: the view shows this much height (m) around them at their distance...
+        frame_height_m: 7.0,
+        // ...but never zooms in tighter than this vertical FOV (the normal FOV is the widest).
+        min_fov_deg: 24.0,
+        // The killer counts as in view while the line from your eye to them meets nothing closer than this
+        // short of them.
+        sight_slack_m: 0.5,
+    ),
+    layout: (
+        // Left and right edge of the side columns; the centre between them stays clear for the death cam.
+        margin_x: 72.0,
+        // ELIMINATED / BY <NAME> / weapon · distance.
+        title_top: 72.0,
+        // The killer card, under the title on the left.
+        killer_top: 280.0,
+        killer_w: 500.0,
+        // The damage recap on the right.
+        recap_top: 72.0,
+        recap_w: 660.0,
+        // Rows per table (taken, dealt); more players fold into "+N more".
+        recap_rows: 5,
+        // Recap table columns: player, weapon, one per zone (head, torso, arms, legs), shield, health, distance.
+        col_player: 128.0,
+        col_weapon: 112.0,
+        col_zone: 46.0,
+        col_damage: 64.0,
+        col_range: 56.0,
+        // The countdown and the buttons, centred at the bottom.
+        respawn_bottom: 72.0,
+        // The clear centre between the columns must be at least this wide (the killer is framed there).
+        min_centre_w: 520.0,
+    ),
+    // The killer's health and halo as a rough read: never numbers. A bar of `segments` pips (any health left
+    // shows at least one) and the word of the first threshold the share left reaches.
+    reads: (
+        segments: 4,
+        health: [(0.75, "Healthy"), (0.4, "Hurt"), (0.0, "Critical")],
+        halo: [(0.9, "Full"), (0.45, "Cracked"), (0.01, "Low"), (0.0, "Broken")],
+    ),
+)

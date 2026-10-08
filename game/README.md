@@ -130,6 +130,7 @@ folder).
 | Tab (hold) | Scoreboard: kills, deaths and ping per player |
 | F6 | Copy the host's invite to the system clipboard |
 | Esc | Match menu: resume, loadout, settings, key reference, leave (or stop hosting) |
+| Space / Enter (dead) | Death screen: RESPAWN once the timer is out. L opens LOADOUT; Esc the match menu |
 
 ### Command line (automation and testing)
 `val_etf [--host showhome|range [--live] [--mode tdm|ffa]] [--join CODE|IP[:PORT]] [--name NAME] [--port PORT] [--width W --height H]
@@ -217,6 +218,8 @@ The design is a listen server ticking at 60 Hz.
 - Host and join over UDP, verified with two processes.
 - Prediction and interpolation.
 - Shot claims with lag compensation; hits, kills, kill feed and respawn.
+- Death screen: a death cam that turns to your killer (no replay), the killer's gun, distance and a rough read
+  of their health and halo, the life's damage taken and dealt per player and zone, LOADOUT and RESPAWN.
 - TDM score, timer and match end; free-for-all (`--mode ffa`) kills, timer and match end.
 - Per-arc halo shields and per-zone HP with spill.
 - Three guns: AR-7 Mako, VK-50 Warden and the SK-9 Skink SMG (the only gun that loads RIP).

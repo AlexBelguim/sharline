@@ -501,6 +501,7 @@ fn demo_friend_foe(
                 wounds: Default::default(),
                 respawn_s: 0.0,
                 protected_s: 0.0,
+                awaiting_respawn: false,
             },
             PlayerLoadout(loadout),
         ));

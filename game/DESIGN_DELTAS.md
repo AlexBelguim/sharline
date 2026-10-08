@@ -447,3 +447,28 @@ MOUSE & AIM's "Import from another game" box only took effect after APPLY, and w
 - Enter, or a click away from the box (DONE, BACK, another control), now converts it to cm/360 at once. APPLY
   still works the same.
 - Pinned by `settings::controls` test `a_typed_import_sensitivity_sets_the_turn_without_apply`.
+
+## 20. A death screen, and RESPAWN instead of an automatic respawn (2026-10-09)
+The user: "a death screen you can see where you get shot from (death cam but dont replay your death) a loadout
+button and an respawn button with the timer and it show how much dm you take where and how much dm you gave and
+where". After `design/ui/mockups/death.html` (mockup 10), with these differences:
+- **Respawn rule:** the host used to respawn a dead player as soon as `respawn_s` ran out. In a live match it now
+  waits for the death screen's RESPAWN (active once the timer is out); a player who never presses it is
+  respawned anyway `auto_respawn_s` later (new in `rules.ron`, 10 s in team deathmatch and free-for-all; the
+  gun range follows team deathmatch). Resets (RESTART MATCH, back to the lobby, a team switch), deaths in the
+  lobby and the end of a match still respawn on the timer alone.
+- **Death cam, no replay:** the view stays at your eye where you died and turns smoothly to your killer's live
+  position while you can see them, else the last spot you saw them at, else where the killing shot came from,
+  and zooms in to frame them (`death_screen.ron`).
+- **Killer card:** name, gun, the killing shot's distance, and their health and halo as pips and a word
+  (Healthy / Hurt / Critical; Full / Cracked / Low / Broken) plus the halo's tier and weight class. The mockup's
+  exact shield and HP numbers are left out on purpose.
+- **Recap:** one row per player and direction (damage you took, damage you dealt) for the life that ended:
+  hits per zone, damage to the halo and to health, the distance of the last hit. The mockup's per-hit timeline
+  is folded into these rows (a recap, not a log). The host records every accepted hit and sends the recap to the
+  player who died (`LifeRecap`, protocol 8; again if a shot they fired before dying lands while they are dead).
+- Pinned by `vetf_net::recap` tests (per zone, shield apart from health, several attackers, a new life), the
+  server's `respawn_waits_for_the_player_then_falls_back`,
+  `a_death_waits_for_respawn_with_a_recap_then_starts_a_new_life` and
+  `a_life_recap_reaches_the_host_and_only_the_dead_player`, and `death` tests (the death cam's target, turn and
+  zoom, line of sight, the rough reads, the layout).

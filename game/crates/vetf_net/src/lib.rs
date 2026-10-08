@@ -10,6 +10,8 @@
 
 pub mod join_code;
 pub mod protocol;
+pub mod recap;
 
 pub use join_code::JoinCode;
 pub use protocol::*;
+pub use recap::{DamageLine, Hit, LifeLog, LifeRecap};
