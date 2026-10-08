@@ -740,6 +740,8 @@ fn resolve_claims(
                 zone,
                 kind,
                 shield_broke: report.shield_broke,
+                seq: p.claim.seq,
+                point: p.claim.hit.point,
             });
         }
         if let Ok(mut s) = damage.get_mut(victim_link) {

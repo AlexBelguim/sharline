@@ -1,8 +1,16 @@
 //! Blockout rendering: level brushes, lighting, first-person camera + viewmodel, other players with their
 //! halos and guns, and tracers. The guns are the glTF models (`weapon_models`); the rest is placeholder art.
+//!
+//! The feel lives in submodules, all visual only (`feel.ron`): the camera's bob and shot shake and the gun's
+//! sway ([`camera_fx`]), tracers ([`tracer_fx`]), and hit markers and halo cracks on the player hit ([`hit_fx`]).
+
+mod camera_fx;
+pub mod feel;
+pub mod hit_fx;
+mod tracer_fx;
 
 use crate::AppState;
-use crate::client::{Feedback, LocalControl, Smoothed, TRACER_LEN, TRACER_SPEED};
+use crate::client::{Feedback, LocalControl, Smoothed};
 use crate::config::{CurrentLevel, Data};
 use crate::settings::{MouseSettings, Settings, vertical_fov, zoomed_fov};
 use crate::weapon_models::{GunLook, Scope, WeaponModels, face_ahead};
@@ -27,9 +35,18 @@ impl Plugin for RenderPlugin {
         app.insert_resource(ClearColor(Color::srgb(0.62, 0.74, 0.86)))
             .insert_resource(GlobalAmbientLight { color: Color::srgb(0.9, 0.92, 1.0), brightness: 900.0, ..default() })
             .init_resource::<ViewmodelRig>()
+            .insert_resource(feel::FeelData::load())
+            .init_resource::<camera_fx::ViewFeel>()
+            .init_resource::<tracer_fx::Tracers>()
+            .init_resource::<hit_fx::HitMemory>()
+            .init_resource::<hit_fx::ShardAssets>()
+            .add_message::<hit_fx::HaloHit>()
             .add_systems(Startup, setup_menu_camera)
             .add_systems(Startup, load_impact_assets)
-            .add_systems(OnEnter(AppState::InGame), (spawn_level, spawn_view_camera))
+            .add_systems(
+                OnEnter(AppState::InGame),
+                (spawn_level, spawn_view_camera, tracer_fx::spawn_tracer_mesh, hit_fx::spawn_marker_layer),
+            )
             .add_systems(OnEnter(AppState::MainMenu), setup_menu_camera)
             .add_systems(
                 Update,
@@ -38,13 +55,33 @@ impl Plugin for RenderPlugin {
                     sync_held_guns,
                     update_player_visuals,
                     sync_viewmodel,
+                    camera_fx::step_feel.before(update_camera),
                     update_camera,
-                    draw_tracers,
                     spawn_impacts,
                     age_impacts,
                 )
                     .run_if(in_state(AppState::InGame)),
+            )
+            // Drawn for this frame's camera and player poses.
+            .add_systems(
+                Update,
+                (
+                    tracer_fx::draw_tracers,
+                    (hit_fx::demo_hit_fx, hit_fx::take_hits, hit_fx::place_markers).chain(),
+                    (hit_fx::watch_halos, hit_fx::crack_halos, hit_fx::flash_arcs, hit_fx::fly_shards).chain(),
+                )
+                    .after(update_camera)
+                    .after(update_player_visuals)
+                    .run_if(in_state(AppState::InGame)),
             );
+    }
+}
+
+/// The vertical field of view (radians) of a camera's projection (a non-perspective one counts as 78 degrees).
+pub fn vfov_of(projection: &Projection) -> f32 {
+    match projection {
+        Projection::Perspective(p) => p.fov,
+        _ => 78f32.to_radians(),
     }
 }
 
@@ -76,15 +113,26 @@ const HELD_PLACEHOLDER_SIZE: Vec3 = Vec3::new(0.07, 0.1, 0.7);
 struct ViewmodelLens;
 
 #[derive(Component)]
-struct PlayerVisual;
+pub(crate) struct PlayerVisual;
 
 /// A third-person player's body under its root: the capsule, head and halo, squashed when crouched. The gun is
 /// beside it, not under it (see [`PlayerPose`]).
 #[derive(Component)]
 struct Body;
 
+/// One arc of a third-person player's halo: its zone, tier, and the ring's radius (its mesh is centred on the
+/// halo's middle, the arc `radius` out at [`arc_angle`]).
 #[derive(Component)]
-struct HaloArc(Zone);
+pub(crate) struct HaloArc {
+    pub zone: Zone,
+    pub tier: u8,
+    pub radius: f32,
+}
+
+/// An arc's glow (emissive) at rest: its tier colour, none for an empty arc.
+pub(crate) fn arc_glow(tier: u8) -> LinearRgba {
+    if tier > 0 { tier_color(tier) * 1.5 } else { LinearRgba::BLACK }
+}
 
 #[derive(Component)]
 struct BodyPart;
@@ -324,7 +372,7 @@ pub fn team_color(team: Option<Team>) -> Color {
 
 /// Arc centre angle in the player's local frame (facing -Z): front = head, left = arms, back = torso,
 /// right = legs (seen from above), per the halo spec.
-fn arc_angle(zone: Zone) -> f32 {
+pub(crate) fn arc_angle(zone: Zone) -> f32 {
     // angle measured from +X toward +Z (arc_mesh convention)
     match zone {
         Zone::Head => -FRAC_PI_2, // -Z, in front
@@ -374,18 +422,20 @@ fn attach_player_visuals(
                 for zone in Zone::ALL {
                     let tier = halo.tiers[zone];
                     let c = tier_color(tier);
+                    // Each arc has its own material: a hit flashes just that arc (`hit_fx`).
                     let mat = materials.add(StandardMaterial {
                         base_color: if tier > 0 { Color::from(c) } else { Color::srgba(0.02, 0.02, 0.025, 0.5) },
-                        emissive: if tier > 0 { c * 1.5 } else { LinearRgba::BLACK },
+                        emissive: arc_glow(tier),
                         alpha_mode: if tier > 0 { AlphaMode::Opaque } else { AlphaMode::Blend },
                         ..default()
                     });
                     let mid = arc_angle(zone);
                     let gap = 0.12;
+                    let radius = 0.16 * scale;
                     b.spawn((
-                        HaloArc(zone),
+                        HaloArc { zone, tier, radius },
                         Mesh3d(meshes.add(arc_mesh(
-                            0.16 * scale,
+                            radius,
                             tube,
                             mid - FRAC_PI_2 * 0.5 + gap,
                             mid + FRAC_PI_2 * 0.5 - gap,
@@ -481,7 +531,7 @@ fn update_player_visuals(
                 for part in tree.get(child).into_iter().flatten() {
                     if let Ok((arc, mut v)) = arcs.get_mut(*part) {
                         // A broken arc goes dark (it flares back when it regenerates).
-                        let up = loadout.0.halo.tiers[arc.0] == 0 || vitals.halo.shield[arc.0] > 0.0;
+                        let up = loadout.0.halo.tiers[arc.zone] == 0 || vitals.halo.shield[arc.zone] > 0.0;
                         *v = if up { Visibility::Inherited } else { Visibility::Hidden };
                     }
                 }
@@ -761,7 +811,8 @@ fn sync_viewmodel(
 
 /// The view follows our player; its FOV follows the settings and the optic's zoom, the gun's lens keeps the
 /// viewmodel FOV, and the visual kick follows the screen-shake setting (all applied every frame, so a
-/// changed setting shows at once).
+/// changed setting shows at once). The feel ([`camera_fx`]: bob, shake, the gun's sway and kick) goes on top as a
+/// render-only offset: `control`'s yaw and pitch, the aim, are never changed here.
 #[allow(clippy::type_complexity)]
 fn update_camera(
     cli: Res<crate::config::Cli>,
@@ -769,6 +820,8 @@ fn update_camera(
     settings: Res<Settings>,
     fixed: Res<Time<Fixed>>,
     rig: Res<ViewmodelRig>,
+    feel: Res<camera_fx::ViewFeel>,
+    data: Res<feel::FeelData>,
     me: Query<(&PlayerMove, Option<&Smoothed>, &PlayerWeapon, &PlayerLoadout, &Vitals), With<Controlled>>,
     mut camera: Query<
         (&mut Transform, &mut Projection),
@@ -815,19 +868,22 @@ fn update_camera(
         }
         return;
     }
+    let now = if dead { camera_fx::Feel::default() } else { feel.now };
     for (mut t, _) in &mut camera {
-        t.translation = eye;
         let punch = visual_punch(control.punch, settings.hud.screen_shake);
         let pitch = if dead { -0.6 } else { control.pitch + punch.to_radians() };
-        t.rotation = Quat::from_euler(EulerRot::YXZ, control.yaw, pitch, 0.0);
+        let view = Quat::from_euler(EulerRot::YXZ, control.yaw, pitch, 0.0);
+        t.translation = eye + view * now.camera.shift;
+        t.rotation = view * now.camera.rotation();
     }
     let inspect = cli.demo_ui.as_deref().and_then(inspect_side);
+    let sprint = &data.gun.sprint_pose;
     for (mut t, mut v) in &mut viewmodel {
         *t = rig.pose(ads);
-        if mv.0.sprinting {
-            t.translation += Vec3::new(0.05, -0.06, 0.04);
-            t.rotation = Quat::from_rotation_y(0.5) * t.rotation;
-        }
+        // Sprinting the gun is lowered and turned in (eased, `feel.ron`).
+        t.translation += Vec3::from(sprint.shift) * now.sprint;
+        t.rotation = Quat::from_rotation_y(sprint.yaw_deg.to_radians() * now.sprint) * t.rotation;
+        *t = now.gun.move_gun(*t);
         if let Some(left) = inspect {
             *t = inspect_pose(&rig, left);
         }
@@ -855,24 +911,6 @@ pub fn inspect_pose(rig: &ViewmodelRig, left: bool) -> Transform {
     let middle = rig.ads.scale * rig.muzzle * 0.25;
     let ahead = 0.5 + middle.length();
     Transform { translation: Vec3::new(0.0, -0.03, -ahead) - rotation * middle, rotation, scale: rig.ads.scale }
-}
-
-/// Each tracer is a short streak flying from the muzzle to the hit, bright at the head and fading at the tail.
-fn draw_tracers(feedback: Res<Feedback>, mut gizmos: Gizmos) {
-    for (from, to, t, own) in &feedback.tracers {
-        let len = from.distance(*to);
-        if len < 0.01 {
-            continue;
-        }
-        let dir = (*to - *from) / len;
-        let head = (t * TRACER_SPEED).min(len);
-        let tail = (head - TRACER_LEN).max(0.0);
-        if head <= tail {
-            continue;
-        }
-        let c = if *own { Color::srgb(1.0, 0.92, 0.6) } else { Color::srgb(1.0, 0.75, 0.45) };
-        gizmos.line_gradient(*from + dir * tail, *from + dir * head, c.with_alpha(0.0), c);
-    }
 }
 
 /// A bullet mark on the level. It shrinks away at the end of its life.
