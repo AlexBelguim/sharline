@@ -560,7 +560,7 @@ pub(crate) fn demo_hit_fx(
         clock.tracer_at = t + 0.12;
         clock.tracers += 1;
         let theirs = mv.0.eye_pos();
-        if clock.tracers % 2 == 0 {
+        if clock.tracers.is_multiple_of(2) {
             let ads = weapon.0.ads;
             let fov = super::camera_fov(&settings.mouse, loadout.0.weapon.zoom, ads);
             let lens = super::viewmodel_lens(fov, settings.mouse.viewmodel_fov);
@@ -598,8 +598,8 @@ pub(crate) fn demo_hit_fx(
     feedback.claims.push(ClaimedHit { seq, victim: id.0, local });
     let point = mv.0.pos + Quat::from_rotation_y(look.yaw) * local;
     feedback.hits.push(HitConfirm { victim: id.0, zone, kind, shield_broke: broke, seq, point });
-    if n % 2 == 0 {
-        halo.write(HaloHit { player: e, zone: Zone::ALL[(n as usize / 2) % 4], broke: n % 8 == 0 });
+    if n.is_multiple_of(2) {
+        halo.write(HaloHit { player: e, zone: Zone::ALL[(n as usize / 2) % 4], broke: n.is_multiple_of(8) });
     }
 }
 
