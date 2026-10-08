@@ -155,13 +155,14 @@ fn rebuild(
     let fonts = &*fonts;
     let images = &*images;
     let teams = m.is_none_or(|m| m.mode != MatchMode::Ffa);
+    let winner = if teams { None } else { ffa_winner(m.map(|m| m.phase)) };
     commands.entity(body).despawn_children().with_children(|b| {
         if teams {
             head(b, fonts, m, my_team, &host_name);
         } else {
             ffa_head(b, fonts, m, &rows, &host_name);
         }
-        table(b, fonts, images, rows, my_team, teams);
+        table(b, fonts, images, rows, my_team, teams, winner);
         footer(b, fonts, tick_hz, hosting, my_ping, &join);
     });
 }
@@ -294,6 +295,7 @@ fn table(
     mut rows: Vec<Row>,
     my_team: Option<Team>,
     teams: bool,
+    winner: Option<u64>,
 ) {
     b.spawn(Node {
         display: Display::Grid,
@@ -309,7 +311,7 @@ fn table(
             });
         }
     });
-    sort_rows(&mut rows);
+    sort_rows(&mut rows, winner);
     // Your team on top, then the other team after a 14 px gap; the range has one neutral block, and
     // free-for-all one block where everyone but you is an enemy.
     let blocks: Vec<(Option<Team>, Option<bool>)> = match my_team {
@@ -335,9 +337,25 @@ fn table(
     }
 }
 
-/// Most kills first, then fewest deaths, then by name (a steady order while the scores tie).
-fn sort_rows(rows: &mut [Row]) {
-    rows.sort_by(|a, b| b.kills.cmp(&a.kills).then(a.deaths.cmp(&b.deaths)).then_with(|| a.name.cmp(&b.name)));
+/// The free-for-all's winner once it has ended (the host's pick, which breaks a full tie by who got there
+/// first: a fact the board cannot see).
+fn ffa_winner(phase: Option<MatchPhase>) -> Option<u64> {
+    match phase {
+        Some(MatchPhase::Ended { player, .. }) => player,
+        _ => None,
+    }
+}
+
+/// The winner first (free-for-all, once it has ended), then most kills, then fewest deaths, then by name (a
+/// steady order while the scores tie).
+fn sort_rows(rows: &mut [Row], winner: Option<u64>) {
+    rows.sort_by(|a, b| {
+        (Some(a.id) != winner)
+            .cmp(&(Some(b.id) != winner))
+            .then(b.kills.cmp(&a.kills))
+            .then(a.deaths.cmp(&b.deaths))
+            .then_with(|| a.name.cmp(&b.name))
+    });
 }
 
 fn player_row(blk: &mut ChildSpawnerCommands, fonts: &UiFonts, images: &UiImages, r: &Row, ally: Option<bool>) {
@@ -469,7 +487,7 @@ mod tests {
             row(3, "LARK", 9, 3, false),
             row(4, "MOTH", 0, 0, false),
         ];
-        sort_rows(&mut rows);
+        sort_rows(&mut rows, None);
         let order: Vec<&str> = rows.iter().map(|r| r.name.as_str()).collect();
         assert_eq!(order, ["LARK", "ORCA", "WREN", "MOTH"]);
         assert_eq!(kills_vs_best_other(&rows), (9, 9), "your 9 against LARK's 9");
@@ -485,5 +503,22 @@ mod tests {
         assert_eq!(ffa_title(end(Some(3)), Some(2), name), ("LARK WINS".into(), ENEMY));
         assert_eq!(ffa_title(end(None), Some(2), name).0, "DRAW");
         assert_eq!(ffa_title(Some(MatchPhase::Live), Some(2), name).0, "FREE-FOR-ALL");
+    }
+
+    /// A full tie (kills and deaths) goes to who got there first, which only the host knows: the pinned end
+    /// board lists the host's winner on top under its "<NAME> WINS".
+    #[test]
+    fn the_free_for_all_winner_tops_the_end_board() {
+        let rows = || vec![row(1, "ORCA", 12, 3, false), row(2, "LARK", 12, 3, true), row(3, "WREN", 4, 1, false)];
+        let end = Some(MatchPhase::Ended { winner: None, player: Some(1) });
+        assert_eq!(ffa_winner(end), Some(1));
+        let mut board = rows();
+        sort_rows(&mut board, ffa_winner(end));
+        let order: Vec<&str> = board.iter().map(|r| r.name.as_str()).collect();
+        assert_eq!(order, ["ORCA", "LARK", "WREN"], "ORCA reached 12 first");
+        let mut live = rows();
+        sort_rows(&mut live, ffa_winner(Some(MatchPhase::Live)));
+        assert_eq!(live[0].name, "LARK", "while live: by name on a full tie");
+        assert_eq!(ffa_winner(Some(MatchPhase::Ended { winner: None, player: None })), None, "a draw");
     }
 }
