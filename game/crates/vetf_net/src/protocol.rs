@@ -381,11 +381,31 @@ mod tests {
     use super::*;
     use vetf_sim::GameData;
 
-    /// Wire types must survive a serde round trip (lightyear serialises them with bincode-style serde).
-    fn roundtrip<T: Serialize + for<'de> Deserialize<'de> + PartialEq + std::fmt::Debug>(v: &T) {
-        let bytes = ron::to_string(v).unwrap();
-        let back: T = ron::from_str(&bytes).unwrap();
+    /// Wire types must survive lightyear's serializer: postcard (lightyear_serde), which unlike RON is not
+    /// self-describing, so a `skip_serializing_if` reachable from a networked type fails here as it would on
+    /// the wire. Returns the bytes.
+    fn roundtrip<T: Serialize + for<'de> Deserialize<'de> + PartialEq + std::fmt::Debug>(v: &T) -> Vec<u8> {
+        let bytes = postcard::to_allocvec(v).unwrap();
+        let back: T = postcard::from_bytes(&bytes).unwrap();
         assert_eq!(&back, v);
+        bytes
+    }
+
+    /// The round trip above catches what RON lets through: an optional field skipped when empty decodes in
+    /// RON, but not from postcard's bytes.
+    #[test]
+    fn the_wire_format_is_not_self_describing() {
+        #[derive(Serialize, Deserialize, Debug, PartialEq)]
+        struct Skips {
+            a: u8,
+            #[serde(default, skip_serializing_if = "Option::is_none")]
+            b: Option<u8>,
+            c: u8,
+        }
+        let v = Skips { a: 1, b: None, c: 2 };
+        assert_eq!(ron::from_str::<Skips>(&ron::to_string(&v).unwrap()).unwrap(), v, "RON hides the hazard");
+        let bytes = postcard::to_allocvec(&v).unwrap();
+        assert_ne!(postcard::from_bytes::<Skips>(&bytes).ok(), Some(v), "postcard does not");
     }
 
     #[test]
@@ -491,13 +511,13 @@ mod tests {
         roundtrip(&MatchPhase::Ended { winner: Some(Team::B), player: None });
         // A player without a team (free-for-all and the range) roundtrips too.
         roundtrip(&PlayerInfo { name: "LARK".into(), team: None });
-        // The same bytes the binary wire format carries (lightyear uses bincode-style serde): the mode is
-        // its own variant, so a free-for-all never decodes as team deathmatch.
-        assert_ne!(ron::to_string(&MatchMode::Ffa).unwrap(), ron::to_string(&MatchMode::Tdm).unwrap());
+        // The bytes the wire carries: the mode is its own variant, so a free-for-all never decodes as team
+        // deathmatch.
+        assert_ne!(roundtrip(&MatchMode::Ffa), roundtrip(&MatchMode::Tdm));
     }
 
     /// The Loadout screen's output: six ordered magazines with mixed ammo, a mixed-tier custom halo and
-    /// the agent survive the wire (ron here; lightyear's binary serde uses the same derive).
+    /// the agent survive the wire (postcard, as lightyear sends them).
     #[test]
     fn loadout_choice_with_six_mags_and_a_custom_halo_roundtrips() {
         use vetf_sim::ZoneTable;
@@ -511,8 +531,8 @@ mod tests {
             agent: "solace".into(),
         };
         roundtrip(&LoadoutUpdate { loadout: choice.clone() });
-        let text = ron::to_string(&choice).unwrap();
-        let back: LoadoutChoice = ron::from_str(&text).unwrap();
+        let bytes = roundtrip(&choice);
+        let back: LoadoutChoice = postcard::from_bytes(&bytes).unwrap();
         assert_eq!(back.mags.len(), 6);
         assert_eq!(back.mags[2], AmmoChoice { kind: AmmoKind::Rip, tier: 3 }, "slot order is kept");
         assert_eq!(back.halo.tiers.legs, 2);
