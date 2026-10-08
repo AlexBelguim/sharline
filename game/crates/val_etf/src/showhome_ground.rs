@@ -190,6 +190,14 @@ struct GroundContract {
     base_texture: String,
     base_repeat_m: f32,
     surface_class: String,
+    /// The base layer's tint, linear: it can exceed 1, which glTF's baseColorFactor cannot carry (M_GND_SoilFar).
+    #[serde(default)]
+    base_tint_linear: Option<[f32; 3]>,
+}
+
+/// The base layer's tint: the contract's when it has one, else the glTF material's colour (map-kit review K8).
+fn ground_tint(contract: Option<&GroundContract>, standard: Color) -> Color {
+    contract.and_then(|c| c.base_tint_linear).map_or(standard, |[r, g, b]| Color::linear_rgb(r, g, b))
 }
 
 fn contract(extras: Option<&GltfMaterialExtras>) -> Option<GroundContract> {
@@ -298,7 +306,8 @@ fn install_ground_materials(
                     (c.base_texture.as_str(), c.base_repeat_m, c.surface_class.as_str())
                 });
             let depth = depth_params(depth.quality.of(level.0), depth.ground);
-            let Some(params) = params(texture, repeat, class, standard.base_color, depth) else {
+            let tint = ground_tint(contract.as_ref(), standard.base_color);
+            let Some(params) = params(texture, repeat, class, tint, depth) else {
                 error!("Showhome ground surface {texture} is missing from the packed arrays");
                 continue;
             };
@@ -368,6 +377,30 @@ mod tests {
             assert_eq!((g.relief.x, g.relief.y), (d.ground.steps_per_px, d.ground.min_px));
         }
         assert!(at(Preset::Medium).parallax.y < at(Preset::Ultra).parallax.y);
+    }
+
+    /// The contract's tint wins over the glTF colour, which cannot exceed 1 (the far soil's is 1.15, 1.1, 1.05).
+    #[test]
+    fn the_contract_tint_can_brighten() {
+        let extras = GltfMaterialExtras {
+            value: r#"{"showhome_ground_blend": "{\"base_texture\":\"garden_soil\",\"base_repeat_m\":3.0,\"surface_class\":\"earth\",\"base_tint_linear\":[1.15,1.1,1.05]}"}"#.into(),
+        };
+        let c = contract(Some(&extras)).expect("a contract");
+        let tint = ground_tint(Some(&c), Color::WHITE).to_linear();
+        assert_eq!((tint.red, tint.green, tint.blue), (1.15, 1.1, 1.05));
+        let p = params(
+            &c.base_texture,
+            c.base_repeat_m,
+            &c.surface_class,
+            Color::from(tint),
+            depth_params(SurfaceDepthData::embedded().quality.high, SurfaceDepthData::embedded().ground),
+        )
+        .unwrap();
+        assert!((p.tint.x - 1.15).abs() < 1e-6, "{:?}", p.tint);
+        // without one, the material's colour
+        let plain = GroundContract { base_tint_linear: None, ..c };
+        assert_eq!(ground_tint(Some(&plain), Color::srgb(0.5, 0.5, 0.5)), Color::srgb(0.5, 0.5, 0.5));
+        assert_eq!(ground_tint(None, Color::WHITE), Color::WHITE);
     }
 
     #[test]
