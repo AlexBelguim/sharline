@@ -63,7 +63,6 @@ pub struct WeaponLoadout {
 pub struct ModTotals {
     pub ads_time: f32,
     pub move_mult: f32,
-    pub ads_move: f32,
     pub sway: f32,
     pub recoil_v: f32,
     pub recoil_h: f32,
@@ -77,7 +76,6 @@ impl From<ModifierTotals> for ModTotals {
         Self {
             ads_time: m.ads_time,
             move_mult: m.move_mult,
-            ads_move: m.ads_move,
             sway: m.sway,
             recoil_v: m.recoil_v,
             recoil_h: m.recoil_h,

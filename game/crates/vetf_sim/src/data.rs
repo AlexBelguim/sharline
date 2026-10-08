@@ -672,8 +672,6 @@ pub struct Modifiers {
     #[serde(rename = "move", skip_serializing_if = "Option::is_none")]
     pub move_mult: Option<f32>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub ads_move: Option<f32>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub sway: Option<f32>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub recoil_v: Option<f32>,
@@ -715,8 +713,6 @@ pub struct AttachmentSpec {
     #[serde(default, rename = "move", skip_serializing_if = "Option::is_none")]
     pub move_mult: Option<f32>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub ads_move: Option<f32>,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub sway: Option<f32>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub recoil_v: Option<f32>,
@@ -745,7 +741,6 @@ impl AttachmentSpec {
         Modifiers {
             ads_time: self.ads_time,
             move_mult: self.move_mult,
-            ads_move: self.ads_move,
             sway: self.sway,
             recoil_v: self.recoil_v,
             recoil_h: self.recoil_h,
@@ -761,7 +756,6 @@ impl AttachmentSpec {
 pub struct ModifierTotals {
     pub ads_time: f32,
     pub move_mult: f32,
-    pub ads_move: f32,
     pub sway: f32,
     pub recoil_v: f32,
     pub recoil_h: f32,
@@ -775,7 +769,6 @@ impl Default for ModifierTotals {
         Self {
             ads_time: 1.0,
             move_mult: 1.0,
-            ads_move: 1.0,
             sway: 1.0,
             recoil_v: 1.0,
             recoil_h: 1.0,
@@ -793,7 +786,6 @@ impl ModifierTotals {
             let m = a.modifiers();
             t.ads_time *= m.ads_time.unwrap_or(1.0);
             t.move_mult *= m.move_mult.unwrap_or(1.0);
-            t.ads_move *= m.ads_move.unwrap_or(1.0);
             t.sway *= m.sway.unwrap_or(1.0);
             t.recoil_v *= m.recoil_v.unwrap_or(1.0);
             t.recoil_h *= m.recoil_h.unwrap_or(1.0);

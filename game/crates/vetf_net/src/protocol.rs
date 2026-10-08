@@ -19,7 +19,7 @@ use vetf_sim::player::{Loadout, Wounds};
 use vetf_sim::weapon::WeaponState;
 
 /// Bumped whenever the protocol changes; part of the netcode protocol id, so old builds cannot connect.
-pub const PROTOCOL_VERSION: u64 = 5;
+pub const PROTOCOL_VERSION: u64 = 6;
 
 /// netcode.io protocol id shared by host and clients.
 pub fn protocol_id() -> u64 {

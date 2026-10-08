@@ -103,7 +103,6 @@ pub fn stat_deltas(from: &WeaponStats, to: &WeaponStats) -> Vec<Delta> {
     secs("SPRINT-FIRE", from.sprint_to_fire_s, to.sprint_to_fire_s, &mut v);
     secs("RELOAD", from.reload_s, to.reload_s, &mut v);
     pct("MOBILITY", from.mobility, to.mobility, false, &mut v);
-    pct("ADS MOVE", from.ads_move, to.ads_move, false, &mut v);
     if from.mag != to.mag {
         let d = to.mag as f32 - from.mag as f32;
         v.push(Delta {

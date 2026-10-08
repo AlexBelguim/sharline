@@ -44,7 +44,29 @@ fn superseded(path: &str) -> bool {
         || path == "movement.slice.json.movement.jetpack.ads_allowed"
         // A slide starts from a normal run, not only a full sprint (DESIGN_DELTAS.md, 'Aim on the move').
         || path == "movement.slice.json.movement.slide.min_entry_speed"
+        // Aiming never slows you, so the 3x scope's `ads_move` is gone.
+        || (path.starts_with("attachments_stats.slice.json.attachments[") && path.ends_with(".ads_move"))
         || gun_tuning_round_1(path)
+        || recoil_and_bloom_round_2(path)
+}
+
+/// Playtest round 2 recoil and bloom (DESIGN_DELTAS.md section 12): no random spread standing still (no
+/// `hip_still` / `ads_still`), a fixed Warden kick, Apex-style bloom on the move that is small aimed, and a raise from
+/// the sprint pose about as fast as the ADS.
+fn recoil_and_bloom_round_2(path: &str) -> bool {
+    let Some(rest) = path.strip_prefix("weapons.slice.json.weapons[") else { return false };
+    let Some((gun, key)) = rest.split_once("].") else { return false };
+    let spread = ["ads_still", "hip_still", "move_threshold_frac", "bloom_per_shot_ads"];
+    let per_gun: &[&str] = match gun {
+        // Mako
+        "0" => &["slide", "zipline", "bloom_max_ads", "bloom_decay_delay_s"],
+        // Warden
+        "1" => &["air", "slide", "zipline"],
+        _ => &[],
+    };
+    key.strip_prefix("spread_deg.").is_some_and(|k| spread.contains(&k) || per_gun.contains(&k))
+        || key == "sprint_to_fire_s"
+        || key == "recoil.kick_yaw_rand_deg"
 }
 
 /// Playtest round 1 gun tuning (DESIGN_DELTAS.md section 9): a harder-hitting Mako with a stronger, learnable

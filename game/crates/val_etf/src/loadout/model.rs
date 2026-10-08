@@ -341,7 +341,6 @@ pub struct WeaponStats {
     pub sway: f32,
     pub hip_spread: f32,
     pub sprint_to_fire_s: f32,
-    pub ads_move: f32,
     pub zoom: Option<Zoom>,
 }
 
@@ -372,7 +371,6 @@ pub fn weapon_stats(data: &GameData, spec: &WeaponSpec, parts: &[&AttachmentSpec
         sway: m.sway,
         hip_spread: m.hip_spread,
         sprint_to_fire_s: spec.sprint_to_fire_s * m.sprint_to_fire,
-        ads_move: m.ads_move,
         zoom: parts.iter().find(|a| a.cat == AttachmentCategory::Optic).and_then(|a| a.zoom.clone()),
     }
 }
