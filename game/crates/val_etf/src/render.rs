@@ -3,9 +3,11 @@
 //!
 //! The feel lives in submodules, all visual only (`feel.ron`): the camera's bob and shot shake and the gun's
 //! sway ([`camera_fx`]), tracers ([`tracer_fx`]), and hit markers and halo cracks on the player hit ([`hit_fx`]).
+//! Teammates' glow and name markers, and everyone else's plain look, are [`friend_foe`]'s.
 
 mod camera_fx;
 pub mod feel;
+pub mod friend_foe;
 pub mod hit_fx;
 mod tracer_fx;
 
@@ -41,6 +43,7 @@ impl Plugin for RenderPlugin {
             .init_resource::<hit_fx::HitMemory>()
             .init_resource::<hit_fx::ShardAssets>()
             .add_message::<hit_fx::HaloHit>()
+            .add_plugins(friend_foe::FriendFoePlugin)
             .add_systems(Startup, setup_menu_camera)
             .add_systems(
                 OnEnter(AppState::InGame),
@@ -51,7 +54,6 @@ impl Plugin for RenderPlugin {
                 Update,
                 (
                     attach_player_visuals,
-                    tint_bodies,
                     sync_held_guns,
                     update_player_visuals,
                     sync_viewmodel,
@@ -112,10 +114,6 @@ struct ViewmodelLens;
 
 #[derive(Component)]
 pub(crate) struct PlayerVisual;
-
-/// A player's body material, recoloured when their team or the mode changes (see [`body_color`]).
-#[derive(Component)]
-struct BodyTint(Handle<StandardMaterial>);
 
 /// A third-person player's body under its root: the capsule, head and halo, squashed when crouched. The gun is
 /// beside it, not under it (see [`PlayerPose`]).
@@ -383,37 +381,13 @@ pub fn tier_color(tier: u8) -> LinearRgba {
     }
 }
 
+/// The map's team colours (the team-zone markings). Never a player's body: bodies tell nothing about their
+/// side, teammates glow instead (`friend_foe`).
 pub fn team_color(team: Option<Team>) -> Color {
     match team {
         Some(Team::A) => Color::srgb(0.0, 0.70, 0.62),
         Some(Team::B) => Color::srgb(1.0, 0.36, 0.30),
         None => Color::srgb(0.75, 0.75, 0.78),
-    }
-}
-
-/// The colour another player's body is drawn in: their team's, or in free-for-all the enemy colour (HUD &
-/// ACCESSIBILITY's team colours), since everyone else is an enemy there.
-pub fn body_color(team: Option<Team>, mode: Option<MatchMode>, enemy: Color) -> Color {
-    if mode == Some(MatchMode::Ffa) { enemy } else { team_color(team) }
-}
-
-/// Keep every body in the colour [`body_color`] gives (a lobby can switch between team deathmatch and
-/// free-for-all, and players between teams).
-fn tint_bodies(
-    matches: Query<&MatchState>,
-    settings: Res<Settings>,
-    players: Query<(&PlayerInfo, &BodyTint)>,
-    mut materials: ResMut<Assets<StandardMaterial>>,
-) {
-    let mode = matches.iter().next().map(|m| m.mode);
-    let enemy = settings.team_colors().1;
-    for (info, tint) in &players {
-        let want = body_color(info.team, mode, enemy).darker(0.25);
-        if materials.get(&tint.0).is_some_and(|m| m.base_color != want)
-            && let Some(mut m) = materials.get_mut(&tint.0)
-        {
-            m.base_color = want;
-        }
     }
 }
 
@@ -432,15 +406,19 @@ pub(crate) fn arc_angle(zone: Zone) -> f32 {
 #[allow(clippy::type_complexity)]
 fn attach_player_visuals(
     mut commands: Commands,
-    players: Query<(Entity, &PlayerInfo, &PlayerLoadout), (With<PlayerId>, Without<Controlled>, Without<PlayerVisual>)>,
+    players: Query<
+        (Entity, &PlayerLoadout),
+        (With<PlayerId>, With<PlayerInfo>, Without<Controlled>, Without<PlayerVisual>),
+    >,
+    looks: Res<friend_foe::FriendFoeData>,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
+    mut bodies: ResMut<Assets<friend_foe::BodyMaterial>>,
 ) {
-    for (e, info, loadout) in &players {
-        let team = team_color(info.team);
-        let body_mat =
-            materials.add(StandardMaterial { base_color: team.darker(0.25), perceptual_roughness: 0.7, ..default() });
-        let head_mat = materials.add(StandardMaterial { base_color: Color::srgb(0.62, 0.48, 0.40), ..default() });
+    for (e, loadout) in &players {
+        // Everyone in the same plain colours: a body tells nothing about its side (teammates glow, `friend_foe`).
+        let look = friend_foe::BodyLook::new(&looks, &mut bodies);
+        let (body_mat, head_mat) = (look.body.clone(), look.head.clone());
         let halo = loadout.0.halo;
         let scale = match loadout.0.weight {
             WeightClass::Heavy => 1.2,
@@ -452,7 +430,7 @@ fn attach_player_visuals(
             WeightClass::Medium => 0.016,
             _ => 0.011,
         };
-        commands.entity(e).insert(BodyTint(body_mat.clone()));
+        commands.entity(e).insert(look);
         commands.entity(e).insert((PlayerVisual, Transform::default(), Visibility::default())).with_children(|p| {
             p.spawn((Body, Transform::default(), Visibility::default())).with_children(|b| {
                 b.spawn((
