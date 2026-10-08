@@ -20,9 +20,9 @@
 //! - **Ambience**: one loop per map while in a match.
 //!
 //! The AUDIO tab drives the mix: MASTER is [`GlobalVolume`], each category slider scales its sounds, SHIELD-HIT
-//! and HEADSHOT switch those cues, LOW-MAG CUE adds a lighter click under shots while the magazine would check
-//! ALMOST EMPTY (a mag-check band, never a count), and PLAY IN BACKGROUND mutes the game while the window is
-//! not focused. Sliders map to gain as (value / 100)², so 50 sounds about half as loud.
+//! and HEADSHOT switch those cues, LOW-MAG CUE adds a lighter click under shots once the magazine is about
+//! ALMOST EMPTY (from a start that differs per magazine, [`LowMagCue`], so never a count), and PLAY IN
+//! BACKGROUND mutes the game while the window is not focused. Sliders map to gain as (value / 100)², so 50 sounds about half as loud.
 //!
 //! Scripted runs (`--screenshot`, `--demo-ui`, `--exit-after`) play every sound muted, so tests on the user's
 //! desktop stay quiet, and log each sound at info level (`sound: <id> ...`); `VETF_SOUND=1` makes them audible
@@ -57,7 +57,7 @@ use vetf_sim::input::Buttons;
 use vetf_sim::movement::MoveMode;
 use vetf_sim::movement::collision::{CollisionWorld, Look};
 use vetf_sim::player::PlayerEvents;
-use vetf_sim::weapon::{ADS_AIMED, MagEstimate, ReloadKind, WeaponAction, WeaponEvents, WeaponState};
+use vetf_sim::weapon::{ADS_AIMED, ReloadKind, WeaponAction, WeaponEvents, WeaponState};
 
 /// Rodio's own spatial fall-off is 1/d², far too steep for a shooter; positions are scaled down this much so it
 /// never applies within a kilometre, and the fall-off comes from the data instead ([`attenuation`]). Panning
@@ -221,6 +221,23 @@ pub struct SoundData {
     pub own_shield_hit_volume: f32,
     pub ui: UiSounds,
     pub ear_gap_m: f32,
+    pub low_mag_cue: LowMagCue,
+}
+
+/// AUDIO ▸ LOW-MAG CUE: where in a magazine the lighter click under each shot starts. Each magazine gets its own
+/// start, somewhere between these fractions of its capacity, drawn when it is first fired from full; so the
+/// first click says "about this low", like a mag check, and never how many rounds are left.
+#[derive(Debug, Clone, Copy, PartialEq, Deserialize)]
+pub struct LowMagCue {
+    pub from_frac: f32,
+    pub to_frac: f32,
+}
+
+impl LowMagCue {
+    /// A magazine's start (a fraction of its capacity) for a random number `r` in 0..1.
+    pub fn start(&self, r: f32) -> f32 {
+        self.from_frac + (self.to_frac - self.from_frac) * r.clamp(0.0, 1.0)
+    }
 }
 
 const EMBEDDED: &str = include_str!("../../../assets/data/sounds.ron");
@@ -285,6 +302,15 @@ impl SoundData {
             {
                 out.push(format!("\"{id}\": its far sound \"{}\" has a far sound itself", far.sound));
             }
+        }
+        if let (Some(low), Some(dry)) = (self.sounds.get(cue::LOW_MAG), self.sounds.get(cue::DRY_FIRE))
+            && low.files != dry.files
+        {
+            out.push(format!("\"{}\" must list the same files as \"{}\"", cue::LOW_MAG, cue::DRY_FIRE));
+        }
+        let c = self.low_mag_cue;
+        if !(0.0 < c.from_frac && c.from_frac <= c.to_frac && c.to_frac < 1.0) {
+            out.push("low_mag_cue: 0 < from_frac <= to_frac < 1".to_string());
         }
         out
     }
@@ -430,44 +456,73 @@ pub struct TriggerTick {
     pub held: bool,
     /// The gun fires while FIRE is held (an automatic), rather than once per press (semi, bolt).
     pub auto: bool,
+    /// The magazine in the gun is empty.
+    pub empty: bool,
+    /// The gun takes a trigger pull now: ready (not equipping, reloading or checking the magazine) and cooled
+    /// down. A gun still coming up from a sprint takes it too: an empty one clicks on the pull.
+    pub takes_pull: bool,
     /// The gun is up, ready and cooled down, so it would fire now, but the magazine in it is empty.
     pub empty_ready: bool,
 }
 
 impl TriggerTick {
     pub fn of(w: &WeaponState) -> Self {
+        let empty = w.mag() == 0;
+        let takes_pull = w.is_ready() && w.cooldown == 0;
         TriggerTick {
             held: w.prev_buttons.held(Buttons::FIRE),
             auto: w.fire_mode == FireMode::Auto,
-            empty_ready: w.mag() == 0 && w.is_ready() && w.cooldown == 0 && w.sprint_lock == 0,
+            empty,
+            takes_pull,
+            empty_ready: empty && takes_pull && w.sprint_lock == 0,
         }
     }
 }
 
-/// The dry click: once per trigger pull, never once per tick while FIRE is held.
+/// The dry click: once per trigger pull with nothing to fire, never once per tick while FIRE is held. A pull
+/// clicks when it is made on an empty magazine, or when an automatic held on into an empty one (it ran dry
+/// mid-burst) would fire again. A shot starts the count again, so an automatic held through a reload that
+/// runs dry a second time clicks a second time.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
 pub struct DryFire {
+    /// This pull has clicked (cleared when FIRE is let go or a shot goes off).
     clicked: bool,
+    /// FIRE was held at the last look: another player's pull is FIRE going down between two looks.
+    was_held: bool,
 }
 
 impl DryFire {
-    /// One look at the trigger: true when this pull clicks. `tries_empty` is the gun trying to fire with
-    /// nothing in it; the pull clicks the first time, and again only after FIRE is let go.
-    pub fn step(&mut self, held: bool, tries_empty: bool) -> bool {
-        let click = held && tries_empty && !self.clicked;
-        self.clicked = held && (self.clicked || click);
+    /// Start from a player's trigger as it is (first sight, respawn): a trigger already held is no new pull.
+    pub fn seen(t: TriggerTick) -> Self {
+        Self { clicked: t.held, was_held: t.held }
+    }
+
+    /// One look at the trigger: true when it clicks. `shot`: a shot went off since the last look; `dry_pull`:
+    /// a pull was made on an empty magazine (whatever FIRE does now: a tap can be over by then).
+    fn look(&mut self, shot: bool, dry_pull: bool, t: TriggerTick) -> bool {
+        if shot {
+            self.clicked = false;
+        }
+        let click = !self.clicked && (dry_pull || (t.held && t.auto && t.empty_ready));
+        self.clicked = t.held && (self.clicked || click);
+        self.was_held = t.held;
         click
     }
 
-    /// Your own gun after one tick: a press with an empty magazine (the simulation's `dry_fire`), or an
-    /// automatic held on into an empty one (it ran dry mid-burst) once it would fire again.
+    /// Your own gun after one tick: the simulation's `dry_fire` (a pull on an empty magazine), or an automatic
+    /// held on into an empty one once it would fire again.
     pub fn local(&mut self, ev: &WeaponEvents, t: TriggerTick) -> bool {
-        self.step(t.held, ev.dry_fire || (t.auto && t.empty_ready))
+        self.look(ev.shot.is_some(), ev.dry_fire, t)
     }
 
-    /// Another player's gun, read from their state: the trigger held while it would fire but is empty.
-    pub fn remote(&mut self, t: TriggerTick) -> bool {
-        self.step(t.held, t.empty_ready)
+    /// Another player's gun, read from their replicated state once a frame, by the shooter's own rules: FIRE
+    /// going down on an empty gun that takes the pull, unless their hands are busy (`busy`: an item in hand, a
+    /// mantle), or an automatic held on into an empty one. `shot`: their shot counter moved since the last look
+    /// (the pull that fired it is no dry pull). Only what the state shows can be heard: a tap shorter than the
+    /// gap between two updates of their state is missed.
+    pub fn remote(&mut self, t: TriggerTick, shot: bool, busy: bool) -> bool {
+        let pull = t.held && !self.was_held;
+        self.look(shot, pull && !shot && !busy && t.empty && t.takes_pull, t)
     }
 }
 
@@ -585,10 +640,11 @@ pub fn hit_cues(h: &HitConfirm, shield_tink: bool, headshot: bool) -> Vec<&'stat
     out
 }
 
-/// LOW-MAG CUE: on while the magazine would check ALMOST EMPTY (or the shot just emptied it). Tied to the mag
-/// check's bands, so it tells no more than a mag check would.
-pub fn low_mag(rounds: u16, capacity: u16) -> bool {
-    matches!(MagEstimate::from_rounds(rounds, capacity), MagEstimate::AlmostEmpty | MagEstimate::Empty)
+/// LOW-MAG CUE after a shot: on once fewer than `start` (a fraction, [`LowMagCue::start`]) of the magazine's
+/// rounds are left, or the shot just emptied it. The start differs per magazine, so where the cue begins is
+/// approximate, like a mag check's ALMOST EMPTY, and never an exact count to count down from.
+pub fn low_mag(rounds: u16, capacity: u16, start: f32) -> bool {
+    rounds == 0 || (rounds as f32) < start * capacity as f32
 }
 
 /// A jump: off the ground (or a slide) and going up.
@@ -725,9 +781,14 @@ impl Voices {
         x.wrapping_mul(0x2545_F491_4F6C_DD1D)
     }
 
+    /// Uniform in 0..1.
+    fn unit(&mut self) -> f32 {
+        (self.next() >> 40) as f32 / (1u64 << 24) as f32
+    }
+
     /// Uniform in -1..1.
     fn signed(&mut self) -> f32 {
-        (self.next() >> 40) as f32 / (1u64 << 24) as f32 * 2.0 - 1.0
+        self.unit() * 2.0 - 1.0
     }
 }
 
@@ -803,6 +864,11 @@ impl<'w, 's> Sfx<'w, 's> {
 
     pub fn commands(&mut self) -> &mut Commands<'w, 's> {
         &mut self.commands
+    }
+
+    /// A random number in 0..1 (for choices that need not be the same on every machine).
+    pub fn random(&mut self) -> f32 {
+        self.voices.unit()
     }
 
     /// Stop a playing sound.
@@ -1070,6 +1136,8 @@ struct Heard {
     reload: Option<ReloadKind>,
     fire_mode: Option<FireMode>,
     dry: DryFire,
+    /// Your own magazines, by slot: where the LOW-MAG CUE starts in each (drawn when it is first fired from full).
+    low_mag_start: Vec<Option<f32>>,
     using: bool,
     items_left: u32,
     jet: Option<Entity>,
@@ -1090,7 +1158,8 @@ impl Heard {
         self.action = ActionKind::Ready;
         self.reload = None;
         self.fire_mode = Some(w.0.fire_mode);
-        self.dry = DryFire::default();
+        self.dry = DryFire::seen(TriggerTick::of(&w.0));
+        self.low_mag_start = vec![None; w.0.rounds.len()];
         self.using = items.is_some_and(|i| i.0.using.is_some());
         self.items_left = items_left(items);
     }
@@ -1172,6 +1241,14 @@ fn player_sounds(
 
         // One-shots: yours from the events, theirs from the state.
         if local {
+            // A magazine seen full (fresh, or refilled) gets a new LOW-MAG CUE start when it is fired from.
+            let cap = lo.0.weapon.mag_capacity;
+            h.low_mag_start.resize(w.0.rounds.len(), None);
+            for (start, rounds) in h.low_mag_start.iter_mut().zip(&w.0.rounds) {
+                if *rounds >= cap {
+                    *start = None;
+                }
+            }
             for ev in local_events.iter().filter(|e| e.player == id.0) {
                 local_one_shots(&mut sfx, h, &ev.events, ev.trigger, w, lo, &ws, &mut delayed);
             }
@@ -1204,10 +1281,11 @@ fn player_sounds(
             for k in 0..n {
                 shot(&mut sfx, &ws, eye, follow, k as f32 * gap, &mut delayed);
             }
-            if DryFire::remote(&mut h.dry, TriggerTick::of(&w.0)) {
+            let using = items.is_some_and(|i| i.0.using.is_some());
+            let busy = using || m.mode == MoveMode::Mantle;
+            if h.dry.remote(TriggerTick::of(&w.0), w.0.shot_seq != h.shot_seq, busy) {
                 sfx.play(Play::new(cue::DRY_FIRE).at(body));
             }
-            let using = items.is_some_and(|i| i.0.using.is_some());
             let left = items_left(items);
             if using && !h.using {
                 h.heal = sfx.play(Play::new(cue::HEAL).at(body).follow(follow));
@@ -1306,10 +1384,16 @@ fn local_one_shots(
             sfx.play(Play::new(id));
         }
     }
-    if wev.shot.is_some() {
+    if let Some(fired) = wev.shot {
         shot(sfx, ws, None, None, 0.0, delayed);
-        if sfx.mix().low_mag_cue && low_mag(w.0.mag(), lo.0.weapon.mag_capacity) {
-            sfx.play(Play::new(cue::LOW_MAG));
+        let slot = fired.ammo_slot as usize;
+        if sfx.mix().low_mag_cue && slot < h.low_mag_start.len() {
+            let jitter = sfx.data().low_mag_cue;
+            let start = *h.low_mag_start[slot].get_or_insert_with(|| jitter.start(sfx.random()));
+            let rounds = w.0.rounds.get(slot).copied().unwrap_or(0);
+            if low_mag(rounds, lo.0.weapon.mag_capacity, start) {
+                sfx.play(Play::new(cue::LOW_MAG));
+            }
         }
     }
     if h.dry.local(wev, trigger) {
@@ -1539,10 +1623,16 @@ mod tests {
     use vetf_sim::data::AmmoChoice;
     use vetf_sim::input::InputFrame;
     use vetf_sim::movement::collision::{Brush, BrushKind};
-    use vetf_sim::weapon::{WeaponEnv, WeaponLoadout};
+    use vetf_sim::weapon::{MagEstimate, WeaponEnv, WeaponLoadout};
 
     fn data() -> &'static SoundData {
         SoundData::embedded()
+    }
+
+    /// The game data, parsed once for all tests.
+    fn game() -> &'static GameData {
+        static GAME: OnceLock<GameData> = OnceLock::new();
+        GAME.get_or_init(GameData::embedded)
     }
 
     /// The ids the game plays and the H3 batch generates (`assets/audio/h3_test/<category>/<name>_<n>.ogg`).
@@ -1592,21 +1682,23 @@ mod tests {
         for id in IDS {
             assert!(d.sounds.contains_key(id), "sounds.ron has \"{id}\"");
         }
-        let shared: HashSet<&str> = d.sounds.values().flat_map(|s| s.files.iter().map(String::as_str)).collect();
+        // The low-mag click plays the dry click's own files (a real dry click dropped in changes both).
+        assert_eq!(d.sounds[cue::LOW_MAG].files, d.sounds[cue::DRY_FIRE].files, "the low-mag cue mirrors dry fire");
+        let dry: HashSet<&str> = d.sounds[cue::DRY_FIRE].files.iter().map(String::as_str).collect();
         for (id, s) in &d.sounds {
             assert!((1..=3).contains(&s.files.len()), "{id}: one to three variations, not {}", s.files.len());
             for f in &s.files {
                 assert!(f.ends_with(".ogg"), "{id}: {f} is OGG Vorbis like the rest");
                 assert!(audio.join(f).is_file(), "{id}: game/assets/audio/{f} exists");
                 // `<id>.ogg` or `<id>_<n>.ogg`, so a real sound goes in under the id's own name (the low-mag
-                // click borrows the dry fire's file).
+                // click plays the dry fire's files).
                 let stem = f.trim_end_matches(".ogg");
                 let named = stem == id
                     || stem
                         .strip_prefix(id.as_str())
                         .and_then(|r| r.strip_prefix('_'))
                         .is_some_and(|n| n.parse::<u8>().is_ok());
-                assert!(named || (id == cue::LOW_MAG && shared.contains(f.as_str())), "{id}: {f} is named after it");
+                assert!(named || (id == cue::LOW_MAG && dry.contains(f.as_str())), "{id}: {f} is named after it");
             }
         }
         for gun in &GameData::embedded().weapons.weapons {
@@ -1640,7 +1732,12 @@ mod tests {
         d.sounds.get_mut(cue::HEAL).unwrap().files.clear();
         d.sounds.get_mut("weapons/shot_distant").unwrap().far =
             Some(FarSound { sound: "weapons/mako_shot".into(), beyond_m: 10.0 });
+        // real dry clicks dropped in without the low-mag cue following
+        d.sounds.get_mut(cue::DRY_FIRE).unwrap().files = vec!["weapons/dry_fire_1.ogg".into()];
+        d.low_mag_cue.to_frac = 1.5;
         let p = d.problems();
+        assert!(p.iter().any(|s| s.contains("must list the same files")), "{p:?}");
+        assert!(p.iter().any(|s| s.contains("low_mag_cue")), "{p:?}");
         assert!(p.iter().any(|s| s.contains("combat/kill")), "{p:?}");
         assert!(p.iter().any(|s| s.contains("weapons/laser")), "{p:?}");
         assert!(p.iter().any(|s| s.contains("items/heal") && s.contains("no files")), "{p:?}");
@@ -1648,27 +1745,94 @@ mod tests {
         assert!(ron::from_str::<SoundData>("(sounds: {})").is_err(), "a partial file falls back to the built-in");
     }
 
-    /// Pull the trigger on every gun until it is empty and on: each pull of an empty gun clicks once, however
-    /// long FIRE is held, and a gun with rounds never clicks.
-    #[test]
-    fn an_empty_gun_clicks_once_per_trigger_pull() {
-        let d = GameData::embedded();
-        let env = WeaponEnv {
+    fn env(sprinting: bool) -> WeaponEnv {
+        WeaponEnv {
             mode: MoveMode::Ground,
-            sprinting: false,
+            sprinting,
             crouched: false,
-            speed_frac: 0.0,
+            speed_frac: if sprinting { 1.5 } else { 0.0 },
             broken_arms: false,
             hands_busy: false,
-        };
+        }
+    }
+
+    /// A trigger script step: for this many ticks, FIRE held or not, sprinting or not, and reload tapped on its
+    /// first tick.
+    type Step = (u32, bool, bool, bool);
+
+    /// What a trigger script did: shots, the simulation's dry pulls, and the dry clicks as the shooter hears them
+    /// (each tick's events) and as everyone else does (the shooter's state, looked at every `every` ticks).
+    #[derive(Debug, Default, Clone, Copy, PartialEq)]
+    struct Pulls {
+        shots: u32,
+        sim_dry: u32,
+        own: u32,
+        theirs: u32,
+    }
+
+    /// Play a trigger script on a gun in a fire mode, its magazines holding `rounds` and the gun up and ready.
+    fn play(gun: &str, mode: FireMode, rounds: &[u16], script: &[Step], every: u32) -> Pulls {
+        let d = game();
+        let lo = WeaponLoadout::resolve(d, gun, &vec![AmmoChoice::STANDARD; rounds.len()], &[]).unwrap();
+        let mut ws = WeaponState::new(d, &lo);
+        ws.action = WeaponAction::Ready;
+        ws.fire_mode = mode;
+        ws.rounds = rounds.to_vec();
+        let (mut own, mut theirs) = (DryFire::seen(TriggerTick::of(&ws)), DryFire::seen(TriggerTick::of(&ws)));
+        let mut seen_seq = ws.shot_seq;
+        let mut out = Pulls::default();
+        let mut tick = 0;
+        for &(n, fire, sprinting, reload) in script {
+            for i in 0..n {
+                let mut b = if fire { Buttons::FIRE } else { 0 };
+                if reload && i == 0 {
+                    b |= Buttons::RELOAD;
+                }
+                let ev = ws.step(d, &lo, &InputFrame { buttons: Buttons(b), ..Default::default() }, &env(sprinting));
+                out.shots += ev.shot.is_some() as u32;
+                out.sim_dry += ev.dry_fire as u32;
+                out.own += own.local(&ev, TriggerTick::of(&ws)) as u32;
+                tick += 1;
+                if tick % every == 0 {
+                    out.theirs += theirs.remote(TriggerTick::of(&ws), ws.shot_seq != seen_seq, false) as u32;
+                    seen_seq = ws.shot_seq;
+                }
+            }
+        }
+        out
+    }
+
+    /// Every gun in every fire mode it has.
+    fn guns_and_modes() -> Vec<(String, FireMode, u16)> {
+        let d = game();
+        let mut out = Vec::new();
         for gun in &d.weapons.weapons {
-            let lo = WeaponLoadout::resolve(&d, &gun.id, &[AmmoChoice::STANDARD], &[]).unwrap();
-            let mut ws = WeaponState::new(&d, &lo);
+            let lo = WeaponLoadout::resolve(d, &gun.id, &[AmmoChoice::STANDARD], &[]).unwrap();
+            for mode in &gun.fire_modes {
+                out.push((gun.id.clone(), *mode, lo.mag_capacity));
+            }
+        }
+        out
+    }
+
+    /// Pull the trigger on every gun until it is empty and on, standing and on the run: each pull of an empty
+    /// gun clicks once, however long FIRE is held, and a gun with rounds never clicks.
+    #[test]
+    fn an_empty_gun_clicks_once_per_trigger_pull() {
+        for env in [env(false), env(true)] {
+            empty_gun_pulls(game(), &env);
+        }
+    }
+
+    fn empty_gun_pulls(d: &GameData, env: &WeaponEnv) {
+        for gun in &d.weapons.weapons {
+            let lo = WeaponLoadout::resolve(d, &gun.id, &[AmmoChoice::STANDARD], &[]).unwrap();
+            let mut ws = WeaponState::new(d, &lo);
             ws.action = WeaponAction::Ready;
             let mut dry = DryFire::default();
             let mut tick = |ws: &mut WeaponState, fire: bool| {
                 let b = if fire { Buttons::FIRE } else { 0 };
-                let ev = ws.step(&d, &lo, &InputFrame { buttons: Buttons(b), ..Default::default() }, &env);
+                let ev = ws.step(d, &lo, &InputFrame { buttons: Buttons(b), ..Default::default() }, env);
                 let click = dry.local(&ev, TriggerTick::of(ws));
                 (ev.shot.is_some(), click)
             };
@@ -1701,13 +1865,13 @@ mod tests {
             }
             // An automatic that runs dry with FIRE held clicks on that same pull, once.
             if gun.fire_modes.first() == Some(&FireMode::Auto) {
-                let mut ws = WeaponState::new(&d, &lo);
+                let mut ws = WeaponState::new(d, &lo);
                 ws.action = WeaponAction::Ready;
                 let mut dry = DryFire::default();
                 let (mut shots, mut clicks) = (0, 0);
                 for _ in 0..(lo.mag_capacity as usize * 10 + 120) {
                     let b = InputFrame { buttons: Buttons(Buttons::FIRE), ..Default::default() };
-                    let ev = ws.step(&d, &lo, &b, &env);
+                    let ev = ws.step(d, &lo, &b, env);
                     shots += ev.shot.is_some() as u16;
                     clicks += dry.local(&ev, TriggerTick::of(&ws)) as u16;
                 }
@@ -1721,8 +1885,9 @@ mod tests {
         let mut dry = DryFire::default();
         // a semi-automatic pressed three times: three clicks; held: one
         let press = WeaponEvents { dry_fire: true, ..Default::default() };
-        let held = TriggerTick { held: true, auto: false, empty_ready: true };
-        let up = TriggerTick { held: false, auto: false, empty_ready: true };
+        let empty = TriggerTick { held: true, auto: false, empty: true, takes_pull: true, empty_ready: true };
+        let held = empty;
+        let up = TriggerTick { held: false, ..empty };
         let mut clicks = 0;
         for _ in 0..3 {
             clicks += dry.local(&press, held) as u32;
@@ -1735,14 +1900,105 @@ mod tests {
         // a semi-automatic held on after its last shot does not click by itself: only a press tries to fire
         let mut dry = DryFire::default();
         assert!(!(0..60).any(|_| dry.local(&WeaponEvents::default(), held)));
-        // another player's state, seen once a frame: one click per pull, not while the gun is busy
+        // the simulation's dry pull clicks whatever the trigger does by then (a tap on the run, let go before
+        // the gun was up), once
         let mut dry = DryFire::default();
-        let busy = TriggerTick { held: true, auto: true, empty_ready: false };
-        assert!(!dry.remote(busy), "reloading or cooling down");
-        assert!(dry.remote(held));
-        assert!(!dry.remote(held) && !dry.remote(held));
-        assert!(!dry.remote(up));
-        assert!(dry.remote(held), "a new pull");
+        assert!(dry.local(&press, up), "a tap already let go");
+        assert!(dry.local(&press, up), "the next tap");
+        // an automatic held on into an empty magazine clicks once, and again after a shot (a reload went in and
+        // ran dry too)
+        let auto = TriggerTick { auto: true, ..held };
+        let mut dry = DryFire::default();
+        assert!(dry.local(&WeaponEvents::default(), auto));
+        assert!(!(0..30).any(|_| dry.local(&WeaponEvents::default(), auto)));
+        let fired = vetf_sim::weapon::Shot { seq: 1, ammo_slot: 0, spread_deg: 0.0, kick_pitch: 0.0, kick_yaw: 0.0 };
+        let shot = WeaponEvents { shot: Some(fired), ..Default::default() };
+        assert!(!dry.local(&shot, TriggerTick { empty_ready: false, ..auto }));
+        assert!(dry.local(&WeaponEvents::default(), auto), "the second dry-out of the same pull");
+
+        // another player's state, seen once a frame: FIRE going down on an empty gun clicks once
+        let mut dry = DryFire::default();
+        let cooling = TriggerTick { takes_pull: false, empty_ready: false, ..held };
+        assert!(!dry.remote(cooling, false, false), "a pull while it cools down or reloads");
+        assert!(!dry.remote(held, false, false), "still the same pull");
+        assert!(!dry.remote(up, false, false));
+        assert!(dry.remote(held, false, false), "a new pull");
+        assert!(!dry.remote(held, false, false) && !dry.remote(held, false, false));
+        assert!(!dry.remote(up, false, false));
+        assert!(!dry.remote(held, true, false), "the pull that fired their last round");
+        assert!(!dry.remote(up, false, false));
+        assert!(!dry.remote(held, false, true), "an item in hand: the gun is down");
+        assert!(!dry.remote(up, false, false));
+        let coming_up = TriggerTick { empty_ready: false, ..held };
+        assert!(dry.remote(coming_up, false, false), "the gun still coming up from a sprint");
+        // first sight of a player already holding FIRE: no click until a new pull
+        let mut dry = DryFire::seen(held);
+        assert!(!dry.remote(held, false, false));
+    }
+
+    /// The finding of the review of round 1: a quick trigger tap while running, the gun still down from the
+    /// sprint and the magazine empty, clicked for nobody (the simulation clicks when the gun is up, by when the
+    /// tap was over). Every gun, every mode, taps of one tick up to half a second: one click each, for the
+    /// shooter and for everyone near them.
+    #[test]
+    fn a_quick_pull_on_the_run_clicks_once() {
+        for (gun, mode, cap) in guns_and_modes() {
+            for tap in [1, 2, 3, 6, 9, 15, 20, 30] {
+                // sprinting with the gun down, then five taps a second apart, sprinting on
+                let mut script = vec![(30, false, true, false)];
+                for _ in 0..5 {
+                    script.extend([(tap, true, true, false), (60, false, true, false)]);
+                }
+                let p = play(&gun, mode, &[0, cap], &script, 1);
+                assert_eq!((p.shots, p.own, p.theirs), (0, 5, 5), "{gun} {mode:?}: taps of {tap} ticks ({p:?})");
+                assert_eq!(p.sim_dry, 5, "{gun} {mode:?}: the simulation pulls five times");
+                if tap >= 2 {
+                    // a client sees the state 30 times a second: taps of two ticks or more are seen
+                    let p = play(&gun, mode, &[0, cap], &script, 2);
+                    assert_eq!(p.theirs, 5, "{gun} {mode:?}: taps of {tap} ticks at 30 Hz ({p:?})");
+                }
+            }
+        }
+    }
+
+    /// Other players hear a dry click exactly when the shooter does: no phantom click when a semi-automatic is
+    /// held on after its last round (that told enemies the magazine had just run dry), and the same clicks for
+    /// pulls of every length, standing or running, and for an automatic held through a reload.
+    #[test]
+    fn others_hear_the_dry_clicks_the_shooter_hears() {
+        for (gun, mode, cap) in guns_and_modes() {
+            for every in [1, 2] {
+                for sprinting in [false, true] {
+                    // the last round, FIRE held on for a while
+                    for hold in [2, 3, 4, 6, 8, 10, 15, 20, 40, 90] {
+                        let script = [(hold, true, sprinting, false), (90, false, sprinting, false)];
+                        let p = play(&gun, mode, &[1, cap], &script, every);
+                        assert_eq!(p.shots, 1, "{gun} {mode:?}");
+                        // Seen less often (a client), a click on the very last tick of a hold can be missed.
+                        let heard = if every == 1 { p.own == p.theirs } else { p.theirs <= p.own };
+                        assert!(heard, "{gun} {mode:?}: last round held {hold} ticks, every {every} ({p:?})");
+                        if mode != FireMode::Auto {
+                            assert_eq!(p.own, 0, "{gun} {mode:?}: a held semi does not click by itself");
+                        }
+                    }
+                    // empty pulls of every length
+                    for hold in [2, 3, 5, 8, 12, 20, 60] {
+                        let mut script = vec![];
+                        for _ in 0..4 {
+                            script.extend([(hold, true, sprinting, false), (40, false, sprinting, false)]);
+                        }
+                        let p = play(&gun, mode, &[0, cap], &script, every);
+                        assert_eq!((p.own, p.theirs), (4, 4), "{gun} {mode:?}: pulls of {hold} ticks ({p:?})");
+                    }
+                }
+            }
+            // an automatic held through a reload runs dry twice: two clicks, for everyone
+            if mode == FireMode::Auto {
+                let script = [(30, true, false, false), (400, true, false, true), (30, false, false, false)];
+                let p = play(&gun, mode, &[2, 2], &script, 1);
+                assert_eq!((p.shots, p.own, p.theirs), (4, 2, 2), "{gun}: held through a reload ({p:?})");
+            }
+        }
     }
 
     #[test]
@@ -1962,17 +2218,42 @@ mod tests {
         assert_eq!(hit_cues(&hit(HitKind::Kill, Zone::Torso, false), true, true), [cue::KILL]);
     }
 
+    /// The review of round 1: the cue started at a fixed count (always 4 rounds left in a 30-round Mako), so
+    /// the clicks after it counted down exactly. Now each magazine starts it somewhere around the mag check's
+    /// ALMOST EMPTY band, so neither the first click nor the ones after it tell a count.
     #[test]
-    fn the_low_mag_cue_follows_the_mag_check_bands() {
-        // A 30-round magazine: the cue starts where a mag check would say ALMOST EMPTY.
-        let on: Vec<u16> = (0..=30).filter(|r| low_mag(*r, 30)).collect();
-        assert_eq!(on, [0, 1, 2, 3, 4]);
-        for r in 0..=30 {
-            let band = MagEstimate::from_rounds(r, 30);
-            assert_eq!(low_mag(r, 30), matches!(band, MagEstimate::AlmostEmpty | MagEstimate::Empty));
+    fn the_low_mag_cue_starts_somewhere_new_in_each_magazine() {
+        let jitter = data().low_mag_cue;
+        assert!(0.0 < jitter.from_frac && jitter.from_frac < jitter.to_frac && jitter.to_frac < 0.5, "{jitter:?}");
+        assert_eq!(jitter.start(0.0), jitter.from_frac);
+        assert_eq!(jitter.start(1.0), jitter.to_frac);
+        // the mag check's ALMOST EMPTY band lies inside the range the cue starts in
+        let edge = (1..=100u16).find(|r| MagEstimate::from_rounds(*r, 100) != MagEstimate::AlmostEmpty).unwrap();
+        let band = edge as f32 / 100.0;
+        assert!(jitter.from_frac < band && band < jitter.to_frac, "{band} in {jitter:?}");
+        // where the cue first sounds, over many magazines of each gun: never one fixed count, never above the
+        // range, and always on the shot that empties the magazine
+        let mut v = Voices::default();
+        for gun in &game().weapons.weapons {
+            let cap = WeaponLoadout::resolve(game(), &gun.id, &[AmmoChoice::STANDARD], &[]).unwrap().mag_capacity;
+            let mut onsets = std::collections::BTreeSet::new();
+            for _ in 0..200 {
+                let start = jitter.start(v.unit());
+                let onset = (0..cap).rev().find(|r| low_mag(*r, cap, start)).unwrap();
+                assert!(onset as f32 <= jitter.to_frac * cap as f32, "{}: {onset} of {cap}", gun.id);
+                assert!(low_mag(0, cap, start), "{}: the emptying shot", gun.id);
+                assert!(!low_mag(cap - 1, cap, start) || cap < 4, "{}: not from the first shot", gun.id);
+                onsets.insert(onset);
+            }
+            // (a magazine too small for the range to span a round, the Warden's five, only cues the last shot)
+            if (jitter.from_frac * cap as f32).ceil() < (jitter.to_frac * cap as f32).ceil() {
+                assert!(onsets.len() >= 2, "{} ({cap} rounds): the cue starts at {onsets:?}", gun.id);
+            }
         }
-        assert!(!low_mag(5, 5), "a full magazine");
-        assert!(low_mag(0, 5));
+        // a 30-round magazine: the cue starts anywhere from 2 to 5 rounds left at the data's 10-20 %
+        let starts: std::collections::BTreeSet<u16> =
+            (0..=10).map(|i| (0..30).rev().find(|r| low_mag(*r, 30, jitter.start(i as f32 / 10.0))).unwrap()).collect();
+        assert!(starts.len() >= 3, "{starts:?}");
     }
 
     #[test]
