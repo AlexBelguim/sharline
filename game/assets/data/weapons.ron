@@ -36,7 +36,8 @@
             equip_s: 0.7,
             holster_s: 0.4,
             ads_s: 0.13,
-            sprint_to_fire_s: 0.2,
+            // A hip shot from a sprint comes a tick before an aimed one (aim held caps the raise at the ADS time).
+            sprint_to_fire_s: 0.12,
             move_mult_held: 1.0,
             spread_deg: (
                 ads_still: 0.08,
@@ -93,7 +94,7 @@
             equip_s: 1.0,
             holster_s: 0.55,
             ads_s: 0.22,
-            sprint_to_fire_s: 0.32,
+            sprint_to_fire_s: 0.2,
             move_mult_held: 0.93,
             spread_deg: (
                 ads_still: 0.0,
@@ -152,7 +153,7 @@
             equip_s: 0.5,
             holster_s: 0.35,
             ads_s: 0.11,
-            sprint_to_fire_s: 0.15,
+            sprint_to_fire_s: 0.1,
             move_mult_held: 1.0,
             spread_deg: (
                 ads_still: 0.1,

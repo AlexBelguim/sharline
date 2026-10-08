@@ -473,13 +473,18 @@ impl WeaponState {
             ads_time *= data.combat.broken_arms.ads_time_mult;
         }
         let ads_rate = dt / ads_time.max(dt);
-        if can_ads && b.held(Buttons::ADS) {
+        let aiming = can_ads && b.held(Buttons::ADS);
+        if aiming {
             self.ads = (self.ads + ads_rate).min(1.0);
+            // Aim held brings the gun up no slower than the sight: an aimed shot never waits on the raise from the
+            // sprint pose once the gun is aimed, whatever this build's ADS time.
+            let to_aimed = ((ADS_AIMED - self.ads).max(0.0) / ads_rate - 1e-3).ceil().max(0.0) as u16;
+            self.sprint_lock = self.sprint_lock.min(to_aimed);
         } else {
             self.ads = (self.ads - ads_rate).max(0.0);
         }
 
-        // Bloom decays after a short delay.
+        // Bloom settles after a short delay.
         let sp = &spec.spread_deg;
         if self.since_shot as f32 * dt >= sp.bloom_decay_delay_s {
             self.bloom_deg = (self.bloom_deg - sp.bloom_decay_deg_per_s * dt).max(0.0);
@@ -531,21 +536,25 @@ impl WeaponState {
             return ev;
         }
 
-        // Fire. A pull while the gun is still coming up from a sprint waits for it.
+        // Fire. A pull while the gun is still coming up from a sprint waits for it, but only when the raise is the
+        // last thing in the way: a pull during a bolt cycle is dropped, as it is standing still. An empty gun clicks
+        // on the pull itself (a tap is over long before the gun is up).
         let wants_fire = self.fire_queued
             || match self.fire_mode {
                 FireMode::Auto => b.held(Buttons::FIRE),
                 FireMode::Semi | FireMode::Bolt => b.pressed(prev, Buttons::FIRE),
             };
-        if wants_fire && !lowered && self.sprint_lock > 0 {
-            self.fire_queued = true;
+        if wants_fire && !lowered && self.sprint_lock > 0 && self.cooldown <= self.sprint_lock {
+            if self.mag() == 0 {
+                ev.dry_fire |= b.pressed(prev, Buttons::FIRE);
+            } else {
+                self.fire_queued = true;
+            }
         }
         if !wants_fire || self.cooldown > 0 || self.sprint_lock > 0 || lowered {
             return ev;
         }
-        if std::mem::take(&mut self.fire_queued) && self.mag() == 0 {
-            ev.dry_fire = true;
-        }
+        self.fire_queued = false;
         if self.mag() == 0 {
             if b.pressed(prev, Buttons::FIRE) {
                 ev.dry_fire = true;
@@ -879,7 +888,8 @@ mod tests {
     #[test]
     fn sprint_blocks_fire_until_gun_is_up() {
         let (d, l, mut s) = setup("ar7_mako");
-        let wait = secs_to_ticks(0.2, 60) as i32;
+        let wait = secs_to_ticks(l.spec(&d).sprint_to_fire_s * l.mods.sprint_to_fire, 60) as i32;
+        assert!(wait > 1);
         let mut sprint = still();
         sprint.sprinting = true;
         for (env, why) in [(still(), "the sprint ends"), (sprint, "still sprinting")] {
@@ -1208,6 +1218,105 @@ mod tests {
         assert!(s.bloom_deg > 0.0 && s.bloom_deg <= sp.bloom_max_ads + 1e-6, "{}", s.bloom_deg);
         let spread = s.spread_deg(&d, l.spec(&d), &l, &run);
         assert!((spread - (sp.ads_still + s.bloom_deg)).abs() < 1e-5);
+    }
+
+    /// From a sprint, aim and trigger held: the shot goes off no later than the first tick the gun is aimed, for
+    /// every gun, with its default parts and with its fastest-aiming build (review: the faster ADS of playtest round
+    /// 1 waited on the raise from the sprint pose, so a run gained nothing from it).
+    #[test]
+    fn from_a_sprint_an_aimed_shot_never_waits_on_the_raise() {
+        let d = GameData::embedded();
+        let fastest: [(&str, &[&str]); 3] = [
+            ("ar7_mako", &["optic_reddot", "grip_angled", "mako_stock_light"]),
+            ("sk9_skink", &["optic_reddot"]),
+            ("vk50_warden", &["optic_reddot", "warden_stock_folding"]),
+        ];
+        for (gun, fast) in fastest {
+            for parts in [&[][..], fast] {
+                let parts: Vec<String> = parts.iter().map(|p| p.to_string()).collect();
+                let l = WeaponLoadout::resolve(&d, gun, &[AmmoChoice::STANDARD], &parts).unwrap();
+                let mut s = WeaponState::new(&d, &l);
+                s.action = WeaponAction::Ready;
+                let sprint = WeaponEnv { sprinting: true, speed_frac: 7.0 / 4.8, ..still() };
+                s.step(&d, &l, &input(0), &sprint);
+                assert!(s.lowered(), "{gun}");
+                let (mut aimed, mut shot) = (None, None);
+                for t in 1..60 {
+                    let ev = s.step(&d, &l, &input(Buttons::ADS | Buttons::FIRE), &sprint);
+                    if s.ads >= ADS_AIMED {
+                        aimed.get_or_insert(t);
+                    }
+                    if ev.shot.is_some() {
+                        shot.get_or_insert(t);
+                    }
+                }
+                let (aimed, shot) = (aimed.unwrap(), shot.expect("it fires"));
+                let raise = secs_to_ticks(l.spec(&d).sprint_to_fire_s * l.mods.sprint_to_fire, 60) as i32;
+                assert!(shot <= aimed, "{gun} {parts:?}: aimed at tick {aimed}, shot at {shot}");
+                assert_eq!(shot, raise.min(aimed), "{gun} {parts:?}: no sooner than the raise or the sight");
+            }
+        }
+    }
+
+    /// An empty gun clicks on the trigger pull itself, on the run too while the gun comes up: a one-tick tap gives
+    /// exactly one click, on the tap (the sound plays while FIRE is held), and so does FIRE held through the raise
+    /// (review: a tap on the run clicked 0.2-0.3 s later, after it was let go, so it never played).
+    #[test]
+    fn an_empty_tap_on_the_run_clicks_once_on_the_pull() {
+        let modes = [
+            ("ar7_mako", FireMode::Semi),
+            ("ar7_mako", FireMode::Auto),
+            ("sk9_skink", FireMode::Auto),
+            ("vk50_warden", FireMode::Bolt),
+        ];
+        for (gun, mode) in modes {
+            for hold in [1, 30] {
+                let (d, l, mut s) = setup(gun);
+                s.fire_mode = mode;
+                s.rounds[0] = 0;
+                let sprint = WeaponEnv { sprinting: true, ..still() };
+                s.step(&d, &l, &input(0), &sprint);
+                assert!(s.lowered());
+                let clicks: Vec<usize> = (0..90)
+                    .filter(|t| {
+                        let fire = if *t < hold { Buttons::FIRE } else { 0 };
+                        s.step(&d, &l, &input(fire), &sprint).dry_fire
+                    })
+                    .collect();
+                assert_eq!(clicks, vec![0], "{gun} {mode:?} held {hold}: one click, on the pull");
+                assert!(!s.fire_queued, "{gun}: nothing waits on an empty gun");
+            }
+        }
+    }
+
+    /// A trigger pull during a bolt cycle is dropped on the run as it is standing still; only a pull that waits on
+    /// nothing but the raise from the sprint pose is kept (review: a Warden tap mid-bolt fired on its own later).
+    #[test]
+    fn a_tap_mid_bolt_fires_nothing_on_the_run_either() {
+        for sprinting in [false, true] {
+            let (d, l, mut s) = setup("vk50_warden");
+            let env = WeaponEnv { sprinting, ..still() };
+            let shots: Vec<i32> = (0..200)
+                .filter(|t| {
+                    let fire = if *t == 0 || (48..52).contains(t) { Buttons::FIRE } else { 0 };
+                    s.step(&d, &l, &input(fire), &env).shot.is_some()
+                })
+                .collect();
+            assert_eq!(shots, vec![0], "sprinting {sprinting}: the mid-bolt tap is dropped");
+        }
+        // Late in the bolt cycle, only the raise is in the way: that tap fires when the gun is up.
+        let (d, l, mut s) = setup("vk50_warden");
+        let env = WeaponEnv { sprinting: true, ..still() };
+        let raise = secs_to_ticks(l.spec(&d).sprint_to_fire_s * l.mods.sprint_to_fire, 60) as i32;
+        let cycle = fire_interval_ticks(l.spec(&d), 60, false) as i32;
+        let tap = cycle - raise + 2;
+        let shots: Vec<i32> = (0..200)
+            .filter(|t| {
+                let fire = if *t == 0 || *t == tap { Buttons::FIRE } else { 0 };
+                s.step(&d, &l, &input(fire), &env).shot.is_some()
+            })
+            .collect();
+        assert_eq!(shots, vec![0, tap + raise - 1]);
     }
 
     #[test]
