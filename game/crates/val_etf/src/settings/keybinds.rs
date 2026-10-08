@@ -106,9 +106,10 @@ pub fn build(p: &mut ChildSpawnerCommands, k: &Kit) {
             c,
             k,
             &[(
-                "With AUTO-SPRINT on (Gameplay tab), running forward sprints and Shift walks. Walk and Hold breath share Shift \
-                 (scoped, Shift walks and steadies the shot); any other clash turns the key amber and names the \
-                 other action. Number keys 1–6 pick magazines only while the reload radial is open.",
+                "With AUTO-SPRINT on (Gameplay tab), running forward sprints and holding Walk walks. Walk and Hold \
+                 breath may share a key (scoped, it walks and steadies the shot); any other clash turns the key \
+                 amber and names the other action. Number keys 1–6 pick magazines only while the reload radial \
+                 is open.",
                 false,
                 None,
             )],
