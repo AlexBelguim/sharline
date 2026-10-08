@@ -294,6 +294,18 @@ fn spawn_row(
                             ));
                         }
                     }
+                    // Team deathmatch and free-for-all: a magazine type's points (six of it are carried).
+                    if let (RowKind::Part(Some(id)), Pop::Slot(AttachmentCategory::Mag), Some(kit)) =
+                        (&row.kind, pop, &draft.fixed)
+                    {
+                        let with = draft.gear_with(v.data, |x| x.set_part(AttachmentCategory::Mag, Some(id), v.data));
+                        let over = !row.equipped && v.ctx.budget.is_some_and(|b| with.total() > b);
+                        n.spawn(f.role_color(
+                            TextRole::Micro,
+                            text::points(kit.mag_points(id)),
+                            if over { BAD } else { TEXT_MID },
+                        ));
+                    }
                     if row.equipped {
                         n.spawn((
                             ImageNode::new(v.images.icon(Icon::Check)).with_color(TEAL),

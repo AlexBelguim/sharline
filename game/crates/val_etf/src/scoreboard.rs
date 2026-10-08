@@ -103,13 +103,24 @@ struct Row {
     kills: u16,
     deaths: u16,
     ping_ms: u16,
+    /// The agent the host dealt for the match (None: not dealt, e.g. the gun range).
+    agent: Option<String>,
 }
 
-#[allow(clippy::too_many_arguments)]
+#[allow(clippy::too_many_arguments, clippy::type_complexity)]
 fn rebuild(
     root: Query<&Visibility, With<BoardRoot>>,
     body: Query<Entity, With<BoardBody>>,
-    players: Query<(&PlayerId, &PlayerInfo, &Score, &Vitals, &PlayerLoadout, Option<&PlayerNet>, Has<Controlled>)>,
+    players: Query<(
+        &PlayerId,
+        &PlayerInfo,
+        &Score,
+        &Vitals,
+        &PlayerLoadout,
+        Option<&PlayerNet>,
+        Has<Controlled>,
+        Option<&PlayerAgent>,
+    )>,
     matches: Query<&MatchState>,
     session: Res<Session>,
     data: Res<Data>,
@@ -130,7 +141,7 @@ fn rebuild(
     let Some(body) = body.iter().next() else { return };
     let rows: Vec<Row> = players
         .iter()
-        .map(|(id, info, score, v, loadout, net, me)| Row {
+        .map(|(id, info, score, v, loadout, net, me, agent)| Row {
             id: id.0,
             name: info.name.to_uppercase(),
             me,
@@ -143,6 +154,7 @@ fn rebuild(
             kills: score.kills,
             deaths: score.deaths,
             ping_ms: net.map_or(0, |n| n.ping_ms),
+            agent: agent.and_then(|a| a.0.clone()),
         })
         .collect();
     let my_team = rows.iter().find(|r| r.me).and_then(|r| r.team);
@@ -387,7 +399,8 @@ fn player_row(blk: &mut ChildSpawnerCommands, fonts: &UiFonts, images: &UiImages
                 BackgroundColor(if ally { ALLY } else { ENEMY }),
             ));
         }
-        // Agent badge: every agent is Kestrel until the loadout carries one.
+        // Agent badge: the agent's initial in its colour (`?` while none is dealt).
+        let (initial, color) = r.agent.as_deref().map_or(("?".to_string(), TEXT_MID), crate::loadout::agent_badge);
         row.spawn(cell(false)).with_children(|c| {
             c.spawn((
                 Node {
@@ -398,8 +411,8 @@ fn player_row(blk: &mut ChildSpawnerCommands, fonts: &UiFonts, images: &UiImages
                     border_radius: BorderRadius::all(px(3)),
                     ..default()
                 },
-                BackgroundColor(if r.dead { fade(AGENT_KESTREL, 0.45) } else { AGENT_KESTREL }),
-                children![fonts.text("K", Face::Display, 700, 14.0, ICON_CUT, 0.0)],
+                BackgroundColor(if r.dead { fade(color, 0.45) } else { color }),
+                children![fonts.text(initial, Face::Display, 700, 14.0, ICON_CUT, 0.0)],
             ));
         });
         row.spawn(cell(false)).with_children(|c| {
@@ -476,6 +489,7 @@ mod tests {
             kills,
             deaths,
             ping_ms: 0,
+            agent: None,
         }
     }
 

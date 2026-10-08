@@ -51,7 +51,7 @@ impl Plugin for ServerPlugin {
             .add_systems(FixedUpdate, simulate_authoritative.in_set(SimSystems::Simulate).run_if(is_hosting))
             .add_systems(
                 FixedUpdate,
-                (resolve_claims, handle_deaths, sync_teams, respawn_players, run_match)
+                (resolve_claims, handle_deaths, sync_teams, respawn_players, run_match, deal_agents)
                     .chain()
                     .in_set(SimSystems::Resolve)
                     .run_if(is_hosting),
@@ -304,6 +304,8 @@ fn on_link_connected(
             PlayerLoadout(loadout),
             Score::default(),
             PlayerNet::default(),
+            // Dealt when the match starts (`deal_agents`); none in the lobby and the range.
+            PlayerAgent::default(),
             ServerPlayer {
                 link: trigger.entity,
                 peer,
@@ -418,32 +420,37 @@ pub enum LoadoutError {
     UnknownWeapon,
     /// An attachment that does not exist or does not fit the gun, or two in one category.
     Attachment,
-    /// A halo arc above its loadout tier cap.
+    /// A halo arc above its loadout tier cap (more armor than any loadout may wear).
     TierCap,
     /// A magazine's ammo cannot be loaded by that gun, or it is NPC-only.
     Ammo,
     /// No magazines, or more than six.
     MagCount,
-    /// Halo arc tiers plus the magazines' gear cost exceed the mode's gear budget.
+    /// The picks cost more points than the mode's budget.
     OverBudget {
         cost: u32,
         budget: u32,
     },
 }
 
-/// Build a loadout from a client's choice (the Loadout screen checks the same rules before CONFIRM). The
-/// choice is first shaped to the mode ([`LoadoutChoice::for_mode`]): team deathmatch and free-for-all give
-/// everyone their one halo core and magazine count, every magazine with slot 1's ammo, whatever was asked.
-/// Then: attachments that fit the gun (one per category), halo arcs within the loadout tier caps, players'
-/// ammo only, one to six magazines, and the mode's gear budget (arc tiers + the ammo's gear cost, see
-/// `vetf_sim::gear::loadout_cost`; the gun range has none). The healing kit comes from the mode, not the
-/// client.
+/// Build a loadout from a client's choice (the Loadout screen checks the same rules before CONFIRM).
+///
+/// First what no loadout may ask for: an unknown gun, no magazine or more than six, a halo arc above its
+/// loadout cap. Then team deathmatch and free-for-all shape the choice to the picks they sell
+/// ([`LoadoutChoice::for_mode`]): the armor tier the halo makes, on the one halo core, and six magazines of
+/// slot 1's ammo (a loadout saved by an older build opens as its nearest picks). Then: players' ammo only,
+/// attachments that fit the gun (one per category), and the points (armor tier + ammo type once + magazine
+/// type, `vetf_sim::gear::loadout_cost`) within the mode's budget; the gun range has none. The healing kit
+/// comes from the mode, not the client.
 pub fn loadout_from_choice(data: &GameData, choice: &LoadoutChoice, mode: MatchMode) -> Result<Loadout, LoadoutError> {
-    let choice = &choice.for_mode(data, mode);
     let spec = data.weapon(&choice.weapon).ok_or(LoadoutError::UnknownWeapon)?;
     if choice.mags.is_empty() || choice.mags.len() > MAX_MAGS {
         return Err(LoadoutError::MagCount);
     }
+    if !choice.halo.within_caps(data.armor.loadout_tier_caps) {
+        return Err(LoadoutError::TierCap);
+    }
+    let choice = &choice.for_mode(data, mode);
     for m in &choice.mags {
         data.ammo_for(spec, *m).filter(|a| a.player_loadout).ok_or(LoadoutError::Ammo)?;
     }
@@ -455,12 +462,9 @@ pub fn loadout_from_choice(data: &GameData, choice: &LoadoutChoice, mode: MatchM
         }
         cats.push(a.cat);
     }
-    if !choice.halo.within_caps(data.armor.loadout_tier_caps) {
-        return Err(LoadoutError::TierCap);
-    }
     let weapon = WeaponLoadout::resolve(data, &choice.weapon, &choice.mags, &choice.attachments)
         .ok_or(LoadoutError::UnknownWeapon)?;
-    let cost = loadout_cost(data, mode, spec, &choice.halo, &choice.mags).total();
+    let cost = loadout_cost(data, mode, spec, &choice.halo, &choice.mags, &choice.attachments).total();
     if let Some(budget) = gear_budget(data, mode)
         && cost > budget
     {
@@ -499,17 +503,25 @@ fn equip(data: &GameData, l: Loadout, mode: MatchMode, gear: Gear) {
     *lo = PlayerLoadout(l);
 }
 
-/// A loadout in a few words for the log: `sk9_skink · H2 T3 A1 L0 MENDER · AP II x4`.
+/// A loadout in a few words for the log: `sk9_skink skink_mag_60 · T3 MENDER (H3 T3 A1 L1) · AP II x6`, or
+/// `... · H2 T3 A1 L0 MENDER · ...` for a halo that is no deathmatch armor tier (the gun range).
 fn loadout_words(data: &GameData, l: &Loadout) -> String {
     let t = l.halo.tiers;
     let core = l.halo.core.map_or("NO HALO", |c| c.label());
+    let arcs = format!("H{} T{} A{} L{}", t.head, t.torso, t.arms, t.legs);
+    let halo = match data.rules.deathmatch_loadout.tier_of(t) {
+        Some(tier) => format!("T{tier} {core} ({arcs})"),
+        None => format!("{arcs} {core}"),
+    };
     let ammo: Vec<String> =
         l.weapon.mags.iter().map(|m| data.ammo.long_name(m.choice).unwrap_or_else(|| "?".into())).collect();
     let ammo = match ammo.first() {
         Some(first) if ammo.iter().all(|a| a == first) => format!("{first} x{}", ammo.len()),
         _ => ammo.join(", "),
     };
-    format!("{} · H{} T{} A{} L{} {core} · {ammo}", l.weapon.spec(data).id, t.head, t.torso, t.arms, t.legs)
+    let spec = l.weapon.spec(data);
+    let mag = vetf_sim::gear::mag_type(data, spec, &l.weapon.attachments);
+    format!("{} {mag} · {halo} · {ammo}", spec.id)
 }
 
 fn receive_hellos(
@@ -1420,6 +1432,74 @@ mod system_tests {
         assert!(!lobby_full(8, 7, false));
         assert_eq!(free_seats(6, 7), 0, "more players than seats (a lobby that shrank) is still full");
     }
+
+    /// Team deathmatch and free-for-all deal every player an agent when the match goes live, keep it for the
+    /// match (a late joiner gets one too), take them back in the lobby and deal afresh on a restart; the
+    /// gun range deals none.
+    #[test]
+    fn agents_are_dealt_for_the_match() {
+        let agent = |app: &App, e: Entity| app.world().get::<PlayerAgent>(e).unwrap().0.clone();
+        let set_match = |app: &mut App, f: &dyn Fn(&mut MatchState)| {
+            let mut q = app.world_mut().query::<&mut MatchState>();
+            f(&mut q.single_mut(app.world_mut()).unwrap());
+        };
+        for mode in [MatchMode::Tdm, MatchMode::Ffa] {
+            let mut app = world(mode, MatchPhase::Lobby);
+            app.init_resource::<LocalTimeline>();
+            app.add_systems(Update, deal_agents);
+            let es: Vec<Entity> = (0..6)
+                .map(|id| {
+                    let e = player(&mut app, id, None);
+                    app.world_mut().entity_mut(e).insert(PlayerAgent::default());
+                    e
+                })
+                .collect();
+            app.update();
+            assert!(es.iter().all(|e| agent(&app, *e).is_none()), "{mode:?}: no agents in the lobby");
+            set_match(&mut app, &|m| m.phase = MatchPhase::Live);
+            app.update();
+            let pool = crate::loadout::agent_ids();
+            let dealt: Vec<String> = es.iter().map(|e| agent(&app, *e).expect("dealt at the start")).collect();
+            assert!(dealt.iter().all(|a| pool.contains(a)), "{dealt:?}");
+            // the clock runs: the same agents; a late joiner gets one
+            set_match(&mut app, &|m| m.time_left_s -= 30.0);
+            let late = player(&mut app, 9, None);
+            app.world_mut().entity_mut(late).insert(PlayerAgent::default());
+            app.update();
+            assert_eq!(es.iter().map(|e| agent(&app, *e).unwrap()).collect::<Vec<_>>(), dealt, "{mode:?}: kept");
+            assert!(agent(&app, late).is_some());
+            set_match(&mut app, &|m| m.phase = MatchPhase::Ended { winner: None, player: None });
+            app.update();
+            assert_eq!(agent(&app, es[0]), Some(dealt[0].clone()), "kept on the end board");
+            // the host's RESTART MATCH: the clock jumps back up, a new deal (from a new seed)
+            app.world_mut().resource_mut::<LocalTimeline>().apply_delta(1000);
+            set_match(&mut app, &|m| {
+                m.phase = MatchPhase::Live;
+                m.time_left_s += 30.0;
+            });
+            app.update();
+            assert!(es.iter().all(|e| agent(&app, *e).is_some()), "{mode:?}: dealt again");
+            set_match(&mut app, &|m| m.phase = MatchPhase::Lobby);
+            app.update();
+            assert!(es.iter().all(|e| agent(&app, *e).is_none()), "{mode:?}: back to the lobby");
+        }
+        // The gun range: the agent each player picked (the default without a pick, or for an unknown one)
+        let mut range = world(MatchMode::Range, MatchPhase::Live);
+        range.init_resource::<LocalTimeline>();
+        range.add_systems(Update, deal_agents);
+        let picked = player(&mut range, 0, None);
+        let unknown = player(&mut range, 1, None);
+        let none = player(&mut range, 2, None);
+        for (e, pick) in [(picked, Some("solace")), (unknown, Some("nobody")), (none, None)] {
+            let choice = pick.map(|a| LoadoutChoice { agent: a.into(), ..default_choice(&GameData::embedded()) });
+            range.world_mut().get_mut::<ServerPlayer>(e).unwrap().choice = choice;
+            range.world_mut().entity_mut(e).insert(PlayerAgent::default());
+        }
+        range.update();
+        assert_eq!(agent(&range, picked).as_deref(), Some("solace"), "the range: the pick");
+        assert_eq!(agent(&range, unknown).as_deref(), Some("kestrel"));
+        assert_eq!(agent(&range, none).as_deref(), Some("kestrel"));
+    }
 }
 
 #[allow(clippy::type_complexity)]
@@ -1561,6 +1641,70 @@ fn run_match(
                     players.iter_mut().map(|(_, n, v, s, _)| (n, v, s)),
                 );
             }
+        }
+    }
+}
+
+/// The agent a player is dealt in a match (DIRECTION_LOG 17: team deathmatch and free-for-all have no agent
+/// pick): one roll from the match's seed and the player's id, so every match deals afresh, a player keeps
+/// theirs for the whole match, and the same seed deals the same agents (tests and replays). `pool` is
+/// `agents.ron`'s ids.
+pub fn deal_agent(pool: &[String], seed: u64, player: u64) -> Option<&String> {
+    let roll = vetf_sim::rng::SplitMix::from_parts(&[seed, player, 0x4147_454e_5453]).next_f32();
+    pool.get(((roll * pool.len() as f32) as usize).min(pool.len().saturating_sub(1)))
+}
+
+/// What [`deal_agents`] remembers: the running match's seed (the tick it went live) and its clock.
+#[derive(Default)]
+struct AgentDeal {
+    seed: Option<u64>,
+    clock: f32,
+}
+
+/// Team deathmatch and free-for-all: deal every player a random agent ([`deal_agent`]) when the match goes
+/// live, keep it until the match is over (a player who joins mid-match is dealt one on arrival), and take
+/// them back in the lobby. The host's RESTART MATCH (the clock jumps back up) is a new match and deals
+/// again. The gun range: the agent each player picked on the Loadout screen.
+fn deal_agents(
+    matches: Query<&MatchState>,
+    timeline: Res<LocalTimeline>,
+    mut players: Query<(&PlayerId, &mut PlayerAgent, Option<&ServerPlayer>)>,
+    mut deal: Local<AgentDeal>,
+) {
+    let running = matches.iter().next().filter(|m| m.mode.is_deathmatch() && m.phase != MatchPhase::Lobby);
+    let Some(m) = running else {
+        deal.seed = None;
+        let range = matches.iter().next().is_some_and(|m| m.mode == MatchMode::Range);
+        let pool = crate::loadout::agent_ids();
+        for (_, mut agent, sp) in &mut players {
+            let picked = sp.and_then(|p| p.choice.as_ref()).map(|c| c.agent.clone()).filter(|a| pool.contains(a));
+            let want = range.then(|| picked.unwrap_or_else(|| crate::config::DEFAULT_AGENT.into()));
+            if agent.0 != want {
+                agent.0 = want;
+            }
+        }
+        return;
+    };
+    let restarted = m.phase == MatchPhase::Live && m.time_left_s > deal.clock;
+    deal.clock = m.time_left_s;
+    let seed = match deal.seed {
+        Some(seed) if !restarted => seed,
+        _ => {
+            let seed = timeline.tick().0 as u64;
+            deal.seed = Some(seed);
+            for (_, mut agent, _) in &mut players {
+                agent.0 = None;
+            }
+            seed
+        }
+    };
+    let pool = crate::loadout::agent_ids();
+    for (id, mut agent, _) in &mut players {
+        if agent.0.is_none()
+            && let Some(dealt) = deal_agent(&pool, seed, id.0)
+        {
+            info!("player {:x} plays {dealt} this match", id.0);
+            agent.0 = Some(dealt.clone());
         }
     }
 }
@@ -1783,43 +1927,72 @@ mod tests {
         }
     }
 
+    /// A deathmatch loadout as the Loadout screen sends it: armor tier `armor`, six magazines of `ammo`, the
+    /// gun's parts.
+    fn picks(weapon: &str, armor: u8, ammo: AmmoChoice, parts: &[&str]) -> LoadoutChoice {
+        let d = GameData::embedded();
+        let kit = &d.rules.deathmatch_loadout;
+        LoadoutChoice {
+            weapon: weapon.into(),
+            mags: vec![ammo; kit.mags as usize],
+            attachments: parts.iter().map(|p| p.to_string()).collect(),
+            halo: HaloChoice::of_tier(kit, armor),
+            agent: String::new(),
+        }
+    }
+
     #[test]
     fn halo_arcs_must_stay_within_the_tier_caps() {
-        let mut d = GameData::embedded();
-        d.rules.tdm.gear_budget = 100; // only the caps matter here
+        let d = GameData::embedded();
         let capped = choice("ar7_mako", AmmoChoice::STANDARD, "arm_bulwark_jugg");
-        let l = loadout_from_choice(&d, &capped).unwrap();
+        let l = super::loadout_from_choice(&d, &capped, MatchMode::Range).unwrap();
         assert_eq!(l.halo.tiers.legs, d.armor.loadout_tier_caps.legs);
         assert_eq!(l.halo.tiers.torso, 4);
-        // the uncapped rare-loot halo is refused, not silently capped
+        // the uncapped rare-loot halo is refused, not silently capped, in every mode
         let raw = LoadoutChoice {
             halo: HaloChoice::from_preset(d.armor.preset("arm_bulwark_jugg").unwrap()),
             ..capped.clone()
         };
-        assert_eq!(loadout_from_choice(&d, &raw).err(), Some(LoadoutError::TierCap));
+        for mode in MatchMode::ALL {
+            assert_eq!(super::loadout_from_choice(&d, &raw, mode).err(), Some(LoadoutError::TierCap), "{mode:?}");
+        }
     }
 
     #[test]
-    fn a_custom_mixed_tier_halo_is_resolved_per_arc() {
+    fn the_range_wears_a_custom_mixed_tier_halo_per_arc() {
         let d = GameData::embedded();
         let mut c = choice("ar7_mako", AmmoChoice::STANDARD, "arm_none");
         c.halo = HaloChoice { core: Core::Volt, tiers: ZoneTable { head: 1, torso: 3, arms: 0, legs: 2 } };
-        // the gun range wears the core asked for
         let l = super::loadout_from_choice(&d, &c, MatchMode::Range).unwrap();
         assert_eq!(l.halo.tiers, c.halo.tiers);
         assert_eq!(l.halo.core, Some(Core::Volt));
         assert_eq!(l.weight, d.armor.weight_class(6));
-        // the deathmatch modes: the same tiers on their one halo
-        for mode in [MatchMode::Tdm, MatchMode::Ffa] {
-            let l = super::loadout_from_choice(&d, &c, mode).unwrap();
-            assert_eq!(l.halo.tiers, c.halo.tiers);
-            assert_eq!(l.halo.core, d.rules.fixed_loadout(mode).map(|f| f.halo_core), "{mode:?}");
-            assert_eq!(l.weight, d.armor.weight_class(6), "weight comes from the tiers");
-        }
         // no arcs: no halo, whatever the core
         c.halo.tiers = ZoneTable::splat(0);
-        let l = loadout_from_choice(&d, &c).unwrap();
+        let l = super::loadout_from_choice(&d, &c, MatchMode::Range).unwrap();
         assert_eq!((l.halo.core, l.weight), (None, vetf_sim::data::WeightClass::None));
+    }
+
+    /// Team deathmatch and free-for-all wear one armor tier on the one halo core: each tier's combination and
+    /// weight class (DIRECTION_LOG 17).
+    #[test]
+    fn deathmatch_players_wear_an_armor_tier() {
+        use vetf_sim::data::WeightClass::{Heavy, Light, Medium};
+        let d = GameData::embedded();
+        for mode in [MatchMode::Tdm, MatchMode::Ffa] {
+            for (tier, arcs, weight) in [
+                (1, ZoneTable { head: 1, torso: 1, arms: 1, legs: 1 }, Light),
+                (2, ZoneTable { head: 2, torso: 2, arms: 2, legs: 2 }, Medium),
+                (3, ZoneTable { head: 3, torso: 3, arms: 1, legs: 1 }, Medium),
+                (4, ZoneTable { head: 4, torso: 4, arms: 3, legs: 2 }, Heavy),
+            ] {
+                let c = picks("ar7_mako", tier, AmmoChoice::STANDARD, &[]);
+                let l = super::loadout_from_choice(&d, &c, mode).unwrap();
+                assert_eq!((l.halo.tiers, l.weight), (arcs, weight), "{mode:?} T{tier}");
+                assert_eq!(l.halo.core, Some(Core::Mender), "{mode:?} T{tier}: the one halo");
+                assert_eq!(l.weapon.mags.len(), 6, "six magazines");
+            }
+        }
     }
 
     #[test]
@@ -1834,6 +2007,8 @@ mod tests {
         assert_eq!(loadout_from_choice(&d, &c).err(), Some(LoadoutError::Attachment), "a Warden part");
         c.attachments = vec!["optic_reddot".into(), "optic_holo".into()];
         assert_eq!(loadout_from_choice(&d, &c).err(), Some(LoadoutError::Attachment), "two optics");
+        c.attachments = vec!["mag_45".into(), "mag_drum60".into()];
+        assert_eq!(loadout_from_choice(&d, &c).err(), Some(LoadoutError::Attachment), "two magazine types");
         c.attachments = vec!["nope".into()];
         assert_eq!(loadout_from_choice(&d, &c).err(), Some(LoadoutError::Attachment));
     }
@@ -1842,73 +2017,74 @@ mod tests {
     fn the_gun_range_has_no_gear_budget() {
         let d = GameData::embedded();
         let ap3 = AmmoChoice { kind: AmmoKind::ArmorPiercing, tier: 3 };
-        let c = mags("ar7_mako", &[ap3; 6], "arm_bulwark_assault");
+        let c = picks("ar7_mako", 4, ap3, &["mag_drum60"]);
         assert!(matches!(loadout_from_choice(&d, &c), Err(LoadoutError::OverBudget { .. })));
         assert!(super::loadout_from_choice(&d, &c, MatchMode::Range).is_ok());
     }
 
+    /// The host prices the picks like the Loadout screen and refuses what the budget does not cover: T4
+    /// armor with the best ammo, with any gun; the sensible middles and the default loadout go through.
     #[test]
-    fn gear_budget_prices_armor_and_the_ammo_type_once() {
+    fn the_host_holds_every_loadout_to_the_points() {
         let d = GameData::embedded();
         let std = AmmoChoice::STANDARD;
-        let ap1 = AmmoChoice { kind: AmmoKind::ArmorPiercing, tier: 1 };
-        let ap3 = AmmoChoice { kind: AmmoKind::ArmorPiercing, tier: 3 };
-        let price_of = |c| d.ammo.resolve(vetf_sim::data::WeaponClass::AssaultRifle, c).unwrap().gear_cost;
-        let mako = d.weapon("ar7_mako").unwrap();
-        // the default loadout fits every mode
+        let ap = |tier| AmmoChoice { kind: AmmoKind::ArmorPiercing, tier };
+        let rip3 = AmmoChoice { kind: AmmoKind::Rip, tier: 3 };
         for mode in MatchMode::ALL {
-            assert!(super::loadout_from_choice(&d, &default_choice(&d), mode).is_ok(), "{mode:?}");
+            assert!(super::loadout_from_choice(&d, &default_choice(&d), mode).is_ok(), "{mode:?}: the default");
         }
         for mode in [MatchMode::Tdm, MatchMode::Ffa] {
             let budget = gear_budget(&d, mode).unwrap();
-            // one ammo type, paid once: four AP I magazines cost one AP I
-            let four = mags("ar7_mako", &[ap1; 4], "arm_mender_scout");
-            assert_eq!(loadout_cost(&d, mode, mako, &four.halo, &four.mags).total(), 4 + price_of(ap1));
-            assert!(super::loadout_from_choice(&d, &four, mode).is_ok());
-            // every arc at its cap fits with standard ammo, not with AP III
-            let caps = d.armor.loadout_tier_caps;
-            let full = LoadoutChoice {
-                halo: HaloChoice { core: Core::Mender, tiers: caps },
-                ..mags("ar7_mako", &[std], "arm_none")
-            };
-            assert!(super::loadout_from_choice(&d, &full, mode).is_ok(), "{mode:?}: capped arcs fit");
-            let rich = LoadoutChoice { mags: vec![ap3], ..full };
-            let over = super::loadout_from_choice(&d, &rich, mode);
-            assert!(matches!(over, Err(LoadoutError::OverBudget { budget: b, .. }) if b == budget), "{over:?}");
+            let host = |c: &LoadoutChoice| super::loadout_from_choice(&d, c, mode);
+            let over =
+                |c: &LoadoutChoice| matches!(host(c), Err(LoadoutError::OverBudget { budget: b, .. }) if b == budget);
+            for gun in ["ar7_mako", "vk50_warden", "sk9_skink"] {
+                assert!(over(&picks(gun, 4, ap(3), &[])), "{mode:?} {gun}: T4 + AP III");
+                for tier in 1..=4 {
+                    assert!(host(&picks(gun, tier, std, &[])).is_ok(), "{mode:?} {gun}: T{tier} + STD");
+                }
+            }
+            assert!(over(&picks("sk9_skink", 4, rip3, &[])), "T4 + RIP III");
+            assert!(host(&picks("ar7_mako", 4, std, &["mag_drum60"])).is_ok(), "T4 + STD + the drum");
+            assert!(host(&picks("ar7_mako", 3, ap(3), &["mag_45"])).is_ok(), "T3 + AP III + extended");
+            assert!(host(&picks("ar7_mako", 2, ap(3), &["mag_drum60"])).is_ok(), "T2 + AP III + the drum");
+            assert!(over(&picks("ar7_mako", 3, ap(3), &["mag_drum60"])), "T3 + AP III + the drum");
+            assert!(over(&picks("ar7_mako", 4, ap(2), &["mag_drum60"])), "T4 + AP II + the drum");
+            // the magazine type is the one asked for, six of it, and the points add up to the budget
+            let c = picks("ar7_mako", 2, ap(3), &["mag_drum60"]);
+            let l = host(&c).unwrap();
+            assert_eq!((l.weapon.mag_capacity, l.weapon.mags.len()), (60, 6));
+            let spec = l.weapon.spec(&d);
+            assert_eq!(loadout_cost(&d, mode, spec, &c.halo, &c.mags, &c.attachments).total(), budget);
         }
-        // the gun range has no budget and prices each magazine (for show)
-        let c = mags("ar7_mako", &[ap1, ap1, std], "arm_none");
-        assert_eq!(loadout_cost(&d, MatchMode::Range, mako, &c.halo, &c.mags).ammo, 2 * price_of(ap1));
-        assert!(
-            super::loadout_from_choice(&d, &mags("ar7_mako", &[ap3; 6], "arm_bulwark_assault"), MatchMode::Range)
-                .is_ok()
-        );
     }
 
-    /// A client cannot ask a deathmatch for more than it gives: another halo core, a mix of ammo or extra
-    /// magazines are shaped away before the checks (one halo, slot 1's ammo in the mode's count).
+    /// A client cannot ask a deathmatch for more than its picks: another halo core, a halo that is no armor
+    /// tier, a mix of ammo or fewer magazines are shaped to the picks before the checks (a loadout from an
+    /// older build becomes its nearest picks), and what the picks cost is what the budget sees.
     #[test]
-    fn deathmatch_loadouts_are_shaped_before_the_checks() {
+    fn deathmatch_loadouts_are_shaped_to_their_picks_before_the_checks() {
         let d = GameData::embedded();
         let ap2 = AmmoChoice { kind: AmmoKind::ArmorPiercing, tier: 2 };
         let rip3 = AmmoChoice { kind: AmmoKind::Rip, tier: 3 };
-        let mut rich = mags("sk9_skink", &[ap2, AmmoChoice::STANDARD, rip3, ap2, ap2, ap2], "arm_none");
+        let mut rich = mags("sk9_skink", &[ap2, AmmoChoice::STANDARD, rip3, ap2], "arm_none");
         rich.halo = HaloChoice { core: Core::Phase, tiers: ZoneTable { head: 2, torso: 2, arms: 0, legs: 0 } };
         for mode in [MatchMode::Tdm, MatchMode::Ffa] {
-            let fixed = d.rules.fixed_loadout(mode).unwrap();
+            let kit = d.rules.fixed_loadout(mode).unwrap();
             let l = super::loadout_from_choice(&d, &rich, mode).unwrap();
-            assert_eq!(l.weapon.mags.len(), fixed.mags as usize, "{mode:?}: the mode's magazine count");
+            assert_eq!(l.weapon.mags.len(), kit.mags as usize, "{mode:?}: six magazines");
             assert!(l.weapon.mags.iter().all(|m| m.choice == ap2), "{mode:?}: slot 1's ammo everywhere");
-            assert_eq!(l.halo.core, Some(fixed.halo_core), "{mode:?}: no Phase core (immune to slows)");
-            // no magazine at all, or seven: the mode's count of standard
+            assert_eq!(l.halo.core, Some(kit.halo_core), "{mode:?}: no Phase core (immune to slows)");
+            assert_eq!(l.halo.tiers, kit.armor[1].tiers, "{mode:?}: H2 T2 is armor T2");
+            // no magazine at all, or seven: refused, as everywhere
             for odd in [vec![], vec![AmmoChoice::STANDARD; 7]] {
-                let l = super::loadout_from_choice(&d, &mags("ar7_mako", &odd, "arm_none"), mode).unwrap();
-                assert_eq!(l.weapon.mags.len(), fixed.mags as usize);
+                let c = mags("ar7_mako", &odd, "arm_none");
+                assert_eq!(super::loadout_from_choice(&d, &c, mode).err(), Some(LoadoutError::MagCount));
             }
         }
         // the gun range takes the loadout as asked
         let l = super::loadout_from_choice(&d, &rich, MatchMode::Range).unwrap();
-        assert_eq!((l.weapon.mags.len(), l.halo.core), (6, Some(Core::Phase)));
+        assert_eq!((l.weapon.mags.len(), l.halo.core), (4, Some(Core::Phase)));
     }
 
     #[test]
@@ -1941,6 +2117,20 @@ mod tests {
             loadout_from_choice(&d, &choice("nope", AmmoChoice::STANDARD, "arm_none")).err(),
             Some(LoadoutError::UnknownWeapon)
         );
+    }
+
+    /// Agents are dealt from the pool by the match's seed and the player: the same seed deals the same, and
+    /// over many players every agent turns up about as often.
+    #[test]
+    fn agents_are_dealt_at_random_but_repeatably() {
+        let pool: Vec<String> = ["kestrel", "solace"].map(String::from).to_vec();
+        assert_eq!(deal_agent(&pool, 7, 3), deal_agent(&pool, 7, 3));
+        let kestrels = (0..1000).filter(|p| deal_agent(&pool, 7, *p).map(|a| a.as_str()) == Some("kestrel")).count();
+        assert!((420..580).contains(&kestrels), "{kestrels}");
+        let seeds = (0..64).filter(|s| deal_agent(&pool, *s, 3) != deal_agent(&pool, 0, 3)).count();
+        assert!(seeds > 10, "another match deals again ({seeds})");
+        assert_eq!(deal_agent(&[], 7, 3), None);
+        assert_eq!(deal_agent(&pool[..1], 7, 3).map(|a| a.as_str()), Some("kestrel"));
     }
 
     #[test]

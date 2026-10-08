@@ -1,6 +1,6 @@
 // Ammo (user direction, see game/DESIGN_DELTAS.md). A type and tier, e.g. AP II. In team deathmatch and
-// free-for-all every magazine carries the ONE type the player picks (DIRECTION_LOG 17), and the halo's gear cost
-// (sum of its loadout-capped arc tiers) plus that type's gear_cost, paid once, must fit rules.ron's gear_budget.
+// free-for-all all six magazines carry the ONE type the player picks (DIRECTION_LOG 17), and its gear_cost is
+// paid once, next to the armor tier and the magazine type, against rules.ron's gear_budget (deathmatch_loadout).
 // The gun range still loads each magazine (up to six, in slot order) on its own, with no budget.
 //
 // `pen` is a SHIELD-DAMAGE MULTIPLIER per halo tier: ammo pen[t] = classes[cls].pen[t] x pen_mult (t = 1..4).
@@ -34,15 +34,14 @@
         // The baseline round.
         Standard: (label: "STD", name: "STANDARD", blurb: "Baseline round.", tiers: [()]),
         // The shield breaker, for every class: arcs take x1.2 / x1.5 / x1.8, and the round hits 2 / 4 / 6 % harder
-        // (the Mako stays at its 3-shot unarmored torso, never 2). 2 / 4 / 6 gear: AP III never fits a Heavy halo
-        // (9+ tier points).
+        // (the Mako stays at its 3-shot unarmored torso, never 2). 1 / 2 / 4 points: AP III never fits with T4 armor.
         ArmorPiercing: (
             label: "AP",
             blurb: "Armor-piercing. Shield breaker.",
             tiers: [
-                (pen_mult: 1.2, damage_mult: 1.02, gear_cost: 2),
-                (pen_mult: 1.5, damage_mult: 1.04, gear_cost: 4),
-                (pen_mult: 1.8, damage_mult: 1.06, gear_cost: 6),
+                (pen_mult: 1.2, damage_mult: 1.02, gear_cost: 1),
+                (pen_mult: 1.5, damage_mult: 1.04, gear_cost: 2),
+                (pen_mult: 1.8, damage_mult: 1.06, gear_cost: 4),
             ],
         ),
         // SMG only. Expanding rounds: arcs take only 35 %, flesh takes +10 / 15 / 20 %, and a broken limb passes more
@@ -54,7 +53,7 @@
             tiers: [
                 (pen_mult: 0.35, flesh_mult: 1.1, spill_mult: 1.2, gear_cost: 1),
                 (pen_mult: 0.35, flesh_mult: 1.15, spill_mult: 1.35, gear_cost: 2),
-                (pen_mult: 0.35, flesh_mult: 1.2, spill_mult: 1.45, gear_cost: 3),
+                (pen_mult: 0.35, flesh_mult: 1.2, spill_mult: 1.45, gear_cost: 4),
             ],
         ),
         // NPC only (bots and bosses in the extraction mode): weak and resisted, but 10 / 15 / 20 % of hits slip past

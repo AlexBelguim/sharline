@@ -1,7 +1,8 @@
 //! Keyboard and gamepad-style focus on the Loadout page: Q / E switch column (the gun range: agent, weapon,
-//! halo; the deathmatch layout: weapon, then armor and ammo), the arrow keys move inside a column (Left /
-//! Right within a row of items, Up / Down between rows), Enter activates. The focused item gets the teal
-//! focus ring (2 px, offset 2), drawn only while the keyboard is in use.
+//! halo; the deathmatch layout: the gun with its parts and magazine type, then armor tier and ammo), the
+//! arrow keys move inside a column (Left / Right within a row of items, Up / Down between rows), Enter
+//! activates. The focused item gets the teal focus ring (2 px, offset 2), drawn only while the keyboard is in
+//! use.
 
 use super::model::{Draft, parts_for};
 use super::ui_data::LoadoutUiData;
@@ -38,13 +39,17 @@ pub fn columns(draft: &Draft, data: &GameData, ui: &LoadoutUiData, arc: Zone) ->
         .filter(|c| !parts_for(data, &draft.weapon, **c).is_empty())
         .map(|c| Act::Slot(*c))
         .collect();
-    if draft.fixed.is_some() {
-        // Deathmatch: the gun, then a row per body part (NONE..its cap) and the ammo row.
-        let caps = data.armor.loadout_tier_caps;
-        let mut right: Vec<Vec<Act>> =
-            Zone::ALL.iter().map(|z| (0..=caps[*z]).map(|t| Act::Arc(*z, t)).collect()).collect();
-        right.push(draft.ammo_options(data).into_iter().map(Act::Ammo).collect());
-        return Columns { cols: vec![vec![tabs, slots], right], start: 0 };
+    if let Some(kit) = &draft.fixed {
+        // Deathmatch: the gun, its parts and its magazine type; then the armor tiers and the ammo row.
+        let mags = draft
+            .mag_options(data)
+            .iter()
+            .filter_map(|m| data.attachments.attachments.iter().position(|a| a.id == m.id))
+            .map(Act::MagType)
+            .collect();
+        let armor = (1..=kit.armor.len() as u8).map(Act::Armor).collect();
+        let ammo = draft.ammo_options(data).into_iter().map(Act::Ammo).collect();
+        return Columns { cols: vec![vec![tabs, slots, mags], vec![armor, ammo]], start: 0 };
     }
     let agents = (0..ui.agents.len()).map(|i| vec![Act::Agent(i)]).collect();
     let mags = (0..=draft.mags.len().min(MAX_MAGS - 1)).map(Act::Mag).collect();
@@ -199,33 +204,35 @@ mod tests {
         assert_eq!(step(&cols, Some(Act::Core(Core::Phase)), Move::Down), Some(Act::Tier(2)), "clamped to the row");
     }
 
-    /// The deathmatch layout: Q / E between the gun and the armor + ammo column; down that column the body
-    /// parts in order (NONE..each one's cap: legs stop at T2), then the ammo row.
+    /// The deathmatch layout: Q / E between the gun column (weapon tabs, attachment slots, magazine types) and
+    /// the picks column (the armor tiers T1-T4, then the ammo row).
     #[test]
-    fn the_deathmatch_layout_focuses_gun_then_body_parts_then_ammo() {
+    fn the_deathmatch_layout_focuses_gun_and_magazine_then_armor_then_ammo() {
         use vetf_sim::data::{AmmoChoice, AmmoKind};
         let d = GameData::embedded();
         let ui = LoadoutUiData::embedded();
         let c = crate::config::loadout_choice(&crate::loadout::tests::plain_cli(), &d);
-        let fixed = d.rules.fixed_loadout(vetf_net::MatchMode::Ffa).copied();
-        let draft = Draft::from_choice(&c, &BTreeMap::new(), &d, fixed);
+        let kit = d.rules.fixed_loadout(vetf_net::MatchMode::Ffa).cloned();
+        let draft = Draft::from_choice(&c, &BTreeMap::new(), &d, kit);
         let cols = columns(&draft, &d, &ui, Zone::Torso);
         assert_eq!(cols.cols.len(), 2, "no agent column");
         assert_eq!(cols.start, 0);
+        let mag = |id: &str| Act::MagType(d.attachments.attachments.iter().position(|a| a.id == id).unwrap());
+        assert_eq!(cols.cols[0][2], [mag("mag_30"), mag("mag_45"), mag("mag_drum60")], "the Mako's magazines");
         let rows = &cols.cols[1];
-        assert_eq!(rows.len(), 5, "head, torso, arms, legs, ammo");
-        assert_eq!(rows[0][0], Act::Arc(Zone::Head, 0), "NONE first");
-        assert_eq!(rows[3], (0..=2).map(|t| Act::Arc(Zone::Legs, t)).collect::<Vec<_>>(), "legs cap at T2");
-        assert_eq!(rows[4][0], Act::Ammo(AmmoChoice::STANDARD));
+        assert_eq!(rows.len(), 2, "armor, ammo");
+        assert_eq!(rows[0], (1..=4).map(Act::Armor).collect::<Vec<_>>());
+        assert_eq!(rows[1][0], Act::Ammo(AmmoChoice::STANDARD));
         let start = step(&cols, None, Move::Down);
         assert_eq!(start, Some(Act::Weapon(0)), "focus starts on the gun");
+        assert_eq!(step(&cols, Some(Act::Slot(AttachmentCategory::Optic)), Move::Down), Some(mag("mag_30")));
         let right = step(&cols, start, Move::NextColumn);
-        assert_eq!(right, Some(Act::Arc(Zone::Head, 0)));
+        assert_eq!(right, Some(Act::Armor(1)));
         assert_eq!(step(&cols, right, Move::NextColumn), right, "the last column");
-        let t4 = step(&cols, Some(Act::Arc(Zone::Torso, 4)), Move::Down);
-        assert_eq!(t4, Some(Act::Arc(Zone::Arms, 3)), "arms cap at T3: clamped");
-        let ammo = step(&cols, Some(Act::Arc(Zone::Legs, 1)), Move::Down);
-        assert_eq!(ammo, Some(Act::Ammo(AmmoChoice { kind: AmmoKind::ArmorPiercing, tier: 1 })));
+        assert_eq!(step(&cols, Some(Act::Armor(4)), Move::Right), Some(Act::Armor(4)), "the row's end");
+        let ammo = step(&cols, Some(Act::Armor(2)), Move::Down);
+        assert_eq!(ammo, Some(Act::Ammo(AmmoChoice { kind: AmmoKind::ArmorPiercing, tier: 1 })), "same position");
+        assert_eq!(step(&cols, ammo, Move::Up), Some(Act::Armor(2)));
         assert_eq!(step(&cols, ammo, Move::PrevColumn), Some(Act::Weapon(0)));
     }
 }

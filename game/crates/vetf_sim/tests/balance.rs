@@ -202,51 +202,50 @@ fn warden_matches_the_design_model() {
     }
 }
 
-/// (armor preset, gun class, magazines as (type, tier), expected gear cost)
-type GearRow<'a> = (&'a str, WeaponClass, &'a [(AmmoKind, u8)], u32);
+/// (armor tier, gun class, ammo (type, tier), magazine type, expected points)
+type GearRow<'a> = (u8, WeaponClass, (AmmoKind, u8), &'a str, u32);
 
-/// Team-deathmatch gear: capped halo tiers plus every magazine's gear cost, against `tdm.gear_budget`.
+/// Team deathmatch and free-for-all points (DIRECTION_LOG 17, `rules.ron` `deathmatch_loadout`): the armor
+/// tier, the one ammo type paid once and the magazine type, against `gear_budget`. T4 and the best ammo
+/// never fit together; the middles do.
 #[test]
-fn gear_budget_per_magazine() {
+fn deathmatch_points() {
     let d = GameData::embedded();
+    let kit = &d.rules.deathmatch_loadout;
     let budget = d.rules.tdm.gear_budget;
-    assert_eq!(budget, 13);
+    assert_eq!((budget, d.rules.ffa.gear_budget), (8, 8));
+    assert_eq!(kit.armor.iter().map(|a| a.points).collect::<Vec<_>>(), [1, 2, 3, 5]);
     let ar = WeaponClass::AssaultRifle;
-    let cost = |armor: &str, class: WeaponClass, mags: &[(AmmoKind, u8)]| {
-        capped(&d, armor).gear_cost + mags.iter().map(|(k, t)| ammo(&d, class, *k, *t).gear_cost).sum::<u32>()
+    let cost = |armor: u8, class: WeaponClass, (k, t): (AmmoKind, u8), mag: &str| {
+        kit.armor_tier(armor).unwrap().points + ammo(&d, class, k, t).gear_cost + kit.mag_points(mag)
     };
     use AmmoKind::{ArmorPiercing as Ap, Rip, Standard as Std};
     #[rustfmt::skip]
     let table: &[GearRow] = &[
-        ("arm_mender_scout", ar, &[(Std, 1); 4], 4),
-        ("arm_bulwark_jugg", ar, &[(Std, 1)], 13),
-        ("arm_bulwark_jugg", ar, &[(Ap, 1)], 15),
-        ("arm_bulwark_assault", ar, &[(Ap, 1); 2], 13),
-        ("arm_bulwark_assault", ar, &[(Ap, 1); 3], 15),
-        ("arm_bulwark_assault", ar, &[(Ap, 2)], 13),
-        ("arm_bulwark_assault", ar, &[(Ap, 3)], 15),
-        ("arm_bulwark_vanguard", ar, &[(Ap, 3)], 15),
-        ("arm_mender_scout", ar, &[(Ap, 3)], 10),
-        ("arm_mender_scout", ar, &[(Ap, 3); 2], 16),
-        ("arm_phase_runner", ar, &[(Ap, 3); 2], 13),
-        ("arm_volt_line", ar, &[(Ap, 3)], 12),
-        ("arm_none", ar, &[(Ap, 3); 6], 36),
-        ("arm_bulwark_assault", WeaponClass::Smg, &[(Rip, 3)], 12),
-        ("arm_bulwark_assault", WeaponClass::Smg, &[(Rip, 3); 2], 15),
-        ("arm_mender_scout", WeaponClass::Smg, &[(Rip, 3); 3], 13),
-        ("arm_mender_scout", WeaponClass::Smg, &[(Rip, 3); 4], 16),
+        (1, ar, (Std, 1), "mag_30", 1),
+        (2, ar, (Std, 1), "mag_30", 2),
+        (4, ar, (Std, 1), "mag_drum60", 7),
+        (4, ar, (Ap, 1), "mag_drum60", 8),
+        (4, ar, (Ap, 2), "mag_45", 8),
+        (4, ar, (Ap, 2), "mag_drum60", 9),
+        (4, ar, (Ap, 3), "mag_30", 9),
+        (3, ar, (Ap, 3), "mag_45", 8),
+        (3, ar, (Ap, 3), "mag_drum60", 9),
+        (2, ar, (Ap, 3), "mag_drum60", 8),
+        (1, ar, (Ap, 3), "mag_drum60", 7),
+        (4, WeaponClass::Smg, (Rip, 3), "skink_mag_40", 9),
+        (3, WeaponClass::Smg, (Rip, 3), "skink_mag_60", 8),
+        (4, WeaponClass::BoltSniper, (Ap, 3), "mag_5", 9),
+        (3, WeaponClass::BoltSniper, (Ap, 3), "mag_8", 8),
     ];
-    for (armor, class, mags, want) in table {
-        assert_eq!(cost(armor, *class, mags), *want, "{armor} {mags:?}");
+    for (armor, class, round, mag, want) in table {
+        assert_eq!(cost(*armor, *class, *round, mag), *want, "T{armor} {round:?} {mag}");
     }
-    // A Heavy halo never carries AP III; a Light one always can.
-    for p in &d.armor.presets {
-        let a = capped(&d, &p.id);
-        let fits = a.gear_cost + ammo(&d, ar, Ap, 3).gear_cost <= budget;
-        match a.weight_class {
-            vetf_sim::data::WeightClass::Heavy => assert!(!fits, "{}", p.id),
-            vetf_sim::data::WeightClass::Light | vetf_sim::data::WeightClass::None => assert!(fits, "{}", p.id),
-            _ => {}
+    // T4 with any tier III round never fits; every tier fits with standard ammo and any magazine.
+    for class in [ar, WeaponClass::Smg, WeaponClass::BoltSniper] {
+        assert!(cost(4, class, (Ap, 3), "") > budget, "{class:?}");
+        for armor in 1..=4 {
+            assert!(cost(armor, class, (Std, 1), "mag_drum60") <= budget, "{class:?} T{armor}");
         }
     }
 }

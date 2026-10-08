@@ -1,9 +1,13 @@
-//! Loadout gear: the custom halo a player builds (one core, a tier per arc) and the gear-budget price of a
-//! whole loadout. The host (validation) and the Loadout screen (RESULT panel, ammo cost chips) use the same
-//! functions, so they always agree. The deathmatch modes fix the core and price their one ammo type once
-//! ([`kit_cost`], `rules.ron` `loadout`); the gun range prices every magazine ([`gear_cost`]).
+//! Loadout gear: the custom halo a player builds (one core, a tier per arc) and the points a whole loadout
+//! costs. The host (validation) and the Loadout screen (RESULT panel, cost chips) use the same functions, so
+//! they always agree. Team deathmatch and free-for-all price their picks ([`kit_cost`], `rules.ron`
+//! `deathmatch_loadout`: the armor tier, the one ammo type once, the magazine type) against a budget; the gun
+//! range shows the arc tiers and every magazine's ammo ([`gear_cost`]) with no limit.
 
-use crate::data::{AmmoChoice, ArmorFile, ArmorPreset, ArmorStats, Core, GameData, Mode, WeaponSpec};
+use crate::data::{
+    AmmoChoice, ArmorFile, ArmorPreset, ArmorStats, AttachmentCategory, Core, DeathmatchLoadout, GameData, Mode,
+    WeaponSpec,
+};
 use crate::zone::{Zone, ZoneTable};
 use serde::{Deserialize, Serialize};
 
@@ -66,6 +70,12 @@ impl HaloChoice {
             tiers: if lit { self.tiers } else { ZoneTable::splat(0) },
         }
     }
+
+    /// The halo of a deathmatch armor tier (1-based): the mode's one core with that tier's arcs. Out of range:
+    /// no halo.
+    pub fn of_tier(kit: &DeathmatchLoadout, tier: u8) -> Self {
+        Self { core: kit.halo_core, tiers: kit.armor_tier(tier).map_or(ZoneTable::splat(0), |a| a.tiers) }
+    }
 }
 
 impl ArmorFile {
@@ -75,18 +85,22 @@ impl ArmorFile {
     }
 }
 
-/// Gear-budget points of a loadout, split as the RESULT panel shows them.
+/// The points of a loadout, split as the RESULT panel shows them.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
 pub struct GearCost {
-    /// The halo: the sum of its arc tiers.
+    /// The halo: the armor tier's points (team deathmatch, free-for-all), or the sum of the arc tiers (the gun
+    /// range).
     pub halo: u32,
-    /// Every magazine's ammo, each priced on its own.
+    /// The ammo: the one type's points, paid once (team deathmatch, free-for-all), or every magazine's (the
+    /// gun range).
     pub ammo: u32,
+    /// The magazine type (team deathmatch, free-for-all; nothing in the gun range).
+    pub mags: u32,
 }
 
 impl GearCost {
     pub fn total(&self) -> u32 {
-        self.halo + self.ammo
+        self.halo + self.ammo + self.mags
     }
 }
 
@@ -96,34 +110,54 @@ pub fn gear_cost(data: &GameData, weapon: &WeaponSpec, halo: &HaloChoice, mags: 
     GearCost {
         halo: halo.score(),
         ammo: mags.iter().filter_map(|m| data.ammo_for(weapon, *m)).map(|a| a.gear_cost).sum(),
+        mags: 0,
     }
 }
 
-/// The gear cost of a deathmatch loadout: halo arc tiers + the gear cost of its one ammo type, paid once
-/// (every magazine carries it).
-pub fn kit_cost(data: &GameData, weapon: &WeaponSpec, halo: &HaloChoice, ammo: AmmoChoice) -> GearCost {
-    GearCost { halo: halo.score(), ammo: data.ammo_for(weapon, ammo).map_or(0, |a| a.gear_cost) }
+/// The magazine type of a gun with these attachments: the first magazine part that fits it, else its
+/// default magazine.
+pub fn mag_type<'a>(data: &GameData, weapon: &'a WeaponSpec, attachments: &'a [String]) -> &'a str {
+    attachments
+        .iter()
+        .find(|id| data.attachment(id).is_some_and(|a| a.cat == AttachmentCategory::Mag && a.fits.contains(&weapon.id)))
+        .map_or(weapon.mag_default.as_str(), |id| id.as_str())
 }
 
-/// The gear cost of a loadout in `mode`: [`kit_cost`] of the first magazine's ammo where the mode fixes the
-/// loadout (one ammo type), [`gear_cost`] otherwise.
+/// The points of a deathmatch loadout's picks: armor tier `armor` (1-based; out of range: none), the one
+/// ammo type (paid once: every magazine carries it; ammo the gun cannot load costs nothing here, the host
+/// refuses it separately) and the magazine type.
+pub fn kit_cost(
+    data: &GameData,
+    kit: &DeathmatchLoadout,
+    weapon: &WeaponSpec,
+    armor: u8,
+    ammo: AmmoChoice,
+    mag: &str,
+) -> GearCost {
+    GearCost {
+        halo: kit.armor_tier(armor).map_or(0, |a| a.points),
+        ammo: data.ammo_for(weapon, ammo).map_or(0, |a| a.gear_cost),
+        mags: kit.mag_points(mag),
+    }
+}
+
+/// The points of a loadout in `mode`. Team deathmatch and free-for-all: [`kit_cost`] of the armor tier the
+/// halo makes ([`DeathmatchLoadout::tier_for`]), slot 1's ammo and the magazine type. The gun range:
+/// [`gear_cost`].
 pub fn loadout_cost(
     data: &GameData,
     mode: Mode,
     weapon: &WeaponSpec,
     halo: &HaloChoice,
     mags: &[AmmoChoice],
+    attachments: &[String],
 ) -> GearCost {
     match data.rules.fixed_loadout(mode) {
-        Some(_) => kit_cost(data, weapon, halo, mags.first().copied().unwrap_or(AmmoChoice::STANDARD)),
+        Some(kit) => {
+            let ammo = mags.first().copied().unwrap_or(AmmoChoice::STANDARD);
+            kit_cost(data, kit, weapon, kit.tier_for(halo.tiers), ammo, mag_type(data, weapon, attachments))
+        }
         None => gear_cost(data, weapon, halo, mags),
-    }
-}
-
-impl HaloChoice {
-    /// This halo as a mode with one halo wears it: that halo's core, the same arc tiers.
-    pub fn with_core(self, core: Core) -> Self {
-        Self { core, ..self }
     }
 }
 
@@ -185,73 +219,116 @@ mod tests {
     }
 
     #[test]
-    fn gear_cost_is_halo_tiers_plus_every_magazine() {
+    fn the_range_prices_halo_tiers_plus_every_magazine() {
         let d = GameData::embedded();
         let mako = d.weapon("ar7_mako").unwrap();
         let ap = |tier| AmmoChoice { kind: AmmoKind::ArmorPiercing, tier };
         let ap2 = d.ammo.resolve(WeaponClass::AssaultRifle, ap(2)).unwrap().gear_cost;
         let h = halo(Core::Mender, 2, 2, 0, 0);
         let c = gear_cost(&d, mako, &h, &[AmmoChoice::STANDARD, ap(2), ap(2)]);
-        assert_eq!(c, GearCost { halo: 4, ammo: 2 * ap2 });
+        assert_eq!(c, GearCost { halo: 4, ammo: 2 * ap2, mags: 0 });
         assert_eq!(c.total(), 4 + 2 * ap2);
         // RIP does not fit a rifle: it is not priced (the host refuses the loadout instead)
         let rip = AmmoChoice { kind: AmmoKind::Rip, tier: 3 };
         assert_eq!(gear_cost(&d, mako, &h, &[rip]).ammo, 0);
+        let drum = ["mag_drum60".to_string()];
+        assert_eq!(loadout_cost(&d, Mode::Range, mako, &h, &[ap(2); 4], &drum), gear_cost(&d, mako, &h, &[ap(2); 4]));
         assert_eq!(gear_budget(&d, Mode::Tdm), Some(d.rules.tdm.gear_budget));
         assert_eq!(gear_budget(&d, Mode::Range), None);
         assert_eq!(gear_budget(&d, Mode::Ffa), Some(d.rules.ffa.gear_budget));
     }
 
-    /// The deathmatch modes: one halo and one ammo type, paid once whatever the magazine count.
     #[test]
-    fn deathmatch_loadouts_pay_for_their_ammo_once() {
+    fn the_magazine_type_is_the_fitting_mag_part_or_the_default() {
         let d = GameData::embedded();
         let mako = d.weapon("ar7_mako").unwrap();
-        let ap = |tier| AmmoChoice { kind: AmmoKind::ArmorPiercing, tier };
-        let h = halo(Core::Mender, 2, 2, 0, 0);
-        for mode in [Mode::Tdm, Mode::Ffa] {
-            let fixed = d.rules.fixed_loadout(mode).expect("deathmatch modes fix the loadout");
-            let mags = vec![ap(2); fixed.mags as usize];
-            let ap2 = d.ammo.resolve(WeaponClass::AssaultRifle, ap(2)).unwrap().gear_cost;
-            assert_eq!(loadout_cost(&d, mode, mako, &h, &mags), GearCost { halo: 4, ammo: ap2 }, "{mode:?}");
-            assert_eq!(kit_cost(&d, mako, &h, ap(2)), GearCost { halo: 4, ammo: ap2 });
-        }
-        // the range prices every magazine
-        let four = [ap(2); 4];
-        assert_eq!(loadout_cost(&d, Mode::Range, mako, &h, &four), gear_cost(&d, mako, &h, &four));
-        assert!(d.rules.fixed_loadout(Mode::Range).is_none());
-        assert_eq!(h.with_core(Core::Bulwark), HaloChoice { core: Core::Bulwark, tiers: h.tiers });
+        let ids = |v: &[&str]| v.iter().map(|s| s.to_string()).collect::<Vec<_>>();
+        assert_eq!(mag_type(&d, mako, &ids(&["optic_holo", "mag_45"])), "mag_45");
+        assert_eq!(mag_type(&d, mako, &ids(&["optic_holo"])), "mag_30", "the default");
+        assert_eq!(mag_type(&d, mako, &ids(&["skink_mag_60"])), "mag_30", "another gun's magazine");
     }
 
-    /// The deathmatch budget is coherent with the caps and the ammo prices: every arc at its cap with
-    /// standard ammo fits exactly; the priciest round still leaves armor to buy; AP III never fits a Heavy
-    /// halo; and the one halo has no ability-like status effect (no Volt pulse, Phase immunity or Bulwark
-    /// flinch cut).
+    /// Team deathmatch and free-for-all: the armor tier's points, the one ammo type once (whatever the
+    /// magazine count) and the magazine type.
     #[test]
-    fn the_deathmatch_budget_fits_the_caps_and_the_ammo() {
+    fn a_deathmatch_loadout_pays_for_its_picks() {
         let d = GameData::embedded();
-        let caps = d.armor.loadout_tier_caps;
-        let full = HaloChoice { core: Core::Mender, tiers: caps };
+        let kit = &d.rules.deathmatch_loadout;
+        let mako = d.weapon("ar7_mako").unwrap();
+        let ap = |tier| AmmoChoice { kind: AmmoKind::ArmorPiercing, tier };
+        let drum = ["optic_holo".to_string(), "mag_drum60".to_string()];
+        for mode in [Mode::Tdm, Mode::Ffa] {
+            assert_eq!(d.rules.fixed_loadout(mode), Some(kit), "{mode:?}: one loadout for both");
+            let t3 = HaloChoice::of_tier(kit, 3);
+            let six = vec![ap(2); kit.mags as usize];
+            assert_eq!(loadout_cost(&d, mode, mako, &t3, &six, &drum), GearCost { halo: 3, ammo: 2, mags: 2 });
+            assert_eq!(loadout_cost(&d, mode, mako, &t3, &[ap(2)], &[]), GearCost { halo: 3, ammo: 2, mags: 0 });
+        }
+        assert_eq!(kit_cost(&d, kit, mako, 4, AmmoChoice::STANDARD, "mag_30").total(), 5);
+        assert_eq!(kit_cost(&d, kit, mako, 9, AmmoChoice::STANDARD, "mag_30").halo, 0, "no such tier");
+        assert_eq!(HaloChoice::of_tier(kit, 4), HaloChoice { core: Core::Mender, tiers: d.armor.loadout_tier_caps });
+        assert!(!HaloChoice::of_tier(kit, 0).is_lit());
+    }
+
+    /// The deathmatch point table makes a trade-off (DIRECTION_LOG 17): T4 armor and the best ammo never fit
+    /// together, with any gun and magazine; the sensible middles do.
+    #[test]
+    fn the_deathmatch_points_make_a_trade_off() {
+        let d = GameData::embedded();
+        let kit = &d.rules.deathmatch_loadout;
+        let ap = |tier| AmmoChoice { kind: AmmoKind::ArmorPiercing, tier };
+        let rip = |tier| AmmoChoice { kind: AmmoKind::Rip, tier };
         for mode in [Mode::Tdm, Mode::Ffa] {
             let budget = gear_budget(&d, mode).unwrap();
-            let fixed = d.rules.fixed_loadout(mode).unwrap();
-            assert_eq!(fixed.halo_core, Core::Mender, "{mode:?}: the one halo");
+            assert_eq!(budget, 8, "{mode:?}");
             for w in &d.weapons.weapons {
-                assert!(kit_cost(&d, w, &full, AmmoChoice::STANDARD).total() <= budget, "{}: capped arcs", w.id);
-                let priciest = d
+                let mags: Vec<&str> = d
+                    .attachments
+                    .attachments
+                    .iter()
+                    .filter(|a| a.cat == AttachmentCategory::Mag && a.fits.contains(&w.id))
+                    .map(|a| a.id.as_str())
+                    .collect();
+                let rounds: Vec<AmmoChoice> = d
                     .ammo
                     .types
                     .iter()
                     .flat_map(|(k, t)| (1..=t.tiers.len() as u8).map(|tier| AmmoChoice { kind: *k, tier }))
-                    .filter_map(|c| d.ammo_for(w, c).filter(|a| a.player_loadout))
-                    .map(|a| a.gear_cost)
-                    .max()
-                    .unwrap();
-                assert!(priciest < budget, "{}: the best round leaves room for a halo", w.id);
+                    .filter(|c| d.ammo_for(w, *c).is_some_and(|a| a.player_loadout))
+                    .collect();
+                let cost = |armor, ammo, mag| kit_cost(&d, kit, w, armor, ammo, mag).total();
+                let best = rounds.iter().map(|c| d.ammo_for(w, *c).unwrap().gear_cost).max().unwrap();
+                assert_eq!(best, 4, "{}: tier III is the best round", w.id);
+                for mag in &mags {
+                    for round in &rounds {
+                        let pts = d.ammo_for(w, *round).unwrap().gear_cost;
+                        if pts == best {
+                            assert!(cost(4, *round, mag) > budget, "{}: T4 + {round:?} + {mag}", w.id);
+                        }
+                    }
+                    // T4 with standard ammo fits any magazine
+                    assert!(cost(4, AmmoChoice::STANDARD, mag) <= budget, "{}: T4 + STD + {mag}", w.id);
+                }
+                // every tier with standard ammo and the standard magazine
+                for armor in 1..=kit.armor.len() as u8 {
+                    assert!(cost(armor, AmmoChoice::STANDARD, &w.mag_default) <= budget, "{} T{armor}", w.id);
+                }
             }
-            let heavy_lo = d.armor.weight_bands.iter().find(|b| b.0 == WeightClass::Heavy).unwrap().1;
-            let ap3 = d.ammo.resolve(WeaponClass::AssaultRifle, AmmoChoice { kind: AmmoKind::ArmorPiercing, tier: 3 });
-            assert!(heavy_lo + ap3.unwrap().gear_cost > budget, "AP III and a Heavy halo do not fit together");
+            let mako = d.weapon("ar7_mako").unwrap();
+            let skink = d.weapon("sk9_skink").unwrap();
+            let warden = d.weapon("vk50_warden").unwrap();
+            let fits = |w, armor, ammo, mag| kit_cost(&d, kit, w, armor, ammo, mag).total() <= budget;
+            // the middles
+            assert!(fits(mako, 3, ap(3), "mag_45"), "T3 + AP III + extended");
+            assert!(fits(warden, 3, ap(3), "mag_8"));
+            assert!(fits(skink, 3, rip(3), "skink_mag_60"));
+            assert!(fits(mako, 2, ap(3), "mag_drum60"), "T2 + the best ammo + the drum");
+            assert!(fits(mako, 4, ap(2), "mag_45"), "T4 + AP II + extended");
+            assert!(fits(mako, 1, ap(3), "mag_drum60"));
+            // the trade-offs
+            assert!(!fits(mako, 3, ap(3), "mag_drum60"), "T3 + AP III + the drum");
+            assert!(!fits(mako, 4, ap(2), "mag_drum60"), "T4 + AP II + the drum");
+            assert!(!fits(skink, 4, rip(3), "skink_mag_40"), "T4 + RIP III");
         }
     }
 }

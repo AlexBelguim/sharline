@@ -1,9 +1,10 @@
 //! Loadout presets A, B and C, plus each gun's last attachments, saved as `loadouts.ron` in the user's
 //! config folder. Client-side only: the host only ever sees the loadout a player confirms.
 //!
-//! A preset is saved as the player built it. Team deathmatch and free-for-all shape it when they use it (one
-//! halo, one ammo type: `LoadoutChoice::shaped`), so presets from before those modes had a fixed loadout (a
-//! Volt core, mixed magazines, six of them) still load, and open in those modes in their shape.
+//! A preset is saved as the player built it. Team deathmatch and free-for-all shape it into their picks when
+//! they use it (an armor tier on the one halo, six magazines of one ammo type: `LoadoutChoice::shaped`), so
+//! presets from older builds (a Volt core, a halo per arc, mixed magazines) still load, and open in those
+//! modes as their nearest picks.
 
 use crate::user_config;
 use serde::{Deserialize, Serialize};
@@ -172,10 +173,15 @@ mod tests {
         assert_eq!(p[2].loadout.halo.score(), 6, "Mender Medic: H1 T3 A1 L1");
         for preset in &p {
             let c = &preset.loadout;
-            let cost = vetf_sim::gear::gear_cost(&d, d.weapon(&c.weapon).unwrap(), &c.halo, &c.mags);
-            assert!(cost.total() <= d.rules.tdm.gear_budget, "{}", preset.name);
             assert!(c.halo.within_caps(d.armor.loadout_tier_caps));
+            // each is a valid pick in team deathmatch and free-for-all: RIFLE and LONG T2, MEDIC T3
+            for mode in [vetf_net::MatchMode::Tdm, vetf_net::MatchMode::Ffa] {
+                let s = crate::loadout::summary(c, &d, mode);
+                assert!(s.gear_cost <= s.gear_budget.unwrap(), "{} {mode:?}", preset.name);
+            }
         }
+        let tier = |c: &LoadoutChoice| crate::loadout::summary(c, &d, vetf_net::MatchMode::Tdm).armor_tier;
+        assert_eq!(p.iter().map(|p| tier(&p.loadout)).collect::<Vec<_>>(), [Some(2), Some(2), Some(3)]);
         let f = LoadoutsFile { presets: p, ..Default::default() };
         assert_eq!(f.label(0), "A · RIFLE");
         assert_eq!(f.label(2), "C · MEDIC");
@@ -223,9 +229,9 @@ mod tests {
         let _ = std::fs::remove_dir_all(&dir);
     }
 
-    /// `loadouts.ron` as builds before the one-halo deathmatch loadout wrote it (DIRECTION_LOG 17): per-magazine
-    /// ammo, a Volt core, an agent. It still loads as saved; team deathmatch and free-for-all open it in their
-    /// shape (one halo, one ammo type), the gun range as it is.
+    /// `loadouts.ron` as builds before the deathmatch picks wrote it (DIRECTION_LOG 17): per-magazine
+    /// ammo, a Volt core, halos that are no armor tier, an agent. It still loads as saved; team deathmatch and
+    /// free-for-all open it as their picks (an armor tier, six magazines of one ammo type), the range as it is.
     const OLD_FILE: &str = r#"(
     active: 1,
     presets: [
@@ -244,7 +250,7 @@ mod tests {
 )"#;
 
     #[test]
-    fn an_older_file_still_loads_and_opens_in_the_deathmatch_shape() {
+    fn an_older_file_still_loads_and_opens_as_the_new_picks() {
         use crate::loadout::model::Draft;
         use vetf_sim::data::{AmmoChoice, AmmoKind, Core};
         let d = GameData::embedded();
@@ -257,15 +263,27 @@ mod tests {
         assert_eq!(f.attachments["ar7_mako"], ["optic_3x", "grip_vertical"]);
         let ap2 = AmmoChoice { kind: AmmoKind::ArmorPiercing, tier: 2 };
         for mode in [vetf_net::MatchMode::Tdm, vetf_net::MatchMode::Ffa] {
-            let fixed = d.rules.fixed_loadout(mode).copied();
-            let dr = Draft::from_choice(volt, &f.attachments, &d, fixed);
-            assert_eq!(dr.mags, vec![ap2; fixed.unwrap().mags as usize], "{mode:?}: slot 1's AP II everywhere");
-            assert_eq!(dr.halo.core, fixed.unwrap().halo_core, "{mode:?}: the one halo");
-            assert_eq!(dr.halo.tiers, volt.halo.tiers);
+            let kit = d.rules.fixed_loadout(mode).cloned();
+            let budget = Some(d.rules.deathmatch(mode).gear_budget);
+            let dr = Draft::from_choice(volt, &f.attachments, &d, kit.clone());
+            assert_eq!(dr.mags, vec![ap2; 6], "{mode:?}: slot 1's AP II in all six");
+            assert_eq!(dr.halo.core, kit.unwrap().halo_core, "{mode:?}: the one halo");
+            assert_eq!(dr.armor_tier(), Some(3), "{mode:?}: H1 T3 A1 L1 is T3");
+            assert_eq!(dr.mag_type(&d).map(|m| m.id.as_str()), Some("skink_mag_40"), "the SMG's standard magazine");
             assert_eq!(dr.weapon, "sk9_skink");
+            // every old preset opens as picks within the points
+            let tiers: Vec<Option<u8>> = f
+                .presets
+                .iter()
+                .map(|p| Draft::from_choice(&p.loadout, &f.attachments, &d, d.rules.fixed_loadout(mode).cloned()))
+                .inspect(|dr| assert!(dr.problems(&d, budget).is_empty(), "{mode:?}: {dr:?}"))
+                .map(|dr| dr.armor_tier())
+                .collect();
+            assert_eq!(tiers, [Some(2), Some(3), Some(3)], "RIFLE H2 T2, VOLT AP and MEDIC H1 T3");
         }
         let range = Draft::from_choice(volt, &f.attachments, &d, None);
         assert_eq!(range.mags, volt.mags, "the range keeps its magazines");
+        assert_eq!(range.halo, volt.halo, "and its halo");
     }
 
     /// A file this build cannot read whole never crashes the game: what still reads stays, in its letter.

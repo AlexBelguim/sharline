@@ -1,18 +1,12 @@
 // Match rules for team deathmatch and free-for-all on Showhome, and the default loadout.
 //
-// Deathmatch loadouts (user direction 2026-10-08, DIRECTION_LOG 17): no agent pick (no abilities in these
-// modes; the jetpack stays), ONE halo for everyone (`loadout.halo_core`: the player only picks a tier per body
-// part, within armor.ron's loadout_tier_caps), and ONE ammo type in every magazine (`loadout.mags` of them).
-// The gear budget prices the halo's arc tiers plus the ammo type's gear_cost (ammo.ron), paid once.
-// Mender is the one halo: of the four cores it is the only one whose special is just numbers (its regen
-// table). Volt's break pulse slows, Phase is immune to slows and Bulwark cuts flinch: ability-like status
-// effects these modes leave out. Mender is also the default loadout's halo, so time-to-kill stays where
-// playtest round 1 tuned it.
+// The team deathmatch and free-for-all loadout (user direction 2026-10-08, DIRECTION_LOG 17) is
+// `deathmatch_loadout` below: a player picks a gun and its parts (the magazine type among them), ONE armor
+// tier and ONE ammo type, and pays points for the three against the mode's `gear_budget`.
 (
     tdm: (
-        // Halo arc tiers (loadout-capped) + the ammo type's gear cost, paid once, must fit.
-        gear_budget: 13,          // every arc at its cap (H4 T4 A3 L2 = 13) with standard ammo, or AP III (6) with 7 tier points
-        loadout: (halo_core: Mender, mags: 4),  // the one halo; four magazines, all of the picked ammo type
+        // Points: armor tier + ammo type (paid once) + magazine type must fit (see deathmatch_loadout).
+        gear_budget: 8,
         score_limit: 50,          // "TDM - first to 50" (design/ui/mockups/png/01_hud.png)
         time_limit_s: 600.0,      // placeholder: the design does not fix a match length yet
         respawn_s: 4.0,           // design/systems damage_flow: "respawn timer 4 s"
@@ -24,8 +18,7 @@
     // Everyone against everyone: no teams, the player with the most kills wins (tie: fewer deaths, then the
     // first to reach that score). Placeholders until the design gives values.
     ffa: (
-        gear_budget: 13,          // same as team deathmatch (the Loadout screen prices against it)
-        loadout: (halo_core: Mender, mags: 4),  // like team deathmatch
+        gear_budget: 8,           // same as team deathmatch (the Loadout screen prices against it)
         score_limit: 25,          // first player to 25 kills
         time_limit_s: 600.0,      // placeholder, like team deathmatch
         respawn_s: 3.0,           // placeholder: a little quicker than team deathmatch, no team to wait for
@@ -33,6 +26,34 @@
         max_players: 8,           // 8 at most on Showhome
         kill_refill_mags: 1,      // like team deathmatch: every kill refills one magazine
         spawn_slack_m: 6.0,       // spawn at random among the points within 6 m of the farthest from enemies
+    ),
+    // The team deathmatch and free-for-all loadout (DIRECTION_LOG 17; the point table is explained in
+    // game/DESIGN_DELTAS.md).
+    // - No agent pick: these modes have no abilities, and the host deals every player a random agent at the
+    //   start of the match (agents.ron). The jetpack stays.
+    // - One halo for everyone: `halo_core`. Mender: of the four cores its only special is its regen numbers;
+    //   Volt's break pulse slows, Phase is immune to slows and Bulwark cuts flinch, ability-like effects these
+    //   modes leave out. It is also the default loadout's core, so time-to-kill stays where playtest round 1
+    //   tuned it.
+    // - ONE armor tier: a fixed combination of the existing per-arc tiers (no new armor), each arc within
+    //   armor.ron's loadout_tier_caps. T4 is the best combination a loadout allows.
+    // - `mags` magazines of the picked type (the gun's `mag` attachment), all loaded with the ONE picked ammo
+    //   type. The ammo's points are its gear_cost in ammo.ron (STD 0, AP and RIP I / II / III 1 / 2 / 4), paid
+    //   once, not per magazine.
+    // With a budget of 8: T4 (5) and any tier III round (4) never fit together, nor T4, a tier II round and a
+    // drum; T4 with standard ammo fits any magazine, T3 fits AP III with an extended magazine, T2 fits the
+    // best ammo with the drum, and every gun fits every tier with standard ammo and its standard magazine.
+    deathmatch_loadout: (
+        halo_core: Mender,
+        mags: 6,
+        armor: [
+            (tiers: (head: 1, torso: 1, arms: 1, legs: 1), points: 1),  // T1: Light (4 tier points)
+            (tiers: (head: 2, torso: 2, arms: 2, legs: 2), points: 2),  // T2: Medium (8)
+            (tiers: (head: 3, torso: 3, arms: 1, legs: 1), points: 3),  // T3: Medium (8), head and torso first
+            (tiers: (head: 4, torso: 4, arms: 3, legs: 2), points: 5),  // T4: Heavy (13), every arc at its cap
+        ],
+        // Each gun's standard magazine (mag_30, mag_5, skink_mag_40) is free.
+        mag_points: {"mag_45": 1, "mag_8": 1, "skink_mag_60": 1, "mag_drum60": 2},
     ),
     // What each mode switches on (user direction, see game/DESIGN_DELTAS.md). Team deathmatch is the
     // gunplay and netcode test bed: per-region shields and health, but no bleeding and no broken-limb
@@ -46,7 +67,8 @@
     default_loadout: (
         primary: "ar7_mako",
         // Up to six magazines in slot order, each with its own ammo (the gun range); slot 1 starts in the gun.
-        // The deathmatch modes take slot 1's ammo for `loadout.mags` magazines.
+        // Team deathmatch and free-for-all load deathmatch_loadout.mags of them with slot 1's ammo, and wear the
+        // armor tier of the halo's best head or torso arc (Mender Scout's H2 T2: T2).
         // Tap reload takes the next slot in order; hold reload opens the radial to pick one.
         mags: [(kind: Standard, tier: 1), (kind: Standard, tier: 1), (kind: Standard, tier: 1), (kind: Standard, tier: 1)],
         attachments: ["optic_holo", "mako_stock_standard", "mag_30"],

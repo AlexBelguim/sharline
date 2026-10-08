@@ -19,7 +19,7 @@ use vetf_sim::player::{Loadout, Wounds};
 use vetf_sim::weapon::WeaponState;
 
 /// Bumped whenever the protocol changes; part of the netcode protocol id, so old builds cannot connect.
-pub const PROTOCOL_VERSION: u64 = 5;
+pub const PROTOCOL_VERSION: u64 = 6;
 
 /// netcode.io protocol id shared by host and clients.
 pub fn protocol_id() -> u64 {
@@ -90,6 +90,12 @@ pub struct PlayerNet {
     /// READY in the lobby (cleared when the match starts or the player switches team).
     pub ready: bool,
 }
+
+/// The agent this player plays, as the host says (an `agents.ron` id; cosmetic for now). Team deathmatch and
+/// free-for-all have no agent pick (DIRECTION_LOG 17): the host deals one at random when the match starts and
+/// it is kept until the match ends; `None` in the lobby. The gun range: the one picked on the Loadout screen.
+#[derive(Component, Serialize, Deserialize, Clone, Debug, PartialEq, Eq, Default)]
+pub struct PlayerAgent(pub Option<String>);
 
 pub use vetf_sim::data::Mode as MatchMode;
 
@@ -199,16 +205,17 @@ impl PlayerInput {
 pub struct LoadoutChoice {
     pub weapon: String,
     /// Magazines in slot order: one to six, no gaps, each with its own ammo. Slot 1 starts in the gun, and
-    /// a slot's index is its position on the reload wheel. The deathmatch modes load all of them with slot 1's
-    /// ammo and carry their own count ([`LoadoutChoice::shaped`]).
+    /// a slot's index is its position on the reload wheel. Team deathmatch and free-for-all load the mode's
+    /// count of them with slot 1's ammo ([`LoadoutChoice::shaped`]).
     pub mags: Vec<AmmoChoice>,
-    /// Attachment ids, at most one per category; categories left out use the weapon's defaults.
+    /// Attachment ids, at most one per category (the magazine type among them); categories left out use the
+    /// weapon's defaults.
     pub attachments: Vec<String>,
-    /// The halo: one core and a tier per arc, within the armor data's loadout tier caps. The deathmatch modes
-    /// replace the core with their one halo's.
+    /// The halo: one core and a tier per arc, within the armor data's loadout tier caps. Team deathmatch and
+    /// free-for-all wear one of their armor tiers on their one core instead ([`LoadoutChoice::shaped`]).
     pub halo: HaloChoice,
-    /// Agent id (cosmetic for now: agents have no abilities in this build, and the deathmatch modes have no
-    /// agent pick).
+    /// Agent id, picked in the gun range (cosmetic for now: agents have no abilities in this build). Team
+    /// deathmatch and free-for-all have no agent pick: the host deals agents ([`PlayerAgent`]).
     pub agent: String,
 }
 
@@ -218,16 +225,18 @@ impl LoadoutChoice {
         self.mags.first().copied().unwrap_or(AmmoChoice::STANDARD)
     }
 
-    /// This loadout in a mode that fixes part of it (`rules.ron` `loadout`, see
-    /// [`vetf_sim::data::RulesFile::fixed_loadout`]): that mode's halo core and magazine count, every
-    /// magazine loaded with slot 1's ammo. Without fixed parts (the gun range) it is taken as it is. The host
-    /// and the Loadout screen both shape a loadout this way, so a client cannot ask for more than the mode
-    /// gives (another core, a mix of ammo, extra magazines).
+    /// This loadout as team deathmatch and free-for-all take it (`rules.ron` `deathmatch_loadout`, see
+    /// [`vetf_sim::data::RulesFile::fixed_loadout`]): the armor tier its halo makes
+    /// ([`DeathmatchLoadout::tier_for`]) on the one halo core, and the mode's count of magazines, all with
+    /// slot 1's ammo. Without such rules (the gun range) it is taken as it is. The host and the Loadout screen
+    /// both shape a loadout this way, so a loadout saved by an older build still opens (as its nearest picks),
+    /// and a client never gets more than the picks it pays for (another core, a mix of ammo, extra
+    /// magazines).
     pub fn shaped(&self, fixed: Option<&DeathmatchLoadout>) -> LoadoutChoice {
-        let Some(fixed) = fixed else { return self.clone() };
+        let Some(kit) = fixed else { return self.clone() };
         LoadoutChoice {
-            mags: vec![self.ammo(); fixed.mags as usize],
-            halo: self.halo.with_core(fixed.halo_core),
+            mags: vec![self.ammo(); kit.mags as usize],
+            halo: HaloChoice::of_tier(kit, kit.tier_for(self.halo.tiers)),
             ..self.clone()
         }
     }
@@ -378,6 +387,7 @@ impl Plugin for ProtocolPlugin {
         app.component::<Vitals>().replicate();
         app.component::<Score>().replicate();
         app.component::<PlayerNet>().replicate();
+        app.component::<PlayerAgent>().replicate();
         app.component::<MatchState>().replicate();
 
         app.add_channel::<ReliableChannel>(ChannelSettings {
@@ -568,11 +578,12 @@ mod tests {
         assert_eq!(protocol_id() ^ 0x5641_4c5f_4554_4600, PROTOCOL_VERSION);
     }
 
-    /// Team deathmatch and free-for-all take one halo and one ammo type: whatever a client asks for (another
-    /// core, a mix of ammo, six magazines) is shaped to the mode's halo core and magazine count, every
-    /// magazine with slot 1's ammo. The gun range takes the loadout as it is.
+    /// Team deathmatch and free-for-all: whatever a client asks for (another core, a halo that is no armor
+    /// tier, a mix of ammo, fewer magazines) is shaped to the picks it pays for: an armor tier on the one
+    /// halo core, and the mode's count of magazines with slot 1's ammo. The gun range takes the loadout as it
+    /// is.
     #[test]
-    fn deathmatch_loadouts_take_the_modes_halo_and_one_ammo_type() {
+    fn deathmatch_loadouts_become_an_armor_tier_and_one_ammo_type() {
         use vetf_sim::ZoneTable;
         use vetf_sim::data::{AmmoKind, Core};
         let d = GameData::embedded();
@@ -580,15 +591,17 @@ mod tests {
         let rich = LoadoutChoice {
             weapon: "sk9_skink".into(),
             mags: vec![ap(3), AmmoChoice::STANDARD, AmmoChoice { kind: AmmoKind::Rip, tier: 1 }, ap(1), ap(2), ap(2)],
-            attachments: vec!["optic_reddot".into()],
+            attachments: vec!["optic_reddot".into(), "skink_mag_60".into()],
             halo: HaloChoice { core: Core::Volt, tiers: ZoneTable { head: 3, torso: 1, arms: 0, legs: 2 } },
             agent: "solace".into(),
         };
         for mode in [MatchMode::Tdm, MatchMode::Ffa] {
-            let fixed = d.rules.fixed_loadout(mode).unwrap();
+            let kit = d.rules.fixed_loadout(mode).unwrap();
             let s = rich.for_mode(&d, mode);
-            assert_eq!(s.mags, vec![ap(3); fixed.mags as usize], "{mode:?}: slot 1's ammo in every magazine");
-            assert_eq!(s.halo, HaloChoice { core: fixed.halo_core, tiers: rich.halo.tiers }, "{mode:?}: the one halo");
+            assert_eq!(s.mags, vec![ap(3); kit.mags as usize], "{mode:?}: slot 1's ammo in all six magazines");
+            assert_eq!(s.mags.len(), 6);
+            assert_eq!(s.halo, HaloChoice::of_tier(kit, 3), "{mode:?}: head 3 makes T3, on the one core");
+            assert_eq!(s.halo.core, Core::Mender);
             assert_eq!((&s.weapon, &s.attachments), (&rich.weapon, &rich.attachments), "the gun stays free");
             assert_eq!(s.for_mode(&d, mode), s, "shaping twice changes nothing");
             roundtrip(&LoadoutUpdate { loadout: s });
@@ -597,6 +610,15 @@ mod tests {
         let none = LoadoutChoice { mags: vec![], ..rich.clone() };
         assert_eq!(none.ammo(), AmmoChoice::STANDARD);
         assert!(none.for_mode(&d, MatchMode::Tdm).mags.iter().all(|m| *m == AmmoChoice::STANDARD));
+    }
+
+    /// The host deals agents: an id, or none in the lobby.
+    #[test]
+    fn the_dealt_agent_roundtrips() {
+        roundtrip(&PlayerAgent(Some("solace".into())));
+        roundtrip(&PlayerAgent(None));
+        assert_eq!(PlayerAgent::default(), PlayerAgent(None));
+        assert_eq!(PROTOCOL_VERSION, 6, "the agent component and the deathmatch picks changed the wire");
     }
 
     #[test]

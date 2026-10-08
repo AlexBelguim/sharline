@@ -92,7 +92,8 @@ pub fn tier_label(tiers: &ZoneTable<u8>) -> Option<(String, u8)> {
 }
 
 /// The player card's loadout line: "Default loadout · AR-7 Mako (holo, std stock, 30 mag) · Mender H2 T2", or
-/// "... · Halo H2 T2" where everyone wears the same halo (team deathmatch, free-for-all).
+/// "... · T2 halo H2 T2 A2 L2" where everyone wears the same halo in one armor tier (team deathmatch,
+/// free-for-all).
 pub fn loadout_line(choice: &LoadoutChoice, s: &LoadoutSummary, data: &GameData) -> String {
     let d = &data.rules.default_loadout;
     let is_default = choice.weapon == d.primary
@@ -108,10 +109,10 @@ pub fn loadout_line(choice: &LoadoutChoice, s: &LoadoutSummary, data: &GameData)
     };
     let arcs = arcs_short(&s.tiers);
     // The halo is custom (a core and a tier per arc): name the core, then the arcs. With one halo for
-    // everyone only the arcs say anything.
-    let halo = match s.core {
-        Some(_) if s.one_halo && !arcs.is_empty() => format!("Halo {arcs}"),
-        Some(core) if !arcs.is_empty() => format!("{} {arcs}", title_case(core.label())),
+    // everyone the armor tier says it, then its arcs.
+    let halo = match (s.core, s.armor_tier) {
+        (Some(_), Some(t)) if s.one_halo => format!("T{t} halo {arcs}"),
+        (Some(core), _) if !arcs.is_empty() => format!("{} {arcs}", title_case(core.label())),
         _ => "No halo".to_string(),
     };
     format!("{name} · {weapon} · {halo}")
@@ -143,16 +144,19 @@ pub fn gear_text(cost: u32, budget: Option<u32>) -> (String, bool) {
     }
 }
 
-/// How many magazines carry the one ammo type: "× 4".
+/// How many magazines carry the one ammo type: "× 6".
 pub fn mags_count(n: usize) -> String {
     format!("× {n}")
 }
 
-/// The agent tag's halo part: the tier label with the core ("T2 MENDER", or "T2 HALO" where everyone wears
-/// the same halo) and its colour tier, or None with no halo.
+/// The agent tag's halo part: the tier label with the core ("T2 MENDER", or the armor tier, "T3 HALO", where
+/// everyone wears the same halo) and its colour tier, or None with no halo.
 pub fn agent_halo(s: &LoadoutSummary) -> Option<(String, u8)> {
     let core = s.core?;
-    let (label, hi) = tier_label(&s.tiers)?;
+    let (label, hi) = match s.armor_tier {
+        Some(t) => (format!("T{t}"), t),
+        None => tier_label(&s.tiers)?,
+    };
     let name = if s.one_halo { "HALO" } else { core.label() };
     Some((format!("{label} {name}"), hi))
 }
@@ -305,15 +309,17 @@ mod tests {
         assert_eq!(agent_halo(&s), Some(("T2 MENDER".into(), 2)));
         assert_eq!(agent_micro(&s), "· LIGHT · AR-7 MAKO");
         assert_eq!(gear_text(s.gear_cost, s.gear_budget), ("4 PTS".into(), false), "no budget in the range");
-        // Team deathmatch and free-for-all: one halo, one ammo type.
+        // Team deathmatch and free-for-all: one halo in an armor tier (H2 T2 makes T2), six magazines of one
+        // ammo type.
         for mode in [MatchMode::Tdm, MatchMode::Ffa] {
             let s = summary(&c, &d, mode);
-            assert_eq!(loadout_line(&c, &s, &d), "Default loadout · AR-7 Mako (holo, std stock, 30 mag) · Halo H2 T2");
+            let line = "Default loadout · AR-7 Mako (holo, std stock, 30 mag) · T2 halo H2 T2 A2 L2";
+            assert_eq!(loadout_line(&c, &s, &d), line);
             assert_eq!(agent_halo(&s), Some(("T2 HALO".into(), 2)));
-            let n = d.rules.fixed_loadout(mode).unwrap().mags as usize;
-            assert_eq!(s.one_ammo(), Some(("STD".into(), AmmoKind::Standard, n)));
-            assert_eq!(mags_count(n), format!("× {n}"));
-            assert_eq!(gear_text(s.gear_cost, s.gear_budget), ("4 / 13".into(), false));
+            assert_eq!(agent_micro(&s), "· MEDIUM · AR-7 MAKO");
+            assert_eq!(s.one_ammo(), Some(("STD".into(), AmmoKind::Standard, 6)));
+            assert_eq!(mags_count(6), "× 6");
+            assert_eq!(gear_text(s.gear_cost, s.gear_budget), ("2 / 8".into(), false));
         }
     }
 

@@ -227,12 +227,16 @@ fn title_case(s: &str) -> String {
     c.next().map_or(String::new(), |f| f.to_uppercase().chain(c).collect())
 }
 
-/// The halo in a few words: `T2 Mender (Medium)`, `T1-T3 Bulwark (Heavy)`, `No halo`; `T2 halo (Light)` where
-/// everyone wears the same one (team deathmatch, free-for-all).
+/// The halo in a few words: `T2 Mender (Medium)`, `T1-T3 Bulwark (Heavy)`, `No halo`; the armor tier,
+/// `T3 halo (Medium)`, where everyone wears the same halo (team deathmatch, free-for-all).
 fn halo_words(s: &LoadoutSummary) -> String {
     let covered: Vec<u8> = vetf_sim::Zone::ALL.iter().map(|z| s.tiers[*z]).filter(|t| *t > 0).collect();
     let (Some(lo), Some(hi)) = (covered.iter().min(), covered.iter().max()) else { return "No halo".into() };
-    let tier = if lo == hi { format!("T{hi}") } else { format!("T{lo}-T{hi}") };
+    let tier = match s.armor_tier {
+        Some(t) => format!("T{t}"),
+        None if lo == hi => format!("T{hi}"),
+        None => format!("T{lo}-T{hi}"),
+    };
     let core = match s.core {
         Some(_) if s.one_halo => " halo".to_string(),
         Some(c) => format!(" {}", title_case(c.label())),
@@ -243,16 +247,21 @@ fn halo_words(s: &LoadoutSummary) -> String {
     format!("{tier}{core}{weight}")
 }
 
-/// `Kestrel · AR-7 Mako · T2 Mender (Medium)` in the gun range; `AR-7 Mako · T2 halo (Medium) · AP II` in team
-/// deathmatch and free-for-all (no agent pick, one halo, one ammo type).
-fn loadout_line(s: &LoadoutSummary) -> String {
+/// `Kestrel · AR-7 Mako · T2 Mender (Medium)` in the gun range (the agent picked on the Loadout screen);
+/// `Solace · AR-7 Mako · T3 halo (Medium) · AP II` in team deathmatch and free-for-all, with the agent the host
+/// dealt for the match (`dealt`; before the match starts: `Random agent`), the armor tier and the one ammo
+/// type.
+fn loadout_line(s: &LoadoutSummary, dealt: Option<&str>) -> String {
     match s.one_ammo().filter(|_| s.one_halo) {
-        Some((ammo, ..)) => format!("{} · {} · {ammo}", s.weapon_name, halo_words(s)),
+        Some((ammo, ..)) => {
+            let agent = dealt.map_or("Random agent".to_string(), |a| title_case(&crate::loadout::agent_name(a)));
+            format!("{agent} · {} · {} · {ammo}", s.weapon_name, halo_words(s))
+        }
         None => format!("{} · {} · {}", title_case(&s.agent_name), s.weapon_name, halo_words(s)),
     }
 }
 
-/// The gear readout: `9 / 13` against the mode's budget, `9 PTS` without one (the gun range).
+/// The gear readout: `7 / 8` against the mode's points total, `9 PTS` without one (the gun range).
 fn gear_line(s: &LoadoutSummary) -> String {
     match s.gear_budget {
         Some(budget) => format!("{} / {budget}", s.gear_cost),
@@ -260,10 +269,14 @@ fn gear_line(s: &LoadoutSummary) -> String {
     }
 }
 
-/// What the gear is spent on: `HALO 6 + AMMO 2` (paid once, one ammo type) or `HALO 6 + MAGS 4`.
+/// What the points are spent on: `ARMOR 3 + AMMO 2 + MAG 1` (team deathmatch, free-for-all: the ammo paid
+/// once) or `HALO 6 + MAGS 4` (the gun range).
 fn gear_split(s: &LoadoutSummary) -> String {
-    let halo = s.gear_cost.saturating_sub(s.ammo_cost);
-    format!("HALO {halo} + {} {}", if s.one_halo { "AMMO" } else { "MAGS" }, s.ammo_cost)
+    if s.one_halo {
+        format!("ARMOR {} + AMMO {} + MAG {}", s.halo_cost(), s.ammo_cost, s.mag_cost)
+    } else {
+        format!("HALO {} + MAGS {}", s.halo_cost(), s.ammo_cost)
+    }
 }
 
 /// How friends join, for the JOIN CODE row: the code (or address) in big letters, and what it is.
@@ -677,7 +690,7 @@ fn refresh_card(
     time: Res<Time>,
     fonts: Res<UiFonts>,
     matches: Query<&MatchState>,
-    players: Query<(&PlayerId, &PlayerInfo, Option<&PlayerNet>, Has<Controlled>, Option<&Score>)>,
+    players: Query<(&PlayerId, &PlayerInfo, Option<&PlayerNet>, Has<Controlled>, Option<&Score>, Option<&PlayerAgent>)>,
     mut texts: Query<(&CardText, &mut Text)>,
     mut copy_btn: Query<&mut Node, With<CopyBtn>>,
     mags: Query<Entity, With<MagsBox>>,
@@ -703,6 +716,8 @@ fn refresh_card(
     let (code, kind) = join_lines(&join);
     // As this match's mode takes the loadout (team deathmatch over the menu).
     let s = summary(&active.0, &data, m.map_or(MatchMode::Tdm, |m| m.mode));
+    // The agent the host dealt you for this match (team deathmatch, free-for-all).
+    let dealt = players.iter().find(|p| p.3).and_then(|p| p.5).and_then(|a| a.0.as_deref());
     // Free-for-all: your kills and the best of everyone else's (the HUD's score boxes).
     let ffa_kills = |me: bool| players.iter().filter(|p| p.3 == me).filter_map(|p| p.4.map(|s| s.kills as u32)).max();
     let (ally, enemy) = match m {
@@ -732,7 +747,7 @@ fn refresh_card(
             ),
             CardText::Server => server_line(host, data.net.tick_hz, cpu.average_ms(), &host_name),
             CardText::Ping => ping_line(host, worst, own_ping),
-            CardText::Loadout => loadout_line(&s),
+            CardText::Loadout => loadout_line(&s, dealt),
             CardText::Gear => gear_line(&s),
             CardText::GearSplit => gear_split(&s),
         };
@@ -1142,12 +1157,14 @@ mod tests {
             attachments: vec![],
             mags: vec![(1, "STD".into(), AmmoKind::Standard)],
             one_halo: false,
+            armor_tier: None,
             armor_name: String::new(),
             core,
             tiers,
             weight,
             gear_cost: 7,
             ammo_cost: 1,
+            mag_cost: 0,
             gear_budget: None,
             agent_name: "KESTREL".into(),
         }
@@ -1157,26 +1174,31 @@ mod tests {
     fn the_loadout_line_names_gun_and_halo() {
         let t = |head, torso, arms, legs| ZoneTable { head, torso, arms, legs };
         let even = loadout(t(2, 2, 2, 0), Some(Core::Mender), WeightClass::Medium);
-        assert_eq!(loadout_line(&even), "Kestrel · AR-7 Mako · T2 Mender (Medium)");
+        assert_eq!(loadout_line(&even, None), "Kestrel · AR-7 Mako · T2 Mender (Medium)");
+        assert_eq!(loadout_line(&even, Some("solace")), "Kestrel · AR-7 Mako · T2 Mender (Medium)", "the pick");
         let mixed = loadout(t(1, 3, 2, 0), Some(Core::Bulwark), WeightClass::Heavy);
         assert_eq!(halo_words(&mixed), "T1-T3 Bulwark (Heavy)");
         assert_eq!(halo_words(&loadout(t(0, 0, 0, 0), None, WeightClass::None)), "No halo");
         assert_eq!((gear_line(&even), gear_split(&even)), ("7 PTS".into(), "HALO 6 + MAGS 1".into()), "the range");
     }
 
-    /// Team deathmatch and free-for-all: no agent, one halo (its core goes unnamed), one ammo type.
+    /// Team deathmatch and free-for-all: the agent the host dealt (none before the start), the gun, the
+    /// armor tier on the one halo (its core goes unnamed) and the one ammo type; the points split three ways.
     #[test]
-    fn the_deathmatch_loadout_line_names_gun_tiers_and_ammo() {
+    fn the_deathmatch_loadout_line_names_agent_gun_armor_and_ammo() {
         let d = vetf_sim::GameData::embedded();
         let ap2 = vetf_sim::data::AmmoChoice { kind: AmmoKind::ArmorPiercing, tier: 2 };
         let mut c = crate::server::default_choice(&d);
         c.mags = vec![ap2, vetf_sim::data::AmmoChoice::STANDARD];
         c.halo.tiers = ZoneTable { head: 2, torso: 3, arms: 1, legs: 0 };
+        c.attachments.push("mag_45".into());
+        c.attachments.retain(|a| a != "mag_30");
         for mode in [MatchMode::Tdm, MatchMode::Ffa] {
             let s = summary(&c, &d, mode);
-            assert_eq!(loadout_line(&s), "AR-7 Mako · T1-T3 halo (Medium) · AP II");
-            assert_eq!(gear_line(&s), "10 / 13");
-            assert_eq!(gear_split(&s), "HALO 6 + AMMO 4", "AP II paid once");
+            assert_eq!(loadout_line(&s, Some("solace")), "Solace · AR-7 Mako · T3 halo (Medium) · AP II");
+            assert_eq!(loadout_line(&s, None), "Random agent · AR-7 Mako · T3 halo (Medium) · AP II");
+            assert_eq!(gear_line(&s), "6 / 8");
+            assert_eq!(gear_split(&s), "ARMOR 3 + AMMO 2 + MAG 1", "AP II paid once");
         }
     }
 
