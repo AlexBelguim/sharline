@@ -37,8 +37,8 @@ After mockups 04 / 04b (`design/ui/mockups`). The left nav has **PLAY** (with **
   CONFIRM) or take the generated **USE AGENT-nnnn**. Esc does not skip it. Until then you show as `UNKNOWN`;
   the OS user name is never used.
 - **Player card:** your name (**EDIT NAME**: 3-16 letters, digits, spaces, `-`, `_`, `.`), the loadout as HOST GAME's
-  mode takes it (its one ammo type and magazine count) and its gear cost against that mode's budget (**OVER BUDGET**
-  means the host will give you the default loadout).
+  mode takes it (its armor tier, its one ammo type and magazine count) and its points against that mode's total
+  (**OVER BUDGET** means the host will give you the default loadout).
 - **Keys:** ↑↓ select (moving onto HOST GAME / JOIN GAME opens it), Enter confirm (or → into the flyout),
   Tab / Shift+Tab or ↑↓ inside a flyout, ←→ on a toggle, stepper or the tabs, Esc back to the nav.
 - **Saved per user** (in `~/.config/shardline`, `%APPDATA%\shardline` or `~/Library/Application Support/shardline`;
@@ -47,16 +47,22 @@ After mockups 04 / 04b (`design/ui/mockups`). The left nav has **PLAY** (with **
 
 ### Loadout
 Opens from the lobby's **LOADOUT** and the ESC menu's **LOADOUT**; presets **A / B / C**, **+ SAVE AS**, **CONFIRM**.
-- **Team deathmatch and free-for-all** (user direction 2026-10-08): the gun and its attachments, then a tier for
-  each body part (**HEAD / TORSO / ARMS / LEGS**: NONE up to that part's cap, legs T2, arms T3), then **one ammo
-  type** for every magazine, then the result and the gear budget (the arc tiers plus the ammo's price, paid once).
-  No agent pick (these modes have no abilities; everyone keeps the jetpack) and no halo pick: everyone wears the
-  mode's one halo (`loadout` in `rules.ron`: Mender, four magazines). The host shapes whatever a client sends the
-  same way, so nobody gets another core, mixed ammo or extra magazines. In the lobby a confirmed loadout is worn at
-  once; in a match it applies at the next spawn.
+- **Team deathmatch and free-for-all** (user direction 2026-10-08, `deathmatch_loadout` in `rules.ron`): the gun,
+  its attachments and its **MAGAZINE** type (everyone carries six of it), then **one ARMOR tier** (T1 1/1/1/1 Light,
+  T2 2/2/2/2 Medium, T3 3/3/1/1 Medium, T4 4/4/3/2 Heavy, as head / torso / arms / legs), then **one AMMO type** for
+  all six magazines, then the points used against the total. Points: total 8; armor 1 / 2 / 3 / 5; ammo once,
+  Standard 0, AP and RIP I / II / III 1 / 2 / 4; magazine standard 0, extended 1, drum 2. T4 armor and a tier III
+  round never fit together. Every card shows its points, red when picking it would go over. No agent pick (these
+  modes have no abilities; everyone keeps the jetpack): the host deals everyone a random agent when the match
+  starts, kept for the match. No halo pick: everyone wears the one halo (Mender). The host shapes whatever a client
+  sends the same way and refuses what is over the points. In the lobby a confirmed loadout is worn at once; in a
+  match it applies at the next spawn.
+- **Keys:** Q / E switch column, the arrows move, Enter picks; BACK and CONFIRM close the focus order. 1 / 2 / 3
+  load a preset, R resets the slot (or the ammo / magazine row) under the focus.
 - **Gun range:** the full screen: agent, halo core, a tier per arc and up to six magazines, each with its own ammo
   (no budget).
-- Presets saved by older builds load as they were; the deathmatch modes open them in their shape.
+- Presets saved by older builds load as they were; team deathmatch and free-for-all open them as their nearest
+  picks (an armor tier, slot 1's ammo in six magazines).
 
 ### Hosting and joining
 
@@ -157,9 +163,10 @@ folder).
 - `--demo-ui reload|heal|heal-region` opens a ring menu for screenshots (the heal ones also hurt the host's player).
 - `--demo-ui menu-join|menu-join-ip|menu-host` opens the main menu's JOIN GAME (code or direct IP tab) or HOST
   GAME flyout with its field focused, for screenshots. `--demo-ui loadout|loadout-ammo|loadout-attach` opens the
-  Loadout screen (over the lobby or match with `--host` / `--join`). `--demo-ui loadout-set:H,T,A,L,AMMO[,GUN]`
-  also clicks those body-part tiers, that ammo (`ap2`) and gun on the deathmatch layout; `loadout-pick:...` then
-  confirms, readies in the lobby and (the host) starts the match: a host and a `--bot` joiner both pick and play.
+  Loadout screen (over the lobby or match with `--host` / `--join`). `--demo-ui loadout-set:TIER,AMMO[,MAG][,GUN]`
+  (e.g. `loadout-set:3,ap3,mag_45`) also clicks that gun, magazine type, armor tier and ammo on the deathmatch
+  layout; `loadout-pick:...` then confirms, readies in the lobby and (the host) starts the match: a host and a
+  `--bot` joiner both pick and play.
 - `--demo-ui impacts|impacts-sheet[:x,y,z]|impacts-live|impacts-idle` (in a match, best with `--camera`): bullet
   marks for screenshots. `impacts` fires once through a 9x5 grid over the view (the real shot path), `impacts-sheet`
   lays every surface kind (rows) in every variant (columns) on the face under the view centre (or toward x,y,z),
