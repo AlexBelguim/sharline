@@ -135,8 +135,12 @@ fn screen_pixels(d: vec2<f32>, dx: vec2<f32>, dy: vec2<f32>) -> f32 {
 // existing kit UVs and does not replace the game's other depth/foliage materials.
 fn base_relief(uv: vec2<f32>, tangent_view: vec3<f32>, dx: vec2<f32>, dy: vec2<f32>) -> vec2<f32> {
     if ground.parallax.x <= 0.0 { return uv; }
-    // The whole shift (the relief at its deepest) for this view, in UV and in pixels.
-    let shift = -tangent_view.xy / max(abs(tangent_view.z), 0.15) * (ground.heights.x / ground.repeats.x);
+    // The whole shift (the relief at its deepest) for this view, in UV and in pixels. Into the surface is
+    // -V; glTF's bitangent (cross(N, T) * w) points toward decreasing v, so V's B part moves v the other way
+    // (as Bevy's own parallax does: Vt.xy * vec2(1, -1)). With -V.xy the relief went the wrong way along v
+    // (map-kit review K5).
+    let shift = vec2<f32>(-tangent_view.x, tangent_view.y) / max(abs(tangent_view.z), 0.15)
+        * (ground.heights.x / ground.repeats.x);
     let pixels = screen_pixels(shift, dx, dy);
     if pixels < ground.relief.y { return uv; }
     let steps = clamp(ceil(pixels * ground.relief.x), 1.0, max(ground.parallax.y, 1.0));
