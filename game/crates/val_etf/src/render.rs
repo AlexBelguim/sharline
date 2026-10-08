@@ -507,13 +507,17 @@ fn attach_player_visuals(
 }
 
 /// A halo's four arcs, one per zone, under a body: each in its tier's colour with its own material (a hit
-/// flashes just that arc, `hit_fx`), the ring sized by the weight class.
+/// flashes just that arc, `hit_fx`), the ring sized by the weight class. No halo at all (every arc 0, the
+/// deathmatch NO HALO pick or the gun range's `arm_none`): nothing is drawn over the head.
 fn spawn_halo_arcs(
     body: &mut ChildSpawnerCommands,
     halo: HaloLook,
     meshes: &mut Assets<Mesh>,
     materials: &mut Assets<StandardMaterial>,
 ) {
+    if Zone::ALL.iter().all(|z| halo.tiers[*z] == 0) {
+        return;
+    }
     let (scale, tube) = halo.size();
     for zone in Zone::ALL {
         let tier = halo.tiers[zone];
@@ -1071,6 +1075,15 @@ mod tests {
         let heavy = halo_arcs(&mut app);
         assert_eq!(heavy.iter().map(|a| a.1).collect::<Vec<_>>(), [4, 4, 3, 2], "{heavy:?}");
         assert!(heavy.iter().all(|a| (a.2 - 0.16 * 1.2).abs() < 1e-6), "the heavy ring: {heavy:?}");
+        // a respawn with NO HALO (DIRECTION_LOG 18): nothing over the head, not four dark arcs
+        let mut none = vetf_sim::player::Loadout::default_for(&data, vetf_sim::data::Mode::Tdm);
+        none.halo.tiers = ZoneTable::splat(0);
+        none.halo.core = None;
+        none.weight = WeightClass::None;
+        app.world_mut().entity_mut(player).insert(PlayerLoadout(none));
+        app.update();
+        app.update();
+        assert!(halo_arcs(&mut app).is_empty());
     }
 
     /// Map-kit review K9: a kerb step on flat ground eases the view up over the time constant instead of a jump;

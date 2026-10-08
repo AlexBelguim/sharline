@@ -1199,6 +1199,14 @@ mod tests {
             assert_eq!(loadout_line(&s, None), "Random agent · AR-7 Mako · T3 halo (Medium) · AP II");
             assert_eq!(gear_line(&s), "6 / 8");
             assert_eq!(gear_split(&s), "ARMOR 3 + AMMO 2 + MAG 1", "AP II paid once");
+            // NO HALO (DIRECTION_LOG 18)
+            let none = LoadoutChoice {
+                halo: vetf_sim::gear::HaloChoice::of_tier(&d.rules.deathmatch_loadout, 0),
+                ..c.clone()
+            };
+            let s = summary(&none, &d, mode);
+            assert_eq!(loadout_line(&s, None), "Random agent · AR-7 Mako · No halo · AP II");
+            assert_eq!(gear_split(&s), "ARMOR 0 + AMMO 2 + MAG 1");
         }
     }
 

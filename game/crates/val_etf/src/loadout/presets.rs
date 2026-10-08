@@ -286,6 +286,29 @@ mod tests {
         assert_eq!(range.halo, volt.halo, "and its halo");
     }
 
+    /// A preset saved with NO HALO (DIRECTION_LOG 18) reads back, and opens, as NO HALO in team deathmatch and
+    /// free-for-all, and its loadout line says so.
+    #[test]
+    fn a_no_halo_preset_round_trips() {
+        use crate::loadout::model::Draft;
+        let d = GameData::embedded();
+        let mut f = LoadoutsFile { presets: default_presets(&d, "kestrel"), ..Default::default() };
+        for mode in [vetf_net::MatchMode::Tdm, vetf_net::MatchMode::Ffa] {
+            let kit = d.rules.fixed_loadout(mode).cloned();
+            let mut dr = Draft::from_choice(&f.presets[0].loadout, &f.attachments, &d, kit.clone());
+            assert!(dr.set_armor_tier(0));
+            f.presets[0].loadout = dr.choice();
+            let text = ron::to_string(&f).unwrap();
+            let back = LoadoutsFile::parse(&text);
+            assert_eq!(back, f, "{mode:?}: the file reads back as saved");
+            let again = Draft::from_choice(&back.presets[0].loadout, &back.attachments, &d, kit);
+            assert_eq!(again.armor_tier(), Some(0), "{mode:?}");
+            let s = crate::loadout::summary(&back.presets[0].loadout, &d, mode);
+            assert_eq!((s.armor_tier, s.armor_name.as_str()), (Some(0), "NO HALO"), "{mode:?}");
+            assert_eq!(s.weight, vetf_sim::data::WeightClass::None);
+        }
+    }
+
     /// A file this build cannot read whole never crashes the game: what still reads stays, in its letter.
     #[test]
     fn an_unreadable_preset_falls_back_in_its_own_letter() {

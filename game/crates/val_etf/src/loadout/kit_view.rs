@@ -122,7 +122,9 @@ impl View<'_> {
         let halo = d.halo;
         let armor = self.data.armor.resolve_halo(&halo);
         let top = current.unwrap_or(1);
-        p.spawn(col_header(f, "ARMOR", "ONE TIER · ONE HALO FOR EVERYONE", TextRole::H2, 10.0));
+        // NO HALO (tier 0) has no tier colour of its own: a quiet grey that still reads on the dark panel
+        let pick_color = |t: u8| if t == 0 { TEXT_MID } else { tier_color(t) };
+        p.spawn(col_header(f, "ARMOR", "NO HALO OR ONE TIER · ONE HALO FOR EVERYONE", TextRole::H2, 10.0));
         p.spawn(Node { height: px(132), column_gap: px(16), align_items: AlignItems::Center, ..default() })
             .with_children(|row| {
                 row.spawn(Node {
@@ -139,10 +141,14 @@ impl View<'_> {
                         weight: armor.weight_class,
                         cells: armor.power_cells,
                         accent: tier_color(top),
-                        centre: Centre::Value {
-                            value: armor.capacity.round() as u32,
-                            sub: armor.weight_class.label().to_string(),
-                            sub_color: tier_color(top),
+                        centre: if top == 0 {
+                            Centre::Value { value: 0, sub: "NO HALO".into(), sub_color: TEXT_LOW }
+                        } else {
+                            Centre::Value {
+                                value: armor.capacity.round() as u32,
+                                sub: armor.weight_class.label().to_string(),
+                                sub_color: tier_color(top),
+                            }
                         },
                         letters: false,
                         selected: None,
@@ -151,10 +157,9 @@ impl View<'_> {
                 });
                 row.spawn(Node { flex_grow: 1.0, height: percent(100), column_gap: px(6), ..default() }).with_children(
                     |cards| {
-                        for (i, spec) in kit.armor.iter().enumerate() {
-                            let t = i as u8 + 1;
+                        for (t, spec) in kit.armor_picks() {
                             let on = current == Some(t);
-                            let c = tier_color(t);
+                            let c = pick_color(t);
                             let weight = self.data.armor.weight_class(spec.tiers.iter().map(|(_, x)| *x as u32).sum());
                             let over = !on && self.over_with(|x| _ = x.set_armor_tier(t));
                             let mut card = cards.spawn(pick_card(Act::Armor(t), on, c, c));
@@ -171,7 +176,7 @@ impl View<'_> {
                                             BackgroundColor(c),
                                             UiTransform::from_rotation(Rot2::degrees(45.0)),
                                         ));
-                                        l.spawn(f.role_color(TextRole::TierBox, format!("T{t}"), c));
+                                        l.spawn(f.role_color(TextRole::TierBox, text::armor_pick(t), c));
                                         l.spawn(spacer());
                                         self.price(l, spec.points, over);
                                     });
@@ -180,7 +185,7 @@ impl View<'_> {
                                     Node { margin: UiRect::top(px(10)), ..default() },
                                 ));
                                 b.spawn((
-                                    f.role(TextRole::Micro, text::arcs_line(&spec.tiers)),
+                                    f.role(TextRole::Micro, text::armor_pick_arcs(&spec.tiers)),
                                     TextLayout::no_wrap(),
                                     Node { margin: UiRect::top(px(4)), ..default() },
                                 ));

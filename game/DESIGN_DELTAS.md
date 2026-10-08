@@ -387,3 +387,16 @@ front grips will then each lower the vertical or horizontal recoil". Skipped in 
 - **Design follow-up (local session):** port the T pattern and `loop_from_index` 15 into
   `mako_recoil_pattern.json`, the recoil roles into `attachments_stats.slice.json` (and the Skink's note in the
   weapons doc), then delete `recoil_roles_round_3()`.
+
+## 16. A NO HALO armor pick in team deathmatch and free-for-all (2026-10-08)
+User direction (DIRECTION_LOG 18): "A NO HALO armor option for 0 points." Section 13's armor pick gains a first
+option before T1.
+- **Data** (`rules.ron` `deathmatch_loadout.no_halo_points: 0`): NO HALO is armor tier 0. Every arc is 0, so the
+  weight class is None and movement uses armor.ron's fastest `weight_effects` row (move 1.0, slide boost 2.0, no
+  power drain). The data check rejects a NO HALO that costs more than T1.
+- **Host:** a halo with every arc 0 stays NO HALO when it is shaped (`tier_for`). Before this change it became T1.
+  A halo with arcs but no head or torso arc still becomes T1. Older saved loadouts that had no halo now open as
+  NO HALO.
+- **Look:** no arcs are drawn over the head (the gun range's `arm_none` also no longer draws four dark arcs). The
+  HUD's shield strip is empty and its header reads NO HALO. The Loadout card reads NO HALO / FREE / NONE / no
+  shield. The ESC card and player tag read "No halo".

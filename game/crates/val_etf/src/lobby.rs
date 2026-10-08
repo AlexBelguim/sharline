@@ -511,7 +511,7 @@ fn refresh(
     // Agents are dealt at random when the match starts (these modes have no abilities).
     let loadout = match (data.rules.fixed_loadout(m.mode), vetf_sim::gear::gear_budget(&data, m.mode)) {
         (Some(k), Some(pts)) => {
-            format!("ARMOR T1–T{} · ONE AMMO TYPE · {} MAGS · {pts} PTS", k.armor.len(), k.mags)
+            format!("NO HALO OR ARMOR T1–T{} · ONE AMMO TYPE · {} MAGS · {pts} PTS", k.armor.len(), k.mags)
         }
         _ => "ANY HALO · AMMO PER MAGAZINE".to_string(),
     };

@@ -35,7 +35,7 @@
     //   Volt's break pulse slows, Phase is immune to slows and Bulwark cuts flinch, ability-like effects these
     //   modes leave out. It is also the default loadout's core, so time-to-kill stays where playtest round 1
     //   tuned it.
-    // - ONE armor tier: a fixed combination of the existing per-arc tiers (no new armor), each arc within
+    // - ONE armor pick: NO HALO, or a tier that is a fixed combination of the existing per-arc tiers (no new armor), each arc within
     //   armor.ron's loadout_tier_caps. T4 is the best combination a loadout allows.
     // - `mags` magazines of the picked type (the gun's `mag` attachment), all loaded with the ONE picked ammo
     //   type. The ammo's points are its gear_cost in ammo.ron (STD 0, AP and RIP I / II / III 1 / 2 / 4), paid
@@ -52,6 +52,9 @@
             (tiers: (head: 3, torso: 3, arms: 1, legs: 1), points: 3),  // T3: Medium (8), head and torso first
             (tiers: (head: 4, torso: 4, arms: 3, legs: 2), points: 5),  // T4: Heavy (13), every arc at its cap
         ],
+        // NO HALO (DIRECTION_LOG 18): the first armor pick, every arc 0 (weight class None, armor.ron's fastest
+        // weight_effects) for these points.
+        no_halo_points: 0,
         // Each gun's standard magazine (mag_30, mag_5, skink_mag_40) is free.
         mag_points: {"mag_45": 1, "mag_8": 1, "skink_mag_60": 1, "mag_drum60": 2},
     ),

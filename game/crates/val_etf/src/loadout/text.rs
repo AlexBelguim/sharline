@@ -222,6 +222,16 @@ pub fn arcs_line(tiers: &vetf_sim::ZoneTable<u8>) -> String {
     Zone::ALL.iter().map(|z| format!("{}{}", &z.label()[..1], tiers[*z])).collect::<Vec<_>>().join(" ")
 }
 
+/// A deathmatch armor pick's name: `NO HALO` (tier 0), `T1`, `T2`, ...
+pub fn armor_pick(tier: u8) -> String {
+    if tier == 0 { "NO HALO".into() } else { format!("T{tier}") }
+}
+
+/// The arcs of a deathmatch armor pick: `H3 T3 A1 L1`, or `no shield` for no halo (not a row of zeros).
+pub fn armor_pick_arcs(tiers: &vetf_sim::ZoneTable<u8>) -> String {
+    if tiers.iter().all(|(_, t)| *t == 0) { "no shield".into() } else { arcs_line(tiers) }
+}
+
 /// A number of points: `0 PTS`, `1 PT`, `4 PTS`.
 pub fn pts(n: u32) -> String {
     if n == 1 { "1 PT".into() } else { format!("{n} PTS") }

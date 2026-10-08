@@ -341,6 +341,14 @@ mod tests {
         assert_eq!(agent_micro(&s), "NO HALO · AR-7 MAKO");
         assert_eq!(mag_slots(&s)[0], Some(("AP II".into(), AmmoKind::ArmorPiercing)));
         assert_eq!(s.one_ammo(), None, "mixed magazines");
+        // the deathmatch NO HALO pick (DIRECTION_LOG 18) reads the same: no tier, no empty halo chip
+        for mode in [MatchMode::Tdm, MatchMode::Ffa] {
+            let s = summary(&c, &d, mode);
+            assert_eq!((s.armor_tier, s.armor_name.as_str()), (Some(0), "NO HALO"));
+            assert!(loadout_line(&c, &s, &d).ends_with(" · No halo"), "{mode:?}");
+            assert_eq!(agent_halo(&s), None, "{mode:?}");
+            assert_eq!(agent_micro(&s), "NO HALO · AR-7 MAKO", "{mode:?}");
+        }
         // a deathmatch loads every magazine with slot 1's AP II
         let tdm = summary(&c, &d, MatchMode::Tdm);
         assert_eq!(tdm.one_ammo().map(|a| a.0), Some("AP II".into()));

@@ -1139,6 +1139,9 @@ pub struct DeathmatchLoadout {
     /// Armor tiers T1, T2, ... in order: each a fixed combination of per-arc tiers (no new armor), and its
     /// points.
     pub armor: Vec<ArmorTierSpec>,
+    /// Points of the NO HALO pick (tier 0: every arc 0, weight class None, so the fastest movement; user
+    /// direction 2026-10-08, DIRECTION_LOG 18).
+    pub no_halo_points: u32,
     /// Points of a magazine type (an attachment id of category `mag`); a type left out costs nothing (each
     /// gun's standard magazine).
     #[serde(default)]
@@ -1154,20 +1157,31 @@ pub struct ArmorTierSpec {
 }
 
 impl DeathmatchLoadout {
-    /// Armor tier `t` (1-based: T1 is 1).
-    pub fn armor_tier(&self, t: u8) -> Option<&ArmorTierSpec> {
-        self.armor.get((t as usize).checked_sub(1)?)
+    /// Armor tier `t` (1-based: T1 is 1; 0 is NO HALO, every arc 0 for [`DeathmatchLoadout::no_halo_points`]).
+    pub fn armor_tier(&self, t: u8) -> Option<ArmorTierSpec> {
+        match t {
+            0 => Some(ArmorTierSpec { tiers: ZoneTable::splat(0), points: self.no_halo_points }),
+            _ => self.armor.get(t as usize - 1).copied(),
+        }
     }
 
-    /// The tier whose combination these arcs are exactly (1-based), if any.
+    /// Every armor pick in the order the Loadout screen lists them: NO HALO (0) first, then T1, T2, ...
+    pub fn armor_picks(&self) -> impl Iterator<Item = (u8, ArmorTierSpec)> + '_ {
+        (0..=self.armor.len() as u8).filter_map(|t| self.armor_tier(t).map(|a| (t, a)))
+    }
+
+    /// The tier whose combination these arcs are exactly (1-based; 0 for no halo), if any.
     pub fn tier_of(&self, tiers: ZoneTable<u8>) -> Option<u8> {
+        if tiers == ZoneTable::splat(0) {
+            return Some(0);
+        }
         self.armor.iter().position(|a| a.tiers == tiers).map(|i| i as u8 + 1)
     }
 
     /// The armor tier a halo becomes (an older loadout, or any halo a client sends): its own tier when it is
     /// one, else the highest tier whose torso does not exceed the halo's best head-or-torso tier (head and
     /// torso are what set the tiers apart), T1 at least. Mender Scout's H2 T2 becomes T2, Mender Medic's
-    /// H1 T3 A1 L1 T3, no halo T1.
+    /// H1 T3 A1 L1 T3; no halo stays no halo (0).
     pub fn tier_for(&self, tiers: ZoneTable<u8>) -> u8 {
         if let Some(t) = self.tier_of(tiers) {
             return t;
@@ -1467,6 +1481,9 @@ impl GameData {
         if kit.armor.is_empty() {
             return bad("deathmatch loadout: at least one armor tier".into());
         }
+        if kit.no_halo_points > kit.armor[0].points {
+            return bad("deathmatch loadout: NO HALO at no more points than T1".into());
+        }
         for (i, a) in kit.armor.iter().enumerate() {
             let caps = self.armor.loadout_tier_caps;
             if Zone::ALL.iter().any(|z| a.tiers[*z] == 0 || a.tiers[*z] > caps[*z]) {
@@ -1749,6 +1766,7 @@ mod tests {
         assert!(broken(&|k| k.armor[2] = k.armor[1]), "the same combination twice");
         assert!(broken(&|k| k.armor[0].points = 9), "T1 dearer than T2");
         assert!(broken(&|k| k.armor.clear()));
+        assert!(broken(&|k| k.no_halo_points = 2), "no halo dearer than T1");
         assert!(broken(&|k| k.mags = 7));
         assert!(broken(&|k| _ = k.mag_points.insert("optic_holo".into(), 1)), "not a magazine");
     }
@@ -1775,12 +1793,19 @@ mod tests {
             assert_eq!(k.tier_for(*c), i as u8 + 1);
             assert_eq!(k.armor_tier(i as u8 + 1).map(|a| a.tiers), Some(*c));
         }
-        assert_eq!(k.armor_tier(0), None);
         assert_eq!(k.armor_tier(5), None);
+        // NO HALO (DIRECTION_LOG 18): the first pick, 0 points, every arc 0, weight class None
+        let none = k.armor_tier(0).unwrap();
+        assert_eq!((none.tiers, none.points), (t(0, 0, 0, 0), 0));
+        assert_eq!(d.armor.weight_class(0), WeightClass::None);
+        assert_eq!((k.tier_of(none.tiers), k.tier_for(none.tiers)), (Some(0), 0));
+        let picks: Vec<(u8, u32)> = k.armor_picks().map(|(t, a)| (t, a.points)).collect();
+        assert_eq!(picks, [(0, 0), (1, 1), (2, 2), (3, 3), (4, 5)]);
+        let fx = |w| d.armor.effects(w).move_mult;
+        assert!(fx(WeightClass::None) >= fx(WeightClass::Light), "no halo moves fastest");
         assert_eq!(k.tier_for(t(2, 2, 0, 0)), 2, "Mender Scout");
         assert_eq!(k.tier_for(t(1, 3, 1, 1)), 3, "Mender Medic");
         assert_eq!(k.tier_for(t(4, 4, 4, 4)), 4, "the uncapped Juggernaut");
-        assert_eq!(k.tier_for(t(0, 0, 0, 0)), 1, "no halo");
         assert_eq!(k.tier_for(t(0, 0, 3, 2)), 1, "no head or torso arc");
         assert_eq!(k.mag_points("mag_30"), 0);
         assert_eq!(k.mag_points("mag_drum60"), 2);

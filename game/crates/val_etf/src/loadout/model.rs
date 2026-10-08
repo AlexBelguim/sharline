@@ -630,7 +630,15 @@ mod tests {
             // the picks
             assert!(dr.set_armor_tier(4));
             assert_eq!(dr.halo.tiers, d.armor.loadout_tier_caps);
-            assert!(!dr.set_armor_tier(5) && !dr.set_armor_tier(0));
+            assert!(!dr.set_armor_tier(5));
+            // NO HALO (DIRECTION_LOG 18): the first pick, free, and it stays no halo through the host's shaping
+            assert!(dr.set_armor_tier(0));
+            assert_eq!((dr.armor_tier(), dr.halo.tiers, dr.gear(&d).halo), (Some(0), ZoneTable::splat(0), 0));
+            assert!(!dr.halo.is_lit());
+            assert_eq!(dr.choice().for_mode(&d, mode).halo.tiers, ZoneTable::splat(0));
+            let again = Draft::from_choice(&dr.choice(), &BTreeMap::new(), &d, Some(kit.clone()));
+            assert_eq!(again.armor_tier(), Some(0), "a saved NO HALO opens as NO HALO");
+            assert!(dr.set_armor_tier(4));
             assert!(dr.set_ammo(ap(2), &d));
             assert!(dr.mags.iter().all(|m| *m == ap(2)) && dr.ammo() == ap(2));
             assert!(!dr.set_ammo(AmmoChoice { kind: AmmoKind::Rip, tier: 1 }, &d), "a rifle cannot load RIP");

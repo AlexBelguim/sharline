@@ -134,7 +134,7 @@ pub struct LoadoutSummary {
     /// Team deathmatch and free-for-all: one halo, one armor tier and one ammo type for everyone's six
     /// magazines; the core is not worth naming, and the ammo is one label.
     pub one_halo: bool,
-    /// The deathmatch armor tier (1-based; None in the gun range).
+    /// The deathmatch armor tier (1-based, 0 for NO HALO; None in the gun range).
     pub armor_tier: Option<u8>,
     /// The halo in a few words: `T2 MENDER`, `T1–T3 BULWARK`, `NO HALO`; `T3 HALO` for an armor tier.
     pub armor_name: String,
@@ -223,6 +223,7 @@ pub fn summary(choice: &LoadoutChoice, data: &GameData, mode: MatchMode) -> Load
         one_halo: kit.is_some(),
         armor_tier,
         armor_name: match armor_tier {
+            Some(0) => "NO HALO".into(),
             Some(t) => format!("T{t} HALO"),
             None => halo_name(&halo),
         },

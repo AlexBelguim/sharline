@@ -510,6 +510,7 @@ fn loadout_words(data: &GameData, l: &Loadout) -> String {
     let core = l.halo.core.map_or("NO HALO", |c| c.label());
     let arcs = format!("H{} T{} A{} L{}", t.head, t.torso, t.arms, t.legs);
     let halo = match data.rules.deathmatch_loadout.tier_of(t) {
+        Some(0) => "NO HALO".into(),
         Some(tier) => format!("T{tier} {core} ({arcs})"),
         None => format!("{arcs} {core}"),
     };
@@ -2112,6 +2113,13 @@ mod tests {
                 assert_eq!(l.halo.core, Some(Core::Mender), "{mode:?} T{tier}: the one halo");
                 assert_eq!(l.weapon.mags.len(), 6, "six magazines");
             }
+            // NO HALO (DIRECTION_LOG 18): the host takes it, and the player wears nothing (no halo to draw,
+            // no shield, the lightest weight class)
+            let l = super::loadout_from_choice(&d, &picks("ar7_mako", 0, AmmoChoice::STANDARD, &[]), mode).unwrap();
+            assert_eq!(l.halo.tiers, ZoneTable::splat(0), "{mode:?} NO HALO");
+            assert_eq!((l.halo.core, l.weight), (None, vetf_sim::data::WeightClass::None), "{mode:?} NO HALO");
+            let std = d.ammo.long_name(AmmoChoice::STANDARD).unwrap();
+            assert_eq!(super::loadout_words(&d, &l), format!("ar7_mako mag_30 · NO HALO · {std} x6"));
         }
     }
 
@@ -2165,6 +2173,8 @@ mod tests {
                 }
             }
             assert!(over(&picks("sk9_skink", 4, rip3, &[])), "T4 + RIP III");
+            assert!(host(&picks("sk9_skink", 0, rip3, &["skink_mag_60"])).is_ok(), "NO HALO + RIP III + extended");
+            assert!(host(&picks("ar7_mako", 0, ap(3), &["mag_drum60"])).is_ok(), "NO HALO + AP III + the drum");
             assert!(host(&picks("ar7_mako", 4, std, &["mag_drum60"])).is_ok(), "T4 + STD + the drum");
             assert!(host(&picks("ar7_mako", 3, ap(3), &["mag_45"])).is_ok(), "T3 + AP III + extended");
             assert!(host(&picks("ar7_mako", 2, ap(3), &["mag_drum60"])).is_ok(), "T2 + AP III + the drum");

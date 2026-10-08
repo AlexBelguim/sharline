@@ -51,7 +51,7 @@ pub fn columns(draft: &Draft, data: &GameData, ui: &LoadoutUiData, arc: Zone) ->
             .filter_map(|m| data.attachments.attachments.iter().position(|a| a.id == m.id))
             .map(Act::MagType)
             .collect();
-        let armor = (1..=kit.armor.len() as u8).map(Act::Armor).collect();
+        let armor = kit.armor_picks().map(|(t, _)| Act::Armor(t)).collect();
         let ammo = draft.ammo_options(data).into_iter().map(Act::Ammo).collect();
         return Columns { cols: vec![vec![tabs, slots, mags], vec![armor, ammo, finish]], start: 0 };
     }
@@ -212,7 +212,7 @@ mod tests {
     }
 
     /// The deathmatch layout: Q / E between the gun column (weapon tabs, attachment slots, magazine types) and
-    /// the picks column (the armor tiers T1-T4, then the ammo row).
+    /// the picks column (NO HALO and the armor tiers T1-T4, then the ammo row).
     #[test]
     fn the_deathmatch_layout_focuses_gun_and_magazine_then_armor_then_ammo() {
         use vetf_sim::data::{AmmoChoice, AmmoKind};
@@ -228,18 +228,18 @@ mod tests {
         assert_eq!(cols.cols[0][2], [mag("mag_30"), mag("mag_45"), mag("mag_drum60")], "the Mako's magazines");
         let rows = &cols.cols[1];
         assert_eq!(rows.len(), 3, "armor, ammo, the buttons");
-        assert_eq!(rows[0], (1..=4).map(Act::Armor).collect::<Vec<_>>());
+        assert_eq!(rows[0], (0..=4).map(Act::Armor).collect::<Vec<_>>(), "NO HALO first, then T1-T4");
         assert_eq!(rows[1][0], Act::Ammo(AmmoChoice::STANDARD));
         let start = step(&cols, None, Move::Down);
         assert_eq!(start, Some(Act::Weapon(0)), "focus starts on the gun");
         assert_eq!(step(&cols, Some(Act::Slot(AttachmentCategory::Optic)), Move::Down), Some(mag("mag_30")));
         let right = step(&cols, start, Move::NextColumn);
-        assert_eq!(right, Some(Act::Armor(1)));
+        assert_eq!(right, Some(Act::Armor(0)));
         assert_eq!(step(&cols, right, Move::NextColumn), right, "the last column");
         assert_eq!(step(&cols, Some(Act::Armor(4)), Move::Right), Some(Act::Armor(4)), "the row's end");
-        let ammo = step(&cols, Some(Act::Armor(2)), Move::Down);
+        let ammo = step(&cols, Some(Act::Armor(1)), Move::Down);
         assert_eq!(ammo, Some(Act::Ammo(AmmoChoice { kind: AmmoKind::ArmorPiercing, tier: 1 })), "same position");
-        assert_eq!(step(&cols, ammo, Move::Up), Some(Act::Armor(2)));
+        assert_eq!(step(&cols, ammo, Move::Up), Some(Act::Armor(1)));
         assert_eq!(step(&cols, ammo, Move::PrevColumn), Some(Act::Weapon(0)));
         // under the ammo: BACK and CONFIRM, so the keyboard can finish
         assert_eq!(rows[2], [Act::Back, Act::Confirm]);

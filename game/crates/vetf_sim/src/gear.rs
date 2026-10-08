@@ -71,7 +71,7 @@ impl HaloChoice {
         }
     }
 
-    /// The halo of a deathmatch armor tier (1-based): the mode's one core with that tier's arcs. Out of range:
+    /// The halo of a deathmatch armor tier (1-based; 0 is NO HALO): the mode's one core with that tier's arcs. Out of range:
     /// no halo.
     pub fn of_tier(kit: &DeathmatchLoadout, tier: u8) -> Self {
         Self { core: kit.halo_core, tiers: kit.armor_tier(tier).map_or(ZoneTable::splat(0), |a| a.tiers) }
@@ -123,7 +123,7 @@ pub fn mag_type<'a>(data: &GameData, weapon: &'a WeaponSpec, attachments: &'a [S
         .map_or(weapon.mag_default.as_str(), |id| id.as_str())
 }
 
-/// The points of a deathmatch loadout's picks: armor tier `armor` (1-based; out of range: none), the one
+/// The points of a deathmatch loadout's picks: armor tier `armor` (1-based, 0 NO HALO; out of range: none), the one
 /// ammo type (paid once: every magazine carries it; ammo the gun cannot load costs nothing here, the host
 /// refuses it separately) and the magazine type.
 pub fn kit_cost(

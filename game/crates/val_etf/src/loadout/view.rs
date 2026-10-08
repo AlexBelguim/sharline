@@ -1493,7 +1493,7 @@ impl View<'_> {
         .with_children(|r| {
             // The deathmatch layout names the armor tier: `T3 · H3 T3 A1 L1`.
             let header = match d.armor_tier() {
-                Some(t) => format!("T{t} · {}", text::arcs_line(&halo.tiers)),
+                Some(t) => format!("{} · {}", text::armor_pick(t), text::armor_pick_arcs(&halo.tiers)),
                 None => text::result_header(halo),
             };
             r.spawn(col_header(f, "RESULT", &header, TextRole::H2Small, 0.0));
