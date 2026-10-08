@@ -27,10 +27,6 @@
         radial_dead_zone: (min: 10, max: 30, step: 1),
         host_port: (min: 1024, max: 65535, step: 1),
     ),
-    // The crosshair opens by the gun's spread beyond this much of its resting hip spread (degrees), so a rifle
-    // at rest shows the plain small cross while a gun that is wide even at rest (the Warden's hip fire) shows
-    // the rest of its cone.
-    crosshair: (rest_allowance_deg: 1.0),
     // The ring menus' cursor: px (at 1080p) per inch of mouse travel (at 800 DPI one count is one px, like a
     // desktop cursor), and how far (px) it must move off the centre before an option is picked.
     radial: (px_per_inch: 800.0, dead_zone_px: 24.0),
