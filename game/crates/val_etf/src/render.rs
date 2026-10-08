@@ -23,11 +23,11 @@ use lightyear::prelude::*;
 use std::collections::HashMap;
 use std::f32::consts::{FRAC_PI_2, PI, TAU};
 use vetf_net::*;
-use vetf_sim::Zone;
 use vetf_sim::data::{WeaponClass, WeightClass};
 use vetf_sim::level::Team;
 use vetf_sim::movement::Stance;
 use vetf_sim::movement::collision::{Brush, Look};
+use vetf_sim::{Zone, ZoneTable};
 
 pub struct RenderPlugin;
 
@@ -56,6 +56,7 @@ impl Plugin for RenderPlugin {
                     attach_player_visuals,
                     tint_bodies,
                     sync_held_guns,
+                    sync_halos,
                     update_player_visuals,
                     sync_viewmodel,
                     camera_fx::step_feel.before(update_camera),
@@ -124,6 +125,29 @@ struct BodyTint(Handle<StandardMaterial>);
 /// beside it, not under it (see [`PlayerPose`]).
 #[derive(Component)]
 struct Body;
+
+/// What a player's halo was built from (on their [`Body`]): its arcs are rebuilt when the loadout's tiers or
+/// weight class change (a new armor pick shows at the respawn), like the held gun.
+#[derive(Component, Debug, Clone, Copy, PartialEq)]
+struct HaloLook {
+    tiers: ZoneTable<u8>,
+    weight: WeightClass,
+}
+
+impl HaloLook {
+    fn of(loadout: &vetf_sim::player::Loadout) -> HaloLook {
+        HaloLook { tiers: loadout.halo.tiers, weight: loadout.weight }
+    }
+
+    /// The ring's scale and tube radius: everyone reads the weight class from the halo's size.
+    fn size(&self) -> (f32, f32) {
+        match self.weight {
+            WeightClass::Heavy => (1.2, 0.022),
+            WeightClass::Medium => (1.0, 0.016),
+            _ => (0.85, 0.011),
+        }
+    }
+}
 
 /// The ADS blend between fixed ticks. The simulation moves it once a tick, so the zoom and the gun coming up
 /// stepped at the tick rate (8 steps for the Mako's ADS at 60 Hz) while the eye moved smoothly; this keeps the
@@ -428,20 +452,10 @@ fn attach_player_visuals(
         let body_mat =
             materials.add(StandardMaterial { base_color: team.darker(0.25), perceptual_roughness: 0.7, ..default() });
         let head_mat = materials.add(StandardMaterial { base_color: Color::srgb(0.62, 0.48, 0.40), ..default() });
-        let halo = loadout.0.halo;
-        let scale = match loadout.0.weight {
-            WeightClass::Heavy => 1.2,
-            WeightClass::Medium => 1.0,
-            _ => 0.85,
-        };
-        let tube = match loadout.0.weight {
-            WeightClass::Heavy => 0.022,
-            WeightClass::Medium => 0.016,
-            _ => 0.011,
-        };
+        let halo = HaloLook::of(&loadout.0);
         commands.entity(e).insert(BodyTint(body_mat.clone()));
         commands.entity(e).insert((PlayerVisual, Transform::default(), Visibility::default())).with_children(|p| {
-            p.spawn((Body, Transform::default(), Visibility::default())).with_children(|b| {
+            p.spawn((Body, halo, Transform::default(), Visibility::default())).with_children(|b| {
                 b.spawn((
                     BodyPart,
                     Mesh3d(meshes.add(Capsule3d::new(0.26, 0.9))),
@@ -454,31 +468,7 @@ fn attach_player_visuals(
                     MeshMaterial3d(head_mat),
                     Transform::from_xyz(0.0, 1.6, 0.0),
                 ));
-                for zone in Zone::ALL {
-                    let tier = halo.tiers[zone];
-                    let c = tier_color(tier);
-                    // Each arc has its own material: a hit flashes just that arc (`hit_fx`).
-                    let mat = materials.add(StandardMaterial {
-                        base_color: if tier > 0 { Color::from(c) } else { Color::srgba(0.02, 0.02, 0.025, 0.5) },
-                        emissive: arc_glow(tier),
-                        alpha_mode: if tier > 0 { AlphaMode::Opaque } else { AlphaMode::Blend },
-                        ..default()
-                    });
-                    let mid = arc_angle(zone);
-                    let gap = 0.12;
-                    let radius = 0.16 * scale;
-                    b.spawn((
-                        HaloArc { zone, tier, radius },
-                        Mesh3d(meshes.add(arc_mesh(
-                            radius,
-                            tube,
-                            mid - FRAC_PI_2 * 0.5 + gap,
-                            mid + FRAC_PI_2 * 0.5 - gap,
-                        ))),
-                        MeshMaterial3d(mat),
-                        Transform::from_xyz(0.0, 1.95, 0.0),
-                    ));
-                }
+                spawn_halo_arcs(b, halo, &mut meshes, &mut materials);
             });
             // The gun is built by `sync_held_guns` (and rebuilt when the loadout changes).
             p.spawn((
@@ -487,6 +477,62 @@ fn attach_player_visuals(
                 Visibility::default(),
             ));
         });
+    }
+}
+
+/// A halo's four arcs, one per zone, under a body: each in its tier's colour with its own material (a hit
+/// flashes just that arc, `hit_fx`), the ring sized by the weight class.
+fn spawn_halo_arcs(
+    body: &mut ChildSpawnerCommands,
+    halo: HaloLook,
+    meshes: &mut Assets<Mesh>,
+    materials: &mut Assets<StandardMaterial>,
+) {
+    let (scale, tube) = halo.size();
+    for zone in Zone::ALL {
+        let tier = halo.tiers[zone];
+        let c = tier_color(tier);
+        let mat = materials.add(StandardMaterial {
+            base_color: if tier > 0 { Color::from(c) } else { Color::srgba(0.02, 0.02, 0.025, 0.5) },
+            emissive: arc_glow(tier),
+            alpha_mode: if tier > 0 { AlphaMode::Opaque } else { AlphaMode::Blend },
+            ..default()
+        });
+        let mid = arc_angle(zone);
+        let gap = 0.12;
+        let radius = 0.16 * scale;
+        body.spawn((
+            HaloArc { zone, tier, radius },
+            Mesh3d(meshes.add(arc_mesh(radius, tube, mid - FRAC_PI_2 * 0.5 + gap, mid + FRAC_PI_2 * 0.5 - gap))),
+            MeshMaterial3d(mat),
+            Transform::from_xyz(0.0, 1.95, 0.0),
+        ));
+    }
+}
+
+/// Rebuilds a player's halo when their loadout's tiers or weight class differ from what it was built from (a new
+/// armor pick at a respawn): the old arcs go, new ones in the new tiers and size take their place.
+fn sync_halos(
+    mut commands: Commands,
+    players: Query<(&PlayerLoadout, &Children), With<PlayerVisual>>,
+    mut bodies: Query<(Entity, &mut HaloLook, &Children), With<Body>>,
+    arcs: Query<(), With<HaloArc>>,
+    mut meshes: ResMut<Assets<Mesh>>,
+    mut materials: ResMut<Assets<StandardMaterial>>,
+) {
+    for (loadout, children) in &players {
+        let want = HaloLook::of(&loadout.0);
+        let mut iter = bodies.iter_many_mut(children);
+        while let Some((body, mut built, parts)) = iter.fetch_next() {
+            if *built == want {
+                continue;
+            }
+            for part in parts.iter().filter(|p| arcs.contains(*p)) {
+                commands.entity(part).despawn();
+            }
+            commands.entity(body).with_children(|b| spawn_halo_arcs(b, want, &mut meshes, &mut materials));
+            *built = want;
+        }
     }
 }
 
@@ -957,6 +1003,45 @@ pub fn inspect_pose(rig: &ViewmodelRig, left: bool) -> Transform {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    /// Arcs under the players' bodies: (tier, radius) by zone, in `Zone::ALL` order.
+    fn halo_arcs(app: &mut App) -> Vec<(Zone, u8, f32)> {
+        let mut q = app.world_mut().query::<&HaloArc>();
+        let mut arcs: Vec<(Zone, u8, f32)> = q.iter(app.world()).map(|a| (a.zone, a.tier, a.radius)).collect();
+        arcs.sort_by_key(|a| Zone::ALL.iter().position(|z| *z == a.0));
+        arcs
+    }
+
+    /// Finding halo-not-rebuilt-on-loadout-change: a new armor pick (another tier per arc, another weight class)
+    /// rebuilds the halo in the new tiers and size, so everyone reads the new weight class from it.
+    #[test]
+    fn a_new_armor_pick_rebuilds_the_halo() {
+        let mut app = App::new();
+        app.add_plugins(MinimalPlugins);
+        app.init_resource::<Assets<Mesh>>().init_resource::<Assets<StandardMaterial>>();
+        app.add_systems(Update, (attach_player_visuals, sync_halos).chain());
+        let data = vetf_sim::GameData::embedded();
+        let mut loadout = vetf_sim::player::Loadout::default_for(&data, vetf_sim::data::Mode::Tdm);
+        loadout.halo.tiers = ZoneTable { head: 1, torso: 1, arms: 1, legs: 1 };
+        loadout.weight = WeightClass::Light;
+        let player = app
+            .world_mut()
+            .spawn((PlayerId(7), PlayerInfo { name: "LARK".into(), team: None }, PlayerLoadout(loadout.clone())))
+            .id();
+        app.update();
+        let light = halo_arcs(&mut app);
+        assert_eq!(light.len(), 4);
+        assert!(light.iter().all(|a| a.1 == 1 && (a.2 - 0.16 * 0.85).abs() < 1e-6), "{light:?}");
+        // a respawn with the heavy T4 pick
+        loadout.halo.tiers = ZoneTable { head: 4, torso: 4, arms: 3, legs: 2 };
+        loadout.weight = WeightClass::Heavy;
+        app.world_mut().entity_mut(player).insert(PlayerLoadout(loadout));
+        app.update();
+        app.update();
+        let heavy = halo_arcs(&mut app);
+        assert_eq!(heavy.iter().map(|a| a.1).collect::<Vec<_>>(), [4, 4, 3, 2], "{heavy:?}");
+        assert!(heavy.iter().all(|a| (a.2 - 0.16 * 1.2).abs() < 1e-6), "the heavy ring: {heavy:?}");
+    }
 
     /// Finding ads-blend-steps-at-tick-rate: between two ticks the ADS blend moves smoothly.
     #[test]
