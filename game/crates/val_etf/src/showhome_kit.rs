@@ -91,6 +91,11 @@ const SCENES: [(&str, ShowhomeKitPart); 4] = [
     ("maps/showhome/backdrop.glb", ShowhomeKitPart::Backdrop),
 ];
 const SKY: &str = "maps/showhome/sky/sky_cube_strip.png";
+/// The delivered strip is right-handed: build_sky.py paints face +Z with the view toward world +Z (south). Bevy's
+/// skybox samples cube maps left-handed (the direction times (1, 1, -1)), which showed the sky mirrored north to
+/// south (map-kit review K6), so the faces are mirrored in z when the strip is prepared ([`mirror_cube_z`]). Set
+/// this false once build_sky.py writes a left-handed strip.
+const SKY_STRIP_RIGHT_HANDED: bool = true;
 /// Physical brightness, following Bevy's PNG cube-sky example, with the look-dev's 0.65 sky strength.
 const SKY_BRIGHTNESS: f32 = 650.0;
 
@@ -211,7 +216,8 @@ fn prepare_sky(
         return;
     }
     let Some(mut image) = images.get_mut(&handle) else { return };
-    // Face order in the delivered strip is +X,-X,+Y,-Y,+Z,-Z, already in glTF / Bevy axes.
+    // Face order in the delivered strip is +X,-X,+Y,-Y,+Z,-Z, in glTF / Bevy axes, built right-handed
+    // (`SKY_STRIP_RIGHT_HANDED`).
     if image.texture_descriptor.array_layer_count() == 1 {
         if image.height() != image.width() * 6 {
             if !assets.sky_failure_reported {
@@ -225,10 +231,49 @@ fn prepare_sky(
             assets.sky_failure_reported = true;
             return;
         }
+        let w = image.width() as usize;
+        if SKY_STRIP_RIGHT_HANDED && let Some(data) = image.data.as_mut() {
+            mirror_cube_z(data, w);
+        }
     }
     image.texture_view_descriptor =
         Some(TextureViewDescriptor { dimension: Some(TextureViewDimension::Cube), ..default() });
     assets.sky_prepared = true;
+}
+
+/// Mirror a cube map's six stacked faces (+X, -X, +Y, -Y, +Z, -Z, each `w` x `w`, one mip) in z: the map then
+/// shows at direction (x, y, z) what it showed at (x, y, -z). In the cube faces' own image axes (s right, t down;
+/// +X: s = -z, -X: s = z, +Y: t = z, -Y: t = -z, +Z: s = x, -Z: s = -x) that is: the X faces flip left-right,
+/// the Y faces flip top-bottom, and the Z faces swap and flip left-right.
+pub fn mirror_cube_z(data: &mut [u8], w: usize) {
+    let face = data.len() / 6;
+    if w == 0 || face == 0 || !face.is_multiple_of(w * w) {
+        return;
+    }
+    let px = face / (w * w);
+    let row = w * px;
+    let flip_rows = |f: &mut [u8]| {
+        for r in f.chunks_exact_mut(row) {
+            for x in 0..w / 2 {
+                let (a, b) = (x * px, (w - 1 - x) * px);
+                for k in 0..px {
+                    r.swap(a + k, b + k);
+                }
+            }
+        }
+    };
+    let (xs, rest) = data.split_at_mut(2 * face);
+    let (ys, zs) = rest.split_at_mut(2 * face);
+    flip_rows(xs);
+    for f in ys.chunks_exact_mut(face) {
+        for y in 0..w / 2 {
+            let (top, bottom) = f.split_at_mut((w - 1 - y) * row);
+            top[y * row..(y + 1) * row].swap_with_slice(&mut bottom[..row]);
+        }
+    }
+    let (pz, nz) = zs.split_at_mut(face);
+    pz.swap_with_slice(nz);
+    flip_rows(zs);
 }
 
 fn attach_sky(
@@ -779,6 +824,50 @@ mod tests {
         assert_eq!(depth.texture_descriptor.format, TextureFormat::R16Float);
         assert_eq!(depth.asset_usage, RenderAssetUsages::RENDER_WORLD);
         assert_eq!(depth.data.as_deref(), Some(&[0u8, 0, 0, 60, 0, 56][..]));
+    }
+
+    /// The cube face and texel (s right, t down) a direction samples, by the cube map rules wgpu follows.
+    fn cube_texel(d: Vec3, w: usize) -> (usize, usize, usize) {
+        let a = d.abs();
+        let (face, sc, tc, ma) = if a.x >= a.y && a.x >= a.z {
+            if d.x > 0.0 { (0, -d.z, -d.y, a.x) } else { (1, d.z, -d.y, a.x) }
+        } else if a.y >= a.z {
+            if d.y > 0.0 { (2, d.x, d.z, a.y) } else { (3, d.x, -d.z, a.y) }
+        } else if d.z > 0.0 {
+            (4, d.x, -d.y, a.z)
+        } else {
+            (5, -d.x, -d.y, a.z)
+        };
+        let texel = |c: f32| (((c / ma + 1.0) * 0.5 * w as f32) as usize).min(w - 1);
+        (face, texel(sc), texel(tc))
+    }
+
+    /// Map-kit review K6: after the mirror, Bevy's skybox (which samples the direction times (1, 1, -1)) shows at
+    /// every direction what the right-handed strip painted for it.
+    #[test]
+    fn the_mirrored_sky_shows_each_direction_its_own_texel() {
+        let w = 8;
+        // every texel holds its own (face, s, t), one byte each, plus a fourth
+        let mut data = Vec::new();
+        for face in 0..6u8 {
+            for t in 0..w as u8 {
+                for s in 0..w as u8 {
+                    data.extend([face, s, t, 255]);
+                }
+            }
+        }
+        let painted = data.clone();
+        mirror_cube_z(&mut data, w);
+        let at = |d: &[u8], (f, s, t): (usize, usize, usize)| {
+            let i = ((f * w + t) * w + s) * 4;
+            [d[i], d[i + 1], d[i + 2]]
+        };
+        let mut rng = vetf_sim::rng::SplitMix::from_parts(&[3]);
+        for _ in 0..500 {
+            let d = Vec3::new(rng.next_signed(), rng.next_signed(), rng.next_signed()).normalize();
+            let bevy = cube_texel(d * Vec3::new(1.0, 1.0, -1.0), w);
+            assert_eq!(at(&data, bevy), at(&painted, cube_texel(d, w)), "direction {d}");
+        }
     }
 
     /// The mip jobs keep their copies within a budget: one big array at a time, small images beside it.
