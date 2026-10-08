@@ -65,7 +65,8 @@ pub struct PlayerEvents {
 /// firing never do (user direction 2026-10-08).
 pub fn move_modifiers(data: &GameData, loadout: &Loadout, items: &ItemState, wounds: &Wounds) -> MoveModifiers {
     let spec = loadout.weapon.spec(data);
-    let mut speed = spec.move_mult_held * loadout.weapon.mods.move_mult;
+    let gear = spec.move_mult_held * loadout.weapon.mods.move_mult;
+    let mut speed = gear;
     if items.using.is_some() {
         speed *= data.items.use_move_mult;
     }
@@ -80,7 +81,13 @@ pub fn move_modifiers(data: &GameData, loadout: &Loadout, items: &ItemState, wou
     if wounds.volt_slow_s > 0.0 && !phase {
         speed *= 1.0 - data.combat.volt_pulse.slow_frac;
     }
-    MoveModifiers { weight: loadout.weight, fx: data.armor.effects(loadout.weight), speed_mult: speed, legs_broken }
+    MoveModifiers {
+        weight: loadout.weight,
+        fx: data.armor.effects(loadout.weight),
+        speed_mult: speed,
+        gear_mult: gear,
+        legs_broken,
+    }
 }
 
 pub fn weapon_env(data: &GameData, ms: &MoveState, wounds: &Wounds) -> WeaponEnv {
@@ -187,6 +194,49 @@ mod tests {
                 }
                 if bits & Buttons::FIRE != 0 {
                     assert!(shots > 0, "{gun} {bits:#x}: fires on the move");
+                }
+            }
+        }
+    }
+
+    /// Every loadout slides from its own run (review: a Heavy halo with the Warden jogged at 3.93 m/s, under the old
+    /// fixed 4.0 m/s threshold): every weight class with every gun, bare and with its slowest part in each
+    /// category, slides from a forward jog without sprint; a walk never slides.
+    #[test]
+    fn every_loadout_slides_from_its_own_run() {
+        let d = GameData::embedded();
+        let level = flat();
+        let base = Loadout::default_for(&d, Mode::Tdm);
+        for gun in &d.weapons.weapons {
+            let mut slowest: Vec<&crate::data::AttachmentSpec> = vec![];
+            for a in d.attachments.attachments.iter().filter(|a| a.fits.contains(&gun.id)) {
+                let slower = |s: &&crate::data::AttachmentSpec| a.move_mult.unwrap_or(1.0) < s.move_mult.unwrap_or(1.0);
+                match slowest.iter().position(|s| s.cat == a.cat) {
+                    Some(i) if slower(&slowest[i]) => slowest[i] = a,
+                    Some(_) => {}
+                    None => slowest.push(a),
+                }
+            }
+            let slow: Vec<String> = slowest.iter().map(|a| a.id.clone()).collect();
+            for parts in [vec![], slow] {
+                let weapon = WeaponLoadout::resolve(&d, &gun.id, &[crate::data::AmmoChoice::STANDARD], &parts).unwrap();
+                for weight in [WeightClass::None, WeightClass::Light, WeightClass::Medium, WeightClass::Heavy] {
+                    let l = Loadout { weapon: weapon.clone(), weight, ..base.clone() };
+                    for (bits, want) in [(0, true), (Buttons::WALK, false)] {
+                        let mut ms = MoveState::spawn(Vec3::ZERO, 1.6);
+                        let mut ws = WeaponState::new(&d, &l.weapon);
+                        let mut items = ItemState::new(&l.kit);
+                        let mut wounds = Wounds::default();
+                        let run = InputFrame { movement: Vec2::Y, buttons: Buttons(bits), ..Default::default() };
+                        for _ in 0..60 {
+                            step(&d, &level, &l, &mut ms, &mut ws, &mut items, &mut wounds, &run);
+                        }
+                        let speed = ms.horizontal_speed();
+                        let crouch = InputFrame { buttons: Buttons(bits | Buttons::CROUCH), ..run };
+                        let ev = step(&d, &level, &l, &mut ms, &mut ws, &mut items, &mut wounds, &crouch);
+                        let why = format!("{} {parts:?} {weight:?} {bits:#x} at {speed} m/s", gun.id);
+                        assert_eq!(ev.movement.slide_started, want, "{why}");
+                    }
                 }
             }
         }

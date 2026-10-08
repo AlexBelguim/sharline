@@ -19,7 +19,7 @@ use vetf_sim::player::{Loadout, Wounds};
 use vetf_sim::weapon::WeaponState;
 
 /// Bumped whenever the protocol changes; part of the netcode protocol id, so old builds cannot connect.
-pub const PROTOCOL_VERSION: u64 = 5;
+pub const PROTOCOL_VERSION: u64 = 6;
 
 /// netcode.io protocol id shared by host and clients.
 pub fn protocol_id() -> u64 {
@@ -293,6 +293,9 @@ fn move_should_rollback(confirmed: &PlayerMove, predicted: &PlayerMove) -> bool 
     !confirmed.0.approx_eq(&predicted.0)
 }
 
+/// Every weapon field that decides when the next shot goes off, or where it can go: the raise from a sprint and a
+/// trigger pull waiting on it decide whether a shot fires at all, and the bloom sets its random cone. All of them
+/// follow from inputs and movement, so they agree unless an input differed.
 fn weapon_should_rollback(confirmed: &PlayerWeapon, predicted: &PlayerWeapon) -> bool {
     let (a, b) = (&confirmed.0, &predicted.0);
     a.rounds != b.rounds
@@ -301,7 +304,10 @@ fn weapon_should_rollback(confirmed: &PlayerWeapon, predicted: &PlayerWeapon) ->
         || a.fire_mode != b.fire_mode
         || a.shot_seq != b.shot_seq
         || a.cooldown != b.cooldown
+        || a.sprint_lock != b.sprint_lock
+        || a.fire_queued != b.fire_queued
         || (a.ads - b.ads).abs() > 0.05
+        || (a.bloom_deg - b.bloom_deg).abs() > 0.05
 }
 
 fn items_should_rollback(confirmed: &PlayerItems, predicted: &PlayerItems) -> bool {
@@ -531,6 +537,41 @@ mod tests {
             use_zone: 4,
         };
         assert_eq!(PlayerInput::from_frame(&f).frame(), f);
+    }
+
+    /// Which weapon fields send the predicting client back to the host's state: everything that decides when the
+    /// next shot fires (a sprint raise or a waiting trigger pull included) or where it can go (the bloom). A client
+    /// whose sprint tap the host missed must not fire the queued shot on its own.
+    #[test]
+    fn weapon_rollback_covers_every_field_that_decides_a_shot() {
+        let d = GameData::embedded();
+        let loadout = Loadout::default_for(&d, MatchMode::Range);
+        let base = WeaponState::new(&d, &loadout.weapon);
+        type Change = fn(&mut WeaponState);
+        let differs = |f: Change| {
+            let mut other = base.clone();
+            f(&mut other);
+            weapon_should_rollback(&PlayerWeapon(base.clone()), &PlayerWeapon(other))
+        };
+        assert!(!differs(|_| {}), "the same state");
+        let rollback: [(&str, Change); 10] = [
+            ("rounds", |w| w.rounds[0] -= 1),
+            ("loaded", |w| w.loaded = 1),
+            ("action", |w| w.action = vetf_sim::weapon::WeaponAction::Ready),
+            ("fire mode", |w| w.fire_mode = vetf_sim::data::FireMode::Semi),
+            ("shot seq", |w| w.shot_seq += 1),
+            ("cooldown", |w| w.cooldown += 1),
+            ("sprint lock", |w| w.sprint_lock += 1),
+            ("queued pull", |w| w.fire_queued = true),
+            ("ads", |w| w.ads += 0.1),
+            ("bloom", |w| w.bloom_deg += 0.1),
+        ];
+        for (name, f) in rollback {
+            assert!(differs(f), "{name} must roll back");
+        }
+        // Float noise does not.
+        assert!(!differs(|w| w.ads += 0.01), "ads noise");
+        assert!(!differs(|w| w.bloom_deg += 0.01), "bloom noise");
     }
 
     #[test]

@@ -294,28 +294,39 @@ impl AmmoFile {
     }
 }
 
-/// Spread cone half-angles (degrees). Aimed (fully in), a gun has `ads_still` whatever the player does: the
-/// movement, air, slide, zipline and jetpack values are hip-fire penalties only (user direction 2026-10-08).
+/// Random spread (cone half-angles, degrees) while moving: the bloom on top of the fixed recoil pattern (user
+/// direction 2026-10-08, DIRECTION_LOG 17). Standing still (on the ground, under `move_threshold_frac` of jog
+/// speed, any stance) a gun has no random spread at all, hip or aimed: the pattern is the whole story. Moving, hip
+/// fire opens with speed and state (walk < jog < sprint, and the slide, air, zipline and jetpack floors) and with
+/// sustained fire; aimed, the same cone is scaled down to `ads_move_mult`, so aimed shots stay accurate.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct SpreadSpec {
-    pub ads_still: f32,
-    pub hip_still: f32,
-    pub crouch_mult: f32,
-    pub move_full_hip: f32,
-    /// Movement below this fraction of jog speed counts as standing still.
+    /// On the ground below this fraction of jog speed counts as standing still: no random spread.
     pub move_threshold_frac: f32,
+    /// Crouched (on the ground), the moving cone and its bloom are this much tighter.
+    pub crouch_mult: f32,
+    /// Hip-fire cone at walking speed, at jog speed (`move_full_hip`) and at sprint speed or faster; linear in
+    /// between (from 0 at `move_threshold_frac`).
+    pub walk_hip: f32,
+    pub move_full_hip: f32,
+    pub sprint_hip: f32,
+    /// Hip-fire floors in the air, in a slide, on a zipline and on the jetpack.
     pub air: f32,
     pub slide: f32,
     pub zipline: f32,
     pub jetpack: f32,
-    #[serde(default)]
-    pub bloom_per_shot_ads: f32,
+    /// Aimed (from [`crate::weapon::ADS_AIMED`]), the movement cone is the hip cone (before hip attachments) times
+    /// this.
+    pub ads_move_mult: f32,
+    /// Sustained fire while moving: each shot adds `bloom_per_shot_hip` (times how much the player moves) up to
+    /// `bloom_max_hip`. Aimed, the same bloom counts at `bloom_max_ads / bloom_max_hip`.
     #[serde(default)]
     pub bloom_max_ads: f32,
     #[serde(default)]
     pub bloom_per_shot_hip: f32,
     #[serde(default)]
     pub bloom_max_hip: f32,
+    /// The bloom settles at `bloom_decay_deg_per_s` (hip degrees) once no shot came for `bloom_decay_delay_s`.
     #[serde(default)]
     pub bloom_decay_delay_s: f32,
     #[serde(default)]
@@ -366,10 +377,12 @@ pub struct PatternRecoilSpec {
     pub view_punch_return_s: f32,
 }
 
+/// One fixed kick per shot (no randomness: the same every shot, so it can be learned).
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct KickRecoilSpec {
     pub kick_pitch_deg: f32,
-    pub kick_yaw_rand_deg: f32,
+    /// Yaw right (+) per shot.
+    pub kick_yaw_deg: f32,
     pub recover_frac: f32,
     pub recover_s: f32,
 }
@@ -672,8 +685,6 @@ pub struct Modifiers {
     #[serde(rename = "move", skip_serializing_if = "Option::is_none")]
     pub move_mult: Option<f32>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub ads_move: Option<f32>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub sway: Option<f32>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub recoil_v: Option<f32>,
@@ -715,8 +726,6 @@ pub struct AttachmentSpec {
     #[serde(default, rename = "move", skip_serializing_if = "Option::is_none")]
     pub move_mult: Option<f32>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub ads_move: Option<f32>,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub sway: Option<f32>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub recoil_v: Option<f32>,
@@ -745,7 +754,6 @@ impl AttachmentSpec {
         Modifiers {
             ads_time: self.ads_time,
             move_mult: self.move_mult,
-            ads_move: self.ads_move,
             sway: self.sway,
             recoil_v: self.recoil_v,
             recoil_h: self.recoil_h,
@@ -761,7 +769,6 @@ impl AttachmentSpec {
 pub struct ModifierTotals {
     pub ads_time: f32,
     pub move_mult: f32,
-    pub ads_move: f32,
     pub sway: f32,
     pub recoil_v: f32,
     pub recoil_h: f32,
@@ -775,7 +782,6 @@ impl Default for ModifierTotals {
         Self {
             ads_time: 1.0,
             move_mult: 1.0,
-            ads_move: 1.0,
             sway: 1.0,
             recoil_v: 1.0,
             recoil_h: 1.0,
@@ -793,7 +799,6 @@ impl ModifierTotals {
             let m = a.modifiers();
             t.ads_time *= m.ads_time.unwrap_or(1.0);
             t.move_mult *= m.move_mult.unwrap_or(1.0);
-            t.ads_move *= m.ads_move.unwrap_or(1.0);
             t.sway *= m.sway.unwrap_or(1.0);
             t.recoil_v *= m.recoil_v.unwrap_or(1.0);
             t.recoil_h *= m.recoil_h.unwrap_or(1.0);
@@ -1267,6 +1272,31 @@ impl GameData {
             if w.rpm <= 0.0 {
                 return bad(format!("{}: rpm must be positive", w.id));
             }
+            // Moving is never more accurate than standing still (no random spread there), and faster is never
+            // tighter (DIRECTION_LOG 17): hip cones 0 < walk <= jog <= sprint <= every air / slide / zipline / jetpack
+            // floor, aimed fire no wider than hip, and the still threshold under the slowest gait, so a crouch walk
+            // counts as moving.
+            let (sp, speed) = (&w.spread_deg, &self.movement.speed);
+            let floors = [sp.air, sp.slide, sp.zipline, sp.jetpack];
+            let blooms = [sp.bloom_max_ads, sp.bloom_per_shot_hip, sp.bloom_max_hip];
+            let cones_ok = sp.walk_hip > 0.0
+                && sp.walk_hip <= sp.move_full_hip
+                && sp.move_full_hip <= sp.sprint_hip
+                && floors.iter().all(|f| *f >= sp.sprint_hip)
+                && (0.0..=1.0).contains(&sp.ads_move_mult)
+                && blooms.iter().all(|b| *b >= 0.0)
+                && sp.bloom_max_ads <= sp.bloom_max_hip;
+            let threshold_ok =
+                sp.move_threshold_frac > 0.0 && sp.move_threshold_frac * speed.jog < speed.walk.min(speed.crouch);
+            let gaits_ok = speed.walk < speed.jog && speed.jog < speed.sprint;
+            if !cones_ok || !(sp.crouch_mult > 0.0 && sp.crouch_mult <= 1.0) || !threshold_ok || !gaits_ok {
+                return bad(format!(
+                    "{}: hip cones must rise 0 < walk <= jog <= sprint <= air / slide / zipline / jetpack, aimed \
+                     (ads_move_mult in [0, 1], bloom_max_ads <= bloom_max_hip) no wider than hip, crouch_mult in \
+                     (0, 1], and the still threshold under walk and crouch speed",
+                    w.id
+                ));
+            }
             if let RecoilSpec::Pattern(p) = &w.recoil
                 && !self.recoil_patterns.contains_key(&p.pattern)
             {
@@ -1558,5 +1588,30 @@ mod tests {
         let mut d = GameData::embedded();
         d.weapons.weapons[0].mag_default = "optic_holo".into();
         assert!(d.validate().is_err());
+    }
+
+    /// Spread tuning can never make moving as accurate as standing still, a faster state tighter than a slower one,
+    /// or aimed fire wider than hip fire (DIRECTION_LOG 17).
+    #[test]
+    fn spread_that_rewards_moving_is_rejected() {
+        let ok = GameData::embedded();
+        assert!(ok.validate().is_ok());
+        type Break = fn(&mut SpreadSpec);
+        let broken: [(&str, Break); 9] = [
+            ("no cone at a walk", |s| s.walk_hip = 0.0),
+            ("a jog tighter than a walk", |s| s.move_full_hip = s.walk_hip * 0.5),
+            ("a sprint tighter than a jog", |s| s.sprint_hip = s.move_full_hip * 0.5),
+            ("a slide tighter than a sprint", |s| s.slide = s.sprint_hip * 0.5),
+            ("the air tighter than a sprint", |s| s.air = s.sprint_hip * 0.5),
+            ("aimed wider than hip", |s| s.ads_move_mult = 1.5),
+            ("aimed bloom past hip bloom", |s| s.bloom_max_ads = s.bloom_max_hip + 1.0),
+            ("no still threshold", |s| s.move_threshold_frac = 0.0),
+            ("a NaN cone", |s| s.zipline = f32::NAN),
+        ];
+        for (why, f) in broken {
+            let mut d = ok.clone();
+            f(&mut d.weapons.weapons[0].spread_deg);
+            assert!(d.validate().is_err(), "{why}");
+        }
     }
 }

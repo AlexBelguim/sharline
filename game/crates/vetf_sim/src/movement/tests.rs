@@ -11,7 +11,7 @@ fn flat_level() -> Level {
 }
 
 fn mods(d: &GameData, wc: WeightClass) -> MoveModifiers {
-    MoveModifiers { weight: wc, fx: d.armor.effects(wc), speed_mult: 1.0, legs_broken: false }
+    MoveModifiers { weight: wc, fx: d.armor.effects(wc), speed_mult: 1.0, gear_mult: 1.0, legs_broken: false }
 }
 
 fn input(mv: Vec2, bits: u16) -> InputFrame {

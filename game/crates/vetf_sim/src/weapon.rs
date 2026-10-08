@@ -63,7 +63,6 @@ pub struct WeaponLoadout {
 pub struct ModTotals {
     pub ads_time: f32,
     pub move_mult: f32,
-    pub ads_move: f32,
     pub sway: f32,
     pub recoil_v: f32,
     pub recoil_h: f32,
@@ -77,7 +76,6 @@ impl From<ModifierTotals> for ModTotals {
         Self {
             ads_time: m.ads_time,
             move_mult: m.move_mult,
-            ads_move: m.ads_move,
             sway: m.sway,
             recoil_v: m.recoil_v,
             recoil_h: m.recoil_h,
@@ -475,13 +473,18 @@ impl WeaponState {
             ads_time *= data.combat.broken_arms.ads_time_mult;
         }
         let ads_rate = dt / ads_time.max(dt);
-        if can_ads && b.held(Buttons::ADS) {
+        let aiming = can_ads && b.held(Buttons::ADS);
+        if aiming {
             self.ads = (self.ads + ads_rate).min(1.0);
+            // Aim held brings the gun up no slower than the sight: an aimed shot never waits on the raise from the
+            // sprint pose once the gun is aimed, whatever this build's ADS time.
+            let to_aimed = ((ADS_AIMED - self.ads).max(0.0) / ads_rate - 1e-3).ceil().max(0.0) as u16;
+            self.sprint_lock = self.sprint_lock.min(to_aimed);
         } else {
             self.ads = (self.ads - ads_rate).max(0.0);
         }
 
-        // Bloom decays after a short delay.
+        // Bloom settles after a short delay.
         let sp = &spec.spread_deg;
         if self.since_shot as f32 * dt >= sp.bloom_decay_delay_s {
             self.bloom_deg = (self.bloom_deg - sp.bloom_decay_deg_per_s * dt).max(0.0);
@@ -533,21 +536,25 @@ impl WeaponState {
             return ev;
         }
 
-        // Fire. A pull while the gun is still coming up from a sprint waits for it.
+        // Fire. A pull while the gun is still coming up from a sprint waits for it, but only when the raise is the
+        // last thing in the way: a pull during a bolt cycle is dropped, as it is standing still. An empty gun clicks
+        // on the pull itself (a tap is over long before the gun is up).
         let wants_fire = self.fire_queued
             || match self.fire_mode {
                 FireMode::Auto => b.held(Buttons::FIRE),
                 FireMode::Semi | FireMode::Bolt => b.pressed(prev, Buttons::FIRE),
             };
-        if wants_fire && !lowered && self.sprint_lock > 0 {
-            self.fire_queued = true;
+        if wants_fire && !lowered && self.sprint_lock > 0 && self.cooldown <= self.sprint_lock {
+            if self.mag() == 0 {
+                ev.dry_fire |= b.pressed(prev, Buttons::FIRE);
+            } else {
+                self.fire_queued = true;
+            }
         }
         if !wants_fire || self.cooldown > 0 || self.sprint_lock > 0 || lowered {
             return ev;
         }
-        if std::mem::take(&mut self.fire_queued) && self.mag() == 0 {
-            ev.dry_fire = true;
-        }
+        self.fire_queued = false;
         if self.mag() == 0 {
             if b.pressed(prev, Buttons::FIRE) {
                 ev.dry_fire = true;
@@ -560,41 +567,47 @@ impl WeaponState {
         self.burst = self.burst.saturating_add(1);
         self.since_shot = 0;
         self.shot_seq = self.shot_seq.wrapping_add(1);
-        // Bloom only builds while moving: standing still, the learnable pattern is the whole story.
-        let (bloom_add, bloom_max) = (
-            lerp(sp.bloom_per_shot_hip, sp.bloom_per_shot_ads, self.ads) * movement_factor(spec, env),
-            lerp(sp.bloom_max_hip, sp.bloom_max_ads, self.ads),
-        );
-        self.bloom_deg = (self.bloom_deg + bloom_add).min(bloom_max.max(self.bloom_deg));
+        // Sustained fire blooms only while moving, by how much the player moves: standing still, the fixed pattern
+        // is the whole story.
+        let bloom_add = sp.bloom_per_shot_hip * move_level(spec, env);
+        self.bloom_deg = (self.bloom_deg + bloom_add).min(sp.bloom_max_hip.max(self.bloom_deg));
         let (kick_pitch, kick_yaw) = self.recoil_kick(data, spec, loadout, env);
         ev.shot = Some(Shot { seq: self.shot_seq, ammo_slot: self.loaded, spread_deg, kick_pitch, kick_yaw });
         ev
     }
 
-    /// Current spread cone half-angle in degrees. Aimed (from [`ADS_AIMED`] on), a gun has its `ads_still` spread
-    /// whatever the player does: running, sprinting, sliding, in the air, on a zipline or a jetpack (user
-    /// direction 2026-10-08). Hip fire keeps every movement penalty, and the spread blends from one to the other
-    /// as the gun comes up. Crouching tightens both; bloom from moving shots adds on top.
-    pub fn spread_deg(&self, _data: &GameData, spec: &WeaponSpec, loadout: &WeaponLoadout, env: &WeaponEnv) -> f32 {
+    /// The random spread cone (half-angle, degrees) a shot fired now gets: the bloom on top of the fixed recoil
+    /// pattern (user direction 2026-10-08, DIRECTION_LOG 17).
+    ///
+    /// - Standing still ([`is_still`]: on the ground under `move_threshold_frac` of jog speed, any stance) it is 0,
+    ///   hip or aimed, whatever bloom is left over: the shot goes exactly where the view points.
+    /// - Moving, hip fire opens with speed and state ([`move_cone_deg`]: walk < jog < sprint, slide, air, zipline,
+    ///   jetpack; the gun's hip attachments scale it) plus the sustained-fire bloom.
+    /// - Aimed (from [`ADS_AIMED`] on) the same movement cone counts `ads_move_mult` and the bloom
+    ///   `bloom_max_ads / bloom_max_hip`, so aimed shots stay accurate on the move (item 16). The spread blends from
+    ///   hip to aimed as the gun comes up.
+    /// - Crouched, both are `crouch_mult` tighter.
+    ///
+    /// Moving is never more accurate than standing still: every term is 0 or more, and the recoil pattern is never
+    /// lighter on the move ([`Self::recoil_kick`]). This is also what the crosshair opens by, so it shows the plain
+    /// cross for every gun at rest and opens by the real cone on the move.
+    pub fn spread_deg(&self, data: &GameData, spec: &WeaponSpec, loadout: &WeaponLoadout, env: &WeaponEnv) -> f32 {
+        if is_still(spec, env) {
+            return 0.0;
+        }
         let sp = &spec.spread_deg;
         let crouch = if env.crouched { sp.crouch_mult } else { 1.0 };
+        let cone = move_cone_deg(data, spec, env);
+        let hip = cone * loadout.mods.hip_spread + self.bloom_deg;
+        let ads = cone * sp.ads_move_mult + self.bloom_deg * aimed_bloom_frac(spec);
         let aimed = (self.ads / ADS_AIMED).clamp(0.0, 1.0);
-        lerp(hip_spread_deg(spec, loadout, env), sp.ads_still * crouch, aimed) + self.bloom_deg
+        lerp(hip, ads, aimed).max(0.0) * crouch
     }
 
-    /// How much wider the spread is than the gun's resting hip spread (standing still, no bloom): what the
-    /// crosshair opens by, so a gun at rest shows the plain small cross and movement or bloom open it.
-    pub fn spread_over_rest_deg(
-        &self,
-        data: &GameData,
-        spec: &WeaponSpec,
-        loadout: &WeaponLoadout,
-        env: &WeaponEnv,
-    ) -> f32 {
-        let rest = WeaponEnv { mode: MoveMode::Ground, sprinting: false, crouched: false, speed_frac: 0.0, ..*env };
-        (self.spread_deg(data, spec, loadout, env) - hip_spread_deg(spec, loadout, &rest)).max(0.0)
-    }
-
+    /// The view kick of the shot just fired (degrees, pitch up +, yaw right +). Fixed, with no randomness: pattern
+    /// guns follow their pattern (`recoil_patterns.ron`) by the shot's place in the burst, kick guns kick the same
+    /// every shot. Aiming lightens it (`ads_mult`), and crouching does too, but only standing still, so a pattern
+    /// on the move is never lighter than the one standing still.
     fn recoil_kick(&self, data: &GameData, spec: &WeaponSpec, loadout: &WeaponLoadout, env: &WeaponEnv) -> (f32, f32) {
         let arms = if env.broken_arms { data.combat.broken_arms.recoil_mult } else { 1.0 };
         match &spec.recoil {
@@ -604,17 +617,13 @@ impl WeaponState {
                 };
                 let (kp, ky) = pattern.kick(self.burst as u32);
                 let mut m = lerp(p.hip_mult, p.ads_mult, self.ads) * arms;
-                if env.crouched {
+                if env.crouched && is_still(spec, env) {
                     m *= p.crouch_mult;
                 }
                 (kp * m * loadout.mods.recoil_v, ky * m * loadout.mods.recoil_h)
             }
             RecoilSpec::Kick(k) => {
-                let mut rng = SplitMix::from_parts(&[self.shot_seq as u64, 0x4b49_434b]);
-                (
-                    k.kick_pitch_deg * arms * loadout.mods.recoil_v,
-                    k.kick_yaw_rand_deg * rng.next_signed() * arms * loadout.mods.recoil_h,
-                )
+                (k.kick_pitch_deg * arms * loadout.mods.recoil_v, k.kick_yaw_deg * arms * loadout.mods.recoil_h)
             }
         }
     }
@@ -624,36 +633,63 @@ fn lerp(a: f32, b: f32, t: f32) -> f32 {
     a + (b - a) * t
 }
 
-/// Hip-fire spread (degrees, no bloom): still, opening with movement speed, tighter crouched, and never under the
-/// floor of the air, slide, zipline or jetpack.
-fn hip_spread_deg(spec: &WeaponSpec, loadout: &WeaponLoadout, env: &WeaponEnv) -> f32 {
+/// Standing still for the gun: on the ground, under `move_threshold_frac` of jog speed, in any stance. No random
+/// spread then, only the fixed recoil pattern.
+pub fn is_still(spec: &WeaponSpec, env: &WeaponEnv) -> bool {
+    env.mode == MoveMode::Ground && env.speed_frac < spec.spread_deg.move_threshold_frac
+}
+
+/// The hip-fire movement cone (degrees, before attachments, crouch and bloom): 0 at the still threshold, then
+/// linear through `walk_hip` at walking speed, `move_full_hip` at jog speed and `sprint_hip` at sprint speed (and
+/// faster), and never under the floor of the air, a slide, a zipline or the jetpack. Speeds are the movement
+/// data's, as fractions of jog speed like [`WeaponEnv::speed_frac`]. 0 standing still.
+pub fn move_cone_deg(data: &GameData, spec: &WeaponSpec, env: &WeaponEnv) -> f32 {
+    if is_still(spec, env) {
+        return 0.0;
+    }
     let sp = &spec.spread_deg;
-    let k = loadout.mods.hip_spread;
-    let mut s = lerp(sp.hip_still * k, sp.move_full_hip * k, speed_factor(spec, env.speed_frac));
-    if env.crouched {
-        s *= sp.crouch_mult;
+    let speed = &data.movement.speed;
+    let curve = [
+        (sp.move_threshold_frac, 0.0),
+        (speed.walk / speed.jog, sp.walk_hip),
+        (1.0, sp.move_full_hip),
+        (speed.sprint / speed.jog, sp.sprint_hip),
+    ];
+    let s = env.speed_frac;
+    let mut cone = sp.sprint_hip;
+    for w in curve.windows(2) {
+        let ((x0, y0), (x1, y1)) = (w[0], w[1]);
+        if s <= x1 {
+            cone = lerp(y0, y1, ((s - x0) / (x1 - x0).max(1e-6)).clamp(0.0, 1.0));
+            break;
+        }
     }
     match env.mode {
-        MoveMode::Air => s.max(sp.air),
-        MoveMode::Slide => s.max(sp.slide),
-        MoveMode::Zipline => s.max(sp.zipline),
-        MoveMode::Jetpack => s.max(sp.jetpack),
-        _ => s,
+        MoveMode::Air => cone.max(sp.air),
+        MoveMode::Slide => cone.max(sp.slide),
+        MoveMode::Zipline => cone.max(sp.zipline),
+        MoveMode::Jetpack => cone.max(sp.jetpack),
+        _ => cone,
     }
 }
 
-/// 0 when standing still (below the movement threshold), 1 at full movement speed or airborne.
-fn movement_factor(spec: &WeaponSpec, env: &WeaponEnv) -> f32 {
-    if !matches!(env.mode, MoveMode::Ground) {
+/// How much the player moves, for the sustained-fire bloom: 0 standing still, 1 at jog speed or faster, and off
+/// the ground.
+pub fn move_level(spec: &WeaponSpec, env: &WeaponEnv) -> f32 {
+    if is_still(spec, env) {
+        return 0.0;
+    }
+    if env.mode != MoveMode::Ground {
         return 1.0;
     }
-    speed_factor(spec, env.speed_frac)
+    let th = spec.spread_deg.move_threshold_frac;
+    ((env.speed_frac - th) / (1.0 - th).max(1e-6)).clamp(0.0, 1.0)
 }
 
-/// 0 below the movement threshold, 1 at jog speed or faster.
-fn speed_factor(spec: &WeaponSpec, speed_frac: f32) -> f32 {
-    let th = spec.spread_deg.move_threshold_frac;
-    ((speed_frac - th) / (1.0 - th)).clamp(0.0, 1.0)
+/// Aimed, the sustained-fire bloom (kept in hip degrees) counts this much: `bloom_max_ads / bloom_max_hip`.
+fn aimed_bloom_frac(spec: &WeaponSpec) -> f32 {
+    let sp = &spec.spread_deg;
+    if sp.bloom_max_hip > 0.0 { sp.bloom_max_ads / sp.bloom_max_hip } else { 0.0 }
 }
 
 /// The direction a shot actually travels: the view direction, deflected inside the spread cone by a
@@ -881,7 +917,8 @@ mod tests {
     #[test]
     fn sprint_blocks_fire_until_gun_is_up() {
         let (d, l, mut s) = setup("ar7_mako");
-        let wait = secs_to_ticks(0.2, 60) as i32;
+        let wait = secs_to_ticks(l.spec(&d).sprint_to_fire_s * l.mods.sprint_to_fire, 60) as i32;
+        assert!(wait > 1);
         let mut sprint = still();
         sprint.sprinting = true;
         for (env, why) in [(still(), "the sprint ends"), (sprint, "still sprinting")] {
@@ -1002,19 +1039,26 @@ mod tests {
         assert_eq!(s.ads, 1.0);
     }
 
+    /// The Mako's hip cone: none standing still, then 1.2 deg walking, 2.6 jogging, 3.0 sprinting and 4.0 in the air
+    /// (playtest round 2: no randomness standing still, Apex-style bloom on the move).
     #[test]
     fn spread_grows_with_movement_and_air() {
         let (d, l, s) = setup("ar7_mako");
         let spec = l.spec(&d);
-        let mut env = still();
-        let base = s.spread_deg(&d, spec, &l, &env);
-        assert!((base - 0.7).abs() < 1e-5);
-        env.speed_frac = 1.0;
-        assert!((s.spread_deg(&d, spec, &l, &env) - 2.6).abs() < 1e-5);
-        env.mode = MoveMode::Air;
-        assert!((s.spread_deg(&d, spec, &l, &env) - 4.0).abs() < 1e-5);
+        let speed = &d.movement.speed;
+        let at =
+            |speed_frac: f32, mode: MoveMode| s.spread_deg(&d, spec, &l, &WeaponEnv { speed_frac, mode, ..still() });
+        assert_eq!(at(0.0, MoveMode::Ground), 0.0);
+        assert_eq!(at(0.09, MoveMode::Ground), 0.0, "drifting under the threshold is standing still");
+        assert!((at(speed.walk / speed.jog, MoveMode::Ground) - 1.2).abs() < 1e-5);
+        assert!((at(1.0, MoveMode::Ground) - 2.6).abs() < 1e-5);
+        assert!((at(speed.sprint / speed.jog, MoveMode::Ground) - 3.0).abs() < 1e-5);
+        assert!((at(3.0, MoveMode::Ground) - 3.0).abs() < 1e-5, "no more past a sprint");
+        assert!((at(0.0, MoveMode::Air) - 4.0).abs() < 1e-5, "in the air, even hanging still at the apex");
     }
 
+    /// Aimed and standing still, the first shot goes exactly where the view points; on the move, aimed spread is a
+    /// small fraction of the hip cone.
     #[test]
     fn ads_tightens_spread() {
         let (d, l, mut s) = setup("ar7_mako");
@@ -1023,7 +1067,13 @@ mod tests {
         }
         assert_eq!(s.ads, 1.0);
         let spec = l.spec(&d);
-        assert!((s.spread_deg(&d, spec, &l, &still()) - 0.08).abs() < 1e-5);
+        assert_eq!(s.spread_deg(&d, spec, &l, &still()), 0.0);
+        let shot = s.step(&d, &l, &input(Buttons::ADS | Buttons::FIRE), &still()).shot.unwrap();
+        assert_eq!(shot.spread_deg, 0.0, "the first aimed shot standing still is exact");
+        assert_eq!(shot_direction(0.3, -0.1, shot.spread_deg, shot_seed(4, shot.seq)), view_dir(0.3, -0.1));
+        let jog = WeaponEnv { speed_frac: 1.0, ..still() };
+        s.bloom_deg = 0.0;
+        assert!((s.spread_deg(&d, spec, &l, &jog) - 2.6 * spec.spread_deg.ads_move_mult).abs() < 1e-5);
     }
 
     #[test]
@@ -1115,101 +1165,418 @@ mod tests {
         assert!(s.bloom_deg > 0.3, "{}", s.bloom_deg);
     }
 
-    /// Every movement state a player can be in while the gun is up.
-    fn moving_envs() -> Vec<WeaponEnv> {
+    const GUNS: [&str; 3] = ["ar7_mako", "sk9_skink", "vk50_warden"];
+
+    /// Every movement state a player can be in with the gun up that counts as moving for `spec`, crouched walks
+    /// included.
+    fn moving_envs(d: &GameData, spec: &WeaponSpec) -> Vec<WeaponEnv> {
+        let speed = &d.movement.speed;
         let mut out = vec![];
         for mode in [MoveMode::Ground, MoveMode::Air, MoveMode::Slide, MoveMode::Zipline, MoveMode::Jetpack] {
-            for speed_frac in [0.0, 0.3, 1.0, 7.0 / 4.8, 2.5] {
-                let sprinting = mode == MoveMode::Ground && speed_frac > 1.0;
-                out.push(WeaponEnv { mode, sprinting, speed_frac, ..still() });
+            for speed_frac in [0.0, 0.15, 0.3, speed.walk / speed.jog, 1.0, speed.sprint / speed.jog, 2.5] {
+                for crouched in [false, true] {
+                    let sprinting = mode == MoveMode::Ground && speed_frac > 1.0 && !crouched;
+                    let env = WeaponEnv { mode, sprinting, crouched, speed_frac, ..still() };
+                    if (!crouched || mode == MoveMode::Ground) && !is_still(spec, &env) {
+                        out.push(env);
+                    }
+                }
             }
         }
         out
     }
 
-    /// Aimed shots are accurate whatever the movement (user direction 2026-10-08): fully aimed, every gun has its
-    /// `ads_still` spread running, sprinting, sliding, in the air, on a zipline or a jetpack, first shot or not.
+    /// Aimed shots stay accurate on the move (DIRECTION_LOG 16 and 17): aimed (from `ADS_AIMED`), with the most
+    /// sustained-fire bloom the gun can build, every moving state keeps the cone inside a head width (0.2 m across)
+    /// at 25 m for the Mako and the Skink, and at 50 m for the Warden. Hip fire on the move is far wider.
     #[test]
-    fn aimed_spread_is_ads_still_in_every_movement_state() {
-        for gun in ["ar7_mako", "vk50_warden", "sk9_skink"] {
+    fn aimed_moving_shots_stay_inside_a_head_width() {
+        for (gun, range) in [("ar7_mako", 25.0_f32), ("sk9_skink", 25.0), ("vk50_warden", 50.0)] {
             let (d, l, mut s) = setup(gun);
             let spec = l.spec(&d);
-            let want = spec.spread_deg.ads_still;
-            for ads in [ADS_AIMED, 1.0] {
-                s.ads = ads;
-                for (burst, since_shot) in [(0, u16::MAX), (5, 2)] {
-                    (s.burst, s.since_shot) = (burst, since_shot);
-                    for env in moving_envs() {
-                        let got = s.spread_deg(&d, spec, &l, &env);
-                        assert!((got - want).abs() < 1e-5, "{gun} ads {ads} {env:?}: {got} vs {want}");
-                    }
+            let max = (0.1 / range).atan().to_degrees();
+            s.bloom_deg = spec.spread_deg.bloom_max_hip;
+            for env in moving_envs(&d, spec) {
+                s.ads = 0.0;
+                let hip = s.spread_deg(&d, spec, &l, &env);
+                for ads in [ADS_AIMED, 1.0] {
+                    s.ads = ads;
+                    let got = s.spread_deg(&d, spec, &l, &env);
+                    assert!(got > 0.0 && got <= max, "{gun} ads {ads} {env:?}: {got} deg (at most {max})");
+                    assert!(hip > 4.0 * got, "{gun} {env:?}: hip {hip} against aimed {got}");
                 }
             }
-            // crouching only tightens it
-            let crouched = WeaponEnv { crouched: true, speed_frac: 1.0, ..still() };
-            let got = s.spread_deg(&d, spec, &l, &crouched);
-            assert!((got - want * spec.spread_deg.crouch_mult).abs() < 1e-5, "{gun}");
         }
     }
 
-    /// Hip fire keeps every movement penalty, and the spread blends from hip to aimed as the gun comes up.
+    /// Hip fire keeps every movement penalty, Apex-style: none standing still, then it opens with speed and state
+    /// (walk < jog < sprint, and a slide, the air, a zipline and the jetpack at least as wide as a sprint). The spread
+    /// blends from hip to aimed as the gun comes up.
     #[test]
     fn hip_fire_keeps_its_movement_penalties() {
-        for gun in ["ar7_mako", "vk50_warden", "sk9_skink"] {
+        for gun in GUNS {
             let (d, l, mut s) = setup(gun);
             let spec = l.spec(&d);
             let sp = &spec.spread_deg;
+            let speed = &d.movement.speed;
             let at = |s: &WeaponState, env: WeaponEnv| s.spread_deg(&d, spec, &l, &env);
             let k = l.mods.hip_spread;
-            assert!((at(&s, still()) - sp.hip_still * k).abs() < 1e-5, "{gun}");
-            assert!((at(&s, WeaponEnv { speed_frac: 1.0, ..still() }) - sp.move_full_hip * k).abs() < 1e-5, "{gun}");
-            for (mode, floor) in [
-                (MoveMode::Air, sp.air),
-                (MoveMode::Slide, sp.slide),
-                (MoveMode::Zipline, sp.zipline),
-                (MoveMode::Jetpack, sp.jetpack),
-            ] {
-                assert!(at(&s, WeaponEnv { mode, ..still() }) >= floor - 1e-6, "{gun} {mode:?}");
+            let ground = |speed_frac: f32| WeaponEnv { speed_frac, ..still() };
+            let walk = at(&s, ground(speed.walk / speed.jog));
+            let jog = at(&s, ground(1.0));
+            let sprint = at(&s, WeaponEnv { sprinting: true, ..ground(speed.sprint / speed.jog) });
+            assert!((walk - sp.walk_hip * k).abs() < 1e-5 && (jog - sp.move_full_hip * k).abs() < 1e-5, "{gun}");
+            assert!(0.0 < walk && walk < jog && jog < sprint, "{gun}: walk {walk}, jog {jog}, sprint {sprint}");
+            let crouch_walk = at(&s, WeaponEnv { crouched: true, ..ground(speed.crouch / speed.jog) });
+            assert!(crouch_walk > 0.0 && crouch_walk < walk, "{gun}: a crouch walk is moving, a bit tighter");
+            for mode in [MoveMode::Air, MoveMode::Slide, MoveMode::Zipline, MoveMode::Jetpack] {
+                for speed_frac in [0.0, 0.5, 1.0, 2.0] {
+                    let got = at(&s, WeaponEnv { mode, speed_frac, ..still() });
+                    assert!(got >= sprint - 1e-6, "{gun} {mode:?} at {speed_frac}: {got} against a sprint's {sprint}");
+                }
             }
-            // half way up: between the two
-            s.ads = 0.45;
+            // half way up: half way between hip and aimed
+            s.ads = ADS_AIMED / 2.0;
             let air = WeaponEnv { mode: MoveMode::Air, ..still() };
             let half = at(&s, air);
-            assert!(half < sp.air && half > sp.ads_still, "{gun}: {half}");
-            assert!((half - (sp.air + sp.ads_still) / 2.0).abs() < 1e-5, "{gun}: {half}");
+            let (hip, aimed) = (sp.air * k, sp.air * sp.ads_move_mult);
+            assert!((half - (hip + aimed) / 2.0).abs() < 1e-5, "{gun}: {half}");
         }
     }
 
-    /// The crosshair opens only by what movement and bloom add over the resting hip spread.
+    /// The crosshair shows the live random cone: the plain cross for every gun standing still, the Warden too (its hip
+    /// shot standing still is exact now), whatever bloom is left from a run, and on the move it opens by the real
+    /// cone, by far the most for the Warden's hip fire (review: the crosshair hid the Warden's hip spread).
     #[test]
-    fn the_crosshair_opens_by_the_spread_over_rest() {
-        for gun in ["ar7_mako", "vk50_warden", "sk9_skink"] {
+    fn the_crosshair_shows_the_random_cone() {
+        let mut jog = vec![];
+        for gun in GUNS {
             let (d, l, mut s) = setup(gun);
             let spec = l.spec(&d);
-            let over = |s: &WeaponState, env: WeaponEnv| s.spread_over_rest_deg(&d, spec, &l, &env);
-            assert_eq!(over(&s, still()), 0.0, "{gun}: at rest, the plain cross");
-            assert_eq!(over(&s, WeaponEnv { crouched: true, ..still() }), 0.0, "{gun}");
+            let at = |s: &WeaponState, env: WeaponEnv| s.spread_deg(&d, spec, &l, &env);
+            s.bloom_deg = 1.0;
+            assert_eq!(at(&s, still()), 0.0, "{gun}: at rest, the plain cross");
+            assert_eq!(at(&s, WeaponEnv { crouched: true, ..still() }), 0.0, "{gun}");
             let run = WeaponEnv { speed_frac: 1.0, ..still() };
-            let want = s.spread_deg(&d, spec, &l, &run) - s.spread_deg(&d, spec, &l, &still());
-            assert!(want > 0.0 && (over(&s, run) - want).abs() < 1e-5, "{gun}");
-            s.bloom_deg = 0.5;
-            assert!((over(&s, still()) - 0.5).abs() < 1e-5, "{gun}: bloom opens it");
-            s.ads = 1.0;
             s.bloom_deg = 0.0;
-            assert_eq!(over(&s, run), 0.0, "{gun}: aimed");
+            let open = at(&s, run);
+            assert!((open - move_cone_deg(&d, spec, &run) * l.mods.hip_spread).abs() < 1e-5, "{gun}");
+            s.bloom_deg = 0.5;
+            assert!((at(&s, run) - (open + 0.5)).abs() < 1e-5, "{gun}: bloom opens it more");
+            s.ads = 1.0;
+            assert!(at(&s, run) < 0.25, "{gun}: aimed, barely");
+            jog.push(open);
+        }
+        assert!(jog[2] > 2.0 * jog[0], "the Warden's hip cone on the move dwarfs the Mako's: {jog:?}");
+    }
+
+    /// Sustained fire on the move blooms a little aimed too, never past `bloom_max_ads`.
+    #[test]
+    fn moving_aimed_shots_still_bloom_a_little() {
+        let (d, l, mut s) = setup("ar7_mako");
+        let spec = l.spec(&d);
+        let sp = &spec.spread_deg;
+        s.ads = 1.0;
+        let run = WeaponEnv { speed_frac: 1.0, ..still() };
+        let first = s.spread_deg(&d, spec, &l, &run);
+        let both = input(Buttons::FIRE | Buttons::ADS);
+        let shots = (0..90).filter(|_| s.step(&d, &l, &both, &run).shot.is_some()).count();
+        assert!(shots >= 14, "{shots}");
+        assert!((s.bloom_deg - sp.bloom_max_hip).abs() < 1e-5, "a long spray on the run reaches the cap");
+        let spread = s.spread_deg(&d, spec, &l, &run);
+        assert!(spread > first, "{spread} vs {first}");
+        assert!((spread - (sp.move_full_hip * sp.ads_move_mult + sp.bloom_max_ads)).abs() < 1e-5, "{spread}");
+    }
+
+    /// One spray from `s` in `env`: aimed in first if `aimed`, then FIRE held (pressed every other tick for guns that
+    /// fire once per pull) until `shots` rounds went off.
+    fn spray(
+        d: &GameData,
+        l: &WeaponLoadout,
+        s: &mut WeaponState,
+        env: &WeaponEnv,
+        aimed: bool,
+        shots: usize,
+    ) -> Vec<Shot> {
+        let ads = if aimed { Buttons::ADS } else { 0 };
+        for _ in 0..30 {
+            s.step(d, l, &input(ads), env);
+        }
+        let mut out = vec![];
+        for t in 0..3000 {
+            if out.len() == shots {
+                break;
+            }
+            let fire = if s.fire_mode == FireMode::Auto || t % 2 == 0 { Buttons::FIRE } else { 0 };
+            if let Some(shot) = s.step(d, l, &input(fire | ads), env).shot {
+                out.push(shot);
+            }
+        }
+        assert_eq!(out.len(), shots, "{env:?}");
+        out
+    }
+
+    /// Where the shots of a spray go when nobody pulls down: the view climbs by every kick (as the client applies
+    /// it), and each shot leaves inside its cone around the view, seeded for `player`. (shot direction, view
+    /// direction) per shot.
+    fn spray_dirs(shots: &[Shot], player: u64) -> Vec<(Vec3, Vec3)> {
+        let (mut yaw, mut pitch) = (0.0_f32, 0.0_f32);
+        shots
+            .iter()
+            .map(|s| {
+                let dir = shot_direction(yaw, pitch, s.spread_deg, shot_seed(player, s.seq));
+                let view = view_dir(yaw, pitch);
+                pitch += s.kick_pitch.to_radians();
+                yaw -= s.kick_yaw.to_radians();
+                (dir, view)
+            })
+            .collect()
+    }
+
+    fn kicks(shots: &[Shot]) -> Vec<(f32, f32, f32)> {
+        shots.iter().map(|s| (s.spread_deg, s.kick_pitch, s.kick_yaw)).collect()
+    }
+
+    /// Standing still, every gun follows its fixed pattern with no randomness at all (DIRECTION_LOG 17): two sprays
+    /// give the same shots, hip or aimed, standing or crouched, whoever fires them, whatever their shot numbers, and
+    /// whenever they start. Every shot, the first aimed one included, goes exactly where the view points.
+    #[test]
+    fn standing_sprays_are_identical() {
+        for gun in GUNS {
+            for aimed in [false, true] {
+                for crouched in [false, true] {
+                    let env = WeaponEnv { crouched, ..still() };
+                    let (d, l, mut s) = setup(gun);
+                    let n = l.mag_capacity as usize;
+                    let first = spray(&d, &l, &mut s, &env, aimed, n);
+                    assert!(first.iter().all(|s| s.spread_deg == 0.0), "{gun}: no random cone standing still");
+                    let path = spray_dirs(&first, 1);
+                    assert!(path.iter().all(|(dir, view)| dir == view), "{gun}: every shot on the view");
+                    // The same player after a refill and a pause, and another player late in a life: same shots.
+                    for _ in 0..secs_to_ticks(1.0, d.net.tick_hz) {
+                        s.step(&d, &l, &input(0), &env);
+                    }
+                    let slot = s.loaded as usize;
+                    s.rounds[slot] = l.mag_capacity;
+                    let again = spray(&d, &l, &mut s, &env, aimed, n);
+                    let (_, _, mut other) = setup(gun);
+                    other.shot_seq = 977;
+                    for _ in 0..37 {
+                        other.step(&d, &l, &input(0), &env);
+                    }
+                    let late = spray(&d, &l, &mut other, &env, aimed, n);
+                    assert_eq!(kicks(&again), kicks(&first), "{gun} aimed {aimed} crouched {crouched}");
+                    assert_eq!(kicks(&late), kicks(&first), "{gun} aimed {aimed} crouched {crouched}");
+                    assert_eq!(spray_dirs(&again, 1), path, "{gun}");
+                    assert_eq!(spray_dirs(&late, 4242), path, "{gun}");
+                }
+            }
         }
     }
 
+    /// Moving adds random bloom on top of the same pattern and is never better than standing still (DIRECTION_LOG
+    /// 17). For every gun, hip and aimed, standing and crouched, in every moving state and for many shooters
+    /// (seeds): each shot kicks at least as hard as the same shot standing still (the same pattern; only standing
+    /// still does a crouch lighten it), and has a random cone where standing still has none. Hip fire on the move
+    /// really scatters.
     #[test]
-    fn moving_aimed_shots_still_bloom() {
+    fn moving_never_beats_standing_still() {
+        for gun in GUNS {
+            let (d, l, _) = setup(gun);
+            let spec = l.spec(&d);
+            let n = (l.mag_capacity as usize).min(20);
+            for aimed in [false, true] {
+                for crouched in [false, true] {
+                    let rest = spray(&d, &l, &mut setup(gun).2, &WeaponEnv { crouched, ..still() }, aimed, n);
+                    for env in moving_envs(&d, spec).into_iter().filter(|e| e.crouched == crouched) {
+                        let moving = spray(&d, &l, &mut setup(gun).2, &env, aimed, n);
+                        for (m, r) in moving.iter().zip(&rest) {
+                            let same_way = m.kick_pitch * r.kick_pitch >= 0.0 && m.kick_yaw * r.kick_yaw >= 0.0;
+                            let harder = m.kick_pitch.abs() >= r.kick_pitch.abs() - 1e-6
+                                && m.kick_yaw.abs() >= r.kick_yaw.abs() - 1e-6;
+                            assert!(same_way && harder, "{gun} aimed {aimed} {env:?}: {m:?} vs {r:?}");
+                            if !crouched {
+                                assert_eq!((m.kick_pitch, m.kick_yaw), (r.kick_pitch, r.kick_yaw), "{gun} {env:?}");
+                            }
+                            assert!(m.spread_deg > r.spread_deg, "{gun} aimed {aimed} {env:?}: moving blooms");
+                        }
+                        let (mut off, mut cone) = (0.0_f32, f32::MAX);
+                        for player in 0..24 {
+                            for ((dir, view), s) in spray_dirs(&moving, player).into_iter().zip(&moving) {
+                                let a = dir.angle_between(view).to_degrees();
+                                // (`angle_between` is coarse for tiny angles in f32)
+                                assert!(a <= s.spread_deg + 0.05, "{gun} {env:?}: inside its cone");
+                                off = off.max(a);
+                                cone = cone.min(s.spread_deg);
+                            }
+                        }
+                        if !aimed {
+                            assert!(off > 0.3 * cone, "{gun} {env:?}: hip fire on the move scatters ({off} deg)");
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    /// Stopping brings the fixed pattern back: hip fire on the run blooms, and from the first tick under the still
+    /// threshold every shot is exact again and kicks like the same shot of a spray that stood still all along. The
+    /// left-over bloom settles before the next run.
+    #[test]
+    fn stopping_recovers_the_fixed_pattern() {
         let (d, l, mut s) = setup("ar7_mako");
-        s.ads = 1.0;
+        let (_, _, mut rest) = setup("ar7_mako");
         let run = WeaponEnv { speed_frac: 1.0, ..still() };
-        assert!(s.step(&d, &l, &input(Buttons::FIRE | Buttons::ADS), &run).shot.is_some());
-        let sp = &l.spec(&d).spread_deg;
-        assert!(s.bloom_deg > 0.0 && s.bloom_deg <= sp.bloom_max_ads + 1e-6, "{}", s.bloom_deg);
-        let spread = s.spread_deg(&d, l.spec(&d), &l, &run);
-        assert!((spread - (sp.ads_still + s.bloom_deg)).abs() < 1e-5);
+        let (mut ran, mut stood) = (0, 0);
+        for t in 0..120 {
+            let env = if t < 40 { run } else { still() };
+            if t == 40 {
+                assert!(s.bloom_deg > 0.5, "the bloom is still there, it just does not count standing still");
+            }
+            let a = s.step(&d, &l, &input(Buttons::FIRE), &env).shot;
+            let b = rest.step(&d, &l, &input(Buttons::FIRE), &still()).shot;
+            assert_eq!(a.is_some(), b.is_some(), "the same fire rate");
+            let (Some(a), Some(b)) = (a, b) else { continue };
+            assert_eq!((a.kick_pitch, a.kick_yaw), (b.kick_pitch, b.kick_yaw), "the same pattern, shot {}", a.seq);
+            if t < 40 {
+                assert!(a.spread_deg > b.spread_deg, "running: bloom");
+                ran += 1;
+            } else {
+                assert_eq!(a.spread_deg, 0.0, "stopped: exact again");
+                stood += 1;
+            }
+        }
+        assert!(ran >= 7 && stood >= 15, "{ran} {stood}");
+        for _ in 0..60 {
+            s.step(&d, &l, &input(0), &still());
+        }
+        assert_eq!(s.bloom_deg, 0.0, "a second later it has settled");
+        assert!((s.spread_deg(&d, l.spec(&d), &l, &run) - 2.6).abs() < 1e-5, "the next run starts fresh");
+    }
+
+    /// On the run, hip fire opens with every shot of a spray (the first one has only the movement cone) and closes
+    /// back to the movement cone once the trigger is let go, while still running.
+    #[test]
+    fn hip_bloom_grows_through_a_spray_and_settles_after() {
+        for gun in ["ar7_mako", "sk9_skink"] {
+            let (d, l, mut s) = setup(gun);
+            let spec = l.spec(&d);
+            let run = WeaponEnv { speed_frac: 1.0, ..still() };
+            let base = s.spread_deg(&d, spec, &l, &run);
+            let cones: Vec<f32> = (0..60)
+                .filter_map(|_| s.step(&d, &l, &input(Buttons::FIRE), &run).shot.map(|s| s.spread_deg))
+                .collect();
+            assert!(cones.len() >= 10, "{gun}");
+            assert_eq!(cones[0], base, "{gun}: the first shot has the movement cone alone");
+            assert!(cones.windows(2).all(|w| w[1] > w[0]), "{gun}: every shot opens it more: {cones:?}");
+            let after: Vec<f32> = (0..60)
+                .map(|_| {
+                    s.step(&d, &l, &input(0), &run);
+                    s.spread_deg(&d, spec, &l, &run)
+                })
+                .collect();
+            assert!(after.windows(2).all(|w| w[1] <= w[0]), "{gun}: it only closes: {after:?}");
+            assert!((after[59] - base).abs() < 1e-5, "{gun}: back to the movement cone: {}", after[59]);
+        }
+    }
+
+    /// From a sprint, aim and trigger held: the shot goes off no later than the first tick the gun is aimed, for
+    /// every gun, with its default parts and with its fastest-aiming build (review: the faster ADS of playtest round
+    /// 1 waited on the raise from the sprint pose, so a run gained nothing from it).
+    #[test]
+    fn from_a_sprint_an_aimed_shot_never_waits_on_the_raise() {
+        let d = GameData::embedded();
+        let fastest: [(&str, &[&str]); 3] = [
+            ("ar7_mako", &["optic_reddot", "grip_angled", "mako_stock_light"]),
+            ("sk9_skink", &["optic_reddot"]),
+            ("vk50_warden", &["optic_reddot", "warden_stock_folding"]),
+        ];
+        for (gun, fast) in fastest {
+            for parts in [&[][..], fast] {
+                let parts: Vec<String> = parts.iter().map(|p| p.to_string()).collect();
+                let l = WeaponLoadout::resolve(&d, gun, &[AmmoChoice::STANDARD], &parts).unwrap();
+                let mut s = WeaponState::new(&d, &l);
+                s.action = WeaponAction::Ready;
+                let sprint = WeaponEnv { sprinting: true, speed_frac: 7.0 / 4.8, ..still() };
+                s.step(&d, &l, &input(0), &sprint);
+                assert!(s.lowered(), "{gun}");
+                let (mut aimed, mut shot) = (None, None);
+                for t in 1..60 {
+                    let ev = s.step(&d, &l, &input(Buttons::ADS | Buttons::FIRE), &sprint);
+                    if s.ads >= ADS_AIMED {
+                        aimed.get_or_insert(t);
+                    }
+                    if ev.shot.is_some() {
+                        shot.get_or_insert(t);
+                    }
+                }
+                let (aimed, shot) = (aimed.unwrap(), shot.expect("it fires"));
+                let raise = secs_to_ticks(l.spec(&d).sprint_to_fire_s * l.mods.sprint_to_fire, 60) as i32;
+                assert!(shot <= aimed, "{gun} {parts:?}: aimed at tick {aimed}, shot at {shot}");
+                assert_eq!(shot, raise.min(aimed), "{gun} {parts:?}: no sooner than the raise or the sight");
+            }
+        }
+    }
+
+    /// An empty gun clicks on the trigger pull itself, on the run too while the gun comes up: a one-tick tap gives
+    /// exactly one click, on the tap (the sound plays while FIRE is held), and so does FIRE held through the raise
+    /// (review: a tap on the run clicked 0.2-0.3 s later, after it was let go, so it never played).
+    #[test]
+    fn an_empty_tap_on_the_run_clicks_once_on_the_pull() {
+        let modes = [
+            ("ar7_mako", FireMode::Semi),
+            ("ar7_mako", FireMode::Auto),
+            ("sk9_skink", FireMode::Auto),
+            ("vk50_warden", FireMode::Bolt),
+        ];
+        for (gun, mode) in modes {
+            for hold in [1, 30] {
+                let (d, l, mut s) = setup(gun);
+                s.fire_mode = mode;
+                s.rounds[0] = 0;
+                let sprint = WeaponEnv { sprinting: true, ..still() };
+                s.step(&d, &l, &input(0), &sprint);
+                assert!(s.lowered());
+                let clicks: Vec<usize> = (0..90)
+                    .filter(|t| {
+                        let fire = if *t < hold { Buttons::FIRE } else { 0 };
+                        s.step(&d, &l, &input(fire), &sprint).dry_fire
+                    })
+                    .collect();
+                assert_eq!(clicks, vec![0], "{gun} {mode:?} held {hold}: one click, on the pull");
+                assert!(!s.fire_queued, "{gun}: nothing waits on an empty gun");
+            }
+        }
+    }
+
+    /// A trigger pull during a bolt cycle is dropped on the run as it is standing still; only a pull that waits on
+    /// nothing but the raise from the sprint pose is kept (review: a Warden tap mid-bolt fired on its own later).
+    #[test]
+    fn a_tap_mid_bolt_fires_nothing_on_the_run_either() {
+        for sprinting in [false, true] {
+            let (d, l, mut s) = setup("vk50_warden");
+            let env = WeaponEnv { sprinting, ..still() };
+            let shots: Vec<i32> = (0..200)
+                .filter(|t| {
+                    let fire = if *t == 0 || (48..52).contains(t) { Buttons::FIRE } else { 0 };
+                    s.step(&d, &l, &input(fire), &env).shot.is_some()
+                })
+                .collect();
+            assert_eq!(shots, vec![0], "sprinting {sprinting}: the mid-bolt tap is dropped");
+        }
+        // Late in the bolt cycle, only the raise is in the way: that tap fires when the gun is up.
+        let (d, l, mut s) = setup("vk50_warden");
+        let env = WeaponEnv { sprinting: true, ..still() };
+        let raise = secs_to_ticks(l.spec(&d).sprint_to_fire_s * l.mods.sprint_to_fire, 60) as i32;
+        let cycle = fire_interval_ticks(l.spec(&d), 60, false) as i32;
+        let tap = cycle - raise + 2;
+        let shots: Vec<i32> = (0..200)
+            .filter(|t| {
+                let fire = if *t == 0 || *t == tap { Buttons::FIRE } else { 0 };
+                s.step(&d, &l, &input(fire), &env).shot.is_some()
+            })
+            .collect();
+        assert_eq!(shots, vec![0, tap + raise - 1]);
     }
 
     #[test]

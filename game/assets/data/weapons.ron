@@ -3,11 +3,14 @@
 // direction since (listed in game/DESIGN_DELTAS.md):
 //   - halo penetration comes from the ammo (weapon class x ammo type x tier, ammo.ron), not `shield_pierce`;
 //   - aiming lowers the fire rate (`ads_rpm_mult`) and the recoil (`recoil.ads_mult`);
-//   - aiming never slows you (no `move_mult_ads`), and aimed shots have `ads_still` spread in every movement
-//     state; the movement, air, slide, zipline and jetpack spreads are hip-fire penalties only;
-//   - bloom only builds up while moving, so standing still you fight the learnable pattern alone;
+//   - aiming never slows you (no `move_mult_ads`);
 //   - playtest round 1 gun tuning: harder-hitting Mako, SMG strong close / weak past 25 m, much faster ADS,
-//     stronger recoil with no recovery mid-spray (DESIGN_DELTAS.md section 9).
+//     stronger recoil with no recovery mid-spray (DESIGN_DELTAS.md section 9);
+//   - playtest round 2 recoil and bloom (DESIGN_DELTAS.md section 12): standing still, a gun has no random spread
+//     at all, hip or aimed (no `hip_still` / `ads_still`), only its fixed recoil pattern (the Warden's kick has a
+//     fixed yaw, not a random one); moving adds random bloom on top, Apex-style: hip fire opens with speed and
+//     state (walk < jog < sprint, slide, air, zipline, jetpack) and sustained fire, aimed fire only a little
+//     (`ads_move_mult`, `bloom_max_ads`); the raise from a sprint (`sprint_to_fire_s`) is about the ADS time.
 // Angles in degrees, distances in metres, times in seconds.
 (
     tick_hz: 60,
@@ -36,23 +39,29 @@
             equip_s: 0.7,
             holster_s: 0.4,
             ads_s: 0.13,
-            sprint_to_fire_s: 0.2,
+            // A hip shot from a sprint comes a tick before an aimed one (aim held caps the raise at the ADS time).
+            sprint_to_fire_s: 0.12,
             move_mult_held: 1.0,
+            // Random cone only while moving (standing still under 0.48 m/s: the fixed pattern alone). Hip: 1.2 deg
+            // walking, 2.6 jogging, 3.0 sprinting, sliding, on a zipline or the jetpack, 4.0 in the air, plus up to
+            // 1.6 of sustained-fire bloom (14 moving shots, 1.1 s). Aimed: x0.04 and at most 0.04 of bloom, so at
+            // most 0.2 deg (8.7 cm at 25 m: inside a head). The bloom waits longer than any automatic fire interval
+            // (aimed 612 rpm: 0.1 s) before it settles, so it builds through a spray, and settles in about 0.7 s.
             spread_deg: (
-                ads_still: 0.08,
-                hip_still: 0.7,
+                move_threshold_frac: 0.1,
                 crouch_mult: 0.85,
+                walk_hip: 1.2,
                 move_full_hip: 2.6,
-                move_threshold_frac: 0.3,
+                sprint_hip: 3.0,
                 air: 4.0,
-                slide: 1.8,
-                zipline: 2.0,
+                slide: 3.0,
+                zipline: 3.0,
                 jetpack: 3.0,
-                bloom_per_shot_ads: 0.05,
-                bloom_max_ads: 0.8,
+                ads_move_mult: 0.04,
+                bloom_max_ads: 0.04,
                 bloom_per_shot_hip: 0.12,
                 bloom_max_hip: 1.6,
-                bloom_decay_delay_s: 0.08,
+                bloom_decay_delay_s: 0.15,
                 bloom_decay_deg_per_s: 3.0,
             ),
             recoil: (
@@ -93,18 +102,21 @@
             equip_s: 1.0,
             holster_s: 0.55,
             ads_s: 0.22,
-            sprint_to_fire_s: 0.32,
+            sprint_to_fire_s: 0.2,
             move_mult_held: 0.93,
+            // Moving hip fire with a sniper is a gamble (4 deg walking, 8 jogging, 9 faster, 10 on the jetpack);
+            // aimed it is x0.01, at most 0.1 deg (8.7 cm at 50 m: inside a head). One shot per bolt: no bloom.
             spread_deg: (
-                ads_still: 0.0,
-                hip_still: 6.0,
+                move_threshold_frac: 0.1,
                 crouch_mult: 0.85,
+                walk_hip: 4.0,
                 move_full_hip: 8.0,
-                move_threshold_frac: 0.2,
-                air: 8.0,
-                slide: 6.0,
-                zipline: 6.0,
+                sprint_hip: 9.0,
+                air: 9.0,
+                slide: 9.0,
+                zipline: 9.0,
                 jetpack: 10.0,
+                ads_move_mult: 0.01,
             ),
             sway: Some((
                 idle_amp_deg: 0.12,
@@ -113,9 +125,10 @@
                 exhausted_mult: 2.0,
                 exhausted_s: 2.0,
             )),
+            // One big kick per shot, the same every time: 3.5 deg up and 0.2 deg right.
             recoil: (
                 kick_pitch_deg: 3.5,
-                kick_yaw_rand_deg: 0.4,
+                kick_yaw_deg: 0.2,
                 recover_frac: 0.7,
                 recover_s: 0.35,
             ),
@@ -152,23 +165,25 @@
             equip_s: 0.5,
             holster_s: 0.35,
             ads_s: 0.11,
-            sprint_to_fire_s: 0.15,
+            sprint_to_fire_s: 0.1,
             move_mult_held: 1.0,
+            // The Mako's moving cones, a little tighter at a walk; the bloom per shot is smaller because it fires
+            // faster (the same per second). Aimed: at most 0.2 deg, inside a head at 25 m.
             spread_deg: (
-                ads_still: 0.1,
-                hip_still: 0.55,
+                move_threshold_frac: 0.1,
                 crouch_mult: 0.85,
+                walk_hip: 1.0,
                 move_full_hip: 2.6,
-                move_threshold_frac: 0.3,
+                sprint_hip: 3.0,
                 air: 4.0,
-                slide: 1.8,
-                zipline: 2.0,
+                slide: 3.0,
+                zipline: 3.0,
                 jetpack: 3.0,
-                bloom_per_shot_ads: 0.03,
-                bloom_max_ads: 0.8,
+                ads_move_mult: 0.04,
+                bloom_max_ads: 0.04,
                 bloom_per_shot_hip: 0.072,
                 bloom_max_hip: 1.6,
-                bloom_decay_delay_s: 0.08,
+                bloom_decay_delay_s: 0.15,
                 bloom_decay_deg_per_s: 3.0,
             ),
             recoil: (

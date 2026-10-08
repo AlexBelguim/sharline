@@ -257,7 +257,8 @@ section!(CrosshairSettings from defaults.crosshair {
     dot: bool,
     /// Px at 1080p.
     length: f32,
-    /// The minimum gap; the gun's live spread over its resting hip spread adds to it.
+    /// The minimum gap; the gun's live random spread adds to it (none standing still, so every gun at rest shows
+    /// this gap).
     gap: f32,
     width: f32,
     hit_markers: HitMarkers,
