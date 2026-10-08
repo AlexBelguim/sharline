@@ -11,6 +11,7 @@ use crate::map_materials::{
 };
 use crate::render::ViewCamera;
 use bevy::asset::AssetId;
+use bevy::camera::primitives::Aabb;
 use bevy::gltf::{GltfMaterialExtras, GltfMaterialName, GltfMeshName};
 use bevy::image::{ImageAddressMode, ImageLoaderSettings, ImageSampler, ImageSamplerDescriptor};
 use bevy::light::{NotShadowCaster, Skybox};
@@ -38,8 +39,10 @@ impl Plugin for ShowhomeKitPlugin {
                     reuse_hedge_materials,
                     apply_kit_depth,
                     report_failed_scenes,
+                    stop_flat_ground_casters,
                 )
                     .chain()
+                    .after(crate::video::apply_surface_depth)
                     .run_if(in_state(AppState::InGame)),
             );
     }
@@ -157,6 +160,33 @@ fn mark_scene_meshes(
         }
     }
     info!("Showhome {part:?} scene ready: {count} meshes at identity");
+}
+
+/// Kit ground meshes at most this tall (the lawn, paving, asphalt, edging, painted lines: a few millimetres of
+/// relief) cast no shadow. They are the lowest surface, so their shadow could only fall on themselves, and they
+/// are over half of the ground's triangles (about 200k of 370k, drawn into every shadow cascade). Kerbs (11 cm),
+/// walls, sand heaps and everything else on the ground still cast.
+pub const FLAT_GROUND_M: f32 = 0.03;
+
+/// A mesh's height in the world: its bounds' vertical extent through its transform.
+pub fn world_height(aabb: &Aabb, transform: &GlobalTransform) -> f32 {
+    let m = transform.affine().matrix3;
+    let up = Vec3A::new(m.x_axis.y, m.y_axis.y, m.z_axis.y);
+    2.0 * up.abs().dot(aabb.half_extents)
+}
+
+fn stop_flat_ground_casters(
+    mut commands: Commands,
+    meshes: Query<
+        (Entity, &ShowhomeKitMesh, &Aabb, &GlobalTransform),
+        (Without<NotShadowCaster>, Or<(Added<Aabb>, Added<ShowhomeKitMesh>)>),
+    >,
+) {
+    for (entity, part, aabb, transform) in &meshes {
+        if part.0 == ShowhomeKitPart::Ground && world_height(aabb, transform) <= FLAT_GROUND_M {
+            commands.entity(entity).insert(NotShadowCaster);
+        }
+    }
 }
 
 fn prepare_sky(
@@ -589,6 +619,19 @@ fn apply_kit_depth(
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    /// Flat ground stops casting, anything with height keeps casting, through the mesh's transform.
+    #[test]
+    fn only_flat_ground_stops_casting() {
+        let lawn = Aabb::from_min_max(Vec3::new(-40.0, 0.0, -30.0), Vec3::new(40.0, 0.006, 30.0));
+        let kerb = Aabb::from_min_max(Vec3::new(0.0, 0.0, 0.0), Vec3::new(0.2, 0.11, 30.0));
+        let at = GlobalTransform::IDENTITY;
+        assert!(world_height(&lawn, &at) <= FLAT_GROUND_M);
+        assert!(world_height(&kerb, &at) > FLAT_GROUND_M);
+        // A flat card stood on its edge is tall: the transform counts.
+        let stood = GlobalTransform::from(Transform::from_rotation(Quat::from_rotation_x(std::f32::consts::FRAC_PI_2)));
+        assert!((world_height(&lawn, &stood) - 60.0).abs() < 1e-3);
+    }
 
     #[test]
     fn array_mips_keep_layers_separate_and_layer_major() {
