@@ -155,6 +155,11 @@ fn load_ground_arrays(mut commands: Commands, server: Res<AssetServer>) {
 }
 
 /// Contract fallback for older GLBs. Fresh kit exports include this in material extras.
+/// Whether the named kit material is drawn by the ground blend (its vertex colours are layer masks).
+pub(crate) fn is_ground_blend(name: &str) -> bool {
+    fallback(name).is_some()
+}
+
 fn fallback(name: &str) -> Option<(&'static str, f32, &'static str)> {
     let canonical = name
         .rsplit_once('.')
