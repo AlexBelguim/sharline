@@ -6,7 +6,6 @@
 
 use crate::data::{
     AmmoChoice, AmmoSpec, AttachmentCategory, FireMode, GameData, ModifierTotals, RecoilSpec, WeaponClass, WeaponSpec,
-    Zoom,
 };
 use crate::input::{Buttons, InputFrame, view_dir};
 use crate::movement::MoveMode;
@@ -54,6 +53,8 @@ pub struct WeaponLoadout {
     pub mags: Vec<AmmoSpec>,
     pub attachments: Vec<String>,
     pub mag_capacity: u16,
+    /// The optic's zoom as it starts (a variable optic's default; 1 without an optic). A variable optic's live
+    /// zoom is the aiming player's own (the client's `scope_zoom`) and never goes over the wire.
     pub zoom: f32,
     pub mods: ModTotals,
 }
@@ -119,15 +120,7 @@ impl WeaponLoadout {
             .find(|a| a.cat == AttachmentCategory::Mag)
             .and_then(|a| a.capacity)
             .or_else(|| data.attachment(&spec.mag_default).and_then(|a| a.capacity))?;
-        let zoom = chosen
-            .iter()
-            .find(|a| a.cat == AttachmentCategory::Optic)
-            .and_then(|a| a.zoom.as_ref())
-            .map(|z| match z {
-                Zoom::Fixed(v) => *v,
-                Zoom::Levels(v) => v.first().copied().unwrap_or(1.0),
-            })
-            .unwrap_or(1.0);
+        let zoom = chosen.iter().find(|a| a.cat == AttachmentCategory::Optic).map_or(1.0, |a| a.start_zoom());
         Some(Self {
             weapon: weapon as u8,
             mags,
@@ -785,6 +778,9 @@ mod tests {
         let slug = AmmoChoice { kind: crate::data::AmmoKind::Slug, tier: 1 };
         let l = WeaponLoadout::resolve(&d, "ar7_mako", &[slug], &["optic_sniper".into()]).unwrap();
         assert_eq!(l.zoom, 1.25);
+        // a variable optic starts at its default zoom (the sniper scope at 6x, the 1-3x at 1x)
+        let warden = |optic: &str| WeaponLoadout::resolve(&d, "vk50_warden", &[], &[optic.into()]).unwrap().zoom;
+        assert_eq!((warden("optic_sniper"), warden("optic_1_3x"), warden("optic_3x")), (6.0, 1.0, 3.0));
         assert_eq!(l.ammo(0).choice, AmmoChoice::STANDARD, "ammo the gun cannot load falls back to standard");
         let l = WeaponLoadout::resolve(&d, "ar7_mako", &[], &[]).unwrap();
         assert_eq!(l.mags.len(), 1, "a gun always has a magazine");

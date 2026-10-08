@@ -273,7 +273,8 @@ fn gear_line(s: &LoadoutSummary) -> String {
 /// once) or `HALO 6 + MAGS 4` (the gun range).
 fn gear_split(s: &LoadoutSummary) -> String {
     if s.one_halo {
-        format!("ARMOR {} + AMMO {} + MAG {}", s.halo_cost(), s.ammo_cost, s.mag_cost)
+        let optic = if s.optic_cost > 0 { format!(" + OPTIC {}", s.optic_cost) } else { String::new() };
+        format!("ARMOR {} + AMMO {} + MAG {}{optic}", s.halo_cost(), s.ammo_cost, s.mag_cost)
     } else {
         format!("HALO {} + MAGS {}", s.halo_cost(), s.ammo_cost)
     }
@@ -1165,6 +1166,7 @@ mod tests {
             gear_cost: 7,
             ammo_cost: 1,
             mag_cost: 0,
+            optic_cost: 0,
             gear_budget: None,
             agent_name: "KESTREL".into(),
         }

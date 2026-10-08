@@ -38,6 +38,7 @@ pub struct WeaponModelsPlugin;
 impl Plugin for WeaponModelsPlugin {
     fn build(&self, app: &mut App) {
         app.init_resource::<Dressed>()
+            .init_resource::<Tinted>()
             .add_systems(Startup, load_models)
             .add_systems(Update, read_layouts)
             .add_systems(Update, drive_projectors.run_if(in_state(AppState::InGame)))
@@ -111,6 +112,32 @@ pub struct PartRow {
     /// `pose_<pose>_quat_gltf_xyzw` turns to it (the bipod's legs fold).
     #[serde(default)]
     pub pose: Option<String>,
+    /// A body tint, so a part that borrows another's model (the 1-3x wears the 3x's until it has its own) can be
+    /// told apart: its body materials (not its glass or reticle) mix toward `rgb` by `mix`.
+    #[serde(default)]
+    pub tint: Option<PartTint>,
+}
+
+/// A body tint (see [`PartRow::tint`]): linear RGB and how far (0..1) the body's base colour mixes toward it.
+#[derive(Debug, Clone, Copy, PartialEq, Deserialize)]
+pub struct PartTint {
+    pub rgb: [f32; 3],
+    pub mix: f32,
+}
+
+impl PartTint {
+    /// A body material's colour with the tint mixed in (alpha kept).
+    pub fn apply(&self, c: Color) -> Color {
+        let l = c.to_linear();
+        let m = self.mix.clamp(0.0, 1.0);
+        let [r, g, b] = self.rgb;
+        Color::LinearRgba(LinearRgba::new(
+            l.red + (r - l.red) * m,
+            l.green + (g - l.green) * m,
+            l.blue + (b - l.blue) * m,
+            l.alpha,
+        ))
+    }
 }
 
 /// The picture of a magnified optic, aimed.
@@ -119,7 +146,7 @@ pub struct PartRow {
 pub enum Scope {
     /// A compact prism: a round window, an ice ring and dot with drop marks under it.
     Prism,
-    /// A rifle scope: a round window, fine cross hairs with heavy posts and mil dots.
+    /// A rifle scope: a round window with a thin full cross (the 6-12x and the variable 1-3x).
     Rifle,
     /// A thermal sight's display: a 4:3 screen with a gapped white cross.
     Thermal,
@@ -386,7 +413,13 @@ struct Dress {
     look: OpticLook,
     projector: Option<(ProjectorTiming, ProjectorClip)>,
     pose: Option<String>,
+    tint: Option<PartTint>,
 }
+
+/// Tinted copies of body materials (see [`PartRow::tint`]), by the source material, made once and shared by
+/// every instance.
+#[derive(Resource, Default)]
+struct Tinted(HashMap<AssetId<StandardMaterial>, Handle<StandardMaterial>>);
 
 /// The materials already dressed: a file's materials are shared by every instance of it, so each is changed
 /// once.
@@ -429,8 +462,9 @@ fn dress(
     Query<(&GltfExtras, &Transform)>,
     ResMut<Assets<StandardMaterial>>,
     ResMut<Dressed>,
+    ResMut<Tinted>,
 ) {
-    move |ready, mut commands, tree, names, parents, meshes, players, extras, mut materials, mut dressed| {
+    move |ready, mut commands, tree, names, parents, meshes, players, extras, mut materials, mut dressed, mut tinted| {
         let mut projector = d.projector.clone().map(|(timing, clip)| Projector {
             timing,
             clip,
@@ -470,6 +504,20 @@ fn dress(
                     if let Some(mut m) = materials.get_mut(&mesh.0) {
                         d.look.dress(role, &mut m);
                     }
+                }
+                Role::Other if d.tint.is_some() => {
+                    let Some(tint) = d.tint else { continue };
+                    let handle = match tinted.0.get(&mesh.id()) {
+                        Some(h) => h.clone(),
+                        None => {
+                            let Some(mut m) = materials.get(&mesh.0).cloned() else { continue };
+                            m.base_color = tint.apply(m.base_color);
+                            let h = materials.add(m);
+                            tinted.0.insert(mesh.id(), h.clone());
+                            h
+                        }
+                    };
+                    commands.entity(e).insert(MeshMaterial3d(handle));
                 }
                 _ => {}
             }
@@ -631,6 +679,7 @@ impl WeaponModels {
                     look: self.data.optics,
                     projector: part.projector.zip(file.clip.clone()),
                     pose: part.pose.clone(),
+                    tint: part.tint,
                 };
                 Some((format!("{}_SOCKET_{}", gun.prefix, part.socket), file.scene.clone(), dress))
             })
@@ -714,6 +763,12 @@ struct ScopeOverlay(Scope);
 /// The round scope window's diameter (share of the screen height); the thermal screen is as tall, 4:3.
 const SCOPE_WINDOW_VH: f32 = 92.0;
 const SCOPE_LINE: Color = Color::srgba(0.02, 0.02, 0.03, 0.9);
+/// The thin cross: a fine near-black line on a faint pale halo, so it reads on a bright sky and in a dark room.
+const SCOPE_FINE: Color = Color::srgba(0.02, 0.02, 0.03, 0.95);
+const SCOPE_HALO: Color = Color::srgba(0.93, 0.95, 0.97, 0.42);
+/// The thin cross's line and halo, px: UI pixels, so the same on screen at every zoom.
+const FINE_PX: f32 = 1.0;
+const HALO_PX: f32 = 3.0;
 const SCOPE_ICE: Color = Color::srgb(0.55, 0.88, 1.0);
 const THERMAL_LINE: Color = Color::srgba(0.95, 0.96, 0.97, 0.9);
 
@@ -754,18 +809,12 @@ pub fn reticle(scope: Scope) -> Vec<Mark> {
     let mut marks = Vec::new();
     match scope {
         Scope::Rifle => {
-            // Fine cross hairs, heavy posts toward the rim, mil dots, an ice dot on the aim point.
-            marks.push(Mark::bar(p(100.0), x(2.0), (0.0, 50.0), SCOPE_LINE));
-            marks.push(Mark::bar(x(2.0), p(100.0), (50.0, 0.0), SCOPE_LINE));
-            for at in [0.0, 70.0] {
-                marks.push(Mark::bar(p(30.0), x(6.0), (at, 50.0), SCOPE_LINE));
-                marks.push(Mark::bar(x(6.0), p(30.0), (50.0, at), SCOPE_LINE));
+            // A thin line cross across the whole window (user direction, item 8d): a fine dark line on a pale
+            // halo, the halo first so the line draws over it.
+            for (px, color) in [(HALO_PX, SCOPE_HALO), (FINE_PX, SCOPE_FINE)] {
+                marks.push(Mark::bar(p(100.0), x(px), (0.0, 50.0), color));
+                marks.push(Mark::bar(x(px), p(100.0), (50.0, 0.0), color));
             }
-            for k in [-3.0, -2.0, -1.0, 1.0, 2.0, 3.0] {
-                marks.push(Mark::dot(5.0, (50.0 + 5.0 * k, 50.0), SCOPE_LINE));
-                marks.push(Mark::dot(5.0, (50.0, 50.0 + 5.0 * k), SCOPE_LINE));
-            }
-            marks.push(Mark::dot(6.0, (50.0, 50.0), SCOPE_ICE));
         }
         Scope::Prism => {
             // Side stadia and a post from below, an ice ring round the aim dot, ice drop marks under it.
@@ -942,19 +991,13 @@ mod tests {
         }
         for p in &m.parts {
             let a = d.attachment(&p.id).unwrap_or_else(|| panic!("{} is not in attachments.ron", p.id));
-            let magnified = matches!(a.zoom.as_ref(), Some(z) if zoom_of(z) > 2.0);
+            // A magnified optic (its highest zoom; the 1-3x shows its scope picture at 1x too).
+            let magnified = a.zoom.is_some_and(|z| z.range().1 > 2.0);
             assert_eq!(p.scope.is_some(), magnified, "{}: scope", p.id);
         }
         // Every registered part with a model of a modelled gun has a row.
         for a in d.attachments.attachments.iter().filter(|a| a.fits.iter().any(|w| w != "sk9_skink")) {
             assert!(m.part(&a.id).is_some(), "{} has no model row", a.id);
-        }
-    }
-
-    fn zoom_of(z: &vetf_sim::data::Zoom) -> f32 {
-        match z {
-            vetf_sim::data::Zoom::Fixed(v) => *v,
-            vetf_sim::data::Zoom::Levels(v) => v[0],
         }
     }
 
@@ -1239,7 +1282,8 @@ mod tests {
             .register_type::<ChildOf>()
             .register_type::<Children>()
             .init_asset::<StandardMaterial>()
-            .init_resource::<Dressed>();
+            .init_resource::<Dressed>()
+            .init_resource::<Tinted>();
         let data = ModelData::embedded().clone();
         let gun = data.guns.iter().position(|g| g.weapon == "ar7_mako").unwrap();
         let parts = ["mag_30", "mako_stock_standard", "grip_vertical"].map(|id| data.part(id).unwrap());
@@ -1293,10 +1337,14 @@ mod tests {
     #[test]
     fn scope_reticles_mark_the_aim_point() {
         for scope in [Scope::Prism, Scope::Rifle, Scope::Thermal] {
-            let centred = reticle(scope).iter().any(|m| {
-                let half = |v: Val| if let Val::Px(p) = v { p * 0.5 } else { -1.0 };
-                m.at == (50.0, 50.0) && m.pull == (half(m.w), half(m.h))
-            });
+            let marks = reticle(scope);
+            let half = |v: Val| if let Val::Px(p) = v { p * 0.5 } else { -1.0 };
+            let dot = marks.iter().any(|m| m.at == (50.0, 50.0) && m.pull == (half(m.w), half(m.h)));
+            // or a full cross whose lines meet there
+            let full = Val::Percent(100.0);
+            let across = marks.iter().any(|m| m.at == (0.0, 50.0) && m.w == full && m.pull == (0.0, half(m.h)));
+            let down = marks.iter().any(|m| m.at == (50.0, 0.0) && m.h == full && m.pull == (half(m.w), 0.0));
+            let centred = dot || (across && down);
             assert!(centred, "{scope:?}");
         }
         let m = ModelData::embedded();
@@ -1304,5 +1352,45 @@ mod tests {
         assert_eq!(scope("optic_3x"), Some(Scope::Prism));
         assert_eq!(scope("optic_sniper"), Some(Scope::Rifle));
         assert_eq!(scope("optic_thermal"), Some(Scope::Thermal));
+        assert_eq!(scope("optic_1_3x"), Some(Scope::Rifle), "the 1-3x: the thin cross too, at 1x as well");
+    }
+
+    /// Both variable scopes draw a thin line cross (item 8d): full width and height lines a few px thick (UI px, so
+    /// the same at every zoom), a dark line over a pale halo for bright and dark backgrounds, and nothing else.
+    #[test]
+    fn the_variable_scopes_draw_a_thin_line_cross() {
+        let marks = reticle(Scope::Rifle);
+        let px = |v: Val| if let Val::Px(p) = v { Some(p) } else { None };
+        let full = |v: Val| v == Val::Percent(100.0);
+        assert!(!marks.is_empty());
+        for m in &marks {
+            let (across, thick) = if full(m.w) { (m.w, m.h) } else { (m.h, m.w) };
+            assert!(full(across), "every mark is a full-length line: {m:?}");
+            assert!(px(thick).is_some_and(|t| t <= 3.0), "thin: {m:?}");
+            assert_eq!(m.round, None);
+        }
+        let lum = |c: Color| c.to_linear().luminance();
+        let core: Vec<_> = marks.iter().filter(|m| px(m.w).or(px(m.h)) == Some(FINE_PX)).collect();
+        let halo: Vec<_> = marks.iter().filter(|m| px(m.w).or(px(m.h)) == Some(HALO_PX)).collect();
+        assert_eq!((core.len(), halo.len()), (2, 2), "a horizontal and a vertical line, each on its halo");
+        assert!(core.iter().all(|m| lum(m.color) < 0.05) && halo.iter().all(|m| lum(m.color) > 0.6));
+        let first_core = marks.iter().position(|m| lum(m.color) < 0.05).unwrap();
+        assert!(marks[..first_core].iter().all(|m| lum(m.color) > 0.6), "the halo draws first, under the line");
+    }
+
+    /// The 1-3x has no model of its own yet: it wears the 3x's, tinted so the two can be told apart.
+    #[test]
+    fn the_variable_optic_borrows_the_3x_model_with_a_tint() {
+        let m = ModelData::embedded();
+        let row = |id: &str| &m.parts[m.part(id).unwrap()];
+        let (var, fixed) = (row("optic_1_3x"), row("optic_3x"));
+        assert_eq!((var.file.as_str(), var.socket.as_str()), (fixed.file.as_str(), "Optic"));
+        let tint = var.tint.expect("a tint tells it apart");
+        assert!(fixed.tint.is_none());
+        assert!(tint.mix > 0.1 && tint.mix <= 1.0);
+        let graphite = Color::srgb(0.12, 0.12, 0.13);
+        assert_ne!(tint.apply(graphite), graphite);
+        assert_eq!(PartTint { rgb: [0.5; 3], mix: 0.0 }.apply(graphite).to_linear(), graphite.to_linear());
+        assert_eq!(tint.apply(graphite.with_alpha(0.5)).alpha(), 0.5);
     }
 }

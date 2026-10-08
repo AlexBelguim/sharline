@@ -46,6 +46,8 @@ fn superseded(path: &str) -> bool {
         || path == "movement.slice.json.movement.slide.min_entry_speed"
         // Aiming never slows you, so the 3x scope's `ads_move` is gone.
         || (path.starts_with("attachments_stats.slice.json.attachments[") && path.ends_with(".ads_move"))
+        // The sniper scope zooms smoothly from 6x to 12x instead of toggling (item 8d, DESIGN_DELTAS.md).
+        || path == "attachments_stats.slice.json.attachments[3].other"
         || gun_tuning_round_1(path)
         || recoil_and_bloom_round_2(path)
         || recoil_roles_round_3(path)

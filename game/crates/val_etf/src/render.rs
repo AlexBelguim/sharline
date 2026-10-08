@@ -974,7 +974,9 @@ fn update_camera(
     }
     // Blended between ticks (the sim's ADS steps at the tick rate), as the eye's position is.
     let ads = smoothed_ads.at(fixed.overstep_fraction());
-    let fov = death_cam.map_or_else(|| camera_fov(m, loadout.0.weapon.zoom, ads), |d| d.fov_deg);
+    // A variable scope's live zoom (`scope_zoom`), blended by the ADS like any optic's.
+    let zoom = control.scope.of(&loadout.0.weapon);
+    let fov = death_cam.map_or_else(|| camera_fov(m, zoom, ads), |d| d.fov_deg);
     for (_, mut projection) in &mut camera {
         let want = fov.to_radians();
         let stale = matches!(&*projection, Projection::Perspective(p) if (p.fov - want).abs() > 1e-6);

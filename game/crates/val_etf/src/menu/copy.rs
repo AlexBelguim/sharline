@@ -42,6 +42,7 @@ pub fn attachment_short(id: &str, data: &GameData) -> String {
             "reddot" => "red dot".into(),
             "3x" => "3x scope".into(),
             "sniper" => "sniper scope".into(),
+            "1_3x" => "1-3x scope".into(),
             other => other.replace('_', " "),
         },
         Some(AttachmentCategory::Stock) => {

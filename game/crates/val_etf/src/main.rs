@@ -26,6 +26,7 @@ mod net;
 mod perf_probe;
 mod radial;
 mod render;
+mod scope_zoom;
 mod scoreboard;
 mod screens;
 mod server;

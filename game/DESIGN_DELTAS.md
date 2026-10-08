@@ -512,3 +512,30 @@ AI players in the slice); a testing aid:
   semi-automatic pulls, reloads, the aim error), the server's
   `a_bot_shoots_through_the_normal_path_scores_the_kill_and_respawns` and
   `bots_take_seats_on_the_smaller_team_and_hold_fire_in_the_lobby`, and `bots::tests`.
+
+## 23. Variable scopes and a 1-3x optic (2026-10-09)
+The user: "i would like the 6x 12x be for min 6 to 12 and scroll should be gradual from 6x to 12x and the scope
+should remember per player and per different scope setting, lets also add 1x 3x and both should be a thin line
+cross". The design's sniper scope toggles 6x / 12x (`attachments_stats.slice.json` optic_sniper `other`):
+- **Variable zoom:** an optic's `zoom` in `attachments.ron` is a number (fixed) or `[min, max]` (variable). Aimed
+  through a variable one, Zoom in / Zoom out (new binds, the wheel by default) move the wanted zoom evenly in
+  ratio (`notches_per_range` wheel notches cross the range; a held key `key_notches_per_s`), and the view eases
+  toward it (`ease_per_s`, frame-rate independent): gradual, never stepped. Tuning: `settings.ron` `scope_zoom`.
+  The Warden's scope is now 6-12x (`6–12× SCOPE`), starting at `zoom_default` 6x.
+- **New optic `optic_1_3x` (1–3× VARIABLE):** an extra pick on the guns the 3x fits; the fixed 3x stays. At 1x it is
+  a 1x sight seen through its scope picture. In team deathmatch and free-for-all it costs 1 point
+  (`rules.ron` `optic_points`, a new price list next to `mag_points`; the 3x and every other optic stay free). It
+  wears the 3x's model with a brass body tint (`weapon_models.ron` `tint`) until the art side models a
+  low-profile 1-3x (`assets/weapons/attachments/optics/build_optics.py`). Its ADS multiplier shares the 3x's row.
+- **Memory:** each player's last zoom per variable optic is saved in their own `settings.ron` (`optic_zoom`) and
+  restored when they aim with it again, also after a restart. RESET ALL keeps it.
+- **Reticle:** both variable scopes draw a thin line cross (a 1 px dark line on a 3 px pale halo, screen pixels, so
+  the same at every zoom); the posts and mil dots are gone.
+- **Local only:** the live zoom narrows the aiming player's own camera (still blended by the ADS) and their
+  sensitivity follows it (MATCH FOCAL; the per-optic ADS multiplier still applies). Shots, the simulation, the wire
+  (no protocol change) and what others see are unchanged. Aimed through a variable scope the zoom binds take their
+  inputs, so wheel down zooms out instead of jumping (Jump and the zoom binds may share the wheel).
+- Pinned by `scope_zoom` tests (steps, clamps, easing, binds, the file round trip, sensitivity at 6x vs 12x, 1x
+  view), `client::aimed_through_a_variable_scope_the_wheel_zooms`, `data::variable_optics_have_a_zoom_range`,
+  `gear::the_variable_optic_costs_more_than_the_fixed_3x`, `loadout::model::the_variable_optic_is_a_priced_pick`
+  and the `weapon_models` reticle and tint tests.

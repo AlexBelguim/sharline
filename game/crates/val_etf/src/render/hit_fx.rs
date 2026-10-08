@@ -563,7 +563,7 @@ pub(crate) fn demo_hit_fx(
         let theirs = mv.0.eye_pos();
         if clock.tracers.is_multiple_of(2) {
             let ads = weapon.0.ads;
-            let fov = super::camera_fov(&settings.mouse, loadout.0.weapon.zoom, ads);
+            let fov = super::camera_fov(&settings.mouse, control.scope.of(&loadout.0.weapon), ads);
             let lens = super::viewmodel_lens(fov, settings.mouse.viewmodel_fov);
             let at = vetf_sim::input::view_rotation(control.yaw, control.pitch);
             let from = eye + at * super::own_tracer_start(&rig, ads, lens);

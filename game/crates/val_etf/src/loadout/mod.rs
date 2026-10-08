@@ -156,6 +156,8 @@ pub struct LoadoutSummary {
     pub gear_cost: u32,
     pub ammo_cost: u32,
     pub mag_cost: u32,
+    /// The optic's points (the variable 1-3x; 0 for every other optic).
+    pub optic_cost: u32,
     pub gear_budget: Option<u32>,
     /// The agent's display name (cosmetic for now): the pick in the gun range.
     pub agent_name: String,
@@ -170,7 +172,7 @@ impl LoadoutSummary {
 
     /// The halo's (or armor tier's) part of the points.
     pub fn halo_cost(&self) -> u32 {
-        self.gear_cost.saturating_sub(self.ammo_cost + self.mag_cost)
+        self.gear_cost.saturating_sub(self.ammo_cost + self.mag_cost + self.optic_cost)
     }
 }
 
@@ -242,6 +244,7 @@ pub fn summary(choice: &LoadoutChoice, data: &GameData, mode: MatchMode) -> Load
         gear_cost: cost.total(),
         ammo_cost: cost.ammo,
         mag_cost: cost.mags,
+        optic_cost: cost.optic,
         gear_budget: gear_budget(data, mode),
         agent_name: agent_name(&choice.agent),
     }

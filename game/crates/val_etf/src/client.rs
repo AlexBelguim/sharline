@@ -7,6 +7,7 @@ use crate::net::{NetRequest, Role, Session};
 use crate::radial::{HealMenu, HealOption, REGION_ORDER, Radial, heal_options};
 use crate::render::hit_fx::ClaimedHit;
 use crate::render::{ViewmodelRig, ads_zoom, camera_fov, own_tracer_start, viewmodel_lens};
+use crate::scope_zoom::ScopeZoom;
 use crate::screens::{EscPress, EscSystems, Screens};
 use crate::settings::{
     Action, BindInput, HoldToggle, Keybinds, RadialPick, RadialTuning, Settings, SettingsData, rad_per_count,
@@ -38,7 +39,10 @@ impl Plugin for ClientPlugin {
             .add_observer(on_match_state)
             .add_systems(
                 RunFixedMainLoop,
-                gather_input.in_set(RunFixedMainLoopSystems::BeforeFixedMainLoop).run_if(in_state(AppState::InGame)),
+                (crate::scope_zoom::update, gather_input)
+                    .chain()
+                    .in_set(RunFixedMainLoopSystems::BeforeFixedMainLoop)
+                    .run_if(in_state(AppState::InGame)),
             )
             .add_systems(FixedPreUpdate, write_inputs.in_set(InputSystems::WriteClientInputs))
             .add_systems(FixedPostUpdate, record_smoothing)
@@ -90,6 +94,8 @@ pub struct LocalControl {
     /// After a ring menu closes, the mouse buttons stay off until released (the click that picked must
     /// not fire the gun or cancel the item).
     pub mouse_block: bool,
+    /// The variable scope in hand and its live zoom (`scope_zoom`).
+    pub scope: ScopeZoom,
 }
 
 impl Default for LocalControl {
@@ -110,6 +116,7 @@ impl Default for LocalControl {
             heal: None,
             item_pick: (0, 0),
             mouse_block: false,
+            scope: ScopeZoom::default(),
         }
     }
 }
@@ -217,7 +224,7 @@ impl BindDevices<'_, '_> {
     pub fn read(&mut self) -> BindInput<'_> {
         let wheel = if self.cli.ignores_desktop_input() { 0.0 } else { self.scroll.delta.y };
         let wheel_prev = std::mem::replace(&mut *self.wheel_prev, wheel);
-        BindInput { keys: &self.keys, mouse: &self.mouse, wheel, wheel_prev }
+        BindInput { keys: &self.keys, mouse: &self.mouse, wheel, wheel_prev, taken: Vec::new() }
     }
 }
 
@@ -321,8 +328,12 @@ fn gather_input(
     if cli.bot {
         return;
     }
-    let input = devices.read();
+    let mut input = devices.read();
     let (kb, m, g) = (&settings.keybinds, &settings.mouse, &settings.gameplay);
+    // Aimed through a variable scope the zoom binds have the wheel (and their keys): nothing else reads them.
+    if control.scope.active {
+        input.take(kb, &crate::settings::ZOOM);
+    }
     if *logged != Some((m.cm_per_360, m.dpi)) {
         *logged = Some((m.cm_per_360, m.dpi));
         let deg = rad_per_count(m.cm_per_360, m.dpi).to_degrees();
@@ -367,7 +378,8 @@ fn gather_input(
         control.mouse_block = false;
     }
     if !ring_open {
-        let (optic, zoom) = me.map_or((None, 1.0), |(l, ..)| (optic_of(&data, &l.0.weapon), l.0.weapon.zoom));
+        let (optic, zoom) =
+            me.map_or((None, 1.0), |(l, ..)| (optic_of(&data, &l.0.weapon), control.scope.of(&l.0.weapon)));
         let ads = me.and_then(|(.., w)| w).map_or(0.0, |w| w.0.ads);
         let s = look_per_count(&settings, optic, zoom, ads);
         let dy = if m.invert_y { -mouse_delta.y } else { mouse_delta.y };
@@ -663,8 +675,10 @@ fn fire_claims(
         // From the viewmodel's muzzle (lower right on screen), not from under the eye: a tracer from a point
         // straight below the camera drew a vertical line hanging under the crosshair (playtest 2026-10-07).
         // Through a scope the gun is hidden, so it leaves the scope's centre instead.
-        let lens =
-            viewmodel_lens(camera_fov(&settings.mouse, loadout.0.weapon.zoom, ads), settings.mouse.viewmodel_fov);
+        let lens = viewmodel_lens(
+            camera_fov(&settings.mouse, control.scope.of(&loadout.0.weapon), ads),
+            settings.mouse.viewmodel_fov,
+        );
         let start = s.origin + vetf_sim::input::view_rotation(s.yaw, s.pitch) * own_tracer_start(&rig, ads, lens);
         feedback.tracers.push((start, s.origin + dir * end_t, 0.0, true));
         if let (None, Some((d, normal))) = (best, world_hit) {
@@ -998,7 +1012,7 @@ mod tests {
     }
 
     fn bind_input<'a>(keys: &'a ButtonInput<KeyCode>, mouse: &'a ButtonInput<MouseButton>) -> BindInput<'a> {
-        BindInput { keys, mouse, wheel: 0.0, wheel_prev: 0.0 }
+        BindInput { keys, mouse, wheel: 0.0, wheel_prev: 0.0, taken: Vec::new() }
     }
 
     /// Hold the reload key for `frames` frames of 50 ms (steering on the last one), then release it.
@@ -1057,7 +1071,7 @@ mod tests {
             .insert_resource(Data(Arc::new(vetf_sim::GameData::embedded())))
             .insert_resource(Settings::default())
             .insert_resource(crate::settings::embedded().clone())
-            .add_systems(Update, gather_input);
+            .add_systems(Update, (crate::scope_zoom::update, gather_input).chain());
         app
     }
 
@@ -1078,6 +1092,69 @@ mod tests {
         keys.clear();
         let c = app.world().resource::<LocalControl>();
         (c.held, c.movement, (c.yaw - yaw + PI).rem_euclid(TAU) - PI, c.pitch - pitch)
+    }
+
+    /// Item 8d in the running input: aimed through the Warden's 6-12x scope the wheel zooms (wheel down no longer
+    /// jumps), the zoom is saved in the settings and turns the look slower; from the hip the wheel jumps again
+    /// and the zoom stays.
+    #[test]
+    fn aimed_through_a_variable_scope_the_wheel_zooms() {
+        let mut app = input_app();
+        let data = vetf_sim::GameData::embedded();
+        let mut lo = vetf_sim::player::Loadout::default_for(&data, vetf_sim::data::Mode::Range);
+        lo.weapon = WeaponLoadout::resolve(&data, "vk50_warden", &[], &["optic_sniper".into()]).unwrap();
+        let items = vetf_sim::items::ItemState::new(&lo.kit);
+        app.world_mut().spawn((PlayerLoadout(lo), PlayerItems(items), Controlled));
+        let wheel = |app: &mut App, notches: f32| {
+            app.world_mut().resource_mut::<AccumulatedMouseScroll>().delta = Vec2::new(0.0, notches);
+        };
+        let aim = |app: &mut App, on: bool| {
+            let mut m = app.world_mut().resource_mut::<ButtonInput<MouseButton>>();
+            if on { m.press(MouseButton::Right) } else { m.release(MouseButton::Right) }
+        };
+        let scope = |app: &App| app.world().resource::<LocalControl>().scope.clone();
+        frame(&mut app, &[], Vec2::ZERO);
+        assert_eq!((scope(&app).optic.as_deref(), scope(&app).target), (Some("optic_sniper"), 6.0));
+        // hip: wheel down jumps, nothing zooms
+        wheel(&mut app, -1.0);
+        let (held, ..) = frame(&mut app, &[], Vec2::ZERO);
+        assert_ne!(held & Buttons::JUMP, 0, "from the hip the wheel jumps");
+        assert_eq!(scope(&app).target, 6.0);
+        wheel(&mut app, 0.0);
+        frame(&mut app, &[], Vec2::ZERO);
+        // aim (the ADS button goes out this frame; the zoom binds take the wheel from the next)
+        aim(&mut app, true);
+        let (held, ..) = frame(&mut app, &[], Vec2::ZERO);
+        assert_ne!(held & Buttons::ADS, 0);
+        wheel(&mut app, 3.0);
+        frame(&mut app, &[], Vec2::ZERO);
+        let zoomed = scope(&app).target;
+        assert!(zoomed > 6.0 && zoomed < 12.0 && scope(&app).active, "{zoomed}");
+        let saved = app.world().resource::<Settings>().optic_zoom.get("optic_sniper").copied();
+        assert_eq!(saved, Some((zoomed * 100.0).round() / 100.0), "remembered in the settings");
+        wheel(&mut app, -1.0);
+        let (held, ..) = frame(&mut app, &[], Vec2::ZERO);
+        assert_eq!(held & Buttons::JUMP, 0, "aimed through the scope wheel down zooms out, no jump");
+        assert!(scope(&app).target < zoomed);
+        // the look follows the live zoom
+        {
+            let mut c = app.world_mut().resource_mut::<LocalControl>();
+            c.scope.live = 12.0;
+        }
+        let s = app.world().resource::<Settings>().clone();
+        let at12 = look_per_count(&s, Some("optic_sniper"), app.world().resource::<LocalControl>().scope.live, 1.0);
+        assert!((at12 / look_per_count(&s, Some("optic_sniper"), 6.0, 1.0) - 0.5).abs() < 1e-3);
+        // release: the wheel jumps again, the zoom stays where it was
+        aim(&mut app, false);
+        wheel(&mut app, 0.0);
+        frame(&mut app, &[], Vec2::ZERO);
+        let kept = scope(&app).target;
+        wheel(&mut app, -1.0);
+        frame(&mut app, &[], Vec2::ZERO);
+        let (held, ..) = frame(&mut app, &[], Vec2::ZERO);
+        assert_ne!(held & Buttons::JUMP, 0, "the wheel jumps again");
+        assert_eq!(scope(&app).target, kept, "from the hip the wheel never zooms");
+        assert!(!scope(&app).active);
     }
 
     #[test]

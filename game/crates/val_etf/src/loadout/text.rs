@@ -66,17 +66,13 @@ fn zoom_text(z: &Option<Zoom>) -> Option<String> {
     let fmt = |v: f32| if (v - v.round()).abs() < 1e-3 { format!("{v:.0}") } else { format!("{v:.2}") };
     match z {
         Some(Zoom::Fixed(v)) => Some(format!("{}×", fmt(*v))),
-        Some(Zoom::Levels(l)) => Some(format!("{}×", l.iter().map(|v| fmt(*v)).collect::<Vec<_>>().join("/"))),
+        Some(Zoom::Variable([lo, hi])) => Some(format!("{}–{}×", fmt(*lo), fmt(*hi))),
         None => None,
     }
 }
 
 fn zoom_first(z: &Option<Zoom>) -> f32 {
-    match z {
-        Some(Zoom::Fixed(v)) => *v,
-        Some(Zoom::Levels(l)) => l.first().copied().unwrap_or(1.0),
-        None => 1.0,
-    }
+    z.map_or(1.0, |z| z.range().0)
 }
 
 /// What changes going from `from` to `to` (an attachment list row against the equipped part).

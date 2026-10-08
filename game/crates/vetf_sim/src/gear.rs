@@ -1,8 +1,8 @@
 //! Loadout gear: the custom halo a player builds (one core, a tier per arc) and the points a whole loadout
 //! costs. The host (validation) and the Loadout screen (RESULT panel, cost chips) use the same functions, so
 //! they always agree. Team deathmatch and free-for-all price their picks ([`kit_cost`], `rules.ron`
-//! `deathmatch_loadout`: the armor tier, the one ammo type once, the magazine type) against a budget; the gun
-//! range shows the arc tiers and every magazine's ammo ([`gear_cost`]) with no limit.
+//! `deathmatch_loadout`: the armor tier, the one ammo type once, the magazine type, the optic) against a budget;
+//! the gun range shows the arc tiers and every magazine's ammo ([`gear_cost`]) with no limit.
 
 use crate::data::{
     AmmoChoice, ArmorFile, ArmorPreset, ArmorStats, AttachmentCategory, Core, DeathmatchLoadout, GameData, Mode,
@@ -96,11 +96,13 @@ pub struct GearCost {
     pub ammo: u32,
     /// The magazine type (team deathmatch, free-for-all; nothing in the gun range).
     pub mags: u32,
+    /// The optic (team deathmatch, free-for-all: the variable 1-3x has a price; nothing in the gun range).
+    pub optic: u32,
 }
 
 impl GearCost {
     pub fn total(&self) -> u32 {
-        self.halo + self.ammo + self.mags
+        self.halo + self.ammo + self.mags + self.optic
     }
 }
 
@@ -111,6 +113,7 @@ pub fn gear_cost(data: &GameData, weapon: &WeaponSpec, halo: &HaloChoice, mags: 
         halo: halo.score(),
         ammo: mags.iter().filter_map(|m| data.ammo_for(weapon, *m)).map(|a| a.gear_cost).sum(),
         mags: 0,
+        optic: 0,
     }
 }
 
@@ -123,9 +126,22 @@ pub fn mag_type<'a>(data: &GameData, weapon: &'a WeaponSpec, attachments: &'a [S
         .map_or(weapon.mag_default.as_str(), |id| id.as_str())
 }
 
+/// The optic of a gun with these attachments: the first optic part that fits it, else its default optic (none
+/// if it has neither).
+pub fn optic_type<'a>(data: &'a GameData, weapon: &WeaponSpec, attachments: &'a [String]) -> Option<&'a str> {
+    let fits = |a: &crate::data::AttachmentSpec| a.cat == AttachmentCategory::Optic && a.fits.contains(&weapon.id);
+    attachments.iter().find(|id| data.attachment(id).is_some_and(fits)).map(String::as_str).or_else(|| {
+        data.attachments
+            .attachments
+            .iter()
+            .find(|a| fits(a) && a.default_for.contains(&weapon.id))
+            .map(|a| a.id.as_str())
+    })
+}
+
 /// The points of a deathmatch loadout's picks: armor tier `armor` (1-based, 0 NO HALO; out of range: none), the one
 /// ammo type (paid once: every magazine carries it; ammo the gun cannot load costs nothing here, the host
-/// refuses it separately) and the magazine type.
+/// refuses it separately), the magazine type and the optic.
 pub fn kit_cost(
     data: &GameData,
     kit: &DeathmatchLoadout,
@@ -133,16 +149,18 @@ pub fn kit_cost(
     armor: u8,
     ammo: AmmoChoice,
     mag: &str,
+    optic: Option<&str>,
 ) -> GearCost {
     GearCost {
         halo: kit.armor_tier(armor).map_or(0, |a| a.points),
         ammo: data.ammo_for(weapon, ammo).map_or(0, |a| a.gear_cost),
         mags: kit.mag_points(mag),
+        optic: optic.map_or(0, |o| kit.optic_points(o)),
     }
 }
 
 /// The points of a loadout in `mode`. Team deathmatch and free-for-all: [`kit_cost`] of the armor tier the
-/// halo makes ([`DeathmatchLoadout::tier_for`]), slot 1's ammo and the magazine type. The gun range:
+/// halo makes ([`DeathmatchLoadout::tier_for`]), slot 1's ammo, the magazine type and the optic. The gun range:
 /// [`gear_cost`].
 pub fn loadout_cost(
     data: &GameData,
@@ -155,7 +173,8 @@ pub fn loadout_cost(
     match data.rules.fixed_loadout(mode) {
         Some(kit) => {
             let ammo = mags.first().copied().unwrap_or(AmmoChoice::STANDARD);
-            kit_cost(data, kit, weapon, kit.tier_for(halo.tiers), ammo, mag_type(data, weapon, attachments))
+            let (mag, optic) = (mag_type(data, weapon, attachments), optic_type(data, weapon, attachments));
+            kit_cost(data, kit, weapon, kit.tier_for(halo.tiers), ammo, mag, optic)
         }
         None => gear_cost(data, weapon, halo, mags),
     }
@@ -226,7 +245,7 @@ mod tests {
         let ap2 = d.ammo.resolve(WeaponClass::AssaultRifle, ap(2)).unwrap().gear_cost;
         let h = halo(Core::Mender, 2, 2, 0, 0);
         let c = gear_cost(&d, mako, &h, &[AmmoChoice::STANDARD, ap(2), ap(2)]);
-        assert_eq!(c, GearCost { halo: 4, ammo: 2 * ap2, mags: 0 });
+        assert_eq!(c, GearCost { halo: 4, ammo: 2 * ap2, mags: 0, optic: 0 });
         assert_eq!(c.total(), 4 + 2 * ap2);
         // RIP does not fit a rifle: it is not priced (the host refuses the loadout instead)
         let rip = AmmoChoice { kind: AmmoKind::Rip, tier: 3 };
@@ -261,13 +280,45 @@ mod tests {
             assert_eq!(d.rules.fixed_loadout(mode), Some(kit), "{mode:?}: one loadout for both");
             let t3 = HaloChoice::of_tier(kit, 3);
             let six = vec![ap(2); kit.mags as usize];
-            assert_eq!(loadout_cost(&d, mode, mako, &t3, &six, &drum), GearCost { halo: 3, ammo: 2, mags: 2 });
-            assert_eq!(loadout_cost(&d, mode, mako, &t3, &[ap(2)], &[]), GearCost { halo: 3, ammo: 2, mags: 0 });
+            assert_eq!(
+                loadout_cost(&d, mode, mako, &t3, &six, &drum),
+                GearCost { halo: 3, ammo: 2, mags: 2, optic: 0 }
+            );
+            assert_eq!(
+                loadout_cost(&d, mode, mako, &t3, &[ap(2)], &[]),
+                GearCost { halo: 3, ammo: 2, mags: 0, optic: 0 }
+            );
         }
-        assert_eq!(kit_cost(&d, kit, mako, 4, AmmoChoice::STANDARD, "mag_30").total(), 5);
-        assert_eq!(kit_cost(&d, kit, mako, 9, AmmoChoice::STANDARD, "mag_30").halo, 0, "no such tier");
+        assert_eq!(kit_cost(&d, kit, mako, 4, AmmoChoice::STANDARD, "mag_30", None).total(), 5);
+        assert_eq!(kit_cost(&d, kit, mako, 9, AmmoChoice::STANDARD, "mag_30", None).halo, 0, "no such tier");
         assert_eq!(HaloChoice::of_tier(kit, 4), HaloChoice { core: Core::Mender, tiers: d.armor.loadout_tier_caps });
         assert!(!HaloChoice::of_tier(kit, 0).is_lit());
+    }
+
+    /// The variable 1-3x optic costs a point in the deathmatches where the fixed 3x and every other optic are
+    /// free (item 8d); the gun range never prices parts. With no optic named, a gun's default optic is free.
+    #[test]
+    fn the_variable_optic_costs_more_than_the_fixed_3x() {
+        let d = GameData::embedded();
+        let kit = &d.rules.deathmatch_loadout;
+        let ids = |v: &[&str]| v.iter().map(|s| s.to_string()).collect::<Vec<_>>();
+        let t2 = HaloChoice::of_tier(kit, 2);
+        let std = [AmmoChoice::STANDARD];
+        for gun in ["ar7_mako", "vk50_warden"] {
+            let w = d.weapon(gun).unwrap();
+            let cost = |mode, parts: &[&str]| loadout_cost(&d, mode, w, &t2, &std, &ids(parts));
+            for mode in [Mode::Tdm, Mode::Ffa] {
+                assert_eq!(cost(mode, &["optic_1_3x"]).optic, 1, "{gun}: the variable optic");
+                assert_eq!(cost(mode, &["optic_3x"]).optic, 0, "{gun}: the fixed 3x is free");
+                assert_eq!(cost(mode, &[]).optic, 0, "{gun}: its default optic");
+                assert_eq!(cost(mode, &["optic_1_3x"]).total(), cost(mode, &["optic_3x"]).total() + 1);
+            }
+            assert_eq!(cost(Mode::Range, &["optic_1_3x"]).optic, 0, "the gun range has no part prices");
+        }
+        assert!(kit.optic_points("optic_1_3x") > kit.optic_points("optic_3x"));
+        let skink = d.weapon("sk9_skink").unwrap();
+        assert_eq!(optic_type(&d, skink, &ids(&["optic_1_3x"])), Some("optic_reddot"), "does not fit: the default");
+        assert_eq!(optic_type(&d, d.weapon("ar7_mako").unwrap(), &ids(&["mag_45", "optic_1_3x"])), Some("optic_1_3x"));
     }
 
     /// The deathmatch point table makes a trade-off (DIRECTION_LOG 17): T4 armor and the best ammo never fit
@@ -296,7 +347,7 @@ mod tests {
                     .flat_map(|(k, t)| (1..=t.tiers.len() as u8).map(|tier| AmmoChoice { kind: *k, tier }))
                     .filter(|c| d.ammo_for(w, *c).is_some_and(|a| a.player_loadout))
                     .collect();
-                let cost = |armor, ammo, mag| kit_cost(&d, kit, w, armor, ammo, mag).total();
+                let cost = |armor, ammo, mag| kit_cost(&d, kit, w, armor, ammo, mag, None).total();
                 let best = rounds.iter().map(|c| d.ammo_for(w, *c).unwrap().gear_cost).max().unwrap();
                 assert_eq!(best, 4, "{}: tier III is the best round", w.id);
                 for mag in &mags {
@@ -317,7 +368,7 @@ mod tests {
             let mako = d.weapon("ar7_mako").unwrap();
             let skink = d.weapon("sk9_skink").unwrap();
             let warden = d.weapon("vk50_warden").unwrap();
-            let fits = |w, armor, ammo, mag| kit_cost(&d, kit, w, armor, ammo, mag).total() <= budget;
+            let fits = |w, armor, ammo, mag| kit_cost(&d, kit, w, armor, ammo, mag, None).total() <= budget;
             // the middles
             assert!(fits(mako, 3, ap(3), "mag_45"), "T3 + AP III + extended");
             assert!(fits(warden, 3, ap(3), "mag_8"));

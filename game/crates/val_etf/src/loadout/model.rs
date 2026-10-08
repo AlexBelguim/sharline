@@ -293,15 +293,12 @@ impl Draft {
         parts_for(data, &self.weapon, AttachmentCategory::Mag)
     }
 
-    /// Team deathmatch and free-for-all: the points of part `id` (None: an empty slot) in slot `cat`. Only
-    /// the magazine type has a price (`mag_points`); every other part, and an empty slot, is free. None in
-    /// the gun range (parts are not priced there).
+    /// Team deathmatch and free-for-all: the points of part `id` (None: an empty slot) in slot `cat`. A
+    /// magazine type (`mag_points`) and an optic (`optic_points`: the variable 1-3x) may have a price; every
+    /// other part, and an empty slot, is free. None in the gun range (parts are not priced there).
     pub fn part_points(&self, cat: AttachmentCategory, id: Option<&str>) -> Option<u32> {
         let kit = self.fixed.as_ref()?;
-        Some(match (cat, id) {
-            (AttachmentCategory::Mag, Some(id)) => kit.mag_points(id),
-            _ => 0,
-        })
+        Some(id.map_or(0, |id| kit.part_points(cat, id)))
     }
 
     /// The points of what slot `cat` holds now (what its card shows; None in the gun range).
@@ -311,14 +308,15 @@ impl Draft {
 
     // ------------------------------------------------------------------------------------------ budget
 
-    /// The points. Team deathmatch and free-for-all: the armor tier, the one ammo type once and the magazine
-    /// type; the gun range: the arc tiers and every magazine's ammo.
+    /// The points. Team deathmatch and free-for-all: the armor tier, the one ammo type once, the magazine type
+    /// and the optic; the gun range: the arc tiers and every magazine's ammo.
     pub fn gear(&self, data: &GameData) -> GearCost {
         let spec = self.spec(data);
         match (&self.fixed, self.armor_tier()) {
             (Some(kit), Some(tier)) => {
                 let mag = self.mag_type(data).map_or(spec.mag_default.as_str(), |m| m.id.as_str());
-                kit_cost(data, kit, spec, tier, self.ammo(), mag)
+                let optic = self.equipped(AttachmentCategory::Optic, data).map(|o| o.id.as_str());
+                kit_cost(data, kit, spec, tier, self.ammo(), mag, optic)
             }
             _ => gear_cost(data, spec, &self.halo, &self.mags),
         }
@@ -473,7 +471,7 @@ pub fn weapon_stats(data: &GameData, spec: &WeaponSpec, parts: &[&AttachmentSpec
         sway: m.sway,
         hip_spread: m.hip_spread,
         sprint_to_fire_s: spec.sprint_to_fire_s * m.sprint_to_fire,
-        zoom: parts.iter().find(|a| a.cat == AttachmentCategory::Optic).and_then(|a| a.zoom.clone()),
+        zoom: parts.iter().find(|a| a.cat == AttachmentCategory::Optic).and_then(|a| a.zoom),
     }
 }
 
@@ -643,7 +641,7 @@ mod tests {
             assert_eq!(dr.armor_tier(), Some(3), "torso 3 makes T3");
             assert_eq!(dr.halo, HaloChoice::of_tier(&kit, 3), "on the one halo core");
             assert_eq!(dr.mag_type(&d).map(|m| m.id.as_str()), Some("mag_45"));
-            assert_eq!(dr.gear(&d), GearCost { halo: 3, ammo: 0, mags: 1 });
+            assert_eq!(dr.gear(&d), GearCost { halo: 3, ammo: 0, mags: 1, optic: 0 });
             // the picks
             assert!(dr.set_armor_tier(4));
             assert_eq!(dr.halo.tiers, d.armor.loadout_tier_caps);
@@ -662,7 +660,7 @@ mod tests {
             dr.set_part(AttachmentCategory::Mag, Some("mag_drum60"), &d);
             let opts: Vec<&str> = dr.mag_options(&d).iter().map(|m| m.id.as_str()).collect();
             assert_eq!(opts, ["mag_30", "mag_45", "mag_drum60"]);
-            assert_eq!(dr.gear(&d), GearCost { halo: 5, ammo: 2, mags: 2 }, "AP II paid once");
+            assert_eq!(dr.gear(&d), GearCost { halo: 5, ammo: 2, mags: 2, optic: 0 }, "AP II paid once");
             assert!(matches!(dr.problems(&d, budget).as_slice(), [Problem::OverBudget { used: 9, budget: 8 }]));
             let with_ext = dr.gear_with(&d, |x| x.set_part(AttachmentCategory::Mag, Some("mag_45"), &d));
             assert_eq!(with_ext.total(), 8, "an extended magazine instead fits");
@@ -720,6 +718,49 @@ mod tests {
         let range = Draft::from_choice(&c, &BTreeMap::new(), &d, None);
         assert_eq!(range.slot_points(AttachmentCategory::Mag, &d), None);
         assert_eq!(range.part_points(AttachmentCategory::Mag, Some("mag_drum60")), None);
+    }
+
+    /// Item 8d: the variable 1-3x is offered in the optic slot of both guns the 3x fits, at a point where the 3x is
+    /// free; the card, the popover row and the total agree, and the summary splits it out.
+    #[test]
+    fn the_variable_optic_is_a_priced_pick() {
+        let d = GameData::embedded();
+        let kit = d.rules.fixed_loadout(vetf_net::MatchMode::Tdm).cloned().unwrap();
+        for gun in ["ar7_mako", "vk50_warden"] {
+            let c = LoadoutChoice {
+                weapon: gun.into(),
+                mags: vec![AmmoChoice::STANDARD],
+                attachments: vec![],
+                halo: HaloChoice { core: Core::Mender, tiers: ZoneTable::splat(1) },
+                agent: "kestrel".into(),
+            };
+            let mut dr = Draft::from_choice(&c, &BTreeMap::new(), &d, Some(kit.clone()));
+            let optics: Vec<&str> =
+                parts_for(&d, gun, AttachmentCategory::Optic).iter().map(|a| a.id.as_str()).collect();
+            assert!(optics.contains(&"optic_1_3x") && optics.contains(&"optic_3x"), "{gun}: {optics:?}");
+            assert_eq!(dr.part_points(AttachmentCategory::Optic, Some("optic_1_3x")), Some(1));
+            assert_eq!(dr.part_points(AttachmentCategory::Optic, Some("optic_3x")), Some(0));
+            let before = dr.gear(&d).total();
+            let with = dr.gear_with(&d, |x| x.set_part(AttachmentCategory::Optic, Some("optic_1_3x"), &d));
+            assert_eq!((with.total(), with.optic), (before + 1, 1), "{gun}: what picking it would cost");
+            dr.set_part(AttachmentCategory::Optic, Some("optic_1_3x"), &d);
+            assert_eq!(dr.equipped(AttachmentCategory::Optic, &d).map(|a| a.id.as_str()), Some("optic_1_3x"));
+            assert_eq!(dr.slot_points(AttachmentCategory::Optic, &d), Some(1), "{gun}: the card");
+            assert_eq!(dr.gear(&d).optic, 1);
+            dr.set_part(AttachmentCategory::Optic, Some("optic_3x"), &d);
+            assert_eq!((dr.slot_points(AttachmentCategory::Optic, &d), dr.gear(&d).total()), (Some(0), before));
+        }
+        assert!(!parts_for(&d, "sk9_skink", AttachmentCategory::Optic).iter().any(|a| a.id == "optic_1_3x"));
+        // the summary (the match menu's points line) and the host agree with the screen
+        let c = LoadoutChoice {
+            weapon: "vk50_warden".into(),
+            mags: vec![AmmoChoice::STANDARD],
+            attachments: vec!["optic_1_3x".into()],
+            halo: HaloChoice { core: Core::Mender, tiers: ZoneTable::splat(1) },
+            agent: "kestrel".into(),
+        };
+        let s = super::super::summary(&c, &d, vetf_net::MatchMode::Tdm);
+        assert_eq!((s.optic_cost, s.halo_cost(), s.gear_cost), (1, 1, 2));
     }
 
     #[test]

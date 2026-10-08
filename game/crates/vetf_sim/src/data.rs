@@ -655,11 +655,35 @@ impl AttachmentCategory {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+/// An optic's magnification: one fixed zoom (`3.0`), or a variable optic's range (`[6.0, 12.0]`, min and
+/// max) that the player scrolls through smoothly while aiming (the client's `scope_zoom`; the zoom is local
+/// only, so it never reaches the wire or the simulation).
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum Zoom {
     Fixed(f32),
-    Levels(Vec<f32>),
+    Variable([f32; 2]),
+}
+
+impl Zoom {
+    /// The lowest and highest zoom (the same for a fixed optic).
+    pub fn range(self) -> (f32, f32) {
+        match self {
+            Zoom::Fixed(v) => (v, v),
+            Zoom::Variable([lo, hi]) => (lo, hi),
+        }
+    }
+
+    /// A scroll-to-zoom optic.
+    pub fn is_variable(self) -> bool {
+        matches!(self, Zoom::Variable(_))
+    }
+
+    /// `z` held inside the optic's range.
+    pub fn clamp(self, z: f32) -> f32 {
+        let (lo, hi) = self.range();
+        if z.is_finite() { z.clamp(lo, hi) } else { lo }
+    }
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -714,6 +738,10 @@ pub struct AttachmentSpec {
     pub blurb: String,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub zoom: Option<Zoom>,
+    /// A variable optic's zoom for a player who has never scrolled it (none: its lowest). Each player's own
+    /// last zoom per optic is kept in their settings file.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub zoom_default: Option<f32>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub capacity: Option<u16>,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
@@ -748,6 +776,20 @@ impl AttachmentSpec {
     /// The short display name.
     pub fn short_name(&self) -> &str {
         if self.short.is_empty() { self.display_name() } else { &self.short }
+    }
+
+    /// The zoom the optic starts at: a fixed optic's zoom, a variable one's `zoom_default` (inside its range)
+    /// or its lowest; 1 for a part with no zoom.
+    pub fn start_zoom(&self) -> f32 {
+        match self.zoom {
+            Some(z) => z.clamp(self.zoom_default.unwrap_or(z.range().0)),
+            None => 1.0,
+        }
+    }
+
+    /// A scroll-to-zoom optic's range (min, max).
+    pub fn zoom_range(&self) -> Option<(f32, f32)> {
+        self.zoom.filter(|z| z.is_variable()).map(Zoom::range)
     }
 
     pub fn modifiers(&self) -> Modifiers {
@@ -1154,6 +1196,9 @@ pub struct DeathmatchLoadout {
     /// gun's standard magazine).
     #[serde(default)]
     pub mag_points: BTreeMap<String, u32>,
+    /// Points of an optic (an attachment id of category `optic`); one left out costs nothing.
+    #[serde(default)]
+    pub optic_points: BTreeMap<String, u32>,
 }
 
 /// One armor tier of the deathmatch loadout.
@@ -1201,6 +1246,21 @@ impl DeathmatchLoadout {
     /// Points of a magazine type.
     pub fn mag_points(&self, mag: &str) -> u32 {
         self.mag_points.get(mag).copied().unwrap_or(0)
+    }
+
+    /// Points of an optic.
+    pub fn optic_points(&self, optic: &str) -> u32 {
+        self.optic_points.get(optic).copied().unwrap_or(0)
+    }
+
+    /// Points of part `id` in slot `cat`: a magazine type or an optic may have a price, every other part is
+    /// free.
+    pub fn part_points(&self, cat: AttachmentCategory, id: &str) -> u32 {
+        match cat {
+            AttachmentCategory::Mag => self.mag_points(id),
+            AttachmentCategory::Optic => self.optic_points(id),
+            _ => 0,
+        }
     }
 }
 
@@ -1438,6 +1498,19 @@ impl GameData {
             if wrong_axis {
                 return bad(format!("{}: stocks may only set recoil_v and under-rail parts only recoil_h", a.id));
             }
+            // Zoom: only optics have one, at least 1x; a variable range rises, and its default sits inside it.
+            if let Some(z) = a.zoom {
+                let (lo, hi) = z.range();
+                let rising = !z.is_variable() || hi > lo;
+                if a.cat != AttachmentCategory::Optic || !(lo >= 1.0 && rising && hi.is_finite()) {
+                    return bad(format!("{}: an optic's zoom is >= 1 and a variable range rises", a.id));
+                }
+            }
+            if let Some(d) = a.zoom_default
+                && a.zoom_range().is_none_or(|(lo, hi)| !(lo..=hi).contains(&d))
+            {
+                return bad(format!("{}: zoom_default needs a variable zoom range around it", a.id));
+            }
         }
         for wc in [WeightClass::None, WeightClass::Light, WeightClass::Medium, WeightClass::Heavy] {
             if !self.armor.weight_effects.contains_key(&wc) {
@@ -1523,6 +1596,15 @@ impl GameData {
         for id in kit.mag_points.keys() {
             if self.attachment(id).is_none_or(|a| a.cat != AttachmentCategory::Mag) {
                 return bad(format!("deathmatch mag_points: {id} is not a magazine"));
+            }
+        }
+        for id in kit.optic_points.keys() {
+            let Some(a) = self.attachment(id).filter(|a| a.cat == AttachmentCategory::Optic) else {
+                return bad(format!("deathmatch optic_points: {id} is not an optic"));
+            };
+            // A gun's own optic is always affordable: every loadout starts with it.
+            if !a.default_for.is_empty() {
+                return bad(format!("deathmatch optic_points: {id} is a gun's default optic and stays free"));
             }
         }
         for mode in Mode::ALL {
@@ -1802,6 +1884,55 @@ mod tests {
         assert!(broken(&|k| k.no_halo_points = 2), "no halo dearer than T1");
         assert!(broken(&|k| k.mags = 7));
         assert!(broken(&|k| _ = k.mag_points.insert("optic_holo".into(), 1)), "not a magazine");
+        assert!(broken(&|k| _ = k.optic_points.insert("mag_45".into(), 1)), "not an optic");
+        assert!(broken(&|k| _ = k.optic_points.insert("optic_holo".into(), 1)), "a gun's default optic");
+    }
+
+    /// Item 8d: the Warden's sniper scope zooms 6x-12x and the new 1-3x variable optic (an extra, dearer choice
+    /// next to the fixed 3x, which stays) zooms 1x-3x, on the same guns as the 3x. Zoom ranges live in the data
+    /// and the data check holds them.
+    #[test]
+    fn variable_optics_have_a_zoom_range() {
+        let d = GameData::embedded();
+        let a = |id: &str| d.attachment(id).unwrap_or_else(|| panic!("{id}"));
+        let (sniper, var, fixed) = (a("optic_sniper"), a("optic_1_3x"), a("optic_3x"));
+        assert_eq!(sniper.zoom, Some(Zoom::Variable([6.0, 12.0])));
+        assert_eq!((sniper.zoom_range(), sniper.start_zoom()), (Some((6.0, 12.0)), 6.0));
+        assert_eq!(var.cat, AttachmentCategory::Optic);
+        assert_eq!((var.zoom_range(), var.start_zoom()), (Some((1.0, 3.0)), 1.0));
+        assert_eq!(var.fits, fixed.fits, "the 1-3x fits the same guns as the 3x");
+        assert!(var.default_for.is_empty(), "an extra pick, never a gun's default");
+        assert!(!var.display_name().is_empty() && !var.blurb.is_empty());
+        assert_eq!(fixed.zoom, Some(Zoom::Fixed(3.0)), "the fixed 3x stays");
+        assert_eq!(fixed.zoom_range(), None);
+        let k = &d.rules.deathmatch_loadout;
+        assert_eq!((k.optic_points("optic_1_3x"), k.optic_points("optic_3x")), (1, 0), "dearer than the 3x");
+        assert_eq!(k.part_points(AttachmentCategory::Optic, "optic_1_3x"), 1);
+        assert_eq!(k.part_points(AttachmentCategory::Mag, "mag_drum60"), 2);
+        assert_eq!(k.part_points(AttachmentCategory::Stock, "optic_1_3x"), 0);
+        // clamping
+        assert_eq!(Zoom::Variable([6.0, 12.0]).clamp(20.0), 12.0);
+        assert_eq!(Zoom::Variable([6.0, 12.0]).clamp(2.0), 6.0);
+        assert_eq!(Zoom::Variable([6.0, 12.0]).clamp(f32::NAN), 6.0);
+        assert_eq!(Zoom::Fixed(3.0).clamp(9.0), 3.0);
+        // the data check
+        let broken = |f: &dyn Fn(&mut AttachmentSpec)| {
+            let mut d = GameData::embedded();
+            f(d.attachments.attachments.iter_mut().find(|a| a.id == "optic_1_3x").unwrap());
+            d.validate().is_err()
+        };
+        assert!(!broken(&|_| ()));
+        assert!(broken(&|a| a.zoom = Some(Zoom::Variable([3.0, 1.0]))), "a falling range");
+        assert!(broken(&|a| a.zoom = Some(Zoom::Variable([0.5, 3.0]))), "below 1x");
+        assert!(broken(&|a| a.zoom_default = Some(4.0)), "a default outside the range");
+        assert!(broken(&|a| a.cat = AttachmentCategory::Side), "a zoom on a non-optic");
+        let mut d3 = GameData::embedded();
+        d3.attachments.attachments.iter_mut().find(|a| a.id == "optic_3x").unwrap().zoom_default = Some(3.0);
+        assert!(d3.validate().is_err(), "a default needs a variable range");
+        // RON: a fixed zoom is a number, a variable one a [min, max] pair
+        let z: Option<Zoom> = ron::from_str("Some([1.0, 3.0])").unwrap();
+        assert_eq!(z, Some(Zoom::Variable([1.0, 3.0])));
+        assert_eq!(ron::from_str::<Option<Zoom>>("Some(3.0)").unwrap(), Some(Zoom::Fixed(3.0)));
     }
 
     /// The deathmatch armor tiers are the user's combinations (DIRECTION_LOG 17), and an older halo becomes

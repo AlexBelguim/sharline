@@ -26,6 +26,8 @@ pub enum Action {
     Laser,
     Melee,
     HoldBreath,
+    ZoomIn,
+    ZoomOut,
     Ability1,
     Signature,
     Ultimate,
@@ -37,7 +39,7 @@ pub enum Action {
 }
 
 impl Action {
-    pub const ALL: [Action; 26] = [
+    pub const ALL: [Action; 28] = [
         Action::MoveForward,
         Action::MoveLeft,
         Action::MoveBack,
@@ -56,6 +58,8 @@ impl Action {
         Action::Laser,
         Action::Melee,
         Action::HoldBreath,
+        Action::ZoomIn,
+        Action::ZoomOut,
         Action::Ability1,
         Action::Signature,
         Action::Ultimate,
@@ -87,6 +91,8 @@ impl Action {
             Laser => "Laser",
             Melee => "Melee",
             HoldBreath => "Hold breath",
+            ZoomIn => "Zoom in",
+            ZoomOut => "Zoom out",
             Ability1 => "Ability 1",
             Signature => "Signature",
             Ultimate => "Ultimate",
@@ -110,9 +116,17 @@ impl Action {
 
 /// Pairs that may share an input. Hold breath only works while scoped, where Shift doing both is what the player
 /// wants: by default Shift walks (auto-sprint is on) and steadies the scope at once; a player who sprints on
-/// Shift instead gets the same.
-pub const ALLOWED_SHARES: [(Action, Action); 2] =
-    [(Action::Walk, Action::HoldBreath), (Action::Sprint, Action::HoldBreath)];
+/// Shift instead gets the same. Zoom in / out only work aimed with a variable scope, and then they take the input
+/// (`scope_zoom`): by default the wheel jumps (wheel down), and aimed through such a scope it zooms instead.
+pub const ALLOWED_SHARES: [(Action, Action); 4] = [
+    (Action::Walk, Action::HoldBreath),
+    (Action::Sprint, Action::HoldBreath),
+    (Action::Jump, Action::ZoomIn),
+    (Action::Jump, Action::ZoomOut),
+];
+
+/// The actions that only work aimed with a variable scope, and then take their inputs from every other action.
+pub const ZOOM: [Action; 2] = [Action::ZoomIn, Action::ZoomOut];
 
 /// One input: a key, a mouse button or a wheel direction.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
@@ -370,10 +384,26 @@ pub struct BindInput<'a> {
     /// Wheel movement this frame and last frame (+ = up).
     pub wheel: f32,
     pub wheel_prev: f32,
+    /// Inputs another use has taken this frame (aimed with a variable scope, the zoom binds'): they read as idle.
+    pub taken: Vec<Binding>,
 }
 
 impl BindInput<'_> {
+    /// Take the inputs bound to `actions`: for the rest of the frame they read as idle.
+    pub fn take(&mut self, kb: &Keybinds, actions: &[Action]) {
+        self.taken.extend(actions.iter().flat_map(|a| kb.get(*a)).flatten());
+    }
+
+    fn free(&self, b: Binding) -> bool {
+        !self.taken.contains(&b)
+    }
+
     pub fn pressed(&self, b: Binding) -> bool {
+        self.free(b) && self.held(b)
+    }
+
+    /// Held this frame, whether taken or not.
+    pub fn held(&self, b: Binding) -> bool {
         match b {
             Binding::Key(k) => self.keys.pressed(k),
             Binding::Mouse(m) => self.mouse.pressed(m),
@@ -383,6 +413,10 @@ impl BindInput<'_> {
     }
 
     pub fn just_pressed(&self, b: Binding) -> bool {
+        self.free(b) && self.went_down(b)
+    }
+
+    fn went_down(&self, b: Binding) -> bool {
         match b {
             Binding::Key(k) => self.keys.just_pressed(k),
             Binding::Mouse(m) => self.mouse.just_pressed(m),
@@ -392,6 +426,10 @@ impl BindInput<'_> {
     }
 
     pub fn just_released(&self, b: Binding) -> bool {
+        self.free(b) && self.went_up(b)
+    }
+
+    fn went_up(&self, b: Binding) -> bool {
         match b {
             Binding::Key(k) => self.keys.just_released(k),
             Binding::Mouse(m) => self.mouse.just_released(m),

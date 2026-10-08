@@ -70,6 +70,8 @@ const LEFT: &[Row] = &[
     Row::Act("Laser / flashlight", &[Action::Laser], "D-pad ↓"),
     Row::Act("Melee", &[Action::Melee], "R3 tap"),
     Row::Act("Hold breath (Warden scope)", &[Action::HoldBreath], "L3 while ADS"),
+    Row::Act("Zoom in (variable scope, aimed)", &[Action::ZoomIn], "—"),
+    Row::Act("Zoom out (variable scope, aimed)", &[Action::ZoomOut], "—"),
 ];
 
 const RIGHT: &[Row] = &[
@@ -107,7 +109,8 @@ pub fn build(p: &mut ChildSpawnerCommands, k: &Kit) {
             k,
             &[(
                 "With AUTO-SPRINT on (Gameplay tab), running forward sprints and holding Walk walks. Walk and Hold \
-                 breath may share a key (scoped, it walks and steadies the shot); any other clash turns the key \
+                 breath may share a key (scoped, it walks and steadies the shot), and so may Jump and the zoom \
+                 keys (aimed through a variable scope the wheel zooms, not jumps); any other clash turns the key \
                  amber and names the other action. Number keys 1–6 pick magazines only while the reload radial \
                  is open.",
                 false,

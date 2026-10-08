@@ -5,7 +5,10 @@
 // recoil (`recoil_v`, the climb: the T's stem) and a front grip only the HORIZONTAL recoil (`recoil_h`, the sweep:
 // the T's bar). Each one pays for it with something else. The data check rejects a stock with `recoil_h` or an
 // under-rail part with `recoil_v`.
-// `zoom` and `capacity` are absolute values, not multipliers.
+// `zoom` and `capacity` are absolute values, not multipliers. `zoom` is a number for a fixed optic, or [min, max] for
+// a variable one: aimed, the wheel (Zoom in / Zoom out binds) zooms smoothly between them, and each player's last
+// zoom per optic is kept in their settings file. `zoom_default` is where a variable optic starts for a player who
+// has never scrolled it (none: its min). Scroll and easing rates: settings.ron `scope_zoom`.
 // `name`, `short` and `blurb` are display copy for the Loadout screen (`{G}` in a blurb draws a key cap).
 (
     attachments: [
@@ -15,8 +18,12 @@
         (id: "optic_projector", cat: optic, fits: ["ar7_mako", "vk50_warden"], name: "PROJECTOR", blurb: "Fold-out hologram. Nothing in the way.", zoom: Some(1.2)),
         (id: "optic_3x", cat: optic, fits: ["ar7_mako", "vk50_warden"], name: "3× SCOPE", short: "3×", blurb: "3× zoom. Glints past 40 m.", zoom: Some(3.0), ads_time: Some(1.15), sway: Some(1.1),
             other: Some("scope glint >= 40 m")),
-        (id: "optic_sniper", cat: optic, fits: ["vk50_warden"], name: "6/12× SCOPE", short: "6/12×", blurb: "Scroll for 6× or 12×. Glints past 25 m.", zoom: Some([6.0, 12.0]), ads_time: Some(1.0), default_for: ["vk50_warden"],
-            other: Some("scope glint >= 25 m; scroll toggles 6x/12x")),
+        // The variable 1-3x (item 8d): an extra, dearer choice next to the fixed 3x (rules.ron optic_points), on the
+        // same guns. At 1x it is a 1x sight seen through the scope picture.
+        (id: "optic_1_3x", cat: optic, fits: ["ar7_mako", "vk50_warden"], name: "1–3× VARIABLE", short: "1–3×", blurb: "Scroll from 1× to 3×. Fine cross.", zoom: Some([1.0, 3.0]), zoom_default: Some(1.0), ads_time: Some(1.15), sway: Some(1.1),
+            other: Some("scroll zooms 1x-3x smoothly")),
+        (id: "optic_sniper", cat: optic, fits: ["vk50_warden"], name: "6–12× SCOPE", short: "6–12×", blurb: "Scroll from 6× to 12×. Glints past 25 m.", zoom: Some([6.0, 12.0]), zoom_default: Some(6.0), ads_time: Some(1.0), default_for: ["vk50_warden"],
+            other: Some("scope glint >= 25 m; scroll zooms 6x-12x smoothly")),
         (id: "optic_thermal", cat: optic, fits: ["vk50_warden"], name: "THERMAL", blurb: "Bodies glow, the world greys out. No glint.", zoom: Some(4.0), ads_time: Some(1.2), sway: Some(1.1), move: Some(0.99),
             other: Some("white-hot view: bodies bright, world desaturated; no glint")),
         // stocks

@@ -342,6 +342,9 @@ section!(
         video: VideoSettings,
         audio: AudioSettings,
         hud: HudSettings,
+        /// Each variable scope's last zoom, by optic id (`scope_zoom`): restored the next time it is aimed with,
+        /// also after a restart.
+        optic_zoom: BTreeMap<String, f32>,
     }
 );
 
@@ -496,6 +499,16 @@ pub struct RadialTuning {
     pub dead_zone_px: f32,
 }
 
+/// How a variable scope zooms (`scope_zoom`): wheel notches across its range, a held key's notches a second,
+/// how fast the view eases toward the wanted zoom, and a touchpad's pixels per notch.
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
+pub struct ScopeZoomTuning {
+    pub notches_per_range: f32,
+    pub key_notches_per_s: f32,
+    pub ease_per_s: f32,
+    pub pixels_per_notch: f32,
+}
+
 /// `game/assets/data/settings.ron`: defaults for a new player and every range and table the screen uses.
 #[derive(Resource, Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct SettingsData {
@@ -503,6 +516,7 @@ pub struct SettingsData {
     pub radial: RadialTuning,
     pub import_yaw: ImportYaw,
     pub optic_rows: Vec<OpticRow>,
+    pub scope_zoom: ScopeZoomTuning,
     /// Brightness ±50 maps to ± this many EV.
     pub brightness_ev: f32,
     /// Text size S / M / L as a factor on HUD text.
@@ -665,10 +679,14 @@ impl Settings {
         }
     }
 
+    /// Every tab back to its defaults. The last tab and the scopes' remembered zooms (not a setting the screen
+    /// shows) are kept.
     pub fn reset_all(&mut self, defaults: &Settings) {
         let tab = self.last_tab;
+        let zooms = std::mem::take(&mut self.optic_zoom);
         *self = defaults.clone();
         self.last_tab = tab;
+        self.optic_zoom = zooms;
     }
 
     /// Fill what an older settings file lacks: actions added to the key map since, and the ADS multiplier of an

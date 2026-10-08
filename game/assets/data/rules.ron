@@ -2,10 +2,10 @@
 //
 // The team deathmatch and free-for-all loadout (user direction 2026-10-08, DIRECTION_LOG 17) is
 // `deathmatch_loadout` below: a player picks a gun and its parts (the magazine type among them), ONE armor
-// tier and ONE ammo type, and pays points for the three against the mode's `gear_budget`.
+// tier and ONE ammo type, and pays points for them (and for a priced optic) against the mode's `gear_budget`.
 (
     tdm: (
-        // Points: armor tier + ammo type (paid once) + magazine type must fit (see deathmatch_loadout).
+        // Points: armor tier + ammo type (paid once) + magazine type + optic must fit (see deathmatch_loadout).
         gear_budget: 8,
         score_limit: 50,          // "TDM - first to 50" (design/ui/mockups/png/01_hud.png)
         time_limit_s: 600.0,      // placeholder: the design does not fix a match length yet
@@ -59,6 +59,8 @@
         no_halo_points: 0,
         // Each gun's standard magazine (mag_30, mag_5, skink_mag_40) is free.
         mag_points: {"mag_45": 1, "mag_8": 1, "skink_mag_60": 1, "mag_drum60": 2},
+        // Optics are free except the variable 1-3x (item 8d: the extra, dearer one next to the free fixed 3x).
+        optic_points: {"optic_1_3x": 1},
     ),
     // What each mode switches on (user direction, see game/DESIGN_DELTAS.md). Team deathmatch is the
     // gunplay and netcode test bed: per-region shields and health, but no bleeding and no broken-limb

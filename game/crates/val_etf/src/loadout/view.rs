@@ -1631,7 +1631,12 @@ impl View<'_> {
             let over = self.ctx.budget.is_some_and(|b| used > b);
             let simple = self.ctx.simple();
             let parts: Vec<(&str, u32, f32)> = if simple {
-                vec![("ARMOR", gear.halo, 1.0), ("AMMO (ONCE)", gear.ammo, 0.55), ("MAG", gear.mags, 0.3)]
+                let mut v = vec![("ARMOR", gear.halo, 1.0), ("AMMO (ONCE)", gear.ammo, 0.55), ("MAG", gear.mags, 0.3)];
+                // Only a priced optic (the variable 1-3x) shows its part of the points.
+                if gear.optic > 0 {
+                    v.push(("OPTIC", gear.optic, 0.75));
+                }
+                v
             } else {
                 vec![("HALO", gear.halo, 1.0), ("AMMO", gear.ammo, 0.55)]
             };

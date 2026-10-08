@@ -41,10 +41,17 @@
             sub: Some("1× sights, zoom 1.15–1.25×"),
             optics: ["optic_holo", "optic_reddot", "optic_projector"],
         ),
-        (label: "3× prism", optics: ["optic_3x"]),
+        // The 1-3x shares the 3x's row (the tab has room for five rows); its value is still saved per optic.
+        (label: "3× prism · 1–3× variable", sub: Some("The 1–3× follows its zoom"), optics: ["optic_3x", "optic_1_3x"]),
         (label: "Thermal 4×", optics: ["optic_thermal"]),
-        (label: "Sniper 6× / 12×", sub: Some("Per zoom step, same feel at every step"), optics: ["optic_sniper"]),
+        (label: "Sniper 6–12×", sub: Some("Follows the zoom as you scroll"), optics: ["optic_sniper"]),
     ],
+    // Variable scopes (attachments.ron `zoom: Some([min, max])`): aimed, each wheel notch of Zoom in / Zoom out
+    // moves the wanted zoom by 1/`notches_per_range` of the optic's range, evenly in magnification ratio (so 6x to
+    // 12x and 1x to 3x take the same notches); a held zoom key moves `key_notches_per_s` notches a second. The
+    // view then eases toward it, closing 1 - e^(-ease_per_s × dt) of the gap each frame: gradual, never a step.
+    // A touchpad's pixel scroll counts `pixels_per_notch` px as one notch.
+    scope_zoom: (notches_per_range: 8.0, key_notches_per_s: 8.0, ease_per_s: 12.0, pixels_per_notch: 100.0),
     // Brightness ±50 is ± this many EV of camera exposure.
     brightness_ev: 1.0,
     // Text size S / M / L on HUD text.
@@ -119,6 +126,9 @@
             Laser: (Some("KeyV"), None),
             Melee: (Some("Digit3"), None),
             HoldBreath: (Some("ShiftLeft"), None),
+            // Aimed with a variable scope the wheel zooms (and does not jump).
+            ZoomIn: (Some("WheelUp"), None),
+            ZoomOut: (Some("WheelDown"), None),
             Ability1: (Some("KeyQ"), None),
             Signature: (Some("KeyE"), None),
             Ultimate: (Some("KeyX"), None),
@@ -181,5 +191,8 @@
             text_size: M,
             hold_toggle: Hold,
         ),
+        // Each variable scope's last zoom (optic id: zoom), saved as the player scrolls and restored when they aim
+        // with it again. None yet: a scope starts at its attachments.ron zoom_default.
+        optic_zoom: {},
     ),
 )
