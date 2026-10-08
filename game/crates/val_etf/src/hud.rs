@@ -21,7 +21,7 @@ use crate::client::Feedback;
 use crate::config::{Cli, Data};
 use crate::net::Session;
 use crate::render::ViewCamera;
-use crate::settings::{DamageFlash, Settings, Ultrawide, crosshair_rects, rgb_color};
+use crate::settings::{DamageFlash, Settings, SettingsData, Ultrawide, crosshair_rects, rgb_color};
 use crate::ui_kit::{self as kit, Face, UiFonts, abs, panel};
 use bevy::prelude::*;
 use bevy::ui::{ColorStop, RadialGradient, RadialGradientShape, UiPosition};
@@ -834,21 +834,35 @@ fn spread_px(spread_deg: f32, vfov: f32) -> f32 {
     spread_deg.max(0.0).to_radians().tan() * focal
 }
 
-/// The crosshair from MOUSE & AIM (colour, outline, lines, dot), opened by the gun's live spread over its resting
-/// hip spread (so a gun at rest shows the plain small cross). Hit markers are not drawn on it: they show on the
-/// player hit (`render::hit_fx`, which follows HIT MARKERS).
+/// How far (degrees) the crosshair opens for a gun's live `spread` and its spread `over_rest` (beyond its
+/// resting hip spread): by the spread over rest, but by no less than the spread beyond `allowance` (settings.ron
+/// `crosshair.rest_allowance_deg`). So a rifle at rest, whose resting hip spread is within the allowance,
+/// shows the plain small cross, and a gun that is wide even at rest (the Warden's hip fire) still shows where
+/// its shots can land.
+pub fn crosshair_open_deg(spread: f32, over_rest: f32, allowance: f32) -> f32 {
+    over_rest.max(spread - allowance).max(0.0)
+}
+
+/// The crosshair from MOUSE & AIM (colour, outline, lines, dot), opened by the gun's live spread
+/// ([`crosshair_open_deg`]). Hit markers are not drawn on it: they show on the player hit (`render::hit_fx`,
+/// which follows HIT MARKERS).
 #[allow(clippy::type_complexity)]
 fn update_crosshair(
     me: Query<(&PlayerWeapon, &PlayerLoadout, &PlayerMove, &Vitals), With<Controlled>>,
     camera: Query<&Projection, With<ViewCamera>>,
     data: Res<Data>,
     settings: Res<Settings>,
+    tuning: Res<SettingsData>,
     mut parts: Query<(&CrosshairPart, &mut Node, &mut BackgroundColor, &mut Outline, &mut Visibility)>,
 ) {
     let Some((w, lo, mv, v)) = me.iter().next() else { return };
     let spec = lo.0.weapon.spec(&data);
     let env = vetf_sim::player::weapon_env(&data, &mv.0, &v.wounds);
-    let spread = w.0.spread_over_rest_deg(&data, spec, &lo.0.weapon, &env);
+    let spread = crosshair_open_deg(
+        w.0.spread_deg(&data, spec, &lo.0.weapon, &env),
+        w.0.spread_over_rest_deg(&data, spec, &lo.0.weapon, &env),
+        tuning.crosshair.rest_allowance_deg,
+    );
     let vfov = match camera.iter().next() {
         Some(Projection::Perspective(p)) => p.fov,
         _ => FALLBACK_VFOV_DEG.to_radians(),
@@ -1175,6 +1189,63 @@ mod tests {
         assert!((spread_px(39.0, vfov) - 540.0).abs() < 0.01);
         assert!(spread_px(1.0, vfov) > spread_px(0.5, vfov));
         assert!(spread_px(1.0, 60f32.to_radians()) > spread_px(1.0, vfov), "a narrower view opens it more");
+    }
+
+    /// The review of round 1: the crosshair opened only by the spread over each gun's resting hip spread, so the
+    /// Warden (6° of hip spread at rest) showed the pinpoint cross while its hip shots landed metres off. Now a
+    /// gun at rest shows the plain cross only for the part of its resting spread within the data's allowance.
+    #[test]
+    fn the_crosshair_shows_hip_spread_beyond_the_rest_allowance() {
+        use vetf_sim::data::AmmoChoice;
+        use vetf_sim::movement::MoveMode;
+        use vetf_sim::weapon::{WeaponEnv, WeaponLoadout, WeaponState};
+        let d = vetf_sim::GameData::embedded();
+        let allowance = crate::settings::embedded().crosshair.rest_allowance_deg;
+        assert!(allowance > 0.0 && allowance < 2.0, "{allowance}");
+        let still = WeaponEnv {
+            mode: MoveMode::Ground,
+            sprinting: false,
+            crouched: false,
+            speed_frac: 0.0,
+            broken_arms: false,
+            hands_busy: false,
+        };
+        let crouched = WeaponEnv { crouched: true, ..still };
+        let run = WeaponEnv { speed_frac: 1.0, ..still };
+        // 103° wide on 16:9, the default view
+        let vfov = 2.0 * ((103f32.to_radians() / 2.0).tan() * 9.0 / 16.0).atan();
+        let mut wide_at_rest = 0;
+        for gun in &d.weapons.weapons {
+            let lo = WeaponLoadout::resolve(&d, &gun.id, &[AmmoChoice::STANDARD], &[]).unwrap();
+            let spec = lo.spec(&d);
+            let mut w = WeaponState::new(&d, &lo);
+            let open = |w: &WeaponState, env: WeaponEnv| {
+                let spread = w.spread_deg(&d, spec, &lo, &env);
+                (spread, crosshair_open_deg(spread, w.spread_over_rest_deg(&d, spec, &lo, &env), allowance))
+            };
+            let (rest, at_rest) = open(&w, still);
+            assert!((at_rest - (rest - allowance).max(0.0)).abs() < 1e-5, "{}: {rest} at rest", gun.id);
+            if rest <= allowance {
+                // the rifles: the plain small cross at rest, standing or crouched
+                assert_eq!(at_rest, 0.0, "{}", gun.id);
+                assert_eq!(open(&w, crouched).1, 0.0, "{}", gun.id);
+            } else {
+                // the Warden: its hip cone shows at rest, tighter crouched, wider running
+                wide_at_rest += 1;
+                assert!(spread_px(at_rest, vfov) > 40.0, "{}: {at_rest}° = {} px", gun.id, spread_px(at_rest, vfov));
+                let crouch = open(&w, crouched).1;
+                assert!(crouch < at_rest, "{}: crouching tightens it ({crouch} < {at_rest})", gun.id);
+            }
+            let (spread, running) = open(&w, run);
+            assert!(running >= at_rest, "{}: running opens it", gun.id);
+            assert!(running >= spread - rest - 1e-5, "{}: running opens it at least as before", gun.id);
+            w.bloom_deg = 0.5;
+            assert!(open(&w, still).1 >= 0.5 - 1e-5, "{}: bloom opens it", gun.id);
+            w.bloom_deg = 0.0;
+            w.ads = 1.0;
+            assert_eq!(open(&w, run).1, 0.0, "{}: aimed", gun.id);
+        }
+        assert!(wide_at_rest >= 1, "some gun (the Warden) has hip spread past the allowance at rest");
     }
 
     #[test]

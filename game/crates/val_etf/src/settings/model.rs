@@ -415,6 +415,8 @@ pub struct Ranges {
     pub safe_area: Range,
     pub screen_shake: Range,
     pub radial_hold_s: Range,
+    /// Gameplay ▸ RADIAL POINTER, px (drawn disabled at the data's dead zone until it is a setting).
+    pub radial_dead_zone: Range,
     pub host_port: Range,
 }
 
@@ -484,10 +486,29 @@ pub struct ShadowLevels {
     pub cascades: [usize; 3],
 }
 
+/// How the crosshair (its look is set on MOUSE & AIM) follows the gun's spread.
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
+pub struct CrosshairTuning {
+    /// Degrees of a gun's resting hip spread the plain small cross stands for. A gun whose hip fire is wider
+    /// than this even at rest (the Warden) shows the rest as an open cross; movement and bloom open it further.
+    pub rest_allowance_deg: f32,
+}
+
+/// The ring menus' cursor (`radial.rs`).
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
+pub struct RadialTuning {
+    /// Cursor px (at 1080p) per inch of mouse travel: the same hand distance at any DPI.
+    pub px_per_inch: f32,
+    /// How far (px) the cursor must move off the centre before an option is picked (Gameplay ▸ RADIAL POINTER).
+    pub dead_zone_px: f32,
+}
+
 /// `game/assets/data/settings.ron`: defaults for a new player and every range and table the screen uses.
 #[derive(Resource, Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct SettingsData {
     pub ranges: Ranges,
+    pub crosshair: CrosshairTuning,
+    pub radial: RadialTuning,
     pub import_yaw: ImportYaw,
     pub optic_rows: Vec<OpticRow>,
     /// Brightness ±50 maps to ± this many EV.
