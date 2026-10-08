@@ -161,19 +161,35 @@ pub struct FarLook {
     pub alpha_per_mip: f32,
 }
 
-/// Darken and thicken the mips of an sRGB RGBA8 mip chain (`levels` levels from `w` x `h`) from `far.from_mip`
-/// on (see [`FarLook`]).
-pub fn far_mips(data: &mut [u8], mut w: usize, mut h: usize, levels: u32, far: &FarLook) {
+/// Darken and thicken the mips of an sRGB RGBA8 atlas mip chain (`levels` levels from `w` x `h`, `grid` x
+/// `grid` cells) from `far.from_mip` on (see [`FarLook`]), except in the cells `keep_cells` (the debris
+/// sprites, which share the atlas: a dust puff 10-20 m away is mip 3-4 and must stay pale, sparks bright).
+/// Levels where a cell is under a pixel are left alone (the cells blend there).
+pub fn far_mips(
+    data: &mut [u8],
+    mut w: usize,
+    mut h: usize,
+    levels: u32,
+    far: &FarLook,
+    grid: u32,
+    keep_cells: &[u32],
+) {
     let to_linear: Vec<f32> = (0..256).map(|v| Color::srgb_u8(v as u8, 0, 0).to_linear().red).collect();
     let to_byte = |c: f32| (Color::linear_rgb(c, 0.0, 0.0).to_srgba().red * 255.0).round().clamp(0.0, 255.0) as u8;
+    let grid = grid.max(1) as usize;
     let mut offset = 0;
     for level in 0..levels {
         let len = w * h * 4;
-        if level >= far.from_mip && offset + len <= data.len() {
+        if level >= far.from_mip && w >= grid && h >= grid && offset + len <= data.len() {
             let steps = (level - far.from_mip + 1) as f32;
             let keep = 1.0 - (far.darken_per_mip * steps).clamp(0.0, far.darken_max.clamp(0.0, 1.0));
             let gain = 1.0 + far.alpha_per_mip.max(0.0) * steps;
-            for px in data[offset..offset + len].as_chunks_mut::<4>().0 {
+            for (i, px) in data[offset..offset + len].as_chunks_mut::<4>().0.iter_mut().enumerate() {
+                let (x, y) = (i % w, i / w);
+                let cell = (y * grid / h) * grid + x * grid / w;
+                if keep_cells.contains(&(cell as u32)) {
+                    continue;
+                }
                 for c in &mut px[..3] {
                     *c = to_byte(to_linear[*c as usize] * keep);
                 }
@@ -619,6 +635,7 @@ fn finish_images(
     mut images: ResMut<Assets<Image>>,
     server: Res<AssetServer>,
     data: Res<ImpactData>,
+    atlas: Res<AtlasData>,
 ) {
     if let Some(i) = assets.pending.iter().position(|p| server.load_state(&p.0).is_failed()) {
         let (source, ..) = assets.pending.swap_remove(i);
@@ -642,7 +659,8 @@ fn finish_images(
         let (w, h) = (image.width() as usize, image.height() as usize);
         let (mut chain, levels) = crate::map_materials::mip_chain(base, w, h, srgb);
         if far {
-            far_mips(&mut chain, w, h, levels, &data.far);
+            let sprites = [atlas.sprites.puff, atlas.sprites.chip, atlas.sprites.spark];
+            far_mips(&mut chain, w, h, levels, &data.far, atlas.grid, &sprites);
         }
         image.data = Some(chain);
         image.texture_descriptor.mip_level_count = levels;
@@ -1422,7 +1440,7 @@ mod tests {
         let (mut chain, levels) = crate::map_materials::mip_chain([128u8, 128, 128, 100].repeat(16), 4, 4, true);
         assert_eq!(levels, 3);
         let before = chain.clone();
-        far_mips(&mut chain, 4, 4, levels, &far);
+        far_mips(&mut chain, 4, 4, levels, &far, 1, &[]);
         assert_eq!(chain[..64], before[..64], "level 0 untouched");
         let (l1, l2) = (&chain[64..68], &chain[80..84]);
         assert!(l1[0] < before[64] && l2[0] < l1[0], "darker step by step: {l1:?} {l2:?}");
@@ -1432,6 +1450,36 @@ mod tests {
         // the data file's values are sane
         let f = ImpactData::embedded().far;
         assert!(f.from_mip >= 2 && f.darken_max <= 0.8 && f.alpha_per_mip >= 0.0);
+    }
+
+    /// The debris sprites share the atlas with the marks: their cells keep every mip as it is (a puff at fighting
+    /// range must stay pale dust, a spark bright), while the marks' cells darken.
+    #[test]
+    fn far_mips_leave_the_sprite_cells_alone() {
+        let far = FarLook { from_mip: 1, darken_per_mip: 0.3, darken_max: 0.5, alpha_per_mip: 0.5 };
+        // a 3x3 grid of 4 px cells (12x12), the middle cell a sprite: levels 12, 6, 3 (a cell 1 px), 1
+        let (mut chain, levels) = crate::map_materials::mip_chain([200u8, 200, 200, 100].repeat(144), 12, 12, true);
+        assert_eq!(levels, 4);
+        let before = chain.clone();
+        far_mips(&mut chain, 12, 12, levels, &far, 3, &[4]);
+        // level 1 (6x6, cells 2 px) starts after level 0's 576 bytes
+        let at = |x: usize, y: usize| 576 + (y * 6 + x) * 4;
+        assert_eq!(chain[at(2, 2)..at(2, 2) + 4], before[at(2, 2)..at(2, 2) + 4], "the sprite cell is untouched");
+        assert_eq!(chain[at(3, 3)..at(3, 3) + 4], before[at(3, 3)..at(3, 3) + 4], "all of it");
+        assert!(
+            chain[at(0, 0)] < before[at(0, 0)] && chain[at(0, 0) + 3] > before[at(0, 0) + 3],
+            "a mark cell darkens"
+        );
+        // level 2 (3x3, a pixel per cell): the middle pixel is the sprite's
+        let at2 = 576 + 144 + 4 * 4;
+        assert_eq!(chain[at2..at2 + 4], before[at2..at2 + 4]);
+        assert!(chain[576 + 144] < before[576 + 144]);
+        // level 3 (1x1): cells under a pixel, left alone
+        assert_eq!(chain[chain.len() - 4..], before[before.len() - 4..]);
+        // the real atlas's sprite cells are on its grid
+        let atlas = AtlasData::embedded();
+        let s = &atlas.sprites;
+        assert!([s.puff, s.chip, s.spark].iter().all(|&c| c < atlas.grid * atlas.grid));
     }
 
     #[test]
