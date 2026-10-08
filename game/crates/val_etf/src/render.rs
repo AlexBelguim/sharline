@@ -185,7 +185,6 @@ pub(crate) fn look_color(look: Look) -> (Color, f32) {
 fn spawn_level(
     mut commands: Commands,
     level: Res<CurrentLevel>,
-    textures: Option<Res<crate::map_materials::ShowhomeMaterials>>,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
 ) {
@@ -205,7 +204,6 @@ fn spawn_level(
         ));
         return;
     }
-    let textures = textures.filter(|_| showhome);
     let mut mats: HashMap<Look, Handle<StandardMaterial>> = HashMap::new();
     let mut mat = |look: Look, materials: &mut Assets<StandardMaterial>| {
         mats.entry(look)
@@ -236,20 +234,11 @@ fn spawn_level(
             continue;
         }
         let center = (b.min + b.max) * 0.5;
-        let mut mesh = match b.ramp {
+        let mesh = match b.ramp {
             Some(dir) => wedge_mesh(b, dir),
             None => Mesh::from(Cuboid::from_size(b.max - b.min)),
         };
-        let material = match textures.as_ref().and_then(|t| t.get(b.look)) {
-            Some(textured) => {
-                world_uvs(&mut mesh, center);
-                if let Err(e) = mesh.generate_tangents() {
-                    warn!("no tangents for a {:?} brush: {e}", b.look);
-                }
-                textured
-            }
-            None => mat(b.look, &mut materials),
-        };
+        let material = mat(b.look, &mut materials);
         commands.spawn((
             Mesh3d(meshes.add(mesh)),
             MeshMaterial3d(material),
@@ -269,45 +258,16 @@ fn spawn_level(
             ChildOf(root),
         ));
     }
-    // Showhome's textures are balanced for the concept's warm late-afternoon sun (textures README).
-    let sun = if showhome { Color::linear_rgb(1.0, 0.84, 0.66) } else { Color::WHITE };
     commands.spawn((
-        DirectionalLight { color: sun, illuminance: 9000.0, shadow_maps_enabled: true, ..default() },
+        DirectionalLight { color: Color::WHITE, illuminance: 9000.0, shadow_maps_enabled: true, ..default() },
         Transform::from_xyz(30.0, 60.0, 20.0).looking_at(Vec3::new(36.0, 0.0, -24.0), Vec3::Y),
         DespawnOnExit(AppState::InGame),
     ));
 }
 
-/// Texture coordinates in metres from the world position (`offset` = the mesh's translation), projected per face:
-/// floors and tops use x / z, every other face runs U along its horizontal edge and V down its slope (so image
-/// top = up on walls, and toward the ridge on roofs). Materials scale them to their repeat.
-fn world_uvs(mesh: &mut Mesh, offset: Vec3) {
-    let (Some(positions), Some(normals)) = (
-        mesh.attribute(Mesh::ATTRIBUTE_POSITION).and_then(|a| a.as_float3()),
-        mesh.attribute(Mesh::ATTRIBUTE_NORMAL).and_then(|a| a.as_float3()),
-    ) else {
-        return;
-    };
-    let uvs: Vec<[f32; 2]> = positions
-        .iter()
-        .zip(normals)
-        .map(|(p, n)| {
-            let (p, n) = (Vec3::from(*p) + offset, Vec3::from(*n));
-            if n.y.abs() > 0.9 {
-                return [p.x, p.z];
-            }
-            let along = Vec3::Y.cross(n).normalize_or_zero();
-            let up = n.cross(along);
-            [p.dot(along), -p.dot(up)]
-        })
-        .collect();
-    mesh.insert_attribute(Mesh::ATTRIBUTE_UV_0, uvs);
-}
-
 /// A ramp's wedge, built rising along +X and rotated to its rise direction. Every face winds counter-clockwise
-/// seen from outside, with its normal pointing out: the textured Showhome materials cull back faces, so a wedge
-/// wound inside out (as it once was) drew its slope only from inside and the gable roofs and the stairs looked
-/// hollow from the street.
+/// seen from outside, with its normal pointing out, so a material that culls back faces draws its outside (a
+/// wedge wound inside out once drew its slope only from inside: the gable roofs and the stairs looked hollow).
 fn wedge_mesh(b: &Brush, rise: Vec3) -> Mesh {
     let size = b.max - b.min;
     let along_x = rise.x.abs() > 0.5;
@@ -966,31 +926,6 @@ pub fn inspect_pose(rig: &ViewmodelRig, left: bool) -> Transform {
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    /// World-space UVs in metres: walls run U along the face and V down from the top, floors use x / z.
-    #[test]
-    fn world_uvs_are_metres_in_world_space() {
-        let mut mesh = Mesh::from(Cuboid::from_size(Vec3::new(1.0, 3.0, 46.0)));
-        world_uvs(&mut mesh, Vec3::new(0.5, 1.5, -24.0));
-        let p = mesh.attribute(Mesh::ATTRIBUTE_POSITION).unwrap().as_float3().unwrap().to_vec();
-        let n = mesh.attribute(Mesh::ATTRIBUTE_NORMAL).unwrap().as_float3().unwrap().to_vec();
-        let Some(bevy::mesh::VertexAttributeValues::Float32x2(uv)) = mesh.attribute(Mesh::ATTRIBUTE_UV_0) else {
-            panic!("no uvs");
-        };
-        for i in 0..p.len() {
-            let world = Vec3::from(p[i]) + Vec3::new(0.5, 1.5, -24.0);
-            match n[i] {
-                [1.0, 0.0, 0.0] => assert_eq!(uv[i], [-world.z, -world.y]),
-                [0.0, 0.0, 1.0] => assert_eq!(uv[i], [world.x, -world.y]),
-                [0.0, 1.0, 0.0] => assert_eq!(uv[i], [world.x, world.z]),
-                _ => {}
-            }
-        }
-        // The long face spans its 46 m in U (not 0..1), so textures tile instead of stretching.
-        let east: Vec<f32> = (0..p.len()).filter(|&i| n[i] == [1.0, 0.0, 0.0]).map(|i| uv[i][0]).collect();
-        let span = east.iter().cloned().fold(f32::MIN, f32::max) - east.iter().cloned().fold(f32::MAX, f32::min);
-        assert!((span - 46.0).abs() < 1e-4, "{span}");
-    }
 
     /// Ramps (the Showhome gables and stairs) draw the brush the sim collides with, wound so back-face culling
     /// keeps the outside: every triangle faces away from the wedge, its stored normal agrees with its winding,

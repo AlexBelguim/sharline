@@ -1,61 +1,16 @@
-// Parallax depth on the Showhome surfaces (src/map_materials.rs). The depth, AO and normal maps are made by
-// assets/fx/depth/build_depth.py, which reproduces the texture library's own structure (joints, beads, slabs,
-// shingle butts) so the relief lands exactly on what the albedo paints. Depth maps carve INTO the face: the face
-// is the top of the relief, so silhouettes never disagree with it. The profiles are stylized (deeper than real,
-// V-shaped joints whose walls carry the albedo's dark paint, chamfered edges that catch the sun): real-world
-// depths (6-12 mm) moved the picture by less than a pixel.
+// Parallax depth on Showhome (src/map_materials.rs): the art kit's depth maps (src/showhome_kit.rs, heights from
+// the kit's v2 texture manifest).
 (
     // Per VIDEO quality PRESET. `layers`: steep-parallax steps at a grazing view (1 looking straight at the face);
-    // 0 turns parallax, its AO and its normal maps off (LOW: the surfaces look and cost exactly as without this
-    // work, and the depth / AO / relief-normal images are not even loaded until a higher preset asks for them).
-    // `relief_steps`: binary-search steps that refine the hit (relief mapping: sharp joints, no stair steps).
-    // Every enabled preset uses relief mapping so a preset change never compiles a new shader variant; only the
-    // step counts (uniforms) change. Every step is one depth-map sample per pixel on these surfaces.
+    // 0 turns parallax off (LOW: the surfaces look and cost as without it, and the kit's height images are not
+    // even loaded until a higher preset asks for them). `relief_steps`: binary-search steps that refine the hit
+    // (relief mapping: sharp joints, no stair steps). Every enabled preset uses relief mapping so a preset change
+    // never compiles a new shader variant; only the step counts (uniforms) change. Every step is one depth-map
+    // sample per pixel on these surfaces.
     quality: (
         low: (layers: 0, relief_steps: 0),
         medium: (layers: 8, relief_steps: 2),
         high: (layers: 12, relief_steps: 4),
         ultra: (layers: 20, relief_steps: 6),
     ),
-    // Albedo (map_materials.rs) -> its relief. `maps`: <maps>_depth.png (16-bit, white = deepest) and
-    // <maps>_orm.png (R = AO) in textures/showhome/. `depth_cm`: how deep white is. It must match what
-    // build_depth.py modelled (it prints it, see out/depth.json) because the normal map is made from the same
-    // heights: change the profile there, not here. 0 = no parallax (AO and the normal map still apply).
-    // Walls stay at 1.5 cm or less and floors / roofs about 2 cm: deeper swims at box edges and steps over the
-    // joints far away (Bevy samples the depth map at full resolution at every distance).
-    // `normal`: the normal map made from the same heights (replaces the library's while the relief is on).
-    // `method`: Some(Occlusion) keeps a surface on parallax occlusion mapping (one refinement sample) on every
-    // preset. `occlusion`: use the AO (default true; Bevy's AO darkens only indirect light, i.e. shade).
-    surfaces: {
-        // 0.6 m slabs: a 6 mm rolled edge (5 mm drop) and a V joint 2 cm deep inside the painted sand band.
-        "paving_slabs": (maps: "paving_slabs", depth_cm: 2.23, normal: Some("paving_slabs_relief_normal")),
-        // 4 cm round printed beads, 1.5 cm grooves.
-        "printed_concrete_layers": (
-            maps: "printed_concrete_layers",
-            depth_cm: 1.57,
-            normal: Some("printed_concrete_layers_relief_normal"),
-        ),
-        // Shingle courses rising 2 cm to their butt; the butt face is the painted shadow line; V side joints.
-        "roof_shingle_dark": (maps: "roof_shingle_dark", depth_cm: 2.46, normal: Some("roof_shingle_dark_relief_normal")),
-        // 1.5 cm V gaps (45 degree walls in the painted dark band) with a 6 mm chamfer, 1.2 x 2.4 m panels.
-        "fibercement_sage": (
-            maps: "fibercement_panel_joints",
-            depth_cm: 1.5,
-            normal: Some("fibercement_panel_joints_relief_normal"),
-        ),
-        "fibercement_clay": (
-            maps: "fibercement_panel_joints",
-            depth_cm: 1.5,
-            normal: Some("fibercement_panel_joints_relief_normal"),
-        ),
-        // Pebble domes low-passed to 5 mm (256 px map), plain occlusion parallax, a gentle normal map and an AO
-        // floor of 0.92: 10 mm relief mapping turned the drive into a dark 1-pixel speckle 4-10 m out.
-        "gravel": (maps: "gravel", depth_cm: 0.5, normal: Some("gravel_relief_normal"), method: Some(Occlusion)),
-        // Aggregate 2 mm proud: below a pixel of parallax at a 4 m repeat, so no depth (it would cost on the whole
-        // street for nothing); the normal map and AO from the same heights carry it.
-        "asphalt": (maps: "asphalt", depth_cm: 0.0, normal: Some("asphalt_relief_normal")),
-        // Blade tips 8 mm above the ground between them: normal map and AO only. 8 mm of parallax was invisible
-        // and 2.5 cm clumps swam (see the depth report); volume is the grass cards' job.
-        "grass_lawn": (maps: "grass_lawn", depth_cm: 0.0, normal: Some("grass_lawn_relief_normal")),
-    },
 )

@@ -573,7 +573,7 @@ fn apply_kit_depth(
         material.depth_map = q.on().then(|| depth.cloned()).flatten();
         material.parallax_depth_scale = if q.on() { target.spec.uv_depth() } else { 0.0 };
         material.max_parallax_layer_count = q.layers.max(1.0);
-        material.parallax_mapping_method = q.method(None);
+        material.parallax_mapping_method = q.method();
         target.shown = Some(q);
         info!(
             "Showhome kit depth {:?}: {} m / {} m, geometric detail={}, quality {} layers",
