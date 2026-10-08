@@ -956,10 +956,14 @@ mod tests {
         let mut sprint = still();
         sprint.sprinting = true;
         s.step(&d, &l, &input(0), &sprint);
-        for _ in 0..=secs_to_ticks(l.spec(&d).ads_s, 60) {
+        // Aiming in (ads_s) can be quicker than bringing the gun up from the sprint pose (sprint_to_fire_s):
+        // hold until both are done.
+        let spec = l.spec(&d);
+        for _ in 0..=secs_to_ticks(spec.ads_s.max(spec.sprint_to_fire_s * l.mods.sprint_to_fire), 60) {
             s.step(&d, &l, &input(Buttons::ADS), &sprint);
         }
         assert_eq!(s.ads, 1.0, "the gun comes up to the eye on the run");
+        assert!(!s.lowered(), "and it is up");
         s.step(&d, &l, &input(0), &sprint);
         assert!(s.ads < 1.0 && !s.lowered(), "aim let go: the gun comes down from the eye first");
         // a tap of mag check while sprinting runs to the end

@@ -1943,7 +1943,8 @@ mod tests {
 
     #[test]
     fn hits_kills_and_their_settings() {
-        let hit = |kind, zone, shield_broke| HitConfirm { victim: 1, zone, kind, shield_broke };
+        let hit =
+            |kind, zone, shield_broke| HitConfirm { victim: 1, zone, kind, shield_broke, seq: 0, point: Vec3::ZERO };
         assert_eq!(hit_cues(&hit(HitKind::Health, Zone::Torso, false), true, true), [cue::HIT_FLESH]);
         assert_eq!(hit_cues(&hit(HitKind::Health, Zone::Head, false), true, true), [cue::HIT_HEAD]);
         assert_eq!(hit_cues(&hit(HitKind::Health, Zone::Head, false), true, false), [cue::HIT_FLESH], "HEADSHOT off");
