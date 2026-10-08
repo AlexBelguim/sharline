@@ -42,7 +42,6 @@ impl Plugin for RenderPlugin {
             .init_resource::<hit_fx::ShardAssets>()
             .add_message::<hit_fx::HaloHit>()
             .add_systems(Startup, setup_menu_camera)
-            .add_systems(Startup, load_impact_assets)
             .add_systems(
                 OnEnter(AppState::InGame),
                 (spawn_level, spawn_view_camera, tracer_fx::spawn_tracer_mesh, hit_fx::spawn_marker_layer),
@@ -58,8 +57,6 @@ impl Plugin for RenderPlugin {
                     sync_viewmodel,
                     camera_fx::step_feel.before(update_camera),
                     update_camera,
-                    spawn_impacts,
-                    age_impacts,
                 )
                     .run_if(in_state(AppState::InGame)),
             )
@@ -950,85 +947,21 @@ pub fn inspect_pose(rig: &ViewmodelRig, left: bool) -> Transform {
     Transform { translation: Vec3::new(0.0, -0.03, -ahead) - rotation * middle, rotation, scale: rig.ads.scale }
 }
 
-/// A bullet mark on the level. It shrinks away at the end of its life.
-#[derive(Component)]
-struct Impact {
-    age_s: f32,
-}
-
-#[derive(Resource)]
-struct ImpactAssets {
-    mesh: Handle<Mesh>,
-    material: Handle<StandardMaterial>,
-}
-
-const IMPACT_LIFE_S: f32 = 30.0;
-const IMPACT_FADE_S: f32 = 1.0;
-const MAX_IMPACTS: usize = 96;
-const IMPACT_SIZE_M: f32 = 0.11;
-
-fn load_impact_assets(
-    mut commands: Commands,
-    server: Res<AssetServer>,
-    mut meshes: ResMut<Assets<Mesh>>,
-    mut materials: ResMut<Assets<StandardMaterial>>,
-) {
-    commands.insert_resource(ImpactAssets {
-        mesh: meshes.add(Rectangle::new(IMPACT_SIZE_M, IMPACT_SIZE_M)),
-        material: materials.add(StandardMaterial {
-            base_color_texture: Some(server.load("textures/fx/impact_decal.png")),
-            alpha_mode: AlphaMode::Blend,
-            perceptual_roughness: 0.95,
-            ..default()
-        }),
-    });
-}
-
-/// New impacts become decals flat on the surface, each turned at random; the oldest go past [`MAX_IMPACTS`].
-fn spawn_impacts(
-    mut commands: Commands,
-    mut feedback: ResMut<Feedback>,
-    assets: Res<ImpactAssets>,
-    existing: Query<(Entity, &Impact)>,
-) {
-    if feedback.impacts.is_empty() {
-        return;
-    }
-    let mut ages: Vec<(Entity, f32)> = existing.iter().map(|(e, i)| (e, i.age_s)).collect();
-    let new = feedback.impacts.len().min(MAX_IMPACTS);
-    if ages.len() + new > MAX_IMPACTS {
-        ages.sort_by(|a, b| b.1.total_cmp(&a.1));
-        for (e, _) in ages.iter().take(ages.len() + new - MAX_IMPACTS) {
-            commands.entity(*e).despawn();
-        }
-    }
-    let skip = feedback.impacts.len() - new;
-    for (point, normal) in feedback.impacts.drain(..).skip(skip) {
-        if normal == Vec3::ZERO {
+/// Each tracer is a short streak flying from the muzzle to the hit, bright at the head and fading at the tail.
+fn draw_tracers(feedback: Res<Feedback>, mut gizmos: Gizmos) {
+    for (from, to, t, own) in &feedback.tracers {
+        let len = from.distance(*to);
+        if len < 0.01 {
             continue;
         }
-        // A spin from the position, so marks differ but stay put.
-        let spin = (point.x * 12.9898 + point.y * 78.233 + point.z * 37.719).sin().fract() * TAU;
-        let rotation = Quat::from_rotation_arc(Vec3::Z, normal) * Quat::from_rotation_z(spin);
-        commands.spawn((
-            Impact { age_s: 0.0 },
-            Mesh3d(assets.mesh.clone()),
-            MeshMaterial3d(assets.material.clone()),
-            Transform::from_translation(point + normal * 0.004).with_rotation(rotation),
-            DespawnOnExit(AppState::InGame),
-        ));
-    }
-}
-
-fn age_impacts(mut commands: Commands, time: Res<Time>, mut impacts: Query<(Entity, &mut Impact, &mut Transform)>) {
-    for (e, mut impact, mut t) in &mut impacts {
-        impact.age_s += time.delta_secs();
-        let left = IMPACT_LIFE_S - impact.age_s;
-        if left <= 0.0 {
-            commands.entity(e).despawn();
-        } else if left < IMPACT_FADE_S {
-            t.scale = Vec3::splat(left / IMPACT_FADE_S);
+        let dir = (*to - *from) / len;
+        let head = (t * TRACER_SPEED).min(len);
+        let tail = (head - TRACER_LEN).max(0.0);
+        if head <= tail {
+            continue;
         }
+        let c = if *own { Color::srgb(1.0, 0.92, 0.6) } else { Color::srgb(1.0, 0.75, 0.45) };
+        gizmos.line_gradient(*from + dir * tail, *from + dir * head, c.with_alpha(0.0), c);
     }
 }
 

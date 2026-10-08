@@ -1,0 +1,99 @@
+// Bullet holes and impact debris (val_etf/src/impacts.rs). Metres, seconds, sRGB colours.
+// The art is the atlas in textures/fx/impacts/ (built by assets/fx/impacts/_src/build_atlas.py, 4 variants per
+// kind); its cells are listed in textures/fx/impacts/impacts_atlas.ron.
+(
+    // How long a mark stays, and how long it takes to fade out at the end.
+    life_s: 30.0,
+    fade_s: 1.0,
+    // Per PARTICLES setting (LOW, HIGH): most marks kept at once (the oldest go first); parallax layers (0 = flat
+    // marks, no depth) and relief refinement steps (0 = plain parallax occlusion: cheaper, but a deep bore shows
+    // banding seen head-on); whether shots throw debris (dust puffs, chips, sparks on metal).
+    max_marks: (64, 128),
+    parallax_layers: (8.0, 16.0),
+    relief_steps: (0, 5),
+    debris_on: (false, true),
+    // Lifted off the surface against z-fighting.
+    lift_m: 0.003,
+    // Every mark is its kind's size times 1 +/- this (random).
+    size_jitter: 0.12,
+    // Wood marks run along the grain (up on walls, along the boards on floors), turned by at most this.
+    grain_jitter_deg: 8.0,
+    // Per surface kind: the mark's size, how it turns (Free = any angle, Grain = along the wood grain), and its
+    // debris: dust and chip colours, how many dust puffs, chips and sparks one shot throws.
+    kinds: {
+        Plaster: (size_m: 0.18, spin: Free, dust: (238, 230, 214), chip: (204, 192, 170), puffs: 4, chips: 4, sparks: 0),
+        Cladding: (size_m: 0.16, spin: Free, dust: (196, 194, 188), chip: (176, 172, 163), puffs: 3, chips: 4, sparks: 0),
+        Wood: (size_m: 0.16, spin: Grain, dust: (206, 178, 136), chip: (214, 180, 132), puffs: 2, chips: 5, sparks: 0),
+        Metal: (size_m: 0.12, spin: Free, dust: (150, 150, 152), chip: (120, 120, 124), puffs: 1, chips: 0, sparks: 9),
+        Glass: (size_m: 0.18, spin: Free, dust: (226, 234, 238), chip: (226, 234, 238), puffs: 1, chips: 5, sparks: 0),
+        Pavement: (size_m: 0.16, spin: Free, dust: (176, 170, 164), chip: (158, 152, 148), puffs: 3, chips: 4, sparks: 1),
+        Soil: (size_m: 0.26, spin: Free, dust: (120, 98, 76), chip: (88, 68, 52), puffs: 4, chips: 6, sparks: 0),
+    },
+    // What each look of the level is made of. A look not listed takes no marks (hedges, water, clips; players
+    // never do).
+    looks: {
+        Wall: Plaster,
+        Trim: Plaster,
+        Concrete: Plaster,
+        CladSage: Cladding,
+        CladClay: Cladding,
+        Roof: Cladding,
+        Fence: Wood,
+        Floor: Wood,
+        Prop: Wood,
+        Metal: Metal,
+        Vehicle: Metal,
+        Accent: Metal,
+        Target: Metal,
+        Glass: Glass,
+        Asphalt: Pavement,
+        Paving: Pavement,
+        TeamA: Pavement,
+        TeamB: Pavement,
+        Gravel: Soil,
+        Ground: Soil,
+    },
+    // The surface colour on Showhome, for the paint layer (the surface bent or lifted round a hole): the texture
+    // library's palette. Other maps use each look's flat colour.
+    tints: {
+        Wall: (214, 200, 176),
+        Trim: (221, 211, 191),
+        Concrete: (178, 165, 158),
+        CladSage: (145, 153, 114),
+        CladClay: (207, 134, 96),
+        Roof: (86, 79, 80),
+        Fence: (226, 219, 205),
+        Floor: (83, 72, 66),
+        Vehicle: (231, 223, 218),
+        Asphalt: (112, 105, 106),
+        Paving: (175, 162, 154),
+        Gravel: (173, 153, 137),
+        Ground: (126, 140, 58),
+    },
+    // From afar (when a mark is about 24 px on screen, mip 3 of the atlas, and smaller) each mip of a mark is
+    // darker by darken_per_mip (up to darken_max, linear) and more opaque by alpha_per_mip, so holes stay readable
+    // dark dots at range instead of melting into the wall. Close up nothing changes.
+    far: (from_mip: 3, darken_per_mip: 0.2, darken_max: 0.6, alpha_per_mip: 0.3),
+    debris: (
+        // At most this many pieces fly at once (the oldest go first).
+        max: 256,
+        gravity: 9.8,
+        // Dust puffs drift off the surface, grow and fade; this much of their speed is left after one second.
+        puff_life_s: (0.35, 0.65),
+        puff_speed: (0.4, 1.1),
+        puff_size_m: (0.04, 0.24),
+        puff_drag: 0.08,
+        puff_alpha: 0.8,
+        // Chips fly out and fall.
+        chip_life_s: (0.35, 0.7),
+        chip_speed: (1.5, 3.5),
+        chip_size_m: (0.01, 0.022),
+        // Sparks: hot streaks, as long as they travel in `spark_streak_s`.
+        spark_life_s: (0.06, 0.16),
+        spark_speed: (3.0, 7.5),
+        spark_streak_s: 0.025,
+        spark_width_m: 0.014,
+        // Linear HDR colour (bloom picks it up).
+        spark_color: (6.0, 2.4, 0.6),
+    ),
+)
