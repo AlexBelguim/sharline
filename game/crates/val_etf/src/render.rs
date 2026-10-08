@@ -824,7 +824,8 @@ fn update_camera(
     let inspect = cli.demo_ui.as_deref().and_then(inspect_side);
     for (mut t, mut v) in &mut viewmodel {
         *t = rig.pose(ads);
-        if mv.0.sprinting {
+        // Down while a sprint (an item, a mantle) lowers the gun and while it comes back up; aiming takes over.
+        if weapon.0.lowered() && ads == 0.0 {
             t.translation += Vec3::new(0.05, -0.06, 0.04);
             t.rotation = Quat::from_rotation_y(0.5) * t.rotation;
         }

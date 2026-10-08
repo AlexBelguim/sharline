@@ -80,7 +80,7 @@ pub struct LocalControl {
     pub reload_radial: Option<Radial>,
     /// A magazine picked on the radial (1..=6), sent with the next tick's input.
     pub reload_pick: u8,
-    /// The heal ring, while open (H).
+    /// The heal ring, while open (the Heal key, B by default).
     pub heal: Option<HealMenu>,
     /// An item picked on the heal ring (kit slot 1..=8, region 0..=4), sent with the next tick's input.
     pub item_pick: (u8, u8),
@@ -253,32 +253,29 @@ pub struct HoldKeys {
     pub ads: (bool, bool),
     pub walk: bool,
     pub forward: bool,
-    /// Fire or mag check held: the gun is wanted, so sprint gives way.
-    pub gun: bool,
+    /// An item is in hand, or picked on the heal ring and about to be: sprinting would cancel it, so
+    /// auto-sprint waits (the Sprint key still sprints, and cancels the item on purpose).
+    pub item: bool,
 }
 
 /// Sprint, crouch and aim for this frame, with sprint and crouch in `stance` mode (HUD tab) and aim in `aim`
 /// mode (Mouse & Aim tab). A toggled sprint ends when forward input stops or crouch is pressed (a slide);
-/// pressing sprint stands a toggled crouch up and lowers a toggled aim. Auto-sprint sprints on any forward
-/// input unless walk is held. Firing, aiming or a mag check ends a toggled sprint and holds off a held or
-/// automatic one while they last: a sprinting player's gun is lowered, so it could never come up otherwise.
+/// pressing sprint stands a toggled crouch up. Auto-sprint (the default) sprints on any forward input unless
+/// walk is held or an item is in hand; the sim keeps the angle, stance and leg rules.
+///
+/// Firing, aiming and mag checks never end a sprint (user direction 2026-10-08): the sim brings the gun up from
+/// the sprint pose in the gun's `sprint_to_fire_s` while the player keeps their speed.
 pub fn hold_buttons(stance: HoldToggle, aim: HoldToggle, auto_sprint: bool, t: &mut Toggles, k: HoldKeys) -> [bool; 3] {
     if (t.forward && !k.forward) || k.crouch.1 {
         t.sprint = false;
     }
     if k.sprint.1 {
         t.crouch = false;
-        t.ads = false;
     }
     t.forward = k.forward;
     let ads = hold_or_toggle(aim, &mut t.ads, k.ads.0, k.ads.1);
-    if k.gun || ads {
-        t.sprint = false;
-    }
-    let sprint = (hold_or_toggle(stance, &mut t.sprint, k.sprint.0, k.sprint.1)
-        || (auto_sprint && k.forward && !k.walk))
-        && !k.gun
-        && !ads;
+    let sprint = hold_or_toggle(stance, &mut t.sprint, k.sprint.0, k.sprint.1)
+        || (auto_sprint && k.forward && !k.walk && !k.item);
     let crouch = hold_or_toggle(stance, &mut t.crouch, k.crouch.0, k.crouch.1);
     [sprint, crouch, ads]
 }
@@ -340,6 +337,7 @@ fn gather_input(
         return;
     }
     let me = me.iter().next();
+    let item_in_hand = me.is_some_and(|(_, it, ..)| it.0.using.is_some());
     // No ring menus while dead, and toggles come back off.
     if me.is_some_and(|(_, _, v, _)| v.is_some_and(|v| v.health.dead)) {
         control.heal = None;
@@ -384,7 +382,7 @@ fn gather_input(
         ads: (free && held(Action::Ads), free && pressed(Action::Ads)),
         walk: held(Action::Walk),
         forward: control.movement.y > 0.0,
-        gun: (free && held(Action::Fire)) || held(Action::MagCheck),
+        item: item_in_hand || control.item_pick.0 != 0,
     };
     let [sprint, crouch, ads] =
         hold_buttons(settings.hud.hold_toggle, m.ads_input, g.auto_sprint, &mut control.toggles, keys);
@@ -413,9 +411,15 @@ fn gather_input(
 }
 
 /// Buttons a demo run holds: `--demo-ui ads` aims down sights, for a player and a `--bot` alike (scripted ADS
-/// tests over the network). Held, not a one-tick pulse: a frame can run two ticks.
+/// tests over the network); `sprint` and `sprint-ads` hold sprint (and aim) for a `--bot` running forward (with
+/// `--yaw`, its first seconds). Held, not a one-tick pulse: a frame can run two ticks.
 fn demo_held(cli: &Cli) -> u16 {
-    if cli.demo_ui.as_deref() == Some("ads") { Buttons::ADS } else { 0 }
+    match cli.demo_ui.as_deref() {
+        Some("ads") => Buttons::ADS,
+        Some("sprint") => Buttons::SPRINT,
+        Some("sprint-ads") => Buttons::SPRINT | Buttons::ADS,
+        _ => 0,
+    }
 }
 
 /// Heal ring (the Heal key toggles it). Fire on an item: a whole-body item is used at once; a region item
@@ -877,14 +881,14 @@ mod tests {
         assert!(frame(&mut t, fwd)[0]);
         assert!(!frame(&mut t, HoldKeys::default())[0], "stopped: sprint ends");
         assert!(!frame(&mut t, fwd)[0], "and stays off when moving again");
-        // crouch (a slide) ends a toggled sprint; sprint stands a toggled crouch up and lowers a toggled aim
+        // crouch (a slide) ends a toggled sprint; sprint stands a toggled crouch up and keeps a toggled aim
         frame(&mut t, HoldKeys { sprint: (true, true), ..fwd });
         let [sprint, crouch, _] = frame(&mut t, HoldKeys { crouch: (true, true), ..fwd });
         assert!(!sprint && crouch);
         assert_eq!(frame(&mut t, fwd), [false, true, false], "crouch stays on");
         frame(&mut t, HoldKeys { ads: (true, true), ..fwd });
         assert_eq!(frame(&mut t, fwd), [false, true, true], "aim stays on");
-        assert_eq!(frame(&mut t, HoldKeys { sprint: (true, true), ..fwd }), [true, false, false]);
+        assert_eq!(frame(&mut t, HoldKeys { sprint: (true, true), ..fwd }), [true, false, true], "an aimed sprint");
         // HOLD follows the keys; auto-sprint runs on forward input unless walking
         let mut t = Toggles::default();
         let crouching = HoldKeys { crouch: (true, false), ..fwd };
@@ -893,34 +897,39 @@ mod tests {
         let walking = HoldKeys { walk: true, ..fwd };
         assert!(!hold_buttons(Hold, Hold, true, &mut t, walking)[0], "walk beats auto-sprint");
         assert!(!hold_buttons(Hold, Hold, true, &mut t, HoldKeys::default())[0], "standing still");
+        // with auto-sprint on, holding the Sprint key just sprints as well (nothing odd)
+        let both = HoldKeys { sprint: (true, true), ..fwd };
+        assert!(hold_buttons(Hold, Hold, true, &mut t, both)[0]);
     }
 
-    /// A sprinting player's gun is lowered, so firing or aiming must end the sprint, or the gun never comes up
-    /// (review finding: toggled sprint or auto-sprint plus fire or aim locked the gun down).
+    /// Aiming, firing and mag checks never end a sprint (user direction 2026-10-08): the sim brings the gun up
+    /// from the sprint pose instead. They used to end it, so that the lowered gun could come up at all.
     #[test]
-    fn firing_or_aiming_ends_the_sprint() {
+    fn aiming_firing_and_mag_checks_keep_the_sprint() {
         use HoldToggle::{Hold, Toggle};
         let fwd = HoldKeys { forward: true, ..default() };
         let mut t = Toggles::default();
         assert!(hold_buttons(Toggle, Hold, false, &mut t, HoldKeys { sprint: (true, true), ..fwd })[0]);
-        assert!(
-            !hold_buttons(Toggle, Hold, false, &mut t, HoldKeys { gun: true, ..fwd })[0],
-            "fire ends a toggled sprint"
-        );
-        assert!(!hold_buttons(Toggle, Hold, false, &mut t, fwd)[0], "and it stays ended");
+        let aim = HoldKeys { ads: (true, true), ..fwd };
+        assert_eq!(hold_buttons(Toggle, Hold, false, &mut t, aim), [true, false, true], "a toggled sprint goes on");
+        assert!(hold_buttons(Toggle, Hold, false, &mut t, fwd)[0], "and stays on");
         let mut t = Toggles::default();
-        assert_eq!(
-            hold_buttons(Hold, Hold, true, &mut t, HoldKeys { ads: (true, true), ..fwd }),
-            [false, false, true],
-            "aim beats auto-sprint"
-        );
-        assert!(!hold_buttons(Hold, Hold, true, &mut t, HoldKeys { gun: true, ..fwd })[0], "fire beats auto-sprint");
-        assert!(hold_buttons(Hold, Hold, true, &mut t, fwd)[0], "auto-sprint resumes after");
+        assert_eq!(hold_buttons(Hold, Hold, true, &mut t, aim), [true, false, true], "auto-sprint with aim");
         let mut t = Toggles::default();
-        assert!(
-            !hold_buttons(Hold, Hold, false, &mut t, HoldKeys { sprint: (true, false), gun: true, ..fwd })[0],
-            "held sprint gives way to fire"
-        );
+        let held = HoldKeys { sprint: (true, false), ads: (true, true), ..fwd };
+        assert_eq!(hold_buttons(Hold, Toggle, false, &mut t, held), [true, false, true], "held sprint, toggled aim");
+    }
+
+    /// Sprinting cancels an item, so auto-sprint waits while one is in hand or just picked; the Sprint key
+    /// still sprints (and cancels it on purpose).
+    #[test]
+    fn auto_sprint_waits_for_an_item() {
+        use HoldToggle::Hold;
+        let mut t = Toggles::default();
+        let healing = HoldKeys { forward: true, item: true, ..default() };
+        assert!(!hold_buttons(Hold, Hold, true, &mut t, healing)[0]);
+        assert!(hold_buttons(Hold, Hold, true, &mut t, HoldKeys { sprint: (true, true), ..healing })[0]);
+        assert!(hold_buttons(Hold, Hold, true, &mut t, HoldKeys { item: false, ..healing })[0], "done: sprinting");
     }
 
     #[test]
@@ -1062,6 +1071,52 @@ mod tests {
         assert_eq!(frame(&mut app, &[KeyCode::KeyC], Vec2::ZERO).0 & Buttons::CROUCH, 0);
     }
 
+    /// The defaults (user direction 2026-10-08): running forward sprints, Shift held walks, B heals and H switches
+    /// the fire mode; with auto-sprint off, the Sprint key (Alt) sprints. End to end: the keys, then the sim.
+    #[test]
+    fn auto_sprint_and_shift_to_walk_by_default() {
+        use vetf_sim::movement::{MoveModifiers, MoveState, step};
+        let mut app = input_app();
+        let data = vetf_sim::GameData::embedded();
+        let mut level = vetf_sim::level::Level::default();
+        level.world.push(vetf_sim::movement::collision::Brush::cuboid(
+            Vec3::new(-100.0, -1.0, -100.0),
+            Vec3::new(100.0, 0.0, 100.0),
+            vetf_sim::movement::collision::BrushKind::Solid,
+        ));
+        // hold these keys for a second; the sim's speed and sprint state at the end
+        let run = |app: &mut App, keys: &[KeyCode]| {
+            let mut st = MoveState::spawn(Vec3::ZERO, 1.6);
+            let mods = MoveModifiers::unarmored(&data);
+            let mut bits = 0;
+            for _ in 0..60 {
+                let (held, movement, ..) = frame(app, keys, Vec2::ZERO);
+                bits = held;
+                let input = vetf_sim::input::InputFrame { movement, buttons: Buttons(held), ..default() };
+                step(&data, &level, &mut st, &input, &mods, data.tick_dt());
+            }
+            (bits, st.sprinting, st.horizontal_speed())
+        };
+        let (bits, sprinting, speed) = run(&mut app, &[KeyCode::KeyW]);
+        assert!(bits & Buttons::SPRINT != 0 && sprinting, "W alone sprints");
+        assert!((speed - data.movement.speed.sprint).abs() < 1e-3, "{speed}");
+        let (bits, sprinting, speed) = run(&mut app, &[KeyCode::KeyW, KeyCode::ShiftLeft]);
+        assert!(bits & Buttons::WALK != 0 && bits & Buttons::SPRINT == 0 && !sprinting, "Shift walks");
+        assert!((speed - data.movement.speed.walk).abs() < 1e-3, "{speed}");
+        let (_, sprinting, _) = run(&mut app, &[KeyCode::KeyD]);
+        assert!(!sprinting, "strafing does not sprint");
+        let (bits, sprinting, _) = run(&mut app, &[KeyCode::KeyW, KeyCode::KeyT]);
+        assert!(bits & Buttons::MAG_CHECK != 0 && sprinting, "a mag check keeps the sprint");
+        app.world_mut().resource_mut::<Settings>().gameplay.auto_sprint = false;
+        let (_, sprinting, speed) = run(&mut app, &[KeyCode::KeyW]);
+        assert!(!sprinting && (speed - data.movement.speed.jog).abs() < 1e-3, "auto-sprint off: a jog");
+        let (_, sprinting, _) = run(&mut app, &[KeyCode::KeyW, KeyCode::AltLeft]);
+        assert!(sprinting, "and the Sprint key sprints");
+        // H switches the fire mode now, B does not (it opens the heal ring)
+        assert_ne!(frame(&mut app, &[KeyCode::KeyH], Vec2::ZERO).0 & Buttons::FIRE_MODE, 0);
+        assert_eq!(frame(&mut app, &[KeyCode::KeyB], Vec2::ZERO).0 & Buttons::FIRE_MODE, 0);
+    }
+
     /// `--demo-ui ads` holds aim down sights every frame, for a player and for a `--bot` (review finding: the
     /// bot path skips the keyboard input, so a bot run stopped aiming).
     #[test]
@@ -1087,5 +1142,8 @@ mod tests {
         assert!(fired, "and still fires its bursts");
         bot_controls(&Cli { bot: true, ..Cli::default() }, 1.0, 1.0, &mut c);
         assert_eq!(c.held & Buttons::ADS, 0, "a plain bot run does not aim");
+        let sprint_ads = Cli { bot: true, demo_ui: Some("sprint-ads".into()), ..Cli::default() };
+        bot_controls(&sprint_ads, 1.0, 1.0, &mut c);
+        assert_eq!(c.held & (Buttons::SPRINT | Buttons::ADS), Buttons::SPRINT | Buttons::ADS, "an aimed sprint");
     }
 }

@@ -1,10 +1,22 @@
-// Character movement. Mirrors the `movement` block of design/systems/data/movement.slice.json.
+// Character movement. Mirrors the `movement` block of design/systems/data/movement.slice.json, except where the
+// user changed the direction since (game/DESIGN_DELTAS.md): a slide starts from a normal run, not only a full
+// sprint (`slide.min_entry_speed`, plus the forward cone `slide.entry_max_angle_deg`), and the jetpack allows
+// aiming (`jetpack.ads_allowed`).
 // Units: metres, seconds, m/s, m/s^2, degrees. Speeds are for no / Light halo; heavier halos scale
 // them through `weight_effects` in armor.ron.
 (
     capsule: (radius: 0.32, height_stand: 1.8, height_crouch: 1.25, height_slide: 1.0),
     eye_height: (stand: 1.6, crouch: 1.1, slide: 0.85, transition_s: 0.15),
-    speed: (walk: 2.6, jog: 4.8, sprint: 7.0, crouch: 2.4, backpedal_mult: 0.85, sprint_max_angle_deg: 45.0),
+    // sprint_gun_hold_s: after its last shot the gun stays up this long before a sprint lowers it again.
+    speed: (
+        walk: 2.6,
+        jog: 4.8,
+        sprint: 7.0,
+        crouch: 2.4,
+        backpedal_mult: 0.85,
+        sprint_max_angle_deg: 45.0,
+        sprint_gun_hold_s: 0.6,
+    ),
     ground: (
         accel: 40.0,
         decel: 36.0,
@@ -27,7 +39,10 @@
     ),
     fall_damage: (free_drop_m: 7.0, legs_hp_per_m: 12.0),
     slide: (
-        min_entry_speed: 5.5,
+        // Below jog (4.8) and backpedal (4.08 = jog x 0.85), well above walk (2.6) and crouch (2.4).
+        min_entry_speed: 4.0,
+        // Moving within this angle of the facing: run or sprint forward (diagonals included), not a strafe.
+        entry_max_angle_deg: 60.0,
         boost: 2.0,
         boost_cooldown_s: 2.0,
         friction: 4.5,
@@ -63,7 +78,7 @@
         // Design check values: the highest feet rise from a standing start (jump + full jet).
         max_rise_m: {Light: 5.65, Medium: 5.25, Heavy: 4.65},
         fire_spread_add_deg: 3.0,
-        ads_allowed: false,
+        ads_allowed: true,
     ),
     zipline: (
         attach_radius: 1.2,

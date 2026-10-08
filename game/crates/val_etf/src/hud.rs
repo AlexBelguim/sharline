@@ -818,7 +818,8 @@ fn hit_marker_shown(setting: HitMarkers, kind: HitKind) -> bool {
     }
 }
 
-/// The crosshair from MOUSE & AIM (colour, outline, lines, dot), opened by the gun's live spread.
+/// The crosshair from MOUSE & AIM (colour, outline, lines, dot), opened by the gun's live spread over its resting
+/// hip spread (so a gun at rest shows the plain small cross).
 #[allow(clippy::type_complexity)]
 fn update_crosshair(
     me: Query<(&PlayerWeapon, &PlayerLoadout, &PlayerMove, &Vitals), With<Controlled>>,
@@ -835,7 +836,7 @@ fn update_crosshair(
     let Some((w, lo, mv, v)) = me.iter().next() else { return };
     let spec = lo.0.weapon.spec(&data);
     let env = vetf_sim::player::weapon_env(&data, &mv.0, &v.wounds);
-    let spread = w.0.spread_deg(&data, spec, &lo.0.weapon, &env);
+    let spread = w.0.spread_over_rest_deg(&data, spec, &lo.0.weapon, &env);
     let vfov = match camera.iter().next() {
         Some(Projection::Perspective(p)) => p.fov,
         _ => FALLBACK_VFOV_DEG.to_radians(),

@@ -6,7 +6,7 @@ use crate::input::InputFrame;
 use crate::items::{ItemEvents, ItemState, KitSlot};
 use crate::level::Level;
 use crate::movement::{self, MoveEvents, MoveMode, MoveModifiers, MoveState, Stance};
-use crate::weapon::{ADS_AIMED, WeaponAction, WeaponEnv, WeaponEvents, WeaponLoadout, WeaponState};
+use crate::weapon::{WeaponAction, WeaponEnv, WeaponEvents, WeaponLoadout, WeaponState};
 use crate::zone::ZoneSet;
 use serde::{Deserialize, Serialize};
 
@@ -61,20 +61,11 @@ pub struct PlayerEvents {
     pub items: ItemEvents,
 }
 
-pub fn move_modifiers(
-    data: &GameData,
-    loadout: &Loadout,
-    weapon: &WeaponState,
-    items: &ItemState,
-    wounds: &Wounds,
-) -> MoveModifiers {
+/// What changes a player's speed: the gun they carry, an item in use, wounds and the halo's weight. Aiming and
+/// firing never do (user direction 2026-10-08).
+pub fn move_modifiers(data: &GameData, loadout: &Loadout, items: &ItemState, wounds: &Wounds) -> MoveModifiers {
     let spec = loadout.weapon.spec(data);
-    let mods = &loadout.weapon.mods;
-    let aimed = weapon.ads >= ADS_AIMED;
-    let mut speed = spec.move_mult_held * mods.move_mult;
-    if aimed {
-        speed *= spec.move_mult_ads * mods.ads_move;
-    }
+    let mut speed = spec.move_mult_held * loadout.weapon.mods.move_mult;
     if items.using.is_some() {
         speed *= data.items.use_move_mult;
     }
@@ -89,13 +80,7 @@ pub fn move_modifiers(
     if wounds.volt_slow_s > 0.0 && !phase {
         speed *= 1.0 - data.combat.volt_pulse.slow_frac;
     }
-    MoveModifiers {
-        weight: loadout.weight,
-        fx: data.armor.effects(loadout.weight),
-        speed_mult: speed,
-        legs_broken,
-        ads: weapon.ads > 0.0,
-    }
+    MoveModifiers { weight: loadout.weight, fx: data.armor.effects(loadout.weight), speed_mult: speed, legs_broken }
 }
 
 pub fn weapon_env(data: &GameData, ms: &MoveState, wounds: &Wounds) -> WeaponEnv {
@@ -124,7 +109,7 @@ pub fn step(
 ) -> PlayerEvents {
     let dt = data.tick_dt();
     let input = input.sanitized();
-    let mods = move_modifiers(data, loadout, ws, items, wounds);
+    let mods = move_modifiers(data, loadout, items, wounds);
     let movement = movement::step(data, level, ms, &input, &mods, dt);
     let mut env = weapon_env(data, ms, wounds);
     let lowered = env.sprinting || env.mode == MoveMode::Mantle;
@@ -147,33 +132,64 @@ mod tests {
     use crate::movement::collision::{Brush, BrushKind};
     use glam::{Vec2, Vec3};
 
-    #[test]
-    fn aiming_slows_movement_and_heavy_halo_too() {
-        let d = GameData::embedded();
+    fn flat() -> Level {
         let mut level = Level::default();
         level.world.push(Brush::cuboid(
             Vec3::splat(-100.0).with_y(-1.0),
             Vec3::splat(100.0).with_y(0.0),
             BrushKind::Solid,
         ));
+        level
+    }
+
+    /// Aiming and firing never slow you or end a sprint (user direction 2026-10-08): a run with the gun up is as
+    /// fast as one without, for every gun, and an aimed sprint fires once the gun is up.
+    #[test]
+    fn aiming_and_firing_never_slow_movement() {
+        let d = GameData::embedded();
+        let level = flat();
         let l = Loadout::default_for(&d, Mode::Tdm);
-        let mut ms = MoveState::spawn(Vec3::ZERO, 1.6);
-        let mut ws = WeaponState::new(&d, &l.weapon);
-        let mut items = ItemState::new(&l.kit);
-        let mut wounds = Wounds::default();
-        let run = InputFrame {
-            movement: Vec2::Y,
-            yaw: 0.0,
-            pitch: 0.0,
-            buttons: Buttons(Buttons::ADS),
-            ..Default::default()
-        };
-        for _ in 0..90 {
-            step(&d, &level, &l, &mut ms, &mut ws, &mut items, &mut wounds, &run);
+        let weight = d.armor.effects(l.weight).move_mult;
+        for gun in ["ar7_mako", "vk50_warden", "sk9_skink"] {
+            let weapon = WeaponLoadout::resolve(&d, gun, &[crate::data::AmmoChoice::STANDARD], &[]).unwrap();
+            let l = Loadout { weapon, ..l.clone() };
+            let held = l.weapon.spec(&d).move_mult_held * l.weapon.mods.move_mult * weight;
+            for (bits, speed) in [
+                (0, d.movement.speed.jog),
+                (Buttons::ADS, d.movement.speed.jog),
+                (Buttons::ADS | Buttons::FIRE, d.movement.speed.jog),
+                (Buttons::SPRINT, d.movement.speed.sprint),
+                (Buttons::SPRINT | Buttons::ADS, d.movement.speed.sprint),
+                (Buttons::SPRINT | Buttons::FIRE, d.movement.speed.sprint),
+                (Buttons::SPRINT | Buttons::ADS | Buttons::FIRE, d.movement.speed.sprint),
+            ] {
+                let mut ms = MoveState::spawn(Vec3::ZERO, 1.6);
+                let mut ws = WeaponState::new(&d, &l.weapon);
+                let mut items = ItemState::new(&l.kit);
+                let mut wounds = Wounds::default();
+                let mut shots = 0;
+                for t in 0..120 {
+                    // Fire is pressed every other tick, so the bolt gun fires too.
+                    let held = if t % 2 == 1 { bits & !Buttons::FIRE } else { bits };
+                    let run = InputFrame { movement: Vec2::Y, buttons: Buttons(held), ..Default::default() };
+                    let ev = step(&d, &level, &l, &mut ms, &mut ws, &mut items, &mut wounds, &run);
+                    shots += ev.weapon.shot.is_some() as u32;
+                }
+                let want = speed * held;
+                assert!(
+                    (ms.horizontal_speed() - want).abs() < 0.05,
+                    "{gun} {bits:#x}: {} vs {want}",
+                    ms.horizontal_speed()
+                );
+                assert_eq!(ms.sprinting, bits & Buttons::SPRINT != 0, "{gun} {bits:#x}");
+                if bits & Buttons::ADS != 0 {
+                    assert_eq!(ws.ads, 1.0, "{gun} {bits:#x}: aimed on the move");
+                }
+                if bits & Buttons::FIRE != 0 {
+                    assert!(shots > 0, "{gun} {bits:#x}: fires on the move");
+                }
+            }
         }
-        let mako = d.weapon("ar7_mako").unwrap();
-        let want = d.movement.speed.jog * mako.move_mult_ads * d.armor.effects(l.weight).move_mult;
-        assert!((ms.horizontal_speed() - want).abs() < 0.05, "{} vs {want}", ms.horizontal_speed());
     }
 
     #[test]

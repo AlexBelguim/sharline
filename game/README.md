@@ -89,17 +89,17 @@ folder).
 
 | Key | Action |
 |---|---|
-| WASD, mouse | Move, look |
-| Shift | Sprint |
-| Alt | Walk (silent) |
+| WASD, mouse | Move, look. Moving forward sprints (AUTO-SPRINT, on by default in SETTINGS > GAMEPLAY) |
+| Shift (hold) | Walk (silent). Scoped with the Warden, it also holds your breath |
+| Alt (hold) | Sprint, when AUTO-SPRINT is off |
 | Space | Jump. Press again in the air for the jetpack (hold); hold while moving into a ledge to mantle |
-| Ctrl / C | Crouch. While sprinting: slide |
+| Ctrl / C | Crouch. While running or sprinting forward: slide |
 | F | Grab zipline |
-| LMB | Fire |
-| RMB | Aim (ADS) |
-| B | Fire mode |
+| LMB | Fire. Works on the run: the gun comes up from the sprint and you keep your speed |
+| RMB | Aim (ADS). Never slows you, and aimed shots are accurate in every movement state (sprint, slide, air, jetpack, zipline) |
+| H | Fire mode |
 | R | Tap: reload the next magazine in slot order. Hold: magazine radial; release over a slot (or press 1-6) to load it. Magazines keep their slots |
-| H | Heal ring: click an item; a region item opens a second ring to pick the region. Right click steps back |
+| B | Heal ring: click an item; a region item opens a second ring to pick the region. Right click steps back |
 | T | Mag check. Gives an estimate only; there is no ammo counter anywhere (genre rule) |
 | Tab (hold) | Scoreboard: kills, deaths and ping per player |
 | F6 | Copy the host's invite to the system clipboard |
@@ -120,9 +120,9 @@ folder).
   a few seconds in, to test the lobby over the network.
 - `--demo-ui settings-gameplay|settings-mouse|settings-keybinds|settings-video|settings-audio|settings-hud` opens
   that Settings tab from the main menu. `--demo-ui esc|esc-stop|esc-restart` opens the ESC menu or one of its
-  confirms over a hosted match. `ads` holds aim down sights, `inspect` / `inspect-left` hold the gun across the
-  view with its right / left side to the camera (to check attachments), `hud-fx` shows the damage flash and
-  `overlay` keeps the performance overlay in a scripted run.
+  confirms over a hosted match. `ads` holds aim down sights (`sprint` / `sprint-ads` hold sprint, and aim, for a
+  `--bot`), `inspect` / `inspect-left` hold the gun across the view with its right / left side to the camera (to
+  check attachments), `hud-fx` shows the damage flash and `overlay` keeps the performance overlay in a scripted run.
 - `--port` sets HOST GAME's port (and so `--host`'s).
 - `VETF_ASSETS` points the game at another asset folder. Without it the game finds `game/assets` from wherever the
   exe was built (`target/debug`, `target/release`, `target/<triple>/release`) or an `assets` folder next to a

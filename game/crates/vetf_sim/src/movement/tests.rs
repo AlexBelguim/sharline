@@ -11,7 +11,7 @@ fn flat_level() -> Level {
 }
 
 fn mods(d: &GameData, wc: WeightClass) -> MoveModifiers {
-    MoveModifiers { weight: wc, fx: d.armor.effects(wc), speed_mult: 1.0, legs_broken: false, ads: false }
+    MoveModifiers { weight: wc, fx: d.armor.effects(wc), speed_mult: 1.0, legs_broken: false }
 }
 
 fn input(mv: Vec2, bits: u16) -> InputFrame {
@@ -72,16 +72,81 @@ fn heavy_halo_is_slower() {
 }
 
 #[test]
-fn no_sprint_sideways_or_aiming() {
+fn no_sprint_sideways_or_backwards() {
     let d = GameData::embedded();
     let level = flat_level();
-    let mut m = mods(&d, WeightClass::None);
+    let m = mods(&d, WeightClass::None);
     let mut st = spawn(&d, Vec3::ZERO);
     run(&d, &level, &mut st, input(Vec2::X, Buttons::SPRINT), &m, 30);
     assert!(!st.sprinting);
-    m.ads = true;
-    run(&d, &level, &mut st, input(Vec2::Y, Buttons::SPRINT), &m, 30);
+    run(&d, &level, &mut st, input(Vec2::NEG_Y, Buttons::SPRINT), &m, 30);
     assert!(!st.sprinting);
+    run(&d, &level, &mut st, input(Vec2::new(1.0, 1.0), Buttons::SPRINT), &m, 30);
+    assert!(st.sprinting, "a forward diagonal (45 deg) sprints");
+}
+
+/// The run a player is in when they press crouch: (input, buttons held besides crouch).
+fn slide_from(d: &GameData, mv: Vec2, bits: u16, wc: WeightClass) -> (bool, f32) {
+    let level = flat_level();
+    let m = mods(d, wc);
+    let mut st = spawn(d, Vec3::ZERO);
+    run(d, &level, &mut st, input(mv, bits), &m, 60);
+    let speed = st.horizontal_speed();
+    let ev = step(d, &level, &mut st, &input(mv, bits | Buttons::CROUCH), &m, DT);
+    assert_eq!(ev.slide_started, st.mode == MoveMode::Slide);
+    (ev.slide_started, speed)
+}
+
+/// The slide threshold sits below a normal run (user direction 2026-10-08): crouching while running or
+/// sprinting forward slides; walking, strafing or backpedalling just crouches.
+#[test]
+fn a_slide_starts_from_a_forward_run() {
+    let d = GameData::embedded();
+    let s = &d.movement.slide;
+    assert!(s.min_entry_speed < d.movement.speed.jog, "a jog is fast enough");
+    assert!(s.min_entry_speed > d.movement.speed.walk.max(d.movement.speed.crouch), "a walk is not");
+    let none = WeightClass::None;
+    let diag = Vec2::new(1.0, 1.0).normalize();
+    for (mv, bits, want, why) in [
+        (Vec2::Y, 0, true, "jog forward"),
+        (Vec2::Y, Buttons::SPRINT, true, "sprint forward"),
+        (diag, Buttons::SPRINT, true, "sprint on a forward diagonal"),
+        (diag, 0, true, "jog on a forward diagonal"),
+        (Vec2::Y, Buttons::WALK, false, "walk"),
+        (Vec2::X, 0, false, "strafe at jog speed"),
+        (Vec2::NEG_Y, 0, false, "backpedal at jog speed"),
+        (Vec2::ZERO, 0, false, "standing"),
+    ] {
+        let (slid, speed) = slide_from(&d, mv, bits, none);
+        assert_eq!(slid, want, "{why} at {speed} m/s");
+    }
+    // a Medium halo still slides from a jog
+    assert!(slide_from(&d, Vec2::Y, 0, WeightClass::Medium).0);
+    // releasing forward a moment before the crouch still slides on the momentum
+    let level = flat_level();
+    let m = mods(&d, none);
+    let mut st = spawn(&d, Vec3::ZERO);
+    run(&d, &level, &mut st, input(Vec2::Y, Buttons::SPRINT), &m, 60);
+    step(&d, &level, &mut st, &input(Vec2::ZERO, 0), &m, DT);
+    assert!(step(&d, &level, &mut st, &input(Vec2::ZERO, Buttons::CROUCH), &m, DT).slide_started);
+}
+
+#[test]
+fn landing_with_crouch_held_slides_only_forward() {
+    let d = GameData::embedded();
+    let level = flat_level();
+    let m = mods(&d, WeightClass::None);
+    for (mv, want) in [(Vec2::Y, true), (Vec2::NEG_Y, false)] {
+        let mut st = spawn(&d, Vec3::ZERO);
+        run(&d, &level, &mut st, input(mv, 0), &m, 60);
+        step(&d, &level, &mut st, &input(mv, Buttons::JUMP), &m, DT);
+        assert_eq!(st.mode, MoveMode::Air);
+        let mut slid = false;
+        for _ in 0..90 {
+            slid |= step(&d, &level, &mut st, &input(mv, Buttons::CROUCH), &m, DT).slide_started;
+        }
+        assert_eq!(slid, want, "{mv}");
+    }
 }
 
 #[test]
