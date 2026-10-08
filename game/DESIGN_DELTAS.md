@@ -400,3 +400,7 @@ option before T1.
 - **Look:** no arcs are drawn over the head (the gun range's `arm_none` also no longer draws four dark arcs). The
   HUD's shield strip is empty and its header reads NO HALO. The Loadout card reads NO HALO / FREE / NONE / no
   shield. The ESC card and player tag read "No halo".
+
+- **Impacts: no bullet marks on lawns.** Shots into the mown lawn (`M_GND_Grass`, listed in `no_mark` in
+  `impacts.ron`) throw their soil debris but leave no mark: the grass hid marks up close and they popped in
+  beyond its fade distance. The user: "no bullet marks on lawns is fine".

@@ -164,6 +164,9 @@ pub struct ImpactData {
     /// Showhome's art kit, by glTF material name: its kind (`None`: no mark) and average albedo (sRGB).
     #[serde(default)]
     pub kit: HashMap<String, (Option<SurfaceKind>, (u8, u8, u8))>,
+    /// Kit materials that throw their kind's debris but take no mark (the mown lawn, whose grass would hide it).
+    #[serde(default)]
+    pub no_mark: Vec<String>,
     pub tints: HashMap<Look, (u8, u8, u8)>,
     pub far: FarLook,
     pub debris: DebrisTuning,
@@ -459,6 +462,8 @@ pub struct Marks {
     shots: u64,
     /// The last variant per kind, so the same one never comes twice in a row.
     last: HashMap<SurfaceKind, u32>,
+    /// The last `add` hit a surface that takes no mark but throws debris (`no_mark`): its kind and normal.
+    bare: Option<(SurfaceKind, Vec3)>,
 }
 
 impl Marks {
@@ -485,13 +490,20 @@ impl Marks {
         // The art kit's surface at the mark's centre: what it is made of (its row in `kit`).
         let kit = kit.filter(|_| showhome);
         let at_centre = kit.and_then(|k| k.at(centre, face.normal));
-        let surface = kit.zip(at_centre).and_then(|(k, hit)| data.kit.get(k.material(hit.tri)));
+        let material = kit.zip(at_centre).map(|(k, hit)| k.material(hit.tri));
+        let surface = material.and_then(|m| data.kit.get(m));
+        self.bare = None;
         let kind = match (force, surface) {
             (Some(f), _) => f.kind,
             // the kit's material: `None` takes no mark (plants)
             (None, Some((kind, _))) => (*kind)?,
             (None, None) => data.kind(look)?,
         };
+        if force.is_none() && material.is_some_and(|m| data.no_mark.iter().any(|x| x == m)) {
+            // debris only (the lawn): see `take_bare`
+            self.bare = Some((kind, face.normal));
+            return None;
+        }
         let tuning = data.kinds.get(&kind)?;
         let cells = atlas.kinds.get(&kind).filter(|c| !c.is_empty())?;
         self.shots += 1;
@@ -551,6 +563,11 @@ impl Marks {
     }
 
     /// Age the marks; the expired go. True when the meshes must be rebuilt (a mark went or is fading).
+    /// After an `add` that returned no mark: the kind and normal of a surface that still throws debris.
+    pub fn take_bare(&mut self) -> Option<(SurfaceKind, Vec3)> {
+        self.bare.take()
+    }
+
     pub fn age(&mut self, dt: f32, life_s: f32, fade_s: f32) -> bool {
         let before = self.list.len();
         for m in &mut self.list {
@@ -810,11 +827,11 @@ fn spawn_marks(
         if normal == Vec3::ZERO {
             continue;
         }
-        let Some(mark) = marks.add(&level.world, &data, &atlas, showhome, Some(&kit), point, normal, max, None) else {
-            continue;
-        };
-        if data.debris_on[l] {
-            let (kind, n) = (mark.kind, mark.frame.n);
+        let hit = marks
+            .add(&level.world, &data, &atlas, showhome, Some(&kit), point, normal, max, None)
+            .map(|m| (m.kind, m.frame.n))
+            .or_else(|| marks.take_bare());
+        if let (Some((kind, n)), true) = (hit, data.debris_on[l]) {
             debris.throw(&data, kind, point, n);
         }
     }
@@ -1550,6 +1567,42 @@ mod tests {
         let m = marks.add(&w, &data, &atlas, true, Some(&kit), p, n, 10, None).unwrap();
         assert_eq!(m.kind, SurfaceKind::Soil, "an unknown kit material: the brush's look");
         assert!((lowest(m) - (0.004 + data.lift_m)).abs() < 1e-4);
+    }
+
+    /// Item 3: the mown lawn (`no_mark`) takes no mark but still throws its kind's debris; a hedge throws none.
+    #[test]
+    fn the_lawn_throws_debris_but_takes_no_mark() {
+        let mut w = CollisionWorld::default();
+        w.push(
+            Brush::cuboid(Vec3::new(-5.0, -0.5, -5.0), Vec3::new(5.0, 0.0, 5.0), BrushKind::Solid)
+                .with_look(Look::Ground),
+        );
+        let names = ["M_GND_Grass", "M_Hedge", "M_GND_Soil"];
+        let floor = kit_surface::test_floor;
+        let mut tris = Vec::new();
+        tris.extend(floor(Vec2::new(-5.0, -5.0), Vec2::new(-1.0, 5.0), 0.006, 0));
+        tris.extend(floor(Vec2::new(-1.0, -5.0), Vec2::new(1.0, 5.0), 0.02, 1));
+        tris.extend(floor(Vec2::new(1.0, -5.0), Vec2::new(5.0, 5.0), 0.006, 2));
+        let kit = KitSurfaces::ready(names.map(String::from).to_vec(), tris);
+        let (data, atlas) = (ImpactData::embedded(), AtlasData::embedded());
+        assert!(data.no_mark.iter().any(|m| m == crate::foliage::grass::LAWN_MATERIAL), "the grass's lawn is listed");
+        for m in &data.no_mark {
+            assert!(data.kit.get(m).is_some_and(|(k, _)| k.is_some()), "{m}: a kit row with a kind (its debris)");
+        }
+        let mut marks = Marks::default();
+        let (p, n) = shot_down(&w, -3.0, 0.0);
+        assert!(marks.add(&w, &data, &atlas, true, Some(&kit), p, n, 10, None).is_none(), "no mark on the lawn");
+        let (kind, normal) = marks.take_bare().expect("the lawn still throws debris");
+        assert_eq!(kind, SurfaceKind::Soil);
+        assert!((normal - Vec3::Y).length() < 1e-5);
+        assert!(marks.take_bare().is_none(), "taken once");
+        let (p, n) = shot_down(&w, 0.0, 0.0);
+        assert!(marks.add(&w, &data, &atlas, true, Some(&kit), p, n, 10, None).is_none());
+        assert!(marks.take_bare().is_none(), "the hedge throws nothing");
+        let (p, n) = shot_down(&w, 3.0, 0.0);
+        assert!(marks.add(&w, &data, &atlas, true, Some(&kit), p, n, 10, None).is_some(), "bare soil is marked");
+        assert!(marks.take_bare().is_none());
+        assert_eq!(marks.list.len(), 1);
     }
 
     /// A raised corner lifts the mark over it, but at most `CORNER_RISE_M` above the kit at the centre (a sill

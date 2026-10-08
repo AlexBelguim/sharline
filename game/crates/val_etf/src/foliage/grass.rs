@@ -43,7 +43,7 @@ use vetf_sim::rng::SplitMix;
 
 const SHADER: &str = "shaders/grass.wgsl";
 /// The kit's lawn material (ground.glb); `.001`-style suffixes are the same material.
-const LAWN_MATERIAL: &str = "M_GND_Grass";
+pub const LAWN_MATERIAL: &str = "M_GND_Grass";
 
 pub(super) fn plugin(app: &mut App) {
     app.add_plugins(MaterialPlugin::<GrassMaterial>::default())

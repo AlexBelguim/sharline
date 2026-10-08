@@ -186,6 +186,9 @@
         "M_Hedge": (None, (98, 112, 52)),
         "M_Vine": (None, (98, 112, 48)),
     },
+    // Kit materials that throw their kind's debris but take no mark: the mown lawn (foliage/grass.rs) stands over
+    // its surface and would hide a mark up close and show it from afar, so lawns take none.
+    no_mark: ["M_GND_Grass"],
     // The surface colour on Showhome where the art kit is not found, for the paint layer (the surface bent or
     // lifted round a hole): the texture library's palette. Other maps use each look's flat colour.
     tints: {
