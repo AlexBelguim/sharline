@@ -105,7 +105,8 @@ pub struct Cli {
     /// the host's own player. On the main menu: `menu-join` (JOIN GAME, code tab), `menu-join-ip` (direct
     /// IP tab), `menu-host` (HOST GAME). `first-run`, `first-run-invalid`, `first-run-valid`: the
     /// first-launch callsign prompt (`first_run.rs`). In a match: `ads` (held aim down sights), `inspect` /
-    /// `inspect-left` (the gun across the view, a side to the camera).
+    /// `inspect-left` (the gun across the view, a side to the camera), `impacts` / `impacts-sheet[:x,y,z]` /
+    /// `impacts-live` / `impacts-idle` (bullet marks, see `impacts.rs`).
     pub demo_ui: Option<String>,
     /// `--esc-at 4,5.5`: press Esc at these seconds after start-up (automated tests of the Esc routing).
     pub esc_at: Vec<f32>,
@@ -228,7 +229,11 @@ impl Cli {
                          \x20 READY then START MATCH in the lobby (tests of the lobby over the network).\n\
                          --demo-ui first-run | first-run-invalid | first-run-valid opens the first-launch callsign\n\
                          \x20 prompt (empty, too short, valid); without a saved profile it opens on its own.\n\
-                         --camera x,y,z,tx,ty,tz fixes the view camera (world coordinates) for map screenshots."
+                         --camera x,y,z,tx,ty,tz fixes the view camera (world coordinates) for map screenshots.\n\
+                         --demo-ui impacts | impacts-sheet[:x,y,z] | impacts-live | impacts-idle (in a match, best with\n\
+                         \x20 --camera): bullet marks once over a 9x5 grid of the view, every kind and variant on the face\n\
+                         \x20 under the view centre (or toward x,y,z), 12 shots a second with debris, or no shots; the\n\
+                         \x20 live and idle ones log marks, debris and the frame rate every 2 s."
                     );
                     std::process::exit(0);
                 }

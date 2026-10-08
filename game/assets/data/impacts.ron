@@ -21,10 +21,10 @@
     // Per surface kind: the mark's size, how it turns (Free = any angle, Grain = along the wood grain), and its
     // debris: dust and chip colours, how many dust puffs, chips and sparks one shot throws.
     kinds: {
-        Plaster: (size_m: 0.18, spin: Free, dust: (226, 216, 196), chip: (204, 192, 170), puffs: 4, chips: 4, sparks: 0),
+        Plaster: (size_m: 0.18, spin: Free, dust: (238, 230, 214), chip: (204, 192, 170), puffs: 4, chips: 4, sparks: 0),
         Cladding: (size_m: 0.16, spin: Free, dust: (196, 194, 188), chip: (176, 172, 163), puffs: 3, chips: 4, sparks: 0),
         Wood: (size_m: 0.16, spin: Grain, dust: (206, 178, 136), chip: (214, 180, 132), puffs: 2, chips: 5, sparks: 0),
-        Metal: (size_m: 0.12, spin: Free, dust: (150, 150, 152), chip: (120, 120, 124), puffs: 1, chips: 0, sparks: 7),
+        Metal: (size_m: 0.12, spin: Free, dust: (150, 150, 152), chip: (120, 120, 124), puffs: 1, chips: 0, sparks: 9),
         Glass: (size_m: 0.18, spin: Free, dust: (226, 234, 238), chip: (226, 234, 238), puffs: 1, chips: 5, sparks: 0),
         Pavement: (size_m: 0.16, spin: Free, dust: (176, 170, 164), chip: (158, 152, 148), puffs: 3, chips: 4, sparks: 1),
         Soil: (size_m: 0.26, spin: Free, dust: (120, 98, 76), chip: (88, 68, 52), puffs: 4, chips: 6, sparks: 0),
@@ -70,6 +70,10 @@
         Gravel: (173, 153, 137),
         Ground: (126, 140, 58),
     },
+    // From afar (when a mark is about 24 px on screen, mip 3 of the atlas, and smaller) each mip of a mark is
+    // darker by darken_per_mip (up to darken_max, linear) and more opaque by alpha_per_mip, so holes stay readable
+    // dark dots at range instead of melting into the wall. Close up nothing changes.
+    far: (from_mip: 3, darken_per_mip: 0.2, darken_max: 0.6, alpha_per_mip: 0.3),
     debris: (
         // At most this many pieces fly at once (the oldest go first).
         max: 256,
@@ -77,19 +81,19 @@
         // Dust puffs drift off the surface, grow and fade; this much of their speed is left after one second.
         puff_life_s: (0.35, 0.65),
         puff_speed: (0.4, 1.1),
-        puff_size_m: (0.03, 0.2),
+        puff_size_m: (0.04, 0.24),
         puff_drag: 0.08,
-        puff_alpha: 0.7,
+        puff_alpha: 0.8,
         // Chips fly out and fall.
         chip_life_s: (0.35, 0.7),
         chip_speed: (1.5, 3.5),
-        chip_size_m: (0.008, 0.018),
+        chip_size_m: (0.01, 0.022),
         // Sparks: hot streaks, as long as they travel in `spark_streak_s`.
         spark_life_s: (0.06, 0.16),
         spark_speed: (3.0, 7.5),
-        spark_streak_s: 0.02,
-        spark_width_m: 0.01,
+        spark_streak_s: 0.025,
+        spark_width_m: 0.014,
         // Linear HDR colour (bloom picks it up).
-        spark_color: (5.0, 2.6, 0.9),
+        spark_color: (6.0, 2.4, 0.6),
     ),
 )

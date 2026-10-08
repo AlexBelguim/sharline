@@ -147,7 +147,42 @@ pub struct ImpactData {
     pub kinds: HashMap<SurfaceKind, KindLook>,
     pub looks: HashMap<Look, SurfaceKind>,
     pub tints: HashMap<Look, (u8, u8, u8)>,
+    pub far: FarLook,
     pub debris: DebrisTuning,
+}
+
+/// How marks read from afar: from mip `from_mip` on, every smaller mip of the core albedo is darker and more
+/// opaque, so a hole stays a dark dot at range instead of melting into the wall. Close up nothing changes.
+#[derive(Debug, Clone, Deserialize)]
+pub struct FarLook {
+    pub from_mip: u32,
+    pub darken_per_mip: f32,
+    pub darken_max: f32,
+    pub alpha_per_mip: f32,
+}
+
+/// Darken and thicken the mips of an sRGB RGBA8 mip chain (`levels` levels from `w` x `h`) from `far.from_mip`
+/// on (see [`FarLook`]).
+pub fn far_mips(data: &mut [u8], mut w: usize, mut h: usize, levels: u32, far: &FarLook) {
+    let to_linear: Vec<f32> = (0..256).map(|v| Color::srgb_u8(v as u8, 0, 0).to_linear().red).collect();
+    let to_byte = |c: f32| (Color::linear_rgb(c, 0.0, 0.0).to_srgba().red * 255.0).round().clamp(0.0, 255.0) as u8;
+    let mut offset = 0;
+    for level in 0..levels {
+        let len = w * h * 4;
+        if level >= far.from_mip && offset + len <= data.len() {
+            let steps = (level - far.from_mip + 1) as f32;
+            let keep = 1.0 - (far.darken_per_mip * steps).clamp(0.0, far.darken_max.clamp(0.0, 1.0));
+            let gain = 1.0 + far.alpha_per_mip.max(0.0) * steps;
+            for px in data[offset..offset + len].as_chunks_mut::<4>().0 {
+                for c in &mut px[..3] {
+                    *c = to_byte(to_linear[*c as usize] * keep);
+                }
+                px[3] = (px[3] as f32 * gain).round().min(255.0) as u8;
+            }
+        }
+        offset += len;
+        (w, h) = ((w / 2).max(1), (h / 2).max(1));
+    }
 }
 
 const EMBEDDED_DATA: &str = include_str!("../../../assets/data/impacts.ron");
@@ -481,8 +516,8 @@ struct ImpactAssets {
     paint: (Handle<Mesh>, Handle<StandardMaterial>),
     dust: (Handle<Mesh>, Handle<StandardMaterial>),
     sparks: (Handle<Mesh>, Handle<StandardMaterial>),
-    /// PNGs waiting for their mip chain and sampler.
-    pending: Vec<(Handle<Image>, Handle<Image>, bool)>,
+    /// PNGs waiting for their mip chain and sampler: (source, finished, sRGB, far mips darkened).
+    pending: Vec<(Handle<Image>, Handle<Image>, bool, bool)>,
 }
 
 #[derive(Component, Clone, Copy, PartialEq, Eq)]
@@ -504,19 +539,19 @@ fn load_assets(
     mut materials: ResMut<Assets<StandardMaterial>>,
 ) {
     let mut pending = Vec::new();
-    let mut image = |name: &str, srgb: bool| {
+    let mut image = |name: &str, srgb: bool, far: bool| {
         let source: Handle<Image> = server
             .load_builder()
             .with_settings(move |s: &mut ImageLoaderSettings| s.is_srgb = srgb)
             .load(format!("{DIR}/{name}.png"));
         let done = images.reserve_handle();
-        pending.push((source, done.clone(), srgb));
+        pending.push((source, done.clone(), srgb, far));
         done
     };
-    let albedo = image("impacts_albedo", true);
-    let paint = image("impacts_paint", true);
-    let normal = image("impacts_normal", false);
-    let depth_mr = image("impacts_depth_mr", false);
+    let albedo = image("impacts_albedo", true, true);
+    let paint = image("impacts_paint", true, false);
+    let normal = image("impacts_normal", false, false);
+    let depth_mr = image("impacts_depth_mr", false, false);
     let mark = |base: Handle<Image>, bias: f32| StandardMaterial {
         base_color_texture: Some(base),
         normal_map_texture: Some(normal.clone()),
@@ -543,10 +578,12 @@ fn load_assets(
         depth_bias: 3.0,
         ..default()
     });
+    // Blended, not added: added to a white truck an orange spark would only saturate to white.
     let spark_mat = materials.add(StandardMaterial {
         base_color_texture: Some(albedo),
         unlit: true,
-        alpha_mode: AlphaMode::Add,
+        alpha_mode: AlphaMode::Blend,
+        depth_bias: 4.0,
         cull_mode: None,
         double_sided: true,
         fog_enabled: false,
@@ -575,16 +612,21 @@ fn load_assets(
     });
 }
 
-/// One loaded PNG per frame becomes its finished image: mip chain (`map_materials::mip_chain`), clamped
-/// anisotropic sampler (the cells must not wrap into each other).
-fn finish_images(mut assets: ResMut<ImpactAssets>, mut images: ResMut<Assets<Image>>, server: Res<AssetServer>) {
+/// One loaded PNG per frame becomes its finished image: mip chain (`map_materials::mip_chain`, the albedo's far
+/// mips darkened: [`FarLook`]), clamped anisotropic sampler (the cells must not wrap into each other).
+fn finish_images(
+    mut assets: ResMut<ImpactAssets>,
+    mut images: ResMut<Assets<Image>>,
+    server: Res<AssetServer>,
+    data: Res<ImpactData>,
+) {
     if let Some(i) = assets.pending.iter().position(|p| server.load_state(&p.0).is_failed()) {
         let (source, ..) = assets.pending.swap_remove(i);
         warn!("impact texture {:?} did not load; bullet marks will not draw", source.path());
         return;
     }
     let Some(i) = assets.pending.iter().position(|p| images.contains(&p.0)) else { return };
-    let (source, done, srgb) = assets.pending.swap_remove(i);
+    let (source, done, srgb, far) = assets.pending.swap_remove(i);
     let Some(mut image) = images.remove(&source) else { return };
     image.sampler = ImageSampler::Descriptor(ImageSamplerDescriptor {
         address_mode_u: ImageAddressMode::ClampToEdge,
@@ -597,9 +639,12 @@ fn finish_images(mut assets: ResMut<ImpactAssets>, mut images: ResMut<Assets<Ima
         && image.texture_descriptor.mip_level_count == 1
         && let Some(base) = image.data.take()
     {
-        let (data, levels) =
-            crate::map_materials::mip_chain(base, image.width() as usize, image.height() as usize, srgb);
-        image.data = Some(data);
+        let (w, h) = (image.width() as usize, image.height() as usize);
+        let (mut chain, levels) = crate::map_materials::mip_chain(base, w, h, srgb);
+        if far {
+            far_mips(&mut chain, w, h, levels, &data.far);
+        }
+        image.data = Some(chain);
         image.texture_descriptor.mip_level_count = levels;
     }
     if let Err(e) = images.insert(&done, image) {
@@ -678,7 +723,7 @@ fn spawn_marks(
     if feedback.impacts.is_empty() {
         return;
     }
-    let impacts: Vec<(Vec3, Vec3)> = feedback.impacts.drain(..).collect();
+    let impacts = std::mem::take(&mut feedback.impacts);
     let Some(level) = level else { return };
     let showhome = level.name.eq_ignore_ascii_case("showhome");
     let l = particles_level(&settings);
@@ -1367,6 +1412,26 @@ mod tests {
         let mesh = marks_mesh(marks.list.iter(), true, 30.0, 1.0).unwrap();
         assert_eq!(mesh.count_vertices(), 4);
         assert!(marks_mesh(std::iter::empty(), false, 30.0, 1.0).is_none());
+    }
+
+    /// Far mips of the albedo get darker and more opaque, step by step; the near ones stay as they are.
+    #[test]
+    fn far_mips_darken_and_thicken() {
+        let far = FarLook { from_mip: 1, darken_per_mip: 0.3, darken_max: 0.5, alpha_per_mip: 0.5 };
+        // 4x4 grey at half alpha: levels 4x4, 2x2, 1x1
+        let (mut chain, levels) = crate::map_materials::mip_chain([128u8, 128, 128, 100].repeat(16), 4, 4, true);
+        assert_eq!(levels, 3);
+        let before = chain.clone();
+        far_mips(&mut chain, 4, 4, levels, &far);
+        assert_eq!(chain[..64], before[..64], "level 0 untouched");
+        let (l1, l2) = (&chain[64..68], &chain[80..84]);
+        assert!(l1[0] < before[64] && l2[0] < l1[0], "darker step by step: {l1:?} {l2:?}");
+        assert_eq!((l1[3], l2[3]), (150, 200), "more opaque");
+        let lin = |b: u8| Color::srgb_u8(b, 0, 0).to_linear().red;
+        assert!((lin(l2[0]) / lin(before[80]) - 0.5).abs() < 0.02, "never darker than darken_max");
+        // the data file's values are sane
+        let f = ImpactData::embedded().far;
+        assert!(f.from_mip >= 2 && f.darken_max <= 0.8 && f.alpha_per_mip >= 0.0);
     }
 
     #[test]

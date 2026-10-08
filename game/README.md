@@ -134,6 +134,11 @@ folder).
 - `--demo-ui menu-join|menu-join-ip|menu-host` opens the main menu's JOIN GAME (code or direct IP tab) or HOST
   GAME flyout with its field focused, for screenshots. `--demo-ui loadout|loadout-ammo|loadout-attach` opens the
   Loadout screen (over the match with `--host`).
+- `--demo-ui impacts|impacts-sheet[:x,y,z]|impacts-live|impacts-idle` (in a match, best with `--camera`): bullet
+  marks for screenshots. `impacts` fires once through a 9x5 grid over the view (the real shot path), `impacts-sheet`
+  lays every surface kind (rows) in every variant (columns) on the face under the view centre (or toward x,y,z),
+  `impacts-live` fires 12 shots a second at random points over the view (debris included) and `impacts-idle` fires
+  none; those two log the marks, the debris and the frame rate every 2 s.
 - **Screenshot and demo runs** (`--screenshot` or `--demo-ui`) ignore the desktop's display scale: the window
   renders at scale factor 1, so `--width 1920 --height 1080` gives exactly a 1920x1080 image, also on a HiDPI
   screen (a normal run follows Windows scaling, so 1600x900 at 200 % is a 3200x1800 window). They never grab or

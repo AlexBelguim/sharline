@@ -456,12 +456,12 @@ def wood(rng):
     lift = np.zeros((S, S))
     fresh_edge = np.zeros((S, S))
     shadow = np.zeros((S, S))
-    for _ in range(int(rng.integers(8, 14))):
+    for _ in range(int(rng.integers(10, 16))):
         side = rng.choice([-1.0, 1.0])
         x0 = rng.uniform(-tx * 0.9, tx * 0.9)
         y0 = side * ty * np.sqrt(max(0.0, 1 - (x0 / tx) ** 2)) * rng.uniform(0.6, 0.95)
-        ln = rng.uniform(0.12, 0.34)
-        w = rng.uniform(0.02, 0.045)
+        ln = rng.uniform(0.15, 0.4)
+        w = rng.uniform(0.025, 0.05)
         lean = rng.normal(0, 0.06)
         y1 = y0 + side * ln
         v = np.clip((Y - y0) / (y1 - y0), 0, 1) * ((Y - y0) * side >= 0) * ((Y - y1) * side <= 0)
@@ -470,16 +470,16 @@ def wood(rng):
         d = X - cx
         k = inside((width * 0.5 - np.abs(d)) / PX) * (v > 0) * (v < 1)
         splinter = np.maximum(splinter, k)
-        lift = np.maximum(lift, k * 0.045 * (1 - v) * (0.6 + 0.4 * (1 - np.abs(d) / np.maximum(width * 0.5, 1e-4))))
+        lift = np.maximum(lift, k * 0.06 * (1 - v) * (0.6 + 0.4 * (1 - np.abs(d) / np.maximum(width * 0.5, 1e-4))))
         flip = rng.choice([-1.0, 1.0])
         fresh_edge = np.maximum(fresh_edge, k * (d * flip > width * 0.15))
-        sh = inside((width * 0.5 + 0.012 - np.abs(d)) / PX) * (v > 0) * (v < 1) * (1 - k) * (d * flip < 0)
+        sh = inside((width * 0.5 + 0.016 - np.abs(d)) / PX) * (v > 0) * (v < 1) * (1 - k) * (d * flip < 0)
         shadow = np.maximum(shadow, sh * (1 - v))
     h = np.where(splinter > 0, np.maximum(h, lift), h)
     m.paint_a = np.maximum(splinter * (1 - torn), 0.0)
-    m.paint_g = 1.0 - 0.2 * splinter * (1 - np.clip(lift / 0.045, 0, 1))
+    m.paint_g = 1.0 - 0.2 * splinter * (1 - np.clip(lift / 0.06, 0, 1))
     m.over(lin((222, 204, 170)), fresh_edge * 0.9 * (1 - torn))
-    m.over(lin((70, 58, 46)), shadow * 0.45 * (1 - torn) * (1 - splinter))
+    m.over(lin((70, 58, 46)), shadow * 0.6 * (1 - torn) * (1 - splinter))
     dust(rng, m, tx, rng.uniform(0.05, 0.1), 0.1, (206, 186, 150))
     m.h = h
     m.rough = np.where(m.core_a > 0.5, 0.85, 0.6)
@@ -654,9 +654,11 @@ def sprite(name, rng):
         shade = 0.85 + 0.15 * np.clip(X * 0.7 + Y * 0.7, -1, 1)
         m.over(np.ones(3) * shade[..., None], a)
     elif name == "spark":
-        a = np.exp(-(Y / 0.06) ** 2) * np.clip(1 - np.abs(X) ** 2, 0, 1)
-        core = np.exp(-(Y / 0.025) ** 2) * np.clip(1 - np.abs(X) ** 3, 0, 1)
-        m.over(np.ones(3), np.clip(a * 0.8 + core, 0, 1))
+        # a streak across the whole cell height (the quad is as wide as the spark), hot toward its head (+X)
+        along = smoothstep(-0.9, 0.55, X)
+        a = np.exp(-(Y / 0.45) ** 2) * along
+        core = np.exp(-(Y / 0.2) ** 2) * along
+        m.over(np.ones(3), np.clip(a * 0.7 + core, 0, 1))
     m.fade_out()
     return m
 
