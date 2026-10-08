@@ -221,6 +221,15 @@ fn fits(world: &CollisionWorld, m: &MovementSpec, pos: Vec3, stance: Stance) -> 
     !tr.start_solid
 }
 
+/// The tallest stance, up to `want`, that fits at `pos`: standing, then crouching, then the low slide stance.
+/// A slide that stops under a gap lower than a crouch (the jammed garage roller, the office shutters) stays low
+/// until there is room again, instead of rising into the lintel.
+fn settle_stance(world: &CollisionWorld, m: &MovementSpec, pos: Vec3, want: Stance) -> Stance {
+    let tallest_first = [Stance::Stand, Stance::Crouch];
+    let from = tallest_first.iter().position(|s| *s == want).unwrap_or(tallest_first.len());
+    tallest_first[from..].iter().copied().find(|s| fits(world, m, pos, *s)).unwrap_or(Stance::Slide)
+}
+
 /// Quake-style collide-and-slide. Returns the new feet position and velocity.
 fn slide_move(world: &CollisionWorld, pos: Vec3, vel: Vec3, half: Vec3, dt: f32) -> (Vec3, Vec3, bool) {
     let mut p = center(pos, half);
@@ -264,6 +273,11 @@ fn clip(v: Vec3, n: Vec3) -> Vec3 {
     if back < 0.0 { v - n * back * 1.001 } else { v }
 }
 
+/// Step-up lifts tried in turn: the full `step_height`, then halves of it. Under a low lintel (the garage roller,
+/// the office shutters) the full lift runs the head into the lintel and stops the slide dead, while a smaller
+/// one clears the low threshold step in the doorway and keeps going.
+const STEP_TRIES: usize = 4;
+
 /// Move with step-up for stairs and small ledges (step height from the data).
 fn step_slide_move(
     world: &CollisionWorld,
@@ -278,23 +292,32 @@ fn step_slide_move(
     if !blocked || vel.y > 0.1 {
         return (p1, v1);
     }
-    // Try again from `step_height` higher, then settle back down.
-    let step = m.ground.step_height;
+    // Try again from higher up, then settle back down. A lift whose move is not blocked again wins at once;
+    // otherwise the one that gets farthest, if it beats the plain move.
     let c0 = center(pos, half);
-    let up = world.trace_box(c0, c0 + Vec3::Y * step, half);
-    let raised = up.end - Vec3::Y * half.y;
-    let (p2, v2, _) = slide_move(world, raised, Vec3::new(vel.x, 0.0, vel.z), half, dt);
-    let c2 = center(p2, half);
-    let down = world.trace_box(c2, c2 - Vec3::Y * (step + SKIN * 2.0), half);
-    if down.hit() && !walkable(m, down.normal) {
-        return (p1, v1);
+    let progress = |p: Vec3| horizontal(p - pos).length_squared();
+    let mut best = (p1, v1);
+    let mut best_progress = progress(p1) + 1e-6;
+    let mut lift = m.ground.step_height;
+    for _ in 0..STEP_TRIES {
+        let up = world.trace_box(c0, c0 + Vec3::Y * lift, half);
+        let raised = up.end - Vec3::Y * half.y;
+        let (p2, v2, blocked2) = slide_move(world, raised, Vec3::new(vel.x, 0.0, vel.z), half, dt);
+        let c2 = center(p2, half);
+        let down = world.trace_box(c2, c2 - Vec3::Y * (lift + SKIN * 2.0), half);
+        if !(down.hit() && !walkable(m, down.normal)) {
+            let p2 = down.end - Vec3::Y * half.y;
+            if progress(p2) > best_progress {
+                best = (p2, Vec3::new(v2.x, v1.y, v2.z));
+                best_progress = progress(p2);
+                if !blocked2 {
+                    break;
+                }
+            }
+        }
+        lift *= 0.5;
     }
-    let p2 = down.end - Vec3::Y * half.y;
-    if horizontal(p2 - pos).length_squared() > horizontal(p1 - pos).length_squared() + 1e-6 {
-        (p2, Vec3::new(v2.x, v1.y, v2.z))
-    } else {
-        (p1, v1)
-    }
+    best
 }
 
 /// Accelerate the horizontal velocity toward `target` (ground model with counter-strafe braking).
@@ -429,10 +452,9 @@ fn step_ground(
         start_slide(m, st, mods, ev);
         return step_slide(data, world, st, b, wish, mods, dt, ev);
     }
-    if crouch {
-        st.stance = Stance::Crouch;
-    } else if st.stance != Stance::Stand && fits(world, m, st.pos, Stance::Stand) {
-        st.stance = Stance::Stand;
+    let want = if crouch { Stance::Crouch } else { Stance::Stand };
+    if st.stance != want {
+        st.stance = settle_stance(world, m, st.pos, want);
     }
 
     // Target speed. Aiming or firing never stops a sprint.
@@ -442,7 +464,8 @@ fn step_ground(
         && mv.y > 0.0
         && mv.x.atan2(mv.y).abs() <= m.speed.sprint_max_angle_deg.to_radians() + 1e-4;
     st.sprinting = sprint_ok;
-    let mut target_speed = if st.stance == Stance::Crouch {
+    // Crouched, or still low after a slide that stopped under a gap: crouch speed.
+    let mut target_speed = if st.stance != Stance::Stand {
         m.speed.crouch
     } else if sprint_ok {
         m.speed.sprint
@@ -536,7 +559,7 @@ fn step_slide(
     let ground = probe_ground(world, m, st.pos, Stance::Slide, m.ground.ground_snap + m.ground.step_height);
     let Some((gy, normal)) = ground else {
         enter_air(st);
-        st.stance = Stance::Crouch;
+        st.stance = settle_stance(world, m, st.pos, Stance::Crouch);
         return;
     };
     st.pos.y = gy;
@@ -591,11 +614,8 @@ fn step_slide(
     // End of the slide.
     if new_speed < m.slide.end_speed || !b.held(Buttons::CROUCH) || mods.legs_broken {
         st.mode = MoveMode::Ground;
-        st.stance = if !b.held(Buttons::CROUCH) && fits(world, m, st.pos, Stance::Stand) {
-            Stance::Stand
-        } else {
-            Stance::Crouch
-        };
+        let want = if b.held(Buttons::CROUCH) { Stance::Crouch } else { Stance::Stand };
+        st.stance = settle_stance(world, m, st.pos, want);
     }
 }
 
@@ -616,11 +636,10 @@ fn step_air(
     let world = &level.world;
     st.since_ground += dt;
     st.sprinting = false;
-    if st.stance == Stance::Slide {
-        st.stance = Stance::Crouch;
-    }
-    if st.stance == Stance::Crouch && !b.held(Buttons::CROUCH) && fits(world, m, st.pos, Stance::Stand) {
-        st.stance = Stance::Stand;
+    // Crouch does not lower a standing player in the air, but releasing it stands up when there is room.
+    let want = if b.held(Buttons::CROUCH) { Stance::Crouch } else { Stance::Stand };
+    if st.stance == Stance::Slide || (st.stance == Stance::Crouch && want == Stance::Stand) {
+        st.stance = settle_stance(world, m, st.pos, want);
     }
 
     // Coyote jump: walked off a ledge a moment ago.

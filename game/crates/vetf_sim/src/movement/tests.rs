@@ -348,3 +348,111 @@ fn broken_legs_block_sprint_and_jet() {
     run(&d, &level, &mut st, input(Vec2::Y, Buttons::SPRINT), &m, 30);
     assert!(!st.sprinting);
 }
+
+/// Flat floor with a lintel across the way north: 1.1 m of clearance under it, 0.25 m deep (z -3.25..-3.0), so a
+/// slide fits under it and a crouch does not.
+fn lintel_level() -> Level {
+    let mut level = flat_level();
+    level.world.push(Brush::cuboid(Vec3::new(-5.0, 1.1, -3.25), Vec3::new(5.0, 3.0, -3.0), BrushKind::Solid));
+    level
+}
+
+/// A slide stopped under the lintel, moving north at `speed`.
+fn sliding_under_lintel(d: &GameData, speed: f32) -> MoveState {
+    let mut st = spawn(d, Vec3::new(0.0, SKIN, -3.1));
+    st.mode = MoveMode::Slide;
+    st.stance = Stance::Slide;
+    st.eye = d.movement.eye_height.slide;
+    st.vel = Vec3::new(0.0, 0.0, -speed);
+    st.prev_buttons = Buttons(Buttons::CROUCH);
+    st
+}
+
+/// User report (round 3, item 7): a slide stopped midway under a low gap left the player stuck in the wall,
+/// rising up through it. The slide stance stays until there is room to crouch or stand.
+#[test]
+fn slide_stopped_under_a_low_gap_stays_low() {
+    let d = GameData::embedded();
+    let level = lintel_level();
+    let m = mods(&d, WeightClass::None);
+    assert!(d.movement.capsule.height_slide < 1.1 && d.movement.capsule.height_crouch > 1.1, "the test gap");
+
+    // Crouch released mid-gap: the slide ends, but there is no room to stand or crouch.
+    let mut st = sliding_under_lintel(&d, 1.0);
+    step(&d, &level, &mut st, &input(Vec2::ZERO, 0), &m, DT);
+    assert_eq!(st.mode, MoveMode::Ground);
+    assert_eq!(st.stance, Stance::Slide);
+    for (bits, what) in [(0, "released"), (Buttons::CROUCH, "crouch held"), (Buttons::JUMP, "jump")] {
+        for _ in 0..90 {
+            step(&d, &level, &mut st, &input(Vec2::ZERO, bits), &m, DT);
+            assert_eq!(st.stance, Stance::Slide, "{what}");
+            assert_eq!(st.mode, MoveMode::Ground, "{what}");
+            assert!((st.pos.y - SKIN).abs() < 1e-3, "{what}: rose to {}", st.pos.y);
+            assert_clear(&d, &level, &st);
+            assert!((-3.25 - 0.32..-3.0 + 0.32).contains(&st.pos.z), "{what}: left the gap: {}", st.pos);
+        }
+    }
+
+    // Still low, it moves at crouch speed, and stands up once clear of the lintel.
+    let mut stood = None;
+    for t in 0..120 {
+        step(&d, &level, &mut st, &input(Vec2::Y, 0), &m, DT);
+        assert!((st.pos.y - SKIN).abs() < 1e-3, "rose to {}", st.pos.y);
+        assert_clear(&d, &level, &st);
+        if st.stance != Stance::Stand {
+            assert!(st.horizontal_speed() <= d.movement.speed.crouch + 1e-3, "{}", st.horizontal_speed());
+        } else if stood.is_none() {
+            stood = Some(t);
+            // Standing needs the whole box clear of the lintel (its north face, minus the radius).
+            assert!(st.pos.z <= -3.25 - d.movement.capsule.radius + 0.01, "{}", st.pos.z);
+        }
+    }
+    assert!(stood.is_some(), "never stood up: {st:?}");
+}
+
+/// A slide that runs out of speed under a low gap with crouch held stays low too (not a crouch that does not fit).
+#[test]
+fn slide_ending_under_a_low_gap_with_crouch_held_stays_low() {
+    let d = GameData::embedded();
+    let level = lintel_level();
+    let m = mods(&d, WeightClass::None);
+    let mut st = sliding_under_lintel(&d, d.movement.slide.end_speed * 0.5);
+    run(&d, &level, &mut st, input(Vec2::ZERO, Buttons::CROUCH), &m, 120);
+    assert_eq!(st.mode, MoveMode::Ground);
+    assert_eq!(st.stance, Stance::Slide);
+    assert!((st.pos.y - SKIN).abs() < 1e-3, "rose to {}", st.pos.y);
+    // Backing out south: a crouch first (crouch is held), with the feet still on the floor.
+    run(&d, &level, &mut st, input(Vec2::NEG_Y, Buttons::CROUCH), &m, 60);
+    assert_eq!(st.stance, Stance::Crouch);
+    assert!(st.pos.z > -3.0 + d.movement.capsule.radius - 0.01, "{}", st.pos.z);
+    assert!((st.pos.y - SKIN).abs() < 1e-3);
+}
+
+/// The player's box for its current stance is not inside anything.
+fn assert_clear(d: &GameData, level: &Level, st: &MoveState) {
+    let half = half_extents(&d.movement, st.stance);
+    let c = center(st.pos, half) + Vec3::Y * SKIN;
+    assert!(!level.world.trace_box(c, c + Vec3::Y * 0.001, half).start_solid, "inside the level: {st:?}");
+}
+
+/// Sliding off a ledge under a low ceiling keeps the slide stance in the air until a crouch fits.
+#[test]
+fn slide_off_a_ledge_under_a_low_ceiling_stays_low() {
+    let d = GameData::embedded();
+    let mut level = Level { name: "test".into(), kill_y: -50.0, ..Default::default() };
+    // A floor that ends at z = -3, a lower floor 2 m down, and a 1.1 m ceiling that runs on past the edge.
+    level.world.push(Brush::cuboid(Vec3::new(-5.0, -1.0, -3.0), Vec3::new(5.0, 0.0, 5.0), BrushKind::Solid));
+    level.world.push(Brush::cuboid(Vec3::new(-5.0, -3.0, -20.0), Vec3::new(5.0, -2.0, 5.0), BrushKind::Solid));
+    level.world.push(Brush::cuboid(Vec3::new(-5.0, 1.1, -6.0), Vec3::new(5.0, 3.0, 0.0), BrushKind::Solid));
+    let m = mods(&d, WeightClass::None);
+    let mut st = sliding_under_lintel(&d, 6.0);
+    st.pos = Vec3::new(0.0, SKIN, -2.5);
+    let mut left_ground = false;
+    for _ in 0..90 {
+        step(&d, &level, &mut st, &input(Vec2::Y, Buttons::CROUCH), &m, DT);
+        assert_clear(&d, &level, &st);
+        left_ground |= st.mode == MoveMode::Air;
+    }
+    assert!(left_ground);
+    assert!((st.pos.y + 2.0).abs() < 0.01, "landed on the lower floor: {st:?}");
+}

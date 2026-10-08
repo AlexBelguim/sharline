@@ -726,4 +726,96 @@ mod tests {
             assert!((end.pos.y - UF).abs() < 0.01 && -end.pos.z < 22.0, "{x}: ended at {:?}", end.pos);
         }
     }
+
+    /// User report (round 3, item 7): stopping a slide midway under the jammed garage roller (1.1 m, lower than
+    /// a crouch) left the player stuck in the door and rising up through it. Slides into both rollers that stop
+    /// at every point along the way, with crouch released or held: the player never rises off the floor and is
+    /// never inside the door; the ones that stop under it stay low there, then crawl on into the garage and get up.
+    #[test]
+    fn slide_stopped_under_the_garage_roller_stays_low() {
+        use crate::input::{Buttons, InputFrame};
+        use crate::movement::{MoveModifiers, Stance, step};
+        let d = crate::GameData::embedded();
+        let mods = MoveModifiers::unarmored(&d);
+        let l = showhome();
+        let dt = 1.0 / 60.0;
+        let yaw = design_yaw(90.0);
+        let input = |movement: Vec2, buttons: u16| InputFrame {
+            movement,
+            yaw,
+            pitch: 0.0,
+            buttons: Buttons(buttons),
+            ..Default::default()
+        };
+        let cap = &d.movement.capsule;
+        let clear = |st: &MoveState| {
+            let h = match st.stance {
+                Stance::Stand => cap.height_stand,
+                Stance::Crouch => cap.height_crouch,
+                Stance::Slide => cap.height_slide,
+            };
+            let half = Vec3::new(cap.radius, h * 0.5, cap.radius);
+            let c = st.pos + Vec3::Y * (half.y + 0.01);
+            !l.world.trace_box(c, c + Vec3::Y * 0.001, half).start_solid
+        };
+        // The roller's lintel spans design y 15.85..16.15: a box this close to it is under it.
+        let under_door = |st: &MoveState| (15.85 - cap.radius..16.15 + cap.radius).contains(&-st.pos.z);
+        // (slide at design y, let go of crouch at design y): from a sprint, crouch released at points along the
+        // way; or from a run, crouch held from slides started closer and closer until they run out of speed.
+        let mut runs: Vec<(f32, f32)> = (0..60).map(|i| (13.0, 13.5 + i as f32 * 0.05)).collect();
+        runs.extend((0..30).map(|i| (12.0 + i as f32 * 0.1, f32::INFINITY)));
+        // Between the car (x 14.5) and the roller's east jamb (x 16), north of the bins (y 10): the lane in.
+        for x in [15.25, MAP_W - 15.25] {
+            let floor = surface_below(&l, design(x, 16.0, 0.5));
+            let mut stopped_under = [0, 0];
+            for &(slide_y, release_y) in &runs {
+                let held = release_y.is_infinite();
+                let at = format!("x {x}, slide at {slide_y}, release at {release_y}");
+                let mut st = MoveState::spawn(design(x, 10.6, floor), d.movement.jetpack.fuel_s);
+                let check = |st: &MoveState| {
+                    assert!(st.pos.y <= floor + 0.04 && st.pos.y >= floor - 0.01, "{at}: rose to {}", st.pos.y);
+                    assert!(clear(st), "{at}: inside the level: {st:?}");
+                };
+                let mut slid = false;
+                for _ in 0..300 {
+                    let y = -st.pos.z;
+                    let (mv, bits) = if y < slide_y && !slid {
+                        (Vec2::Y, if held { 0 } else { Buttons::SPRINT })
+                    } else if y < release_y && (st.mode == MoveMode::Slide || !slid) {
+                        (Vec2::Y, Buttons::CROUCH)
+                    } else {
+                        (Vec2::ZERO, if held { Buttons::CROUCH } else { 0 })
+                    };
+                    step(&d, &l, &mut st, &input(mv, bits), &mods, dt);
+                    slid |= st.mode == MoveMode::Slide;
+                    check(&st);
+                    if slid && st.mode == MoveMode::Ground && st.vel.length() < 1e-3 {
+                        break;
+                    }
+                }
+                assert!(slid, "{at}: never slid");
+                if !under_door(&st) {
+                    continue;
+                }
+                stopped_under[held as usize] += 1;
+                let hold = if held { Buttons::CROUCH } else { 0 };
+                assert_eq!(st.stance, Stance::Slide, "{at}: {st:?}");
+                // Idle under the door: no rising, nothing inside the wall.
+                for _ in 0..90 {
+                    step(&d, &l, &mut st, &input(Vec2::ZERO, hold), &mods, dt);
+                    check(&st);
+                    assert_eq!(st.stance, Stance::Slide, "{at}");
+                }
+                // Crawl on into the garage; once clear of the door, the player gets up.
+                for _ in 0..90 {
+                    step(&d, &l, &mut st, &input(Vec2::Y, hold), &mods, dt);
+                    check(&st);
+                }
+                let want = if held { Stance::Crouch } else { Stance::Stand };
+                assert_eq!(st.stance, want, "{at}: {st:?}");
+                assert!(-st.pos.z > 16.5, "{at}: did not get through: {st:?}");
+            }
+            assert!(stopped_under.iter().all(|n| *n > 0), "x {x}: no run stopped under the door: {stopped_under:?}");
+        }
+    }
 }

@@ -335,3 +335,18 @@ Skipped in the sync test by `recoil_and_bloom_round_2()`; pinned by the tests in
 - Presets saved before (`loadouts.ron`) load unchanged and open in these modes as their nearest picks (an armor
   tier, slot 1's ammo in six magazines, the gun's magazine type); a preset this build cannot read is replaced by
   the built-in one in its letter.
+
+## 14. Low gaps: a slide that stops under one stays low (2026-10-08)
+
+- The design has three stances (stand, crouch, slide) and a slide that ends drops to a crouch. Some gaps are
+  lower than a crouch (1.25 m): the jammed garage rollers and the office shutters are 1.1 m. A slide that stopped
+  under one put the player in a crouch that did not fit, and the controller pushed them up through the lintel.
+- Now every stance change picks the tallest stance, up to the wanted one, that fits: stand, then crouch, then
+  the slide's low stance (1.0 m). A slide that stops under a low gap leaves the player low on the floor there,
+  moving at crouch speed, until there is room to crouch or stand. No new numbers.
+- The step-up for small ledges tries its full `step_height` first, then halves of it. Under the roller's lintel
+  the full lift ran the head into the lintel and stopped the slide dead on the 2.8 cm doorway threshold; a
+  smaller lift clears the threshold and the slide carries on.
+- Pinned by `vetf_sim::movement` tests (a lintel, crouch released or held, a slide off a ledge under a low
+  ceiling) and `maps::showhome` (`slide_stopped_under_the_garage_roller_stays_low`: slides into both rollers that
+  stop at every point along the way).
