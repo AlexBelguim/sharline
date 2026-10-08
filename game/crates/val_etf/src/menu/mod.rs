@@ -1,5 +1,6 @@
 //! The main menu (mockups 04 and 04b, `design/ui/mockups/_src/pages/main_menu.html`): the agent backdrop, the
-//! SHARD/LINE wordmark, the left nav (PLAY with HOST GAME / JOIN GAME, GUN RANGE, LOADOUT, SETTINGS, QUIT),
+//! SHARD/LINE wordmark, the left nav (PLAY with HOST GAME / JOIN GAME, GUN RANGE, SETTINGS, QUIT; no LOADOUT for
+//! now, DIRECTION_LOG 17: players pick their loadout in the lobby and from the ESC menu),
 //! the PLAY flyout on the right of the nav (`host.rs`, `join.rs`), the player card, the agent tag, the key
 //! hints and the version / network line.
 //!
@@ -103,21 +104,13 @@ pub(crate) enum NavItem {
     Host,
     Join,
     GunRange,
-    Loadout,
     Settings,
     Quit,
 }
 
 impl NavItem {
-    pub const ORDER: [NavItem; 7] = [
-        NavItem::Play,
-        NavItem::Host,
-        NavItem::Join,
-        NavItem::GunRange,
-        NavItem::Loadout,
-        NavItem::Settings,
-        NavItem::Quit,
-    ];
+    pub const ORDER: [NavItem; 6] =
+        [NavItem::Play, NavItem::Host, NavItem::Join, NavItem::GunRange, NavItem::Settings, NavItem::Quit];
 
     /// The next (or previous) row, wrapping.
     pub fn step(self, delta: i32) -> NavItem {
@@ -295,9 +288,9 @@ enum HintMode {
 #[derive(Component)]
 struct NetLine(u16);
 
-/// Content drawn from the active loadout; rebuilt when it changes.
+/// Content drawn from the active loadout (in HOST GAME's mode); rebuilt when either changes.
 #[derive(Component)]
-struct LoadoutBound(Option<LoadoutChoice>, Bound);
+struct LoadoutBound(Option<(LoadoutChoice, vetf_net::MatchMode)>, Bound);
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 enum Bound {
@@ -520,7 +513,7 @@ fn nav(r: &mut ChildSpawnerCommands, fonts: &UiFonts) {
             });
             // The range is a listen server too: friends can join it (the mockup's OFFLINE is wrong here).
             n.spawn(top("Gun range", "Friends can join", NavItem::GunRange));
-            n.spawn(top("Loadout", "", NavItem::Loadout));
+            // No LOADOUT for now (DIRECTION_LOG 17): the lobby's LOADOUT and the ESC menu open it.
             n.spawn(top("Settings", "", NavItem::Settings));
             n.spawn(Node { height: px(18), ..default() });
             n.spawn(top("Quit", "", NavItem::Quit));
@@ -910,10 +903,6 @@ fn nav_actions(
                 state.focus = Focus::Nav(NavItem::GunRange);
                 requests.write(NetRequest::Host { map: "range".into(), lobby: false });
             }
-            MenuAction::Nav(NavItem::Loadout) => {
-                state.focus = Focus::Nav(NavItem::Loadout);
-                screens.push(Screen::Loadout);
-            }
             MenuAction::Nav(NavItem::Settings) => {
                 state.focus = Focus::Nav(NavItem::Settings);
                 screens.push(Screen::Settings(SettingsTab::Gameplay));
@@ -1059,9 +1048,11 @@ fn hints(
     }
 }
 
-/// Rebuild what shows the active loadout when it changes (the Loadout screen opens over the menu).
+/// Rebuild what shows the active loadout when it changes, as the mode HOST GAME is set to takes it (team
+/// deathmatch and free-for-all: one halo, one ammo type).
 fn refresh_bound(
     active: Res<ActiveLoadout>,
+    host: Res<HostSettings>,
     mut bound: Query<(Entity, &mut LoadoutBound)>,
     fonts: Res<UiFonts>,
     images: Res<UiImages>,
@@ -1069,11 +1060,12 @@ fn refresh_bound(
     mut commands: Commands,
 ) {
     for (e, mut b) in &mut bound {
-        if b.0.as_ref() == Some(&active.0) {
+        let shown = (active.0.clone(), host.mode);
+        if b.0.as_ref() == Some(&shown) {
             continue;
         }
-        b.0 = Some(active.0.clone());
-        let s = summary(&active.0, &data);
+        b.0 = Some(shown);
+        let s = summary(&active.0, &data, host.mode);
         let mut ec = commands.entity(e);
         ec.despawn_children();
         match b.1 {
@@ -1099,12 +1091,29 @@ fn refresh_bound(
             Bound::Lines => {
                 let line = copy::loadout_line(&active.0, &s, &data);
                 let slots = copy::mag_slots(&s);
+                let one_ammo = s.one_ammo().filter(|_| s.one_halo);
                 ec.with_children(|l| {
                     l.spawn((
                         fonts.role(TextRole::CardLine, line),
                         TextLayout::no_wrap(),
                         Node { margin: UiRect::top(px(2)), ..default() },
                     ));
+                    // One ammo type (team deathmatch, free-for-all): AMMO AP II x 4.
+                    if let Some((label, kind, n)) = one_ammo {
+                        l.spawn(Node {
+                            margin: UiRect::top(px(2)),
+                            height: px(15),
+                            align_items: AlignItems::Center,
+                            column_gap: px(8),
+                            ..default()
+                        })
+                        .with_children(|m| {
+                            m.spawn(fonts.micro("Ammo"));
+                            m.spawn(fonts.text(label, Face::Display, 700, 12.0, ammo_color(kind), 0.5 / 12.0));
+                            m.spawn(fonts.text(copy::mags_count(n), Face::Display, 600, 12.0, TEXT_LOW, 0.0));
+                        });
+                        return;
+                    }
                     // MAGS: the six slots in order, so the player sees where the good magazines sit.
                     l.spawn(Node {
                         margin: UiRect::top(px(2)),

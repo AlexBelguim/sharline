@@ -218,6 +218,15 @@ pub fn halo_name(halo: &HaloChoice) -> String {
     }
 }
 
+/// A halo where everyone wears the same one (team deathmatch, free-for-all): `T2 HALO`, `T1–T3 HALO`,
+/// `NO HALO`; the core is not worth naming.
+pub fn one_halo_name(halo: &HaloChoice) -> String {
+    match tier_label(halo) {
+        Some((t, _)) => format!("{t} HALO"),
+        None => "NO HALO".into(),
+    }
+}
+
 /// RESULT header: `T2 × 3 ZONES = 6 PTS`, `H2 · T3 · A1 · L0 = 6 PTS`, `NO HALO · 0 PTS`.
 pub fn result_header(halo: &HaloChoice) -> String {
     let score = halo.score();
@@ -429,6 +438,7 @@ mod tests {
         assert_eq!(tier_label(&t2), Some(("T2".into(), 2)));
         assert_eq!(result_header(&t2), "T2 × 3 ZONES = 6 PTS");
         assert_eq!(halo_name(&t2), "T2 MENDER");
+        assert_eq!(one_halo_name(&t2), "T2 HALO");
         let mixed = halo(Core::Bulwark, 2, 3, 1, 0);
         assert_eq!(tier_label(&mixed), Some(("T1–T3".into(), 3)));
         assert_eq!(result_header(&mixed), "H2 · T3 · A1 · L0 = 6 PTS");

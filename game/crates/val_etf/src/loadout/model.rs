@@ -1,14 +1,20 @@
 //! The loadout being edited on the Loadout screen, its rules and its derived numbers. Engine-free, so it
 //! is tested on its own: attachments per slot, the contiguous magazine list (1..=6, slot 1 in the gun,
 //! slot index = reload-wheel position), the custom halo, the gear budget and the weapon stats.
+//!
+//! Team deathmatch and free-for-all fix part of it ([`Draft::fixed`], `rules.ron` `loadout`): one halo core,
+//! and one ammo type in all of the mode's magazines. The draft is shaped to them when it opens, exactly as
+//! the host shapes what it receives.
 
 use std::collections::BTreeMap;
 use vetf_net::LoadoutChoice;
 use vetf_sim::GameData;
 use vetf_sim::Zone;
 use vetf_sim::ZoneTable;
-use vetf_sim::data::{AmmoChoice, AmmoKind, AttachmentCategory, AttachmentSpec, Core, WeaponSpec, Zoom};
-use vetf_sim::gear::{GearCost, HaloChoice, gear_cost};
+use vetf_sim::data::{
+    AmmoChoice, AmmoKind, AttachmentCategory, AttachmentSpec, Core, DeathmatchLoadout, WeaponSpec, Zoom,
+};
+use vetf_sim::gear::{GearCost, HaloChoice, gear_cost, kit_cost};
 use vetf_sim::weapon::MAX_MAGS;
 
 /// The edit in progress.
@@ -24,6 +30,9 @@ pub struct Draft {
     pub halo: HaloChoice,
     /// Each arc's last tier above 0 (a re-checked arc gets it back).
     pub last_tiers: ZoneTable<u8>,
+    /// What the mode fixes (team deathmatch, free-for-all): the halo core and the magazine count, with one
+    /// ammo type in every magazine. None in the gun range (any core, ammo per magazine).
+    pub fixed: Option<DeathmatchLoadout>,
 }
 
 /// Why CONFIRM is off.
@@ -42,8 +51,15 @@ pub enum Problem {
 }
 
 impl Draft {
-    /// Open a loadout for editing (unknown or misfit ids are cleaned up; `remembered` = other guns' sets).
-    pub fn from_choice(c: &LoadoutChoice, remembered: &BTreeMap<String, Vec<String>>, data: &GameData) -> Self {
+    /// Open a loadout for editing (unknown or misfit ids are cleaned up; `remembered` = other guns' sets),
+    /// shaped to what the mode fixes ([`LoadoutChoice::shaped`]).
+    pub fn from_choice(
+        c: &LoadoutChoice,
+        remembered: &BTreeMap<String, Vec<String>>,
+        data: &GameData,
+        fixed: Option<DeathmatchLoadout>,
+    ) -> Self {
+        let c = &c.shaped(fixed.as_ref());
         let weapon = if data.weapon(&c.weapon).is_some() {
             c.weapon.clone()
         } else {
@@ -66,7 +82,7 @@ impl Draft {
         }
         let halo = c.halo.capped(data.armor.loadout_tier_caps);
         let last_tiers = halo.tiers.map(|_, t| (*t).max(1));
-        Self { agent: c.agent.clone(), weapon, parts, mags, halo, last_tiers }
+        Self { agent: c.agent.clone(), weapon, parts, mags, halo, last_tiers, fixed }
     }
 
     /// The loadout to send to the host.
@@ -173,6 +189,20 @@ impl Draft {
         (self.mags.len() < MAX_MAGS).then_some(self.mags.len())
     }
 
+    /// The ammo type of a fixed loadout (every magazine's; slot 1's in the gun range).
+    pub fn ammo(&self) -> AmmoChoice {
+        self.mags.first().copied().unwrap_or(AmmoChoice::STANDARD)
+    }
+
+    /// Load every magazine with `ammo` (a fixed loadout's one ammo type). False when the gun cannot load it.
+    pub fn set_ammo(&mut self, ammo: AmmoChoice, data: &GameData) -> bool {
+        if !ammo_ok(data, self.spec(data), ammo) {
+            return false;
+        }
+        self.mags.iter_mut().for_each(|m| *m = ammo);
+        true
+    }
+
     /// Ammo rows of the picker for this gun: type x tier, players' ammo only, in data order.
     pub fn ammo_options(&self, data: &GameData) -> Vec<AmmoChoice> {
         let spec = self.spec(data);
@@ -231,8 +261,12 @@ impl Draft {
 
     // ------------------------------------------------------------------------------------------ budget
 
+    /// The gear cost: a fixed loadout pays for its one ammo type once, the gun range per magazine.
     pub fn gear(&self, data: &GameData) -> GearCost {
-        gear_cost(data, self.spec(data), &self.halo, &self.mags)
+        match self.fixed {
+            Some(_) => kit_cost(data, self.spec(data), &self.halo, self.ammo()),
+            None => gear_cost(data, self.spec(data), &self.halo, &self.mags),
+        }
     }
 
     /// What keeps CONFIRM off (empty = the build is valid). `budget` None = no limit.
@@ -392,10 +426,11 @@ pub fn parts_with<'a>(
 mod tests {
     use super::*;
 
+    /// The default loadout as the gun range edits it (ammo per magazine, any core).
     fn draft() -> (GameData, Draft) {
         let d = GameData::embedded();
         let c = crate::config::loadout_choice(&crate::loadout::tests::plain_cli(), &d);
-        let draft = Draft::from_choice(&c, &BTreeMap::new(), &d);
+        let draft = Draft::from_choice(&c, &BTreeMap::new(), &d, None);
         (d, draft)
     }
 
@@ -409,7 +444,7 @@ mod tests {
         assert_eq!(dr.mags.len(), 4);
         let c = dr.choice();
         assert_eq!(c.attachments, vec!["optic_holo", "mako_stock_standard", "mag_30"]);
-        assert_eq!(Draft::from_choice(&c, &dr.parts, &d), dr);
+        assert_eq!(Draft::from_choice(&c, &dr.parts, &d, None), dr);
         assert!(dr.problems(&d, Some(d.rules.tdm.gear_budget)).is_empty());
     }
 
@@ -517,6 +552,49 @@ mod tests {
         assert!(dr.problems(&d, None).is_empty(), "the gun range has no limit");
         dr.halo.tiers.legs = 4;
         assert!(dr.problems(&d, None).contains(&Problem::TierCap));
+    }
+
+    /// Team deathmatch and free-for-all: whatever the preset held (a Volt core, mixed ammo, six magazines),
+    /// the draft opens as the mode takes it, picks one ammo type for every magazine and pays for it once.
+    #[test]
+    fn a_deathmatch_draft_has_one_halo_and_one_ammo_type() {
+        let d = GameData::embedded();
+        let ap = |tier| AmmoChoice { kind: AmmoKind::ArmorPiercing, tier };
+        let old = LoadoutChoice {
+            weapon: "ar7_mako".into(),
+            mags: vec![AmmoChoice::STANDARD, ap(3), ap(3), ap(1), ap(2), AmmoChoice::STANDARD],
+            attachments: vec![],
+            halo: HaloChoice { core: Core::Volt, tiers: ZoneTable { head: 2, torso: 3, arms: 1, legs: 0 } },
+            agent: "solace".into(),
+        };
+        for mode in [vetf_net::MatchMode::Tdm, vetf_net::MatchMode::Ffa] {
+            let fixed = d.rules.fixed_loadout(mode).copied();
+            let mut dr = Draft::from_choice(&old, &BTreeMap::new(), &d, fixed);
+            let fixed = fixed.unwrap();
+            assert_eq!(dr.mags, vec![AmmoChoice::STANDARD; fixed.mags as usize], "slot 1's ammo");
+            assert_eq!(dr.halo.core, fixed.halo_core);
+            assert_eq!(dr.halo.tiers, old.halo.tiers, "the tiers stay");
+            assert!(dr.set_ammo(ap(2), &d));
+            assert!(dr.mags.iter().all(|m| *m == ap(2)) && dr.ammo() == ap(2));
+            assert!(!dr.set_ammo(AmmoChoice { kind: AmmoKind::Rip, tier: 1 }, &d), "a rifle cannot load RIP");
+            let ap2 = d.ammo_for(dr.spec(&d), ap(2)).unwrap().gear_cost;
+            assert_eq!(dr.gear(&d), GearCost { halo: 6, ammo: ap2 }, "AP II paid once");
+            assert!(dr.problems(&d, Some(d.rules.deathmatch(mode).gear_budget)).is_empty());
+            // the choice it confirms is what the host builds from it
+            assert_eq!(dr.choice(), dr.choice().for_mode(&d, mode));
+            // a body part to none, or to its cap
+            assert!(dr.set_tier(Zone::Torso, 0, d.armor.loadout_tier_caps));
+            assert!(!dr.set_tier(Zone::Legs, 3, d.armor.loadout_tier_caps), "legs cap at T2");
+            assert_eq!(dr.halo.tiers, ZoneTable { head: 2, torso: 0, arms: 1, legs: 0 });
+            // a gun that cannot load the ammo falls back to standard in every magazine
+            dr.set_ammo(ap(3), &d);
+            dr.switch_weapon("sk9_skink", &d);
+            assert!(dr.mags.iter().all(|m| *m == ap(3)), "the SMG loads AP too");
+            dr.set_ammo(AmmoChoice { kind: AmmoKind::Rip, tier: 2 }, &d);
+            let changed = dr.switch_weapon("ar7_mako", &d);
+            assert_eq!(changed.len(), fixed.mags as usize);
+            assert!(dr.mags.iter().all(|m| *m == AmmoChoice::STANDARD));
+        }
     }
 
     #[test]

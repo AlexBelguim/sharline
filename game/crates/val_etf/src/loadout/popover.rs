@@ -122,7 +122,8 @@ pub fn build(v: &View, p: &mut ChildSpawnerCommands) {
             PanelKind::Popover,
             Node {
                 position_type: PositionType::Absolute,
-                left: px(446),
+                // Over the weapon column, 14 px in.
+                left: px(super::view::weapon_left(v.ctx.simple()) + 14.0),
                 top: px(bottom_edge),
                 width: px(420),
                 padding: UiRect::all(px(12)),
@@ -382,7 +383,8 @@ mod tests {
             halo: crate::config::halo_from_armor(&d.rules.default_loadout.armor, d),
             agent: "kestrel".into(),
         };
-        Draft::from_choice(&c, &BTreeMap::new(), d)
+        // The gun range's draft: its magazines have their own ammo.
+        Draft::from_choice(&c, &BTreeMap::new(), d, None)
     }
 
     #[test]

@@ -321,12 +321,14 @@ fn mode_toggle(
 
 /// `--demo-ui lobby-ready | lobby-switch | lobby-start | lobby-ffa`: press READY; SWITCH TEAM then READY; READY
 /// then START MATCH; or (the host) switch to free-for-all, READY and START MATCH, a few seconds in (demo runs
-/// ignore the desktop's mouse), to test the lobby over the network.
+/// ignore the desktop's mouse), to test the lobby over the network. `loadout-pick:...` readies and starts
+/// after picking a loadout.
 fn demo(
     cli: Res<Cli>,
     time: Res<Time>,
     screens: Res<Screens>,
     mut step: Local<usize>,
+    players: Query<&PlayerNet>,
     mut senders: Query<&mut MessageSender<LobbyAction>, With<Client>>,
 ) {
     let plan: &[(f32, LobbyAction)] = match cli.demo_ui.as_deref() {
@@ -337,10 +339,17 @@ fn demo(
         Some("lobby-ffa") => {
             &[(4.0, LobbyAction::SetMode(MatchMode::Ffa)), (5.0, LobbyAction::Ready(true)), (12.0, LobbyAction::Start)]
         }
+        // After picking a loadout on the Loadout screen (`loadout::demo_open`): READY, then START once a joiner
+        // has readied too (or after a minute alone).
+        Some(d) if d.starts_with("loadout-pick") => &[(9.0, LobbyAction::Ready(true)), (12.0, LobbyAction::Start)],
         _ => return,
     };
     let Some((at, action)) = plan.get(*step) else { return };
-    if screens.contains(Screen::Lobby) && time.elapsed_secs() >= *at {
+    let waiting_for_others = cli.demo_ui.as_deref().is_some_and(|d| d.starts_with("loadout-pick"))
+        && *action == LobbyAction::Start
+        && time.elapsed_secs() < 60.0
+        && (players.iter().count() < 2 || players.iter().any(|n| !n.ready));
+    if screens.contains(Screen::Lobby) && time.elapsed_secs() >= *at && !waiting_for_others {
         *step += 1;
         info!("--demo-ui: {action:?}");
         for mut s in &mut senders {
@@ -495,6 +504,11 @@ fn refresh(
         });
     }
     let rules = data.rules.deathmatch(m.mode);
+    // What the mode fixes in everyone's loadout (one halo, one ammo type; no agents: no abilities).
+    let loadout = data
+        .rules
+        .fixed_loadout(m.mode)
+        .map_or("ANY HALO · AMMO PER MAGAZINE".to_string(), |f| format!("ONE HALO · ONE AMMO TYPE · {} MAGS", f.mags));
     let rows = [
         ("Map", m.map.to_uppercase()),
         ("Mode", mode_title(m.mode).to_string()),
@@ -513,6 +527,7 @@ fn refresh(
         ),
         ("Respawn", format!("{} S", rules.respawn_s)),
         ("Kill refill", format!("{} MAGAZINE", rules.kill_refill_mags)),
+        ("Loadout", loadout),
     ];
     for e in &settings_box {
         commands.entity(e).despawn_children().with_children(|s| {

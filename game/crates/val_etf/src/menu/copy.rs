@@ -91,7 +91,8 @@ pub fn tier_label(tiers: &ZoneTable<u8>) -> Option<(String, u8)> {
     Some((label, hi))
 }
 
-/// The player card's loadout line: "Default loadout · AR-7 Mako (holo, std stock, 30 mag) · Mender Scout H2 T2".
+/// The player card's loadout line: "Default loadout · AR-7 Mako (holo, std stock, 30 mag) · Mender H2 T2", or
+/// "... · Halo H2 T2" where everyone wears the same halo (team deathmatch, free-for-all).
 pub fn loadout_line(choice: &LoadoutChoice, s: &LoadoutSummary, data: &GameData) -> String {
     let d = &data.rules.default_loadout;
     let is_default = choice.weapon == d.primary
@@ -106,8 +107,10 @@ pub fn loadout_line(choice: &LoadoutChoice, s: &LoadoutSummary, data: &GameData)
         format!("{} ({})", s.weapon_name, attachments.join(", "))
     };
     let arcs = arcs_short(&s.tiers);
-    // The halo is custom now (a core and a tier per arc): name the core, then the arcs.
+    // The halo is custom (a core and a tier per arc): name the core, then the arcs. With one halo for
+    // everyone only the arcs say anything.
     let halo = match s.core {
+        Some(_) if s.one_halo && !arcs.is_empty() => format!("Halo {arcs}"),
         Some(core) if !arcs.is_empty() => format!("{} {arcs}", title_case(core.label())),
         _ => "No halo".to_string(),
     };
@@ -131,17 +134,27 @@ pub fn mag_slots(s: &LoadoutSummary) -> [Option<(String, AmmoKind)>; MAG_SLOTS] 
     slots
 }
 
-/// The GEAR readout's numbers and whether they are over budget: ("4 / 13", false).
-pub fn gear_text(cost: u32, budget: u32) -> (String, bool) {
-    (format!("{cost} / {budget}"), cost > budget)
+/// The GEAR readout's numbers and whether they are over budget: ("4 / 13", false); a mode without a budget
+/// (the gun range) shows the points alone ("4 PTS").
+pub fn gear_text(cost: u32, budget: Option<u32>) -> (String, bool) {
+    match budget {
+        Some(budget) => (format!("{cost} / {budget}"), cost > budget),
+        None => (format!("{cost} PTS"), false),
+    }
 }
 
-/// The agent tag's halo part: the tier label with the core ("T2 MENDER") and its colour tier, or None
-/// with no halo.
+/// How many magazines carry the one ammo type: "× 4".
+pub fn mags_count(n: usize) -> String {
+    format!("× {n}")
+}
+
+/// The agent tag's halo part: the tier label with the core ("T2 MENDER", or "T2 HALO" where everyone wears
+/// the same halo) and its colour tier, or None with no halo.
 pub fn agent_halo(s: &LoadoutSummary) -> Option<(String, u8)> {
     let core = s.core?;
     let (label, hi) = tier_label(&s.tiers)?;
-    Some((format!("{label} {}", core.label()), hi))
+    let name = if s.one_halo { "HALO" } else { core.label() };
+    Some((format!("{label} {name}"), hi))
 }
 
 /// The agent tag's micro line after the halo chip: "· LIGHT · AR-7 MAKO", or "NO HALO · AR-7 MAKO".
@@ -263,6 +276,7 @@ pub fn ip_help(port: u16) -> String {
 mod tests {
     use super::*;
     use crate::loadout::summary;
+    use vetf_net::MatchMode;
     use vetf_sim::data::AmmoChoice;
 
     fn default_choice(d: &GameData) -> LoadoutChoice {
@@ -280,7 +294,8 @@ mod tests {
     fn the_player_card_describes_the_default_loadout() {
         let d = GameData::embedded();
         let c = default_choice(&d);
-        let s = summary(&c, &d);
+        // The gun range: the core and every magazine.
+        let s = summary(&c, &d, MatchMode::Range);
         assert_eq!(loadout_line(&c, &s, &d), "Default loadout · AR-7 Mako (holo, std stock, 30 mag) · Mender H2 T2");
         let slots = mag_slots(&s);
         assert_eq!(slots.iter().filter(|m| m.is_some()).count(), c.mags.len());
@@ -289,6 +304,17 @@ mod tests {
         // The default Mender Scout (H2 T2) is LIGHT, whatever the mockup's sample copy says.
         assert_eq!(agent_halo(&s), Some(("T2 MENDER".into(), 2)));
         assert_eq!(agent_micro(&s), "· LIGHT · AR-7 MAKO");
+        assert_eq!(gear_text(s.gear_cost, s.gear_budget), ("4 PTS".into(), false), "no budget in the range");
+        // Team deathmatch and free-for-all: one halo, one ammo type.
+        for mode in [MatchMode::Tdm, MatchMode::Ffa] {
+            let s = summary(&c, &d, mode);
+            assert_eq!(loadout_line(&c, &s, &d), "Default loadout · AR-7 Mako (holo, std stock, 30 mag) · Halo H2 T2");
+            assert_eq!(agent_halo(&s), Some(("T2 HALO".into(), 2)));
+            let n = d.rules.fixed_loadout(mode).unwrap().mags as usize;
+            assert_eq!(s.one_ammo(), Some(("STD".into(), AmmoKind::Standard, n)));
+            assert_eq!(mags_count(n), format!("× {n}"));
+            assert_eq!(gear_text(s.gear_cost, s.gear_budget), ("4 / 13".into(), false));
+        }
     }
 
     #[test]
@@ -300,12 +326,16 @@ mod tests {
             mags: vec![ap2, AmmoChoice::STANDARD],
             ..default_choice(&d)
         };
-        let s = summary(&c, &d);
+        let s = summary(&c, &d, MatchMode::Range);
         assert!(loadout_line(&c, &s, &d).starts_with("Custom loadout · "));
         assert!(loadout_line(&c, &s, &d).ends_with(" · No halo"));
         assert_eq!(agent_halo(&s), None);
         assert_eq!(agent_micro(&s), "NO HALO · AR-7 MAKO");
         assert_eq!(mag_slots(&s)[0], Some(("AP II".into(), AmmoKind::ArmorPiercing)));
+        assert_eq!(s.one_ammo(), None, "mixed magazines");
+        // a deathmatch loads every magazine with slot 1's AP II
+        let tdm = summary(&c, &d, MatchMode::Tdm);
+        assert_eq!(tdm.one_ammo().map(|a| a.0), Some("AP II".into()));
     }
 
     #[test]
@@ -338,8 +368,8 @@ mod tests {
 
     #[test]
     fn gear_version_and_network_lines() {
-        assert_eq!(gear_text(4, 13), ("4 / 13".into(), false));
-        assert_eq!(gear_text(14, 13), ("14 / 13".into(), true));
+        assert_eq!(gear_text(4, Some(13)), ("4 / 13".into(), false));
+        assert_eq!(gear_text(14, Some(13)), ("14 / 13".into(), true));
         assert!(version_line().starts_with(&format!("v{}-proto", env!("CARGO_PKG_VERSION"))));
         assert!(tagline().ends_with("prototype 0.1"));
         let (head, tail, warn) = network_line(47820, Some(Ipv4Addr::new(192, 168, 1, 23)));
