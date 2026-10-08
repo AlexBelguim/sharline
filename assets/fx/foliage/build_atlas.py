@@ -9,8 +9,8 @@ the card: a dome from the alpha's distance field plus fine relief from the lumin
 Writes (game textures):
   game/assets/textures/foliage/hedge_cards.png         1024 x 1024, 4 x 4 square cards, sRGB, straight alpha
   game/assets/textures/foliage/hedge_cards_normal.png  linear, OpenGL convention (+Y = image top)
-  game/assets/textures/foliage/grass_cards.png         1024 x 1024, 4 x 8 cards of 2:1, bottom = root, sRGB
-and previews in preview/.
+and previews in preview/. The grass card atlas (4 x 8 cards of 2:1, bottom = root) is only a preview now: the game's
+lawn grass is procedural (game/assets/shaders/grass.wgsl), see README.md.
 
 Usage: python build_atlas.py [--leafy]          (needs numpy, scipy, Pillow)
 """
@@ -268,7 +268,7 @@ def main():
 
     grass, used = build(GRASS_RAWS, GRASS_GRID, (ATLAS // 4, ATLAS // 8), True, grass_colour, 3000)
     grass = bleed(grass)
-    save_rgba(os.path.join(GAME, "grass_cards.png"), grass)
+    # Retired from the game (the lawn is procedural now); kept as a preview of the first grass try.
     preview(os.path.join(PREVIEW, "grass_cards_on_grey.png"), grass)
     report["grass"] = {"cards": used, "grid": GRASS_GRID, "palette_srgb": GRASS_SRGB}
 

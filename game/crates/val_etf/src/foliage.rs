@@ -8,21 +8,21 @@
 //! and toward the ground, and the shader adds light wrap and sun-through-leaves translucency. One mesh per hedge
 //! for the cards, one for the core; only the core casts shadows.
 //!
-//! **Grass** (`Look::Ground` tops, the lawns): short painterly tufts on alpha-masked cards that turn about their
-//! root to face the camera, normals up so they light like the lawn under them. Dense near the camera, they thin
-//! out and shrink to nothing by the fade distance; chunks past it are not drawn. One mesh per lawn chunk.
+//! **Grass**: the mown lawn (shells over the art kit's lawn surfaces) and the taller tufts at its edges, in
+//! [`grass`] (`assets/shaders/grass.wgsl`).
 //!
-//! Both sway in the wind in the vertex shader (`assets/shaders/foliage.wgsl`, a StandardMaterial extension, used
-//! for the prepass too so depth and motion vectors match). Every look number is in `assets/data/foliage.ron`,
-//! per VIDEO quality preset: LOW keeps the plain boxes and the flat lawn. The leaf and grass card atlases are
-//! built by `assets/fx/foliage/build_atlas.py` from Krea2 raws.
+//! The hedge cards sway in the wind in the vertex shader (`assets/shaders/foliage.wgsl`, a StandardMaterial
+//! extension, used for the prepass too so depth and motion vectors match). Every look number is in
+//! `assets/data/foliage.ron`, per VIDEO quality preset: LOW keeps the plain boxes and the flat lawn. The leaf card
+//! atlas is built by `assets/fx/foliage/build_atlas.py` from Krea2 raws.
 //!
 //! `VETF_FOLIAGE=off|low|medium|high|ultra` overrides the preset (before/after screenshots).
+
+pub mod grass;
 
 use crate::AppState;
 use crate::config::CurrentLevel;
 use crate::map_materials::{ShowhomeMaterials, mip_chain};
-use crate::render::ViewCamera;
 use crate::settings::{Preset, Settings};
 use bevy::asset::RenderAssetUsages;
 use bevy::image::{ImageLoaderSettings, ImageSampler, ImageSamplerDescriptor};
@@ -32,8 +32,8 @@ use bevy::pbr::{ExtendedMaterial, MaterialExtension, MaterialPlugin};
 use bevy::prelude::*;
 use bevy::render::render_resource::{AsBindGroup, ShaderType, TextureFormat};
 use bevy::shader::ShaderRef;
+use grass::GrassData;
 use serde::Deserialize;
-use std::collections::HashMap;
 use vetf_sim::level::Level;
 use vetf_sim::movement::collision::{Brush, BrushKind, Look};
 use vetf_sim::rng::SplitMix;
@@ -49,10 +49,9 @@ impl Plugin for FoliagePlugin {
             .add_systems(Update, finish_textures)
             .add_systems(
                 Update,
-                (build_foliage, show_hedge_boxes, cull_grass_chunks, tick_wind)
-                    .chain()
-                    .run_if(in_state(AppState::InGame)),
+                (build_foliage, show_hedge_boxes, tick_wind).chain().run_if(in_state(AppState::InGame)),
             );
+        grass::plugin(app);
         // `VETF_GPU_PROFILE=1`: GPU time per render pass in the log every two seconds (measuring foliage cost).
         if std::env::var_os("VETF_GPU_PROFILE").is_some() {
             app.add_plugins(bevy::render::diagnostic::RenderDiagnosticsPlugin).add_systems(Update, log_gpu_passes);
@@ -63,10 +62,8 @@ impl Plugin for FoliagePlugin {
 const SHADER: &str = "shaders/foliage.wgsl";
 const HEDGE_ATLAS: &str = "textures/foliage/hedge_cards.png";
 const HEDGE_NORMALS: &str = "textures/foliage/hedge_cards_normal.png";
-const GRASS_ATLAS: &str = "textures/foliage/grass_cards.png";
-/// Card cells in the atlases (columns, rows); see `build_atlas.py`.
+/// Card cells in the atlas (columns, rows); see `build_atlas.py`.
 const HEDGE_CELLS: (u32, u32) = (4, 4);
-const GRASS_CELLS: (u32, u32) = (4, 8);
 /// UV inset of a card inside its atlas cell, so small mips do not pull in the neighbouring card.
 const CELL_INSET: f32 = 0.004;
 
@@ -111,29 +108,6 @@ pub struct HedgeData {
     pub translucency_power: f32,
     pub shadow_probe: f32,
     pub wind_amplitude: f32,
-}
-
-#[derive(Debug, Clone, PartialEq, Deserialize)]
-pub struct GrassData {
-    pub density: [f32; 4],
-    pub thin_start: f32,
-    pub fade_start: [f32; 4],
-    pub fade_end: [f32; 4],
-    pub far_density: f32,
-    pub height: (f32, f32),
-    pub aspect: f32,
-    pub chunk: f32,
-    pub root_tint: (f32, f32, f32),
-    pub tip_tint: (f32, f32, f32),
-    pub value_jitter: f32,
-    pub roughness: f32,
-    pub reflectance: f32,
-    pub alpha_cutoff: f32,
-    pub translucency: f32,
-    pub translucency_power: f32,
-    pub shadow_probe: f32,
-    pub wind_amplitude: f32,
-    pub sway_speed: f32,
 }
 
 #[derive(Debug, Clone, PartialEq, Deserialize)]
@@ -234,33 +208,16 @@ pub fn hedge_uniform(d: &FoliageData) -> FoliageUniform {
     }
 }
 
-/// The grass uniform for a quality level.
-pub fn grass_uniform(d: &FoliageData, q: usize) -> FoliageUniform {
-    let g = &d.grass;
-    let w = &d.wind;
-    let v3 = |c: (f32, f32, f32)| Vec4::new(c.0, c.1, c.2, 1.0);
-    FoliageUniform {
-        wind_dir: d.wind.dir().extend(1.0),
-        wind: Vec4::new(g.wind_amplitude, w.frequency * g.sway_speed * std::f32::consts::TAU, wave_number(w), w.gust),
-        fade: Vec4::new(g.fade_start[q], g.fade_end[q], g.thin_start, g.far_density),
-        light: Vec4::new(0.0, g.translucency, g.shadow_probe, g.translucency_power),
-        root_tint: v3(g.root_tint),
-        tip_tint: v3(g.tip_tint),
-        ..default()
-    }
-}
-
 fn wave_number(w: &WindData) -> f32 {
     std::f32::consts::TAU / w.wavelength.max(0.1)
 }
 
 // ---------------------------------------------------------------------------------------------- textures
 
-/// The card atlases (reserved handles, filled with mips once loaded) and the two card materials.
+/// The card atlases (reserved handles, filled with mips once loaded) and the hedge card material.
 #[derive(Resource)]
 struct FoliageAssets {
     hedge: Handle<FoliageMaterial>,
-    grass: Handle<FoliageMaterial>,
     pending: Vec<PendingImage>,
 }
 
@@ -293,10 +250,8 @@ fn load_assets(
         done
     };
     let h = &data.hedge;
-    let g = &data.grass;
     let hedge_albedo = image(HEDGE_ATLAS, true, Some(h.alpha_cutoff), [98, 112, 52, 255]);
     let hedge_normals = image(HEDGE_NORMALS, false, None, [128, 128, 255, 255]);
-    let grass_albedo = image(GRASS_ATLAS, true, Some(g.alpha_cutoff), [126, 140, 58, 255]);
     // Before any level: the materials are rebuilt for the quality level when the foliage is built.
     let card =
         |texture: Handle<Image>, normals: Option<Handle<Image>>, tint: Color, rough: f32, refl: f32, cut: f32| {
@@ -324,11 +279,7 @@ fn load_assets(
         ),
         extension: FoliageExt { params: hedge_uniform(&data) },
     });
-    let grass = materials.add(FoliageMaterial {
-        base: card(grass_albedo, None, Color::WHITE, g.roughness, g.reflectance, g.alpha_cutoff),
-        extension: FoliageExt { params: grass_uniform(&data, 2) },
-    });
-    commands.insert_resource(FoliageAssets { hedge, grass, pending });
+    commands.insert_resource(FoliageAssets { hedge, pending });
 }
 
 /// One loaded atlas per frame becomes its finished image: mip chain (alpha coverage kept for the cards) and a
@@ -502,7 +453,6 @@ pub struct CardMesh {
     pub normals: Vec<[f32; 3]>,
     pub tangents: Vec<[f32; 4]>,
     pub uvs: Vec<[f32; 2]>,
-    pub uvs_b: Vec<[f32; 2]>,
     pub colors: Vec<[f32; 4]>,
     pub indices: Vec<u32>,
 }
@@ -521,9 +471,6 @@ impl CardMesh {
             .with_inserted_indices(Indices::U32(self.indices));
         if !self.tangents.is_empty() {
             mesh.insert_attribute(Mesh::ATTRIBUTE_TANGENT, self.tangents);
-        }
-        if !self.uvs_b.is_empty() {
-            mesh.insert_attribute(Mesh::ATTRIBUTE_UV_1, self.uvs_b);
         }
         mesh
     }
@@ -746,88 +693,6 @@ pub fn axis_samples(lo: f32, hi: f32, r_lo: f32, r_hi: f32, step: f32) -> Vec<f3
     out
 }
 
-/// Grass clumps on one lawn chunk (`origin` = the chunk's corner): `spots` are the clump roots (world).
-pub fn grass_chunk(spots: &[Vec3], origin: Vec3, g: &GrassData, seed: u64) -> CardMesh {
-    let mut out = CardMesh::default();
-    for (k, &root) in spots.iter().enumerate() {
-        let mut rng = SplitMix::from_parts(&[seed, k as u64, root.x.to_bits() as u64, root.z.to_bits() as u64]);
-        let height = g.height.0 + (g.height.1 - g.height.0) * rng.next_f32().powf(1.3);
-        let width = height * g.aspect * (0.85 + 0.35 * rng.next_f32());
-        let variant = (rng.next_f32() * (GRASS_CELLS.0 * GRASS_CELLS.1) as f32) as u32;
-        let flip = rng.next_f32() < 0.5;
-        let value = 1.0 + rng.next_signed() * g.value_jitter;
-        let rank = rng.next_f32();
-        let (uv0, uv_size) = cell_uv(variant, GRASS_CELLS);
-        let base = out.positions.len() as u32;
-        for (sx, top) in [(-1.0f32, true), (1.0, true), (1.0, false), (-1.0, false)] {
-            let side = sx * width * 0.5;
-            let hgt = if top { height } else { 0.0 };
-            let p = root - origin + Vec3::new(side, hgt, 0.0);
-            let u = if (sx > 0.0) != flip { uv0.x + uv_size.x } else { uv0.x };
-            let v = if top { uv0.y } else { uv0.y + uv_size.y };
-            out.positions.push(p.to_array());
-            out.normals.push([0.0, 1.0, 0.0]);
-            out.uvs.push([u, v]);
-            out.uvs_b.push([side, hgt]);
-            out.colors.push([value, value, value * 0.97, rank]);
-        }
-        out.indices.extend_from_slice(&[base, base + 1, base + 2, base, base + 2, base + 3]);
-    }
-    out
-}
-
-/// Where grass grows: lawn tops (`Look::Ground`) inside `play` (x/z), on a jittered grid of `density` per m²,
-/// minus spots inside a solid brush (walls, hedges, props). Grouped by `chunk`-sized cells: (cell, roots).
-pub fn grass_spots(level: &Level, play: Rect, density: f32, chunk: f32, seed: u64) -> HashMap<(i32, i32), Vec<Vec3>> {
-    let mut out: HashMap<(i32, i32), Vec<Vec3>> = HashMap::new();
-    if density <= 0.0 {
-        return out;
-    }
-    let spacing = 1.0 / density.sqrt();
-    let blockers: Vec<&Brush> =
-        level.world.brushes.iter().filter(|b| b.kind == BrushKind::Solid && b.look != Look::Invisible).collect();
-    for lawn in level.world.brushes.iter().filter(|b| b.look == Look::Ground && b.ramp.is_none()) {
-        let top = lawn.max.y;
-        let x0 = lawn.min.x.max(play.min.x);
-        let x1 = lawn.max.x.min(play.max.x);
-        let z0 = lawn.min.z.max(play.min.y);
-        let z1 = lawn.max.z.min(play.max.y);
-        if x0 >= x1 || z0 >= z1 {
-            continue;
-        }
-        let near: Vec<&&Brush> = blockers
-            .iter()
-            .filter(|b| {
-                b.max.x > x0
-                    && b.min.x < x1
-                    && b.max.z > z0
-                    && b.min.z < z1
-                    && b.max.y > top + 0.02
-                    && b.min.y < top + 0.1
-            })
-            .collect();
-        // A global lattice, so lawns cut into pieces get the same spots as one big lawn.
-        let (i0, i1) = ((x0 / spacing).floor() as i32, (x1 / spacing).ceil() as i32);
-        let (j0, j1) = ((z0 / spacing).floor() as i32, (z1 / spacing).ceil() as i32);
-        for i in i0..i1 {
-            for j in j0..j1 {
-                let mut rng = SplitMix::from_parts(&[seed, i as u64, j as u64]);
-                let p = Vec3::new((i as f32 + rng.next_f32()) * spacing, top, (j as f32 + rng.next_f32()) * spacing);
-                if p.x < x0 || p.x >= x1 || p.z < z0 || p.z >= z1 {
-                    continue;
-                }
-                let probe = p + Vec3::Y * 0.04;
-                if near.iter().any(|b| probe.cmpgt(b.min).all() && probe.cmplt(b.max).all()) {
-                    continue;
-                }
-                let cell = ((p.x / chunk).floor() as i32, (p.z / chunk).floor() as i32);
-                out.entry(cell).or_default().push(p);
-            }
-        }
-    }
-    out
-}
-
 /// The playable area (x/z): the spawn points' bounds grown by `margin`.
 pub fn play_area(level: &Level, margin: f32) -> Rect {
     let mut r = Rect { min: Vec2::splat(f32::MAX), max: Vec2::splat(f32::MIN) };
@@ -861,13 +726,6 @@ struct FoliageState {
 
 #[derive(Component)]
 struct FoliageRoot;
-
-/// A lawn chunk: its centre (x/z) and half diagonal, for the distance cut.
-#[derive(Component)]
-struct GrassChunk {
-    centre: Vec2,
-    radius: f32,
-}
 
 /// The highest eye a player reaches on Showhome (the pylon pad perch, z 4 + 1.6 m) plus a margin.
 const MAX_EYE: f32 = 7.0;
@@ -912,9 +770,6 @@ fn build_foliage(
     let t0 = std::time::Instant::now();
     if let Some(mut m) = materials.get_mut(&assets.hedge) {
         m.extension.params = FoliageUniform { time: m.extension.params.time, ..hedge_uniform(&data) };
-    }
-    if let Some(mut m) = materials.get_mut(&assets.grass) {
-        m.extension.params = FoliageUniform { time: m.extension.params.time, ..grass_uniform(&data, q) };
     }
     let play = play_area(&level, 2.0);
     let solids: Vec<&Brush> = level
@@ -974,37 +829,8 @@ fn build_foliage(
         }
         state.hedges = true;
     }
-
-    // Lawns.
-    let g = &data.grass;
-    let mut clumps = 0;
-    let mut chunks = 0;
-    let spots = grass_spots(&level, play, g.density[q], g.chunk, 7);
-    let mut keys: Vec<_> = spots.keys().copied().collect();
-    keys.sort();
-    for key in keys {
-        let roots = &spots[&key];
-        let origin = Vec3::new(key.0 as f32 * g.chunk, 0.0, key.1 as f32 * g.chunk);
-        let mesh = grass_chunk(roots, origin, g, ((key.0 as u64) << 32) ^ key.1 as u32 as u64);
-        clumps += mesh.cards();
-        tris += mesh.indices.len() / 3;
-        chunks += 1;
-        commands.spawn((
-            Name::new("Lawn grass"),
-            GrassChunk {
-                centre: Vec2::new(origin.x, origin.z) + Vec2::splat(g.chunk * 0.5),
-                radius: g.chunk * std::f32::consts::FRAC_1_SQRT_2,
-            },
-            Mesh3d(meshes.add(mesh.into_mesh())),
-            MeshMaterial3d(assets.grass.clone()),
-            Transform::from_translation(origin),
-            NotShadowCaster,
-            ChildOf(root),
-        ));
-    }
     info!(
-        "foliage ({}): {cards} hedge cards, {clumps} grass clumps in {chunks} chunks, {draws} hedge meshes, \
-         {tris} triangles, built in {:.0} ms",
+        "foliage ({}): {cards} hedge cards, {draws} hedge meshes, {tris} triangles, built in {:.0} ms",
         Preset::from_index(q).label(),
         t0.elapsed().as_secs_f32() * 1000.0
     );
@@ -1029,33 +855,13 @@ fn show_hedge_boxes(
     }
 }
 
-/// Lawn chunks past the fade distance are not drawn.
-fn cull_grass_chunks(
-    data: Res<FoliageData>,
-    state: Res<FoliageState>,
-    camera: Query<&GlobalTransform, With<ViewCamera>>,
-    mut chunks: Query<(&GrassChunk, &mut Visibility)>,
-) {
-    let Some(cam) = camera.iter().next() else { return };
-    let Some(q) = state.built.as_ref().and_then(|b| b.1) else { return };
-    let reach = data.grass.fade_end[q];
-    let eye = cam.translation();
-    let eye = Vec2::new(eye.x, eye.z);
-    for (c, mut v) in &mut chunks {
-        let near = eye.distance(c.centre) - c.radius < reach;
-        v.set_if_neq(if near { Visibility::Inherited } else { Visibility::Hidden });
-    }
-}
-
 /// The shader's clock (this frame and the last, for motion vectors).
 fn tick_wind(time: Res<Time>, assets: Option<Res<FoliageAssets>>, mut materials: ResMut<Assets<FoliageMaterial>>) {
     let Some(assets) = assets else { return };
     let t = time.elapsed_secs_wrapped();
-    for h in [&assets.hedge, &assets.grass] {
-        if let Some(mut m) = materials.get_mut(h) {
-            let last = m.extension.params.time.x;
-            m.extension.params.time = Vec4::new(t, last, 0.0, 0.0);
-        }
+    if let Some(mut m) = materials.get_mut(&assets.hedge) {
+        let last = m.extension.params.time.x;
+        m.extension.params.time = Vec4::new(t, last, 0.0, 0.0);
     }
 }
 
@@ -1085,16 +891,39 @@ mod tests {
     #[test]
     fn the_data_file_parses_and_low_is_off() {
         let d = embedded();
+        // The copy in the data folder is the same file.
+        let on_disk = std::fs::read_to_string(concat!(env!("CARGO_MANIFEST_DIR"), "/../../assets/data/foliage.ron"))
+            .expect("foliage.ron");
+        assert_eq!(ron::from_str::<FoliageData>(&on_disk).expect("foliage.ron parses"), d);
         assert_eq!(d.hedge.density[0], 0.0, "LOW keeps the plain hedge boxes");
-        assert_eq!(d.grass.density[0], 0.0, "LOW keeps the flat lawn");
         for q in 1..4 {
-            assert!(d.hedge.density[q] > 0.0 && d.grass.density[q] > 0.0);
-            assert!(d.grass.fade_start[q] < d.grass.fade_end[q]);
-            assert!(d.hedge.density[q] >= d.hedge.density[q - 1] && d.grass.density[q] >= d.grass.density[q - 1]);
+            assert!(d.hedge.density[q] > 0.0);
+            assert!(d.hedge.density[q] >= d.hedge.density[q - 1]);
         }
-        // Grass never hides a crouched player.
-        assert!(d.grass.height.1 <= 0.15 && d.grass.height.0 >= 0.03);
-        assert!(d.grass.fade_end[3] <= 40.0);
+    }
+
+    #[test]
+    fn grass_presets_step_up_from_off() {
+        let g = embedded().grass;
+        let (l, t) = (&g.lawn, &g.tufts);
+        // LOW: the flat lawn only. MEDIUM: fewer layers and tufts. HIGH and ULTRA: the full lawn.
+        assert_eq!(l.layers[0], 0, "LOW draws no lawn shells");
+        assert_eq!(t.density[0], 0.0, "LOW draws no tufts");
+        assert!(l.layers[1] >= 3 && l.layers[1] < l.layers[2] && l.layers[2] <= l.layers[3]);
+        assert!(t.density[1] > 0.0 && t.density[1] < t.density[2] && t.density[2] <= t.density[3]);
+        for q in 1..4 {
+            assert!(l.fade_start[q] < l.fade_end[q] && t.fade_start[q] < t.fade_end[q]);
+            assert!(l.fade_end[q] >= l.fade_end[q - 1] && t.fade_end[q] >= t.fade_end[q - 1]);
+            // Tufts are bigger, so they are drawn further than the lawn fuzz.
+            assert!(t.fade_end[q] >= l.fade_end[q]);
+        }
+        // A mown lawn is 3-5 cm; tufts 10-25 cm, never enough to hide a crouched player.
+        assert!((0.03..=0.05).contains(&l.height), "{}", l.height);
+        assert!(t.height.0 >= 0.1 - 1e-6 && t.height.1 <= 0.25 + 1e-6);
+        assert!(t.fade_end[3] <= 40.0 && l.fade_end[3] <= 30.0);
+        assert!(l.root_shade < 1.0 && l.tip_lift >= 1.0, "darker toward the roots");
+        assert!(l.dirt_thin.0 < l.dirt_thin.1 && t.dirt_limit.0 < t.dirt_limit.1);
+        assert!(t.blades.0 >= 2 && t.blades.0 <= t.blades.1);
     }
 
     #[test]
@@ -1209,48 +1038,6 @@ mod tests {
     }
 
     #[test]
-    fn grass_grows_on_lawns_only_and_stays_short() {
-        let level = vetf_sim::maps::showhome();
-        let play = play_area(&level, 2.0);
-        let g = embedded().grass;
-        let spots = grass_spots(&level, play, 20.0, g.chunk, 7);
-        let all: Vec<Vec3> = spots.values().flatten().copied().collect();
-        assert!(all.len() > 5_000, "{}", all.len());
-        for p in all.iter().step_by(37) {
-            // On a lawn top, not inside a wall, hedge or prop.
-            let on_lawn = level.world.brushes.iter().any(|b| {
-                b.look == Look::Ground && p.x >= b.min.x && p.x <= b.max.x && p.z >= b.min.z && p.z <= b.max.z
-            });
-            assert!(on_lawn && p.y.abs() < 1e-4);
-            let probe = *p + Vec3::Y * 0.04;
-            let blocked = level.world.brushes.iter().any(|b| {
-                b.kind == BrushKind::Solid
-                    && b.look != Look::Invisible
-                    && probe.cmpgt(b.min).all()
-                    && probe.cmplt(b.max).all()
-            });
-            assert!(!blocked);
-            assert!(p.x >= play.min.x && p.x <= play.max.x && p.z >= play.min.y && p.z <= play.max.y);
-        }
-        // Every spot is in its chunk; a chunk's mesh keeps the clumps short.
-        for (&(cx, cz), roots) in &spots {
-            for p in roots {
-                assert_eq!(((p.x / g.chunk).floor() as i32, (p.z / g.chunk).floor() as i32), (cx, cz));
-            }
-            let origin = Vec3::new(cx as f32 * g.chunk, 0.0, cz as f32 * g.chunk);
-            let mesh = grass_chunk(roots, origin, &g, 1);
-            assert_eq!(mesh.cards(), roots.len());
-            for (p, sh) in mesh.positions.iter().zip(&mesh.uvs_b) {
-                assert!(sh[1] <= 0.15 + 1e-6, "taller than 15 cm");
-                // POSITION = root + (side, height, 0): the shader takes the root back out.
-                assert!((p[1] - sh[1]).abs() < 1e-5);
-            }
-        }
-        // Same seed, same lawn.
-        assert_eq!(grass_spots(&level, play, 20.0, g.chunk, 7).len(), spots.len());
-    }
-
-    #[test]
     fn faces_out_of_the_map_are_skipped() {
         let play = Rect { min: Vec2::new(0.5, -47.5), max: Vec2::new(71.5, -0.5) };
         // The boundary hedge's outer face (x = 0, facing -x) faces nothing a player can stand on.
@@ -1289,9 +1076,7 @@ mod tests {
         assert!((w.dir() - Vec3::NEG_Z).length() < 1e-6, "90° = north = -Z in Bevy");
         let d = embedded();
         let hu = hedge_uniform(&d);
-        let gu = grass_uniform(&d, 2);
         assert_eq!(hu.wind_dir.w, 0.0);
-        assert_eq!(gu.wind_dir.w, 1.0);
-        assert_eq!(gu.fade.y, d.grass.fade_end[2]);
+        assert!((hu.wind_dir.truncate() - d.wind.dir()).length() < 1e-6);
     }
 }
