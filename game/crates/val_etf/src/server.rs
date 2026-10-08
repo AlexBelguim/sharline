@@ -1173,6 +1173,40 @@ mod routing_tests {
         }
     }
 
+    /// A hit confirm and a damage indicator for the host's own player go through its link's own sender (as
+    /// `resolve_claims` sends them) and arrive in the host's own client: moving them onto the multi-sender, which
+    /// the host's client never reads, would silently lose the host's hit markers and damage chevrons.
+    #[test]
+    fn hit_confirms_and_damage_reach_the_host() {
+        let (mut app, host, _) = listen_server();
+        let confirm = HitConfirm {
+            victim: 7,
+            zone: Zone::Head,
+            kind: HitKind::Health,
+            shield_broke: false,
+            seq: 3,
+            point: Vec3::ONE,
+        };
+        let damage = DamageTaken { from: Vec3::X, zone: Zone::Torso, shield: true };
+        app.world_mut()
+            .run_system_once(
+                move |mut confirms: Query<&mut MessageSender<HitConfirm>>,
+                      mut damages: Query<&mut MessageSender<DamageTaken>>| {
+                    confirms.get_mut(host).expect("the host's link sends confirms").send::<ReliableChannel>(confirm);
+                    damages.get_mut(host).expect("and damage").send::<ReliableChannel>(damage);
+                },
+            )
+            .unwrap();
+        app.update();
+        let world = app.world_mut();
+        let got: Vec<HitConfirm> =
+            world.get_mut::<MessageReceiver<HitConfirm>>(host).map(|mut r| r.receive().collect()).unwrap_or_default();
+        assert_eq!(got, vec![confirm], "the host's hit marker");
+        let got: Vec<DamageTaken> =
+            world.get_mut::<MessageReceiver<DamageTaken>>(host).map(|mut r| r.receive().collect()).unwrap_or_default();
+        assert_eq!(got, vec![damage], "the host's damage chevron");
+    }
+
     /// Shot effects go to every joined player but the shooter, and are not queued for the host's own client,
     /// which would never read them.
     #[test]
