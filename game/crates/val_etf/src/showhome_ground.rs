@@ -4,6 +4,8 @@
 //! The base layer's relief follows the parallax quality preset (`surface_depth.ron`): off on LOW, at most the
 //! preset's layers elsewhere, and only as many steps as it moves pixels on screen (see the shader).
 
+use crate::AppState;
+use crate::config::CurrentLevel;
 use crate::map_materials::{DepthQuality, GroundRelief, SurfaceDepthData, SurfaceDepthLevel};
 use bevy::asset::{AssetId, RenderAssetUsages};
 use bevy::gltf::{GltfMaterialExtras, GltfMaterialName};
@@ -24,10 +26,14 @@ impl Plugin for ShowhomeGroundPlugin {
     fn build(&self, app: &mut App) {
         app.add_plugins(MaterialPlugin::<ShowhomeGroundMaterial>::default())
             .init_resource::<GroundMaterialCache>()
-            .add_systems(Startup, load_ground_arrays)
+            // Loaded for the first Showhome match and kept (not at start-up: the menus and the Range held about
+            // 1 GiB of RAM and 512 MiB of VRAM for them, map-kit review K3).
+            .add_systems(OnEnter(AppState::InGame), load_ground_arrays)
             .add_systems(
                 Update,
-                (apply_ground_depth, install_ground_materials).chain().after(crate::video::apply_surface_depth),
+                (apply_ground_depth, install_ground_materials.run_if(in_state(AppState::InGame)))
+                    .chain()
+                    .after(crate::video::apply_surface_depth),
             );
     }
 }
@@ -120,7 +126,15 @@ struct GroundMaterialCache(HashMap<AssetId<StandardMaterial>, Handle<ShowhomeGro
 #[derive(Component)]
 pub struct GroundBlendInstalled;
 
-fn load_ground_arrays(mut commands: Commands, server: Res<AssetServer>) {
+fn load_ground_arrays(
+    mut commands: Commands,
+    server: Res<AssetServer>,
+    level: Res<CurrentLevel>,
+    loaded: Option<Res<GroundArrays>>,
+) {
+    if loaded.is_some() || !crate::showhome_kit::is_showhome(&level) {
+        return;
+    }
     let info = array_manifest();
     let load = |name: &str, srgb: bool, rows: u32, height: bool| {
         server
@@ -265,7 +279,7 @@ fn install_ground_materials(
     server: Res<AssetServer>,
     level: Res<SurfaceDepthLevel>,
     depth: Res<SurfaceDepthData>,
-    mut arrays: ResMut<GroundArrays>,
+    arrays: Option<ResMut<GroundArrays>>,
     standards: Res<Assets<StandardMaterial>>,
     mut materials: ResMut<Assets<ShowhomeGroundMaterial>>,
     mut cache: ResMut<GroundMaterialCache>,
@@ -274,6 +288,7 @@ fn install_ground_materials(
         Without<GroundBlendInstalled>,
     >,
 ) {
+    let Some(mut arrays) = arrays else { return };
     if arrays.failed {
         return;
     }
