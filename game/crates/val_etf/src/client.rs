@@ -789,9 +789,10 @@ fn bot_controls(cli: &Cli, t: f32, since: f32, control: &mut LocalControl) {
             control.pitch = (t * 1.3).sin() * 0.08;
         }
     }
-    // Bursts of half a second every 1.5 s; `dry-fire-sprint` taps the trigger for a tenth of a second instead
-    // (a hip tap on the run, the gun still coming up from the sprint).
+    // Bursts of half a second every 1.5 s; `dry-fire-sprint` runs forward only (so it sprints) and taps the
+    // trigger for a tenth of a second instead (a hip tap on the run, the gun still coming up from the sprint).
     let firing = if cli.demo_ui.as_deref() == Some("dry-fire-sprint") {
+        control.movement = Vec2::Y;
         (t * 10.0) as i32 % 15 == 0
     } else {
         (t * 2.0) as i32 % 3 == 0 && (cli.yaw.is_none() || since > 3.5)

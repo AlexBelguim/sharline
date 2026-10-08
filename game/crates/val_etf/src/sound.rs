@@ -1602,7 +1602,23 @@ fn demo_dry_fire(
     mut me: Query<(&mut PlayerWeapon, &PlayerLoadout), With<Controlled>>,
     mut entered: Local<Option<f32>>,
     mut last: Local<Option<f32>>,
+    mut pulled: Local<bool>,
 ) {
+    // Each trigger pull in the log, with whether the gun was still coming up from a sprint or busy (a reload
+    // takes no pull, so it does not click) (a test log only).
+    for (w, _) in &me {
+        let held = w.0.prev_buttons.held(Buttons::FIRE);
+        if held && !*pulled {
+            let gun = match (w.0.is_ready(), w.0.lowered()) {
+                (false, _) => "busy: reloading, equipping or checking the magazine",
+                (true, true) => "still coming up",
+                (true, false) => "up",
+            };
+            let mag = if w.0.mag() == 0 { "empty" } else { "loaded" };
+            info!("demo: trigger pulled (gun {gun}, magazine {mag})");
+        }
+        *pulled = held;
+    }
     let t = time.elapsed_secs();
     let since = t - *entered.get_or_insert(t);
     if since < 1.0 || last.is_some_and(|l| t - l < 5.0) {
