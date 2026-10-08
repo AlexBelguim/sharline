@@ -363,6 +363,34 @@ pub(crate) mod test_util {
         }
         st.pos
     }
+
+    /// Runs the real character controller from `st` for `secs` at 60 Hz, with `buttons(tick)` held and
+    /// `movement` at `yaw`; returns the state after every tick.
+    pub fn run(
+        level: &Level,
+        mut st: MoveState,
+        movement: Vec2,
+        yaw: f32,
+        buttons: impl Fn(usize) -> u16,
+        secs: f32,
+    ) -> Vec<MoveState> {
+        let data = GameData::embedded();
+        let mods = MoveModifiers::unarmored(&data);
+        let dt = 1.0 / 60.0;
+        (0..(secs / dt).round() as usize)
+            .map(|i| {
+                let input =
+                    InputFrame { movement, yaw, pitch: 0.0, buttons: Buttons(buttons(i)), ..Default::default() };
+                step(&data, level, &mut st, &input, &mods, dt);
+                st
+            })
+            .collect()
+    }
+
+    /// Jump on tick 0, let go, then light the jetpack on tick 8 and hold it (the fuel runs out by itself).
+    pub fn jump_then_jet(tick: usize) -> u16 {
+        if tick == 0 || tick >= 8 { Buttons::JUMP } else { 0 }
+    }
 }
 
 #[cfg(test)]

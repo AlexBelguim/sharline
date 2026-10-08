@@ -40,6 +40,7 @@ impl Plugin for ServerPlugin {
                     receive_lobby_actions,
                     receive_claims,
                     demo_wounds,
+                    demo_kill,
                     measure_ping,
                 )
                     .run_if(is_hosting),
@@ -653,6 +654,29 @@ fn demo_wounds(
     }
 }
 
+/// `--demo-ui kill` on the host: two seconds after the first joined player is in, the host's player kills them
+/// with a head shot, so a host + `--bot` run shows the kill feed on both ends.
+fn demo_kill(
+    cli: Res<Cli>,
+    time: Res<Time>,
+    mut since: Local<Option<f32>>,
+    mut done: Local<bool>,
+    players: Query<(Entity, &ServerPlayer, Has<Controlled>)>,
+    mut deaths: MessageWriter<PlayerDied>,
+) {
+    if *done || cli.demo_ui.as_deref() != Some("kill") {
+        return;
+    }
+    let host = players.iter().find(|(.., own)| *own).map(|(e, ..)| e);
+    let joined = players.iter().find(|(_, sp, own)| !*own && sp.choice.is_some()).map(|(e, ..)| e);
+    let (Some(host), Some(joined)) = (host, joined) else { return };
+    let t = time.elapsed_secs();
+    if t - *since.get_or_insert(t) >= 2.0 {
+        *done = true;
+        deaths.write(PlayerDied { victim: joined, killer: Some(host), zone: Some(Zone::Head) });
+    }
+}
+
 fn receive_claims(
     mut links: Query<(Entity, &mut MessageReceiver<ShotClaim>), With<ClientOf>>,
     mut pending: ResMut<PendingClaims>,
@@ -777,7 +801,7 @@ fn simulate_authoritative(
             }
             if let Some(server) = server {
                 let msg = ShotFx { shooter: id.0, origin, end };
-                if let Err(e) = fx.send::<_, FxChannel>(&msg, server, &NetworkTarget::AllExceptSingle(sp.peer)) {
+                if let Err(e) = fx.send::<_, FxChannel>(&msg, server, &joined_except(sp.peer)) {
                     warn!("shot fx not sent: {e:?}");
                 }
             }
@@ -939,8 +963,7 @@ fn handle_deaths(
     mut players: Query<(&PlayerId, &PlayerInfo, &mut Vitals, &mut Score, &mut PlayerMove, &mut ServerPlayer)>,
     mut weapons: Query<(&mut PlayerWeapon, &PlayerLoadout)>,
     mut matches: Query<&mut MatchState>,
-    server: Query<&Server>,
-    mut feed: ServerMultiMessageSender,
+    mut feed: ClientLinks<KillFeed>,
     mut kills: Local<u64>,
 ) {
     let mode = matches.iter().next().map_or(MatchMode::Tdm, |m| m.mode);
@@ -969,11 +992,117 @@ fn handle_deaths(
                 }
             }
         }
-        if let Some(server) = server.iter().next() {
-            let msg = KillFeed { killer: killer_id, victim: victim_id, zone: d.zone };
-            if let Err(e) = feed.send::<_, ReliableChannel>(&msg, server, &NetworkTarget::All) {
-                warn!("kill feed not sent: {e:?}");
+        send_to_every_client(&mut feed, KillFeed { killer: killer_id, victim: victim_id, zone: d.zone });
+    }
+}
+
+/// The message senders of every connected client: the joined players' links and the host's own client.
+pub(crate) type ClientLinks<'w, 's, M> =
+    Query<'w, 's, &'static mut MessageSender<M>, (With<ClientOf>, With<Connected>)>;
+
+/// Queues `msg` once for every connected player, the host included. lightyear's `ServerMultiMessageSender`
+/// writes into each link's transport, but the host's in-process client never reads a transport (it only gets
+/// what is queued on its own `MessageSender`), so the kill feed sent that way reached every joined player and
+/// never the host.
+pub(crate) fn send_to_every_client<M: lightyear::prelude::Message + Clone>(links: &mut ClientLinks<M>, msg: M) {
+    for mut link in links.iter_mut() {
+        link.send::<ReliableChannel>(msg.clone());
+    }
+}
+
+/// The host's own client: lightyear gives it this peer id.
+const HOST_PEER: PeerId = PeerId::Local(0);
+
+/// Every joined player but `peer`, for the multi-sender. The host's own client is left out: it never reads what
+/// the multi-sender queues for it (see [`send_to_every_client`]), so those copies only piled up in memory; the
+/// host draws other players' shots itself.
+fn joined_except(peer: PeerId) -> NetworkTarget {
+    NetworkTarget::AllExcept(vec![peer, HOST_PEER].into())
+}
+
+#[cfg(test)]
+mod routing_tests {
+    use super::*;
+    use bevy::ecs::system::RunSystemOnce;
+    use lightyear::connection::host::HostClient;
+    use lightyear::prelude::client::ClientPlugins;
+    use std::any::TypeId;
+
+    /// A listen server in one app, as when hosting: lightyear's server and client plugins, the protocol, a
+    /// started server, the host's own client connected through it, and two joined players' links (peers 7 and
+    /// 8; not linked to a socket, so what is queued for them stays in their transports to be counted).
+    fn listen_server() -> (App, Entity, [Entity; 2]) {
+        let tick = std::time::Duration::from_secs_f64(1.0 / 60.0);
+        let mut app = App::new();
+        app.add_plugins((MinimalPlugins, bevy::state::app::StatesPlugin));
+        app.add_plugins((ServerPlugins { tick_duration: tick }, ClientPlugins { tick_duration: tick }));
+        app.add_plugins(vetf_net::ProtocolPlugin { input_redundancy: 1 });
+        // What `App::run` does before the first frame (replication builds its channel maps here).
+        app.finish();
+        app.cleanup();
+        let server = app.world_mut().spawn((Name::new("Server"), Server::default(), Linked, Started)).id();
+        let host = app.world_mut().spawn((Client, LinkOf { server })).id();
+        app.world_mut().trigger(Connect { entity: host });
+        let joined = [7, 8].map(|id| {
+            app.world_mut().spawn((LinkOf { server }, ClientOf, Connected, RemoteId(PeerId::Netcode(id)))).id()
+        });
+        app.update();
+        assert!(app.world().entity(host).contains::<HostClient>(), "the host's client is a host client");
+        (app, host, joined)
+    }
+
+    fn host_feed(app: &mut App, host: Entity) -> Vec<KillFeed> {
+        app.world_mut()
+            .get_mut::<MessageReceiver<KillFeed>>(host)
+            .map(|mut r| r.receive().collect())
+            .unwrap_or_default()
+    }
+
+    /// Messages on channel `C` queued in a link's transport (and taken out, to count the next ones).
+    fn queued<C: 'static>(app: &App, link: Entity) -> usize {
+        let transport = app.world().get::<Transport>(link).unwrap();
+        transport.recv_channel.try_iter().filter(|(kind, ..)| kind.0 == TypeId::of::<C>()).count()
+    }
+
+    /// Every player sees every kill exactly once, the host included (it used to see none: the feed went out
+    /// through lightyear's multi-sender, which the host's own client never reads).
+    #[test]
+    fn every_kill_reaches_the_host_and_each_joined_player_once() {
+        let (mut app, host, joined) = listen_server();
+        let kills = [
+            KillFeed { killer: Some(7), victim: 0, zone: Some(Zone::Head) },
+            KillFeed { killer: None, victim: 8, zone: None },
+        ];
+        for kill in kills {
+            app.world_mut()
+                .run_system_once(move |mut links: ClientLinks<KillFeed>| send_to_every_client(&mut links, kill))
+                .unwrap();
+            app.update();
+            assert_eq!(host_feed(&mut app, host), vec![kill], "the host's kill feed");
+            for link in joined {
+                assert_eq!(queued::<ReliableChannel>(&app, link), 1, "a joined player's kill feed");
             }
+            app.update();
+            assert!(host_feed(&mut app, host).is_empty(), "shown once");
+        }
+    }
+
+    /// Shot effects go to every joined player but the shooter, and are not queued for the host's own client,
+    /// which would never read them.
+    #[test]
+    fn shot_fx_skip_the_shooter_and_the_hosts_own_client() {
+        let (mut app, host, joined) = listen_server();
+        for (shooter, want) in [(PeerId::Netcode(7), [0, 1]), (HOST_PEER, [1, 1])] {
+            let fx = ShotFx { shooter: 7, origin: Vec3::ZERO, end: Vec3::X };
+            app.world_mut()
+                .run_system_once(move |mut sender: ServerMultiMessageSender, server: Query<&Server>| {
+                    sender.send::<_, FxChannel>(&fx, server.single().unwrap(), &joined_except(shooter)).unwrap();
+                })
+                .unwrap();
+            app.update();
+            let got = joined.map(|link| queued::<FxChannel>(&app, link));
+            assert_eq!(got, want, "shooter {shooter:?}");
+            assert_eq!(queued::<FxChannel>(&app, host), 0, "shooter {shooter:?}: nothing piles up for the host");
         }
     }
 }

@@ -235,7 +235,8 @@ impl Cli {
                          --demo-ui settings-gameplay|-mouse|-keybinds|-video|-audio|-hud opens that Settings tab from the\n\
                          \x20 main menu; esc | esc-stop | esc-restart opens the ESC menu (or its confirm) over a hosted\n\
                          \x20 match; ads holds aim down sights; hud-fx shows the damage flash; overlay keeps the\n\
-                         \x20 performance overlay in a scripted run.\n\
+                         \x20 performance overlay in a scripted run; kill (host) has the host kill the first\n\
+                         \x20 joined player 2 s after they arrive (kill feed tests with a --bot client).\n\
                          --demo-ui hit-fx keeps hit markers (each kind in turn) and halo cracks going on the nearest\n\
                          \x20 other player (screenshots of the hit feedback).\n\
                          --demo-ui lobby-ready | lobby-switch | lobby-start presses READY, SWITCH TEAM then READY, or\n\

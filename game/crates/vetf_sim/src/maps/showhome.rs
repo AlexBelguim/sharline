@@ -24,9 +24,11 @@ const CEIL_HARD: f32 = 10.0;
 const KILL_Y: f32 = -10.0;
 /// Upper floor and terrace slabs (the terrace is z 2.95..3.2 in the layout).
 const SLAB: f32 = 0.25;
-/// Rise per metre of the player-clip roof over the gable: about 50 degrees, steeper than the walkable
-/// 46 degrees, so the 45 degree roof cannot be stood on (the design says it is not standable).
-const ROOF_CLIP_PITCH: f32 = 1.2;
+/// Rise per metre of the player-clip roof over the gable: about 48 degrees, just steeper than the walkable
+/// 46 degrees (movement.ron), so the 45 degree roof cannot be stood on (the design says it is not standable)
+/// while the clip stays within a third of a metre of the shingles wherever a player fits under the hard
+/// ceiling (a 50 degree clip left them sliding half a metre above the visible roof).
+const ROOF_CLIP_PITCH: f32 = 1.1;
 
 /// Sage main house (two floors) and garage footprints.
 const HOUSE: Rect = Rect::new(9.0, 22.0, 21.0, 32.0);
@@ -281,9 +283,10 @@ fn half(b: &mut Builder, s: Side, openings: &[Opening]) {
     b.solid(s.rect(GARAGE), UF - SLAB, UF, L::Floor); // W_TERRACE (standable)
     b.ramp(s.rect(STAIR), 0.0, UF, s.dir(Dir::South), BrushKind::Solid, L::Floor);
 
-    // Roof: upper-floor ceiling slab at the eaves, the real 45 degree gable (stops bullets), and a steeper
-    // player clip over it so the gable is not standable. Its ridge ends above the hard ceiling.
-    b.solid(s.rect(HOUSE), UF_CEIL, EAVES, L::Roof);
+    // Roof: upper-floor ceiling slab at the eaves (only its plastered underside shows, so not shingles), the
+    // real 45 degree gable (stops bullets), and a steeper player clip over it so the gable is not standable.
+    // Its ridge ends above the hard ceiling.
+    b.solid(s.rect(HOUSE), UF_CEIL, EAVES, L::Concrete);
     let south = Rect::new(HOUSE.x0, HOUSE.y0, HOUSE.x1, RIDGE_Y);
     let north = Rect::new(HOUSE.x0, RIDGE_Y, HOUSE.x1, HOUSE.y1);
     b.ramp(s.rect(south), EAVES, RIDGE, s.dir(Dir::North), BrushKind::Solid, L::Roof);
@@ -353,10 +356,11 @@ pub fn showhome() -> Level {
 
 #[cfg(test)]
 mod tests {
-    use super::super::test_util::{HALF, assert_spawns_grounded, surface_below, walk};
+    use super::super::test_util::{HALF, assert_spawns_grounded, jump_then_jet, run, surface_below, walk};
     use super::*;
     use crate::movement::collision::Brush;
-    use glam::Vec3;
+    use crate::movement::{MoveMode, MoveState};
+    use glam::{Vec2, Vec3};
     use std::f32::consts::{FRAC_PI_2, PI};
 
     fn mm(v: f32) -> i64 {
@@ -524,15 +528,110 @@ mod tests {
     #[test]
     fn gable_is_not_standable() {
         let l = showhome();
+        let max_slope = crate::GameData::embedded().movement.ground.max_slope_deg;
         // Dropping onto the roof (near the eaves: higher up, the clip leaves no room under the hard ceiling)
-        // lands on a slope steeper than the walkable 46 degrees.
+        // lands on a slope steeper than the walkable one.
         let c = design(15.0, 22.5, 9.0);
         let t = l.world.trace_box(c, c - Vec3::Y * 5.0, HALF);
         assert!(t.hit() && !t.start_solid);
-        assert!(t.normal.y < 46f32.to_radians().cos(), "{:?}", t.normal);
+        assert!(t.normal.y < max_slope.to_radians().cos(), "{:?}", t.normal);
         // Bullets see the real 45 degree roof under the clip.
         let (d, n) = l.world.raycast(design(15.0, 24.0, 9.5), Vec3::NEG_Y, 10.0).unwrap();
         assert!((9.5 - d - (EAVES + 2.0)).abs() < 0.01, "{d}");
         assert!((n.y - std::f32::consts::FRAC_1_SQRT_2).abs() < 0.01);
+    }
+
+    /// Height of the visible gable over design `y` (both houses): 45 degrees up from the eaves to the ridge.
+    fn roof_at(y: f32) -> f32 {
+        RIDGE - (y - RIDGE_Y).abs()
+    }
+
+    /// The invisible roof clip hugs the shingles: wherever a player fits under the hard ceiling, a box resting
+    /// on the clip floats at most 0.35 m over the visible roof (measured under its uphill edge, where it
+    /// touches). A steeper clip left players sliding half a metre above the roof.
+    #[test]
+    fn the_roof_clip_hugs_the_visible_roof() {
+        let l = showhome();
+        for x in [15.0, MAP_W - 15.0] {
+            for (y, uphill) in [(22.0, 1.0), (32.0, -1.0)] {
+                let mut worst: f32 = 0.0;
+                for i in 0..40 {
+                    let yc = y + uphill * (0.05 * i as f32 - HALF.x);
+                    let c = design(x, yc, CEIL_HARD - HALF.y - 0.01);
+                    let t = l.world.trace_box(c, c - Vec3::Y * 6.0, HALF);
+                    if t.start_solid {
+                        continue; // no room under the hard ceiling: nobody gets here
+                    }
+                    let feet = t.end.y - HALF.y;
+                    if feet < EAVES - 0.01 {
+                        continue; // past the eaves: on the terrace or the patio
+                    }
+                    let edge = yc + uphill * HALF.x;
+                    worst = worst.max(feet - roof_at(edge));
+                    assert!(feet >= roof_at(edge) - 0.01, "the roof pokes through the clip at {x} {edge}");
+                }
+                assert!(worst > 0.0 && worst <= 0.35, "{x} {y}: floats {worst} m over the roof");
+            }
+        }
+    }
+
+    /// The roof clip and the hard ceiling are for players only: a shot skimming the shingles passes.
+    #[test]
+    fn roof_clips_stop_players_not_bullets() {
+        let l = showhome();
+        let (p, q) = (design(0.5, 22.15, 6.45), design(30.0, 22.15, 6.45));
+        assert!(roof_at(22.15) < 6.45, "the line runs over the visible roof");
+        assert!(l.world.line_of_sight(p, q));
+        assert!(l.world.trace_box(p, q, Vec3::splat(0.05)).hit(), "the clip stops a player there");
+        let (p, q) = (design(10.0, 27.0, 10.5), design(62.0, 27.0, 10.5));
+        assert!(!l.world.line_of_sight(p, q), "the ridge pokes through the hard ceiling and stops bullets");
+        assert!(l.world.line_of_sight(design(10.0, 40.0, 10.5), design(62.0, 40.0, 10.5)));
+    }
+
+    /// Players dropped onto either slope of either gable slide off it: never grounded on the roof, never stuck,
+    /// and they end on the terrace (south) or the patio (north).
+    #[test]
+    fn players_slide_off_the_gables() {
+        let l = showhome();
+        let fuel = crate::GameData::embedded().movement.jetpack.fuel_s;
+        for x in [12.0, 18.0, MAP_W - 12.0, MAP_W - 18.0] {
+            for (y, end_z) in [(22.4, UF), (31.6, 0.0)] {
+                let mut st = MoveState::spawn(design(x, y, 7.6), fuel);
+                st.mode = MoveMode::Air;
+                // Holding forward toward the ridge must not walk the player up the clip either.
+                let yaw = design_yaw(if y < RIDGE_Y { 90.0 } else { -90.0 });
+                for mv in [Vec2::ZERO, Vec2::Y] {
+                    let trace = run(&l, st, mv, yaw, |_| 0, 4.0);
+                    for s in &trace {
+                        assert!(!(s.pos.y > UF + 1.0 && s.mode == MoveMode::Ground), "stood on the roof: {s:?}");
+                        assert!(s.pos.y + 2.0 * HALF.y <= CEIL_HARD + 0.01, "{s:?}");
+                    }
+                    let end = trace.last().unwrap();
+                    assert_eq!(end.mode, MoveMode::Ground, "{x} {y} {mv}: {end:?}");
+                    assert!((end.pos.y - end_z).abs() < 0.01, "{x} {y} {mv}: ended at {:?}", end.pos);
+                }
+            }
+        }
+    }
+
+    /// Jetting from the terrace onto the roof: the player clears the eaves, slides off the clip and lands
+    /// back on the terrace; the hard ceiling stops the head without trapping it.
+    #[test]
+    fn jetting_from_the_terrace_onto_the_roof() {
+        let l = showhome();
+        let fuel = crate::GameData::embedded().movement.jetpack.fuel_s;
+        for x in [15.0, MAP_W - 15.0] {
+            let st = MoveState::spawn(design(x, 21.0, UF), fuel);
+            let trace = run(&l, st, Vec2::Y, design_yaw(90.0), jump_then_jet, 6.0);
+            let peak = trace.iter().map(|s| s.pos.y).fold(f32::MIN, f32::max);
+            assert!(peak > EAVES, "{x}: the jet reaches the roof ({peak})");
+            assert!(peak + 2.0 * HALF.y <= CEIL_HARD + 0.01, "{x}: head through the ceiling ({peak})");
+            for s in &trace {
+                assert!(!(s.pos.y > UF + 1.0 && s.mode == MoveMode::Ground), "{x}: stood on the roof: {s:?}");
+            }
+            let end = trace.last().unwrap();
+            assert_eq!(end.mode, MoveMode::Ground);
+            assert!((end.pos.y - UF).abs() < 0.01 && -end.pos.z < 22.0, "{x}: ended at {:?}", end.pos);
+        }
     }
 }

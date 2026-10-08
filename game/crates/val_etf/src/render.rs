@@ -291,7 +291,10 @@ fn world_uvs(mesh: &mut Mesh, offset: Vec3) {
     mesh.insert_attribute(Mesh::ATTRIBUTE_UV_0, uvs);
 }
 
-/// A ramp's wedge, built rising along +X and rotated to its rise direction.
+/// A ramp's wedge, built rising along +X and rotated to its rise direction. Every face winds counter-clockwise
+/// seen from outside, with its normal pointing out: the textured Showhome materials cull back faces, so a wedge
+/// wound inside out (as it once was) drew its slope only from inside and the gable roofs and the stairs looked
+/// hollow from the street.
 fn wedge_mesh(b: &Brush, rise: Vec3) -> Mesh {
     let size = b.max - b.min;
     let along_x = rise.x.abs() > 0.5;
@@ -301,7 +304,8 @@ fn wedge_mesh(b: &Brush, rise: Vec3) -> Mesh {
     let p = |x: f32, y: f32, z: f32| rot * Vec3::new(x, y, z);
     let (a, bb, c, d) = (p(-hx, -hy, -hz), p(hx, -hy, -hz), p(hx, -hy, hz), p(-hx, -hy, hz));
     let (e, f) = (p(hx, hy, -hz), p(hx, hy, hz));
-    let faces: [&[Vec3]; 5] = [&[a, d, c, bb], &[bb, c, f, e], &[a, e, f, d], &[a, bb, e], &[d, f, c]];
+    // Bottom, high end, slope, and the two triangular sides.
+    let faces: [&[Vec3]; 5] = [&[a, bb, c, d], &[bb, e, f, c], &[a, d, f, e], &[a, e, bb], &[d, c, f]];
     let mut positions = Vec::new();
     let mut normals = Vec::new();
     let mut indices = Vec::new();
@@ -1055,6 +1059,45 @@ mod tests {
         let east: Vec<f32> = (0..p.len()).filter(|&i| n[i] == [1.0, 0.0, 0.0]).map(|i| uv[i][0]).collect();
         let span = east.iter().cloned().fold(f32::MIN, f32::max) - east.iter().cloned().fold(f32::MAX, f32::min);
         assert!((span - 46.0).abs() < 1e-4, "{span}");
+    }
+
+    /// Ramps (the Showhome gables and stairs) draw the brush the sim collides with, wound so back-face culling
+    /// keeps the outside: every triangle faces away from the wedge, its stored normal agrees with its winding,
+    /// every corner is inside the brush box, and the slope lies on the collision ramp plane.
+    #[test]
+    fn wedges_face_outward_and_match_the_collision_ramp() {
+        use vetf_sim::movement::collision::BrushKind;
+        for rise in [Vec3::X, Vec3::NEG_X, Vec3::Z, Vec3::NEG_Z] {
+            let (min, max) = (Vec3::new(9.0, 6.2, -27.0), Vec3::new(21.0, 11.2, -22.0));
+            let brush = Brush::ramp(min, max, rise, BrushKind::Solid);
+            let mesh = wedge_mesh(&brush, rise);
+            let centre = (min + max) * 0.5;
+            let p = mesh.attribute(Mesh::ATTRIBUTE_POSITION).unwrap().as_float3().unwrap().to_vec();
+            let n = mesh.attribute(Mesh::ATTRIBUTE_NORMAL).unwrap().as_float3().unwrap().to_vec();
+            let Some(Indices::U32(idx)) = mesh.indices() else { panic!("no indices") };
+            // The wedge's own centroid (two thirds of the way to the high end is inside the solid part).
+            let inside = centre - Vec3::Y * (max.y - min.y) / 6.0 + rise * (max - min).dot(rise.abs()) / 6.0;
+            let slope = brush.planes.last().unwrap();
+            let mut slope_tris = 0;
+            for t in idx.chunks(3) {
+                let [v0, v1, v2] = [0, 1, 2].map(|k| Vec3::from(p[t[k] as usize]) + centre);
+                let wound = (v1 - v0).cross(v2 - v0).normalize();
+                let stored = Vec3::from(n[t[0] as usize]);
+                assert!(wound.dot(stored) > 0.999, "{rise}: winding {wound} vs normal {stored}");
+                let mid = (v0 + v1 + v2) / 3.0;
+                assert!((mid - inside).dot(wound) > 0.0, "{rise}: triangle at {mid} faces into the wedge");
+                for v in [v0, v1, v2] {
+                    assert!(v.cmpge(min - 1e-4).all() && v.cmple(max + 1e-4).all(), "{rise}: {v} outside");
+                }
+                if wound.dot(slope.normal) > 0.999 {
+                    slope_tris += 1;
+                    for v in [v0, v1, v2] {
+                        assert!((v.dot(slope.normal) - slope.dist).abs() < 1e-3, "{rise}: {v} off the ramp plane");
+                    }
+                }
+            }
+            assert_eq!(slope_tris, 2, "{rise}: the slope is one quad on the collision plane");
+        }
     }
 
     /// A Mako rig from its real socket places (mako_base.glb, ATT_optic_holo.glb).
