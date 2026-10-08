@@ -78,6 +78,11 @@ struct ViewmodelLens;
 #[derive(Component)]
 struct PlayerVisual;
 
+/// A third-person player's body under its root: the capsule, head and halo, squashed when crouched. The gun is
+/// beside it, not under it (see [`PlayerPose`]).
+#[derive(Component)]
+struct Body;
+
 #[derive(Component)]
 struct HaloArc(Zone);
 
@@ -353,47 +358,49 @@ fn attach_player_visuals(
             _ => 0.011,
         };
         commands.entity(e).insert((PlayerVisual, Transform::default(), Visibility::default())).with_children(|p| {
-            p.spawn((
-                BodyPart,
-                Mesh3d(meshes.add(Capsule3d::new(0.26, 0.9))),
-                MeshMaterial3d(body_mat),
-                Transform::from_xyz(0.0, 0.85, 0.0),
-            ));
-            p.spawn((
-                BodyPart,
-                Mesh3d(meshes.add(Sphere::new(0.13))),
-                MeshMaterial3d(head_mat),
-                Transform::from_xyz(0.0, 1.6, 0.0),
-            ));
+            p.spawn((Body, Transform::default(), Visibility::default())).with_children(|b| {
+                b.spawn((
+                    BodyPart,
+                    Mesh3d(meshes.add(Capsule3d::new(0.26, 0.9))),
+                    MeshMaterial3d(body_mat),
+                    Transform::from_xyz(0.0, 0.85, 0.0),
+                ));
+                b.spawn((
+                    BodyPart,
+                    Mesh3d(meshes.add(Sphere::new(0.13))),
+                    MeshMaterial3d(head_mat),
+                    Transform::from_xyz(0.0, 1.6, 0.0),
+                ));
+                for zone in Zone::ALL {
+                    let tier = halo.tiers[zone];
+                    let c = tier_color(tier);
+                    let mat = materials.add(StandardMaterial {
+                        base_color: if tier > 0 { Color::from(c) } else { Color::srgba(0.02, 0.02, 0.025, 0.5) },
+                        emissive: if tier > 0 { c * 1.5 } else { LinearRgba::BLACK },
+                        alpha_mode: if tier > 0 { AlphaMode::Opaque } else { AlphaMode::Blend },
+                        ..default()
+                    });
+                    let mid = arc_angle(zone);
+                    let gap = 0.12;
+                    b.spawn((
+                        HaloArc(zone),
+                        Mesh3d(meshes.add(arc_mesh(
+                            0.16 * scale,
+                            tube,
+                            mid - FRAC_PI_2 * 0.5 + gap,
+                            mid + FRAC_PI_2 * 0.5 - gap,
+                        ))),
+                        MeshMaterial3d(mat),
+                        Transform::from_xyz(0.0, 1.95, 0.0),
+                    ));
+                }
+            });
             // The gun is built by `sync_held_guns` (and rebuilt when the loadout changes).
             p.spawn((
                 HeldGun { look: None, hand: HELD_PLACEHOLDER },
                 Transform::from_translation(HELD_PLACEHOLDER),
                 Visibility::default(),
             ));
-            for zone in Zone::ALL {
-                let tier = halo.tiers[zone];
-                let c = tier_color(tier);
-                let mat = materials.add(StandardMaterial {
-                    base_color: if tier > 0 { Color::from(c) } else { Color::srgba(0.02, 0.02, 0.025, 0.5) },
-                    emissive: if tier > 0 { c * 1.5 } else { LinearRgba::BLACK },
-                    alpha_mode: if tier > 0 { AlphaMode::Opaque } else { AlphaMode::Blend },
-                    ..default()
-                });
-                let mid = arc_angle(zone);
-                let gap = 0.12;
-                p.spawn((
-                    HaloArc(zone),
-                    Mesh3d(meshes.add(arc_mesh(
-                        0.16 * scale,
-                        tube,
-                        mid - FRAC_PI_2 * 0.5 + gap,
-                        mid + FRAC_PI_2 * 0.5 - gap,
-                    ))),
-                    MeshMaterial3d(mat),
-                    Transform::from_xyz(0.0, 1.95, 0.0),
-                ));
-            }
         });
     }
 }
@@ -458,29 +465,62 @@ fn update_player_visuals(
         ),
         With<PlayerVisual>,
     >,
+    tree: Query<&Children>,
+    mut bodies: Query<&mut Transform, (With<Body>, Without<PlayerVisual>)>,
     mut arcs: Query<(&HaloArc, &mut Visibility), Without<PlayerVisual>>,
-    mut guns: Query<(&HeldGun, &mut Transform), Without<PlayerVisual>>,
+    mut guns: Query<(&HeldGun, &mut Transform), (Without<PlayerVisual>, Without<Body>)>,
 ) {
     for (mv, look, vitals, loadout, mut t, mut vis, children, mine) in &mut players {
-        let squash = if mv.0.stance == Stance::Stand { 1.0 } else { 0.68 };
-        t.translation = mv.0.pos;
-        t.rotation = Quat::from_rotation_y(look.yaw);
-        t.scale = Vec3::new(1.0, squash, 1.0);
+        let pose = PlayerPose::new(mv.0.pos, look, mv.0.stance);
+        *t = pose.root;
         // Our own body never shows (it can get visuals if it arrived a frame before `Controlled` did).
         *vis = if vitals.health.dead || mine { Visibility::Hidden } else { Visibility::Inherited };
         for child in children.iter() {
-            if let Ok((arc, mut v)) = arcs.get_mut(child) {
-                // A broken arc goes dark (it flares back when it regenerates).
-                let up = loadout.0.halo.tiers[arc.0] == 0 || vitals.halo.shield[arc.0] > 0.0;
-                *v = if up { Visibility::Inherited } else { Visibility::Hidden };
+            if let Ok(mut b) = bodies.get_mut(child) {
+                *b = pose.body;
+                for part in tree.get(child).into_iter().flatten() {
+                    if let Ok((arc, mut v)) = arcs.get_mut(*part) {
+                        // A broken arc goes dark (it flares back when it regenerates).
+                        let up = loadout.0.halo.tiers[arc.0] == 0 || vitals.halo.shield[arc.0] > 0.0;
+                        *v = if up { Visibility::Inherited } else { Visibility::Hidden };
+                    }
+                }
             }
-            // The gun points where they look; it lowers with a crouch without being squashed.
             if let Ok((gun, mut g)) = guns.get_mut(child) {
-                *g = Transform::from_translation(gun.hand)
-                    .with_rotation(Quat::from_rotation_x(look.pitch))
-                    .with_scale(Vec3::new(1.0, 1.0 / squash, 1.0));
+                *g = pose.gun(gun.hand);
             }
         }
+    }
+}
+
+/// A third-person player's transforms: the root at the feet turned to the yaw, the body under it (squashed
+/// when crouched or sliding), and the gun beside the body, under the root. The gun lowers with the hand but is
+/// never scaled, so it points exactly along the look: under the body's non-uniform squash its pitch would
+/// shear, aiming flatter than the player looks (review finding).
+#[derive(Debug, Clone, Copy, PartialEq)]
+struct PlayerPose {
+    root: Transform,
+    body: Transform,
+    pitch: f32,
+}
+
+impl PlayerPose {
+    /// The body's height crouched or sliding, as a share of standing.
+    const CROUCH_SQUASH: f32 = 0.68;
+
+    fn new(feet: Vec3, look: &PlayerLook, stance: Stance) -> PlayerPose {
+        let squash = if stance == Stance::Stand { 1.0 } else { Self::CROUCH_SQUASH };
+        PlayerPose {
+            root: Transform::from_translation(feet).with_rotation(Quat::from_rotation_y(look.yaw)),
+            body: Transform::from_scale(Vec3::new(1.0, squash, 1.0)),
+            pitch: look.pitch,
+        }
+    }
+
+    /// The gun gripped at `hand` (player space, standing): the grip lowers with the body, the gun turns to the
+    /// look's pitch.
+    fn gun(&self, hand: Vec3) -> Transform {
+        Transform::from_translation(hand * self.body.scale).with_rotation(Quat::from_rotation_x(self.pitch))
     }
 }
 
@@ -593,6 +633,20 @@ impl Default for ViewmodelRig {
 /// hanging under the crosshair.
 pub fn viewmodel_muzzle(rig: &ViewmodelRig, ads: f32, lens: f32) -> Vec3 {
     rig.pose(ads).transform_point(rig.muzzle) * lens_scale(lens)
+}
+
+/// How far ahead of the eye (metres, on the view axis) an own tracer starts through a magnified scope.
+const SCOPED_TRACER_AHEAD: f32 = 0.5;
+
+/// Where an own tracer starts in view space at an ADS blend `ads`: the viewmodel's muzzle, or, fully aimed through
+/// a magnified optic (the scope picture shows and the gun is hidden), on the view axis just ahead of the eye, so
+/// it leaves the scope's centre instead of streaking up from the hidden muzzle under the reticle.
+pub fn own_tracer_start(rig: &ViewmodelRig, ads: f32, lens: f32) -> Vec3 {
+    if crate::weapon_models::scoped(rig, ads) {
+        Vec3::NEG_Z * SCOPED_TRACER_AHEAD
+    } else {
+        viewmodel_muzzle(rig, ads, lens)
+    }
 }
 
 /// Placeholder viewmodel parts per weapon class: (size, offset, material) in gun space (muzzle toward -Z,
@@ -980,6 +1034,27 @@ mod tests {
         assert!((aimed.y + (0.084 + 0.045 - 0.05)).abs() < 1e-4, "the bore under the sight line: {aimed}");
     }
 
+    /// Fully aimed through a magnified optic the gun hides behind the scope picture, so an own tracer starts on the
+    /// view axis just ahead of the eye, the scope's centre, not at the hidden muzzle under the reticle (review
+    /// finding: a vertical streak under the scope's cross). Short of fully aimed, or through a 1x sight, it
+    /// leaves the muzzle.
+    #[test]
+    fn scoped_tracers_leave_the_scope_centre() {
+        let mut scoped = mako_rig();
+        scoped.scope = Some(Scope::Prism);
+        let holo = mako_rig();
+        let raising = vetf_sim::weapon::ADS_AIMED - 0.05;
+        assert!(crate::weapon_models::scoped(&scoped, 1.0) && !crate::weapon_models::scoped(&scoped, raising));
+        for lens in [1.0, 0.4] {
+            let start = own_tracer_start(&scoped, 1.0, lens);
+            assert!(start.truncate().length() < 1e-6 && (-1.0..-0.1).contains(&start.z), "{start}");
+            assert!(viewmodel_muzzle(&scoped, 1.0, lens).y < -0.01, "the hidden muzzle is under the centre");
+            assert_eq!(own_tracer_start(&scoped, raising, lens), viewmodel_muzzle(&scoped, raising, lens), "gun shown");
+            assert_eq!(own_tracer_start(&holo, 1.0, lens), viewmodel_muzzle(&holo, 1.0, lens), "a 1x sight");
+        }
+        assert_eq!(on_screen(own_tracer_start(&scoped, 1.0, 1.0), 20.0), Vec2::ZERO, "on the scope's centre");
+    }
+
     /// Where a view-space point lands on screen (normalised device units) through a vertical FOV in degrees.
     fn on_screen(p: Vec3, fov: f32) -> Vec2 {
         Vec2::new(p.x, p.y) / (-p.z * (fov.to_radians() * 0.5).tan())
@@ -1027,6 +1102,31 @@ mod tests {
             assert_eq!(muzzle.x > grip.x, !left, "the muzzle toward that side of the screen");
             assert!(grip.z < -0.4 && muzzle.z < -0.4 && grip.x.abs() < 0.5, "{grip} {muzzle}");
         }
+    }
+
+    /// Another player's gun points exactly where they look at any pitch, unsheared, crouched or not, and its grip
+    /// goes down with the body (review finding: under the squashed root a crouched player's gun sheared and aimed
+    /// flatter than their look).
+    #[test]
+    fn a_crouched_players_gun_aims_along_the_look() {
+        let (feet, hand) = (Vec3::new(3.0, 1.0, -2.0), Vec3::new(-0.2, 1.3, -0.3));
+        for stance in [Stance::Stand, Stance::Crouch, Stance::Slide] {
+            for pitch in [-1.2f32, -0.5, 0.0, 0.6, 1.3] {
+                let look = PlayerLook { yaw: 0.7, pitch };
+                let pose = PlayerPose::new(feet, &look, stance);
+                let root = GlobalTransform::from(pose.root);
+                let gun = root.mul_transform(pose.gun(hand));
+                let m = Mat3::from(gun.affine().matrix3);
+                assert!((m * m.transpose()).abs_diff_eq(Mat3::IDENTITY, 1e-5), "{stance:?} {pitch}: sheared {m}");
+                let ahead = gun.affine().transform_vector3(Vec3::NEG_Z);
+                let look_dir = vetf_sim::input::view_dir(look.yaw, pitch);
+                assert!(ahead.abs_diff_eq(look_dir, 1e-5), "{stance:?} {pitch}: {ahead} vs {look_dir}");
+                let grip = root.mul_transform(pose.body).transform_point(hand);
+                assert!(gun.translation().abs_diff_eq(grip, 1e-5), "{stance:?}: the grip lowers with the body");
+            }
+        }
+        let crouched = PlayerPose::new(feet, &PlayerLook::default(), Stance::Crouch);
+        assert!(crouched.body.scale.y < 1.0 && crouched.root.scale == Vec3::ONE, "the body squashes, not the root");
     }
 
     #[test]

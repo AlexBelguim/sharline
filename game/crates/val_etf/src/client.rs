@@ -5,7 +5,7 @@ use crate::AppState;
 use crate::config::{Cli, CurrentLevel, Data, level_by_name};
 use crate::net::{NetRequest, Role, Session};
 use crate::radial::{HealMenu, HealOption, REGION_ORDER, Radial, heal_options};
-use crate::render::{ViewmodelRig, ads_zoom, camera_fov, viewmodel_lens, viewmodel_muzzle};
+use crate::render::{ViewmodelRig, ads_zoom, camera_fov, own_tracer_start, viewmodel_lens};
 use crate::screens::{EscPress, EscSystems, Screens};
 use crate::settings::{Action, BindInput, HoldToggle, Keybinds, RadialPick, Settings, rad_per_count};
 use crate::shared::LocalShot;
@@ -388,10 +388,8 @@ fn gather_input(
     };
     let [sprint, crouch, ads] =
         hold_buttons(settings.hud.hold_toggle, m.ads_input, g.auto_sprint, &mut control.toggles, keys);
-    // `--demo-ui ads` holds aim down sights (held, not a one-tick pulse: a frame can run two ticks).
-    let ads = ads || cli.demo_ui.as_deref() == Some("ads");
 
-    let mut bits = 0u16;
+    let mut bits = demo_held(&cli);
     for (bit, on) in [
         (Buttons::JUMP, held(Action::Jump)),
         (Buttons::CROUCH, crouch),
@@ -412,6 +410,12 @@ fn gather_input(
     if tap_reload {
         control.latched |= Buttons::RELOAD;
     }
+}
+
+/// Buttons a demo run holds: `--demo-ui ads` aims down sights, for a player and a `--bot` alike (scripted ADS
+/// tests over the network). Held, not a one-tick pulse: a frame can run two ticks.
+fn demo_held(cli: &Cli) -> u16 {
+    if cli.demo_ui.as_deref() == Some("ads") { Buttons::ADS } else { 0 }
 }
 
 /// Heal ring (the Heal key toggles it). Fire on an item: a whole-body item is used at once; a region item
@@ -630,10 +634,11 @@ fn fire_claims(
         let end_t = best.map_or(world_t, |b| b.2);
         // From the viewmodel's muzzle (lower right on screen), not from under the eye: a tracer from a point
         // straight below the camera drew a vertical line hanging under the crosshair (playtest 2026-10-07).
+        // Through a scope the gun is hidden, so it leaves the scope's centre instead.
         let lens =
             viewmodel_lens(camera_fov(&settings.mouse, loadout.0.weapon.zoom, ads), settings.mouse.viewmodel_fov);
-        let muzzle = s.origin + vetf_sim::input::view_rotation(s.yaw, s.pitch) * viewmodel_muzzle(&rig, ads, lens);
-        feedback.tracers.push((muzzle, s.origin + dir * end_t, 0.0, true));
+        let start = s.origin + vetf_sim::input::view_rotation(s.yaw, s.pitch) * own_tracer_start(&rig, ads, lens);
+        feedback.tracers.push((start, s.origin + dir * end_t, 0.0, true));
         if let (None, Some((d, normal))) = (best, world_hit) {
             feedback.impacts.push((s.origin + dir * d, normal));
         }
@@ -738,6 +743,40 @@ fn tick_feedback(time: Res<Time>, mut feedback: ResMut<Feedback>) {
     }
 }
 
+/// `--bot` drives the controls instead of the keyboard and mouse (`t` seconds since start-up, `since` in the
+/// match): wander, look around and fire short bursts, plus what a demo run holds (`--demo-ui ads` aims).
+fn bot_controls(cli: &Cli, t: f32, since: f32, control: &mut LocalControl) {
+    let phase = (t * 0.5) as i32 % 4;
+    control.movement = match phase {
+        0 => Vec2::Y,
+        1 => Vec2::new(1.0, 0.3),
+        2 => Vec2::NEG_Y,
+        _ => Vec2::new(-1.0, 0.3),
+    };
+    match cli.yaw {
+        // Hold a heading and strafe (aim tests): only side-to-side movement.
+        Some(yaw) => {
+            // Close in for the first few seconds, then hold position and strafe a little.
+            control.movement = if since < 3.5 { Vec2::Y } else { Vec2::new((t * 1.5).sin() * 0.15, 0.0) };
+            control.yaw = yaw.to_radians();
+            control.pitch = -0.01;
+        }
+        None => {
+            control.yaw = (t * 0.6).sin() * 1.2 + std::f32::consts::FRAC_PI_2 * if phase < 2 { 1.0 } else { -1.0 };
+            control.pitch = (t * 1.3).sin() * 0.08;
+        }
+    }
+    let firing = (t * 2.0) as i32 % 3 == 0 && (cli.yaw.is_none() || since > 3.5);
+    control.held = demo_held(cli) | if firing { Buttons::FIRE } else { 0 };
+    if (t as i32) % 7 == 3 && cli.yaw.is_none() {
+        control.held |= Buttons::JUMP;
+    }
+    // Tap reload now and then (a full magazine ignores it).
+    if (t as i32) % 5 == 4 {
+        control.latched |= Buttons::RELOAD;
+    }
+}
+
 /// `--bot`, `--screenshot` and `--exit-after` for automated runs.
 fn automation(
     cli: Res<Cli>,
@@ -759,37 +798,7 @@ fn automation(
         in_game_since.get_or_insert(t);
     }
     if cli.bot && *state.get() == AppState::InGame {
-        let since = t - in_game_since.unwrap_or(t);
-        // Wander, look around and fire short bursts.
-        let phase = (t * 0.5) as i32 % 4;
-        control.movement = match phase {
-            0 => Vec2::Y,
-            1 => Vec2::new(1.0, 0.3),
-            2 => Vec2::NEG_Y,
-            _ => Vec2::new(-1.0, 0.3),
-        };
-        match cli.yaw {
-            // Hold a heading and strafe (aim tests): only side-to-side movement.
-            Some(yaw) => {
-                // Close in for the first few seconds, then hold position and strafe a little.
-                control.movement = if since < 3.5 { Vec2::Y } else { Vec2::new((t * 1.5).sin() * 0.15, 0.0) };
-                control.yaw = yaw.to_radians();
-                control.pitch = -0.01;
-            }
-            None => {
-                control.yaw = (t * 0.6).sin() * 1.2 + std::f32::consts::FRAC_PI_2 * if phase < 2 { 1.0 } else { -1.0 };
-                control.pitch = (t * 1.3).sin() * 0.08;
-            }
-        }
-        let firing = (t * 2.0) as i32 % 3 == 0 && (cli.yaw.is_none() || since > 3.5);
-        control.held = if firing { Buttons::FIRE } else { 0 };
-        if (t as i32) % 7 == 3 && cli.yaw.is_none() {
-            control.held |= Buttons::JUMP;
-        }
-        // Tap reload now and then (a full magazine ignores it).
-        if (t as i32) % 5 == 4 {
-            control.latched |= Buttons::RELOAD;
-        }
+        bot_controls(&cli, t, t - in_game_since.unwrap_or(t), &mut control);
     }
     // Open a ring menu for screenshots.
     if let Some(demo) = cli.demo_ui.as_deref()
@@ -1051,5 +1060,32 @@ mod tests {
         assert_ne!(frame(&mut app, &[KeyCode::ControlLeft], Vec2::ZERO).0 & Buttons::CROUCH, 0);
         assert_ne!(frame(&mut app, &[], Vec2::ZERO).0 & Buttons::CROUCH, 0, "still crouched");
         assert_eq!(frame(&mut app, &[KeyCode::KeyC], Vec2::ZERO).0 & Buttons::CROUCH, 0);
+    }
+
+    /// `--demo-ui ads` holds aim down sights every frame, for a player and for a `--bot` (review finding: the
+    /// bot path skips the keyboard input, so a bot run stopped aiming).
+    #[test]
+    fn demo_ui_ads_holds_aim_for_players_and_bots() {
+        let ads = || Some("ads".to_string());
+        let mut app = input_app();
+        app.insert_resource(Cli { demo_ui: ads(), ..Cli::default() });
+        for _ in 0..3 {
+            assert_ne!(frame(&mut app, &[], Vec2::ZERO).0 & Buttons::ADS, 0, "a player run aims");
+        }
+        app.insert_resource(Cli::default());
+        assert_eq!(frame(&mut app, &[], Vec2::ZERO).0 & Buttons::ADS, 0, "no demo, no aim");
+
+        let bot = Cli { bot: true, demo_ui: ads(), ..Cli::default() };
+        let mut c = LocalControl::default();
+        let mut fired = false;
+        for i in 0..40 {
+            let t = i as f32 * 0.25;
+            bot_controls(&bot, t, t, &mut c);
+            assert_ne!(c.held & Buttons::ADS, 0, "the bot aims at {t} s");
+            fired |= c.held & Buttons::FIRE != 0;
+        }
+        assert!(fired, "and still fires its bursts");
+        bot_controls(&Cli { bot: true, ..Cli::default() }, 1.0, 1.0, &mut c);
+        assert_eq!(c.held & Buttons::ADS, 0, "a plain bot run does not aim");
     }
 }

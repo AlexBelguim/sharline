@@ -3,9 +3,10 @@
 //!
 //! `game/assets/data/weapon_models.ron` maps each gun and each gameplay attachment id to its GLB and socket.
 //! Every file is loaded once at start-up. A gun is its base scene; once that is in the world, each chosen part
-//! (optic, stock, mag, under, side, shield) is spawned as a child of its socket node, found by name. The
-//! nodes' places, read from the loaded files, also give the first-person poses ([`ViewmodelRig`]): the hip
-//! pose from the data, the aimed pose that puts the optic's eye point on the camera, and the muzzle.
+//! (optic, stock, mag, under, side, shield) is spawned as a child of its socket node, found by name; the gun
+//! stays hidden until the last of them is in. The nodes' places, read from the loaded files, also give the
+//! first-person poses ([`ViewmodelRig`]): the hip pose from the data, the aimed pose that puts the optic's eye
+//! point on the camera, and the muzzle.
 //!
 //! Each part is dressed for the game as it spawns, by its node roles: a 1x sight's glass clears and its reticle
 //! glows, the projector's flaps (its ADS_Open clip) and hologram follow the ADS blend, and a part can take a pose
@@ -612,7 +613,9 @@ impl WeaponModels {
     }
 
     /// Spawns a gun under `parent` at `place`: the base scene, then each part on its socket node once the base
-    /// is in the world. First-person guns cast no shadows (they would shade the world from inside the camera).
+    /// is in the world. The gun stays hidden until its last part is in too ([`Assembling`]): a part's scene
+    /// comes in a frame after the base's, and the gun must never show bare. First-person guns cast no shadows
+    /// (they would shade the world from inside the camera).
     pub fn spawn(&self, commands: &mut Commands, parent: Entity, key: &GunKey, place: Transform, first_person: bool) {
         let gun = &self.data.guns[key.gun];
         let Some(base) = self.files.get(&gun.base).map(|f| f.scene.clone()) else { return };
@@ -637,20 +640,68 @@ impl WeaponModels {
                          tree: Query<&Children>,
                          names: Query<&Name>,
                          meshes: Query<(), With<Mesh3d>>| {
-            for node in tree.iter_descendants(ready.entity) {
+            let gun = ready.entity;
+            let mut pending = 0;
+            for node in tree.iter_descendants(gun) {
                 if first_person && meshes.contains(node) {
                     commands.entity(node).insert(NotShadowCaster);
                 }
                 let Ok(name) = names.get(node) else { continue };
                 for (socket, scene, d) in parts.iter().filter(|(s, ..)| s == name.as_str()) {
+                    pending += 1;
                     commands
-                        .spawn((Name::new(socket.clone()), WorldAssetRoot(scene.clone()), ChildOf(node)))
-                        .observe(dress(d.clone()));
+                        .spawn((Name::new(socket.clone()), WorldAssetRoot(scene.clone()), GunPart(gun), ChildOf(node)))
+                        .observe(dress(d.clone()))
+                        .observe(part_ready);
                 }
             }
+            // Only the parts whose socket the base has: one it lacks must not keep the gun hidden.
+            if pending == 0 {
+                commands.entity(gun).queue(show_gun);
+            } else {
+                commands.entity(gun).insert(Assembling(pending));
+            }
         };
-        commands.spawn((Name::new(gun.weapon.clone()), WorldAssetRoot(base), place, ChildOf(parent))).observe(snap);
+        commands
+            .spawn((
+                Name::new(gun.weapon.clone()),
+                WorldAssetRoot(base),
+                place,
+                Visibility::Hidden,
+                Assembling(0),
+                ChildOf(parent),
+            ))
+            .observe(snap);
     }
+}
+
+/// A gun being put together, hidden until its parts still loading (the count) are in the world (see
+/// [`WeaponModels::spawn`]).
+#[derive(Component, Debug)]
+pub struct Assembling(usize);
+
+/// A part of a gun (its root entity) on its way into the world.
+#[derive(Component)]
+struct GunPart(Entity);
+
+/// A part is in the world: its gun shows once its last part is.
+fn part_ready(
+    ready: On<WorldInstanceReady>,
+    parts: Query<&GunPart>,
+    mut guns: Query<&mut Assembling>,
+    mut commands: Commands,
+) {
+    let Ok(&GunPart(gun)) = parts.get(ready.entity) else { return };
+    let Ok(mut assembling) = guns.get_mut(gun) else { return };
+    assembling.0 = assembling.0.saturating_sub(1);
+    if assembling.0 == 0 {
+        commands.entity(gun).queue(show_gun);
+    }
+}
+
+/// The gun is complete: it shows.
+fn show_gun(mut gun: EntityWorldMut) {
+    gun.remove::<Assembling>().insert(Visibility::Inherited);
 }
 
 // ---------------------------------------------------------------------------------------------- scope view
@@ -1127,6 +1178,78 @@ mod tests {
         let (deployed, folded) = (feet(&Layout::from_nodes(&nodes)), feet(&Layout::from_nodes(&folded)));
         assert!(deployed.y < -0.15, "exported deployed: {deployed}");
         assert!(folded.y > -0.06 && folded.z > 0.1, "folded up and forward, along the barrel: {folded}");
+    }
+
+    /// A scene of named nodes: the first is the root, the rest its children.
+    fn named_scene(app: &mut App, names: &[&str]) -> Handle<WorldAsset> {
+        let mut world = World::new();
+        let root = world.spawn(Name::new(names[0].to_string())).id();
+        for n in &names[1..] {
+            world.spawn((Name::new(n.to_string()), ChildOf(root)));
+        }
+        app.world_mut().resource_mut::<Assets<WorldAsset>>().add(WorldAsset::new(world))
+    }
+
+    /// A gun stays hidden until each of its parts is in the world, then shows (review finding: a part's scene
+    /// comes in a frame after the base's, so every rebuild drew the bare gun for a frame). A part whose socket
+    /// the base lacks never comes and must not keep the gun hidden.
+    #[test]
+    fn a_gun_shows_only_once_its_parts_are_on() {
+        use bevy::world_serialization::WorldSerializationPlugin;
+        let mut app = App::new();
+        app.add_plugins((AssetPlugin::default(), WorldSerializationPlugin))
+            .register_type::<Name>()
+            .register_type::<ChildOf>()
+            .register_type::<Children>()
+            .init_asset::<StandardMaterial>()
+            .init_resource::<Dressed>();
+        let data = ModelData::embedded().clone();
+        let gun = data.guns.iter().position(|g| g.weapon == "ar7_mako").unwrap();
+        let parts = ["mag_30", "mako_stock_standard", "grip_vertical"].map(|id| data.part(id).unwrap());
+        // The base has the magazine's and stock's sockets, not the grip's.
+        let mut files = HashMap::new();
+        let base = named_scene(&mut app, &["mako", "MAKO_SOCKET_Mag", "MAKO_SOCKET_Stock"]);
+        files.insert(data.guns[gun].base.clone(), base);
+        for &i in &parts {
+            files.insert(data.parts[i].file.clone(), named_scene(&mut app, &[&data.parts[i].id, "mesh"]));
+        }
+        let files = files
+            .into_iter()
+            .map(|(path, scene)| {
+                (path, ModelFile { gltf: Handle::default(), scene, layout: None, clip: None, failed: false })
+            })
+            .collect();
+        let models = WeaponModels { data, files };
+        let holder = app.world_mut().spawn((Transform::default(), Visibility::default())).id();
+        models.spawn(
+            &mut app.world_mut().commands(),
+            holder,
+            &GunKey { gun, parts: parts.to_vec() },
+            Transform::IDENTITY,
+            false,
+        );
+        app.world_mut().flush();
+
+        let (mut bare_frames, mut shown) = (0, false);
+        for frame in 0..8 {
+            app.update();
+            let world = app.world_mut();
+            let root = world.get::<Children>(holder).expect("the gun")[0];
+            let visible = world.get::<Visibility>(root) == Some(&Visibility::Inherited);
+            let mut part_roots = world.query_filtered::<Entity, With<GunPart>>();
+            let part_roots: Vec<Entity> = part_roots.iter(world).collect();
+            let parts_in = part_roots.len() == 2 && part_roots.iter().all(|&p| world.get::<Children>(p).is_some());
+            let base_in = world.get::<Children>(root).is_some();
+            if visible {
+                assert!(parts_in, "frame {frame}: shown before its parts are on");
+                assert!(world.get::<Assembling>(root).is_none());
+                shown = true;
+            } else if base_in && !parts_in {
+                bare_frames += 1;
+            }
+        }
+        assert!(shown, "the complete gun shows");
+        assert!(bare_frames > 0, "the base alone was in the world for a frame, hidden");
     }
 
     /// Every scope picture marks the aim point: a mark centred on the window's middle.

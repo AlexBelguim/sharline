@@ -27,10 +27,15 @@
     ),
     // Degrees of yaw per mouse count in the games the import box converts from (a factual conversion).
     import_yaw: (valorant: 0.07, cs2: 0.022, apex: 0.022, overwatch2: 0.0066),
-    // One ADS row per group of optics (attachments.ron ids). Multipliers are saved per optic id, so new
-    // optics only need a row here.
+    // One ADS row per group of optics (attachments.ron ids); every optic needs a row. Multipliers are saved per
+    // optic id, so new optics only need a row here: one added to a row takes the row's value from a player's
+    // older settings file. The label names every optic of its row.
     optic_rows: [
-        (label: "Holo / red dot · 1.25×", optics: ["optic_holo", "optic_reddot", "optic_projector"]),
+        (
+            label: "Holo / red dot / projector",
+            sub: Some("1× sights, zoom 1.15–1.25×"),
+            optics: ["optic_holo", "optic_reddot", "optic_projector"],
+        ),
         (label: "3× prism", optics: ["optic_3x"]),
         (label: "Thermal 4×", optics: ["optic_thermal"]),
         (label: "Sniper 6× / 12×", sub: Some("Per zoom step, same feel at every step"), optics: ["optic_sniper"]),

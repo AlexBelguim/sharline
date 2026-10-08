@@ -42,7 +42,7 @@ impl Plugin for SettingsScreenPlugin {
     fn build(&self, app: &mut App) {
         let data = load_data();
         let mut settings: Settings = user_config::load_or_default(FILE);
-        settings.complete(&data.defaults);
+        settings.complete(&data);
         let on_top = || screen_on_top(Screen::Settings(SettingsTab::Gameplay));
         app.insert_resource(data)
             .insert_resource(settings)

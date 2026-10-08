@@ -650,9 +650,16 @@ impl Settings {
         self.last_tab = tab;
     }
 
-    /// Fill what an older settings file lacks.
-    pub fn complete(&mut self, defaults: &Settings) {
-        self.keybinds.fill_missing(&defaults.keybinds);
+    /// Fill what an older settings file lacks: actions added to the key map since, and the ADS multiplier of an
+    /// optic added to an ADS row since (it takes the value the row shows, saved for the row's other optics).
+    pub fn complete(&mut self, data: &SettingsData) {
+        self.keybinds.fill_missing(&data.defaults.keybinds);
+        for row in &data.optic_rows {
+            let Some(v) = row.optics.iter().find_map(|o| self.mouse.optic_mult.get(o).copied()) else { continue };
+            for o in &row.optics {
+                self.mouse.optic_mult.entry(o.clone()).or_insert(v);
+            }
+        }
     }
 }
 
@@ -828,6 +835,35 @@ mod tests {
         assert_eq!(partial.mouse.dpi, 1600);
         assert_eq!(partial.mouse.cm_per_360, Settings::default().mouse.cm_per_360);
         assert_eq!(partial.video, Settings::default().video);
+    }
+
+    /// The projector joined the holo / red dot ADS row after players had saved that row: an older file's value
+    /// reaches it, as the row shows it (review finding: it stayed at 1.00 while the row read 0.85). Every optic
+    /// has a row, and the row's label names the projector.
+    #[test]
+    fn an_optic_added_to_a_row_takes_the_rows_saved_multiplier() {
+        let d = embedded();
+        let row = d.optic_rows.iter().find(|r| r.optics.iter().any(|o| o == "optic_projector")).unwrap();
+        assert!(row.optics.iter().any(|o| o == "optic_holo") && row.optics.iter().any(|o| o == "optic_reddot"));
+        assert!(row.label.to_lowercase().contains("projector"), "{}", row.label);
+        let game = vetf_sim::GameData::embedded();
+        for a in game.attachments.attachments.iter().filter(|a| a.cat == vetf_sim::data::AttachmentCategory::Optic) {
+            assert!(d.optic_rows.iter().any(|r| r.optics.contains(&a.id)), "{} has an ADS row", a.id);
+        }
+
+        let old = r#"(mouse: (optic_mult: {"optic_holo": 0.85, "optic_reddot": 0.85, "optic_3x": 0.9}))"#;
+        let mut s: Settings = ron::from_str(old).unwrap();
+        assert_eq!(s.optic_mult("optic_projector"), 1.0, "the file itself has no projector value");
+        s.complete(d);
+        assert_eq!(s.optic_mult("optic_projector"), 0.85, "the holo / red dot value");
+        assert_eq!((s.optic_mult("optic_holo"), s.optic_mult("optic_3x")), (0.85, 0.9), "saved values stay");
+        assert_eq!(s.optic_mult("optic_thermal"), 1.0, "a row never set stays at the default");
+        assert!(!s.mouse.optic_mult.contains_key("optic_thermal"));
+        // a value saved for the projector itself wins
+        let mut s: Settings =
+            ron::from_str(r#"(mouse: (optic_mult: {"optic_holo": 0.85, "optic_projector": 1.1}))"#).unwrap();
+        s.complete(d);
+        assert_eq!((s.optic_mult("optic_projector"), s.optic_mult("optic_reddot")), (1.1, 0.85));
     }
 
     #[test]
