@@ -696,7 +696,7 @@ fn receive_feedback(
     }
     for mut rx in &mut kills {
         for k in rx.receive() {
-            debug!("kill feed: {:?} -> {:x}", k.killer, k.victim);
+            info!("kill feed: {:?} -> {:x}", k.killer, k.victim);
             let killer = k.killer.map(name).unwrap_or_default();
             feedback.kills.push((killer, name(k.victim), k.zone == Some(vetf_sim::Zone::Head), 6.0));
         }
