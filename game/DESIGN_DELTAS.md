@@ -261,7 +261,8 @@ Skipped in the sync test by `recoil_and_bloom_round_2()`; pinned by the tests in
   short if aim is let go (at most 1-2 ticks sooner for a hip shot with the fastest-aiming parts; accepted).
 - **Trigger on the run:** an empty gun clicks on the pull itself; a pull during a bolt cycle is dropped, as standing
   still. **Slides:** `slide.min_entry_speed` 4.0 scales with the halo weight and the gear (not items or wounds), so
-  every loadout slides from its own jog. **ADS MOVE** (`ads_move`) is gone from attachments and the loadout; protocol 6.
+  every loadout slides from its own jog. **ADS MOVE** (`ads_move`) is gone from attachments and the loadout;
+  protocol 7, together with section 13's agent.
 - **Balance tests:** the aimed Mako spray at 15 m used the 0.08° `ads_still` cone; it is now exact standing still.
   New: `aimed_shots_on_the_move_hit_a_head` (real hitboxes, 512 seeds, every moving state, full bloom).
 - **Design follow-up (local session):** in `weapons.slice.json` drop `hip_still`, `ads_still`, `bloom_per_shot_ads`,
@@ -297,9 +298,9 @@ Skipped in the sync test by `recoil_and_bloom_round_2()`; pinned by the tests in
   - **No agent pick:** these modes have no abilities (everyone keeps the jetpack). The host deals every player a
     random agent from `agents.ron` when the match goes live: one roll per player from the match's seed (the tick
     it went live) and the player id, kept for the whole match, dealt to late joiners on arrival, dealt again on
-    RESTART MATCH and taken back in the lobby. `PlayerAgent` is replicated (`PROTOCOL_VERSION` 6). The agent is
-    cosmetic today: it shows on the scoreboard's and the lobby's badge (`?` until dealt) and on the ESC card
-    (`Random agent` before the start). The gun range keeps the agent pick.
+    RESTART MATCH and taken back in the lobby. `PlayerAgent` is replicated (`PROTOCOL_VERSION` 7, together with
+    section 12's ADS MOVE removal). The agent is cosmetic today: it shows on the scoreboard's and the lobby's badge
+    (`?` until dealt) and on the ESC card (`Random agent` before the start). The gun range keeps the agent pick.
 - **The point table** (all in data: armor in `deathmatch_loadout.armor`, magazines in `mag_points`, ammo is
   `gear_cost` in `ammo.ron`, the total is `gear_budget`):
   - Total **8** in both modes.

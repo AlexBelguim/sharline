@@ -19,7 +19,7 @@ use vetf_sim::player::{Loadout, Wounds};
 use vetf_sim::weapon::WeaponState;
 
 /// Bumped whenever the protocol changes; part of the netcode protocol id, so old builds cannot connect.
-pub const PROTOCOL_VERSION: u64 = 6;
+pub const PROTOCOL_VERSION: u64 = 7;
 
 /// netcode.io protocol id shared by host and clients.
 pub fn protocol_id() -> u64 {
@@ -624,7 +624,10 @@ mod tests {
         roundtrip(&PlayerAgent(Some("solace".into())));
         roundtrip(&PlayerAgent(None));
         assert_eq!(PlayerAgent::default(), PlayerAgent(None));
-        assert_eq!(PROTOCOL_VERSION, 6, "the agent component and the deathmatch picks changed the wire");
+        assert_eq!(
+            PROTOCOL_VERSION, 7,
+            "the agent and the deathmatch picks took 6, and so did dropping ADS MOVE on its own"
+        );
     }
 
     #[test]

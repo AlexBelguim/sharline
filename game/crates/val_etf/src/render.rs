@@ -26,7 +26,6 @@ use std::collections::HashMap;
 use std::f32::consts::{FRAC_PI_2, PI, TAU};
 use vetf_net::*;
 use vetf_sim::data::{WeaponClass, WeightClass};
-use vetf_sim::level::Team;
 use vetf_sim::movement::Stance;
 use vetf_sim::movement::collision::{Brush, Look};
 use vetf_sim::{Zone, ZoneTable};
@@ -448,16 +447,6 @@ pub fn tier_color(tier: u8) -> LinearRgba {
         3 => LinearRgba::rgb(0.55, 0.15, 1.0),
         4 => LinearRgba::rgb(1.0, 0.62, 0.08),
         _ => LinearRgba::rgb(0.02, 0.02, 0.025),
-    }
-}
-
-/// The map's team colours (the team-zone markings). Never a player's body: bodies tell nothing about their
-/// side, teammates glow instead (`friend_foe`).
-pub fn team_color(team: Option<Team>) -> Color {
-    match team {
-        Some(Team::A) => Color::srgb(0.0, 0.70, 0.62),
-        Some(Team::B) => Color::srgb(1.0, 0.36, 0.30),
-        None => Color::srgb(0.75, 0.75, 0.78),
     }
 }
 
@@ -1056,7 +1045,10 @@ mod tests {
     fn a_new_armor_pick_rebuilds_the_halo() {
         let mut app = App::new();
         app.add_plugins(MinimalPlugins);
-        app.init_resource::<Assets<Mesh>>().init_resource::<Assets<StandardMaterial>>();
+        app.init_resource::<Assets<Mesh>>()
+            .init_resource::<Assets<StandardMaterial>>()
+            .init_resource::<Assets<friend_foe::BodyMaterial>>()
+            .insert_resource(friend_foe::FriendFoeData::embedded().clone());
         app.add_systems(Update, (attach_player_visuals, sync_halos).chain());
         let data = vetf_sim::GameData::embedded();
         let mut loadout = vetf_sim::player::Loadout::default_for(&data, vetf_sim::data::Mode::Tdm);
