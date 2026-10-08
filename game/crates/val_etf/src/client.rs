@@ -121,7 +121,7 @@ pub struct Feedback {
     pub kills: Vec<(String, String, bool, f32)>,
     /// Tracers in flight: (from, to, seconds since the shot, own shot)
     pub tracers: Vec<(Vec3, Vec3, f32, bool)>,
-    /// New bullet impacts on the level (point, surface normal); `render` turns them into decals.
+    /// New bullet impacts on the level (point, surface normal); `impacts` turns them into marks and debris.
     pub impacts: Vec<(Vec3, Vec3)>,
 }
 

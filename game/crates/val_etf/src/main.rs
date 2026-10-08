@@ -12,6 +12,7 @@ mod demo_mode;
 mod esc_menu;
 mod first_run;
 mod hud;
+mod impacts;
 mod invite;
 mod iroh_transport;
 mod loadout;
@@ -127,6 +128,7 @@ fn main() -> AppExit {
         loadout::LoadoutScreenPlugin,
         settings::SettingsScreenPlugin,
         esc_menu::EscMenuPlugin,
+        impacts::ImpactsPlugin,
     ));
     app.add_systems(Update, place_window);
     app.add_systems(Startup, || info!("assets from {}", config::assets_root().display()));
