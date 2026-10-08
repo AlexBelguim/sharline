@@ -1953,12 +1953,28 @@ mod tests {
         // first sight of a player already holding FIRE: no click until a new pull
         let mut dry = DryFire::seen(held);
         assert!(!dry.remote(held, false, false));
+
+        // The simulation may flag a pull made while the gun is still coming up on that pull's own tick (rather
+        // than once the gun is up): one click then, and none when the gun comes up with an automatic's FIRE still
+        // held; everyone near hears that pull as it is made too.
+        let rising = TriggerTick { auto: true, empty_ready: false, ..held };
+        let raised = TriggerTick { auto: true, ..held };
+        let mut dry = DryFire::default();
+        assert!(dry.local(&press, rising), "the pull, the gun still coming up");
+        assert!(!(0..20).any(|_| dry.local(&WeaponEvents::default(), rising)));
+        assert!(!(0..20).any(|_| dry.local(&WeaponEvents::default(), raised)), "the gun up, the same pull");
+        assert!(!dry.local(&WeaponEvents::default(), TriggerTick { held: false, ..raised }));
+        assert!(dry.local(&press, rising), "the next pull");
+        let mut theirs = DryFire::default();
+        assert!(!theirs.remote(TriggerTick { held: false, ..rising }, false, false));
+        assert!(theirs.remote(rising, false, false), "their pull, the gun still coming up");
+        assert!(!(0..20).any(|_| theirs.remote(raised, false, false)), "the gun up, the same pull");
     }
 
     /// The finding of the review of round 1: a quick trigger tap while running, the gun still down from the
-    /// sprint and the magazine empty, clicked for nobody (the simulation clicks when the gun is up, by when the
-    /// tap was over). Every gun, every mode, taps of one tick up to half a second: one click each, for the
-    /// shooter and for everyone near them.
+    /// sprint and the magazine empty, clicked for nobody (the simulation flagged the dry pull once the gun was up,
+    /// by when the tap was over). Every gun, every mode, taps of one tick up to half a second: one click each, for
+    /// the shooter and for everyone near them, whether the simulation flags the pull then or on the pull itself.
     #[test]
     fn a_quick_pull_on_the_run_clicks_once() {
         for (gun, mode, cap) in guns_and_modes() {
