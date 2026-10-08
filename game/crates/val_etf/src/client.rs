@@ -681,6 +681,7 @@ fn receive_feedback(
     players: Query<(&PlayerId, &PlayerInfo)>,
     level: Option<Res<CurrentLevel>>,
     mut feedback: ResMut<Feedback>,
+    mut sounds: MessageWriter<crate::sound::FeedbackSound>,
 ) {
     let name = |id: u64| {
         players.iter().find(|(p, _)| p.0 == id).map(|(_, i)| i.name.clone()).unwrap_or_else(|| format!("{id:x}"))
@@ -688,12 +689,14 @@ fn receive_feedback(
     for mut rx in &mut hits {
         for h in rx.receive() {
             debug!("hit confirmed: {:?} {:?}", h.zone, h.kind);
+            sounds.write(crate::sound::FeedbackSound::Hit(h.clone()));
             feedback.hits.push(h);
         }
     }
     for mut rx in &mut damage {
         for d in rx.receive() {
             feedback.damage.push((d.from, 1.2));
+            sounds.write(crate::sound::FeedbackSound::Damage(d));
         }
     }
     for mut rx in &mut kills {

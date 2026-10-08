@@ -1,0 +1,223 @@
+// Sounds (src/sound.rs): every sound id the game plays, the files it picks from, and how it plays.
+//
+// Files are under game/assets/audio/ (OGG Vorbis), named after the id: `<category>/<name>.ogg`, or
+// `<category>/<name>_<n>.ogg` for variations (one to three per sound). The placeholders come from
+// game/tools/make_placeholder_sounds.py. To put a real sound in (e.g. a MiniMax H3 pick from
+// assets/audio/h3_test/<category>/<name>_<n>.ogg): copy the picked files to game/assets/audio/<category>/ under
+// the same names, list them in that id's `files` below, and delete the placeholder files no longer listed. The
+// test `sound::tests::the_data_file_parses_and_every_id_and_file_exists` checks every listed file exists.
+//
+// Per sound:
+//   files           variations; each play picks one at random (never the same twice in a row)
+//   category        the AUDIO tab slider that scales it: Weapons, Movement, Abilities, Hits, Interface, Music,
+//                   or Ambient (MASTER only: the mockup has no ambience slider)
+//   volume          linear gain, 0..1 (before the sliders)
+//   pitch           playback rate (1 = as recorded); pitch_jitter: each play varies by up to +/- this fraction
+//   spatial         heard from where it happens (other players); your own sounds are never spatial
+//   ref_distance_m  full volume up to here (spatial only)
+//   max_distance_m  silent from here (spatial only); the fall-off between is quadratic
+//   looped          plays until the game stops it (jetpack, zipline, ambience)
+//   far             (sound, beyond_m): past this distance the far sound plays instead (gunshots)
+(
+    sounds: {
+        // ------------------------------------------------------------------ weapons
+        "weapons/mako_shot": (
+            files: ["weapons/mako_shot_1.ogg", "weapons/mako_shot_2.ogg", "weapons/mako_shot_3.ogg"],
+            category: Weapons, volume: 0.85, pitch_jitter: 0.04,
+            spatial: true, ref_distance_m: 4.0, max_distance_m: 140.0,
+            far: Some((sound: "weapons/shot_distant", beyond_m: 60.0)),
+        ),
+        "weapons/warden_shot": (
+            files: ["weapons/warden_shot_1.ogg", "weapons/warden_shot_2.ogg", "weapons/warden_shot_3.ogg"],
+            category: Weapons, volume: 1.0, pitch_jitter: 0.03,
+            spatial: true, ref_distance_m: 6.0, max_distance_m: 180.0,
+            far: Some((sound: "weapons/shot_distant", beyond_m: 60.0)),
+        ),
+        "weapons/skink_shot": (
+            files: ["weapons/skink_shot_1.ogg", "weapons/skink_shot_2.ogg", "weapons/skink_shot_3.ogg"],
+            category: Weapons, volume: 0.75, pitch_jitter: 0.05,
+            spatial: true, ref_distance_m: 3.0, max_distance_m: 120.0,
+            far: Some((sound: "weapons/shot_distant", beyond_m: 60.0)),
+        ),
+        // Any gun from far away. Spatial from 60 m (the near shots hand over there) to 400 m.
+        "weapons/shot_distant": (
+            files: ["weapons/shot_distant_1.ogg", "weapons/shot_distant_2.ogg"],
+            category: Weapons, volume: 0.7, pitch_jitter: 0.06,
+            spatial: true, ref_distance_m: 60.0, max_distance_m: 400.0,
+        ),
+        // The trigger pulled on an empty magazine: once per pull, every gun. Other players' are heard nearby.
+        "weapons/dry_fire": (
+            files: ["weapons/dry_fire.ogg"], category: Weapons, volume: 0.8, pitch_jitter: 0.03,
+            spatial: true, ref_distance_m: 1.0, max_distance_m: 8.0,
+        ),
+        // The low-mag cue (AUDIO > LOW-MAG CUE, off by default): a lighter trigger click under each shot while
+        // the magazine would check ALMOST EMPTY. Approximate by design, like a mag check: never a count.
+        "weapons/low_mag_click": (
+            files: ["weapons/dry_fire.ogg"], category: Weapons, volume: 0.35, pitch: 1.3, pitch_jitter: 0.03,
+        ),
+        "weapons/mag_out": (
+            files: ["weapons/mag_out.ogg"], category: Weapons, volume: 0.8, pitch_jitter: 0.04,
+            spatial: true, ref_distance_m: 1.5, max_distance_m: 18.0,
+        ),
+        "weapons/mag_in": (
+            files: ["weapons/mag_in.ogg"], category: Weapons, volume: 0.85, pitch_jitter: 0.04,
+            spatial: true, ref_distance_m: 1.5, max_distance_m: 18.0,
+        ),
+        "weapons/bolt_cycle": (
+            files: ["weapons/bolt_cycle.ogg"], category: Weapons, volume: 0.8, pitch_jitter: 0.03,
+            spatial: true, ref_distance_m: 1.5, max_distance_m: 20.0,
+        ),
+        "weapons/fire_mode": (
+            files: ["weapons/fire_mode.ogg"], category: Weapons, volume: 0.7,
+            spatial: true, ref_distance_m: 1.0, max_distance_m: 6.0,
+        ),
+        "weapons/mag_check": (
+            files: ["weapons/mag_check.ogg"], category: Weapons, volume: 0.6, pitch_jitter: 0.03,
+            spatial: true, ref_distance_m: 1.0, max_distance_m: 8.0,
+        ),
+        "weapons/equip": (
+            files: ["weapons/equip.ogg"], category: Weapons, volume: 0.6, pitch_jitter: 0.04,
+            spatial: true, ref_distance_m: 1.5, max_distance_m: 12.0,
+        ),
+        // ------------------------------------------------------------------ movement
+        "movement/step_concrete": (
+            files: ["movement/step_concrete_1.ogg", "movement/step_concrete_2.ogg", "movement/step_concrete_3.ogg"],
+            category: Movement, volume: 0.55, pitch_jitter: 0.06,
+            spatial: true, ref_distance_m: 2.0, max_distance_m: 32.0,
+        ),
+        "movement/step_grass": (
+            files: ["movement/step_grass_1.ogg", "movement/step_grass_2.ogg", "movement/step_grass_3.ogg"],
+            category: Movement, volume: 0.45, pitch_jitter: 0.06,
+            spatial: true, ref_distance_m: 2.0, max_distance_m: 26.0,
+        ),
+        "movement/step_gravel": (
+            files: ["movement/step_gravel_1.ogg", "movement/step_gravel_2.ogg", "movement/step_gravel_3.ogg"],
+            category: Movement, volume: 0.6, pitch_jitter: 0.06,
+            spatial: true, ref_distance_m: 2.0, max_distance_m: 36.0,
+        ),
+        "movement/step_wood": (
+            files: ["movement/step_wood_1.ogg", "movement/step_wood_2.ogg", "movement/step_wood_3.ogg"],
+            category: Movement, volume: 0.55, pitch_jitter: 0.06,
+            spatial: true, ref_distance_m: 2.0, max_distance_m: 32.0,
+        ),
+        "movement/jump": (
+            files: ["movement/jump.ogg"], category: Movement, volume: 0.55, pitch_jitter: 0.06,
+            spatial: true, ref_distance_m: 2.0, max_distance_m: 28.0,
+        ),
+        "movement/land": (
+            files: ["movement/land.ogg"], category: Movement, volume: 0.7, pitch_jitter: 0.06,
+            spatial: true, ref_distance_m: 2.0, max_distance_m: 34.0,
+        ),
+        "movement/slide": (
+            files: ["movement/slide.ogg"], category: Movement, volume: 0.6, pitch_jitter: 0.05,
+            spatial: true, ref_distance_m: 2.0, max_distance_m: 30.0,
+        ),
+        "movement/jetpack": (
+            files: ["movement/jetpack.ogg"], category: Movement, volume: 0.6, looped: true,
+            spatial: true, ref_distance_m: 3.0, max_distance_m: 60.0,
+        ),
+        "movement/zipline": (
+            files: ["movement/zipline.ogg"], category: Movement, volume: 0.5, looped: true,
+            spatial: true, ref_distance_m: 3.0, max_distance_m: 45.0,
+        ),
+        // ------------------------------------------------------------------ hits (you hear your own)
+        "combat/hit_flesh": (files: ["combat/hit_flesh.ogg"], category: Hits, volume: 0.7, pitch_jitter: 0.04),
+        "combat/hit_head": (files: ["combat/hit_head.ogg"], category: Hits, volume: 0.8, pitch_jitter: 0.02),
+        // Pitched up per halo tier by `shield_hit_pitch` below (the jitter goes on top).
+        "combat/shield_hit": (files: ["combat/shield_hit.ogg"], category: Hits, volume: 0.6, pitch_jitter: 0.02),
+        "combat/shield_break": (files: ["combat/shield_break.ogg"], category: Hits, volume: 0.75, pitch_jitter: 0.03),
+        "combat/kill": (files: ["combat/kill.ogg"], category: Hits, volume: 0.75),
+        "combat/damage_taken": (files: ["combat/damage_taken.ogg"], category: Hits, volume: 0.8, pitch_jitter: 0.05),
+        // ------------------------------------------------------------------ items (ABILITIES & HALOS slider)
+        "items/heal": (
+            files: ["items/heal.ogg"], category: Abilities, volume: 0.7, pitch_jitter: 0.03,
+            spatial: true, ref_distance_m: 1.5, max_distance_m: 14.0,
+        ),
+        // ------------------------------------------------------------------ interface
+        "ui/click": (files: ["ui/click.ogg"], category: Interface, volume: 0.7, pitch_jitter: 0.02),
+        "ui/hover": (files: ["ui/hover.ogg"], category: Interface, volume: 0.5, pitch_jitter: 0.03),
+        "ui/confirm": (files: ["ui/confirm.ogg"], category: Interface, volume: 0.7),
+        "ui/back": (files: ["ui/back.ogg"], category: Interface, volume: 0.7),
+        // ------------------------------------------------------------------ ambience (one loop per map)
+        "ambient/showhome_loop": (files: ["ambient/showhome_loop.ogg"], category: Ambient, volume: 0.5, looped: true),
+        "ambient/range_loop": (files: ["ambient/range_loop.ogg"], category: Ambient, volume: 0.45, looped: true),
+    },
+
+    // Shot sounds per weapon id (weapons.ron). A gun without a row uses `default_weapon`. A bolt gun works its
+    // bolt `bolt_delay_s` after each shot, and after a reload from empty when `bolt_after_empty_reload`.
+    weapons: {
+        "ar7_mako": (shot: "weapons/mako_shot"),
+        "vk50_warden": (
+            shot: "weapons/warden_shot", bolt: Some("weapons/bolt_cycle"), bolt_delay_s: 0.35,
+            bolt_after_empty_reload: true,
+        ),
+        "sk9_skink": (shot: "weapons/skink_shot"),
+    },
+    default_weapon: (shot: "weapons/mako_shot"),
+    // Another player's shots that arrive in one frame (a long frame, a late update) play at most this many
+    // times, spaced by the gun's fire interval.
+    max_heard_shots_per_frame: 3,
+
+    // Footsteps follow the speed over the ground, never the keys. The surface is the look of the floor under
+    // the feet: Ground is grass, Gravel gravel, Floor wood, anything else concrete. Below `silent_below_mps`
+    // there are no steps: walking (2.6 m/s) and crouching (2.4 m/s) are silent; the slowest run (backwards, with
+    // a Heavy halo and the Warden: 3.3 m/s) is heard. Steps come at `cadence_base_hz + cadence_per_mps * speed` per second (at
+    // most `cadence_max_hz`): 2.6/s jogging, 3.3/s sprinting. Their volume rises from `quiet_volume` just above
+    // the silent speed to `loud_volume` at `loud_mps` (sprint). Your own steps play at `own_volume`.
+    footsteps: (
+        concrete: "movement/step_concrete",
+        grass: "movement/step_grass",
+        gravel: "movement/step_gravel",
+        wood: "movement/step_wood",
+        silent_below_mps: 3.0,
+        cadence_base_hz: 1.2,
+        cadence_per_mps: 0.3,
+        cadence_max_hz: 3.6,
+        // Starting to run: the first step comes after (1 - this) of a step.
+        first_step_phase: 0.6,
+        quiet_volume: 0.7,
+        loud_volume: 1.15,
+        loud_mps: 7.0,
+        own_volume: 0.7,
+    ),
+
+    // Jumps, landings and mantles. Leaving the ground upward faster than `jump_min_up_mps` is a jump (walking
+    // off a ledge is not); touching down after at least `land_min_air_s` in the air is a landing. A mantle
+    // plays the jump sound at `mantle_volume`.
+    moves: (jump_min_up_mps: 1.5, land_min_air_s: 0.25, mantle_volume: 0.6),
+
+    // The ambience loop per map (the level name), while in a match.
+    ambience: {
+        "showhome": "ambient/showhome_loop",
+        "range": "ambient/range_loop",
+    },
+
+    // The shield tink's pitch per halo tier of the arc that was hit, T1..T4 (about two semitones a tier).
+    shield_hit_pitch: (1.0, 1.12, 1.26, 1.41),
+    // When your own halo takes a hit, its tink plays under the damage sound at this volume.
+    own_shield_hit_volume: 0.6,
+
+    // Menu and hub-screen buttons: hover ticks at most every `hover_gap_s`. A press plays ui/back for a button
+    // whose label starts with one of `back_words`, ui/confirm for a primary button or one whose label starts
+    // with one of `confirm_words`, else ui/click. A hub screen closing (Esc) plays ui/back.
+    // Settings > AUDIO: once a volume slider has rested `preview_rest_s` after a change, its sample plays at the
+    // new level. `previews` in the tab's order: master, weapons, movement, abilities, hits, interface, music.
+    ui: (
+        hover_gap_s: 0.05,
+        back_words: ["BACK", "CANCEL", "CLOSE", "LEAVE", "QUIT", "EXIT", "NO", "STOP"],
+        confirm_words: ["CONFIRM", "READY", "START", "APPLY", "DONE", "SAVE", "JOIN", "HOST", "CREATE", "PLAY", "YES", "OK"],
+        preview_rest_s: 0.35,
+        previews: (
+            Some("ui/confirm"),
+            Some("weapons/mako_shot"),
+            Some("movement/step_concrete"),
+            Some("items/heal"),
+            Some("combat/hit_flesh"),
+            Some("ui/click"),
+            None,
+        ),
+    ),
+
+    // Head width for left/right panning of spatial sounds (metres).
+    ear_gap_m: 0.3,
+)

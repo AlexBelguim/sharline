@@ -1,7 +1,8 @@
 //! Settings ▸ AUDIO (mockup 08d): the volume mix as seven meters, the output device and mix, and the gameplay
-//! cues. The game plays no sound yet, so every row saves its value for when it does; the output device and the
-//! mix are dimmed, because Bevy plays on the system default device only and there is no compressor yet. The
-//! low-mag cue is approximate by design: it never gives away an exact count.
+//! cues. `sound.rs` applies them as they change: MASTER, the category sliders (a slider coming to rest plays a
+//! sample of its category), SHIELD-HIT SOUND, HEADSHOT SOUND, LOW-MAG CUE and PLAY IN BACKGROUND. The output
+//! device and the mix are dimmed, because Bevy plays on the system default device only and there is no
+//! compressor yet. The low-mag cue is approximate by design: it never gives away an exact count.
 
 use super::super::controls::{
     Ch, FieldKind, Kit, Num, Tg, card, dropdown, field, glyph_text, h2, note, row, seg, slider, switch,

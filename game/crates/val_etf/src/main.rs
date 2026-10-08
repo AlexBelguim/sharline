@@ -26,6 +26,7 @@ mod screens;
 mod server;
 mod settings;
 mod shared;
+mod sound;
 mod ui_kit;
 mod user_config;
 mod video;
@@ -127,6 +128,7 @@ fn main() -> AppExit {
         loadout::LoadoutScreenPlugin,
         settings::SettingsScreenPlugin,
         esc_menu::EscMenuPlugin,
+        sound::SoundPlugin,
     ));
     app.add_systems(Update, place_window);
     app.add_systems(Startup, || info!("assets from {}", config::assets_root().display()));

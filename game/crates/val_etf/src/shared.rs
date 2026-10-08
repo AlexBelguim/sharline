@@ -5,7 +5,7 @@ use bevy::prelude::*;
 use lightyear::prelude::input::native::{ActionState, InputMarker};
 use lightyear::prelude::*;
 use vetf_net::{PlayerId, PlayerInput, PlayerItems, PlayerLoadout, PlayerMove, PlayerWeapon, Vitals};
-use vetf_sim::player;
+use vetf_sim::player::{self, PlayerEvents};
 use vetf_sim::weapon::Shot;
 
 pub struct SharedPlugin;
@@ -13,6 +13,7 @@ pub struct SharedPlugin;
 impl Plugin for SharedPlugin {
     fn build(&self, app: &mut App) {
         app.add_message::<LocalShot>()
+            .add_message::<LocalPlayerEvents>()
             .add_observer(mark_controlled)
             .add_systems(FixedUpdate, simulate_predicted.in_set(SimSystems::Simulate))
             .configure_sets(FixedUpdate, (SimSystems::Simulate, SimSystems::Resolve).chain());
@@ -35,6 +36,15 @@ pub struct LocalShot {
     pub origin: Vec3,
     pub yaw: f32,
     pub pitch: f32,
+}
+
+/// What one tick did to the local player (outside rollback), and the trigger after it: the sounds of your
+/// own shots, dry fire, reloads, jumps and items (`sound.rs`).
+#[derive(Message, Debug, Clone, Copy)]
+pub struct LocalPlayerEvents {
+    pub player: u64,
+    pub events: PlayerEvents,
+    pub trigger: crate::sound::TriggerTick,
 }
 
 /// The local player's entity gets the input marker, so lightyear sends its inputs.
@@ -65,6 +75,7 @@ fn simulate_predicted(
         (With<Predicted>, Without<Replicate>),
     >,
     mut shots: MessageWriter<LocalShot>,
+    mut events: MessageWriter<LocalPlayerEvents>,
 ) {
     let Some(level) = level else { return };
     for (id, input, mut mv, mut weapon, mut items, loadout, vitals) in &mut players {
@@ -76,6 +87,10 @@ fn simulate_predicted(
         let ev = player::step(&data, &level, &loadout.0, &mut mv.0, &mut weapon.0, &mut items.0, &mut wounds, &frame);
         if let (Some(shot), None) = (ev.weapon.shot, &rollback) {
             shots.write(LocalShot { shot, player: id.0, origin: mv.0.eye_pos(), yaw: frame.yaw, pitch: frame.pitch });
+        }
+        if rollback.is_none() {
+            let trigger = crate::sound::TriggerTick::of(&weapon.0);
+            events.write(LocalPlayerEvents { player: id.0, events: ev, trigger });
         }
     }
 }
