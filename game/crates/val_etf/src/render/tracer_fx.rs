@@ -2,7 +2,8 @@
 //! so they read in daylight. Each is a hot core inside a wider glow, both camera-facing ribbons bright at the
 //! head and fading toward the tail, plus a faint smoke trail left along the path that fades out after the bullet.
 //! Widths are metres but kept between a minimum and a maximum on screen, so a far tracer stays visible and one
-//! at the muzzle never blinds. All tracers are one mesh, rebuilt each frame. Numbers in `feel.ron` ([`TracerFeel`]).
+//! at the muzzle never blinds. All tracers are one mesh, rebuilt each frame (the ribbons face the camera) into
+//! the same buffers: nothing is allocated per frame once they have grown. Numbers in `feel.ron` ([`TracerFeel`]).
 //!
 //! New tracers arrive in [`Feedback::tracers`] (our shots from `client::fire_claims`, others' from the host's shot
 //! fx); this module takes them from there and keeps them while they fly.
@@ -15,7 +16,7 @@ use bevy::asset::RenderAssetUsages;
 use bevy::camera::Hdr;
 use bevy::camera::visibility::NoFrustumCulling;
 use bevy::light::{NotShadowCaster, NotShadowReceiver};
-use bevy::mesh::{Indices, PrimitiveTopology};
+use bevy::mesh::{Indices, PrimitiveTopology, VertexAttributeValues};
 use bevy::prelude::*;
 
 /// At most this many tracers fly at once (the oldest go first).
@@ -92,15 +93,28 @@ pub struct Geometry {
 }
 
 impl Geometry {
+    fn clear(&mut self) {
+        self.positions.clear();
+        self.colors.clear();
+        self.indices.clear();
+    }
+
     /// A camera-facing ribbon from `a` to `b`: width and colour at each end come from `at(0..1)`, cut into pieces
-    /// so the width holds on screen along a long one.
-    fn ribbon(&mut self, view: &View, a: Vec3, b: Vec3, at: impl Fn(f32) -> (f32, f32, f32, [f32; 4])) {
+    /// so the width holds on screen along a long one (`cuts` is scratch space).
+    fn ribbon(
+        &mut self,
+        cuts: &mut Vec<f32>,
+        view: &View,
+        a: Vec3,
+        b: Vec3,
+        at: impl Fn(f32) -> (f32, f32, f32, [f32; 4]),
+    ) {
         let len = a.distance(b);
         if len < 1e-3 {
             return;
         }
         let dir = (b - a) / len;
-        let cuts = cuts(view.eye, a, dir, len);
+        cuts_into(cuts, view.eye, a, dir, len);
         for pair in cuts.windows(2) {
             let (t0, t1) = (pair[0] / len, pair[1] / len);
             let (p0, p1) = (a + dir * pair[0], a + dir * pair[1]);
@@ -124,30 +138,39 @@ impl Geometry {
 
 /// Where to cut a ribbon running `len` metres from `a` along `dir` (metres from `a`, both ends included): from the
 /// point nearest the eye outward, each piece at most half its distance from the eye.
+#[cfg(test)]
 pub fn cuts(eye: Vec3, a: Vec3, dir: Vec3, len: f32) -> Vec<f32> {
+    let mut out = Vec::new();
+    cuts_into(&mut out, eye, a, dir, len);
+    out
+}
+
+/// [`cuts`] into `out` (cleared first), in order from `a`.
+fn cuts_into(out: &mut Vec<f32>, eye: Vec3, a: Vec3, dir: Vec3, len: f32) {
+    out.clear();
     let near = (eye - a).dot(dir).clamp(0.0, len);
     let gap = (a + dir * near).distance(eye);
     let step = |s: f32| (0.5 * (gap * gap + (s - near) * (s - near)).sqrt()).clamp(MIN_PIECE_M, MAX_PIECE_M);
-    let (mut ahead, mut behind) = (vec![near], Vec::new());
+    // behind the nearest point, from it toward `a` (reversed below), then ahead of it
     let mut s = near;
-    while s < len && ahead.len() <= MAX_PIECES / 2 {
-        s = (s + step(s)).min(len);
-        ahead.push(s);
-    }
-    if s < len {
-        ahead.push(len);
-    }
-    s = near;
-    while s > 0.0 && behind.len() < MAX_PIECES / 2 {
+    while s > 0.0 && out.len() < MAX_PIECES / 2 {
         s = (s - step(s)).max(0.0);
-        behind.push(s);
+        out.push(s);
     }
     if s > 0.0 {
-        behind.push(0.0);
+        out.push(0.0);
     }
-    behind.reverse();
-    behind.extend(ahead);
-    behind
+    out.reverse();
+    let behind = out.len();
+    out.push(near);
+    s = near;
+    while s < len && out.len() - behind <= MAX_PIECES / 2 {
+        s = (s + step(s)).min(len);
+        out.push(s);
+    }
+    if s < len {
+        out.push(len);
+    }
 }
 
 fn mul_alpha(c: [f32; 4], a: f32) -> [f32; 4] {
@@ -161,8 +184,16 @@ fn fit_ldr(c: [f32; 4]) -> [f32; 4] {
 }
 
 /// Every tracer's smoke, then glows, then cores (later draws over earlier).
+#[cfg(test)]
 pub fn build(tracers: &[Tracer], f: &TracerFeel, view: &View, hdr: bool) -> Geometry {
     let mut g = Geometry::default();
+    build_into(&mut g, &mut Vec::new(), tracers, f, view, hdr);
+    g
+}
+
+/// [`build`] into `g` (cleared first), with `cuts` as scratch space.
+fn build_into(g: &mut Geometry, cuts: &mut Vec<f32>, tracers: &[Tracer], f: &TracerFeel, view: &View, hdr: bool) {
+    g.clear();
     let color = |c: [f32; 4]| if hdr { c } else { fit_ldr(c) };
     for t in tracers {
         let (dir, (head, _)) = (t.dir(), t.streak(f));
@@ -173,7 +204,7 @@ pub fn build(tracers: &[Tracer], f: &TracerFeel, view: &View, hdr: bool) -> Geom
         if head > start {
             let smoke_age = |d: f32| ((t.age - d / f.speed_mps) / s.life_s.max(1e-3)).clamp(0.0, 1.0);
             let (a, b) = (t.from + dir * start, t.from + dir * head);
-            g.ribbon(view, a, b, |k| {
+            g.ribbon(cuts, view, a, b, |k| {
                 let age = smoke_age(start + (head - start) * k);
                 (s.width_m + s.grow_m * age, s.min_px, s.max_px, mul_alpha(color(s.color), 1.0 - age))
             });
@@ -189,10 +220,11 @@ pub fn build(tracers: &[Tracer], f: &TracerFeel, view: &View, hdr: bool) -> Geom
             let c = color(if t.own { own } else { other });
             let dir = t.dir();
             // Bright at the head, gone at the tail.
-            g.ribbon(view, t.from + dir * tail, t.from + dir * head, |k| (width_m, min_px, max_px, mul_alpha(c, k)));
+            g.ribbon(cuts, view, t.from + dir * tail, t.from + dir * head, |k| {
+                (width_m, min_px, max_px, mul_alpha(c, k))
+            });
         }
     }
-    g
 }
 
 #[derive(Component)]
@@ -229,22 +261,54 @@ pub(crate) fn spawn_tracer_mesh(
     ));
 }
 
-/// The mesh's buffers from `g` (a degenerate triangle when there is nothing, so the buffers are never empty).
+/// The mesh's buffers from `g` (a degenerate triangle when there is nothing, so the buffers are never empty),
+/// written into the buffers the mesh already has: they only grow, nothing is allocated per frame.
 fn write_mesh(mesh: &mut Mesh, g: &Geometry) {
-    let (positions, colors, indices) = if g.indices.is_empty() {
-        (vec![[0.0; 3]; 3], vec![[0.0; 4]; 3], vec![0, 1, 2])
-    } else {
-        (g.positions.clone(), g.colors.clone(), g.indices.clone())
-    };
-    let n = positions.len();
-    mesh.insert_attribute(Mesh::ATTRIBUTE_POSITION, positions);
-    mesh.insert_attribute(Mesh::ATTRIBUTE_NORMAL, vec![[0.0, 1.0, 0.0]; n]);
-    mesh.insert_attribute(Mesh::ATTRIBUTE_UV_0, vec![[0.0, 0.0]; n]);
-    mesh.insert_attribute(Mesh::ATTRIBUTE_COLOR, colors);
-    mesh.insert_indices(Indices::U32(indices));
+    let empty = g.indices.is_empty();
+    let n = if empty { 3 } else { g.positions.len() };
+    match mesh.attribute_mut(Mesh::ATTRIBUTE_POSITION) {
+        Some(VertexAttributeValues::Float32x3(v)) => {
+            v.clear();
+            if empty { v.extend([[0.0; 3]; 3]) } else { v.extend_from_slice(&g.positions) }
+        }
+        _ => {
+            mesh.insert_attribute(Mesh::ATTRIBUTE_POSITION, if empty { vec![[0.0; 3]; 3] } else { g.positions.clone() })
+        }
+    }
+    match mesh.attribute_mut(Mesh::ATTRIBUTE_COLOR) {
+        Some(VertexAttributeValues::Float32x4(v)) => {
+            v.clear();
+            if empty { v.extend([[0.0; 4]; 3]) } else { v.extend_from_slice(&g.colors) }
+        }
+        _ => mesh.insert_attribute(Mesh::ATTRIBUTE_COLOR, if empty { vec![[0.0; 4]; 3] } else { g.colors.clone() }),
+    }
+    // The material is unlit: constant normals and UVs, only resized.
+    match mesh.attribute_mut(Mesh::ATTRIBUTE_NORMAL) {
+        Some(VertexAttributeValues::Float32x3(v)) => v.resize(n, [0.0, 1.0, 0.0]),
+        _ => mesh.insert_attribute(Mesh::ATTRIBUTE_NORMAL, vec![[0.0, 1.0, 0.0]; n]),
+    }
+    match mesh.attribute_mut(Mesh::ATTRIBUTE_UV_0) {
+        Some(VertexAttributeValues::Float32x2(v)) => v.resize(n, [0.0, 0.0]),
+        _ => mesh.insert_attribute(Mesh::ATTRIBUTE_UV_0, vec![[0.0, 0.0]; n]),
+    }
+    match mesh.indices_mut() {
+        Some(Indices::U32(i)) => {
+            i.clear();
+            if empty { i.extend([0, 1, 2]) } else { i.extend_from_slice(&g.indices) }
+        }
+        _ => mesh.insert_indices(Indices::U32(if empty { vec![0, 1, 2] } else { g.indices.clone() })),
+    }
+}
+
+/// Buffers kept from frame to frame: the geometry and a ribbon's cuts.
+#[derive(Default)]
+pub(crate) struct Scratch {
+    geometry: Geometry,
+    cuts: Vec<f32>,
 }
 
 /// Takes the new tracers, ages them, drops the finished ones and rebuilds the mesh for this frame's camera.
+#[allow(clippy::too_many_arguments)]
 pub(crate) fn draw_tracers(
     time: Res<Time>,
     feel: Res<FeelData>,
@@ -253,6 +317,7 @@ pub(crate) fn draw_tracers(
     camera: Query<(&Transform, &Projection, Has<Hdr>), With<ViewCamera>>,
     mut meshes: ResMut<Assets<Mesh>>,
     mut shown: Query<(&Mesh3d, &mut Visibility), With<TracerMesh>>,
+    mut scratch: Local<Scratch>,
 ) {
     let f = &feel.tracers;
     let dt = time.delta_secs();
@@ -267,7 +332,8 @@ pub(crate) fn draw_tracers(
     tracers.0.drain(..extra);
     let Some((cam, projection, hdr)) = camera.iter().next() else { return };
     let view = View::new(cam.translation, vfov_of(projection));
-    let g = build(&tracers.0, f, &view, hdr);
+    let Scratch { geometry: g, cuts } = &mut *scratch;
+    build_into(g, cuts, &tracers.0, f, &view, hdr);
     for (handle, mut vis) in &mut shown {
         let on = !g.indices.is_empty();
         vis.set_if_neq(if on { Visibility::Inherited } else { Visibility::Hidden });
@@ -275,7 +341,7 @@ pub(crate) fn draw_tracers(
             continue;
         }
         if let Some(mut mesh) = meshes.get_mut(&handle.0) {
-            write_mesh(&mut mesh, &g);
+            write_mesh(&mut mesh, g);
         }
     }
 }
@@ -363,6 +429,40 @@ mod tests {
     }
 
     /// The smoke trail fills the path the bullet flew, faded toward the muzzle, and none in front of our own gun.
+    /// Finding tracer-mesh-churn: the mesh is rewritten in its own buffers, every attribute as long as the
+    /// positions, and back to the placeholder triangle when nothing flies.
+    #[test]
+    fn the_mesh_is_rewritten_in_place() {
+        let mut mesh = Mesh::new(PrimitiveTopology::TriangleList, RenderAssetUsages::default());
+        write_mesh(&mut mesh, &Geometry::default());
+        assert_eq!(mesh.count_vertices(), 3);
+        let view = View::new(Vec3::new(5.0, 2.0, 0.0), 70f32.to_radians());
+        let g = build(&[shot(100.0, 0.1, true), shot(40.0, 0.05, false)], &feel(), &view, true);
+        let mut scratch = Geometry::default();
+        build_into(
+            &mut scratch,
+            &mut vec![9.0; 4],
+            &[shot(100.0, 0.1, true), shot(40.0, 0.05, false)],
+            &feel(),
+            &view,
+            true,
+        );
+        assert_eq!(scratch, g, "built into old buffers: the same");
+        for _ in 0..2 {
+            write_mesh(&mut mesh, &g);
+            let n = g.positions.len();
+            assert!(n > 3);
+            assert_eq!(mesh.count_vertices(), n);
+            for a in [Mesh::ATTRIBUTE_NORMAL, Mesh::ATTRIBUTE_UV_0, Mesh::ATTRIBUTE_COLOR] {
+                assert_eq!(mesh.attribute(a).map(|v| v.len()), Some(n), "{a:?}");
+            }
+            assert_eq!(mesh.indices().map(|i| i.len()), Some(g.indices.len()));
+        }
+        write_mesh(&mut mesh, &Geometry::default());
+        assert_eq!(mesh.count_vertices(), 3);
+        assert_eq!(mesh.attribute(Mesh::ATTRIBUTE_UV_0).map(|v| v.len()), Some(3));
+    }
+
     #[test]
     fn the_smoke_follows_the_path() {
         let f = feel();
