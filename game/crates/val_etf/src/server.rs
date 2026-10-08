@@ -716,11 +716,14 @@ fn simulate_authoritative(
     mut local_events: MessageWriter<LocalPlayerEvents>,
     mut deaths: MessageWriter<PlayerDied>,
     mut feedback: ResMut<crate::client::Feedback>,
+    claims: Res<PendingClaims>,
+    infos: Query<&PlayerInfo>,
 ) {
     let Some(level) = level else { return };
     let rules = match_rules(&matches);
     let tick = timeline.tick().0;
     let dt = data.tick_dt();
+    let mut fired = Vec::new();
     let keep = (data.combat.shot_validation.history_s * data.net.tick_hz as f32).ceil() as u32;
     let server = server.iter().next();
     for (entity, id, input, mut mv, mut weapon, mut items, loadout, mut vitals, mut look, mut sp, local) in &mut players
@@ -789,26 +792,91 @@ fn simulate_authoritative(
             }
             let dir = shot_direction(frame.yaw, frame.pitch, shot.spread_deg, shot_seed(id.0, shot.seq));
             let range = loadout.0.weapon.spec(&data).max_range_m;
-            let hit = level.world.raycast(origin, dir, range);
-            let end = origin + dir * hit.map_or(range, |(d, _)| d);
-            // Our own client never receives the shot fx sent to the clients, so the host draws other players'
-            // tracers and bullet holes here (its own shots go through `LocalShot` like everyone's).
-            if !local {
-                feedback.tracers.push((origin, end, 0.0, false));
-                if let Some((_, normal)) = hit {
-                    feedback.impacts.push((end, normal));
-                }
-            }
-            if let Some(server) = server {
-                let msg = ShotFx { shooter: id.0, origin, end };
-                if let Err(e) = fx.send::<_, FxChannel>(&msg, server, &joined_except(sp.peer)) {
-                    warn!("shot fx not sent: {e:?}");
-                }
-            }
+            fired.push(HostShot {
+                shooter: entity,
+                id: id.0,
+                peer: sp.peer,
+                link: sp.link,
+                seq: shot.seq,
+                origin,
+                dir,
+                range,
+                local,
+            });
             if local {
                 local_shots.write(LocalShot { shot, player: id.0, origin, yaw: frame.yaw, pitch: frame.pitch });
             }
         }
+    }
+    // Where each shot ends for everyone else: at the first body it met (as its shooter saw it), else where it met
+    // the level, which takes a bullet hole. A shot into a player left a hole on the wall behind them (finding F8).
+    for s in fired {
+        let world_hit = level.world.raycast(s.origin, s.dir, s.range);
+        let body_t = if s.local {
+            // The host sees everyone where they are now.
+            let team = infos.get(s.shooter).ok().and_then(|i| i.team);
+            players
+                .iter()
+                .filter(|(e, .., vitals, _, _, _)| *e != s.shooter && !vitals.health.dead)
+                .filter(|(e, ..)| hostile(team, infos.get(*e).ok().and_then(|i| i.team)))
+                .filter_map(|(_, _, _, mv, _, _, _, _, look, _, _)| {
+                    let pose = Pose { pos: mv.0.pos, yaw: look.yaw, stance: mv.0.stance };
+                    vetf_sim::hitbox::raycast(&data, &pose, s.origin, s.dir, s.range).map(|(_, t)| t)
+                })
+                .reduce(f32::min)
+        } else {
+            // A joined player's own client decided what the shot hit, against the bodies it saw: its claim
+            // (sent with the shot, so it is usually here before the host simulates the shot).
+            claims
+                .0
+                .iter()
+                .find(|p| p.link == s.link && p.claim.seq == s.seq)
+                .map(|p| p.claim.hit.point.distance(s.origin))
+        };
+        let (end, impact) = shot_end(s.origin, s.dir, s.range, world_hit, body_t);
+        // Our own client never receives the shot fx sent to the clients, so the host draws other players'
+        // tracers and bullet holes here (its own shots go through `LocalShot` like everyone's).
+        if !s.local {
+            feedback.tracers.push((s.origin, end, 0.0, false));
+            if let Some(normal) = impact {
+                feedback.impacts.push((end, normal));
+            }
+        }
+        if let Some(server) = server {
+            let msg = ShotFx { shooter: s.id, origin: s.origin, end };
+            if let Err(e) = fx.send::<_, FxChannel>(&msg, server, &joined_except(s.peer)) {
+                warn!("shot fx not sent: {e:?}");
+            }
+        }
+    }
+}
+
+/// A shot the host simulated this tick, for its effects once every player has moved.
+struct HostShot {
+    shooter: Entity,
+    id: u64,
+    peer: PeerId,
+    link: Entity,
+    seq: u32,
+    origin: Vec3,
+    dir: Vec3,
+    range: f32,
+    local: bool,
+}
+
+/// Where a shot's tracer ends and the normal of the level surface it marks: at the first body it met
+/// (`body_t` along it, no mark), else where it met the level (a mark), else at its range.
+pub fn shot_end(
+    origin: Vec3,
+    dir: Vec3,
+    range: f32,
+    world_hit: Option<(f32, Vec3)>,
+    body_t: Option<f32>,
+) -> (Vec3, Option<Vec3>) {
+    match (body_t, world_hit) {
+        (Some(b), w) if w.is_none_or(|(d, _)| b < d) => (origin + dir * b.min(range), None),
+        (_, Some((d, normal))) => (origin + dir * d, Some(normal)),
+        (_, None) => (origin + dir * range, None),
     }
 }
 
@@ -1018,6 +1086,24 @@ const HOST_PEER: PeerId = PeerId::Local(0);
 /// host draws other players' shots itself.
 fn joined_except(peer: PeerId) -> NetworkTarget {
     NetworkTarget::AllExcept(vec![peer, HOST_PEER].into())
+}
+
+#[cfg(test)]
+mod shot_tests {
+    use super::*;
+
+    /// A shot into a player ends on them and marks nothing; one that misses marks the wall (finding F8: the
+    /// host used to put a hole on the wall behind the player hit).
+    #[test]
+    fn a_shot_into_a_player_ends_on_them_without_a_hole() {
+        let wall = Some((10.0, Vec3::NEG_Z));
+        let (o, d) = (Vec3::ZERO, Vec3::Z);
+        assert_eq!(shot_end(o, d, 100.0, wall, Some(4.0)), (Vec3::Z * 4.0, None), "the body in front of the wall");
+        assert_eq!(shot_end(o, d, 100.0, wall, None), (Vec3::Z * 10.0, Some(Vec3::NEG_Z)), "a miss: the hole");
+        assert_eq!(shot_end(o, d, 100.0, wall, Some(12.0)).1, Some(Vec3::NEG_Z), "a body behind the wall: the hole");
+        assert_eq!(shot_end(o, d, 50.0, None, None), (Vec3::Z * 50.0, None), "into the sky");
+        assert_eq!(shot_end(o, d, 50.0, None, Some(20.0)), (Vec3::Z * 20.0, None));
+    }
 }
 
 #[cfg(test)]
