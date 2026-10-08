@@ -307,7 +307,10 @@ fn recent_row(list: &mut ChildSpawnerCommands, fonts: &UiFonts, i: usize, s: &Re
             .with_children(|n| {
                 n.spawn((fonts.role(TextRole::ListName, s.name.to_uppercase()), TextLayout::no_wrap()));
                 n.spawn((
-                    fonts.role(TextRole::Sub, copy::recent_subline(&s.map, &s.address, s.by_ip, s.last_joined, now)),
+                    fonts.role(
+                        TextRole::Sub,
+                        copy::recent_subline(&s.map, s.mode, &s.address, s.by_ip, s.last_joined, now),
+                    ),
                     TextLayout::no_wrap(),
                 ));
             });

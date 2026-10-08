@@ -9,6 +9,8 @@ use lightyear::prelude::input::native::ActionState;
 use lightyear::prelude::server::*;
 use lightyear::prelude::*;
 use std::collections::VecDeque;
+use std::sync::Arc;
+use std::sync::atomic::{AtomicU32, Ordering};
 use vetf_net::*;
 use vetf_sim::GameData;
 use vetf_sim::Zone;
@@ -42,6 +44,7 @@ impl Plugin for ServerPlugin {
                     demo_wounds,
                     demo_kill,
                     measure_ping,
+                    count_seats,
                 )
                     .run_if(is_hosting),
             )
@@ -92,13 +95,59 @@ pub struct ServerPlayer {
     pub kill_seq: u64,
 }
 
-/// What the host set up in HOST GAME: the mode before the match entity exists (the host's own player can
-/// connect first), and the player slots the netcode was opened with (MAX PLAYERS), so a mode change in the
-/// lobby never promises more seats than that.
+/// What the host set up in HOST GAME: the mode before the match entity exists (the host's own player
+/// connects first: `net::handle_requests` inserts this before it), kept in step with the lobby's mode, and
+/// the player slots the netcode was opened with (MAX PLAYERS), so a mode change in the lobby never promises
+/// more seats than that. Removed when the session ends.
 #[derive(Resource, Debug, Clone, Copy, PartialEq)]
 pub struct HostedMatch {
     pub mode: MatchMode,
     pub slots: u32,
+}
+
+/// Seats left for players joining over the network, shared with the netcode server's connection-request
+/// handler ([`SeatCheck`]): the match's MAX PLAYERS (which a lobby mode change can lower) minus the players
+/// in it, recounted every frame by [`count_seats`]. A full lobby denies new joiners with "server full".
+#[derive(Resource, Debug, Clone, Default)]
+pub struct Seats(pub Arc<AtomicU32>);
+
+impl Seats {
+    pub fn new(free: u32) -> Self {
+        Self(Arc::new(AtomicU32::new(free)))
+    }
+
+    pub fn free(&self) -> u32 {
+        self.0.load(Ordering::Relaxed)
+    }
+
+    /// The handler to give the netcode server.
+    pub fn check(&self) -> Arc<SeatCheck> {
+        Arc::new(SeatCheck(self.0.clone()))
+    }
+}
+
+/// Free seats in a match of `max_players` with `players` in it (the host included).
+pub fn free_seats(max_players: u32, players: usize) -> u32 {
+    max_players.saturating_sub(players as u32)
+}
+
+/// The netcode server's gate: a connection request finds the lobby full, or not.
+#[derive(Debug)]
+pub struct SeatCheck(Arc<AtomicU32>);
+
+impl lightyear::connection::shared::ConnectionRequestHandler for SeatCheck {
+    fn handle_request(&self, _client: PeerId) -> Option<lightyear::connection::shared::DeniedReason> {
+        (self.0.load(Ordering::Relaxed) == 0).then_some(lightyear::connection::shared::DeniedReason::ServerFull)
+    }
+}
+
+/// Keep [`Seats`] in step with the match (its seats follow the lobby's mode) and the players in it.
+fn count_seats(seats: Option<Res<Seats>>, matches: Query<&MatchState>, players: Query<(), With<ServerPlayer>>) {
+    let (Some(seats), Some(m)) = (seats, matches.iter().next()) else { return };
+    let free = free_seats(m.max_players, players.iter().count());
+    if seats.free() != free {
+        seats.0.store(free, Ordering::Relaxed);
+    }
 }
 
 /// Can a player of team `a` hurt one of team `b`? Players without a team (free-for-all, the gun range)
@@ -128,8 +177,14 @@ const CLAIM_WAIT_TICKS: u32 = 30;
 /// Seconds between the end of a match and the next one.
 const INTERMISSION_S: f32 = 8.0;
 
+/// The mode a game on `map` plays: the gun range is always the range, whatever HOST GAME's mode says.
+pub fn mode_for_map(map: &str, mode: MatchMode) -> MatchMode {
+    if map.eq_ignore_ascii_case("range") { MatchMode::Range } else { mode }
+}
+
 /// The match entity. A deathmatch (team or free-for-all) starts in the lobby unless `lobby` is false
-/// (`--live`); the range is always live, whatever `mode` asks for.
+/// (`--live`); the range is always live, whatever `mode` asks for. [`HostedMatch`] is the caller's (it must
+/// exist before the host's own client connects).
 pub fn spawn_match(
     commands: &mut Commands,
     data: &GameData,
@@ -139,9 +194,8 @@ pub fn spawn_match(
     max_players: u32,
     lobby: bool,
 ) {
-    let mode = if map.eq_ignore_ascii_case("range") { MatchMode::Range } else { mode };
+    let mode = mode_for_map(map, mode);
     let rules = data.rules.deathmatch(mode);
-    commands.insert_resource(HostedMatch { mode, slots: max_players });
     commands.spawn((
         Name::new("Match"),
         MatchState {
@@ -168,6 +222,11 @@ pub fn mode_max_players(data: &GameData, mode: MatchMode, slots: u32) -> u32 {
     let n = slots.min(data.rules.deathmatch(mode).max_players);
     let n = if mode.has_teams() { n - n % 2 } else { n };
     n.max(2)
+}
+
+/// A joiner finds no seat: the match already holds `max_players` (the host's own client always gets one).
+pub fn lobby_full(max_players: u32, players: usize, local: bool) -> bool {
+    !local && free_seats(max_players, players) == 0
 }
 
 /// Every new link (remote clients and the host's own) needs a replication sender.
@@ -204,6 +263,13 @@ fn on_link_connected(
     }
     let (Ok(remote), Some(level)) = (links.get(trigger.entity), level) else { return };
     let peer = remote.0;
+    // Backstop to the netcode seat check (`Seats`): two joiners racing for the last seat. Never the host.
+    if let Some(m) = matches.iter().next()
+        && lobby_full(m.max_players, players.iter().count(), peer.is_local())
+    {
+        warn!("{peer:?} connected to a full lobby ({} seats): no player for them", m.max_players);
+        return;
+    }
     // The match entity may not exist yet when the host's own client connects: HOST GAME's mode decides.
     let mode = matches
         .iter()
@@ -470,7 +536,7 @@ fn receive_lobby_actions(
     mut links: Query<(Entity, &mut MessageReceiver<LobbyAction>), With<ClientOf>>,
     mut players: Query<(&mut PlayerInfo, &mut PlayerNet, &mut Vitals, &mut Score, &ServerPlayer)>,
     mut matches: Query<&mut MatchState>,
-    hosted: Option<Res<HostedMatch>>,
+    mut hosted: Option<ResMut<HostedMatch>>,
     data: Res<Data>,
 ) {
     let Some(mut m) = matches.iter_mut().next() else { return };
@@ -501,6 +567,9 @@ fn receive_lobby_actions(
                     };
                     info!("the host switches the lobby to {mode:?} ({max} players)");
                     let rules = data.rules.deathmatch(mode);
+                    if let Some(h) = hosted.as_mut() {
+                        h.mode = mode;
+                    }
                     m.mode = mode;
                     m.max_players = max;
                     m.score_limit = rules.score_limit;
@@ -834,8 +903,9 @@ fn resolve_claims(
     mut deaths: MessageWriter<PlayerDied>,
 ) {
     let Some(level) = level else { return };
-    // No damage in the lobby (bots, a held trigger): claims are dropped.
-    if matches.iter().next().is_some_and(|m| m.phase == MatchPhase::Lobby) {
+    // No damage in the lobby (bots, a held trigger) nor in the intermission after a match (the winner is
+    // decided): claims are dropped.
+    if matches.iter().next().is_some_and(|m| !takes_damage(m.phase)) {
         pending.0.clear();
         return;
     }
@@ -942,6 +1012,11 @@ fn resolve_claims(
     pending.0 = keep;
 }
 
+/// Shots hurt only while the match is live: not in the lobby, nor in the intermission once it has ended.
+pub fn takes_damage(phase: MatchPhase) -> bool {
+    phase == MatchPhase::Live
+}
+
 /// A kill's mark on the match: whether it counts (a live deathmatch, an enemy killed), and in team deathmatch
 /// a point for the killer's team. Free-for-all reads each player's kills instead, so nothing is added here.
 fn score_kill(m: &mut MatchState, killer: Option<Team>, victim: Option<Team>) -> bool {
@@ -967,19 +1042,24 @@ fn handle_deaths(
     mut kills: Local<u64>,
 ) {
     let mode = matches.iter().next().map_or(MatchMode::Tdm, |m| m.mode);
+    // Kills and deaths count only in a live match (the range is always live): a fall or a bleed-out in the
+    // lobby or in the intermission after the winner is decided leaves the standings alone.
+    let counts = matches.iter().next().is_none_or(|m| m.phase == MatchPhase::Live);
     for d in died.read() {
         let Ok((vid, vinfo, mut v, mut score, mut mv, _)) = players.get_mut(d.victim) else { continue };
         v.health.dead = true;
         v.respawn_s = data.rules.deathmatch(mode).respawn_s;
-        score.deaths += 1;
+        if counts {
+            score.deaths += 1;
+        }
         mv.0.vel = Vec3::ZERO;
         let (victim_id, victim_team) = (vid.0, vinfo.team);
-        let mut killer_id = None;
-        if let Some(k) = d.killer.filter(|k| *k != d.victim)
-            && let Ok((kid, kinfo, _, mut kscore, _, mut ksp)) = players.get_mut(k)
+        let killer = d.killer.filter(|k| *k != d.victim);
+        let killer_id = killer.and_then(|k| players.get(k).ok()).map(|p| p.0.0);
+        if let Some(k) = killer.filter(|_| counts)
+            && let Ok((_, kinfo, _, mut kscore, _, mut ksp)) = players.get_mut(k)
         {
             kscore.kills += 1;
-            killer_id = Some(kid.0);
             // When they reached this kill count: the free-for-all tie-break.
             *kills += 1;
             ksp.kill_seq = *kills;
@@ -1104,6 +1184,176 @@ mod routing_tests {
             assert_eq!(got, want, "shooter {shooter:?}");
             assert_eq!(queued::<FxChannel>(&app, host), 0, "shooter {shooter:?}: nothing piles up for the host");
         }
+    }
+}
+
+/// The match systems run on a world of players: deaths and kill credit, teams, seats.
+#[cfg(test)]
+mod system_tests {
+    use super::*;
+    use bevy::ecs::system::RunSystemOnce;
+
+    fn world(mode: MatchMode, phase: MatchPhase) -> App {
+        let d = GameData::embedded();
+        let mut app = App::new();
+        app.add_message::<PlayerDied>();
+        let rules = d.rules.deathmatch(mode);
+        app.world_mut().spawn(MatchState {
+            mode,
+            map: "showhome".into(),
+            score_a: 0,
+            score_b: 0,
+            score_limit: rules.score_limit,
+            time_left_s: rules.time_limit_s,
+            phase,
+            lobby_name: String::new(),
+            max_players: rules.max_players,
+            rules: d.rules.rulesets.get(mode),
+        });
+        app.insert_resource(Data(Arc::new(d)));
+        app
+    }
+
+    fn player(app: &mut App, id: u64, team: Option<Team>) -> Entity {
+        let d = GameData::embedded();
+        let l = Loadout::default_for(&d, MatchMode::Ffa);
+        app.world_mut()
+            .spawn((
+                PlayerId(id),
+                PlayerInfo { name: format!("P{id}"), team },
+                fresh_vitals(&d, &l, MatchMode::Ffa),
+                Score::default(),
+                PlayerMove(MoveState::spawn(Vec3::ZERO, 1.0)),
+                PlayerWeapon(WeaponState::new(&d, &l.weapon)),
+                PlayerLoadout(l),
+                ServerPlayer {
+                    link: Entity::PLACEHOLDER,
+                    peer: PeerId::Netcode(id),
+                    history: PoseHistory::default(),
+                    shots: VecDeque::new(),
+                    choice: None,
+                    last_attacker: None,
+                    kill_seq: 0,
+                },
+            ))
+            .id()
+    }
+
+    fn kill(app: &mut App, killer: Entity, victim: Entity) {
+        app.world_mut().write_message(PlayerDied { victim, killer: Some(killer), zone: Some(Zone::Head) });
+    }
+
+    fn standing(app: &App, e: Entity) -> (u16, u16, u64) {
+        let w = app.world();
+        let s = w.get::<Score>(e).unwrap();
+        (s.kills, s.deaths, w.get::<ServerPlayer>(e).unwrap().kill_seq)
+    }
+
+    /// Empty every spare magazine (the one in the gun stays).
+    fn spend_spares(app: &mut App, e: Entity) {
+        let mut w = app.world_mut().get_mut::<PlayerWeapon>(e).unwrap();
+        let loaded = w.0.loaded as usize;
+        for (i, r) in w.0.rounds.iter_mut().enumerate() {
+            if i != loaded {
+                *r = 0;
+            }
+        }
+    }
+
+    fn full_spares(app: &App, e: Entity) -> usize {
+        let w = app.world().get::<PlayerWeapon>(e).unwrap();
+        w.0.rounds.iter().enumerate().filter(|(i, r)| *i != w.0.loaded as usize && **r > 0).count()
+    }
+
+    /// Free-for-all: each kill is the killer's point, numbered in the order they came (the tie-break), and
+    /// tops up a magazine.
+    #[test]
+    fn kills_count_and_refill_while_the_match_is_live() {
+        let mut app = world(MatchMode::Ffa, MatchPhase::Live);
+        let (a, b, victim) = (player(&mut app, 1, None), player(&mut app, 2, None), player(&mut app, 3, None));
+        spend_spares(&mut app, a);
+        kill(&mut app, a, victim);
+        kill(&mut app, b, victim);
+        app.world_mut().run_system_once(handle_deaths).unwrap();
+        assert_eq!(standing(&app, a), (1, 0, 1));
+        assert_eq!(standing(&app, b), (1, 0, 2), "b got there second");
+        assert_eq!(standing(&app, victim), (0, 2, 0));
+        assert!(app.world().get::<Vitals>(victim).unwrap().health.dead);
+        assert_eq!(full_spares(&app, a), 1, "a kill refills one magazine");
+    }
+
+    /// Once the match has ended (the 8 s intermission) nothing changes the standings any more: a kill, a fall
+    /// or a bleed-out still kills, but counts for nobody and refills nothing. The lobby is the same.
+    #[test]
+    fn a_death_after_the_match_ended_leaves_the_standings_alone() {
+        for phase in [MatchPhase::Ended { winner: None, player: Some(1) }, MatchPhase::Lobby] {
+            let mut app = world(MatchMode::Ffa, phase);
+            let (winner, victim) = (player(&mut app, 1, None), player(&mut app, 2, None));
+            spend_spares(&mut app, winner);
+            kill(&mut app, winner, victim);
+            app.world_mut().write_message(PlayerDied { victim: winner, killer: None, zone: None });
+            app.world_mut().run_system_once(handle_deaths).unwrap();
+            assert_eq!(standing(&app, winner), (0, 0, 0), "{phase:?}");
+            assert_eq!(standing(&app, victim), (0, 0, 0), "{phase:?}");
+            assert!(app.world().get::<Vitals>(victim).unwrap().health.dead, "the victim still dies");
+            assert_eq!(full_spares(&app, winner), 0, "{phase:?}: no refill");
+            assert!(!takes_damage(phase), "shots are dropped too");
+        }
+        assert!(takes_damage(MatchPhase::Live));
+    }
+
+    /// Team deathmatch after free-for-all: everyone without a team joins the smaller one, the host (id 0)
+    /// first, so the split is even; free-for-all clears the teams again.
+    #[test]
+    fn teams_follow_the_mode() {
+        let mut app = world(MatchMode::Tdm, MatchPhase::Lobby);
+        let ids = [9, 0, 5, 3];
+        let es: Vec<Entity> = ids.iter().map(|id| player(&mut app, *id, None)).collect();
+        app.world_mut().run_system_once(sync_teams).unwrap();
+        let team = |app: &App, e: Entity| app.world().get::<PlayerInfo>(e).unwrap().team;
+        assert_eq!(team(&app, es[1]), Some(Team::A), "the host");
+        let a = es.iter().filter(|e| team(&app, **e) == Some(Team::A)).count();
+        assert_eq!(a, 2, "two a side");
+        // by id: 0 A, 3 B, 5 A, 9 B
+        assert_eq!(
+            es.iter().map(|e| team(&app, *e)).collect::<Vec<_>>(),
+            [Some(Team::B), Some(Team::A), Some(Team::A), Some(Team::B)]
+        );
+        // a late joiner fills the smaller side
+        let late = player(&mut app, 11, None);
+        app.world_mut().get_mut::<PlayerInfo>(es[0]).unwrap().team = Some(Team::A);
+        app.world_mut().run_system_once(sync_teams).unwrap();
+        assert_eq!(team(&app, late), Some(Team::B));
+        // free-for-all: no teams
+        let mut q = app.world_mut().query::<&mut MatchState>();
+        q.single_mut(app.world_mut()).unwrap().mode = MatchMode::Ffa;
+        app.world_mut().run_system_once(sync_teams).unwrap();
+        assert!(es.iter().chain([&late]).all(|e| team(&app, *e).is_none()));
+    }
+
+    /// The seats follow the match: a lobby switched to a mode with fewer seats turns joiners away once it
+    /// holds that many, the host's own client never.
+    #[test]
+    fn seats_follow_the_match() {
+        use lightyear::connection::shared::{ConnectionRequestHandler, DeniedReason};
+        let mut app = world(MatchMode::Ffa, MatchPhase::Lobby);
+        let seats = Seats::new(9);
+        app.insert_resource(seats.clone());
+        let check = seats.check();
+        for id in 0..7 {
+            player(&mut app, id, None);
+        }
+        app.world_mut().run_system_once(count_seats).unwrap();
+        assert_eq!(seats.free(), 1, "7 of free-for-all's 8");
+        assert_eq!(check.handle_request(PeerId::Netcode(42)), None);
+        player(&mut app, 7, None);
+        app.world_mut().run_system_once(count_seats).unwrap();
+        assert_eq!(seats.free(), 0);
+        assert_eq!(check.handle_request(PeerId::Netcode(42)), Some(DeniedReason::ServerFull), "netcode says full");
+        assert!(lobby_full(8, 8, false), "the backstop agrees");
+        assert!(!lobby_full(8, 8, true), "never the host's own client");
+        assert!(!lobby_full(8, 7, false));
+        assert_eq!(free_seats(6, 7), 0, "more players than seats (a lobby that shrank) is still full");
     }
 }
 

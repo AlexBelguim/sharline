@@ -168,23 +168,34 @@ pub fn ffa_create_help(score_limit: u32) -> String {
     format!("Opens a Free-for-all lobby on Showhome · first to {score_limit} kills.")
 }
 
-/// A map's mode and name for RECENT: "TDM · Showhome", "Gun range".
-pub fn mode_map_label(map: &str) -> String {
-    match map.to_ascii_lowercase().as_str() {
-        "range" => "Gun range".into(),
-        "showhome" => "TDM · Showhome".into(),
-        other => {
-            let mut c = other.chars();
-            let name: String = c.next().map(|f| f.to_uppercase().chain(c).collect()).unwrap_or_default();
-            format!("TDM · {name}")
-        }
+/// A map's mode and name for RECENT: "TDM · Showhome", "FFA · Showhome", "Gun range"; just "Showhome" when
+/// the entry does not know its mode (files from older builds).
+pub fn mode_map_label(map: &str, mode: Option<vetf_net::MatchMode>) -> String {
+    use vetf_net::MatchMode;
+    let map = map.to_ascii_lowercase();
+    if map == "range" || mode == Some(MatchMode::Range) {
+        return "Gun range".into();
+    }
+    let mut c = map.chars();
+    let name: String = c.next().map(|f| f.to_uppercase().chain(c).collect()).unwrap_or_default();
+    match mode {
+        Some(MatchMode::Ffa) => format!("FFA · {name}"),
+        Some(_) => format!("TDM · {name}"),
+        None => name,
     }
 }
 
 /// A RECENT row's subline: "TDM · Showhome · code 6000-105E-PC", "Gun range · 192.168.1.40:47820", or
 /// "TDM · last seen 2 days ago" after a day.
-pub fn recent_subline(map: &str, address: &str, by_ip: bool, last_joined: u64, now: u64) -> String {
-    let label = mode_map_label(map);
+pub fn recent_subline(
+    map: &str,
+    mode: Option<vetf_net::MatchMode>,
+    address: &str,
+    by_ip: bool,
+    last_joined: u64,
+    now: u64,
+) -> String {
+    let label = mode_map_label(map, mode);
     let days = now.saturating_sub(last_joined) / 86_400;
     if days >= 1 {
         let mode = label.split(" · ").next().unwrap_or(&label).to_string();
@@ -345,13 +356,28 @@ mod tests {
         assert_eq!(ffa_max_players_help(d.rules.ffa.max_players), "2–8 · everyone for themselves");
         assert_eq!(ffa_create_help(25), "Opens a Free-for-all lobby on Showhome · first to 25 kills.");
         let now = 1_700_000_000;
-        assert_eq!(recent_subline("showhome", "6000-105E-PC", false, now, now), "TDM · Showhome · code 6000-105E-PC");
+        let (tdm, ffa) = (Some(vetf_net::MatchMode::Tdm), Some(vetf_net::MatchMode::Ffa));
         assert_eq!(
-            recent_subline("range", "192.168.1.40:47820", true, now - 60, now),
+            recent_subline("showhome", tdm, "6000-105E-PC", false, now, now),
+            "TDM · Showhome · code 6000-105E-PC"
+        );
+        // A free-for-all lobby is remembered as one (it used to read TDM: the label came from the map).
+        assert_eq!(
+            recent_subline("showhome", ffa, "6000-105E-PC", false, now, now),
+            "FFA · Showhome · code 6000-105E-PC"
+        );
+        assert_eq!(mode_map_label("showhome", None), "Showhome", "an old entry without its mode");
+        assert_eq!(
+            recent_subline("range", Some(vetf_net::MatchMode::Range), "192.168.1.40:47820", true, now - 60, now),
             "Gun range · 192.168.1.40:47820"
         );
-        assert_eq!(recent_subline("showhome", "x", false, now - 2 * 86_400 - 5, now), "TDM · last seen 2 days ago");
-        assert_eq!(recent_subline("range", "x", true, now - 86_400, now), "Gun range · last seen 1 day ago");
+        assert_eq!(recent_subline("range", None, "x", true, now - 60, now), "Gun range · x");
+        assert_eq!(
+            recent_subline("showhome", tdm, "x", false, now - 2 * 86_400 - 5, now),
+            "TDM · last seen 2 days ago"
+        );
+        assert_eq!(recent_subline("showhome", ffa, "x", false, now - 2 * 86_400, now), "FFA · last seen 2 days ago");
+        assert_eq!(recent_subline("range", None, "x", true, now - 86_400, now), "Gun range · last seen 1 day ago");
         assert!(ip_help(47820).contains("UDP 47820"));
     }
 }
