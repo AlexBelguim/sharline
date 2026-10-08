@@ -1,0 +1,98 @@
+{
+  "hedge": {
+    "cards": [
+      "hedge_paint_s11",
+      "hedge_paint_s12",
+      "hedge_paint_s13",
+      "hedge_paint_s11",
+      "hedge_paint_s12",
+      "hedge_paint_s13",
+      "hedge_paint_s11",
+      "hedge_paint_s12",
+      "hedge_paint_s13",
+      "hedge_paint_s11",
+      "hedge_paint_s12",
+      "hedge_paint_s13",
+      "hedge_paint_s11",
+      "hedge_paint_s12",
+      "hedge_paint_s13",
+      "hedge_paint_s11"
+    ],
+    "grid": [
+      4,
+      4
+    ],
+    "palette_srgb": [
+      98,
+      112,
+      52
+    ],
+    "mean_linear": [
+      0.1177,
+      0.1583,
+      0.0314
+    ],
+    "palette_linear": [
+      0.1221,
+      0.162,
+      0.0343
+    ],
+    "coverage": 0.633
+  },
+  "grass": {
+    "cards": [
+      "grass_tuft_s11",
+      "grass_tuft_s12",
+      "grass_tuft_s13",
+      "grass_tuft_s11",
+      "grass_tuft_s12",
+      "grass_tuft_s13",
+      "grass_tuft_s11",
+      "grass_tuft_s12",
+      "grass_tuft_s13",
+      "grass_tuft_s11",
+      "grass_tuft_s12",
+      "grass_tuft_s13",
+      "grass_tuft_s11",
+      "grass_tuft_s12",
+      "grass_tuft_s13",
+      "grass_tuft_s11",
+      "grass_tuft_s12",
+      "grass_tuft_s13",
+      "grass_tuft_s11",
+      "grass_tuft_s12",
+      "grass_tuft_s13",
+      "grass_tuft_s11",
+      "grass_tuft_s12",
+      "grass_tuft_s13",
+      "grass_tuft_s11",
+      "grass_tuft_s12",
+      "grass_tuft_s13",
+      "grass_tuft_s11",
+      "grass_tuft_s12",
+      "grass_tuft_s13",
+      "grass_tuft_s11",
+      "grass_tuft_s12"
+    ],
+    "grid": [
+      4,
+      8
+    ],
+    "palette_srgb": [
+      126,
+      140,
+      58
+    ],
+    "mean_linear": [
+      0.1921,
+      0.24,
+      0.0313
+    ],
+    "palette_linear": [
+      0.2086,
+      0.2623,
+      0.0423
+    ],
+    "coverage": 0.336
+  }
+}

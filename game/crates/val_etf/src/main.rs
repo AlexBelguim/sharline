@@ -11,6 +11,7 @@ mod config;
 mod demo_mode;
 mod esc_menu;
 mod first_run;
+mod foliage;
 mod hud;
 mod impacts;
 mod invite;
@@ -122,6 +123,8 @@ fn main() -> AppExit {
         video::VideoPlugin,
         weapon_models::WeaponModelsPlugin,
     ));
+    // Showhome's hedges and lawn grass (after the map materials it reads).
+    app.add_plugins(foliage::FoliagePlugin);
     // Hub screens over the menu or the match.
     app.add_plugins((
         screens::ScreensPlugin,

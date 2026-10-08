@@ -1,0 +1,95 @@
+// Fluffy hedges and lawn grass on Showhome (val_etf/src/foliage.rs, shader assets/shaders/foliage.wgsl).
+// Groups of four follow the VIDEO quality preset: [LOW, MEDIUM, HIGH, ULTRA]. A density of 0 turns that part
+// off (LOW draws the plain textured hedge boxes and the flat lawn). Lengths are metres, colours linear RGB.
+(
+    hedge: (
+        // Leaf-cluster cards per square metre of hedge surface. The cards are merged into one mesh per hedge.
+        density: (0.0, 12.0, 16.0, 20.0),
+        // Card edge length, smallest and largest.
+        card_size: (0.32, 0.6),
+        // The opaque core: the hedge box shrunk by this much, its top and side edges rounded by core_radius.
+        core_inset: 0.12,
+        core_radius: 0.30,
+        // The card centres sit on the hedge box shrunk by shell_inset with edges rounded by shell_radius, then
+        // move along the surface normal by a random amount in `poke`: tilted cards stick out 8-20 cm.
+        shell_inset: 0.03,
+        shell_radius: 0.38,
+        poke: (-0.06, 0.06),
+        // Random tilt of each card away from the surface, and roll on the sides (degrees). The clumps are painted
+        // lit from above, so side cards stay roughly upright; cards on the top roll freely.
+        tilt_deg: 26.0,
+        roll_deg: 30.0,
+        // Card normals are bent outward from the hedge's rounded volume (a box rounded by this radius, capped at
+        // half the hedge's thickness), mixed with a little of the card's own normal and of a sphere around each
+        // card (so every clump has a lit top and a darker underside).
+        normal_radius: 0.9,
+        normal_card_mix: 0.15,
+        normal_clump_mix: 0.12,
+        // AO by depth: a card corner this far inside the shell surface is darkened to ao_min.
+        ao_depth: 0.24,
+        ao_min: 0.22,
+        // Each clump's underside (the card corners below its centre) is darkened to this.
+        clump_shade: 0.85,
+        // The bottom of the hedge is darker, up to ground_ao_height above the ground.
+        ground_ao: 0.62,
+        ground_ao_height: 1.0,
+        // Per-card value and hue jitter (fraction).
+        value_jitter: 0.10,
+        hue_jitter: 0.06,
+        // Multiplies the card atlas (built to the palette hedge colour) and the core (hedge_leaves.png).
+        tint: (0.8, 0.74, 0.7),
+        core_tint: (0.26, 0.26, 0.2),
+        roughness: 0.82,
+        reflectance: 0.3,
+        alpha_cutoff: 0.5,
+        // Light wrap past the terminator and sun-through-leaves translucency (a share of the sun's diffuse light).
+        wrap: 0.45,
+        translucency: 0.35,
+        translucency_power: 3.0,
+        // The cards are lit as if they stood this much further toward the sun: out of the hedge, so its core
+        // and the other cards never shadow them (no acne; the bent normals and the AO do the self-shading), while
+        // houses and walls still do.
+        shadow_probe: 0.6,
+        // Wind: sway of the outermost card corners.
+        wind_amplitude: 0.022,
+    ),
+    grass: (
+        // Grass clumps per square metre of lawn near the camera.
+        density: (0.0, 40.0, 60.0, 80.0),
+        // Clumps thin out from thin_start to fade_start (down to far_density of them), then shrink to nothing at
+        // fade_end. Chunks beyond fade_end are not drawn at all.
+        thin_start: 4.0,
+        fade_start: (0.0, 10.0, 12.0, 14.0),
+        fade_end: (0.0, 25.0, 28.0, 32.0),
+        far_density: 0.15,
+        // Clump height (never taller than 15 cm: grass must not hide a crouched player).
+        height: (0.03, 0.09),
+        // Card width over height (the atlas cells are 2:1), times a random 0.85..1.2.
+        aspect: 1.7,
+        // Lawn chunk size: one mesh (draw call) per chunk.
+        chunk: 8.0,
+        // Root and tip tints (multiply the card, whose root is the lawn colour); per-clump value jitter.
+        root_tint: (1.0, 1.0, 1.0),
+        tip_tint: (1.0, 1.0, 1.0),
+        value_jitter: 0.08,
+        roughness: 0.9,
+        reflectance: 0.3,
+        alpha_cutoff: 0.5,
+        translucency: 0.25,
+        translucency_power: 4.0,
+        // Like the hedge cards, lit as if this much higher toward the sun: the neighbouring tufts do not
+        // contact-shadow each other (dark blobs), houses and walls still shadow the lawn.
+        shadow_probe: 0.2,
+        wind_amplitude: 0.025,
+        sway_speed: 1.6,
+    ),
+    wind: (
+        // Direction the wind blows toward (degrees, 0 = east, 90 = north), hedge sway in cycles per second (grass
+        // sways grass.sway_speed times faster), wave length along the wind.
+        direction_deg: 30.0,
+        frequency: 0.4,
+        wavelength: 7.0,
+        // A slow gust that leans everything a little downwind (fraction of the amplitude).
+        gust: 0.35,
+    ),
+)
