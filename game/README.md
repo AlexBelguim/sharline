@@ -17,7 +17,8 @@ Linux needs the usual Bevy packages: `libasound2-dev libudev-dev libxkbcommon-de
 
 ### Main menu
 After mockups 04 / 04b (`design/ui/mockups`). The left nav has **PLAY** (with **HOST GAME** and **JOIN GAME**),
-**GUN RANGE**, **LOADOUT**, **SETTINGS** and **QUIT**; the PLAY flyout opens to its right.
+**GUN RANGE**, **SETTINGS** and **QUIT**; the PLAY flyout opens to its right. There is no **LOADOUT** entry for now
+(user direction 2026-10-08): the loadout is picked in the lobby (**LOADOUT**) and from the ESC menu.
 
 - **PLAY > HOST GAME:** lobby name, **MODE** (team deathmatch or free-for-all), who can join, max players
   (team deathmatch: even, 2-10; free-for-all: 2-8), port (default **UDP 47820**, or `--port`) and password
@@ -35,13 +36,27 @@ After mockups 04 / 04b (`design/ui/mockups`). The left nav has **PLAY** (with **
 - **First launch:** with no saved profile, **CHOOSE YOUR CALLSIGN** opens over the menu: type a name (Enter or
   CONFIRM) or take the generated **USE AGENT-nnnn**. Esc does not skip it. Until then you show as `UNKNOWN`;
   the OS user name is never used.
-- **Player card:** your name (**EDIT NAME**: 3-16 letters, digits, spaces, `-`, `_`, `.`), the loadout, the six magazine
-  slots in order and the team-deathmatch gear cost against the budget (**OVER BUDGET** means the host will
-  give you the default loadout).
+- **Player card:** your name (**EDIT NAME**: 3-16 letters, digits, spaces, `-`, `_`, `.`), the loadout as HOST GAME's
+  mode takes it (its one ammo type and magazine count) and its gear cost against that mode's budget (**OVER BUDGET**
+  means the host will give you the default loadout).
 - **Keys:** ↑↓ select (moving onto HOST GAME / JOIN GAME opens it), Enter confirm (or → into the flyout),
   Tab / Shift+Tab or ↑↓ inside a flyout, ←→ on a toggle, stepper or the tabs, Esc back to the nav.
 - **Saved per user** (in `~/.config/shardline`, `%APPDATA%\shardline` or `~/Library/Application Support/shardline`;
-  `VETF_CONFIG_DIR` overrides): the name (`profile.ron`) and the recent games (`recent.ron`).
+  `VETF_CONFIG_DIR` overrides): the name (`profile.ron`), the recent games (`recent.ron`, with the mode each was
+  joined in) and the loadout presets (`loadouts.ron`).
+
+### Loadout
+Opens from the lobby's **LOADOUT** and the ESC menu's **LOADOUT**; presets **A / B / C**, **+ SAVE AS**, **CONFIRM**.
+- **Team deathmatch and free-for-all** (user direction 2026-10-08): the gun and its attachments, then a tier for
+  each body part (**HEAD / TORSO / ARMS / LEGS**: NONE up to that part's cap, legs T2, arms T3), then **one ammo
+  type** for every magazine, then the result and the gear budget (the arc tiers plus the ammo's price, paid once).
+  No agent pick (these modes have no abilities; everyone keeps the jetpack) and no halo pick: everyone wears the
+  mode's one halo (`loadout` in `rules.ron`: Mender, four magazines). The host shapes whatever a client sends the
+  same way, so nobody gets another core, mixed ammo or extra magazines. In the lobby a confirmed loadout is worn at
+  once; in a match it applies at the next spawn.
+- **Gun range:** the full screen: agent, halo core, a tier per arc and up to six magazines, each with its own ammo
+  (no budget).
+- Presets saved by older builds load as they were; the deathmatch modes open them in their shape.
 
 ### Hosting and joining
 
@@ -142,7 +157,9 @@ folder).
 - `--demo-ui reload|heal|heal-region` opens a ring menu for screenshots (the heal ones also hurt the host's player).
 - `--demo-ui menu-join|menu-join-ip|menu-host` opens the main menu's JOIN GAME (code or direct IP tab) or HOST
   GAME flyout with its field focused, for screenshots. `--demo-ui loadout|loadout-ammo|loadout-attach` opens the
-  Loadout screen (over the match with `--host`).
+  Loadout screen (over the lobby or match with `--host` / `--join`). `--demo-ui loadout-set:H,T,A,L,AMMO[,GUN]`
+  also clicks those body-part tiers, that ammo (`ap2`) and gun on the deathmatch layout; `loadout-pick:...` then
+  confirms, readies in the lobby and (the host) starts the match: a host and a `--bot` joiner both pick and play.
 - `--demo-ui impacts|impacts-sheet[:x,y,z]|impacts-live|impacts-idle` (in a match, best with `--camera`): bullet
   marks for screenshots. `impacts` fires once through a 9x5 grid over the view (the real shot path), `impacts-sheet`
   lays every surface kind (rows) in every variant (columns) on the face under the view centre (or toward x,y,z),
@@ -196,7 +213,8 @@ The design is a listen server ticking at 60 Hz.
 - TDM score, timer and match end; free-for-all (`--mode ffa`) kills, timer and match end.
 - Per-arc halo shields and per-zone HP with spill.
 - Three guns: AR-7 Mako, VK-50 Warden and the SK-9 Skink SMG (the only gun that loads RIP).
-- Ammo class × type × tier, picked per magazine (up to six ordered magazines).
+- Ammo class × type × tier: one type for every magazine in team deathmatch and free-for-all, picked per magazine
+  (up to six ordered magazines) in the gun range.
 - Rulesets: team deathmatch has no bleeding or broken-limb penalties; the range runs the full rules.
 - Healing items with a heal ring: whole-body items (the only kind in team deathmatch) and region items.
 - The full movement set: sprint, slide, jump, jetpack with design max-rise values, mantle, zipline, step-up and
@@ -206,8 +224,6 @@ The design is a listen server ticking at 60 Hz.
 - Both maps as blockouts.
 
 **Not done yet:**
-- Lobby, loadout and settings screens. Everyone spawns with the default loadout from `rules.ron`, although
-  `Hello` already carries a loadout choice. Until the lobby exists, CREATE LOBBY starts the match directly.
 - UPnP and the LAN beacon (JOIN GAME's ON YOUR NETWORK tab, HOST GAME's LAN ONLY).
 - Lobby passwords, and lobby names and player counts for other players (RECENT shows `—` for ping and players).
 - Range targets and aim-lab modes. `maps::range_targets()` exists, but nothing spawns from it yet.

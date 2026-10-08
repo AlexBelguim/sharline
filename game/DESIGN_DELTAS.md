@@ -72,6 +72,8 @@ Once the design docs and JSON are updated, delete the entry here and in `superse
 
 ## 5. Ordered magazines, each with its own ammo
 - **Design:** one magazine type per loadout, and the HUD shows spare magazines in the pouch.
+- **Since 2026-10-08** this is the gun range's: team deathmatch and free-for-all load one ammo type in every
+  magazine (see 12).
 - **Now (user direction):**
   - A loadout carries **up to six magazines in slot order**, each loaded with its own ammo (`mags` in
     `rules.ron`'s default loadout, `LoadoutChoice.mags` on the wire). Slot 1 starts in the gun.
@@ -220,3 +222,27 @@ the AR kills faster; the SMG is weak at range; aiming down sights is much faster
     enemies, one at random.
   - The winner has the most kills; a tie goes to fewer deaths, then to whoever reached that score first.
 - No design JSON covers match rules, so the sync test has nothing to skip.
+
+## 12. Deathmatch loadout: one halo, one ammo type, no agent (2026-10-08)
+- **Design:** the Loadout screen (mockups 05 / 05b) picks an agent, a halo core and a tier per arc, and ammo per
+  magazine for up to six magazines, priced magazine by magazine against the budget.
+- **Now (user direction, DIRECTION_LOG 17):** team deathmatch and free-for-all fix part of the loadout
+  (`loadout` in each mode's `rules.ron` block):
+  - **No agent pick:** these modes have no abilities (everyone keeps the jetpack). The agent stays in the data
+    (cosmetic) for the gun range.
+  - **One halo for everyone:** `halo_core: Mender`. The player picks a tier per body part (head, torso, arms, legs;
+    NONE up to `loadout_tier_caps`). Mender is the core whose special is only numbers (its regen table): Volt's
+    break pulse slows, Phase is immune to slows and Bulwark cuts flinch, ability-like effects these modes leave
+    out. It is also the default loadout's core, so time-to-kill stays where playtest round 1 tuned it.
+  - **One ammo type in every magazine** (`mags: 4` of them), priced **once**: the budget is the arc tiers plus the
+    type's `gear_cost`. 13 points buys every arc at its cap with standard ammo, or AP III (6) with 7 tier points;
+    AP III never fits a Heavy halo.
+  - The host shapes every loadout it receives the same way before checking it (`LoadoutChoice::shaped`), so a
+    client cannot ask for another core, mixed ammo or more magazines. The wire format is unchanged.
+  - The main menu has no LOADOUT entry for now; the lobby's LOADOUT and the ESC menu open the screen. A loadout
+    confirmed in the lobby is worn at once (no fighting yet).
+  - The HUD's vitals header reads `HALO / MEDIUM` (the weight class tells halos apart); the lobby's match
+    settings list the mode's loadout rule.
+- **The gun range** keeps the full screen (agent, core, ammo per magazine, no budget).
+- Presets saved before (`loadouts.ron`) load unchanged and open in the deathmatch shape (slot 1's ammo); a preset
+  this build cannot read is replaced by the built-in one in its letter.
