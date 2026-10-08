@@ -23,7 +23,7 @@ type Row = (&'static str, Option<&'static str>, Ctl);
 
 const GAMEPLAY: &[Row] = &[
     ("PLAYER NAME", None, Ctl::Field(FieldKind::PlayerName, 280.0)),
-    ("AUTO-SPRINT", None, Ctl::Switch(Tg::AutoSprint)),
+    ("AUTO-SPRINT", Some("Moving forward sprints · Shift walks"), Ctl::Switch(Tg::AutoSprint)),
     // SEPARATE KEY needs a 'Jetpack (hold)' bind, which Keybinds does not have yet.
     ("JETPACK", None, Ctl::Seg(Ch::Jetpack, &[1])),
     // OFF and WHILE HELD wait for the game to honour them (the sim always slides; the card is timed).
@@ -180,9 +180,10 @@ mod tests {
         let ui = UiState::default();
         let want = [
             ("PLAYER NAME", "KESTREL_YOU"),
-            ("AUTO-SPRINT", "OFF"),
+            // user direction 2026-10-08: sprint by default, slide from a run
+            ("AUTO-SPRINT", "ON"),
             ("JETPACK", "HOLD JUMP IN AIR"),
-            ("SLIDE", "CROUCH WHILE SPRINTING"),
+            ("SLIDE", "CROUCH WHILE RUNNING"),
             ("MAG CHECK CARD", "3 S"),
             ("RADIAL HOLD TIME", "0.20 s"),
             ("RADIAL PICK", "RELEASE"),

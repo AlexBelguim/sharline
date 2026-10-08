@@ -121,16 +121,15 @@ impl MoveState {
     }
 }
 
-/// Per-player multipliers on top of the movement data (armor weight, held weapon, wounds).
+/// Per-player multipliers on top of the movement data (armor weight, held weapon, wounds). Aiming and firing
+/// are not among them: they never slow a player or end a sprint (user direction 2026-10-08).
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct MoveModifiers {
     pub weight: WeightClass,
     pub fx: WeightEffects,
-    /// Held weapon x attachments x ADS x wounds, applied to every ground speed.
+    /// Held weapon x attachments x item in use x wounds, applied to every ground speed.
     pub speed_mult: f32,
     pub legs_broken: bool,
-    /// Weapon is aimed (no sprinting).
-    pub ads: bool,
 }
 
 impl MoveModifiers {
@@ -140,7 +139,6 @@ impl MoveModifiers {
             fx: data.armor.effects(WeightClass::None),
             speed_mult: 1.0,
             legs_broken: false,
-            ads: false,
         }
     }
 
@@ -384,7 +382,7 @@ pub fn step(
     }
 
     match st.mode {
-        MoveMode::Ground => step_ground(data, world, st, b, prev, wish, mv, mods, dt, &mut ev),
+        MoveMode::Ground => step_ground(data, world, st, b, prev, fwd, wish, mv, mods, dt, &mut ev),
         MoveMode::Slide => step_slide(data, world, st, b, wish, mods, dt, &mut ev),
         MoveMode::Air | MoveMode::Jetpack => step_air(data, level, st, b, prev, input, wish, mods, dt, &mut ev),
         MoveMode::Mantle => step_mantle(data, world, st, dt),
@@ -410,6 +408,7 @@ fn step_ground(
     st: &mut MoveState,
     b: Buttons,
     prev: Buttons,
+    fwd: Vec3,
     wish: Vec3,
     mv: Vec2,
     mods: &MoveModifiers,
@@ -421,9 +420,8 @@ fn step_ground(
     st.jump_released_in_air = false;
 
     // Crouch / slide entry.
-    let speed = st.horizontal_speed();
     let crouch = b.held(Buttons::CROUCH);
-    if crouch && b.pressed(prev, Buttons::CROUCH) && speed >= m.slide.min_entry_speed && !mods.legs_broken {
+    if crouch && b.pressed(prev, Buttons::CROUCH) && can_slide(m, st, fwd, mods) {
         start_slide(m, st, mods, ev);
         return step_slide(data, world, st, b, wish, mods, dt, ev);
     }
@@ -433,9 +431,8 @@ fn step_ground(
         st.stance = Stance::Stand;
     }
 
-    // Target speed.
+    // Target speed. Aiming or firing never stops a sprint.
     let sprint_ok = b.held(Buttons::SPRINT)
-        && !mods.ads
         && !mods.legs_broken
         && st.stance == Stance::Stand
         && mv.y > 0.0
@@ -480,6 +477,16 @@ fn step_ground(
         Some((y, _)) => st.pos.y = y,
         None => enter_air(st),
     }
+}
+
+/// Crouch starts a slide (from the ground, or on landing) when moving at least `slide.min_entry_speed`, within
+/// `slide.entry_max_angle_deg` of where the player faces: a run or a sprint forward slides, a crouch while
+/// strafing or backpedalling does not.
+fn can_slide(m: &MovementSpec, st: &MoveState, fwd: Vec3, mods: &MoveModifiers) -> bool {
+    let vh = horizontal(st.vel);
+    let speed = vh.length();
+    let cone = m.slide.entry_max_angle_deg.to_radians().cos();
+    !mods.legs_broken && speed >= m.slide.min_entry_speed && vh.dot(fwd) >= speed * cone - 1e-4
 }
 
 fn enter_air(st: &mut MoveState) {
@@ -687,7 +694,7 @@ fn step_air(
         ev.landed = true;
         st.vel.y = 0.0;
         st.since_ground = 0.0;
-        if b.held(Buttons::CROUCH) && st.horizontal_speed() >= m.slide.min_entry_speed && !mods.legs_broken {
+        if b.held(Buttons::CROUCH) && can_slide(m, st, yaw_basis(input.yaw).0, mods) {
             start_slide(m, st, mods, ev);
         } else {
             st.mode = MoveMode::Ground;

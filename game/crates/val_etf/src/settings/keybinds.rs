@@ -1,6 +1,6 @@
 //! Settings ▸ Keybinds (mockup 08b): the input map as two tables, rebinding by clicking a key cap, and the
 //! conflict check. The rows follow the game, not the mockup: tap / hold reload with the magazine radial,
-//! the static 1–6 magazine pick, the heal ring on H, and LATER rows for features the prototype lacks.
+//! the static 1–6 magazine pick, the heal ring on B, and LATER rows for features the prototype lacks.
 
 use super::bindings::{Action, Binding};
 use super::controls::{Kit, glyph_runs, text_as};
@@ -56,9 +56,9 @@ const LEFT: &[Row] = &[
     Row::Group("MOVEMENT"),
     Row::Move,
     Row::Act("Jump · in air, press again and hold: jetpack", &[Action::Jump], "A / ✕"),
-    Row::Act("Sprint (hold)", &[Action::Sprint], "L3 click"),
-    Row::Act("Walk (silent)", &[Action::Walk], "—"),
-    Row::Act("Crouch · while sprinting: slide", &[Action::Crouch], "B / ◯"),
+    Row::Act("Sprint (hold) · auto-sprint off", &[Action::Sprint], "L3 click"),
+    Row::Act("Walk (hold, silent)", &[Action::Walk], "—"),
+    Row::Act("Crouch · while running: slide", &[Action::Crouch], "B / ◯"),
     Row::Act("Interact · grab zipline · revive", &[Action::Interact], "X / ▢ hold"),
     Row::Group("COMBAT"),
     Row::Act("Fire · aim down sights", &[Action::Fire, Action::Ads], "RT · LT"),
@@ -106,8 +106,8 @@ pub fn build(p: &mut ChildSpawnerCommands, k: &Kit) {
             c,
             k,
             &[(
-                "Conflicts are allowed only between contexts that never run at once (Sprint and Hold breath share \
-                 Shift because you cannot sprint while aiming). Any other clash turns the key amber and names the \
+                "With AUTO-SPRINT on (Gameplay tab), running forward sprints and Shift walks. Walk and Hold breath share Shift \
+                 (scoped, Shift walks and steadies the shot); any other clash turns the key amber and names the \
                  other action. Number keys 1–6 pick magazines only while the reload radial is open.",
                 false,
                 None,

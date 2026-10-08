@@ -108,9 +108,11 @@ impl Action {
     }
 }
 
-/// Pairs that may share an input because they never run at once (you cannot sprint while aiming, and hold
-/// breath only works while aiming).
-pub const ALLOWED_SHARES: [(Action, Action); 1] = [(Action::Sprint, Action::HoldBreath)];
+/// Pairs that may share an input. Hold breath only works while scoped, where Shift doing both is what the player
+/// wants: by default Shift walks (auto-sprint is on) and steadies the scope at once; a player who sprints on
+/// Shift instead gets the same.
+pub const ALLOWED_SHARES: [(Action, Action); 2] =
+    [(Action::Walk, Action::HoldBreath), (Action::Sprint, Action::HoldBreath)];
 
 /// One input: a key, a mouse button or a wheel direction.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
@@ -444,13 +446,20 @@ mod tests {
         let k = kb(&[
             (Action::Laser, v, None),
             (Action::Melee, v, Some(Binding::Key(KeyCode::Digit3))),
-            (Action::Sprint, shift, None),
+            (Action::Walk, shift, None),
             (Action::HoldBreath, shift, None),
         ]);
         let c = k.conflicts();
         assert!(c.contains(&((Action::Melee, 0), Action::Laser)));
         assert!(c.contains(&((Action::Laser, 0), Action::Melee)));
-        assert_eq!(c.len(), 2, "sprint and hold breath may share shift: {c:?}");
+        assert_eq!(c.len(), 2, "walk and hold breath may share shift: {c:?}");
+        let mut k = k;
+        k.set(Action::Walk, 0, None);
+        k.set(Action::Sprint, 0, shift);
+        assert_eq!(k.conflicts().len(), 2, "so may sprint and hold breath");
+        k.set(Action::Walk, 0, shift);
+        let c = k.conflicts();
+        assert!(c.contains(&((Action::Walk, 0), Action::Sprint)), "but not walk and sprint: {c:?}");
     }
 
     #[test]

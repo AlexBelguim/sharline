@@ -2,7 +2,7 @@
 //! [`SettingsData`] (defaults and ranges from `game/assets/data/settings.ron`), and the maths the screen
 //! shows: cm/360, other games' sensitivities, field of view, the crosshair code.
 
-use super::bindings::{Action, Keybinds};
+use super::bindings::{Action, Binding, Keybinds};
 use bevy::prelude::*;
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
@@ -10,6 +10,10 @@ use std::sync::OnceLock;
 
 /// The user file in the config folder (see `user_config`).
 pub const FILE: &str = "settings.ron";
+
+/// The settings file format this build writes (`version` in the file). A file from before versions reads as 0.
+/// Each version that moves a default has a step in [`Settings::migrate`].
+pub const SETTINGS_VERSION: u32 = 1;
 
 macro_rules! choice {
     ($(#[$m:meta])* $name:ident { $($var:ident = $label:literal),+ $(,)? }) => {
@@ -41,7 +45,8 @@ macro_rules! choice {
 }
 
 choice!(Jetpack { HoldJumpInAir = "HOLD JUMP IN AIR", SeparateKey = "SEPARATE KEY" });
-choice!(Slide { CrouchWhileSprinting = "CROUCH WHILE SPRINTING", Off = "OFF" });
+// A slide starts from a forward run as well as a sprint (the variant keeps its saved name).
+choice!(Slide { CrouchWhileSprinting = "CROUCH WHILE RUNNING", Off = "OFF" });
 choice!(MagCard { ThreeSeconds = "3 S", WhileHeld = "WHILE HELD" });
 choice!(RadialPick { Release = "RELEASE", Click = "CLICK" });
 choice!(ImportGame { Valorant = "VALORANT", Cs2 = "CS2", Apex = "APEX", Overwatch2 = "OVERWATCH 2" });
@@ -252,7 +257,7 @@ section!(CrosshairSettings from defaults.crosshair {
     dot: bool,
     /// Px at 1080p.
     length: f32,
-    /// The minimum gap; the gun's live spread adds to it.
+    /// The minimum gap; the gun's live spread over its resting hip spread adds to it.
     gap: f32,
     width: f32,
     hit_markers: HitMarkers,
@@ -324,6 +329,9 @@ section!(
     /// Everything the Settings screen edits. Changes apply at once; the screen saves them to `settings.ron`.
     #[derive(Resource)]
     Settings from defaults {
+        /// The file format ([`SETTINGS_VERSION`]); a file without one is from before versions (0).
+        #[serde(default)]
+        version: u32,
         last_tab: Tab,
         gameplay: GameplaySettings,
         network: NetworkSettings,
@@ -663,6 +671,64 @@ impl Settings {
     }
 }
 
+/// Version 1 (2026-10-08, user direction: sprint by default with Shift to walk, B heals, a small plus crosshair):
+/// the key bindings whose default moved, with the old default. Each moves to today's default (the data's) only
+/// while a file still holds the old one.
+const V1_KEYS: [(Action, KeyCode); 4] = [
+    (Action::Sprint, KeyCode::ShiftLeft),
+    (Action::Walk, KeyCode::AltLeft),
+    (Action::FireMode, KeyCode::KeyB),
+    (Action::Heal, KeyCode::KeyH),
+];
+
+/// The crosshair lines before version 1, (length, gap, width) px. They move as one shape.
+const V1_CROSSHAIR: (f32, f32, f32) = (7.0, 5.0, 2.0);
+
+impl Settings {
+    /// Bring a file of an older version up to [`SETTINGS_VERSION`]. A value moves to its new default only while
+    /// it still holds the old default, so a choice the player made is kept; a moved key binding that would clash
+    /// with one of the player's own bindings stays where it was. Returns whether anything ran (the file should
+    /// then be saved, with the new version).
+    pub fn migrate(&mut self, defaults: &Settings) -> bool {
+        if self.version >= SETTINGS_VERSION {
+            return false;
+        }
+        if self.version < 1 {
+            self.migrate_v1(defaults);
+        }
+        self.version = SETTINGS_VERSION;
+        true
+    }
+
+    fn migrate_v1(&mut self, d: &Settings) {
+        // Auto-sprint was off by default (indistinguishable from turned off: it comes on).
+        if !self.gameplay.auto_sprint {
+            self.gameplay.auto_sprint = d.gameplay.auto_sprint;
+        }
+        let c = &mut self.crosshair;
+        if (c.length, c.gap, c.width) == V1_CROSSHAIR {
+            (c.length, c.gap, c.width) = (d.crosshair.length, d.crosshair.gap, d.crosshair.width);
+        }
+        let before = self.keybinds.clone();
+        let mut moved: Vec<Action> = V1_KEYS
+            .iter()
+            .filter(|(a, old)| before.get(*a) == [Some(Binding::Key(*old)), None])
+            .map(|(a, _)| *a)
+            .collect();
+        for a in &moved {
+            self.keybinds.0.insert(*a, d.keybinds.get(*a));
+        }
+        // Undo the moves that clash, one at a time (undoing one can make another clash).
+        while let Some(i) = {
+            let clash = self.keybinds.conflicts();
+            moved.iter().position(|a| clash.iter().any(|((x, _), _)| x == a))
+        } {
+            let a = moved.remove(i);
+            self.keybinds.0.insert(a, before.get(a));
+        }
+    }
+}
+
 pub fn team_pair(t: TeamColours) -> (Color, Color) {
     use crate::ui_kit::{ALLY, ENEMY, hex};
     match t {
@@ -792,6 +858,15 @@ mod tests {
             assert!(s.keybinds.0.contains_key(&a), "{a:?} has a default binding");
         }
         assert!(s.keybinds.conflicts().is_empty(), "no clashing defaults: {:?}", s.keybinds.conflicts());
+        assert_eq!(s.version, SETTINGS_VERSION, "a new player's file is current");
+        // user direction 2026-10-08: sprint by default, Shift walks, B heals, H switches the fire mode
+        assert!(s.gameplay.auto_sprint);
+        let key = |a: Action| s.keybinds.slot(a, 0);
+        assert_eq!(key(Action::Walk), Some(Binding::Key(KeyCode::ShiftLeft)));
+        assert_eq!(key(Action::HoldBreath), Some(Binding::Key(KeyCode::ShiftLeft)), "scoped, Shift does both");
+        assert_eq!(key(Action::Sprint), Some(Binding::Key(KeyCode::AltLeft)));
+        assert_eq!(key(Action::Heal), Some(Binding::Key(KeyCode::KeyB)));
+        assert_eq!(key(Action::FireMode), Some(Binding::Key(KeyCode::KeyH)));
         assert_eq!(move_label(&s.keybinds, 0).as_deref(), Some("W A S D"));
         // every default sits inside its range
         let r = &d.ranges;
@@ -900,23 +975,121 @@ mod tests {
     #[test]
     fn crosshair_code_round_trips() {
         let s = Settings::default();
-        assert_eq!(s.crosshair_code(), "XH1-W-O1-I7.2.5");
+        assert_eq!(s.crosshair_code(), "XH1-W-O1-I4.2.2");
         let mut c = s.crosshair.clone();
         c.color = "#123456".into();
         c.dot = true;
         c.outline = false;
         let s2 = Settings { crosshair: c.clone(), ..s.clone() };
         let code = s2.crosshair_code();
-        assert_eq!(code, "XH1-123456-O0-I7.2.5-D");
+        assert_eq!(code, "XH1-123456-O0-I4.2.2-D");
         let mut back = s.crosshair.clone();
         assert!(parse_crosshair_code(&code, &mut back));
         assert_eq!(back, c);
         assert!(!parse_crosshair_code("XH2-W", &mut back));
-        // the default draws 2x7 arms from 5 to 12 px off centre
+        // the default is a small plus (user direction 2026-10-08): 2x4 arms from 2 to 6 px off centre
         let r = crosshair_rects(&s.crosshair, 0.0);
-        assert_eq!(r[0], (-1.0, -12.0, 2.0, 7.0));
-        assert_eq!(r[3], (5.0, -1.0, 7.0, 2.0));
+        assert_eq!(r[0], (-1.0, -6.0, 2.0, 4.0));
+        assert_eq!(r[3], (2.0, -1.0, 4.0, 2.0));
         assert_eq!(r.len(), 4, "no dot by default");
+    }
+
+    /// A settings file saved before versions, with the defaults of the time (abridged to the parts that moved;
+    /// a real file lists every field, which changes nothing here).
+    const OLD_DEFAULTS: &str = r##"(
+        last_tab: MouseAim,
+        gameplay: (auto_sprint: false, jetpack: HoldJumpInAir, slide: CrouchWhileSprinting, mag_card: ThreeSeconds,
+            radial_hold_s: 0.2, radial_pick: Release),
+        crosshair: (color: "#F3F0E9", outline: true, dot: false, length: 7.0, gap: 5.0, width: 2.0,
+            hit_markers: ShieldFlesh),
+        keybinds: {
+            MoveForward: (Some("KeyW"), None), MoveLeft: (Some("KeyA"), None), MoveBack: (Some("KeyS"), None),
+            MoveRight: (Some("KeyD"), None), Jump: (Some("Space"), Some("WheelDown")),
+            Sprint: (Some("ShiftLeft"), None), Walk: (Some("AltLeft"), None),
+            Crouch: (Some("ControlLeft"), Some("KeyC")), Interact: (Some("KeyF"), None),
+            Fire: (Some("MouseLeft"), None), Ads: (Some("MouseRight"), None), Reload: (Some("KeyR"), None),
+            MagCheck: (Some("KeyT"), None), FireMode: (Some("KeyB"), None), Underbarrel: (Some("KeyG"), None),
+            Laser: (Some("KeyV"), None), Melee: (Some("Digit3"), None), HoldBreath: (Some("ShiftLeft"), None),
+            Ability1: (Some("KeyQ"), None), Signature: (Some("KeyE"), None), Ultimate: (Some("KeyX"), None),
+            Heal: (Some("KeyH"), None), Scoreboard: (Some("Tab"), None), Ping: (Some("MouseMiddle"), Some("KeyZ")),
+            Chat: (Some("Enter"), Some("KeyY")), ChangeLoadout: (Some("KeyL"), None),
+        },
+        mouse: (dpi: 1600),
+    )"##;
+
+    fn migrated(text: &str) -> (Settings, bool) {
+        let d = embedded();
+        let mut s: Settings = ron::from_str(text).unwrap();
+        s.complete(d);
+        let ran = s.migrate(&d.defaults);
+        (s, ran)
+    }
+
+    /// A file of the old defaults gets every new default (and keeps its other values); the result is current.
+    #[test]
+    fn an_old_file_with_the_old_defaults_gets_the_new_ones() {
+        let d = &embedded().defaults;
+        let raw: Settings = ron::from_str(OLD_DEFAULTS).unwrap();
+        assert_eq!(raw.version, 0, "a file without a version is from before versions");
+        let (s, ran) = migrated(OLD_DEFAULTS);
+        assert!(ran && s.version == SETTINGS_VERSION);
+        assert_eq!(s.keybinds, d.keybinds, "every binding at today's default");
+        assert_eq!(s.gameplay, d.gameplay);
+        assert_eq!(s.crosshair, d.crosshair);
+        assert_eq!(s.mouse.dpi, 1600, "the player's own values stay");
+        assert!(s.keybinds.conflicts().is_empty());
+        // saved and loaded again: nothing left to do
+        let text = ron::ser::to_string_pretty(&s, ron::ser::PrettyConfig::default()).unwrap();
+        let (again, ran) = migrated(&text);
+        assert!(!ran);
+        assert_eq!(again, s);
+    }
+
+    /// A player who changed a value keeps it; only values still at the old default move.
+    #[test]
+    fn an_old_file_keeps_the_players_own_choices() {
+        let d = &embedded().defaults;
+        let custom = OLD_DEFAULTS
+            .replace(r#"Walk: (Some("AltLeft"), None)"#, r#"Walk: (Some("KeyN"), None)"#)
+            .replace(r#"FireMode: (Some("KeyB"), None)"#, r#"FireMode: (Some("KeyB"), Some("MouseBack"))"#)
+            .replace("length: 7.0", "length: 10.0")
+            .replace(r##"color: "#F3F0E9""##, r##"color: "#52E5A5""##);
+        let (s, ran) = migrated(&custom);
+        assert!(ran && s.version == SETTINGS_VERSION);
+        let key = |a: Action, i: usize| s.keybinds.slot(a, i);
+        assert_eq!(key(Action::Walk, 0), Some(Binding::Key(KeyCode::KeyN)), "a rebound walk stays");
+        assert_eq!(key(Action::FireMode, 1), Some(Binding::Mouse(MouseButton::Back)), "a changed pair stays");
+        assert_eq!(key(Action::FireMode, 0), Some(Binding::Key(KeyCode::KeyB)));
+        // Sprint moved to Alt; Heal could not take B from fire mode, so it stays on H
+        assert_eq!(key(Action::Sprint, 0), d.keybinds.slot(Action::Sprint, 0));
+        assert_eq!(key(Action::Heal, 0), Some(Binding::Key(KeyCode::KeyH)), "no clash is made");
+        assert!(s.keybinds.conflicts().is_empty(), "{:?}", s.keybinds.conflicts());
+        assert!(s.gameplay.auto_sprint);
+        assert_eq!((s.crosshair.length, s.crosshair.gap, s.crosshair.width), (10.0, 5.0, 2.0), "a custom shape stays");
+        assert_eq!(s.crosshair.color, "#52E5A5");
+        // the player's binding of Alt to something else keeps Sprint on Shift (and Walk on its old key)
+        let alt = OLD_DEFAULTS
+            .replace(r#"Walk: (Some("AltLeft"), None)"#, r#"Walk: (Some("CapsLock"), None)"#)
+            .replace(r#"Melee: (Some("Digit3"), None)"#, r#"Melee: (Some("AltLeft"), None)"#);
+        let (s, _) = migrated(&alt);
+        assert_eq!(s.keybinds.slot(Action::Sprint, 0), Some(Binding::Key(KeyCode::ShiftLeft)));
+        assert_eq!(s.keybinds.slot(Action::Melee, 0), Some(Binding::Key(KeyCode::AltLeft)));
+    }
+
+    /// A current file is left alone, even where it holds an old default on purpose.
+    #[test]
+    fn a_current_file_is_not_migrated() {
+        let mut s = embedded().defaults.clone();
+        s.gameplay.auto_sprint = false;
+        s.keybinds.set(Action::Sprint, 0, Some(Binding::Key(KeyCode::ShiftLeft)));
+        s.keybinds.set(Action::Walk, 0, Some(Binding::Key(KeyCode::AltLeft)));
+        s.crosshair.length = 7.0;
+        s.crosshair.gap = 5.0;
+        let text = ron::ser::to_string_pretty(&s, ron::ser::PrettyConfig::default()).unwrap();
+        assert!(text.contains("version: 1"), "{text}");
+        let (back, ran) = migrated(&text);
+        assert!(!ran);
+        assert_eq!(back, s);
     }
 
     #[test]

@@ -55,9 +55,13 @@
     // Frame caps offered next to the monitor's own refresh rate.
     frame_limits: [60, 144, 240],
     defaults: (
+        // The settings file format (settings::SETTINGS_VERSION). A saved file of an older version is migrated
+        // once on load: a value that still holds an old default moves to the new one (settings/model.rs).
+        version: 1,
         last_tab: MouseAim,
         gameplay: (
-            auto_sprint: false,
+            // Moving forward sprints; hold Walk (Shift) to walk (user direction 2026-10-08).
+            auto_sprint: true,
             jetpack: HoldJumpInAir,
             slide: CrouchWhileSprinting,
             mag_card: ThreeSeconds,
@@ -78,32 +82,34 @@
             fov_h: 103,
             viewmodel_fov: 68,
         ),
+        // A small plus (user direction 2026-10-08).
         crosshair: (
             color: "#F3F0E9",
             outline: true,
             dot: false,
-            length: 7,
-            gap: 5,
+            length: 4,
+            gap: 2,
             width: 2,
             hit_markers: ShieldFlesh,
         ),
         // Today's controls (game/README.md). Esc is the match menu and not bindable; 1-6 pick a magazine
-        // while the reload radial is open.
+        // while the reload radial is open. Auto-sprint is on, so Shift walks and Sprint (Alt) is for players who
+        // turn it off; scoped, Shift also holds your breath. B heals, H switches the fire mode.
         keybinds: {
             MoveForward: (Some("KeyW"), None),
             MoveLeft: (Some("KeyA"), None),
             MoveBack: (Some("KeyS"), None),
             MoveRight: (Some("KeyD"), None),
             Jump: (Some("Space"), Some("WheelDown")),
-            Sprint: (Some("ShiftLeft"), None),
-            Walk: (Some("AltLeft"), None),
+            Sprint: (Some("AltLeft"), None),
+            Walk: (Some("ShiftLeft"), None),
             Crouch: (Some("ControlLeft"), Some("KeyC")),
             Interact: (Some("KeyF"), None),
             Fire: (Some("MouseLeft"), None),
             Ads: (Some("MouseRight"), None),
             Reload: (Some("KeyR"), None),
             MagCheck: (Some("KeyT"), None),
-            FireMode: (Some("KeyB"), None),
+            FireMode: (Some("KeyH"), None),
             Underbarrel: (Some("KeyG"), None),
             Laser: (Some("KeyV"), None),
             Melee: (Some("Digit3"), None),
@@ -111,7 +117,7 @@
             Ability1: (Some("KeyQ"), None),
             Signature: (Some("KeyE"), None),
             Ultimate: (Some("KeyX"), None),
-            Heal: (Some("KeyH"), None),
+            Heal: (Some("KeyB"), None),
             Scoreboard: (Some("Tab"), None),
             Ping: (Some("MouseMiddle"), Some("KeyZ")),
             Chat: (Some("Enter"), Some("KeyY")),

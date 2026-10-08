@@ -180,3 +180,29 @@ the AR kills faster; the SMG is weak at range; aiming down sights is much faster
   the default optics). Everything on screen follows the sim's ADS blend: camera zoom, viewmodel pose, scope picture,
   crosshair. The projector sight had its own clock: flaps 0.12 → 0.08 s, hologram fade 0.08 → 0.03 s
   (`weapon_models.ron`; it still shows from 80 % ADS), tested to keep up with the fastest build of each gun.
+
+## 10. Aim on the move: auto-sprint, aiming never slows you, slides from a run
+- **Design:** aiming slows you (`move_mult_ads`: Mako 0.6, Warden 0.45) and ends a sprint; aimed spread still grows
+  with movement (`spread_deg.move_full_ads`), the Warden's scope is unsettled while moving (`ads_unsettled` 3.0), the
+  jetpack forbids aiming (`jetpack.ads_allowed` false), and a slide needs 5.5 m/s (`slide.min_entry_speed`, a full
+  sprint).
+- **Now (user direction 2026-10-08):**
+  - **Auto-sprint is the default:** moving forward sprints, Shift held walks (Sprint moved to Alt, for players who
+    turn auto-sprint off). Walk and Hold breath share Shift.
+  - **Aiming and firing never slow you or end a sprint.** `move_mult_ads` is gone (attachments' `ads_move` no longer
+    applies either). A sprinting player can fire, aim and mag-check: the gun comes up from the sprint pose in the
+    gun's `sprint_to_fire_s` and the player keeps their speed. A trigger pull while it comes up fires once it is
+    up, and after a shot the gun stays up `speed.sprint_gun_hold_s` (0.6 s) before a sprint lowers it again.
+  - **Aimed shots are accurate in every movement state:** fully aimed (from 90 % ADS progress), every gun has its
+    `ads_still` spread running, sprinting, sliding, in the air, on a zipline or a jetpack. `move_full_ads` and
+    `ads_unsettled` are gone; the movement, air, slide, zipline and jetpack spreads are hip-fire penalties only.
+    This replaces the `ads_first_shot` rule of section 3. ADS bloom while moving stays.
+  - **ADS works in every movement state** but a mantle (the hands are on the ledge): `jetpack.ads_allowed` is true.
+  - **Slides start from a normal run:** `slide.min_entry_speed` 4.0 (jog 4.8, walk 2.6), moving within
+    `slide.entry_max_angle_deg` (60°) of the facing, so a crouch while strafing or backpedalling only crouches.
+  - **Keys:** Heal is B and Fire mode H (section 7's "Heal ring (H)" is now B). The default crosshair is a small plus
+    (2 × 4 px arms, 2 px gap). Saved settings files move to the new defaults once, where they still hold the old
+    ones (`settings.ron` version 1).
+- **Design follow-up (local session):** `weapons.slice.json` (drop `move_mult_ads`, `move_full_ads`,
+  `ads_unsettled`) and `movement.slice.json` (`min_entry_speed` 4.0, `ads_allowed` true), then delete the
+  matching lines in `superseded()`.

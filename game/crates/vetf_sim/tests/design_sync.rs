@@ -35,6 +35,15 @@ fn superseded(path: &str) -> bool {
         || path == "weapons.slice.json.weapons[0].recoil.ads_mult"
         // Each halo arc has its own shield pool, so a preset's total capacity differs.
         || (path.starts_with("armors.slice.json.presets[") && path.ends_with(".capacity"))
+        // Aiming never slows you, and aimed shots are accurate in every movement state
+        // (DESIGN_DELTAS.md, 'Aim on the move').
+        || (path.starts_with("weapons.slice.json.weapons[")
+            && (path.ends_with(".move_mult_ads")
+                || path.ends_with(".spread_deg.move_full_ads")
+                || path.ends_with(".spread_deg.ads_unsettled")))
+        || path == "movement.slice.json.movement.jetpack.ads_allowed"
+        // A slide starts from a normal run, not only a full sprint (DESIGN_DELTAS.md, 'Aim on the move').
+        || path == "movement.slice.json.movement.slide.min_entry_speed"
         || gun_tuning_round_1(path)
 }
 

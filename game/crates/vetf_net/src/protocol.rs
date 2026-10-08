@@ -377,6 +377,8 @@ mod tests {
         let ws = WeaponState::new(&d, &loadout.weapon);
         let ms = MoveState::spawn(Vec3::new(1.0, 2.0, 3.0), 1.6);
         roundtrip(&PlayerMove(ms));
+        // a gun coming up from a sprint with a trigger pull waiting
+        roundtrip(&PlayerWeapon(WeaponState { sprint_lock: 9, fire_queued: true, ..ws.clone() }));
         roundtrip(&PlayerWeapon(ws));
         roundtrip(&PlayerItems(ItemState::new(&loadout.kit)));
         roundtrip(&PlayerLoadout(loadout.clone()));

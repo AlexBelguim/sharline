@@ -87,9 +87,6 @@ pub struct WeaponSpec {
     /// Fire rate multiplier while aiming down sights.
     #[serde(default = "one")]
     pub ads_rpm_mult: f32,
-    /// Aimed first shots stay accurate in the air and while moving slightly.
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub ads_first_shot: Option<AdsFirstShot>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub bolt_cycle_s: Option<f32>,
     pub fire_modes: Vec<FireMode>,
@@ -102,8 +99,8 @@ pub struct WeaponSpec {
     pub holster_s: f32,
     pub ads_s: f32,
     pub sprint_to_fire_s: f32,
+    /// Speed multiplier for carrying the gun. Aiming and firing never slow you (user direction 2026-10-08).
     pub move_mult_held: f32,
-    pub move_mult_ads: f32,
     pub spread_deg: SpreadSpec,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub sway: Option<SwaySpec>,
@@ -114,14 +111,6 @@ pub struct WeaponSpec {
 
 fn one() -> f32 {
     1.0
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
-pub struct AdsFirstShot {
-    /// The airborne / jetpack spread penalty does not apply.
-    pub air_accurate: bool,
-    /// Moving up to this fraction of jog speed still counts as standing still.
-    pub move_tolerance_frac: f32,
 }
 
 /// Ammo is picked per loadout as a type and a tier; the weapon class sets the baseline.
@@ -305,15 +294,13 @@ impl AmmoFile {
     }
 }
 
+/// Spread cone half-angles (degrees). Aimed (fully in), a gun has `ads_still` whatever the player does: the
+/// movement, air, slide, zipline and jetpack values are hip-fire penalties only (user direction 2026-10-08).
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct SpreadSpec {
     pub ads_still: f32,
-    /// Bolt sniper: spread while the scope has not settled after ADS / movement.
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub ads_unsettled: Option<f32>,
     pub hip_still: f32,
     pub crouch_mult: f32,
-    pub move_full_ads: f32,
     pub move_full_hip: f32,
     /// Movement below this fraction of jog speed counts as standing still.
     pub move_threshold_frac: f32,
@@ -859,6 +846,9 @@ pub struct SpeedSpec {
     pub crouch: f32,
     pub backpedal_mult: f32,
     pub sprint_max_angle_deg: f32,
+    /// A sprint lowers the gun only once it has been idle this long after its last shot (fire, aim and mag checks
+    /// keep it up while they last), so semi-auto taps on the run do not bounce it up and down.
+    pub sprint_gun_hold_s: f32,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -894,6 +884,9 @@ pub struct FallDamageSpec {
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct SlideSpec {
     pub min_entry_speed: f32,
+    /// A slide starts only while moving within this angle of where the player faces (no backward or
+    /// sideways slides from a crouch-strafe).
+    pub entry_max_angle_deg: f32,
     pub boost: f32,
     pub boost_cooldown_s: f32,
     pub friction: f32,

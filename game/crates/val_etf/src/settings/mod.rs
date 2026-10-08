@@ -43,6 +43,14 @@ impl Plugin for SettingsScreenPlugin {
         let data = load_data();
         let mut settings: Settings = user_config::load_or_default(FILE);
         settings.complete(&data);
+        // An older file moves to today's defaults where it still holds the old ones, once: save it at the new
+        // version straight away.
+        if settings.migrate(&data.defaults) {
+            info!("settings: migrated {FILE} to version {SETTINGS_VERSION}");
+            if let Err(e) = user_config::save(FILE, &settings) {
+                warn!("cannot save migrated settings: {e}");
+            }
+        }
         let on_top = || screen_on_top(Screen::Settings(SettingsTab::Gameplay));
         app.insert_resource(data)
             .insert_resource(settings)
