@@ -40,14 +40,18 @@ impl Offset {
     }
 
     /// The gun's pose (view space) moved by this offset: it turns about the eye by the pitch and yaw (trailing
-    /// the view), cants about its own barrel by the roll, then shifts.
-    pub fn move_gun(&self, pose: Transform) -> Transform {
+    /// the view), rolls by the roll, then shifts. The roll cants the gun about its own barrel, or with
+    /// `roll_about_eye` (the ADS blend) about the view axis instead: aimed, a cant about the barrel would swing the
+    /// sight's reticle, which sits above the barrel, off the aim point.
+    pub fn move_gun(&self, pose: Transform, roll_about_eye: f32) -> Transform {
         let swing = Quat::from_euler(EulerRot::YXZ, self.turn.y.to_radians(), self.turn.x.to_radians(), 0.0);
+        let k = roll_about_eye.clamp(0.0, 1.0);
         let barrel = pose.rotation * Vec3::Z;
-        let cant = Quat::from_axis_angle(barrel, self.turn.z.to_radians());
+        let cant = Quat::from_axis_angle(barrel, (self.turn.z * (1.0 - k)).to_radians());
+        let roll = Quat::from_rotation_z((self.turn.z * k).to_radians());
         Transform {
-            translation: swing * pose.translation + self.shift,
-            rotation: swing * cant * pose.rotation,
+            translation: swing * (roll * pose.translation) + self.shift,
+            rotation: swing * roll * cant * pose.rotation,
             scale: pose.scale,
         }
     }
@@ -65,8 +69,9 @@ pub struct FeelInput {
     pub grounded: bool,
     pub crouched: bool,
     pub vel_y: f32,
-    /// The gun is in its sprint pose: lowered by a sprint (an item, a mantle) and not being aimed.
-    pub sprinting: bool,
+    /// How far down the gun should be (0..1): 1 while a sprint (an item, a mantle) lowers it, then the share of
+    /// the simulation's bring-up still to go (`sprint_pose`), 0 once it can fire or while it is aimed.
+    pub sprint: f32,
     /// ADS blend, 0 hip .. 1 aimed.
     pub ads: f32,
     /// The view (radians), for the gun's drag.
@@ -109,6 +114,9 @@ pub struct Feel {
     pub gun: Offset,
     /// How far the gun is in its sprint pose (0..1).
     pub sprint: f32,
+    /// The ADS blend the gun's offset was made for: aimed, its roll turns about the view axis
+    /// ([`Offset::move_gun`]).
+    pub ads: f32,
 }
 
 /// Which two gaits a speed lies between and how far, and how much of the slowest gait shows below its speed.
@@ -252,7 +260,14 @@ impl FeelState {
         self.gun_bob = GunGait::lerp(self.gun_bob, gun_target, k);
         self.phase = (self.phase + PI * self.bob.step_hz * dt).rem_euclid(TAU);
         let (side, step) = (self.phase.sin(), (2.0 * self.phase).cos());
-        self.sprint += (if input.sprinting { 1.0 } else { 0.0 } - self.sprint) * ease(dt, g.sprint_pose.ease_s);
+        // Down: eased. Up: with the simulation's bring-up, so the gun is up on the tick it can fire (eased, it
+        // came up only after the first shots had left it).
+        let target = input.sprint.clamp(0.0, 1.0);
+        if target > self.sprint {
+            self.sprint += (target - self.sprint) * ease(dt, g.sprint_pose.ease_s);
+        } else {
+            self.sprint = target;
+        }
 
         // The camera.
         let b = self.bob;
@@ -289,14 +304,17 @@ impl FeelState {
         };
         let gun_land = Offset { shift: Vec3::Y * self.gun_land[0].x, turn: Vec3::X * self.gun_land[1].x };
         let kick = Offset { shift: Vec3::Z * self.kick[0].x, turn: Vec3::X * self.kick[1].x };
-        let gun = breath
-            .add(drag)
-            .add(gun_bob)
-            .add(gun_land)
-            .scaled(calm(g.ads_mult))
-            .add(kick.scaled(calm(g.ads_kick_mult)));
+        // Aimed, the sway turns the gun a little but does not slide it across the view (that carried the reticle
+        // a degree or more off the aim point).
+        let sway = breath.add(drag).add(gun_bob).add(gun_land);
+        let (turn_k, across_k) = (calm(g.ads_mult), calm(g.ads_shift_mult));
+        let sway = Offset {
+            shift: Vec3::new(sway.shift.x * across_k, sway.shift.y * across_k, sway.shift.z * turn_k),
+            turn: sway.turn * turn_k,
+        };
+        let gun = sway.add(kick.scaled(calm(g.ads_kick_mult)));
 
-        Feel { camera, gun, sprint: self.sprint }
+        Feel { camera, gun, sprint: self.sprint, ads }
     }
 }
 
@@ -307,13 +325,28 @@ pub struct ViewFeel {
     state: FeelState,
 }
 
+/// How far down the gun should be (0..1) from the simulation's weapon: lowered while `sprint_lock` is full
+/// (the sim sets it full every tick a sprint lowers the gun), then the share of the bring-up (`full` ticks) still
+/// to go, counted down smoothly between ticks (`overstep`, 0..1 of a tick), and 0 while aimed.
+pub fn sprint_target(sprint_lock: u16, full: u16, ads: f32, overstep: f32) -> f32 {
+    if ads > 0.0 || sprint_lock == 0 {
+        return 0.0;
+    }
+    let full = full.max(1) as f32;
+    let left = sprint_lock as f32;
+    if left >= full { 1.0 } else { ((left - overstep.clamp(0.0, 1.0)) / full).clamp(0.0, 1.0) }
+}
+
 /// Steps the feel from our player and this frame's shots (`LocalShot`, the same shots that kick the view).
+#[allow(clippy::too_many_arguments)]
 pub(crate) fn step_feel(
     time: Res<Time>,
+    fixed: Res<Time<Fixed>>,
     feel: Res<FeelData>,
     data: Res<Data>,
     settings: Res<Settings>,
     control: Res<LocalControl>,
+    ads: Res<super::SmoothedAds>,
     mut shots: MessageReader<LocalShot>,
     me: Query<(&PlayerMove, &PlayerWeapon, &PlayerLoadout, &Vitals), With<Controlled>>,
     mut view: ResMut<ViewFeel>,
@@ -325,10 +358,14 @@ pub(crate) fn step_feel(
         view.now = Feel::default();
         return;
     }
-    let shot = *feel.shot(&loadout.0.weapon.spec(&data).id);
+    let spec = loadout.0.weapon.spec(&data);
+    let shot = *feel.shot(&spec.id);
     let shots: Vec<(ShotFeel, u32)> = fired.into_iter().map(|seq| (shot, seq)).collect();
     let m = &mv.0;
     let speeds = &data.movement.speed;
+    let w = &weapon.0;
+    let bring_up =
+        vetf_sim::weapon::secs_to_ticks(spec.sprint_to_fire_s * loadout.0.weapon.mods.sprint_to_fire, data.net.tick_hz);
     let input = FeelInput {
         dt: time.delta_secs(),
         time: time.elapsed_secs(),
@@ -336,8 +373,8 @@ pub(crate) fn step_feel(
         grounded: m.mode == MoveMode::Ground,
         crouched: m.stance != Stance::Stand,
         vel_y: m.vel.y,
-        sprinting: weapon.0.lowered() && weapon.0.ads == 0.0,
-        ads: weapon.0.ads,
+        sprint: sprint_target(w.sprint_lock, bring_up, w.ads, fixed.overstep_fraction()),
+        ads: ads.at(fixed.overstep_fraction()),
         yaw: control.yaw,
         pitch: control.pitch,
         gaits: [speeds.walk, speeds.jog, speeds.sprint],
@@ -361,7 +398,7 @@ mod tests {
             grounded: true,
             crouched: false,
             vel_y: 0.0,
-            sprinting: speed >= GAITS[2],
+            sprint: if speed >= GAITS[2] { 1.0 } else { 0.0 },
             ads: 0.0,
             yaw: 0.0,
             pitch: 0.0,
@@ -460,7 +497,7 @@ mod tests {
     #[test]
     fn aiming_keeps_the_sight_on_the_aim_point() {
         let feel = FeelData::embedded();
-        let aimed = FeelInput { ads: 1.0, sprinting: false, ..input(GAITS[1]) };
+        let aimed = FeelInput { ads: 1.0, sprint: 0.0, ..input(GAITS[1]) };
         let (cam, gun, _) = run(feel, aimed, 2.0, &[]);
         assert!(cam.y < 1e-5, "aimed, the bob does not turn the camera: {cam}");
         let (hip_cam, hip_gun, _) = run(feel, FeelInput { ads: 0.0, ..aimed }, 2.0, &[]);
@@ -538,20 +575,102 @@ mod tests {
             s.step(feel, &sprint, &[]);
         }
         assert!(s.step(feel, &sprint, &[]).sprint > 0.99);
-        let walk = FeelInput { sprinting: false, ..sprint };
-        assert!(s.step(feel, &walk, &[]).sprint > 0.5, "it eases back down");
+        // Coming up follows the simulation's bring-up: on its last tick the gun is up.
+        let up = FeelInput { sprint: 0.5, ..sprint };
+        assert_eq!(s.step(feel, &up, &[]).sprint, 0.5, "half the bring-up left: half down");
+        let ready = FeelInput { sprint: 0.0, ..sprint };
+        assert_eq!(s.step(feel, &ready, &[]).sprint, 0.0, "the gun can fire: it is up");
+    }
+
+    /// Finding sprint-pose-ease-lags-gun-up: sprint with the trigger held, then let the sim bring the gun up. On
+    /// the frame of the first shot (the tick `sprint_lock` reaches 0) the pose is 0, never still lowered.
+    #[test]
+    fn the_gun_is_up_when_the_first_shot_leaves() {
+        let feel = FeelData::embedded();
+        let mut s = FeelState::default();
+        let full = 12; // the Mako: 0.2 s at 60 Hz
+        let base = input(GAITS[2]);
+        for _ in 0..60 {
+            s.step(feel, &FeelInput { sprint: sprint_target(full, full, 0.0, 0.0), ..base }, &[]);
+        }
+        let mut last = 1.0;
+        // 4 frames a tick (240 fps), the lock counting down from full
+        for lock in (0..full).rev() {
+            for f in 0..4 {
+                let t = sprint_target(lock, full, 0.0, f as f32 / 4.0);
+                let out = s.step(feel, &FeelInput { sprint: t, ..base }, &[]);
+                assert!(out.sprint <= last + 1e-6, "it only comes up");
+                last = out.sprint;
+            }
+        }
+        let first_shot = s.step(feel, &FeelInput { sprint: sprint_target(0, full, 0.0, 0.0), ..base }, &[]);
+        assert_eq!(first_shot.sprint, 0.0);
+        // Aiming takes over at once.
+        assert_eq!(sprint_target(full, full, 0.3, 0.0), 0.0);
+        assert_eq!(sprint_target(full, full, 0.0, 0.7), 1.0, "lowered: all the way down");
+    }
+
+    /// Finding ads-sway-moves-reticle-off-aim: aimed, the sway may turn the gun a little, but the sight's reticle
+    /// (on the view axis a few centimetres ahead) never slides off it by more than that turn: a sprint bob, a full
+    /// drag after a flick and a hard landing.
+    #[test]
+    fn aimed_the_reticle_moves_only_by_the_sways_turn() {
+        let feel = FeelData::embedded();
+        // the aimed pose: the gun under the eye, the reticle 5 cm ahead on the view axis
+        let pose = Transform::from_xyz(0.0, -0.075, -0.3).with_rotation(Quat::from_rotation_y(PI));
+        let reticle = pose.compute_affine().inverse().transform_point3(Vec3::NEG_Z * 0.05);
+        let off_axis = |out: &Feel| {
+            let t = out.gun.move_gun(pose, out.ads);
+            let r = t.compute_affine().transform_point3(reticle);
+            r.angle_between(Vec3::NEG_Z).to_degrees()
+        };
+        let turn = |out: &Feel| Vec2::new(out.gun.turn.x, out.gun.turn.y).length();
+        let check = |what: &str, out: &Feel| {
+            let (off, turn) = (off_axis(out), turn(out));
+            assert!(off <= turn + 0.02, "{what}: the reticle is {off:.3} deg off for a {turn:.3} deg turn");
+            assert!(off < 0.4, "{what}: {off:.3} deg");
+        };
+        // a sprint's bob, aimed
+        let mut s = FeelState::default();
+        let aimed = FeelInput { ads: 1.0, sprint: 0.0, ..input(GAITS[2]) };
+        for f in 0..480 {
+            let out = s.step(feel, &FeelInput { time: f as f32 / 120.0, ..aimed }, &[]);
+            check("sprint bob", &out);
+        }
+        // a flick: the drag at its cap
+        let mut s = FeelState::default();
+        let mut i = FeelInput { ads: 1.0, ..input(0.0) };
+        for _ in 0..30 {
+            i.yaw -= PI / 60.0;
+            let out = s.step(feel, &i, &[]);
+            check("full drag", &out);
+        }
+        // a hard landing
+        let mut s = FeelState::default();
+        for _ in 0..10 {
+            s.step(feel, &FeelInput { grounded: false, vel_y: -12.0, ..i }, &[]);
+        }
+        for _ in 0..90 {
+            let out = s.step(feel, &FeelInput { grounded: true, ..i }, &[]);
+            check("hard landing", &out);
+        }
     }
 
     /// The gun turns about the eye (trailing the view) and cants about its barrel; a zero offset leaves it be.
     #[test]
     fn an_offset_moves_the_gun_about_the_eye() {
         let pose = Transform::from_xyz(0.16, -0.2, -0.32).with_rotation(Quat::from_rotation_y(PI));
-        assert!(Offset::default().move_gun(pose).translation.abs_diff_eq(pose.translation, 1e-6));
-        let left = Offset { turn: Vec3::new(0.0, 5.0, 0.0), ..default() }.move_gun(pose);
+        assert!(Offset::default().move_gun(pose, 0.0).translation.abs_diff_eq(pose.translation, 1e-6));
+        let left = Offset { turn: Vec3::new(0.0, 5.0, 0.0), ..default() }.move_gun(pose, 0.0);
         assert!(left.translation.x < pose.translation.x, "yaw left swings it left");
         assert!((left.translation.length() - pose.translation.length()).abs() < 1e-5, "about the eye");
-        let cant = Offset { turn: Vec3::new(0.0, 0.0, 10.0), ..default() }.move_gun(pose);
+        let cant = Offset { turn: Vec3::new(0.0, 0.0, 10.0), ..default() }.move_gun(pose, 0.0);
         assert!(cant.translation.abs_diff_eq(pose.translation, 1e-6), "a cant turns it in place");
         assert!((cant.rotation * Vec3::Z).abs_diff_eq(pose.rotation * Vec3::Z, 1e-5), "about its barrel");
+        // aimed, the roll turns it about the view axis: a point on that axis stays on it
+        let aimed = Offset { turn: Vec3::new(0.0, 0.0, 10.0), ..default() }.move_gun(pose, 1.0);
+        let on_axis = pose.compute_affine().inverse().transform_point3(Vec3::NEG_Z * 0.05);
+        let moved = aimed.compute_affine().transform_point3(on_axis);
+        assert!(moved.abs_diff_eq(Vec3::NEG_Z * 0.05, 1e-5), "{moved}");
     }
 }

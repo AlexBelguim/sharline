@@ -6,6 +6,7 @@
 //! Teammates' glow and name markers, and everyone else's plain look, are [`friend_foe`]'s.
 
 mod camera_fx;
+pub mod executor;
 pub mod feel;
 pub mod friend_foe;
 pub mod hit_fx;
@@ -24,11 +25,11 @@ use lightyear::prelude::*;
 use std::collections::HashMap;
 use std::f32::consts::{FRAC_PI_2, PI, TAU};
 use vetf_net::*;
-use vetf_sim::Zone;
 use vetf_sim::data::{WeaponClass, WeightClass};
 use vetf_sim::level::Team;
 use vetf_sim::movement::Stance;
 use vetf_sim::movement::collision::{Brush, Look};
+use vetf_sim::{Zone, ZoneTable};
 
 pub struct RenderPlugin;
 
@@ -42,9 +43,12 @@ impl Plugin for RenderPlugin {
             .init_resource::<tracer_fx::Tracers>()
             .init_resource::<hit_fx::HitMemory>()
             .init_resource::<hit_fx::ShardAssets>()
+            .init_resource::<SmoothedAds>()
+            .init_resource::<StepEye>()
             .add_message::<hit_fx::HaloHit>()
             .add_plugins(friend_foe::FriendFoePlugin)
             .add_systems(Startup, setup_menu_camera)
+            .add_systems(FixedPostUpdate, (record_ads, record_footing))
             .add_systems(
                 OnEnter(AppState::InGame),
                 (spawn_level, spawn_view_camera, tracer_fx::spawn_tracer_mesh, hit_fx::spawn_marker_layer),
@@ -55,9 +59,11 @@ impl Plugin for RenderPlugin {
                 (
                     attach_player_visuals,
                     sync_held_guns,
+                    sync_halos,
                     update_player_visuals,
                     sync_viewmodel,
                     camera_fx::step_feel.before(update_camera),
+                    smooth_step_eye.before(update_camera),
                     update_camera,
                 )
                     .run_if(in_state(AppState::InGame)),
@@ -119,6 +125,110 @@ pub(crate) struct PlayerVisual;
 /// beside it, not under it (see [`PlayerPose`]).
 #[derive(Component)]
 struct Body;
+
+/// What a player's halo was built from (on their [`Body`]): its arcs are rebuilt when the loadout's tiers or
+/// weight class change (a new armor pick shows at the respawn), like the held gun.
+#[derive(Component, Debug, Clone, Copy, PartialEq)]
+struct HaloLook {
+    tiers: ZoneTable<u8>,
+    weight: WeightClass,
+}
+
+impl HaloLook {
+    fn of(loadout: &vetf_sim::player::Loadout) -> HaloLook {
+        HaloLook { tiers: loadout.halo.tiers, weight: loadout.weight }
+    }
+
+    /// The ring's scale and tube radius: everyone reads the weight class from the halo's size.
+    fn size(&self) -> (f32, f32) {
+        match self.weight {
+            WeightClass::Heavy => (1.2, 0.022),
+            WeightClass::Medium => (1.0, 0.016),
+            _ => (0.85, 0.011),
+        }
+    }
+}
+
+/// The ADS blend between fixed ticks. The simulation moves it once a tick, so the zoom and the gun coming up
+/// stepped at the tick rate (8 steps for the Mako's ADS at 60 Hz) while the eye moved smoothly; this keeps the
+/// last two ticks' values and blends them by the overstep, like the eye's position.
+#[derive(Resource, Debug, Default, Clone, Copy, PartialEq)]
+pub struct SmoothedAds {
+    prev: f32,
+    curr: f32,
+}
+
+impl SmoothedAds {
+    /// The blend `overstep` (0..1) of the way from the last tick's ADS to this tick's.
+    pub fn at(&self, overstep: f32) -> f32 {
+        self.prev + (self.curr - self.prev) * overstep.clamp(0.0, 1.0)
+    }
+
+    pub fn record(&mut self, ads: f32) {
+        (self.prev, self.curr) = (self.curr, ads);
+    }
+}
+
+fn record_ads(me: Query<&PlayerWeapon, With<Controlled>>, mut ads: ResMut<SmoothedAds>) {
+    ads.record(me.iter().next().map_or(0.0, |w| w.0.ads));
+}
+
+/// The view over a step: Showhome's kerbs lift the feet 11 cm in one tick and the view jumped with them (map-kit
+/// review K9). While our player stands on flat ground (this tick and the last, so a step between two flat
+/// surfaces), the eye's height follows the feet over `feel.ron`'s `camera.step_smooth_s`; on a slope, in the air
+/// or after a jump larger than a step it follows them at once.
+#[derive(Resource, Debug, Default, Clone, Copy, PartialEq)]
+pub struct StepEye {
+    /// On flat ground now and the tick before.
+    steady: bool,
+    flat: bool,
+    /// The smoothed feet height, and how far the eye is below (or above) the feet's own this frame.
+    feet_y: Option<f32>,
+    pub offset: f32,
+}
+
+/// The smoothed feet height this frame: toward `raw` over `tau` while `steady` and within a step of it, else
+/// `raw` at once.
+pub fn step_eye(smoothed: Option<f32>, raw: f32, steady: bool, max_step: f32, dt: f32, tau: f32) -> f32 {
+    match smoothed {
+        Some(y) if steady && (raw - y).abs() <= max_step && tau > 0.0 => y + (raw - y) * (1.0 - (-dt / tau).exp()),
+        _ => raw,
+    }
+}
+
+/// Per tick: whether our player stands on flat ground (grounded, the level's surface under the feet level).
+fn record_footing(
+    level: Option<Res<CurrentLevel>>,
+    me: Query<&PlayerMove, With<Controlled>>,
+    mut step: ResMut<StepEye>,
+) {
+    let flat = match (level, me.iter().next()) {
+        (Some(level), Some(mv)) if mv.0.mode == vetf_sim::movement::MoveMode::Ground => {
+            level.world.raycast(mv.0.pos + Vec3::Y * 0.3, Vec3::NEG_Y, 0.6).is_some_and(|(_, normal)| normal.y > 0.99)
+        }
+        _ => false,
+    };
+    step.steady = flat && step.flat;
+    step.flat = flat;
+}
+
+/// This frame's eye offset over a step (see [`StepEye`]), from the feet as `update_camera` draws them.
+fn smooth_step_eye(
+    time: Res<Time>,
+    fixed: Res<Time<Fixed>>,
+    game: Res<Data>,
+    feel: Res<feel::FeelData>,
+    me: Query<(&PlayerMove, Option<&Smoothed>, &Vitals), With<Controlled>>,
+    mut step: ResMut<StepEye>,
+) {
+    let Some((mv, smoothed, vitals)) = me.iter().next() else { return };
+    let raw = smoothed.map_or(mv.0.pos, |s| s.prev.lerp(s.curr, fixed.overstep_fraction())).y;
+    let steady = step.steady && !vitals.health.dead;
+    let max = game.movement.ground.step_height;
+    let y = step_eye(step.feet_y, raw, steady, max, time.delta_secs(), feel.camera.step_smooth_s);
+    step.feet_y = Some(y);
+    step.offset = y - raw;
+}
 
 /// One arc of a third-person player's halo: its zone, tier, and the ring's radius (its mesh is centred on the
 /// halo's middle, the arc `radius` out at [`arc_angle`]).
@@ -182,7 +292,6 @@ pub(crate) fn look_color(look: Look) -> (Color, f32) {
 fn spawn_level(
     mut commands: Commands,
     level: Res<CurrentLevel>,
-    textures: Option<Res<crate::map_materials::ShowhomeMaterials>>,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
 ) {
@@ -202,7 +311,6 @@ fn spawn_level(
         ));
         return;
     }
-    let textures = textures.filter(|_| showhome);
     let mut mats: HashMap<Look, Handle<StandardMaterial>> = HashMap::new();
     let mut mat = |look: Look, materials: &mut Assets<StandardMaterial>| {
         mats.entry(look)
@@ -233,20 +341,11 @@ fn spawn_level(
             continue;
         }
         let center = (b.min + b.max) * 0.5;
-        let mut mesh = match b.ramp {
+        let mesh = match b.ramp {
             Some(dir) => wedge_mesh(b, dir),
             None => Mesh::from(Cuboid::from_size(b.max - b.min)),
         };
-        let material = match textures.as_ref().and_then(|t| t.get(b.look)) {
-            Some(textured) => {
-                world_uvs(&mut mesh, center);
-                if let Err(e) = mesh.generate_tangents() {
-                    warn!("no tangents for a {:?} brush: {e}", b.look);
-                }
-                textured
-            }
-            None => mat(b.look, &mut materials),
-        };
+        let material = mat(b.look, &mut materials);
         commands.spawn((
             Mesh3d(meshes.add(mesh)),
             MeshMaterial3d(material),
@@ -266,45 +365,16 @@ fn spawn_level(
             ChildOf(root),
         ));
     }
-    // Showhome's textures are balanced for the concept's warm late-afternoon sun (textures README).
-    let sun = if showhome { Color::linear_rgb(1.0, 0.84, 0.66) } else { Color::WHITE };
     commands.spawn((
-        DirectionalLight { color: sun, illuminance: 9000.0, shadow_maps_enabled: true, ..default() },
+        DirectionalLight { color: Color::WHITE, illuminance: 9000.0, shadow_maps_enabled: true, ..default() },
         Transform::from_xyz(30.0, 60.0, 20.0).looking_at(Vec3::new(36.0, 0.0, -24.0), Vec3::Y),
         DespawnOnExit(AppState::InGame),
     ));
 }
 
-/// Texture coordinates in metres from the world position (`offset` = the mesh's translation), projected per face:
-/// floors and tops use x / z, every other face runs U along its horizontal edge and V down its slope (so image
-/// top = up on walls, and toward the ridge on roofs). Materials scale them to their repeat.
-fn world_uvs(mesh: &mut Mesh, offset: Vec3) {
-    let (Some(positions), Some(normals)) = (
-        mesh.attribute(Mesh::ATTRIBUTE_POSITION).and_then(|a| a.as_float3()),
-        mesh.attribute(Mesh::ATTRIBUTE_NORMAL).and_then(|a| a.as_float3()),
-    ) else {
-        return;
-    };
-    let uvs: Vec<[f32; 2]> = positions
-        .iter()
-        .zip(normals)
-        .map(|(p, n)| {
-            let (p, n) = (Vec3::from(*p) + offset, Vec3::from(*n));
-            if n.y.abs() > 0.9 {
-                return [p.x, p.z];
-            }
-            let along = Vec3::Y.cross(n).normalize_or_zero();
-            let up = n.cross(along);
-            [p.dot(along), -p.dot(up)]
-        })
-        .collect();
-    mesh.insert_attribute(Mesh::ATTRIBUTE_UV_0, uvs);
-}
-
 /// A ramp's wedge, built rising along +X and rotated to its rise direction. Every face winds counter-clockwise
-/// seen from outside, with its normal pointing out: the textured Showhome materials cull back faces, so a wedge
-/// wound inside out (as it once was) drew its slope only from inside and the gable roofs and the stairs looked
-/// hollow from the street.
+/// seen from outside, with its normal pointing out, so a material that culls back faces draws its outside (a
+/// wedge wound inside out once drew its slope only from inside: the gable roofs and the stairs looked hollow).
 fn wedge_mesh(b: &Brush, rise: Vec3) -> Mesh {
     let size = b.max - b.min;
     let along_x = rise.x.abs() > 0.5;
@@ -419,20 +489,10 @@ fn attach_player_visuals(
         // Everyone in the same plain colours: a body tells nothing about its side (teammates glow, `friend_foe`).
         let look = friend_foe::BodyLook::new(&looks, &mut bodies);
         let (body_mat, head_mat) = (look.body.clone(), look.head.clone());
-        let halo = loadout.0.halo;
-        let scale = match loadout.0.weight {
-            WeightClass::Heavy => 1.2,
-            WeightClass::Medium => 1.0,
-            _ => 0.85,
-        };
-        let tube = match loadout.0.weight {
-            WeightClass::Heavy => 0.022,
-            WeightClass::Medium => 0.016,
-            _ => 0.011,
-        };
+        let halo = HaloLook::of(&loadout.0);
         commands.entity(e).insert(look);
         commands.entity(e).insert((PlayerVisual, Transform::default(), Visibility::default())).with_children(|p| {
-            p.spawn((Body, Transform::default(), Visibility::default())).with_children(|b| {
+            p.spawn((Body, halo, Transform::default(), Visibility::default())).with_children(|b| {
                 b.spawn((
                     BodyPart,
                     Mesh3d(meshes.add(Capsule3d::new(0.26, 0.9))),
@@ -445,31 +505,7 @@ fn attach_player_visuals(
                     MeshMaterial3d(head_mat),
                     Transform::from_xyz(0.0, 1.6, 0.0),
                 ));
-                for zone in Zone::ALL {
-                    let tier = halo.tiers[zone];
-                    let c = tier_color(tier);
-                    // Each arc has its own material: a hit flashes just that arc (`hit_fx`).
-                    let mat = materials.add(StandardMaterial {
-                        base_color: if tier > 0 { Color::from(c) } else { Color::srgba(0.02, 0.02, 0.025, 0.5) },
-                        emissive: arc_glow(tier),
-                        alpha_mode: if tier > 0 { AlphaMode::Opaque } else { AlphaMode::Blend },
-                        ..default()
-                    });
-                    let mid = arc_angle(zone);
-                    let gap = 0.12;
-                    let radius = 0.16 * scale;
-                    b.spawn((
-                        HaloArc { zone, tier, radius },
-                        Mesh3d(meshes.add(arc_mesh(
-                            radius,
-                            tube,
-                            mid - FRAC_PI_2 * 0.5 + gap,
-                            mid + FRAC_PI_2 * 0.5 - gap,
-                        ))),
-                        MeshMaterial3d(mat),
-                        Transform::from_xyz(0.0, 1.95, 0.0),
-                    ));
-                }
+                spawn_halo_arcs(b, halo, &mut meshes, &mut materials);
             });
             // The gun is built by `sync_held_guns` (and rebuilt when the loadout changes).
             p.spawn((
@@ -478,6 +514,62 @@ fn attach_player_visuals(
                 Visibility::default(),
             ));
         });
+    }
+}
+
+/// A halo's four arcs, one per zone, under a body: each in its tier's colour with its own material (a hit
+/// flashes just that arc, `hit_fx`), the ring sized by the weight class.
+fn spawn_halo_arcs(
+    body: &mut ChildSpawnerCommands,
+    halo: HaloLook,
+    meshes: &mut Assets<Mesh>,
+    materials: &mut Assets<StandardMaterial>,
+) {
+    let (scale, tube) = halo.size();
+    for zone in Zone::ALL {
+        let tier = halo.tiers[zone];
+        let c = tier_color(tier);
+        let mat = materials.add(StandardMaterial {
+            base_color: if tier > 0 { Color::from(c) } else { Color::srgba(0.02, 0.02, 0.025, 0.5) },
+            emissive: arc_glow(tier),
+            alpha_mode: if tier > 0 { AlphaMode::Opaque } else { AlphaMode::Blend },
+            ..default()
+        });
+        let mid = arc_angle(zone);
+        let gap = 0.12;
+        let radius = 0.16 * scale;
+        body.spawn((
+            HaloArc { zone, tier, radius },
+            Mesh3d(meshes.add(arc_mesh(radius, tube, mid - FRAC_PI_2 * 0.5 + gap, mid + FRAC_PI_2 * 0.5 - gap))),
+            MeshMaterial3d(mat),
+            Transform::from_xyz(0.0, 1.95, 0.0),
+        ));
+    }
+}
+
+/// Rebuilds a player's halo when their loadout's tiers or weight class differ from what it was built from (a new
+/// armor pick at a respawn): the old arcs go, new ones in the new tiers and size take their place.
+fn sync_halos(
+    mut commands: Commands,
+    players: Query<(&PlayerLoadout, &Children), With<PlayerVisual>>,
+    mut bodies: Query<(Entity, &mut HaloLook, &Children), With<Body>>,
+    arcs: Query<(), With<HaloArc>>,
+    mut meshes: ResMut<Assets<Mesh>>,
+    mut materials: ResMut<Assets<StandardMaterial>>,
+) {
+    for (loadout, children) in &players {
+        let want = HaloLook::of(&loadout.0);
+        let mut iter = bodies.iter_many_mut(children);
+        while let Some((body, mut built, parts)) = iter.fetch_next() {
+            if *built == want {
+                continue;
+            }
+            for part in parts.iter().filter(|p| arcs.contains(*p)) {
+                commands.entity(part).despawn();
+            }
+            commands.entity(body).with_children(|b| spawn_halo_arcs(b, want, &mut meshes, &mut materials));
+            *built = want;
+        }
     }
 }
 
@@ -845,10 +937,12 @@ fn update_camera(
     control: Res<LocalControl>,
     settings: Res<Settings>,
     fixed: Res<Time<Fixed>>,
+    smoothed_ads: Res<SmoothedAds>,
+    step: Res<StepEye>,
     rig: Res<ViewmodelRig>,
     feel: Res<camera_fx::ViewFeel>,
     data: Res<feel::FeelData>,
-    me: Query<(&PlayerMove, Option<&Smoothed>, &PlayerWeapon, &PlayerLoadout, &Vitals), With<Controlled>>,
+    me: Query<(&PlayerMove, Option<&Smoothed>, &PlayerLoadout, &Vitals), With<Controlled>>,
     mut camera: Query<
         (&mut Transform, &mut Projection),
         (With<ViewCamera>, Without<Viewmodel>, Without<ViewmodelLens>),
@@ -857,7 +951,7 @@ fn update_camera(
     mut viewmodel: Query<(&mut Transform, &mut Visibility), With<Viewmodel>>,
     mut logged: Local<Option<(f32, f32)>>,
 ) {
-    let Some((mv, smoothed, weapon, loadout, vitals)) = me.iter().next() else { return };
+    let Some((mv, smoothed, loadout, vitals)) = me.iter().next() else { return };
     let m = &settings.mouse;
     if *logged != Some((m.fov_h, m.viewmodel_fov)) {
         *logged = Some((m.fov_h, m.viewmodel_fov));
@@ -868,7 +962,8 @@ fn update_camera(
             m.viewmodel_fov
         );
     }
-    let ads = weapon.0.ads;
+    // Blended between ticks (the sim's ADS steps at the tick rate), as the eye's position is.
+    let ads = smoothed_ads.at(fixed.overstep_fraction());
     let fov = camera_fov(m, loadout.0.weapon.zoom, ads);
     for (_, mut projection) in &mut camera {
         let want = fov.to_radians();
@@ -883,7 +978,7 @@ fn update_camera(
     let alpha = fixed.overstep_fraction();
     let feet = smoothed.map_or(mv.0.pos, |s| s.prev.lerp(s.curr, alpha));
     let dead = vitals.health.dead;
-    let eye = if dead { feet + Vec3::Y * 3.0 } else { feet + Vec3::Y * mv.0.eye };
+    let eye = if dead { feet + Vec3::Y * 3.0 } else { feet + Vec3::Y * (mv.0.eye + step.offset) };
     if let Some((at, target)) = cli.camera {
         for (mut t, _) in &mut camera {
             *t = Transform::from_translation(at).looking_at(target, Vec3::Y);
@@ -896,7 +991,10 @@ fn update_camera(
     }
     let now = if dead { camera_fx::Feel::default() } else { feel.now };
     for (mut t, _) in &mut camera {
-        let punch = visual_punch(control.punch, settings.hud.screen_shake);
+        // Aimed, the visual kick is calmed like the shot shake (`feel.ron` camera.ads_shot_mult): both are the
+        // same per-shot camera kick, and both lift the sight off where the bullets go while they last.
+        let calm = 1.0 + (data.camera.ads_shot_mult - 1.0) * ads.clamp(0.0, 1.0);
+        let punch = visual_punch(control.punch, settings.hud.screen_shake) * calm;
         let pitch = if dead { -0.6 } else { control.pitch + punch.to_radians() };
         let view = Quat::from_euler(EulerRot::YXZ, control.yaw, pitch, 0.0);
         t.translation = eye + view * now.camera.shift;
@@ -910,7 +1008,7 @@ fn update_camera(
         // Eased in and out (`feel.ron`).
         t.translation += Vec3::from(sprint.shift) * now.sprint;
         t.rotation = Quat::from_rotation_y(sprint.yaw_deg.to_radians() * now.sprint) * t.rotation;
-        *t = now.gun.move_gun(*t);
+        *t = now.gun.move_gun(*t, now.ads);
         if let Some(left) = inspect {
             *t = inspect_pose(&rig, left);
         }
@@ -944,29 +1042,73 @@ pub fn inspect_pose(rig: &ViewmodelRig, left: bool) -> Transform {
 mod tests {
     use super::*;
 
-    /// World-space UVs in metres: walls run U along the face and V down from the top, floors use x / z.
+    /// Arcs under the players' bodies: (tier, radius) by zone, in `Zone::ALL` order.
+    fn halo_arcs(app: &mut App) -> Vec<(Zone, u8, f32)> {
+        let mut q = app.world_mut().query::<&HaloArc>();
+        let mut arcs: Vec<(Zone, u8, f32)> = q.iter(app.world()).map(|a| (a.zone, a.tier, a.radius)).collect();
+        arcs.sort_by_key(|a| Zone::ALL.iter().position(|z| *z == a.0));
+        arcs
+    }
+
+    /// Finding halo-not-rebuilt-on-loadout-change: a new armor pick (another tier per arc, another weight class)
+    /// rebuilds the halo in the new tiers and size, so everyone reads the new weight class from it.
     #[test]
-    fn world_uvs_are_metres_in_world_space() {
-        let mut mesh = Mesh::from(Cuboid::from_size(Vec3::new(1.0, 3.0, 46.0)));
-        world_uvs(&mut mesh, Vec3::new(0.5, 1.5, -24.0));
-        let p = mesh.attribute(Mesh::ATTRIBUTE_POSITION).unwrap().as_float3().unwrap().to_vec();
-        let n = mesh.attribute(Mesh::ATTRIBUTE_NORMAL).unwrap().as_float3().unwrap().to_vec();
-        let Some(bevy::mesh::VertexAttributeValues::Float32x2(uv)) = mesh.attribute(Mesh::ATTRIBUTE_UV_0) else {
-            panic!("no uvs");
-        };
-        for i in 0..p.len() {
-            let world = Vec3::from(p[i]) + Vec3::new(0.5, 1.5, -24.0);
-            match n[i] {
-                [1.0, 0.0, 0.0] => assert_eq!(uv[i], [-world.z, -world.y]),
-                [0.0, 0.0, 1.0] => assert_eq!(uv[i], [world.x, -world.y]),
-                [0.0, 1.0, 0.0] => assert_eq!(uv[i], [world.x, world.z]),
-                _ => {}
-            }
+    fn a_new_armor_pick_rebuilds_the_halo() {
+        let mut app = App::new();
+        app.add_plugins(MinimalPlugins);
+        app.init_resource::<Assets<Mesh>>().init_resource::<Assets<StandardMaterial>>();
+        app.add_systems(Update, (attach_player_visuals, sync_halos).chain());
+        let data = vetf_sim::GameData::embedded();
+        let mut loadout = vetf_sim::player::Loadout::default_for(&data, vetf_sim::data::Mode::Tdm);
+        loadout.halo.tiers = ZoneTable { head: 1, torso: 1, arms: 1, legs: 1 };
+        loadout.weight = WeightClass::Light;
+        let player = app
+            .world_mut()
+            .spawn((PlayerId(7), PlayerInfo { name: "LARK".into(), team: None }, PlayerLoadout(loadout.clone())))
+            .id();
+        app.update();
+        let light = halo_arcs(&mut app);
+        assert_eq!(light.len(), 4);
+        assert!(light.iter().all(|a| a.1 == 1 && (a.2 - 0.16 * 0.85).abs() < 1e-6), "{light:?}");
+        // a respawn with the heavy T4 pick
+        loadout.halo.tiers = ZoneTable { head: 4, torso: 4, arms: 3, legs: 2 };
+        loadout.weight = WeightClass::Heavy;
+        app.world_mut().entity_mut(player).insert(PlayerLoadout(loadout));
+        app.update();
+        app.update();
+        let heavy = halo_arcs(&mut app);
+        assert_eq!(heavy.iter().map(|a| a.1).collect::<Vec<_>>(), [4, 4, 3, 2], "{heavy:?}");
+        assert!(heavy.iter().all(|a| (a.2 - 0.16 * 1.2).abs() < 1e-6), "the heavy ring: {heavy:?}");
+    }
+
+    /// Map-kit review K9: a kerb step on flat ground eases the view up over the time constant instead of a jump;
+    /// slopes and jumps (not steady), and anything bigger than a step, follow at once.
+    #[test]
+    fn a_kerb_step_eases_the_view_up() {
+        let (tau, max, dt) = (0.04, 0.35, 1.0 / 240.0);
+        let mut y = step_eye(None, 0.0, true, max, dt, tau);
+        assert_eq!(y, 0.0);
+        y = step_eye(Some(y), 0.11, true, max, dt, tau);
+        assert!(y > 0.0 && y < 0.02, "one frame after the step: {y}");
+        for _ in 0..72 {
+            y = step_eye(Some(y), 0.11, true, max, dt, tau);
         }
-        // The long face spans its 46 m in U (not 0..1), so textures tile instead of stretching.
-        let east: Vec<f32> = (0..p.len()).filter(|&i| n[i] == [1.0, 0.0, 0.0]).map(|i| uv[i][0]).collect();
-        let span = east.iter().cloned().fold(f32::MIN, f32::max) - east.iter().cloned().fold(f32::MAX, f32::min);
-        assert!((span - 46.0).abs() < 1e-4, "{span}");
+        assert!((y - 0.11).abs() < 0.001, "settled after 0.3 s: {y}");
+        assert_eq!(step_eye(Some(0.0), 0.11, false, max, dt, tau), 0.11, "not on flat ground: at once");
+        assert_eq!(step_eye(Some(0.0), 1.2, true, max, dt, tau), 1.2, "more than a step: at once");
+        assert_eq!(step_eye(Some(0.0), 0.11, true, max, dt, 0.0), 0.11, "no smoothing");
+    }
+
+    /// Finding ads-blend-steps-at-tick-rate: between two ticks the ADS blend moves smoothly.
+    #[test]
+    fn the_ads_blend_is_smooth_between_ticks() {
+        let mut ads = SmoothedAds::default();
+        ads.record(0.25);
+        ads.record(0.375);
+        assert_eq!(ads.at(0.0), 0.25);
+        assert_eq!(ads.at(0.5), 0.3125);
+        assert_eq!(ads.at(1.0), 0.375);
+        assert_eq!(ads.at(7.0), 0.375, "never past the last tick");
     }
 
     /// Ramps (the Showhome gables and stairs) draw the brush the sim collides with, wound so back-face culling

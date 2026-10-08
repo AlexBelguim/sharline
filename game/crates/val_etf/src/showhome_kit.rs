@@ -11,11 +11,14 @@ use crate::map_materials::{
 };
 use crate::render::ViewCamera;
 use bevy::asset::AssetId;
+use bevy::asset::RenderAssetUsages;
+use bevy::camera::primitives::Aabb;
 use bevy::gltf::{GltfMaterialExtras, GltfMaterialName, GltfMeshName};
 use bevy::image::{ImageAddressMode, ImageLoaderSettings, ImageSampler, ImageSamplerDescriptor};
 use bevy::light::{NotShadowCaster, Skybox};
 use bevy::prelude::*;
 use bevy::render::render_resource::{TextureDataOrder, TextureFormat, TextureViewDescriptor, TextureViewDimension};
+use bevy::tasks::{AsyncComputeTaskPool, Task, futures::check_ready};
 use bevy::world_serialization::WorldInstanceReady;
 use serde::Deserialize;
 use std::collections::{HashMap, HashSet};
@@ -38,8 +41,10 @@ impl Plugin for ShowhomeKitPlugin {
                     reuse_hedge_materials,
                     apply_kit_depth,
                     report_failed_scenes,
+                    stop_flat_ground_casters,
                 )
                     .chain()
+                    .after(crate::video::apply_surface_depth)
                     .run_if(in_state(AppState::InGame)),
             );
     }
@@ -67,6 +72,10 @@ struct KitScene {
     failure_reported: bool,
 }
 
+/// The kit's scenes and sky, kept after a match as a cache: the next Showhome match spawns at once instead of
+/// reloading 200 MB of GLBs. What that keeps resident is mostly on the GPU: the textures' CPU copies are dropped
+/// once their mips are built (`finish_kit_mips`), the meshes stay in both worlds (the bullet marks' surfaces
+/// read them).
 #[derive(Resource, Default)]
 struct ShowhomeKitAssets {
     scenes: Vec<KitScene>,
@@ -82,6 +91,11 @@ const SCENES: [(&str, ShowhomeKitPart); 4] = [
     ("maps/showhome/backdrop.glb", ShowhomeKitPart::Backdrop),
 ];
 const SKY: &str = "maps/showhome/sky/sky_cube_strip.png";
+/// The delivered strip is right-handed: build_sky.py paints face +Z with the view toward world +Z (south). Bevy's
+/// skybox samples cube maps left-handed (the direction times (1, 1, -1)), which showed the sky mirrored north to
+/// south (map-kit review K6), so the faces are mirrored in z when the strip is prepared ([`mirror_cube_z`]). Set
+/// this false once build_sky.py writes a left-handed strip.
+const SKY_STRIP_RIGHT_HANDED: bool = true;
 /// Physical brightness, following Bevy's PNG cube-sky example, with the look-dev's 0.65 sky strength.
 const SKY_BRIGHTNESS: f32 = 650.0;
 
@@ -159,6 +173,33 @@ fn mark_scene_meshes(
     info!("Showhome {part:?} scene ready: {count} meshes at identity");
 }
 
+/// Kit ground meshes at most this tall (the lawn, paving, asphalt, edging, painted lines: a few millimetres of
+/// relief) cast no shadow. They are the lowest surface, so their shadow could only fall on themselves, and they
+/// are over half of the ground's triangles (about 200k of 370k, drawn into every shadow cascade). Kerbs (11 cm),
+/// walls, sand heaps and everything else on the ground still cast.
+pub const FLAT_GROUND_M: f32 = 0.03;
+
+/// A mesh's height in the world: its bounds' vertical extent through its transform.
+pub fn world_height(aabb: &Aabb, transform: &GlobalTransform) -> f32 {
+    let m = transform.affine().matrix3;
+    let up = Vec3A::new(m.x_axis.y, m.y_axis.y, m.z_axis.y);
+    2.0 * up.abs().dot(aabb.half_extents)
+}
+
+fn stop_flat_ground_casters(
+    mut commands: Commands,
+    meshes: Query<
+        (Entity, &ShowhomeKitMesh, &Aabb, &GlobalTransform),
+        (Without<NotShadowCaster>, Or<(Added<Aabb>, Added<ShowhomeKitMesh>)>),
+    >,
+) {
+    for (entity, part, aabb, transform) in &meshes {
+        if part.0 == ShowhomeKitPart::Ground && world_height(aabb, transform) <= FLAT_GROUND_M {
+            commands.entity(entity).insert(NotShadowCaster);
+        }
+    }
+}
+
 fn prepare_sky(
     level: Res<CurrentLevel>,
     mut assets: ResMut<ShowhomeKitAssets>,
@@ -175,7 +216,8 @@ fn prepare_sky(
         return;
     }
     let Some(mut image) = images.get_mut(&handle) else { return };
-    // Face order in the delivered strip is +X,-X,+Y,-Y,+Z,-Z, already in glTF / Bevy axes.
+    // Face order in the delivered strip is +X,-X,+Y,-Y,+Z,-Z, in glTF / Bevy axes, built right-handed
+    // (`SKY_STRIP_RIGHT_HANDED`).
     if image.texture_descriptor.array_layer_count() == 1 {
         if image.height() != image.width() * 6 {
             if !assets.sky_failure_reported {
@@ -189,10 +231,49 @@ fn prepare_sky(
             assets.sky_failure_reported = true;
             return;
         }
+        let w = image.width() as usize;
+        if SKY_STRIP_RIGHT_HANDED && let Some(data) = image.data.as_mut() {
+            mirror_cube_z(data, w);
+        }
     }
     image.texture_view_descriptor =
         Some(TextureViewDescriptor { dimension: Some(TextureViewDimension::Cube), ..default() });
     assets.sky_prepared = true;
+}
+
+/// Mirror a cube map's six stacked faces (+X, -X, +Y, -Y, +Z, -Z, each `w` x `w`, one mip) in z: the map then
+/// shows at direction (x, y, z) what it showed at (x, y, -z). In the cube faces' own image axes (s right, t down;
+/// +X: s = -z, -X: s = z, +Y: t = z, -Y: t = -z, +Z: s = x, -Z: s = -x) that is: the X faces flip left-right,
+/// the Y faces flip top-bottom, and the Z faces swap and flip left-right.
+pub fn mirror_cube_z(data: &mut [u8], w: usize) {
+    let face = data.len() / 6;
+    if w == 0 || face == 0 || !face.is_multiple_of(w * w) {
+        return;
+    }
+    let px = face / (w * w);
+    let row = w * px;
+    let flip_rows = |f: &mut [u8]| {
+        for r in f.chunks_exact_mut(row) {
+            for x in 0..w / 2 {
+                let (a, b) = (x * px, (w - 1 - x) * px);
+                for k in 0..px {
+                    r.swap(a + k, b + k);
+                }
+            }
+        }
+    };
+    let (xs, rest) = data.split_at_mut(2 * face);
+    let (ys, zs) = rest.split_at_mut(2 * face);
+    flip_rows(xs);
+    for f in ys.chunks_exact_mut(face) {
+        for y in 0..w / 2 {
+            let (top, bottom) = f.split_at_mut((w - 1 - y) * row);
+            top[y * row..(y + 1) * row].swap_with_slice(&mut bottom[..row]);
+        }
+    }
+    let (pz, nz) = zs.split_at_mut(face);
+    pz.swap_with_slice(nz);
+    flip_rows(zs);
 }
 
 fn attach_sky(
@@ -256,7 +337,35 @@ fn report_failed_scenes(level: Res<CurrentLevel>, server: Res<AssetServer>, mut 
 }
 
 #[derive(Resource, Default)]
-struct KitMipState(HashSet<AssetId<Image>>);
+struct KitMipState {
+    /// Images that have their mips (or need none).
+    done: HashSet<AssetId<Image>>,
+    /// The last scan left nothing to do: scan again only when the kit's meshes, their materials or the ground
+    /// materials change (scanning every kit material every frame cost about 0.06 ms a frame for nothing).
+    settled: bool,
+    ground_materials: usize,
+    /// Mip chains being built off the main thread.
+    jobs: Vec<MipJob>,
+}
+
+/// One image's mip chain in the making (on the async compute pool): the base level's bytes go in, the
+/// layer-major chain and its level count come out.
+struct MipJob {
+    handle: Handle<Image>,
+    bytes: usize,
+    task: Task<Option<(Vec<u8>, u32)>>,
+}
+
+/// At most this many bytes of base levels are copied into mip jobs at once (one 39-layer ground array is
+/// 156 MiB; its job holds that and the chain it builds).
+const MIP_JOB_BYTES: usize = 200 << 20;
+/// At most this many mip jobs start in one frame.
+const MIP_JOBS_PER_FRAME: usize = 4;
+
+/// Whether a mip job may start for an image of `bytes`: always when none runs, else within the byte budget.
+fn mip_job_fits(running: &[usize], bytes: usize) -> bool {
+    running.is_empty() || running.iter().sum::<usize>() + bytes <= MIP_JOB_BYTES
+}
 
 /// RGBA arrays are layer-major: all mips of layer 0, then all mips of layer 1, and so on.
 pub(crate) fn rgba_layer_mips(
@@ -280,6 +389,13 @@ pub(crate) fn rgba_layer_mips(
     Some((out, levels))
 }
 
+/// Builds the kit's and the ground arrays' missing mip chains (glTF-embedded PNGs and the packed arrays carry
+/// none, and tiling textures shimmer without them) on the async compute pool, so the main thread (the host's
+/// simulation on a listen server) never stalls: building them here took 0.45-0.83 s per ground array and 15-23
+/// ms a frame for 7-8 s after a Showhome match started (map-kit review K2). A finished image then lives in the
+/// render world only: its CPU copy (789 MiB for the kit, 624 MiB for the arrays) is dropped once uploaded
+/// (map-kit review K3, K4).
+#[allow(clippy::too_many_arguments)]
 fn finish_kit_mips(
     level: Res<CurrentLevel>,
     mut state: ResMut<KitMipState>,
@@ -288,10 +404,48 @@ fn finish_kit_mips(
     mut materials: ResMut<Assets<StandardMaterial>>,
     mut ground: ResMut<Assets<crate::showhome_ground::ShowhomeGroundMaterial>>,
     used: Query<(&ShowhomeKitMesh, &MeshMaterial3d<StandardMaterial>)>,
+    changed: Query<
+        (),
+        (With<ShowhomeKitMesh>, Or<(Added<ShowhomeKitMesh>, Changed<MeshMaterial3d<StandardMaterial>>)>),
+    >,
 ) {
     if !is_showhome(&level) {
         return;
     }
+    // Finished jobs: the chain goes into its image, which then lives in the render world only.
+    let mut finished = Vec::new();
+    state.jobs.retain_mut(|job| match check_ready(&mut job.task) {
+        Some(out) => {
+            finished.push((job.handle.clone(), out));
+            false
+        }
+        None => true,
+    });
+    for (handle, out) in finished {
+        state.done.insert(handle.id());
+        let Some((data, levels)) = out else {
+            warn!("Invalid kit RGBA mip input: {:?}", handle.id());
+            continue;
+        };
+        let Some(mut image) = images.get_mut(&handle) else { continue };
+        image.data = Some(data);
+        image.data_order = TextureDataOrder::LayerMajor;
+        image.texture_descriptor.mip_level_count = levels;
+        image.sampler = ImageSampler::Descriptor(ImageSamplerDescriptor {
+            address_mode_u: ImageAddressMode::Repeat,
+            address_mode_v: ImageAddressMode::Repeat,
+            anisotropy_clamp: 8,
+            ..ImageSamplerDescriptor::linear()
+        });
+        image.asset_usage = RenderAssetUsages::RENDER_WORLD;
+        refresh_materials(handle.id(), &mut materials, &mut ground);
+        info!("Showhome image {:?} finished: {} mip levels", handle.id(), levels);
+    }
+    if state.jobs.is_empty() && state.settled && changed.is_empty() && ground.len() == state.ground_materials {
+        return;
+    }
+    state.ground_materials = ground.len();
+    state.settled = state.jobs.is_empty();
     let mut candidates = Vec::new();
     for (part, handle) in &used {
         let priority = match part.0 {
@@ -321,88 +475,86 @@ fn finish_kit_mips(
     }
     candidates.sort_by_key(|(priority, _)| *priority);
     let mut seen = HashSet::new();
+    let mut started = 0;
+    let KitMipState { done, jobs, settled, .. } = &mut *state;
     for (_, handle) in candidates {
-        if state.0.contains(&handle.id()) || !seen.insert(handle.id()) {
+        let id = handle.id();
+        if done.contains(&id) || !seen.insert(id) || jobs.iter().any(|j| j.handle.id() == id) {
             continue;
         }
-        let Some(mut image) = images.get_mut(&handle) else {
-            if handle.path().is_none() || server.is_loaded_with_dependencies(handle.id()) {
-                state.0.insert(handle.id());
+        let Some(image) = images.get(&handle) else {
+            if handle.path().is_none() || server.is_loaded_with_dependencies(id) {
+                done.insert(id);
+            } else {
+                *settled = false; // still loading
             }
             continue;
         };
         let format = image.texture_descriptor.format;
-        if !matches!(format, TextureFormat::Rgba8UnormSrgb | TextureFormat::Rgba8Unorm) {
-            state.0.insert(handle.id());
-            continue;
-        }
-        if image.texture_descriptor.mip_level_count > 1 {
-            state.0.insert(handle.id());
-            continue;
-        }
-        let Some(base) = image.data.as_ref() else {
-            state.0.insert(handle.id());
+        let Some(base) = image.data.as_ref().filter(|_| {
+            matches!(format, TextureFormat::Rgba8UnormSrgb | TextureFormat::Rgba8Unorm)
+                && image.texture_descriptor.mip_level_count == 1
+        }) else {
+            done.insert(id);
             continue;
         };
-        let Some((data, levels)) = rgba_layer_mips(
-            base.clone(),
-            image.width() as usize,
-            image.height() as usize,
-            image.texture_descriptor.array_layer_count() as usize,
-            format == TextureFormat::Rgba8UnormSrgb,
-        ) else {
-            warn!("Invalid kit RGBA mip input: {:?}", handle.id());
-            state.0.insert(handle.id());
-            continue;
-        };
-        image.data = Some(data);
-        image.data_order = TextureDataOrder::LayerMajor;
-        image.texture_descriptor.mip_level_count = levels;
-        image.sampler = ImageSampler::Descriptor(ImageSamplerDescriptor {
-            address_mode_u: ImageAddressMode::Repeat,
-            address_mode_v: ImageAddressMode::Repeat,
-            anisotropy_clamp: 8,
-            ..ImageSamplerDescriptor::linear()
-        });
-        state.0.insert(handle.id());
-        // Refresh material bind groups that may already reference the old single-level texture view.
-        let changed: Vec<_> = materials
-            .iter()
-            .filter_map(|(id, material)| {
-                [
-                    &material.base_color_texture,
-                    &material.normal_map_texture,
-                    &material.metallic_roughness_texture,
-                    &material.occlusion_texture,
-                    &material.emissive_texture,
-                ]
+        let running: Vec<usize> = jobs.iter().map(|j| j.bytes).collect();
+        if started >= MIP_JOBS_PER_FRAME || !mip_job_fits(&running, base.len()) {
+            *settled = false; // more next frame
+            break;
+        }
+        // A copy, so the image stays as it is (and drawn) until its chain is ready.
+        let (base, w, h) = (base.clone(), image.width() as usize, image.height() as usize);
+        let (layers, srgb) =
+            (image.texture_descriptor.array_layer_count() as usize, format == TextureFormat::Rgba8UnormSrgb);
+        let bytes = base.len();
+        let task = AsyncComputeTaskPool::get().spawn(async move { rgba_layer_mips(base, w, h, layers, srgb) });
+        jobs.push(MipJob { handle, bytes, task });
+        started += 1;
+        *settled = false;
+    }
+}
+
+/// Refresh the bind groups of the materials that may already reference an image's old single-level view.
+fn refresh_materials(
+    image: AssetId<Image>,
+    materials: &mut Assets<StandardMaterial>,
+    ground: &mut Assets<crate::showhome_ground::ShowhomeGroundMaterial>,
+) {
+    let changed: Vec<_> = materials
+        .iter()
+        .filter_map(|(id, material)| {
+            [
+                &material.base_color_texture,
+                &material.normal_map_texture,
+                &material.metallic_roughness_texture,
+                &material.occlusion_texture,
+                &material.emissive_texture,
+            ]
+            .into_iter()
+            .flatten()
+            .any(|h| h.id() == image)
+            .then_some(id)
+        })
+        .collect();
+    for id in changed {
+        if let Some(material) = materials.get_mut(id) {
+            let _ = material.into_inner();
+        }
+    }
+    let changed: Vec<_> = ground
+        .iter()
+        .filter_map(|(id, material)| {
+            [&material.extension.albedo, &material.extension.normal, &material.extension.orm]
                 .into_iter()
-                .flatten()
-                .any(|image| image.id() == handle.id())
+                .any(|h| h.id() == image)
                 .then_some(id)
-            })
-            .collect();
-        for id in changed {
-            if let Some(material) = materials.get_mut(id) {
-                let _ = material.into_inner();
-            }
+        })
+        .collect();
+    for id in changed {
+        if let Some(material) = ground.get_mut(id) {
+            let _ = material.into_inner();
         }
-        let changed: Vec<_> = ground
-            .iter()
-            .filter_map(|(id, material)| {
-                [&material.extension.albedo, &material.extension.normal, &material.extension.orm]
-                    .into_iter()
-                    .any(|image| image.id() == handle.id())
-                    .then_some(id)
-            })
-            .collect();
-        for id in changed {
-            if let Some(material) = ground.get_mut(id) {
-                let _ = material.into_inner();
-            }
-        }
-        info!("Showhome image {:?} finished: {} mip levels", handle.id(), levels);
-        break; // One image per frame keeps asynchronous kit loading responsive.
     }
 }
 
@@ -434,8 +586,10 @@ impl KitHeight {
     }
 }
 
+/// A kit height map: its PNG16 (kept in the main world only, read once on the CPU and dropped) until it has
+/// become the depth image the materials sample (kept in the render world only).
 struct PendingHeight {
-    source: Handle<Image>,
+    source: Option<Handle<Image>>,
     depth: Option<Handle<Image>>,
     failed: bool,
 }
@@ -448,10 +602,12 @@ struct KitDepthTarget {
 
 #[derive(Resource)]
 struct KitDepthState {
-    settings: SurfaceDepthData,
     families: HashMap<String, HeightMetrics>,
     heights: HashMap<String, PendingHeight>,
     targets: HashMap<AssetId<StandardMaterial>, KitDepthTarget>,
+    /// Materials that take no depth (glass, metal, untextured, no height map). That depends only on their glTF
+    /// fields, which never change, so each is looked at once instead of re-parsed every frame.
+    rejected: HashSet<AssetId<StandardMaterial>>,
 }
 
 impl Default for KitDepthState {
@@ -460,10 +616,10 @@ impl Default for KitDepthState {
             serde_json::from_str(include_str!("../../../assets/maps/showhome/textures/v2/manifest.json"))
                 .expect("deployed Showhome v2 manifest is valid");
         Self {
-            settings: SurfaceDepthData::load(),
             families: manifest.materials,
             heights: HashMap::new(),
             targets: HashMap::new(),
+            rejected: HashSet::new(),
         }
     }
 }
@@ -502,9 +658,40 @@ fn height_to_depth_f16(bytes: &[u8]) -> Vec<u8> {
     r16_to_f16(&inverted)
 }
 
+/// The depth map a kit material takes, `None` for one that never takes any.
+fn kit_depth_target(
+    name: &str,
+    extras: &str,
+    material: &StandardMaterial,
+    families: &HashMap<String, HeightMetrics>,
+) -> Option<KitHeight> {
+    // A textured glTF ORM uses metallicFactor=1 even on a matte surface: its blue texels are zero.
+    // Use the manifest's physical metalness in that case, and scalar metalness for untextured PBR.
+    if !material_depth_allowed(name, material) {
+        return None;
+    }
+    kit_height_spec(name, extras, families)
+}
+
+/// The PNG16 becomes a depth image: inverted, R16Float (filterable), repeating, and only in the render world.
+fn depth_image(height: &Image) -> Option<Image> {
+    let bytes = height.data.as_ref()?;
+    let mut depth = height.clone();
+    depth.data = Some(height_to_depth_f16(bytes));
+    depth.texture_descriptor.format = TextureFormat::R16Float;
+    depth.asset_usage = RenderAssetUsages::RENDER_WORLD;
+    depth.sampler = ImageSampler::Descriptor(ImageSamplerDescriptor {
+        address_mode_u: ImageAddressMode::Repeat,
+        address_mode_v: ImageAddressMode::Repeat,
+        ..ImageSamplerDescriptor::linear()
+    });
+    Some(depth)
+}
+
 fn apply_kit_depth(
     level: Res<CurrentLevel>,
     quality: Res<SurfaceDepthLevel>,
+    data: Res<SurfaceDepthData>,
     mut state: ResMut<KitDepthState>,
     server: Res<AssetServer>,
     mut images: ResMut<Assets<Image>>,
@@ -515,53 +702,61 @@ fn apply_kit_depth(
         return;
     }
     for (handle, name, extras) in &imported {
-        if state.targets.contains_key(&handle.id()) {
+        let id = handle.id();
+        if state.targets.contains_key(&id) || state.rejected.contains(&id) {
             continue;
         }
         let Some(material) = materials.get(&handle.0) else { continue };
-        // A textured glTF ORM uses metallicFactor=1 even on a matte surface: its blue texels are zero.
-        // Use the manifest's physical metalness in that case, and scalar metalness for untextured PBR.
-        if !material_depth_allowed(&name.0, material) {
-            continue;
+        match kit_depth_target(&name.0, &extras.value, material, &state.families) {
+            Some(spec) => {
+                state.targets.insert(id, KitDepthTarget { material: handle.0.clone(), spec, shown: None });
+            }
+            None => {
+                state.rejected.insert(id);
+            }
         }
-        let Some(spec) = kit_height_spec(&name.0, &extras.value, &state.families) else { continue };
-        state.targets.insert(handle.id(), KitDepthTarget { material: handle.0.clone(), spec, shown: None });
     }
-    let q = state.settings.quality.of(quality.0);
+    let q = data.quality.of(quality.0);
     if q.on() {
-        let paths: Vec<String> = state.targets.values().map(|t| t.spec.path.clone()).collect();
-        for path in paths {
-            state.heights.entry(path.clone()).or_insert_with(|| PendingHeight {
-                source: server.load_builder().with_settings(|s: &mut ImageLoaderSettings| s.is_srgb = false).load(path),
+        let KitDepthState { targets, heights, .. } = &mut *state;
+        for target in targets.values() {
+            heights.entry(target.spec.path.clone()).or_insert_with(|| PendingHeight {
+                // Read once on the CPU (below) and never drawn: main world only.
+                source: Some(
+                    server
+                        .load_builder()
+                        .with_settings(|s: &mut ImageLoaderSettings| {
+                            s.is_srgb = false;
+                            s.asset_usage = RenderAssetUsages::MAIN_WORLD;
+                        })
+                        .load(target.spec.path.clone()),
+                ),
                 depth: None,
                 failed: false,
             });
         }
     }
+    // At most one height becomes a depth image per frame (several arriving together would hitch).
     for (path, pending) in &mut state.heights {
-        if pending.depth.is_some() || pending.failed {
-            continue;
-        }
-        if server.load_state(&pending.source).is_failed() {
+        let Some(source) = pending.source.as_ref() else { continue };
+        if server.load_state(source).is_failed() {
             warn!("Showhome height could not load; retaining geometry and normals: {path}");
-            pending.failed = true;
+            (pending.failed, pending.source) = (true, None);
             continue;
         }
-        let Some(mut image) = images.get(&pending.source).cloned() else { continue };
-        if image.texture_descriptor.format != TextureFormat::R16Uint {
-            warn!("Showhome height must be PNG16 grayscale; found {:?}: {path}", image.texture_descriptor.format);
-            pending.failed = true;
+        let Some(height) = images.get(source) else { continue };
+        if height.texture_descriptor.format != TextureFormat::R16Uint {
+            warn!("Showhome height must be PNG16 grayscale; found {:?}: {path}", height.texture_descriptor.format);
+            (pending.failed, pending.source) = (true, None);
             continue;
         }
-        let Some(bytes) = image.data.as_ref() else { continue };
-        image.data = Some(height_to_depth_f16(bytes));
-        image.texture_descriptor.format = TextureFormat::R16Float;
-        image.sampler = ImageSampler::Descriptor(ImageSamplerDescriptor {
-            address_mode_u: ImageAddressMode::Repeat,
-            address_mode_v: ImageAddressMode::Repeat,
-            ..ImageSamplerDescriptor::linear()
-        });
-        pending.depth = Some(images.add(image));
+        let Some(depth) = depth_image(height) else { continue };
+        // The source is not needed any more (this was its last handle).
+        if let Some(source) = pending.source.take() {
+            images.remove(&source);
+        }
+        pending.depth = Some(images.add(depth));
+        break;
     }
     let KitDepthState { targets, heights, .. } = &mut *state;
     for target in targets.values_mut() {
@@ -573,7 +768,7 @@ fn apply_kit_depth(
         material.depth_map = q.on().then(|| depth.cloned()).flatten();
         material.parallax_depth_scale = if q.on() { target.spec.uv_depth() } else { 0.0 };
         material.max_parallax_layer_count = q.layers.max(1.0);
-        material.parallax_mapping_method = q.method(None);
+        material.parallax_mapping_method = q.method();
         target.shown = Some(q);
         info!(
             "Showhome kit depth {:?}: {} m / {} m, geometric detail={}, quality {} layers",
@@ -590,6 +785,19 @@ fn apply_kit_depth(
 mod tests {
     use super::*;
 
+    /// Flat ground stops casting, anything with height keeps casting, through the mesh's transform.
+    #[test]
+    fn only_flat_ground_stops_casting() {
+        let lawn = Aabb::from_min_max(Vec3::new(-40.0, 0.0, -30.0), Vec3::new(40.0, 0.006, 30.0));
+        let kerb = Aabb::from_min_max(Vec3::new(0.0, 0.0, 0.0), Vec3::new(0.2, 0.11, 30.0));
+        let at = GlobalTransform::IDENTITY;
+        assert!(world_height(&lawn, &at) <= FLAT_GROUND_M);
+        assert!(world_height(&kerb, &at) > FLAT_GROUND_M);
+        // A flat card stood on its edge is tall: the transform counts.
+        let stood = GlobalTransform::from(Transform::from_rotation(Quat::from_rotation_x(std::f32::consts::FRAC_PI_2)));
+        assert!((world_height(&lawn, &stood) - 60.0).abs() < 1e-3);
+    }
+
     #[test]
     fn array_mips_keep_layers_separate_and_layer_major() {
         let mut base = [255, 0, 0, 255].repeat(4);
@@ -604,6 +812,86 @@ mod tests {
     fn png16_high_faces_become_zero_depth_and_grooves_become_deep() {
         let depths = height_to_depth_f16(&[255, 255, 0, 0, 255, 127]);
         assert_eq!(depths, [0, 0, 0, 60, 0, 56]); // F16: 0, 1, 0.5; no eight-bit quantization.
+        // The depth image lives in the render world only (the PNG16 was the main world's, read once).
+        let height = Image::new(
+            bevy::render::render_resource::Extent3d { width: 3, height: 1, depth_or_array_layers: 1 },
+            bevy::render::render_resource::TextureDimension::D2,
+            vec![255, 255, 0, 0, 255, 127],
+            TextureFormat::R16Uint,
+            RenderAssetUsages::MAIN_WORLD,
+        );
+        let depth = depth_image(&height).unwrap();
+        assert_eq!(depth.texture_descriptor.format, TextureFormat::R16Float);
+        assert_eq!(depth.asset_usage, RenderAssetUsages::RENDER_WORLD);
+        assert_eq!(depth.data.as_deref(), Some(&[0u8, 0, 0, 60, 0, 56][..]));
+    }
+
+    /// The cube face and texel (s right, t down) a direction samples, by the cube map rules wgpu follows.
+    fn cube_texel(d: Vec3, w: usize) -> (usize, usize, usize) {
+        let a = d.abs();
+        let (face, sc, tc, ma) = if a.x >= a.y && a.x >= a.z {
+            if d.x > 0.0 { (0, -d.z, -d.y, a.x) } else { (1, d.z, -d.y, a.x) }
+        } else if a.y >= a.z {
+            if d.y > 0.0 { (2, d.x, d.z, a.y) } else { (3, d.x, -d.z, a.y) }
+        } else if d.z > 0.0 {
+            (4, d.x, -d.y, a.z)
+        } else {
+            (5, -d.x, -d.y, a.z)
+        };
+        let texel = |c: f32| (((c / ma + 1.0) * 0.5 * w as f32) as usize).min(w - 1);
+        (face, texel(sc), texel(tc))
+    }
+
+    /// Map-kit review K6: after the mirror, Bevy's skybox (which samples the direction times (1, 1, -1)) shows at
+    /// every direction what the right-handed strip painted for it.
+    #[test]
+    fn the_mirrored_sky_shows_each_direction_its_own_texel() {
+        let w = 8;
+        // every texel holds its own (face, s, t), one byte each, plus a fourth
+        let mut data = Vec::new();
+        for face in 0..6u8 {
+            for t in 0..w as u8 {
+                for s in 0..w as u8 {
+                    data.extend([face, s, t, 255]);
+                }
+            }
+        }
+        let painted = data.clone();
+        mirror_cube_z(&mut data, w);
+        let at = |d: &[u8], (f, s, t): (usize, usize, usize)| {
+            let i = ((f * w + t) * w + s) * 4;
+            [d[i], d[i + 1], d[i + 2]]
+        };
+        let mut rng = vetf_sim::rng::SplitMix::from_parts(&[3]);
+        for _ in 0..500 {
+            let d = Vec3::new(rng.next_signed(), rng.next_signed(), rng.next_signed()).normalize();
+            let bevy = cube_texel(d * Vec3::new(1.0, 1.0, -1.0), w);
+            assert_eq!(at(&data, bevy), at(&painted, cube_texel(d, w)), "direction {d}");
+        }
+    }
+
+    /// The mip jobs keep their copies within a budget: one big array at a time, small images beside it.
+    #[test]
+    fn mip_jobs_stay_within_their_byte_budget() {
+        let array = 156 << 20;
+        assert!(mip_job_fits(&[], array), "the first job always starts");
+        assert!(!mip_job_fits(&[array], array), "a second array waits");
+        assert!(mip_job_fits(&[array], 4 << 20), "a 1024 px image fits beside it");
+        assert!(mip_job_fits(&[], MIP_JOB_BYTES * 2), "an oversized image still gets its turn alone");
+    }
+
+    /// Materials that never take depth are remembered as such: glass, metal, untextured, no height map.
+    #[test]
+    fn materials_without_depth_are_rejected_once() {
+        let mut families = HashMap::new();
+        families
+            .insert("concrete_smooth".into(), HeightMetrics { repeat_m: 2.0, height_range_m: 0.004, metalness: 0.0 });
+        let textured = StandardMaterial { base_color_texture: Some(Handle::default()), ..default() };
+        let extras = r#"{"height_map":"assets/maps/showhome/textures/v2/concrete_smooth_height.png"}"#;
+        assert!(kit_depth_target("M_SH_Concrete", extras, &textured, &families).is_some());
+        assert!(kit_depth_target("M_SH_GlassFrost", extras, &textured, &families).is_none());
+        assert!(kit_depth_target("M_SH_Concrete", "{}", &textured, &families).is_none(), "no height map");
+        assert!(kit_depth_target("M_SH_Concrete", extras, &StandardMaterial::default(), &families).is_none());
     }
 
     #[test]

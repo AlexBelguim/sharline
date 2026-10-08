@@ -33,6 +33,10 @@
         shot_damping: 0.55,
         // Aimed, the shot shake is this share.
         ads_shot_mult: 0.5,
+        // A step on flat ground (Showhome's 11 cm kerbs) lifts the feet a whole step in one tick; the view follows
+        // over this time constant instead of jumping with them (most of the way in 0.1 s). Slopes, jumps and
+        // falls are never smoothed.
+        step_smooth_s: 0.04,
     ),
     // Per gun (weapons.ron id), on every shot: the camera's jolt (pitch up, a random yaw and roll, a shove back)
     // and how fast it settles, and the gun's kick back in the hands. The SMG is light and rapid, the Mako medium,
@@ -76,11 +80,16 @@
             spring: (hz: 3.5, damping: 0.5),
         ),
         kick_damping: 0.6,
-        // Aimed, the sway (breath, drag, bob, landing) is this share, so the sight stays on the aim point, and the
-        // kick this share.
+        // Aimed, the sway's turns (breath, drag, bob, landing) are this share, so the sight stays near the aim
+        // point, and the kick this share. The sway's shift across the view is `ads_shift_mult` of itself aimed:
+        // shifting the gun slides the sight's reticle (a few centimetres from the eye) off the aim by about a
+        // degree per millimetre, while turning it moves the reticle only by the turn. Aimed, the sway's roll turns
+        // the gun about the view axis, not its barrel, for the same reason.
         ads_mult: 0.08,
+        ads_shift_mult: 0.0,
         ads_kick_mult: 0.35,
-        // Sprinting the gun is lowered and turned in; it eases there and back over `ease_s`.
+        // Sprinting the gun is lowered and turned in; it eases down over `ease_s`, and comes back up with the
+        // simulation's bring-up (sprint_to_fire_s), so it is up on the tick the first shot can go.
         sprint_pose: (shift: (0.05, -0.06, 0.04), yaw_deg: 28.6, ease_s: 0.08),
     ),
     // Tracers fly from the muzzle (through a magnified scope: from the scope's centre) to where the shot ended.
@@ -112,8 +121,9 @@
         gap_px: 4.0,
         head_scale: 1.25,
         kill_scale: 1.5,
-        // A shield that broke and a kill also get a ring this wide.
+        // A shield that broke and a kill also get a ring this wide, its line `ring_border_px` thick.
         ring_px: 30.0,
+        ring_border_px: 2.0,
         // A shot that hit on our screen waits this long for the host's confirm.
         remember_s: 2.0,
     ),
@@ -127,6 +137,10 @@
         pulse_scale: 0.3,
         crack: (count: 6, size_m: 0.045, speed_mps: 1.8, life_s: 0.4),
         shatter: (count: 20, size_m: 0.06, speed_mps: 3.6, life_s: 0.8),
+        // How the shards fly off the arc: `scatter` of a random direction added to straight out, plus `lift` up;
+        // speed and size vary by +/- `speed_jitter` and +`size_jitter` of the crack's or shatter's; they start up to
+        // `spread` of the halo's radius apart and lose `drag_per_s` of their speed each second.
+        shards: (scatter: 0.8, lift: 0.4, speed_jitter: 0.25, size_jitter: 0.4, spread: 0.3, drag_per_s: 2.0),
         gravity_mps2: 6.5,
         spin_rps: 4.0,
         ring_s: 0.3,

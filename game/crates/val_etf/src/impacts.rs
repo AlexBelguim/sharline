@@ -6,6 +6,8 @@
 //!
 //! - **Surface.** The brush face the point lies on ([`find_face`]); its look picks a [`SurfaceKind`]
 //!   (`data/impacts.ron`). Hedges, water and clips take none; players never do (only level hits arrive here).
+//!   On Showhome the art kit's own surface there decides instead ([`kit_surface`]): its material picks the kind
+//!   and colour, and the mark sits on it, not on the brush face (which the kit can cover by a few millimetres).
 //! - **Art.** One atlas (`textures/fx/impacts/`, built by `assets/fx/impacts/_src/build_atlas.py`) with 4 variants
 //!   per kind. A mark has two layers sharing one normal map and one depth map: the core (what the shot exposes:
 //!   crater, bore, bare metal, fresh wood, cracks, dust) and the paint (the surface itself bent or lifted: shards,
@@ -13,7 +15,7 @@
 //!   Bevy's parallax (`StandardMaterial::depth_map`), so a hole looks deep at an angle.
 //! - **Shape.** A square on the face at a random variant, turn and size, clipped to the face's edges so it never
 //!   hangs off a box into the air (where a coplanar neighbour continues the surface it is not clipped), lifted a
-//!   few millimetres, alpha-blended, fading out at the end of its life.
+//!   few millimetres (off the kit surface where there is one), alpha-blended, fading out at the end of its life.
 //!
 //! Cost: every mark is in two meshes (core, paint) rebuilt only when the set changes, so all marks are two draw
 //! calls whatever their number (at most 2 x `max_marks` quads, 4-8 vertices each). The debris (dust puffs and
@@ -38,6 +40,9 @@ use std::f32::consts::TAU;
 use vetf_sim::movement::collision::{Brush, CollisionWorld, Look};
 use vetf_sim::rng::SplitMix;
 
+pub mod kit_surface;
+pub use kit_surface::KitSurfaces;
+
 pub struct ImpactsPlugin;
 
 impl Plugin for ImpactsPlugin {
@@ -46,13 +51,23 @@ impl Plugin for ImpactsPlugin {
             .insert_resource(AtlasData::load())
             .init_resource::<Marks>()
             .init_resource::<Debris>()
+            .init_resource::<KitSurfaces>()
             .add_systems(Startup, load_assets)
             .add_systems(Update, finish_images)
             .add_systems(OnEnter(AppState::InGame), spawn_layers)
             .add_systems(OnExit(AppState::InGame), clear)
             .add_systems(
                 Update,
-                (apply_quality, demo_shots, demo_live, spawn_marks, age_marks, rebuild_marks, fly_debris)
+                (
+                    kit_surface::build_kit_surfaces,
+                    apply_quality,
+                    demo_shots,
+                    demo_live,
+                    spawn_marks,
+                    age_marks,
+                    rebuild_marks,
+                    fly_debris,
+                )
                     .chain()
                     .run_if(in_state(AppState::InGame)),
             );
@@ -146,6 +161,9 @@ pub struct ImpactData {
     pub grain_jitter_deg: f32,
     pub kinds: HashMap<SurfaceKind, KindLook>,
     pub looks: HashMap<Look, SurfaceKind>,
+    /// Showhome's art kit, by glTF material name: its kind (`None`: no mark) and average albedo (sRGB).
+    #[serde(default)]
+    pub kit: HashMap<String, (Option<SurfaceKind>, (u8, u8, u8))>,
     pub tints: HashMap<Look, (u8, u8, u8)>,
     pub far: FarLook,
     pub debris: DebrisTuning,
@@ -161,19 +179,35 @@ pub struct FarLook {
     pub alpha_per_mip: f32,
 }
 
-/// Darken and thicken the mips of an sRGB RGBA8 mip chain (`levels` levels from `w` x `h`) from `far.from_mip`
-/// on (see [`FarLook`]).
-pub fn far_mips(data: &mut [u8], mut w: usize, mut h: usize, levels: u32, far: &FarLook) {
+/// Darken and thicken the mips of an sRGB RGBA8 atlas mip chain (`levels` levels from `w` x `h`, `grid` x
+/// `grid` cells) from `far.from_mip` on (see [`FarLook`]), except in the cells `keep_cells` (the debris
+/// sprites, which share the atlas: a dust puff 10-20 m away is mip 3-4 and must stay pale, sparks bright).
+/// Levels where a cell is under a pixel are left alone (the cells blend there).
+pub fn far_mips(
+    data: &mut [u8],
+    mut w: usize,
+    mut h: usize,
+    levels: u32,
+    far: &FarLook,
+    grid: u32,
+    keep_cells: &[u32],
+) {
     let to_linear: Vec<f32> = (0..256).map(|v| Color::srgb_u8(v as u8, 0, 0).to_linear().red).collect();
     let to_byte = |c: f32| (Color::linear_rgb(c, 0.0, 0.0).to_srgba().red * 255.0).round().clamp(0.0, 255.0) as u8;
+    let grid = grid.max(1) as usize;
     let mut offset = 0;
     for level in 0..levels {
         let len = w * h * 4;
-        if level >= far.from_mip && offset + len <= data.len() {
+        if level >= far.from_mip && w >= grid && h >= grid && offset + len <= data.len() {
             let steps = (level - far.from_mip + 1) as f32;
             let keep = 1.0 - (far.darken_per_mip * steps).clamp(0.0, far.darken_max.clamp(0.0, 1.0));
             let gain = 1.0 + far.alpha_per_mip.max(0.0) * steps;
-            for px in data[offset..offset + len].as_chunks_mut::<4>().0 {
+            for (i, px) in data[offset..offset + len].as_chunks_mut::<4>().0.iter_mut().enumerate() {
+                let (x, y) = (i % w, i / w);
+                let cell = (y * grid / h) * grid + x * grid / w;
+                if keep_cells.contains(&(cell as u32)) {
+                    continue;
+                }
                 for c in &mut px[..3] {
                     *c = to_byte(to_linear[*c as usize] * keep);
                 }
@@ -429,7 +463,8 @@ pub struct Marks {
 
 impl Marks {
     /// A mark for an impact at `point` on a surface facing `normal`, if that surface takes marks. The oldest
-    /// marks past `max` go.
+    /// marks past `max` go. On Showhome, `kit` (the art kit's surfaces, once built) decides the kind and colour
+    /// and where the mark sits.
     #[allow(clippy::too_many_arguments)]
     pub fn add(
         &mut self,
@@ -437,6 +472,7 @@ impl Marks {
         data: &ImpactData,
         atlas: &AtlasData,
         showhome: bool,
+        kit: Option<&KitSurfaces>,
         point: Vec3,
         normal: Vec3,
         max: usize,
@@ -444,9 +480,17 @@ impl Marks {
     ) -> Option<&Mark> {
         let (brush, plane) = find_face(world, point, normal)?;
         let look = world.brushes[brush].look;
-        let kind = match force {
-            Some(f) => f.kind,
-            None => data.kind(look)?,
+        let face = world.brushes[brush].planes[plane];
+        let centre = point - face.normal * (face.normal.dot(point) - face.dist);
+        // The art kit's surface at the mark's centre: what it is made of (its row in `kit`).
+        let kit = kit.filter(|_| showhome);
+        let at_centre = kit.and_then(|k| k.at(centre, face.normal));
+        let surface = kit.zip(at_centre).and_then(|(k, hit)| data.kit.get(k.material(hit.tri)));
+        let kind = match (force, surface) {
+            (Some(f), _) => f.kind,
+            // the kit's material: `None` takes no mark (plants)
+            (None, Some((kind, _))) => (*kind)?,
+            (None, None) => data.kind(look)?,
         };
         let tuning = data.kinds.get(&kind)?;
         let cells = atlas.kinds.get(&kind).filter(|c| !c.is_empty())?;
@@ -464,7 +508,7 @@ impl Marks {
             }
         };
         self.last.insert(kind, cell);
-        let n = world.brushes[brush].planes[plane].normal;
+        let n = face.normal;
         let frame = match (force, tuning.spin) {
             (Some(f), Spin::Grain) => Frame::grain(n, false, f.angle),
             (Some(f), Spin::Free) => Frame::free(n, f.angle),
@@ -475,13 +519,28 @@ impl Marks {
         };
         let scale = force.map_or(1.0 + rng.next_signed() * data.size_jitter, |f| f.scale);
         let (uv0, uw) = atlas.cell(cell);
-        let verts = mark_outline(world, brush, plane, point, frame, tuning.size_m * scale * 0.5, data.lift_m, uv0, uw);
+        let mut verts = mark_outline(world, brush, plane, point, frame, tuning.size_m * scale * 0.5, 0.0, uv0, uw);
         if verts.len() < 3 {
             return None;
         }
-        let tint = match data.tints.get(&look).filter(|_| showhome) {
-            Some(&(r, g, b)) => Color::srgb_u8(r, g, b).to_linear(),
-            None => look_color(look).0.to_linear(),
+        // Lifted off the kit's surface where there is one (it can sit in front of or behind the brush face).
+        let lift = data.lift_m + kit.map_or(0.0, |k| kit_rise(k, centre, n, &verts, at_centre.map(|h| h.offset)));
+        for (v, _) in &mut verts {
+            *v += n * lift;
+        }
+        let tint = match (surface, at_centre) {
+            (Some((_, (r, g, b))), Some(hit)) => {
+                let (base, [vr, vg, vb]) = (Color::srgb_u8(*r, *g, *b).to_linear(), hit.tri.color);
+                LinearRgba::rgb(
+                    base.red * vr as f32 / 255.0,
+                    base.green * vg as f32 / 255.0,
+                    base.blue * vb as f32 / 255.0,
+                )
+            }
+            _ => match data.tints.get(&look).filter(|_| showhome) {
+                Some(&(r, g, b)) => Color::srgb_u8(r, g, b).to_linear(),
+                None => look_color(look).0.to_linear(),
+            },
         };
         while self.list.len() >= max.max(1) {
             self.list.pop_front();
@@ -502,6 +561,21 @@ impl Marks {
         self.dirty |= fading || self.list.len() != before;
         self.dirty
     }
+}
+
+/// How far the art kit's surface under a mark (outline `verts` on a face facing `n`, centre `centre`) rises
+/// over the face: its height at the centre (`at_centre`), raised where the kit is higher under the outline's
+/// corners (shingle courses, a paving lip), by at most [`kit_surface::CORNER_RISE_M`] (a pipe or a sill in front
+/// of a wall must not lift the whole mark off it). 0 where no kit surface is found.
+fn kit_rise(kit: &KitSurfaces, centre: Vec3, n: Vec3, verts: &[(Vec3, Vec2)], at_centre: Option<f32>) -> f32 {
+    let cap = at_centre.map_or(f32::MAX, |c| c + kit_surface::CORNER_RISE_M);
+    verts
+        .iter()
+        .filter_map(|(v, _)| kit.at(centre.lerp(*v, 0.85), n))
+        .map(|h| h.offset.min(cap))
+        .chain(at_centre)
+        .reduce(f32::max)
+        .unwrap_or(0.0)
 }
 
 /// A mark's opacity at its age: 1, then down to 0 over the last `fade_s` of its life.
@@ -619,6 +693,7 @@ fn finish_images(
     mut images: ResMut<Assets<Image>>,
     server: Res<AssetServer>,
     data: Res<ImpactData>,
+    atlas: Res<AtlasData>,
 ) {
     if let Some(i) = assets.pending.iter().position(|p| server.load_state(&p.0).is_failed()) {
         let (source, ..) = assets.pending.swap_remove(i);
@@ -642,7 +717,8 @@ fn finish_images(
         let (w, h) = (image.width() as usize, image.height() as usize);
         let (mut chain, levels) = crate::map_materials::mip_chain(base, w, h, srgb);
         if far {
-            far_mips(&mut chain, w, h, levels, &data.far);
+            let sprites = [atlas.sprites.puff, atlas.sprites.chip, atlas.sprites.spark];
+            far_mips(&mut chain, w, h, levels, &data.far, atlas.grid, &sprites);
         }
         image.data = Some(chain);
         image.texture_descriptor.mip_level_count = levels;
@@ -717,6 +793,7 @@ fn spawn_marks(
     data: Res<ImpactData>,
     atlas: Res<AtlasData>,
     settings: Res<Settings>,
+    kit: Res<KitSurfaces>,
     mut marks: ResMut<Marks>,
     mut debris: ResMut<Debris>,
 ) {
@@ -733,7 +810,9 @@ fn spawn_marks(
         if normal == Vec3::ZERO {
             continue;
         }
-        let Some(mark) = marks.add(&level.world, &data, &atlas, showhome, point, normal, max, None) else { continue };
+        let Some(mark) = marks.add(&level.world, &data, &atlas, showhome, Some(&kit), point, normal, max, None) else {
+            continue;
+        };
         if data.debris_on[l] {
             let (kind, n) = (mark.kind, mark.frame.n);
             debris.throw(&data, kind, point, n);
@@ -1082,6 +1161,7 @@ fn demo_shots(
     data: Res<ImpactData>,
     atlas: Res<AtlasData>,
     camera: Query<(&GlobalTransform, &Projection), With<ViewCamera>>,
+    kit: Res<KitSurfaces>,
     mut feedback: ResMut<Feedback>,
     mut marks: ResMut<Marks>,
     mut since: Local<Option<f32>>,
@@ -1119,7 +1199,7 @@ fn demo_shots(
                 let y = ((rows - 1.0) * 0.5 - row as f32) * SHEET_STEP_M;
                 let at = centre + face.t * x + face.b * y;
                 let force = Force { kind, variant: col, angle: 0.0, scale: 1.0 };
-                marks.add(&level.world, &data, &atlas, showhome, at, n, usize::MAX, Some(force));
+                marks.add(&level.world, &data, &atlas, showhome, Some(&kit), at, n, usize::MAX, Some(force));
             }
         }
         info!("demo: impact sheet of {} marks", marks.list.len());
@@ -1363,7 +1443,7 @@ mod tests {
         let atlas = AtlasData::embedded();
         let mut marks = Marks::default();
         let (p, n) = hit(&w, Vec3::new(2.0, 1.5, 5.0), Vec3::new(2.0, 1.5, 0.0));
-        let m = marks.add(&w, &data, &atlas, true, p, n, 3, None).expect("a mark on the wall").clone();
+        let m = marks.add(&w, &data, &atlas, true, None, p, n, 3, None).expect("a mark on the wall").clone();
         assert_eq!(m.kind, SurfaceKind::Plaster);
         assert!(!m.paint, "concrete does not bend: no paint layer");
         assert!(m.tint.to_f32_array()[0] > 0.5, "tinted with the wall's cream");
@@ -1375,7 +1455,7 @@ mod tests {
         let mut seen = Vec::new();
         for i in 0..20 {
             let q = p + Vec3::X * (i as f32 * 0.01 - 0.1);
-            let m = marks.add(&w, &data, &atlas, true, q, n, 3, None).unwrap();
+            let m = marks.add(&w, &data, &atlas, true, None, q, n, 3, None).unwrap();
             let cell = cells.iter().copied().find(|&c| {
                 let (c0, cw) = atlas.cell(c);
                 m.verts.iter().all(|(_, uv)| {
@@ -1389,7 +1469,132 @@ mod tests {
         assert_eq!(marks.list.len(), 3, "at most max");
         // the hedge takes none
         let (p, n) = hit(&w, Vec3::new(-5.0, 1.0, 8.0), Vec3::new(-5.0, 1.0, 3.5));
-        assert!(marks.add(&w, &data, &atlas, true, p, n, 3, None).is_none());
+        assert!(marks.add(&w, &data, &atlas, true, None, p, n, 3, None).is_none());
+    }
+
+    /// Showhome-like ground: a ground brush (top at y = 0) with a kerb step on it (invisible collision, as the
+    /// generated Showhome steps), and the art kit over them: paving 10 mm over the west half, the kerb's top flush
+    /// with the step, a hedge, a surface of a material the data does not know (4 mm), and a 35 mm lip on the paving.
+    fn kit_world() -> (CollisionWorld, KitSurfaces) {
+        let mut w = CollisionWorld::default();
+        w.push(
+            Brush::cuboid(Vec3::new(-5.0, -0.5, -5.0), Vec3::new(5.0, 0.0, 5.0), BrushKind::Solid)
+                .with_look(Look::Ground),
+        );
+        w.push(
+            Brush::cuboid(Vec3::new(2.0, 0.0, -5.0), Vec3::new(2.2, 0.11, 5.0), BrushKind::Solid)
+                .with_look(Look::Invisible),
+        );
+        let names = ["M_GND_Paving", "M_GND_Kerb", "M_Hedge", "M_NotInTheData", "M_GND_Edging"];
+        let floor = kit_surface::test_floor;
+        let mut tris = Vec::new();
+        tris.extend(floor(Vec2::new(-5.0, -5.0), Vec2::new(0.0, 5.0), 0.010, 0));
+        tris.extend(floor(Vec2::new(2.0, -5.0), Vec2::new(2.2, 5.0), 0.11, 1));
+        tris.extend(floor(Vec2::new(0.5, -5.0), Vec2::new(1.5, 5.0), 0.02, 2));
+        tris.extend(floor(Vec2::new(3.0, -5.0), Vec2::new(5.0, 5.0), 0.004, 3));
+        tris.extend(floor(Vec2::new(-3.0, 0.5), Vec2::new(-1.0, 1.5), 0.035, 4));
+        (w, KitSurfaces::ready(names.map(String::from).to_vec(), tris))
+    }
+
+    fn shot_down(w: &CollisionWorld, x: f32, z: f32) -> (Vec3, Vec3) {
+        hit(w, Vec3::new(x, 3.0, z), Vec3::new(x, -1.0, z))
+    }
+
+    fn lowest(m: &Mark) -> f32 {
+        m.verts.iter().map(|(v, _)| v.y).fold(f32::MAX, f32::min)
+    }
+
+    /// Finding F1: a mark sits on the art kit's surface, not on the collision face under it (where it was
+    /// buried: paving +10 mm, kerbs, lawn); its kind and colour are the kit material's (finding F3).
+    #[test]
+    fn marks_sit_on_the_kit_surface_and_take_its_material() {
+        let (w, kit) = kit_world();
+        let (data, atlas) = (ImpactData::embedded(), AtlasData::embedded());
+        let mut marks = Marks::default();
+        let (p, n) = shot_down(&w, -2.0, -2.0);
+        let m = marks.add(&w, &data, &atlas, true, Some(&kit), p, n, 10, None).expect("a mark on the paving").clone();
+        assert_eq!(m.kind, SurfaceKind::Pavement, "the kit's paving, not the ground brush's soil");
+        assert!(lowest(&m) >= 0.010 + data.lift_m - 1e-4, "above the kit paving: {}", lowest(&m));
+        assert!(lowest(&m) <= 0.010 + data.lift_m + 1e-4, "on it, not floating: {}", lowest(&m));
+        let (_, (r, g, b)) = data.kit["M_GND_Paving"];
+        assert!(
+            m.tint.to_f32_array()[..3]
+                .iter()
+                .zip(Color::srgb_u8(r, g, b).to_linear().to_f32_array())
+                .all(|(a, b)| (a - b).abs() < 1e-4)
+        );
+        // without the kit (another map, or before it is built): the brush face and its look, as before
+        let m = marks.add(&w, &data, &atlas, true, None, p, n, 10, None).unwrap();
+        assert_eq!(m.kind, SurfaceKind::Soil);
+        assert!((lowest(m) - data.lift_m).abs() < 1e-5);
+        // nor on another map
+        assert_eq!(marks.add(&w, &data, &atlas, false, Some(&kit), p, n, 10, None).unwrap().kind, SurfaceKind::Soil);
+    }
+
+    /// Finding F2: the kerbs (invisible collision steps) take marks where the kit's kerb is; plants take none
+    /// even over a brush that would; a kit material the data does not list keeps the brush's kind but still
+    /// sits on the kit.
+    #[test]
+    fn kerbs_take_marks_and_plants_do_not() {
+        let (w, kit) = kit_world();
+        let (data, atlas) = (ImpactData::embedded(), AtlasData::embedded());
+        let mut marks = Marks::default();
+        let (p, n) = shot_down(&w, 2.1, 0.0);
+        assert!(marks.add(&w, &data, &atlas, true, None, p, n, 10, None).is_none(), "invisible: none without the kit");
+        let m = marks.add(&w, &data, &atlas, true, Some(&kit), p, n, 10, None).expect("a mark on the kerb").clone();
+        assert_eq!(m.kind, SurfaceKind::Pavement);
+        assert!(lowest(&m) >= 0.11 + data.lift_m - 1e-4);
+        let (p, n) = shot_down(&w, 1.0, 0.0);
+        assert!(marks.add(&w, &data, &atlas, true, Some(&kit), p, n, 10, None).is_none(), "the hedge takes none");
+        let (p, n) = shot_down(&w, 4.0, 0.0);
+        let m = marks.add(&w, &data, &atlas, true, Some(&kit), p, n, 10, None).unwrap();
+        assert_eq!(m.kind, SurfaceKind::Soil, "an unknown kit material: the brush's look");
+        assert!((lowest(m) - (0.004 + data.lift_m)).abs() < 1e-4);
+    }
+
+    /// A raised corner lifts the mark over it, but at most `CORNER_RISE_M` above the kit at the centre (a sill
+    /// or a pipe in front of a wall must not lift the whole mark off the wall).
+    #[test]
+    fn a_raised_corner_lifts_the_mark_a_little() {
+        let (w, kit) = kit_world();
+        let (data, atlas) = (ImpactData::embedded(), AtlasData::embedded());
+        let mut marks = Marks::default();
+        // centred on the paving (10 mm) 4 cm from the 35 mm lip: its east corner is over the lip
+        let (p, n) = shot_down(&w, -3.04, 1.0);
+        let m = marks.add(&w, &data, &atlas, true, Some(&kit), p, n, 10, None).unwrap();
+        let top = 0.010 + kit_surface::CORNER_RISE_M + data.lift_m;
+        assert!(m.verts.iter().all(|(v, _)| (v.y - top).abs() < 1e-4), "{:?}", m.verts);
+    }
+
+    /// Every material of the deployed kit (houses, ground, props) has a row in `kit` (skipped where the GLBs are
+    /// Git LFS pointers).
+    #[test]
+    fn every_kit_material_has_a_row() {
+        let data = ImpactData::embedded();
+        let dir = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../assets/maps/showhome");
+        let mut checked = 0;
+        for file in ["houses.glb", "ground.glb", "props_placed.glb"] {
+            let Ok(bytes) = std::fs::read(dir.join(file)) else { continue };
+            if bytes.len() < 20 || &bytes[..4] != b"glTF" {
+                continue;
+            }
+            let len = u32::from_le_bytes(bytes[12..16].try_into().unwrap()) as usize;
+            let json: serde_json::Value = serde_json::from_slice(&bytes[20..20 + len]).expect("glTF JSON");
+            for m in json["materials"].as_array().into_iter().flatten() {
+                let name = kit_surface::canonical(m["name"].as_str().unwrap_or_default());
+                assert!(data.kit.contains_key(name), "{file}: {name} has no row in impacts.ron's kit table");
+                checked += 1;
+            }
+        }
+        if checked == 0 {
+            eprintln!("the Showhome GLBs are not checked out; skipped");
+        }
+        // the plants take no marks, the walls and ground what they look like
+        assert_eq!(data.kit["M_Hedge"].0, None);
+        assert_eq!(data.kit["M_GND_CladSage"].0, Some(SurfaceKind::Cladding));
+        assert_eq!(data.kit["M_GND_Kerb"].0, Some(SurfaceKind::Pavement));
+        assert_eq!(data.kit["M_GND_SteelEdging"].0, Some(SurfaceKind::Metal));
+        assert_eq!(data.kit["M_SH_SolarPanel"].0, Some(SurfaceKind::Glass));
     }
 
     #[test]
@@ -1401,14 +1606,14 @@ mod tests {
         let (data, atlas) = (ImpactData::embedded(), AtlasData::embedded());
         let mut marks = Marks::default();
         let (p, n) = hit(&w, Vec3::new(2.0, 1.5, 5.0), Vec3::new(2.0, 1.5, 0.0));
-        marks.add(&w, &data, &atlas, true, p, n, 10, None);
+        marks.add(&w, &data, &atlas, true, None, p, n, 10, None);
         marks.dirty = false;
         assert!(!marks.age(10.0, 30.0, 1.0), "nothing to redraw mid-life");
         assert!(marks.age(19.5, 30.0, 1.0), "fading: redraw");
         marks.age(1.0, 30.0, 1.0);
         assert!(marks.list.is_empty());
         // the mesh carries the fade and, on the paint layer, the tint
-        marks.add(&w, &data, &atlas, true, p, n, 10, None);
+        marks.add(&w, &data, &atlas, true, None, p, n, 10, None);
         let mesh = marks_mesh(marks.list.iter(), true, 30.0, 1.0).unwrap();
         assert_eq!(mesh.count_vertices(), 4);
         assert!(marks_mesh(std::iter::empty(), false, 30.0, 1.0).is_none());
@@ -1422,7 +1627,7 @@ mod tests {
         let (mut chain, levels) = crate::map_materials::mip_chain([128u8, 128, 128, 100].repeat(16), 4, 4, true);
         assert_eq!(levels, 3);
         let before = chain.clone();
-        far_mips(&mut chain, 4, 4, levels, &far);
+        far_mips(&mut chain, 4, 4, levels, &far, 1, &[]);
         assert_eq!(chain[..64], before[..64], "level 0 untouched");
         let (l1, l2) = (&chain[64..68], &chain[80..84]);
         assert!(l1[0] < before[64] && l2[0] < l1[0], "darker step by step: {l1:?} {l2:?}");
@@ -1432,6 +1637,36 @@ mod tests {
         // the data file's values are sane
         let f = ImpactData::embedded().far;
         assert!(f.from_mip >= 2 && f.darken_max <= 0.8 && f.alpha_per_mip >= 0.0);
+    }
+
+    /// The debris sprites share the atlas with the marks: their cells keep every mip as it is (a puff at fighting
+    /// range must stay pale dust, a spark bright), while the marks' cells darken.
+    #[test]
+    fn far_mips_leave_the_sprite_cells_alone() {
+        let far = FarLook { from_mip: 1, darken_per_mip: 0.3, darken_max: 0.5, alpha_per_mip: 0.5 };
+        // a 3x3 grid of 4 px cells (12x12), the middle cell a sprite: levels 12, 6, 3 (a cell 1 px), 1
+        let (mut chain, levels) = crate::map_materials::mip_chain([200u8, 200, 200, 100].repeat(144), 12, 12, true);
+        assert_eq!(levels, 4);
+        let before = chain.clone();
+        far_mips(&mut chain, 12, 12, levels, &far, 3, &[4]);
+        // level 1 (6x6, cells 2 px) starts after level 0's 576 bytes
+        let at = |x: usize, y: usize| 576 + (y * 6 + x) * 4;
+        assert_eq!(chain[at(2, 2)..at(2, 2) + 4], before[at(2, 2)..at(2, 2) + 4], "the sprite cell is untouched");
+        assert_eq!(chain[at(3, 3)..at(3, 3) + 4], before[at(3, 3)..at(3, 3) + 4], "all of it");
+        assert!(
+            chain[at(0, 0)] < before[at(0, 0)] && chain[at(0, 0) + 3] > before[at(0, 0) + 3],
+            "a mark cell darkens"
+        );
+        // level 2 (3x3, a pixel per cell): the middle pixel is the sprite's
+        let at2 = 576 + 144 + 4 * 4;
+        assert_eq!(chain[at2..at2 + 4], before[at2..at2 + 4]);
+        assert!(chain[576 + 144] < before[576 + 144]);
+        // level 3 (1x1): cells under a pixel, left alone
+        assert_eq!(chain[chain.len() - 4..], before[before.len() - 4..]);
+        // the real atlas's sprite cells are on its grid
+        let atlas = AtlasData::embedded();
+        let s = &atlas.sprites;
+        assert!([s.puff, s.chip, s.spark].iter().all(|&c| c < atlas.grid * atlas.grid));
     }
 
     #[test]

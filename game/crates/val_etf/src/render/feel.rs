@@ -120,6 +120,8 @@ pub struct CameraFeel {
     pub land: Landing,
     pub shot_damping: f32,
     pub ads_shot_mult: f32,
+    /// The view follows a step up or down on flat ground over this time constant.
+    pub step_smooth_s: f32,
 }
 
 /// One gun's shot: the camera's jolt and the gun's kick.
@@ -168,6 +170,8 @@ pub struct GunFeel {
     pub land: Landing,
     pub kick_damping: f32,
     pub ads_mult: f32,
+    /// Aimed, the share of the sway's shift across the view (x, y) that stays.
+    pub ads_shift_mult: f32,
     pub ads_kick_mult: f32,
     pub sprint_pose: SprintPose,
 }
@@ -213,6 +217,7 @@ pub struct HitFeel {
     pub head_scale: f32,
     pub kill_scale: f32,
     pub ring_px: f32,
+    pub ring_border_px: f32,
     pub remember_s: f32,
 }
 
@@ -224,6 +229,17 @@ pub struct Shards {
     pub life_s: f32,
 }
 
+/// How shards fly off a cracked or broken arc.
+#[derive(Debug, Clone, Copy, PartialEq, Deserialize)]
+pub struct ShardFlight {
+    pub scatter: f32,
+    pub lift: f32,
+    pub speed_jitter: f32,
+    pub size_jitter: f32,
+    pub spread: f32,
+    pub drag_per_s: f32,
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Deserialize)]
 pub struct HaloFeel {
     pub min_drop: f32,
@@ -232,6 +248,7 @@ pub struct HaloFeel {
     pub pulse_scale: f32,
     pub crack: Shards,
     pub shatter: Shards,
+    pub shards: ShardFlight,
     pub gravity_mps2: f32,
     pub spin_rps: f32,
     pub ring_s: f32,

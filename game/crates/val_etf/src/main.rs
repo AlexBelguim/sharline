@@ -21,6 +21,7 @@ mod lobby;
 mod map_materials;
 mod menu;
 mod net;
+mod perf_probe;
 mod radial;
 mod render;
 mod scoreboard;
@@ -64,6 +65,8 @@ fn main() -> AppExit {
     let mut app = App::new();
     app.add_plugins(
         DefaultPlugins
+            // Bevy's task pools, or VETF_THREADS threads (render/executor.rs).
+            .set(render::executor::task_pools(std::env::var("VETF_THREADS").ok().as_deref()))
             .set(WindowPlugin {
                 primary_window: Some(Window {
                     title: "SHARD/LINE (prototype)".into(),
@@ -85,6 +88,8 @@ fn main() -> AppExit {
                 ..default()
             }),
     );
+    // The frame's schedules on the executor that measured faster (render/executor.rs).
+    app.add_plugins(render::executor::ExecutorPlugin);
     // Both lightyear plugin groups, always: the same binary hosts or joins (same tick on both).
     app.add_plugins((
         lightyear::prelude::server::ServerPlugins { tick_duration: tick },
@@ -140,6 +145,8 @@ fn main() -> AppExit {
         impacts::ImpactsPlugin,
     ));
     app.add_systems(Update, place_window);
+    // Frame statistics for measuring changes; nothing of it is added unless VETF_PERF=1 (perf_probe.rs).
+    app.add_plugins(perf_probe::PerfProbePlugin);
     app.add_systems(Startup, || info!("assets from {}", config::assets_root().display()));
     // First launch on this machine: ask for a callsign over the main menu.
     app.add_plugins(first_run::FirstRunPlugin);
