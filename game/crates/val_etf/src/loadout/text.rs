@@ -37,7 +37,7 @@ pub enum Tone {
 pub struct Delta {
     pub text: String,
     pub tone: Tone,
-    /// Relative size, for picking the two biggest.
+    /// Relative size, for ordering (and picking the ammo picker's two biggest).
     pub size: f32,
 }
 
@@ -62,11 +62,14 @@ fn top_two(mut v: Vec<Delta>) -> Vec<Delta> {
     v
 }
 
+fn zoom_number(v: f32) -> String {
+    if (v - v.round()).abs() < 1e-3 { format!("{v:.0}") } else { format!("{v:.2}") }
+}
+
 fn zoom_text(z: &Option<Zoom>) -> Option<String> {
-    let fmt = |v: f32| if (v - v.round()).abs() < 1e-3 { format!("{v:.0}") } else { format!("{v:.2}") };
     match z {
-        Some(Zoom::Fixed(v)) => Some(format!("{}×", fmt(*v))),
-        Some(Zoom::Variable([lo, hi])) => Some(format!("{}–{}×", fmt(*lo), fmt(*hi))),
+        Some(Zoom::Fixed(v)) => Some(format!("{}×", zoom_number(*v))),
+        Some(Zoom::Variable([lo, hi])) => Some(format!("{}–{}×", zoom_number(*lo), zoom_number(*hi))),
         None => None,
     }
 }
@@ -75,30 +78,115 @@ fn zoom_first(z: &Option<Zoom>) -> f32 {
     z.map_or(1.0, |z| z.range().0)
 }
 
-/// What changes going from `from` to `to` (an attachment list row against the equipped part).
-pub fn stat_deltas(from: &WeaponStats, to: &WeaponStats) -> Vec<Delta> {
+/// A stat an attachment can change, as the attachment list names it. Every multiplier field of an attachment
+/// (`attachments.ron`) has one.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum StatLine {
+    RecoilV,
+    RecoilH,
+    AdsTime,
+    Sway,
+    Mobility,
+    SprintToFire,
+    /// `hip_spread`: it widens or narrows the hip cone on the move only (standing still is exact, aimed fire is
+    /// not touched), so it reads MOVING SPREAD.
+    MovingSpread,
+    Reload,
+}
+
+impl StatLine {
+    pub const ALL: [StatLine; 8] = [
+        StatLine::RecoilV,
+        StatLine::RecoilH,
+        StatLine::AdsTime,
+        StatLine::Sway,
+        StatLine::Mobility,
+        StatLine::SprintToFire,
+        StatLine::MovingSpread,
+        StatLine::Reload,
+    ];
+
+    pub fn label(self) -> &'static str {
+        match self {
+            StatLine::RecoilV => "RECOIL V",
+            StatLine::RecoilH => "RECOIL H",
+            StatLine::AdsTime => "ADS TIME",
+            StatLine::Sway => "SWAY",
+            StatLine::Mobility => "MOBILITY",
+            StatLine::SprintToFire => "SPRINT-TO-FIRE",
+            StatLine::MovingSpread => "MOVING SPREAD",
+            StatLine::Reload => "RELOAD",
+        }
+    }
+
+    /// The attachment field it shows (its key in `attachments.ron`); the data test holds every field to a line.
+    #[cfg(test)]
+    pub fn field(self) -> &'static str {
+        match self {
+            StatLine::RecoilV => "recoil_v",
+            StatLine::RecoilH => "recoil_h",
+            StatLine::AdsTime => "ads_time",
+            StatLine::Sway => "sway",
+            StatLine::Mobility => "move",
+            StatLine::SprintToFire => "sprint_to_fire",
+            StatLine::MovingSpread => "hip_spread",
+            StatLine::Reload => "reload",
+        }
+    }
+
+    fn value(self, s: &WeaponStats) -> f32 {
+        match self {
+            StatLine::RecoilV => s.recoil_v,
+            StatLine::RecoilH => s.recoil_h,
+            StatLine::AdsTime => s.ads_s,
+            StatLine::Sway => s.sway,
+            StatLine::Mobility => s.mobility,
+            StatLine::SprintToFire => s.sprint_to_fire_s,
+            StatLine::MovingSpread => s.hip_spread,
+            StatLine::Reload => s.reload_s,
+        }
+    }
+
+    fn lower_is_better(self) -> bool {
+        self != StatLine::Mobility
+    }
+}
+
+/// Good first, then neutral, then bad; bigger first within each.
+fn good_first(v: &mut [Delta]) {
+    let rank = |t: Tone| match t {
+        Tone::Good => 0,
+        Tone::Neutral => 1,
+        Tone::Bad => 2,
+    };
+    v.sort_by(|a, b| rank(a.tone).cmp(&rank(b.tone)).then(b.size.total_cmp(&a.size)));
+}
+
+/// Every multiplier stat that changes from `from` to `to`, in per cent (a change under half a per cent is none,
+/// one under a whole per cent shows as 1 so nothing a part does rounds away).
+fn pct_lines(from: &WeaponStats, to: &WeaponStats) -> Vec<Delta> {
     let mut v = Vec::new();
-    let rel = |a: f32, b: f32| if a.abs() < 1e-6 { 0.0 } else { (b / a - 1.0).abs() };
-    let secs = |name: &str, a: f32, b: f32, v: &mut Vec<Delta>| {
-        let d = b - a;
-        if d.abs() >= 0.005 {
-            v.push(Delta { text: format!("{name} {} S", signed(d, 2)), tone: tone(d, true), size: rel(a, b) });
-        }
-    };
-    let pct = |name: &str, a: f32, b: f32, lower_better: bool, v: &mut Vec<Delta>| {
+    for stat in StatLine::ALL {
+        let (a, b) = (stat.value(from), stat.value(to));
         let p = if a.abs() < 1e-6 { 0.0 } else { (b / a - 1.0) * 100.0 };
-        if p.abs() >= 0.5 {
-            v.push(Delta { text: format!("{name} {} %", signed(p, 0)), tone: tone(p, lower_better), size: rel(a, b) });
+        if p.abs() < 0.5 {
+            continue;
         }
-    };
-    secs("ADS", from.ads_s, to.ads_s, &mut v);
-    pct("RECOIL V", from.recoil_v, to.recoil_v, true, &mut v);
-    pct("RECOIL H", from.recoil_h, to.recoil_h, true, &mut v);
-    pct("SWAY", from.sway, to.sway, true, &mut v);
-    pct("HIP SPREAD", from.hip_spread, to.hip_spread, true, &mut v);
-    secs("SPRINT-FIRE", from.sprint_to_fire_s, to.sprint_to_fire_s, &mut v);
-    secs("RELOAD", from.reload_s, to.reload_s, &mut v);
-    pct("MOBILITY", from.mobility, to.mobility, false, &mut v);
+        let shown = if p.abs() < 1.0 { p.signum() } else { p };
+        v.push(Delta {
+            text: format!("{} {} %", stat.label(), signed(shown, 0)),
+            tone: tone(p, stat.lower_is_better()),
+            size: p.abs() / 100.0,
+        });
+    }
+    v
+}
+
+/// Everything that changes going from `from` to `to`, good first: every multiplier stat in per cent, the rounds
+/// in the magazine and the zoom. The attachment list's "vs equipped" line (from = the equipped part).
+pub fn stat_lines(from: &WeaponStats, to: &WeaponStats) -> Vec<Delta> {
+    let rel = |a: f32, b: f32| if a.abs() < 1e-6 { 0.0 } else { (b / a - 1.0).abs() };
+    let mut v = pct_lines(from, to);
     if from.mag != to.mag {
         let d = to.mag as f32 - from.mag as f32;
         v.push(Delta {
@@ -116,8 +204,51 @@ pub fn stat_deltas(from: &WeaponStats, to: &WeaponStats) -> Vec<Delta> {
             size: rel(zoom_first(&from.zoom), zoom_first(&to.zoom)),
         });
     }
-    top_two(v)
+    good_first(&mut v);
+    v
 }
+
+/// What a part does on its own, against no part in its slot (`empty`: the gun with that slot empty, which for a
+/// magazine is the gun's standard capacity): every stat it changes, good first, and a magazine's CAPACITY.
+/// BASELINE when it changes nothing (NONE, a default stock). Its zoom and other effects are [`part_tags`].
+pub fn own_lines(empty: &WeaponStats, with: &WeaponStats, part: Option<&AttachmentSpec>) -> Vec<Delta> {
+    let mut v = pct_lines(empty, with);
+    if let Some(cap) = part.and_then(|a| a.capacity) {
+        let d = cap as f32 - empty.mag as f32;
+        v.push(Delta {
+            text: format!("CAPACITY {cap}"),
+            tone: tone(d, false),
+            size: if empty.mag == 0 { 0.0 } else { d.abs() / empty.mag as f32 },
+        });
+    }
+    good_first(&mut v);
+    if v.is_empty() {
+        v.push(Delta { text: "BASELINE".into(), tone: Tone::Neutral, size: 0.0 });
+    }
+    v
+}
+
+/// A tag under a part's blurb: something it does that is not a stat.
+#[derive(Debug, Clone, PartialEq)]
+pub struct Tag {
+    pub text: String,
+    /// Promised but not in the game yet.
+    pub not_yet: bool,
+}
+
+/// What a part does besides its stats: its zoom (`3× ZOOM`, `6–12× ZOOM · SCROLL`), then the data's effects.
+pub fn part_tags(a: &AttachmentSpec) -> Vec<Tag> {
+    let mut v = Vec::new();
+    if let Some(z) = zoom_text(&a.zoom) {
+        let scroll = if a.zoom.is_some_and(|z| z.is_variable()) { " · SCROLL" } else { "" };
+        v.push(Tag { text: format!("{z} ZOOM{scroll}"), not_yet: false });
+    }
+    v.extend(a.effects.iter().map(|e| Tag { text: e.text.to_uppercase(), not_yet: e.not_yet }));
+    v
+}
+
+/// The note a tag for something not in the game yet carries.
+pub const NOT_YET: &str = "NOT IN THE GAME YET";
 
 /// The long ammo name: STANDARD, AP II, RIP III, SLUG I.
 pub fn ammo_name(data: &GameData, c: AmmoChoice) -> String {
@@ -391,7 +522,7 @@ pub fn part_name(a: Option<&AttachmentSpec>) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::loadout::model::{parts_with, weapon_stats};
+    use crate::loadout::model::{default_part, parts_with, weapon_stats};
     use vetf_sim::ZoneTable;
     use vetf_sim::data::{AttachmentCategory, Core};
 
@@ -429,38 +560,163 @@ mod tests {
         assert_eq!(ammo_deltas(&d, AmmoChoice::STANDARD)[0].text, "BASELINE");
     }
 
+    fn texts(v: &[Delta]) -> Vec<&str> {
+        v.iter().map(|x| x.text.as_str()).collect()
+    }
+
+    /// The gun with its default parts, one slot swapped: (slot empty, slot with `id`).
+    fn stats_pair(d: &GameData, gun: &str, cat: AttachmentCategory, id: Option<&str>) -> (WeaponStats, WeaponStats) {
+        let spec = d.weapon(gun).unwrap();
+        let def: Vec<&AttachmentSpec> =
+            AttachmentCategory::ALL.iter().filter_map(|c| default_part(d, gun, *c)).collect();
+        let empty = weapon_stats(d, spec, &parts_with(&def, cat, None));
+        let with = weapon_stats(d, spec, &parts_with(&def, cat, id.and_then(|i| d.attachment(i))));
+        (empty, with)
+    }
+
+    fn own(d: &GameData, gun: &str, id: &str) -> Vec<Delta> {
+        let a = d.attachment(id).unwrap();
+        let (empty, with) = stats_pair(d, gun, a.cat, Some(id));
+        own_lines(&empty, &with, Some(a))
+    }
+
+    /// Item B: a row shows the part's OWN effect against no part in the slot, every stat it changes, good first;
+    /// the "vs equipped" line is the change from the equipped part.
     #[test]
-    fn attachment_deltas_pick_the_two_biggest() {
+    fn a_part_shows_its_own_effect_and_vs_equipped() {
         let d = GameData::embedded();
-        let mako = d.weapon("ar7_mako").unwrap();
-        let def: Vec<_> =
-            ["optic_holo", "mako_stock_standard", "mag_30"].iter().map(|i| d.attachment(i).unwrap()).collect();
-        let base = weapon_stats(&d, mako, &def);
-        let with = |id: &str| weapon_stats(&d, mako, &parts_with(&def, AttachmentCategory::Under, d.attachment(id)));
-        let angled = stat_deltas(&base, &with("grip_angled"));
-        assert_eq!(angled.iter().map(|x| x.text.as_str()).collect::<Vec<_>>(), ["RECOIL H −12 %", "ADS −0.01 S"]);
-        // Grips lower only the sideways recoil, stocks only the climb (playtest round 3).
-        let brace = stat_deltas(&base, &with("grip_vertical"));
-        assert_eq!(brace.iter().map(|x| x.text.as_str()).collect::<Vec<_>>(), ["RECOIL H −22 %", "SWAY −5 %"]);
-        assert_eq!(brace[0].tone, Tone::Good);
-        let stock = |id: &str| weapon_stats(&d, mako, &parts_with(&def, AttachmentCategory::Stock, d.attachment(id)));
-        let precision = stat_deltas(&base, &stock("mako_stock_precision"));
-        assert_eq!(precision[0].text, "RECOIL V −20 %");
-        assert!(precision.iter().all(|x| !x.text.starts_with("RECOIL H")), "{precision:?}");
-        // Since ADS got fast (0.13 s), the brace grip's +3 % is under 0.005 s; the launcher's +15 % shows.
-        let ugl = stat_deltas(&base, &with("ugl_launcher"));
-        assert!(ugl.iter().any(|x| x.text == "ADS +0.02 S" && x.tone == Tone::Bad), "{ugl:?}");
-        assert_eq!(stat_deltas(&base, &base)[0].text, "NO CHANGE");
-        let drum = weapon_stats(&d, mako, &parts_with(&def, AttachmentCategory::Mag, d.attachment("mag_drum60")));
-        assert!(stat_deltas(&base, &drum).iter().any(|x| x.text == "+30 RND" && x.tone == Tone::Good));
-        let scope = weapon_stats(&d, mako, &parts_with(&def, AttachmentCategory::Optic, d.attachment("optic_3x")));
-        assert!(stat_deltas(&base, &scope).iter().any(|x| x.text == "ZOOM 3×"));
-        assert_eq!(stat_inline_delta(0, &base, &with("grip_angled")), Some(("−0.01".into(), Tone::Good)));
-        assert_eq!(stat_inline_delta(1, &base, &with("grip_angled")), None);
-        assert_eq!(stat_value(0, &base), "0.13 s");
-        assert_eq!(stat_value(1, &base), "720 rpm");
-        assert_eq!(stat_value(4, &base), "100 %");
-        assert_eq!(stat_value(6, &base), "25 m");
+        let under = AttachmentCategory::Under;
+        let angled = own(&d, "ar7_mako", "grip_angled");
+        assert_eq!(texts(&angled), ["RECOIL H −12 %", "ADS TIME −8 %"]);
+        assert!(angled.iter().all(|x| x.tone == Tone::Good));
+        assert_eq!(
+            texts(&own(&d, "ar7_mako", "grip_stub")),
+            ["MOVING SPREAD −12 %", "SPRINT-TO-FIRE −10 %", "RECOIL H −6 %"]
+        );
+        let brace = own(&d, "ar7_mako", "grip_vertical");
+        assert_eq!(texts(&brace), ["RECOIL H −22 %", "SWAY −5 %", "ADS TIME +3 %"], "good first, then bad");
+        assert_eq!(brace[2].tone, Tone::Bad);
+        let (empty, none) = stats_pair(&d, "ar7_mako", under, None);
+        assert_eq!(texts(&own_lines(&empty, &none, None)), ["BASELINE"], "NONE does nothing");
+        // The user's screenshot: the stub grip equipped. NONE's own line is BASELINE now; what it changes against
+        // the stub grip is the quiet vs-equipped line.
+        let (_, stub) = stats_pair(&d, "ar7_mako", under, Some("grip_stub"));
+        let vs_none = stat_lines(&stub, &none);
+        assert_eq!(texts(&vs_none), ["MOVING SPREAD +14 %", "SPRINT-TO-FIRE +11 %", "RECOIL H +6 %"]);
+        assert!(vs_none.iter().all(|x| x.tone == Tone::Bad));
+        let (_, ang) = stats_pair(&d, "ar7_mako", under, Some("grip_angled"));
+        assert_eq!(
+            texts(&stat_lines(&stub, &ang)),
+            ["ADS TIME −8 %", "RECOIL H −6 %", "MOVING SPREAD +14 %", "SPRINT-TO-FIRE +11 %"]
+        );
+        assert!(stat_lines(&stub, &stub).is_empty(), "nothing changes against itself");
+        // The own effect does not depend on what else is fitted (a different stock, say).
+        let spec = d.weapon("ar7_mako").unwrap();
+        let def: Vec<&AttachmentSpec> =
+            AttachmentCategory::ALL.iter().filter_map(|c| default_part(&d, "ar7_mako", *c)).collect();
+        let other = parts_with(&def, AttachmentCategory::Stock, d.attachment("mako_stock_precision"));
+        let e2 = weapon_stats(&d, spec, &parts_with(&other, under, None));
+        let w2 = weapon_stats(&d, spec, &parts_with(&other, under, d.attachment("grip_angled")));
+        assert_eq!(texts(&own_lines(&e2, &w2, d.attachment("grip_angled"))), texts(&angled));
+        // Required slots: against the slot empty. A default stock is the plain gun; a magazine has its capacity.
+        assert_eq!(texts(&own(&d, "ar7_mako", "mako_stock_standard")), ["BASELINE"]);
+        assert_eq!(texts(&own(&d, "ar7_mako", "mako_stock_precision"))[0], "RECOIL V −20 %");
+        assert_eq!(texts(&own(&d, "ar7_mako", "mag_30")), ["CAPACITY 30"]);
+        let m45 = own(&d, "ar7_mako", "mag_45");
+        assert_eq!(texts(&m45), ["CAPACITY 45", "RELOAD +12 %", "ADS TIME +5 %", "MOBILITY −1 %"]);
+        assert_eq!(m45[0].tone, Tone::Good);
+        let mag = |id| stats_pair(&d, "ar7_mako", AttachmentCategory::Mag, Some(id)).1;
+        assert!(
+            stat_lines(&mag("mag_30"), &mag("mag_drum60")).iter().any(|x| x.text == "+30 RND" && x.tone == Tone::Good)
+        );
+        let optic = |id| stats_pair(&d, "ar7_mako", AttachmentCategory::Optic, Some(id)).1;
+        assert!(stat_lines(&optic("optic_holo"), &optic("optic_3x")).iter().any(|x| x.text == "ZOOM 3×"));
+    }
+
+    /// Item B: the laser adds a little sweep and the thermal optic a little climb; both show, in red.
+    #[test]
+    fn recoil_penalties_show() {
+        let d = GameData::embedded();
+        let laser = own(&d, "ar7_mako", "laser");
+        assert_eq!(texts(&laser), ["MOVING SPREAD −20 %", "RECOIL H +5 %", "ADS TIME +2 %"]);
+        assert_eq!(laser[1].tone, Tone::Bad);
+        let thermal = own(&d, "vk50_warden", "optic_thermal");
+        assert_eq!(texts(&thermal), ["ADS TIME +20 %", "SWAY +10 %", "RECOIL V +8 %", "MOBILITY −1 %"]);
+        assert!(thermal.iter().all(|x| x.tone == Tone::Bad));
+    }
+
+    /// Item B, "everything that an item does should be shown": every stat field an attachment sets (other than
+    /// 1.0) has a line on its row on every gun it fits, its capacity a CAPACITY line and its zoom a tag.
+    #[test]
+    fn every_stat_an_attachment_sets_has_a_line() {
+        let d = GameData::embedded();
+        // Every multiplier field has a StatLine (a new field without one fails here).
+        let all = vetf_sim::data::Modifiers {
+            ads_time: Some(2.0),
+            move_mult: Some(2.0),
+            sway: Some(2.0),
+            recoil_v: Some(2.0),
+            recoil_h: Some(2.0),
+            hip_spread: Some(2.0),
+            reload: Some(2.0),
+            sprint_to_fire: Some(2.0),
+        };
+        let serde_json::Value::Object(keys) = serde_json::to_value(&all).unwrap() else { unreachable!() };
+        assert_eq!(keys.len(), StatLine::ALL.len());
+        for k in keys.keys() {
+            assert!(StatLine::ALL.iter().any(|s| s.field() == k), "no display line for `{k}`");
+        }
+        let mut checked = 0;
+        for a in &d.attachments.attachments {
+            let serde_json::Value::Object(m) = serde_json::to_value(a.modifiers()).unwrap() else { unreachable!() };
+            for gun in &a.fits {
+                let lines = own(&d, gun, &a.id);
+                for (k, val) in &m {
+                    let val = val.as_f64().unwrap() as f32;
+                    if (val - 1.0).abs() < 1e-6 {
+                        continue;
+                    }
+                    let stat = StatLine::ALL.iter().find(|s| s.field() == k).unwrap();
+                    let line = lines.iter().find(|l| l.text.starts_with(stat.label()));
+                    let line =
+                        line.unwrap_or_else(|| panic!("{} on {gun}: no {} line in {lines:?}", a.id, stat.label()));
+                    let worse = (val > 1.0) == stat.lower_is_better();
+                    assert_eq!(line.tone, if worse { Tone::Bad } else { Tone::Good }, "{} {k}", a.id);
+                    checked += 1;
+                }
+                if let Some(cap) = a.capacity {
+                    assert!(lines.iter().any(|l| l.text == format!("CAPACITY {cap}")), "{}", a.id);
+                }
+                if a.zoom.is_some() {
+                    assert!(part_tags(a).first().is_some_and(|t| t.text.contains("ZOOM")), "{}", a.id);
+                }
+                assert!(lines.iter().all(|l| !l.text.contains("HIP SPREAD")), "renamed: MOVING SPREAD");
+            }
+        }
+        assert!(checked > 40, "{checked}");
+    }
+
+    /// Non-numeric effects are tags, and what is not in the game yet says so.
+    #[test]
+    fn tags_show_zoom_and_effects() {
+        let d = GameData::embedded();
+        let tags = |id: &str| part_tags(d.attachment(id).unwrap());
+        let sniper = tags("optic_sniper");
+        assert_eq!(sniper[0], Tag { text: "6–12× ZOOM · SCROLL".into(), not_yet: false });
+        assert!(sniper.iter().any(|t| t.text.contains("GLINT") && t.not_yet), "no glint in the game yet");
+        assert_eq!(tags("optic_1_3x")[0].text, "1–3× ZOOM · SCROLL");
+        assert_eq!(tags("optic_3x")[0].text, "3× ZOOM");
+        assert_eq!(tags("optic_reddot")[0].text, "1.15× ZOOM");
+        assert!(tags("optic_thermal").iter().any(|t| t.text.starts_with("HEAT VIEW") && t.not_yet));
+        let laser = tags("laser");
+        assert!(laser.iter().any(|t| t.text == "EVERYONE SEES ITS BEAM WITHIN 25 M" && !t.not_yet), "{laser:?}");
+        for id in ["bipod", "ugl_launcher", "flashlight", "shield_front"] {
+            let a = d.attachment(id).unwrap();
+            assert!(tags(id).iter().any(|t| t.not_yet), "{id}: says what is not in yet");
+            assert!(a.blurb.contains("not in yet"), "{id}: the blurb promises nothing: {:?}", a.blurb);
+        }
+        assert!(tags("bipod").iter().any(|t| t.text.starts_with("DEPLOYS ON COVER")), "the deploy is not built yet");
+        assert!(tags("mako_stock_precision").is_empty());
     }
 
     #[test]

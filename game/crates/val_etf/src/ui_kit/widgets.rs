@@ -23,7 +23,7 @@ pub enum PanelKind {
     Hi,
     /// Main-menu flyout over the art: PANEL_HI and a 2 px TEAL top border (over-art colours).
     Flyout,
-    /// Popover: PANEL_HI, 2 px TEAL top, a deep shadow.
+    /// Popover: opaque POPOVER_SURFACE (PANEL_HI's colour), 2 px TEAL top, a deep shadow.
     Popover,
     /// Loadout RESULT: PANEL with a 2 px TEXT_HI top border.
     Result,
@@ -37,17 +37,12 @@ pub enum PanelKind {
 
 /// A panel around `node` (its border, radius and colours are set here).
 pub fn panel_of(kind: PanelKind, node: Node) -> impl Bundle {
-    let (bg, border, top, left) = match kind {
-        PanelKind::Base => (PANEL, BorderColor::all(STROKE), 1.0, 1.0),
-        PanelKind::Hi => (PANEL_HI, BorderColor::all(STROKE), 1.0, 1.0),
-        PanelKind::Flyout => {
-            (PANEL_HI_OVER_ART, BorderColor { top: TEAL, ..BorderColor::all(PANEL_HI_OVER_ART_STROKE) }, 2.0, 1.0)
-        }
-        PanelKind::Popover => (PANEL_HI, BorderColor { top: TEAL, ..BorderColor::all(STROKE) }, 2.0, 1.0),
-        PanelKind::Result => (PANEL, BorderColor { top: TEXT_HI, ..BorderColor::all(STROKE) }, 2.0, 1.0),
-        PanelKind::Killer => (PANEL_HI, BorderColor { left: ENEMY, ..BorderColor::all(STROKE) }, 1.0, 3.0),
-        PanelKind::Menu => (MENU_SURFACE, BorderColor::all(STROKE), 1.0, 1.0),
-        PanelKind::Modal => (MODAL_SURFACE, BorderColor { top: ENEMY, ..BorderColor::all(STROKE) }, 3.0, 1.0),
+    let (bg, border) = panel_colors(kind);
+    let (top, left) = match kind {
+        PanelKind::Flyout | PanelKind::Popover | PanelKind::Result => (2.0, 1.0),
+        PanelKind::Killer => (1.0, 3.0),
+        PanelKind::Modal => (3.0, 1.0),
+        PanelKind::Base | PanelKind::Hi | PanelKind::Menu => (1.0, 1.0),
     };
     let shadow = match kind {
         PanelKind::Popover => BoxShadow(vec![ShadowStyle {
@@ -77,6 +72,26 @@ pub fn panel_of(kind: PanelKind, node: Node) -> impl Bundle {
         border,
         shadow,
     )
+}
+
+/// A panel kind's fill and border colours.
+pub fn panel_colors(kind: PanelKind) -> (Color, BorderColor) {
+    match kind {
+        PanelKind::Base => (PANEL, BorderColor::all(STROKE)),
+        PanelKind::Hi => (PANEL_HI, BorderColor::all(STROKE)),
+        PanelKind::Flyout => {
+            (PANEL_HI_OVER_ART, BorderColor { top: TEAL, ..BorderColor::all(PANEL_HI_OVER_ART_STROKE) })
+        }
+        PanelKind::Popover => (POPOVER_SURFACE, BorderColor { top: TEAL, ..BorderColor::all(POPOVER_STROKE) }),
+        PanelKind::Result => (PANEL, BorderColor { top: TEXT_HI, ..BorderColor::all(STROKE) }),
+        PanelKind::Killer => (PANEL_HI, BorderColor { left: ENEMY, ..BorderColor::all(STROKE) }),
+        // Over other UI: opaque fills, and their strokes mixed onto them (opaque too).
+        PanelKind::Menu => (MENU_SURFACE, BorderColor::all(stroke_on_fill(0xFFFFFF, 0.09, 0x141A22, 1.0, DARK_REF))),
+        PanelKind::Modal => (
+            MODAL_SURFACE,
+            BorderColor { top: ENEMY, ..BorderColor::all(stroke_on_fill(0xFFFFFF, 0.09, 0x11161D, 1.0, DARK_REF)) },
+        ),
+    }
 }
 
 /// `.panel` around `node`.
@@ -767,5 +782,27 @@ pub fn sync_segments(
                 }
             }
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    /// Popovers, context menus and modals sit over other UI (user, item B): their fill and every border are
+    /// opaque, so nothing under them shows through.
+    #[test]
+    fn panels_over_other_ui_are_opaque() {
+        for kind in [PanelKind::Popover, PanelKind::Menu, PanelKind::Modal] {
+            let (bg, b) = panel_colors(kind);
+            assert_eq!(bg.alpha(), 1.0, "{kind:?} fill");
+            for c in [b.top, b.right, b.bottom, b.left] {
+                assert_eq!(c.alpha(), 1.0, "{kind:?} border");
+            }
+        }
+        let mut w = World::new();
+        let e = w.spawn(panel_of(PanelKind::Popover, Node::default())).id();
+        assert_eq!(w.get::<BackgroundColor>(e).map(|c| c.0.alpha()), Some(1.0), "the spawned popover");
+        assert_eq!(w.get::<BorderColor>(e).map(|c| c.top), Some(TEAL));
     }
 }

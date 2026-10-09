@@ -806,3 +806,29 @@ New (item 9c2, user direction; the design docs have no streaks). All numbers in 
   tick live. Clients send as many input packets as before (one a frame) with twice the ticks in each, and a rollback
   replays twice the ticks.
 - Wire: `TickRate`, the rates on `MatchState`, `LobbyAction::SetSnapshotHz`, the rate in the client id: protocol 15.
+
+
+## 35. The attachment list shows what each part does; the laser and the thermal add recoil (2026-10-09)
+- **Before:** each row of the Loadout screen's attachment popover showed only the two biggest stat changes
+  against the EQUIPPED part (so with the stub grip on, NONE read "HIP SPREAD +14 %" and the angled grip hid its
+  own benefits), and the panel was PANEL_HI at .82, so the cards under it showed through.
+- **Now (user, item B):**
+  - Each row lists the part's OWN effect, against no part in that slot: EVERY stat it changes, in per cent
+    (RECOIL V / H, ADS TIME, SWAY, MOBILITY, SPRINT-TO-FIRE, MOVING SPREAD, RELOAD; a magazine's CAPACITY), good
+    first, green / red. NONE and a default stock read BASELINE. Under it a quieter "VS EQUIPPED" line lists what
+    changes if you swap to it (rounds and zoom too); the equipped row has none. A test holds every stat field an
+    attachment sets to a line.
+  - Tags list what a part does that is not a stat: its zoom (`3× ZOOM`, `6–12× ZOOM · SCROLL`) and the data's new
+    `effects` (`attachments.ron`). What a part promises but the game does not do yet is a warning-coloured tag
+    saying NOT IN THE GAME YET: the bipod's deploy (and its blurb says so: there is no deploy yet), the UGL's
+    grenades, the flashlight's light and glare, the front shield's bullet blocking, the scopes' glint and the
+    thermal's heat view. The bipod, flashlight, shield and thermal blurbs stopped promising those effects.
+  - `hip_spread` reads MOVING SPREAD (standing still is exact, aimed fire is not touched; section 12).
+  - Popovers, context menus and modals are opaque, borders included (`POPOVER_SURFACE`); so is the dragged
+    magazine card. A long list spreads over two or three columns (the Warden's seven optics take three).
+  - The gun preview's "F: SHOW ON AGENT + HALO" hint is gone (nothing did that).
+- **Recoil penalties (user: "some stuff can increase it again like laser or thermal"):** the LASER `recoil_h` 1.05
+  (+5 % sweep), the THERMAL optic `recoil_v` 1.08 (+8 % climb). The rule stays: every non-default stock lowers only
+  the climb, every grip only the sweep; other parts may raise either (tested: no stock or grip raises recoil).
+  The 60-round drum and the UGL stay recoil-neutral: they already pay in reload, aim speed and move speed, and
+  every magazine sprays the same T (section 15). No wire change.

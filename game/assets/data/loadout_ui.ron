@@ -26,7 +26,7 @@
     tier_colour_names: ["white", "blue", "purple", "gold"],
     // The NONE row of an optional slot's attachment list.
     none_blurbs: {
-        under: "Lightest. Best sprint-to-fire.",
+        under: "Nothing under the barrel.",
         side: "Nothing on the side rail.",
         shield: "No plate. Lighter and quicker to aim.",
     },

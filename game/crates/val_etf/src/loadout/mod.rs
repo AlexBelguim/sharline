@@ -28,7 +28,7 @@ mod kit_view;
 mod model;
 mod popover;
 mod presets;
-mod text;
+pub(crate) mod text;
 mod ui_data;
 mod view;
 

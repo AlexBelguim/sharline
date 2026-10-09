@@ -52,6 +52,10 @@ pub enum Section {
 }
 
 /// Left edge of the weapon column: next to the agents (gun range) or at the page's margin (deathmatch).
+/// The gun preview's key hints. Nothing shows the gun on the agent from here, so there is no F hint (user, item B:
+/// "remove the hint").
+pub const PREVIEW_HINTS: [(&str, &str); 2] = [("LMB", "DRAG TO ROTATE"), ("WHEEL", "ZOOM")];
+
 pub fn weapon_left(simple: bool) -> f32 {
     if simple { 48.0 } else { 432.0 }
 }
@@ -960,7 +964,7 @@ impl View<'_> {
             ..default()
         })
         .with_children(|h| {
-            for (key, label) in [("LMB", "DRAG TO ROTATE"), ("WHEEL", "ZOOM"), ("F", "SHOW ON AGENT + HALO")] {
+            for (key, label) in PREVIEW_HINTS {
                 h.spawn((
                     Node { column_gap: px(6), align_items: AlignItems::Center, ..default() },
                     children![keycap(f, key, KeyStyle::Ghost, 22.0), f.role(TextRole::StatKey, label)],
@@ -1102,10 +1106,10 @@ impl View<'_> {
                 }
                 card.insert((Button, Act::Mag(i), Focusable, RelativeCursorPosition::default(), looks, Active(on)));
             } else {
-                // The dragged copy: a card at .9 over the strip, so it stays readable (Bevy has no group
+                // The dragged copy: an opaque card over the strip, so it stays readable (Bevy has no group
                 // opacity; the CSS card's .03 fill would let the card under it show through).
                 card.insert((
-                    BackgroundColor(hexa(0x10151D, 0.9)),
+                    BackgroundColor(POPOVER_SURFACE),
                     BorderColor::all(STROKE_HI),
                     BoxShadow(vec![ShadowStyle {
                         color: K50,

@@ -392,5 +392,9 @@ mod tests {
         let blurb = &d.attachment("laser").expect("a laser").blurb;
         let range = format!("within {} m", feel().beam_m);
         assert!(blurb.contains(&range), "{blurb:?} should say {range:?}");
+        // So does its tag in the attachment list (item B: every effect shown).
+        let tag = format!("BEAM WITHIN {} M", feel().beam_m);
+        let tags = crate::loadout::text::part_tags(d.attachment("laser").unwrap());
+        assert!(tags.iter().any(|t| t.text.contains(&tag) && !t.not_yet), "{tags:?} should say {tag:?}");
     }
 }

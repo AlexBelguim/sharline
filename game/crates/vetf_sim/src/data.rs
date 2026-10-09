@@ -756,6 +756,10 @@ pub struct AttachmentSpec {
     pub default_for: Vec<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub other: Option<String>,
+    /// What the part does besides its stat multipliers (a beam others see, a deploy, a glint), as the Loadout
+    /// screen lists it. The zoom is listed from `zoom`, not here.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub effects: Vec<PartEffect>,
     // Not `#[serde(flatten)]`: RON cannot deserialise flattened structs reliably.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub ads_time: Option<f32>,
@@ -773,6 +777,15 @@ pub struct AttachmentSpec {
     pub reload: Option<f32>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub sprint_to_fire: Option<f32>,
+}
+
+/// Something an attachment does that is not a stat multiplier: display copy for the Loadout screen.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct PartEffect {
+    pub text: String,
+    /// Promised by the part but not in the game yet: the Loadout screen says so instead of hiding it.
+    #[serde(default, skip_serializing_if = "std::ops::Not::not")]
+    pub not_yet: bool,
 }
 
 impl AttachmentSpec {
@@ -1941,6 +1954,20 @@ mod tests {
             assert_eq!(amounts.len(), n, "{}: every stock and every grip has its own amount", w.id);
         }
         assert_eq!((stocks, grips), (3, 3), "the Mako's precision and light stocks, the Warden's folding, three grips");
+        // Item B: other parts may RAISE recoil. The laser adds a little sweep, the thermal optic a little climb; a
+        // part that raises either is never a stock or a grip, and the drum and the UGL stay recoil-neutral.
+        let a = |id: &str| d.attachment(id).unwrap();
+        assert_eq!((a("laser").recoil_v, a("laser").recoil_h), (None, Some(1.05)));
+        assert_eq!((a("optic_thermal").recoil_v, a("optic_thermal").recoil_h), (Some(1.08), None));
+        for p in &d.attachments.attachments {
+            let raises = p.recoil_v.is_some_and(|v| v > 1.0) || p.recoil_h.is_some_and(|h| h > 1.0);
+            let role = p.cat == AttachmentCategory::Stock || p.id.starts_with("grip_");
+            assert!(!(raises && role), "{}: a stock or a grip never raises recoil", p.id);
+            assert!(p.recoil_v.into_iter().chain(p.recoil_h).all(|r| r > 0.5 && r < 1.2), "{}: small steps", p.id);
+        }
+        for id in ["mag_drum60", "ugl_launcher"] {
+            assert_eq!((a(id).recoil_v, a(id).recoil_h), (None, None), "{id}");
+        }
         // The data check holds the roles.
         let mut bad = GameData::embedded();
         bad.attachments.attachments.iter_mut().find(|a| a.id == "mako_stock_light").unwrap().recoil_h = Some(0.9);

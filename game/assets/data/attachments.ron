@@ -4,28 +4,35 @@
 // Recoil roles (playtest round 3, DIRECTION_LOG 18; DESIGN_DELTAS.md section 15): a stock only lowers the VERTICAL
 // recoil (`recoil_v`, the climb: the T's stem) and a front grip only the HORIZONTAL recoil (`recoil_h`, the sweep:
 // the T's bar). Each one pays for it with something else. The data check rejects a stock with `recoil_h` or an
-// under-rail part with `recoil_v`.
+// under-rail part with `recoil_v`. Other parts may RAISE recoil (user, item B): the laser adds a little sweep
+// (`recoil_h` 1.05), the thermal optic a little climb (`recoil_v` 1.08). The drum and the UGL stay recoil-neutral: they
+// already pay in reload, aim and move, and every magazine sprays the same pattern (DESIGN_DELTAS.md section 35).
 // `zoom` and `capacity` are absolute values, not multipliers. `zoom` is a number for a fixed optic, or [min, max] for
 // a variable one: aimed, the wheel (Zoom in / Zoom out binds) zooms smoothly between them, and each player's last
 // zoom per optic is kept in their settings file. `zoom_default` is where a variable optic starts for a player who
 // has never scrolled it (none: its min). Scroll and easing rates: settings.ron `scope_zoom`.
-// `name`, `short` and `blurb` are display copy for the Loadout screen (`{G}` in a blurb draws a key cap).
+// `name`, `short` and `blurb` are display copy for the Loadout screen (`{G}` in a blurb draws a key cap). `effects`
+// lists what a part does besides its stats, as the Loadout screen shows it (the zoom comes from `zoom`); an effect
+// with `not_yet: true` is promised but not in the game yet, and the screen says so. Every stat a part sets is listed
+// there too (a test holds it). `other` is a design note, never shown.
 (
     attachments: [
         // optics
         (id: "optic_reddot", cat: optic, fits: ["ar7_mako", "vk50_warden", "sk9_skink"], name: "RED DOT", blurb: "Fastest sight.", zoom: Some(1.15), ads_time: Some(0.95), move: Some(1.0), default_for: ["sk9_skink"]),
         (id: "optic_holo", cat: optic, fits: ["ar7_mako", "vk50_warden", "sk9_skink"], name: "HOLO", blurb: "Wide window, quick to pick up targets.", zoom: Some(1.25), ads_time: Some(1.0), default_for: ["ar7_mako"]),
         (id: "optic_projector", cat: optic, fits: ["ar7_mako", "vk50_warden"], name: "PROJECTOR", blurb: "Fold-out hologram. Nothing in the way.", zoom: Some(1.2)),
-        (id: "optic_3x", cat: optic, fits: ["ar7_mako", "vk50_warden"], name: "3× SCOPE", short: "3×", blurb: "3× zoom. Glints past 40 m.", zoom: Some(3.0), ads_time: Some(1.15), sway: Some(1.1),
-            other: Some("scope glint >= 40 m")),
+        (id: "optic_3x", cat: optic, fits: ["ar7_mako", "vk50_warden"], name: "3× SCOPE", short: "3×", blurb: "Fixed 3× zoom.", zoom: Some(3.0), ads_time: Some(1.15), sway: Some(1.1),
+            other: Some("scope glint >= 40 m"), effects: [(text: "Lens glints to enemies past 40 m", not_yet: true)]),
         // The variable 1-3x (item 8d): an extra, dearer choice next to the fixed 3x (rules.ron optic_points), on the
         // same guns. At 1x it is a 1x sight seen through the scope picture.
         (id: "optic_1_3x", cat: optic, fits: ["ar7_mako", "vk50_warden"], name: "1–3× VARIABLE", short: "1–3×", blurb: "Scroll from 1× to 3×. Fine cross.", zoom: Some([1.0, 3.0]), zoom_default: Some(1.0), ads_time: Some(1.15), sway: Some(1.1),
-            other: Some("scroll zooms 1x-3x smoothly")),
-        (id: "optic_sniper", cat: optic, fits: ["vk50_warden"], name: "6–12× SCOPE", short: "6–12×", blurb: "Scroll from 6× to 12×. Glints past 25 m.", zoom: Some([6.0, 12.0]), zoom_default: Some(6.0), ads_time: Some(1.0), default_for: ["vk50_warden"],
-            other: Some("scope glint >= 25 m; scroll zooms 6x-12x smoothly")),
-        (id: "optic_thermal", cat: optic, fits: ["vk50_warden"], name: "THERMAL", blurb: "Bodies glow, the world greys out. No glint.", zoom: Some(4.0), ads_time: Some(1.2), sway: Some(1.1), move: Some(0.99),
-            other: Some("white-hot view: bodies bright, world desaturated; no glint")),
+            other: Some("scroll zooms 1x-3x smoothly"), effects: [(text: "Remembers your last zoom")]),
+        (id: "optic_sniper", cat: optic, fits: ["vk50_warden"], name: "6–12× SCOPE", short: "6–12×", blurb: "Scroll from 6× to 12×.", zoom: Some([6.0, 12.0]), zoom_default: Some(6.0), ads_time: Some(1.0), default_for: ["vk50_warden"],
+            other: Some("scope glint >= 25 m; scroll zooms 6x-12x smoothly"),
+            effects: [(text: "Remembers your last zoom"), (text: "Lens glints to enemies past 25 m", not_yet: true)]),
+        (id: "optic_thermal", cat: optic, fits: ["vk50_warden"], name: "THERMAL", blurb: "4× thermal screen. A heavy sight: more climb.", zoom: Some(4.0), ads_time: Some(1.2), sway: Some(1.1), move: Some(0.99),
+            recoil_v: Some(1.08), other: Some("white-hot view: bodies bright, world desaturated; no glint"),
+            effects: [(text: "Heat view: bodies glow, the world greys out", not_yet: true)]),
         // stocks
         (id: "mako_stock_standard", cat: stock, fits: ["ar7_mako"], name: "STANDARD", blurb: "Balanced.", default_for: ["ar7_mako"]),
         (id: "mako_stock_precision", cat: stock, fits: ["ar7_mako"], name: "PRECISION", blurb: "Much less climb and sway. Heavy and slow to aim.", ads_time: Some(1.1), recoil_v: Some(0.8), sway: Some(0.8),
@@ -48,17 +55,23 @@
         (id: "grip_angled", cat: under, fits: ["ar7_mako"], name: "ANGLED GRIP", blurb: "Fast to aim. A steadier sweep.", ads_time: Some(0.92), recoil_h: Some(0.88)),
         (id: "grip_stub", cat: under, fits: ["ar7_mako"], name: "STUB GRIP", blurb: "Hand stop. Tighter hip fire, a little steadier sweep.", hip_spread: Some(0.88), sprint_to_fire: Some(0.9), recoil_h: Some(0.94)),
         (id: "ugl_launcher", cat: under, fits: ["ar7_mako"], name: "UGL-40 LAUNCHER", short: "UGL-40", blurb: "Grenades are not in yet: for now it is only weight.", ads_time: Some(1.15), sway: Some(1.1), move: Some(0.97),
-            other: Some("40 mm grenade, see UGL table; not simulated yet (no grenades in the sim)")),
-        (id: "bipod", cat: under, fits: ["vk50_warden"], name: "BIPOD", blurb: "Deploy on cover: sway −80 %, recoil −40 %.", ads_time: Some(1.06), move: Some(0.99),
-            other: Some("deployed: sway -80%, recoil -40%, look clamp yaw +-35 / pitch +-20 deg, deploy 0.40 s")),
+            other: Some("40 mm grenade, see UGL table; not simulated yet (no grenades in the sim)"),
+            effects: [(text: "Fires 40 mm grenades", not_yet: true)]),
+        (id: "bipod", cat: under, fits: ["vk50_warden"], name: "BIPOD", blurb: "Deploying is not in yet: for now it is only weight.", ads_time: Some(1.06), move: Some(0.99),
+            other: Some("deployed: sway -80%, recoil -40%, look clamp yaw +-35 / pitch +-20 deg, deploy 0.40 s"),
+            effects: [(text: "Deploys on cover: sway −80 %, recoil −40 %", not_yet: true)]),
         // side rail
         (id: "laser", cat: side, fits: ["ar7_mako", "vk50_warden", "sk9_skink"], name: "LASER", blurb: "Tighter hip fire on the move. Beam visible within 25 m.", hip_spread: Some(0.8), ads_time: Some(1.02),
-            other: Some("beam visible <= 25 m, dot where it points (feel.ron laser); no toggle yet")),
-        (id: "flashlight", cat: side, fits: ["ar7_mako", "vk50_warden", "sk9_skink"], name: "FLASHLIGHT", blurb: "Blinds enemies up close.", ads_time: Some(1.02),
-            other: Some("cone 30 deg, 25 m; glare on enemies <= 15 m inside 12 deg; toggle")),
+            recoil_h: Some(1.05), other: Some("beam visible <= 25 m, dot where it points (feel.ron laser); no toggle yet"),
+            effects: [(text: "Everyone sees its beam within 25 m"), (text: "A red dot where you aim"), (text: "Always on"),
+                (text: "On / off with V", not_yet: true)]),
+        (id: "flashlight", cat: side, fits: ["ar7_mako", "vk50_warden", "sk9_skink"], name: "FLASHLIGHT", blurb: "The light is not in yet: for now it is only weight.", ads_time: Some(1.02),
+            other: Some("cone 30 deg, 25 m; glare on enemies <= 15 m inside 12 deg; toggle"),
+            effects: [(text: "Lights 25 m ahead", not_yet: true), (text: "Blinds enemies within 15 m", not_yet: true)]),
         // gun shield
-        (id: "shield_front", cat: shield, fits: ["ar7_mako"], name: "FRONT SHIELD", short: "SHIELD", blurb: "250 HP front plate. Blocks bullets only.", ads_time: Some(1.2), move: Some(0.96), sway: Some(1.15), recoil_h: Some(0.95),
-            other: Some("0.32 x 0.26 m plate, 250 HP, blocks bullets only, no repair in a life")),
+        (id: "shield_front", cat: shield, fits: ["ar7_mako"], name: "FRONT SHIELD", short: "SHIELD", blurb: "Blocking is not in yet: for now it is weight on the gun.", ads_time: Some(1.2), move: Some(0.96), sway: Some(1.15), recoil_h: Some(0.95),
+            other: Some("0.32 x 0.26 m plate, 250 HP, blocks bullets only, no repair in a life"),
+            effects: [(text: "Plate blocks bullets from the front (250 HP)", not_yet: true)]),
     ],
     // Categories a loadout may leave empty (the Loadout screen offers NONE); optic, stock and mag always hold a part.
     optional: [under, side, shield],

@@ -184,6 +184,11 @@ pub const PANEL_HI_OVER_ART: Color = hexa_over(0x10151D, 0.82, ART_REF);
 /// [`stroke_on_fill`].
 pub const PANEL_HI_OVER_ART_STROKE: Color = stroke_on_fill(0xFFFFFF, 0.09, 0x10151D, 0.82, DARK_REF);
 pub const PANEL_SOLID: Color = hex(0x10151C);
+/// Popovers, panels and tooltips that sit over other UI are opaque (user, item B: the cards under the attachment
+/// list showed through PANEL_HI's .82): PANEL_HI's colour at full alpha.
+pub const POPOVER_SURFACE: Color = hex(0x10151D);
+/// A popover's STROKE border, mixed onto its opaque fill (opaque too).
+pub const POPOVER_STROKE: Color = stroke_on_fill(0xFFFFFF, 0.09, 0x10151D, 1.0, DARK_REF);
 pub const STROKE: Color = white(0.09);
 pub const STROKE_MID: Color = white(0.16);
 pub const STROKE_HI: Color = white(0.32);

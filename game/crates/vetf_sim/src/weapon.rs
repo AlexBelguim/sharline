@@ -1448,6 +1448,39 @@ mod tests {
         }
     }
 
+    /// Item B, recoil penalties: the laser widens every round of the Mako's sweep by its `recoil_h` and leaves the
+    /// climb alone; on top of a grip the two multiply. The thermal optic raises the Warden's kick by its `recoil_v`.
+    #[test]
+    fn the_laser_and_the_thermal_add_recoil() {
+        let d = GameData::embedded();
+        let near = |a: f32, b: f32| (a - b).abs() < 1e-5;
+        let h = d.attachment("laser").and_then(|a| a.recoil_h).unwrap();
+        assert!(h > 1.0);
+        for aimed in [false, true] {
+            let plain = mako_spray(&["mag_30"], aimed);
+            let lit = mako_spray(&["mag_30", "laser"], aimed);
+            assert_eq!(plain.len(), lit.len());
+            for (n, (k, b)) in lit.iter().zip(&plain).enumerate() {
+                assert!(near(k.0, b.0) && near(k.1, b.1 * h), "round {}: {k:?} vs {b:?}", n + 1);
+            }
+            let grip = d.attachment("grip_angled").and_then(|a| a.recoil_h).unwrap();
+            let both = mako_spray(&["mag_30", "laser", "grip_angled"], aimed);
+            assert!(both.iter().zip(&plain).all(|(k, b)| near(k.1, b.1 * h * grip)), "they stack");
+        }
+        let first_kick = |parts: &[&str]| {
+            let parts: Vec<String> = parts.iter().map(|p| p.to_string()).collect();
+            let l = WeaponLoadout::resolve(&d, "vk50_warden", &[AmmoChoice::STANDARD; 4], &parts).unwrap();
+            let mut s = WeaponState::new(&d, &l);
+            s.action = WeaponAction::Ready;
+            (0..60)
+                .find_map(|_| s.step(&d, &l, &input(Buttons::FIRE), &still()).shot)
+                .map(|x| (x.kick_pitch, x.kick_yaw))
+        };
+        let v = d.attachment("optic_thermal").and_then(|a| a.recoil_v).unwrap();
+        let (plain, thermal) = (first_kick(&["optic_sniper"]).unwrap(), first_kick(&["optic_thermal"]).unwrap());
+        assert!(v > 1.0 && near(thermal.0, plain.0 * v) && near(thermal.1, plain.1), "{plain:?} -> {thermal:?}");
+    }
+
     /// Aiming down sights is fast (playtest round 1): the ADS blend is full after `ads_s`, to the tick.
     #[test]
     fn ads_takes_ads_s() {

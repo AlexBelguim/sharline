@@ -1,9 +1,14 @@
 //! The attachment list popover (mockup 05b) and the ammo picker that reuses it for a magazine card: every
-//! part that fits the slot (or every round the gun loads) with a one-line blurb, the two biggest changes and,
-//! for ammo, its gear cost against the budget.
+//! part that fits the slot (or every round the gun loads) with a blurb and, for ammo, its two biggest effects
+//! and its gear cost against the budget.
+//!
+//! A part's row shows what the part does ON ITS OWN, against no part in that slot (user, item B): every stat
+//! it changes (good first, green / red), its zoom and its other effects as tags (with what is not in the game
+//! yet saying so), and under that a quieter "vs equipped" line with what changes if you swap to it. The panel
+//! is opaque, so the cards under it never show through; a long list spreads over two or three columns.
 
 use super::model::{Draft, WeaponStats, parts_for, parts_with, pushes_over, weapon_stats};
-use super::text::{self, Delta, Tone};
+use super::text::{self, Delta, Tag, Tone};
 use super::ui_data::LoadoutUiData;
 use super::view::View;
 use super::{Act, Pop, PopPanel};
@@ -98,6 +103,30 @@ fn stats_with(v: &View, cat: AttachmentCategory, part: Option<&AttachmentSpec>) 
 /// Rows above six use compact padding (the SMG's ammo picker has eight).
 const COMPACT_ABOVE: usize = 6;
 
+/// One column of part rows, and the gap between columns.
+const PART_COL_W: f32 = 440.0;
+const COL_GAP: f32 = 8.0;
+/// The ammo picker's width (one column).
+const AMMO_W: f32 = 420.0;
+
+/// Columns of a part list: up to three rows in one, up to six in two, more in three (the Warden's seven
+/// optics), so the list never grows past the top of the screen. The ammo picker stays one column.
+pub fn columns(pop: Pop, rows: usize) -> usize {
+    match pop {
+        Pop::Slot(_) => rows.div_ceil(3).clamp(1, 3),
+        Pop::Mag(_) => 1,
+    }
+}
+
+/// The panel's outer width for `cols` columns (12 px padding and a 1 px border each side).
+pub fn panel_width(pop: Pop, cols: usize) -> f32 {
+    let inner = match pop {
+        Pop::Slot(_) => cols as f32 * PART_COL_W + (cols.saturating_sub(1)) as f32 * COL_GAP,
+        Pop::Mag(_) => AMMO_W - 26.0,
+    };
+    inner + 26.0
+}
+
 /// Build the popover panel (absolute; anchored so its bottom edge sits 1 px over the row that opened it).
 pub fn build(v: &View, p: &mut ChildSpawnerCommands) {
     let Some(pop) = v.st.pop else { return };
@@ -115,11 +144,12 @@ pub fn build(v: &View, p: &mut ChildSpawnerCommands) {
             (format!("MAG · {} TYPES", rows.len()), text::mag_carry(kit.mags))
         }
         (Pop::Slot(cat), _) => {
-            (format!("{} · {} PARTS", cat.label(), rows.len()), "HOVER = PREVIEW + STAT DELTA".into())
+            (format!("{} · {} PARTS", cat.label(), rows.len()), "OWN EFFECT · HOVER = PREVIEW".into())
         }
         (Pop::Mag(i), _) => (format!("MAG {} · AMMO", i + 1), "HOVER = STAT DELTA · COST".into()),
     };
     let f = v.fonts;
+    let cols = columns(pop, rows.len());
     let mut panel = p.spawn((
         PopPanel,
         RelativeCursorPosition::default(),
@@ -131,7 +161,7 @@ pub fn build(v: &View, p: &mut ChildSpawnerCommands) {
                 // Over the weapon column, 14 px in.
                 left: px(super::view::weapon_left(v.ctx.simple()) + 14.0),
                 top: px(bottom_edge),
-                width: px(420),
+                width: px(panel_width(pop, cols)),
                 padding: UiRect::all(px(12)),
                 flex_direction: FlexDirection::Column,
                 ..default()
@@ -140,9 +170,7 @@ pub fn build(v: &View, p: &mut ChildSpawnerCommands) {
         // Grow upwards from the anchor.
         UiTransform::from_translation(Val2::percent(0.0, -100.0)),
     ));
-    // PANEL_HI is dark on dark elsewhere; here it lies on the bright preview, where linear-light blending
-    // would let the gun show through far more than the mockup's .82 does: the kit's PANEL_HI over art.
-    panel.insert(BackgroundColor(PANEL_HI_OVER_ART));
+    // The kit's popover is opaque (user, item B: the cards under it showed through the old .82 fill).
     panel.with_children(|panel| {
         panel.spawn((
             Node {
@@ -157,10 +185,43 @@ pub fn build(v: &View, p: &mut ChildSpawnerCommands) {
             Pop::Slot(cat) => Some(stats_with(v, cat, draft.equipped(cat, v.data))),
             Pop::Mag(_) => None,
         };
-        for (i, row) in rows.iter().enumerate() {
-            spawn_row(v, panel, pop, i, row, compact, equipped_stats.as_ref());
-        }
+        // Rows fill the columns top to bottom, then left to right (reading order stays the row order).
+        let per_col = rows.len().div_ceil(cols);
+        panel.spawn(Node { column_gap: px(COL_GAP), align_items: AlignItems::Start, ..default() }).with_children(
+            |grid| {
+                for c in 0..cols {
+                    grid.spawn(Node {
+                        width: px(match pop {
+                            Pop::Slot(_) => PART_COL_W,
+                            Pop::Mag(_) => AMMO_W - 26.0,
+                        }),
+                        flex_direction: FlexDirection::Column,
+                        ..default()
+                    })
+                    .with_children(|col| {
+                        for (i, row) in rows.iter().enumerate().skip(c * per_col).take(per_col) {
+                            spawn_row(v, col, pop, i, row, compact, equipped_stats.as_ref());
+                        }
+                    });
+                }
+            },
+        );
     });
+}
+
+/// What a part row shows: its own effect lines, its tags and the "vs equipped" line (None on the equipped
+/// row). `empty` is the gun with the slot empty, `equipped` with the equipped part, `with` with this row's.
+pub fn part_copy(
+    part: Option<&AttachmentSpec>,
+    empty: &WeaponStats,
+    equipped: &WeaponStats,
+    with: &WeaponStats,
+    is_equipped: bool,
+) -> (Vec<Delta>, Vec<Tag>, Option<Vec<Delta>>) {
+    let lines = text::own_lines(empty, with, part);
+    let tags = part.map(text::part_tags).unwrap_or_default();
+    let vs = (!is_equipped).then(|| text::stat_lines(equipped, with));
+    (lines, tags, vs)
 }
 
 fn row_looks(equipped: bool) -> Looks {
@@ -186,6 +247,8 @@ fn spawn_row(
     let name: String;
     let mut blurb: String;
     let mut deltas: Vec<Delta> = Vec::new();
+    let mut tags: Vec<Tag> = Vec::new();
+    let mut vs: Option<Vec<Delta>> = None;
     let mut ammo: Option<AmmoChoice> = None;
     let mut icon: Option<(Icon, f32, f32, Color)> = None;
     match &row.kind {
@@ -201,18 +264,8 @@ fn spawn_row(
                 blurb.insert_str(0, "Equipped. ");
             }
             if let Some(eq) = equipped_stats {
-                let row_stats = stats_with(v, cat, spec);
-                deltas = if row.equipped {
-                    // The equipped row shows its own effect against NONE or the gun's default part.
-                    let base_part = if v.data.attachments.is_optional(cat) {
-                        None
-                    } else {
-                        super::model::default_part(v.data, &draft.weapon, cat)
-                    };
-                    text::stat_deltas(&stats_with(v, cat, base_part), eq)
-                } else {
-                    text::stat_deltas(eq, &row_stats)
-                };
+                (deltas, tags, vs) =
+                    part_copy(spec, &stats_with(v, cat, None), eq, &stats_with(v, cat, spec), row.equipped);
             }
             icon = spec.map(|a| {
                 if a.id == "ugl_launcher" {
@@ -351,12 +404,64 @@ fn spawn_row(
                         ));
                     }
                 });
+            // Tags (zoom, beam, deploy...) and the "vs equipped" line, under the name and the lines.
+            let under = || Node {
+                grid_column: GridPlacement::start_span(2, 2),
+                flex_wrap: FlexWrap::Wrap,
+                align_items: AlignItems::Center,
+                column_gap: px(5),
+                row_gap: px(3),
+                margin: UiRect::top(px(5)),
+                ..default()
+            };
+            if !tags.is_empty() {
+                r.spawn(under()).with_children(|t| {
+                    for tag in &tags {
+                        spawn_tag(v, t, tag);
+                    }
+                });
+            }
+            if let Some(vs) = &vs {
+                r.spawn(under()).with_children(|t| {
+                    t.spawn((f.text("VS EQUIPPED", Face::Display, 600, 11.0, TEXT_LOW, 0.1), TextLayout::no_wrap()));
+                    if vs.is_empty() {
+                        t.spawn((f.text("NO CHANGE", Face::Display, 600, 11.0, TEXT_LOW, 0.06), TextLayout::no_wrap()));
+                    }
+                    for d in vs {
+                        let color = match d.tone {
+                            Tone::Good => fade(GOOD, 0.7),
+                            Tone::Bad => fade(BAD, 0.7),
+                            Tone::Neutral => TEXT_LOW,
+                        };
+                        t.spawn((f.text(d.text.clone(), Face::Display, 600, 11.0, color, 0.06), TextLayout::no_wrap()));
+                    }
+                });
+            }
         });
 }
 
-/// A blurb with optional inline key caps (`{G}`).
+/// One tag chip: what a part does besides its stats; in the warning colour, saying so, when it is not in the
+/// game yet.
+fn spawn_tag(v: &View, parent: &mut ChildSpawnerCommands, tag: &Tag) {
+    let (label, color, border) = if tag.not_yet {
+        (format!("{} · {}", tag.text, text::NOT_YET), WARN, fade(WARN, 0.45))
+    } else {
+        (tag.text.clone(), TEXT_MID, STROKE_MID)
+    };
+    parent.spawn((
+        Node { padding: UiRect::axes(px(6), px(1)), border: UiRect::all(px(1)), max_width: percent(100), ..default() },
+        BorderColor::all(border),
+        children![v.fonts.text(label, Face::Display, 600, 11.0, color, 0.06)],
+    ));
+}
+
+/// A blurb with optional inline key caps (`{G}`); one without wraps.
 fn spawn_blurb(v: &View, parent: &mut ChildSpawnerCommands, blurb: &str) {
     let f = v.fonts;
+    if !blurb.contains('{') {
+        parent.spawn((f.role(TextRole::Desc, blurb), Node { margin: UiRect::top(px(1)), ..default() }));
+        return;
+    }
     parent
         .spawn(Node { align_items: AlignItems::Center, column_gap: px(4), margin: UiRect::top(px(1)), ..default() })
         .with_children(|b| {
@@ -454,5 +559,71 @@ mod tests {
         let d = crate::loadout::tests::data_with_skink();
         dr.switch_weapon("sk9_skink", &d);
         assert_eq!(rows(&dr, Pop::Mag(0), &d, &ui).len(), 7, "the SMG adds RIP I-III (when it is back in)");
+    }
+
+    /// Item B: long part lists spread over columns (so the panel never grows off the top of the screen), the
+    /// widest still fits the page, and the panel is opaque.
+    #[test]
+    fn long_lists_spread_over_columns_and_the_panel_is_opaque() {
+        let s = Pop::Slot(AttachmentCategory::Optic);
+        let cols: Vec<usize> = [2, 3, 4, 5, 6, 7].iter().map(|n| columns(s, *n)).collect();
+        assert_eq!(cols, [1, 1, 2, 2, 2, 3]);
+        assert_eq!(columns(Pop::Mag(0), 7), 1, "the ammo picker stays one column");
+        for simple in [false, true] {
+            let right = super::super::view::weapon_left(simple) + 14.0 + panel_width(s, 3);
+            assert!(right <= 1920.0 - 16.0, "{right}");
+        }
+        let (bg, border) = panel_colors(PanelKind::Popover);
+        assert_eq!(bg.alpha(), 1.0);
+        assert!([border.top, border.right, border.bottom, border.left].iter().all(|c| c.alpha() == 1.0));
+        // "remove the hint": nothing shows the gun on the agent from the preview.
+        assert!(super::super::view::PREVIEW_HINTS.iter().all(|(k, l)| *k != "F" && !l.contains("AGENT")));
+    }
+
+    /// Item B, the Warden's lists checked like the Mako's: every row has its own lines, the equipped one no
+    /// "vs equipped" line, the others one; the seven optics take three columns; the bipod and thermal say what
+    /// they do and what is not in yet.
+    #[test]
+    fn the_warden_popovers_show_every_effect() {
+        let d = GameData::embedded();
+        let ui = LoadoutUiData::embedded();
+        let mut dr = draft(&d);
+        dr.switch_weapon("vk50_warden", &d);
+        let spec = dr.spec(&d);
+        let stats =
+            |cat, part: Option<&AttachmentSpec>| weapon_stats(&d, spec, &parts_with(&dr.equipped_all(&d), cat, part));
+        let mut shown = 0;
+        for cat in AttachmentCategory::ALL {
+            if parts_for(&d, &dr.weapon, cat).is_empty() {
+                continue; // no popover: the card shows a dash (the Warden takes no gun shield)
+            }
+            let rows = rows(&dr, Pop::Slot(cat), &d, &ui);
+            if cat == AttachmentCategory::Optic {
+                assert_eq!((rows.len(), columns(Pop::Slot(cat), rows.len())), (7, 3));
+            }
+            let eq = stats(cat, dr.equipped(cat, &d));
+            for row in &rows {
+                let RowKind::Part(id) = &row.kind else { panic!("{row:?}") };
+                let part = id.as_deref().and_then(|i| d.attachment(i));
+                let (lines, tags, vs) = part_copy(part, &stats(cat, None), &eq, &stats(cat, part), row.equipped);
+                assert!(!lines.is_empty(), "{id:?}");
+                assert_eq!(vs.is_none(), row.equipped, "{id:?}");
+                if let Some(a) = part {
+                    assert_eq!(tags, text::part_tags(a));
+                }
+                shown += 1;
+            }
+        }
+        assert_eq!(shown, 7 + 2 + 2 + 2 + 3, "optics, stocks, mags, NONE + bipod, NONE + laser + flashlight");
+        let under = AttachmentCategory::Under;
+        let bipod = d.attachment("bipod");
+        let (lines, tags, vs) = part_copy(bipod, &stats(under, None), &stats(under, None), &stats(under, bipod), false);
+        assert_eq!(lines.iter().map(|l| l.text.as_str()).collect::<Vec<_>>(), ["ADS TIME +6 %", "MOBILITY −1 %"]);
+        assert!(tags.iter().any(|t| t.not_yet && t.text.starts_with("DEPLOYS ON COVER")), "{tags:?}");
+        assert_eq!(vs.map(|v| v.len()), Some(2), "against NONE equipped: the same two lines");
+        let thermal = d.attachment("optic_thermal");
+        let optic = AttachmentCategory::Optic;
+        let (lines, ..) = part_copy(thermal, &stats(optic, None), &stats(optic, None), &stats(optic, thermal), false);
+        assert!(lines.iter().any(|l| l.text == "RECOIL V +8 %" && l.tone == Tone::Bad), "{lines:?}");
     }
 }
