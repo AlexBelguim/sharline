@@ -143,9 +143,12 @@
         ),
         // SMG (user direction; balance pass v2, see game/DESIGN_DELTAS.md): fast fire, low damage, low pen. The only
         // gun that loads RIP. No design entry yet, so the design sync test skips it.
+        // Out of the game for now (user: "lets remove the smg for now"): `hidden` keeps it off the loadout
+        // screen, presets, bots and defaults, and the host refuses it. Delete the line to bring it back.
         (
             id: "sk9_skink",
             name: "SK-9 Skink",
+            hidden: true,
             cls: smg,
             ballistics: hitscan,
             // Gun tuning (playtest round 1): it must out-kill the harder Mako up close and fade fast past it.

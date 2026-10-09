@@ -787,11 +787,11 @@ impl View<'_> {
 
     fn tabs(&self, p: &mut ChildSpawnerCommands) {
         let f = self.fonts;
-        let n = self.data.weapons.weapons.len().max(1);
+        let n = self.data.offered_weapons().count().max(1);
         // Two tabs use the mockup's sizes; three need the smaller ones (spec A6).
         let (name_px, name_em, sub_px, sub_em, sil): (f32, f32, f32, f32, Option<(f32, f32)>) =
             if n <= 2 { (22.0, 0.08, 12.0, 0.18, None) } else { (20.0, 0.08, 11.0, 0.18, Some((96.0, 26.0))) };
-        for (i, w) in self.data.weapons.weapons.iter().enumerate() {
+        for (i, w) in self.data.offered_weapons() {
             let on = w.id == self.edit.draft.weapon;
             p.spawn((
                 Button,

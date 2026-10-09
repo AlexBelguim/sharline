@@ -202,7 +202,7 @@ val_etf --join 127.0.0.1:47820 --name JOINER --bot --yaw 90
 | `crates/vetf_net` | The lightyear protocol: replicated components, `PlayerInput`, messages (`Hello`, `ShotClaim`, `HitConfirm`, `DamageTaken`, `KillFeed`, `ShotFx`), channels, and join codes. |
 | `crates/val_etf` | The game binary: menu, hosting and joining, the host authority (`server.rs`), the local player (`client.rs`), the shared predicted simulation (`shared.rs`), blockout rendering and the HUD. |
 | `assets/fonts` | Barlow and Barlow Condensed (SIL OFL, see `OFL.txt`), the mockups' fonts, compiled into the binary. |
-| `assets/models/weapons` | The Mako and Warden, their stocks and magazines, and the optics and tactical attachments: copies of the Blender exports in the repository's `assets/weapons/` (Git LFS). `assets/data/weapon_models.ron` maps each gun and attachment id to its file and socket, and holds the first-person hip poses (`weapon_models.rs`). The Skink has no model yet and keeps placeholder boxes. |
+| `assets/models/weapons` | The Mako and Warden, their stocks and magazines, and the optics and tactical attachments: copies of the Blender exports in the repository's `assets/weapons/` (Git LFS). `assets/data/weapon_models.ron` maps each gun and attachment id to its file and socket, and holds the first-person hip poses (`weapon_models.rs`). The Skink (hidden for now) has no model yet and keeps placeholder boxes. |
 | `assets/data/*.ron` | **Every gameplay number.** They are loaded at start-up, so you can tune without rebuilding; the build also has a copy compiled in. `cargo test` fails if they drift from `design/systems/data/*.json`, except for the deliberate changes in [DESIGN_DELTAS.md](DESIGN_DELTAS.md). |
 
 ### Netcode model
@@ -230,7 +230,8 @@ The design is a listen server ticking at 60 Hz.
   of their health and halo, the life's damage taken and dealt per player and zone, LOADOUT and RESPAWN.
 - TDM score, timer and match end; free-for-all (`--mode ffa`) kills, timer and match end.
 - Per-arc halo shields and per-zone HP with spill.
-- Three guns: AR-7 Mako, VK-50 Warden and the SK-9 Skink SMG (the only gun that loads RIP).
+- Two guns: AR-7 Mako and VK-50 Warden. The SK-9 Skink SMG (the only gun that loads RIP) is out for now: it stays
+  in `weapons.ron` with `hidden: true` (see DESIGN_DELTAS 30).
 - Ammo class × type × tier: one type for every magazine in team deathmatch and free-for-all, picked per magazine
   (up to six ordered magazines) in the gun range.
 - Rulesets: team deathmatch has no bleeding or broken-limb penalties; the range runs the full rules.

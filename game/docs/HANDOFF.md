@@ -8,7 +8,8 @@ from `design/` because of the user's direction.
 - **Sim + netcode** (Bevy 0.19, lightyear 0.30, listen server, prediction, lag-compensated shot claims).
 - **Damage model:** per-zone HP, per-arc halo shields (shield is a buffer; pen multiplies shield damage per tier),
   ammo = class × type × tier (STD, AP I-III, RIP I-III SMG-only, Slug, NPC-only Shrapnel). Balance pass v2 applied;
-  `crates/vetf_sim/tests/balance.rs` pins the breakpoints. Three guns: AR-7 Mako, VK-50 Warden, SK-9 Skink (SMG).
+  `crates/vetf_sim/tests/balance.rs` pins the breakpoints. Two guns: AR-7 Mako, VK-50 Warden; the SK-9 Skink (SMG) is
+  hidden for now (`hidden: true` in `weapons.ron`, DESIGN_DELTAS 30).
 - **Six ordered magazines** per loadout, each with its own ammo (tap R = next slot with rounds, hold R = magazine
   ring, 1-6 pick), gear budget 13 priced per magazine.
 - **Rulesets:** TDM has per-region shields/HP but no bleeding or broken-limb penalties; the range runs full rules.
@@ -95,5 +96,5 @@ Hub screens (Loadout, Settings, the ESC menu, modals, later the lobby and death 
   first. Do not share one `CARGO_TARGET_DIR` between worktrees: cargo can reuse another worktree's build of the
   same package (see the hazard in `wave1_reports.md`).
 - Art/asset requests for the local session (cloud sessions must not edit `art/`, `assets/`, `design/`): a Skink
-  model and weapon-tab silhouette, per-arc halo tier colours, the mockups' port 7777 -> 47820. The UI icons and
+  model and weapon-tab silhouette (once it is back in), per-arc halo tier colours, the mockups' port 7777 -> 47820. The UI icons and
   images in `game/assets/ui` are derived from `design/ui/mockups`.

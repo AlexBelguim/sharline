@@ -534,7 +534,8 @@ mod tests {
         // Another gun brings its own parts.
         draft.switch_weapon("vk50_warden", &d);
         assert_eq!(built(&d, &draft, None), Some(sorted(&["optic_sniper", "warden_stock_standard", "mag_5"])));
-        // A gun without a model keeps the 2D picture.
+        // A gun without a model keeps the 2D picture (the Skink, when it is back in).
+        let d = crate::loadout::tests::data_with_skink();
         draft.switch_weapon("sk9_skink", &d);
         assert_eq!(built(&d, &draft, None), None);
     }

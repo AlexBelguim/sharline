@@ -495,6 +495,8 @@ fn pick_spawn(level: &Level, team: Option<Team>, enemies: &[Vec3]) -> SpawnPoint
 #[derive(Debug, Clone, PartialEq)]
 pub enum LoadoutError {
     UnknownWeapon,
+    /// A gun taken out of the game for now (`hidden` in weapons.ron, e.g. the SK-9 Skink).
+    HiddenWeapon,
     /// An attachment that does not exist or does not fit the gun, or two in one category.
     Attachment,
     /// A halo arc above its loadout tier cap (more armor than any loadout may wear).
@@ -512,7 +514,7 @@ pub enum LoadoutError {
 
 /// Build a loadout from a client's choice (the Loadout screen checks the same rules before CONFIRM).
 ///
-/// First what no loadout may ask for: an unknown gun, no magazine or more than six, a halo arc above its
+/// First what no loadout may ask for: an unknown or hidden gun, no magazine or more than six, a halo arc above its
 /// loadout cap. Then team deathmatch and free-for-all shape the choice to the picks they sell
 /// ([`LoadoutChoice::for_mode`]): the armor tier the halo makes, on the one halo core, and six magazines of
 /// slot 1's ammo (a loadout saved by an older build opens as its nearest picks). Then: players' ammo only,
@@ -521,6 +523,9 @@ pub enum LoadoutError {
 /// comes from the mode, not the client.
 pub fn loadout_from_choice(data: &GameData, choice: &LoadoutChoice, mode: MatchMode) -> Result<Loadout, LoadoutError> {
     let spec = data.weapon(&choice.weapon).ok_or(LoadoutError::UnknownWeapon)?;
+    if spec.hidden {
+        return Err(LoadoutError::HiddenWeapon);
+    }
     if choice.mags.is_empty() || choice.mags.len() > MAX_MAGS {
         return Err(LoadoutError::MagCount);
     }
@@ -3005,9 +3010,24 @@ mod tests {
 
     /// The host prices the picks like the Loadout screen and refuses what the budget does not cover: T4
     /// armor with the best ammo, with any gun; the sensible middles and the default loadout go through.
+    /// The SMG is out for now: the host refuses a client that sends it (every mode, any picks), and keeps the
+    /// player on what they had; with the gun back in, the same loadout goes through.
+    #[test]
+    fn the_host_refuses_the_hidden_skink() {
+        let d = GameData::embedded();
+        for mode in MatchMode::ALL {
+            let c = picks("sk9_skink", 1, AmmoChoice::STANDARD, &[]);
+            assert_eq!(super::loadout_from_choice(&d, &c, mode).err(), Some(LoadoutError::HiddenWeapon), "{mode:?}");
+            assert!(
+                super::loadout_from_choice(&crate::loadout::tests::data_with_skink(), &c, mode).is_ok(),
+                "{mode:?}: back in"
+            );
+        }
+    }
+
     #[test]
     fn the_host_holds_every_loadout_to_the_points() {
-        let d = GameData::embedded();
+        let d = crate::loadout::tests::data_with_skink();
         let std = AmmoChoice::STANDARD;
         let ap = |tier| AmmoChoice { kind: AmmoKind::ArmorPiercing, tier };
         let rip3 = AmmoChoice { kind: AmmoKind::Rip, tier: 3 };
@@ -3047,7 +3067,7 @@ mod tests {
     /// older build becomes its nearest picks), and what the picks cost is what the budget sees.
     #[test]
     fn deathmatch_loadouts_are_shaped_to_their_picks_before_the_checks() {
-        let d = GameData::embedded();
+        let d = crate::loadout::tests::data_with_skink();
         let ap2 = AmmoChoice { kind: AmmoKind::ArmorPiercing, tier: 2 };
         let rip3 = AmmoChoice { kind: AmmoKind::Rip, tier: 3 };
         let mut rich = mags("sk9_skink", &[ap2, AmmoChoice::STANDARD, rip3, ap2], "arm_none");

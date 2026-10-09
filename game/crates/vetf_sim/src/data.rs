@@ -107,6 +107,14 @@ pub struct WeaponSpec {
     pub recoil: RecoilSpec,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub scope: Option<ScopeSpec>,
+    /// Out of the game for now (DIRECTION_LOG: the SMG is removed for now): no loadout screen, preset, bot or
+    /// default offers it and the host refuses it, but its tuning stays so it can come back by clearing this.
+    #[serde(default, skip_serializing_if = "is_false")]
+    pub hidden: bool,
+}
+
+fn is_false(b: &bool) -> bool {
+    !*b
 }
 
 fn one() -> f32 {
@@ -1573,6 +1581,9 @@ impl GameData {
         let Some(w) = self.weapon(&l.primary) else {
             return bad(format!("default loadout: unknown weapon {}", l.primary));
         };
+        if w.hidden {
+            return bad(format!("default loadout: {} is hidden (out of the game for now)", l.primary));
+        }
         if l.mags.is_empty() || l.mags.len() > crate::weapon::MAX_MAGS {
             return bad(format!("default loadout: 1..={} magazines", crate::weapon::MAX_MAGS));
         }
@@ -1668,6 +1679,21 @@ impl GameData {
 
     pub fn weapon_index(&self, id: &str) -> Option<usize> {
         self.weapons.weapons.iter().position(|w| w.id == id)
+    }
+
+    /// A gun players may pick: it exists and is not hidden (see [`WeaponSpec::hidden`]).
+    pub fn offered_weapon(&self, id: &str) -> Option<&WeaponSpec> {
+        self.weapon(id).filter(|w| !w.hidden)
+    }
+
+    /// The guns players may pick, with their index in `weapons.ron` (indices stay those of the full list).
+    pub fn offered_weapons(&self) -> impl Iterator<Item = (usize, &WeaponSpec)> {
+        self.weapons.weapons.iter().enumerate().filter(|(_, w)| !w.hidden)
+    }
+
+    /// `id` if players may pick it, else the default loadout's gun (an old save or preset with a hidden gun).
+    pub fn offered_weapon_or_default<'a>(&'a self, id: &'a str) -> &'a str {
+        if self.offered_weapon(id).is_some() { id } else { &self.rules.default_loadout.primary }
     }
 
     /// Resolve an ammo choice for a weapon (None if that gun cannot load it).
@@ -1885,6 +1911,26 @@ mod tests {
             assert!(r.assist_min_damage > 0.0 && r.assist_window_s > 0.0, "{mode:?}: an assist rule");
         }
         assert_eq!((d.rules.tdm.assist_min_damage, d.rules.tdm.assist_window_s), (40.0, 10.0));
+    }
+
+    /// The SMG is out for now (DIRECTION_LOG: "remove the smg for now"): its data stays, hidden, so the
+    /// players' guns are the Mako and the Warden, and a hidden gun falls back to the default loadout's.
+    #[test]
+    fn the_skink_is_hidden_but_kept() {
+        let d = GameData::embedded();
+        let skink = d.weapon("sk9_skink").expect("its tuning stays in weapons.ron");
+        assert!(skink.hidden);
+        assert!(d.offered_weapon("sk9_skink").is_none());
+        let offered: Vec<(usize, &str)> = d.offered_weapons().map(|(i, w)| (i, w.id.as_str())).collect();
+        assert_eq!(offered, [(0, "ar7_mako"), (1, "vk50_warden")], "indices of the full list");
+        assert_eq!(d.offered_weapon_or_default("sk9_skink"), "ar7_mako");
+        assert_eq!(d.offered_weapon_or_default("nope"), "ar7_mako");
+        assert_eq!(d.offered_weapon_or_default("vk50_warden"), "vk50_warden");
+        // A hidden gun cannot be the default loadout's.
+        let mut bad = d.clone();
+        bad.rules.default_loadout.primary = "sk9_skink".into();
+        bad.rules.default_loadout.attachments.clear();
+        assert!(bad.validate().is_err());
     }
 
     #[test]

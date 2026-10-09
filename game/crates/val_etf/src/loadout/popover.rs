@@ -451,7 +451,8 @@ mod tests {
         assert_eq!(dr.mags[4], AmmoChoice { kind: AmmoKind::ArmorPiercing, tier: 2 });
         pick(&mut dr, Pop::Mag(4), 0, &d, &ui);
         assert_eq!(dr.mags.len(), 4, "NO MAG removes the last one");
+        let d = crate::loadout::tests::data_with_skink();
         dr.switch_weapon("sk9_skink", &d);
-        assert_eq!(rows(&dr, Pop::Mag(0), &d, &ui).len(), 7, "the SMG adds RIP I-III");
+        assert_eq!(rows(&dr, Pop::Mag(0), &d, &ui).len(), 7, "the SMG adds RIP I-III (when it is back in)");
     }
 }

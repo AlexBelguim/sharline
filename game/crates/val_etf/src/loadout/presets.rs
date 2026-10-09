@@ -90,7 +90,7 @@ impl LoadoutsFile {
         user_config::save(Self::FILE, self)
     }
 
-    /// Exactly three presets, each naming a gun that exists; `active` in range.
+    /// Exactly three presets, each naming a gun players may pick; `active` in range.
     pub fn repair(&mut self, data: &GameData, agent: &str) {
         let defaults = default_presets(data, agent);
         self.presets.truncate(PRESET_COUNT);
@@ -100,6 +100,12 @@ impl LoadoutsFile {
                     p.name = clean_name(&p.name);
                     if p.name.is_empty() {
                         p.name = def.name;
+                    }
+                    // A hidden gun (the SK-9 Skink, out for now) becomes the default gun with its default parts;
+                    // the halo and magazines stay (ammo the gun cannot load opens as STANDARD).
+                    if data.offered_weapon(&p.loadout.weapon).is_none() {
+                        p.loadout.weapon = data.rules.default_loadout.primary.clone();
+                        p.loadout.attachments = data.rules.default_loadout.attachments.clone();
                     }
                 }
                 Some(p) => *p = def,
@@ -260,6 +266,9 @@ mod tests {
         assert_eq!(f.active, 1);
         let volt = &f.presets[1].loadout;
         assert_eq!((volt.mags.len(), volt.halo.core), (6, Core::Volt), "saved as built");
+        // ...but on the Mako with its default parts: the SK-9 Skink is out for now.
+        assert_eq!(volt.weapon, "ar7_mako");
+        assert_eq!(volt.attachments, d.rules.default_loadout.attachments);
         assert_eq!(f.attachments["ar7_mako"], ["optic_3x", "grip_vertical"]);
         let ap2 = AmmoChoice { kind: AmmoKind::ArmorPiercing, tier: 2 };
         for mode in [vetf_net::MatchMode::Tdm, vetf_net::MatchMode::Ffa] {
@@ -269,8 +278,8 @@ mod tests {
             assert_eq!(dr.mags, vec![ap2; 6], "{mode:?}: slot 1's AP II in all six");
             assert_eq!(dr.halo.core, kit.unwrap().halo_core, "{mode:?}: the one halo");
             assert_eq!(dr.armor_tier(), Some(3), "{mode:?}: H1 T3 A1 L1 is T3");
-            assert_eq!(dr.mag_type(&d).map(|m| m.id.as_str()), Some("skink_mag_40"), "the SMG's standard magazine");
-            assert_eq!(dr.weapon, "sk9_skink");
+            assert_eq!(dr.mag_type(&d).map(|m| m.id.as_str()), Some("mag_30"), "the Mako's standard magazine");
+            assert_eq!(dr.weapon, "ar7_mako");
             // every old preset opens as picks within the points
             let tiers: Vec<Option<u8>> = f
                 .presets
@@ -282,7 +291,12 @@ mod tests {
             assert_eq!(tiers, [Some(2), Some(3), Some(3)], "RIFLE H2 T2, VOLT AP and MEDIC H1 T3");
         }
         let range = Draft::from_choice(volt, &f.attachments, &d, None);
-        assert_eq!(range.mags, volt.mags, "the range keeps its magazines");
+        let rifle_mags: Vec<AmmoChoice> =
+            volt.mags.iter().map(|m| if m.kind == AmmoKind::Rip { AmmoChoice::STANDARD } else { *m }).collect();
+        assert_eq!(
+            range.mags, rifle_mags,
+            "the range keeps its magazines (RIP, which a rifle cannot load, as STANDARD)"
+        );
         assert_eq!(range.halo, volt.halo, "and its halo");
     }
 

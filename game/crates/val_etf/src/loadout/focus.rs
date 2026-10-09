@@ -34,7 +34,7 @@ pub struct Columns {
 
 /// The focusable items of each column, as rows of items, in the order the page shows them.
 pub fn columns(draft: &Draft, data: &GameData, ui: &LoadoutUiData, arc: Zone) -> Columns {
-    let tabs: Vec<Act> = (0..data.weapons.weapons.len()).map(Act::Weapon).collect();
+    let tabs: Vec<Act> = data.offered_weapons().map(|(i, _)| Act::Weapon(i)).collect();
     let slots: Vec<Act> = AttachmentCategory::ALL
         .iter()
         .filter(|c| !parts_for(data, &draft.weapon, **c).is_empty())
@@ -193,9 +193,9 @@ mod tests {
         assert_eq!(cols.cols[1][2].len(), 5, "four mags and the + ADD MAG slot");
         let start = step(&cols, None, Move::Right);
         assert_eq!(start, Some(Act::Weapon(0)));
+        assert_eq!(cols.cols[1][0], vec![Act::Weapon(0), Act::Weapon(1)], "the Mako and the Warden: no Skink");
         assert_eq!(step(&cols, start, Move::Right), Some(Act::Weapon(1)));
         assert_eq!(step(&cols, start, Move::Down), Some(Act::Slot(AttachmentCategory::Optic)));
-        assert_eq!(step(&cols, Some(Act::Weapon(2)), Move::Down), Some(Act::Slot(AttachmentCategory::Mag)));
         assert_eq!(step(&cols, Some(Act::Mag(4)), Move::Down), Some(Act::Mag(4)), "the last row stays");
         assert_eq!(step(&cols, start, Move::NextColumn), Some(Act::Core(Core::Bulwark)));
         assert_eq!(step(&cols, start, Move::PrevColumn), Some(Act::Agent(0)));
@@ -221,6 +221,7 @@ mod tests {
         assert_eq!(cols.cols.len(), 2, "no agent column");
         assert_eq!(cols.start, 0);
         assert_eq!(cols.cols[0].len(), 2, "weapon tabs and attachment slots: no magazine row");
+        assert_eq!(cols.cols[0][0], vec![Act::Weapon(0), Act::Weapon(1)], "no Skink tab in a deathmatch either");
         assert!(cols.cols.iter().flatten().flatten().all(|a| !matches!(a, Act::MagType(_))));
         let slots = &cols.cols[0][1];
         assert!(slots.contains(&Act::Slot(AttachmentCategory::Mag)), "the MAG slot picks the magazine type");

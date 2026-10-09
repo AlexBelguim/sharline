@@ -52,7 +52,7 @@ pub enum Problem {
 }
 
 impl Draft {
-    /// Open a loadout for editing (unknown or misfit ids are cleaned up; `remembered` = other guns' sets),
+    /// Open a loadout for editing (unknown, hidden or misfit ids are cleaned up; `remembered` = other guns' sets),
     /// shaped to the picks of team deathmatch and free-for-all when `fixed` ([`LoadoutChoice::shaped`]).
     pub fn from_choice(
         c: &LoadoutChoice,
@@ -61,11 +61,8 @@ impl Draft {
         fixed: Option<DeathmatchLoadout>,
     ) -> Self {
         let c = &c.shaped(fixed.as_ref());
-        let weapon = if data.weapon(&c.weapon).is_some() {
-            c.weapon.clone()
-        } else {
-            data.rules.default_loadout.primary.clone()
-        };
+        // An unknown or hidden gun (the SK-9 Skink, out for now) opens as the default gun.
+        let weapon = data.offered_weapon_or_default(&c.weapon).to_string();
         let mut parts = BTreeMap::new();
         for w in &data.weapons.weapons {
             let wanted = if w.id == weapon { Some(c.attachments.clone()) } else { remembered.get(&w.id).cloned() };
@@ -132,10 +129,10 @@ impl Draft {
         self.set_part(cat, def.as_deref(), data);
     }
 
-    /// Switch the gun. Its attachments come back as it had them last (or its defaults); magazines it
+    /// Switch the gun (not to a hidden one). Its attachments come back as it had them last (or its defaults); magazines it
     /// cannot load turn to STANDARD. Returns the slots (0-based) that changed, for the warning flash.
     pub fn switch_weapon(&mut self, id: &str, data: &GameData) -> Vec<usize> {
-        let Some(spec) = data.weapon(id) else { return Vec::new() };
+        let Some(spec) = data.offered_weapon(id) else { return Vec::new() };
         self.weapon = id.to_string();
         if !self.parts.contains_key(id) {
             self.parts.insert(id.to_string(), normalize_parts(data, id, None));
@@ -532,9 +529,36 @@ mod tests {
         assert!(!dr.remove_last_mag(), "slot 1 always holds a magazine");
     }
 
+    /// The SK-9 Skink is out for now: a saved loadout with it opens on the Mako (its parts, ammo it loads),
+    /// and the screen cannot switch to it.
+    #[test]
+    fn a_hidden_gun_opens_as_the_mako_and_cannot_be_picked() {
+        let d = GameData::embedded();
+        let rip3 = AmmoChoice { kind: AmmoKind::Rip, tier: 3 };
+        let old = LoadoutChoice {
+            weapon: "sk9_skink".into(),
+            mags: vec![AP2, rip3],
+            attachments: vec!["optic_reddot".into(), "skink_mag_60".into()],
+            halo: crate::config::halo_from_armor("arm_mender_scout", &d),
+            agent: "kestrel".into(),
+        };
+        for fixed in [None, d.rules.fixed_loadout(vetf_net::MatchMode::Tdm).cloned()] {
+            let dr = Draft::from_choice(&old, &BTreeMap::new(), &d, fixed.clone());
+            assert_eq!(dr.weapon, "ar7_mako", "{fixed:?}");
+            assert!(dr.equipped_all(&d).iter().all(|a| a.fits.contains(&dr.weapon)), "{fixed:?}: Mako parts");
+            assert!(dr.mags.iter().all(|m| *m != rip3), "{fixed:?}: no RIP in a rifle");
+            assert_eq!(dr.mag_type(&d).map(|m| m.id.as_str()), Some("mag_30"), "{fixed:?}");
+            assert_eq!(dr.choice().weapon, "ar7_mako", "{fixed:?}: what goes to the host");
+        }
+        let (d, mut dr) = draft();
+        assert_eq!(dr.switch_weapon("sk9_skink", &d), Vec::<usize>::new());
+        assert_eq!(dr.weapon, "ar7_mako", "no switch to a hidden gun");
+    }
+
     #[test]
     fn switching_guns_keeps_parts_per_gun_and_falls_back_on_ammo() {
-        let (d, mut dr) = draft();
+        let (_, mut dr) = draft();
+        let d = crate::loadout::tests::data_with_skink();
         dr.set_part(AttachmentCategory::Under, Some("grip_angled"), &d);
         // The picker only offers what the gun loads; a stale RIP mag from an SMG preset is cleaned on open.
         dr.mags[1] = RIP1;
@@ -587,7 +611,8 @@ mod tests {
 
     #[test]
     fn ammo_rows_are_what_the_gun_can_load() {
-        let (d, mut dr) = draft();
+        let (_, mut dr) = draft();
+        let d = crate::loadout::tests::data_with_skink();
         let names = |dr: &Draft| dr.ammo_options(&d).iter().map(|c| d.ammo.long_name(*c).unwrap()).collect::<Vec<_>>();
         assert_eq!(names(&dr), ["STANDARD", "AP I", "AP II", "AP III"]);
         dr.switch_weapon("sk9_skink", &d);
@@ -623,7 +648,7 @@ mod tests {
     /// magazines of one ammo type, the gun's magazine type. Each pick has its points.
     #[test]
     fn a_deathmatch_draft_is_an_armor_tier_a_magazine_type_and_one_ammo_type() {
-        let d = GameData::embedded();
+        let d = crate::loadout::tests::data_with_skink();
         let ap = |tier| AmmoChoice { kind: AmmoKind::ArmorPiercing, tier };
         let old = LoadoutChoice {
             weapon: "ar7_mako".into(),

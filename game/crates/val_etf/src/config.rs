@@ -342,7 +342,9 @@ pub fn halo_from_armor(id: &str, data: &GameData) -> vetf_sim::gear::HaloChoice 
 /// (`--armor` takes a preset id and becomes a custom halo, capped like the Loadout screen caps it).
 pub fn loadout_choice(cli: &Cli, data: &GameData) -> vetf_net::LoadoutChoice {
     let d = &data.rules.default_loadout;
-    let weapon = cli.weapon.clone().unwrap_or_else(|| d.primary.clone());
+    // A hidden gun (out of the game for now, like the SK-9 Skink) is the default gun instead: the host refuses it.
+    let weapon =
+        cli.weapon.as_deref().map_or_else(|| d.primary.clone(), |w| data.offered_weapon_or_default(w).to_string());
     // Another gun's default attachments would not fit: only keep the rules.ron ones for the default gun.
     let attachments = match &cli.attach {
         Some(list) => list.split(',').map(|a| a.trim().to_string()).filter(|a| !a.is_empty()).collect(),
@@ -479,5 +481,15 @@ mod tests {
         let c = Cli { mags: Some("ap2,std".into()), ..cli() };
         assert!(c.has_loadout_overrides());
         assert_eq!(loadout_choice(&c, &d).mags.len(), 2);
+    }
+
+    /// `--weapon sk9_skink` (out of the game for now) asks for the default Mako with its default parts.
+    #[test]
+    fn a_hidden_weapon_option_falls_back_to_the_default_gun() {
+        let d = GameData::embedded();
+        let c = loadout_choice(&Cli { weapon: Some("sk9_skink".into()), ..cli() }, &d);
+        assert_eq!((c.weapon.as_str(), &c.attachments), ("ar7_mako", &d.rules.default_loadout.attachments));
+        let warden = loadout_choice(&Cli { weapon: Some("vk50_warden".into()), ..cli() }, &d);
+        assert_eq!(warden.weapon, "vk50_warden");
     }
 }

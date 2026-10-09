@@ -233,7 +233,7 @@ pub fn agent_badge(id: &str) -> (String, Color) {
 /// Summarise a loadout choice as `mode` takes it (unknown ids fall back to what the host would use).
 pub fn summary(choice: &LoadoutChoice, data: &GameData, mode: MatchMode) -> LoadoutSummary {
     let choice = &choice.for_mode(data, mode);
-    let weapon = data.weapon(&choice.weapon).or_else(|| data.weapon(&data.rules.default_loadout.primary));
+    let weapon = data.offered_weapon(&choice.weapon).or_else(|| data.weapon(&data.rules.default_loadout.primary));
     let mags: Vec<(usize, String, AmmoKind)> = choice
         .mags
         .iter()
@@ -477,6 +477,7 @@ pub fn demo_picks(spec: &str, data: &GameData) -> Option<Vec<Act>> {
     let mut mag = Vec::new();
     for id in rest {
         match data.weapon_index(id) {
+            Some(w) if data.weapons.weapons[w].hidden => return None,
             Some(w) => gun.push(Act::Weapon(w)),
             None => {
                 let i = data.attachments.attachments.iter().position(|a| a.id == *id)?;
@@ -791,7 +792,7 @@ fn presses(
             }
         }
         Act::Weapon(i) => {
-            if let Some(w) = data.weapons.weapons.get(i)
+            if let Some(w) = data.weapons.weapons.get(i).filter(|w| !w.hidden)
                 && w.id != edit.draft.weapon
             {
                 for slot in edit.draft.switch_weapon(&w.id.clone(), &data) {
@@ -1122,6 +1123,13 @@ pub(crate) mod tests {
         Cli { name: "T".into(), ..Cli::default() }
     }
 
+    /// The game data with the SK-9 Skink back in (hidden for now), for rules that hold for every gun.
+    pub(crate) fn data_with_skink() -> GameData {
+        let mut d = GameData::embedded();
+        d.weapons.weapons.iter_mut().filter(|w| w.id == "sk9_skink").for_each(|w| w.hidden = false);
+        d
+    }
+
     fn default_choice(d: &GameData) -> LoadoutChoice {
         crate::server::default_choice(d)
     }
@@ -1250,7 +1258,7 @@ pub(crate) mod tests {
 
     #[test]
     fn demo_picks_click_through_the_deathmatch_layout() {
-        let d = GameData::embedded();
+        let d = data_with_skink();
         let ap2 = AmmoChoice { kind: AmmoKind::ArmorPiercing, tier: 2 };
         assert_eq!(demo_picks("3,ap2", &d).unwrap(), [Act::Armor(3), Act::Ammo(ap2)]);
         let mag = |id: &str| Act::MagType(d.attachments.attachments.iter().position(|a| a.id == id).unwrap());
@@ -1263,5 +1271,7 @@ pub(crate) mod tests {
         assert_eq!(demo_picks("3,laser", &d), None, "not an ammo");
         assert_eq!(demo_picks("3,std,optic_holo", &d), None, "not a magazine");
         assert_eq!(demo_picks("x,std", &d), None);
+        // The Skink is out for now: no scripted pick clicks it.
+        assert_eq!(demo_picks("t1,std,sk9_skink", &GameData::embedded()), None);
     }
 }

@@ -691,3 +691,14 @@ New (item 9c2, user direction; the design docs have no streaks). All numbers in 
   its own camera into an image on its own render layer, and exists only while the screen is open. A gun without a
   model (the Skink) keeps its 2D picture. The same screen serves the deathmatch layout, the death screen's loadout
   and the gun range's.
+
+## 30. The SK-9 Skink SMG is out for now (2026-10-09)
+- **Before:** three guns, the Mako, the Warden and the Skink SMG (the only gun that loads RIP).
+- **Now (user direction, item 9e: "lets remove the smg for now"):** players pick from the Mako and the Warden. The
+  Skink keeps all its data (`weapons.ron`, attachments, recoil pattern, sounds, feel, UI preview) with a new flag,
+  `hidden: true`, so it can come back by deleting that one line. A hidden gun has no tab on the Loadout screen (any
+  mode), cannot be switched to, cannot be the default loadout's gun (the data check refuses it) and no scripted pick
+  clicks it. A saved loadout or preset with the Skink opens on the Mako with its default parts (RIP magazines turn
+  STANDARD, the halo stays); `--weapon sk9_skink` asks for the Mako. The host refuses a client that still sends the
+  Skink (`LoadoutError::HiddenWeapon`) and keeps them on their current loadout. Bots already play the default Mako.
+  RIP ammo stays in the data, but no offered gun loads it now. Weapon indices are unchanged (no wire change).
