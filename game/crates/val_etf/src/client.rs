@@ -213,9 +213,16 @@ fn wait_for_player(
     level: Option<Res<CurrentLevel>>,
     mut next: ResMut<NextState<AppState>>,
     mut waited: Local<f32>,
+    mut link: Local<Option<Entity>>,
+    session: Res<Session>,
     time: Res<Time>,
     mut requests: MessageWriter<NetRequest>,
 ) {
+    // A new connection (joining again at the host's tick rate) gets the whole wait again.
+    if *link != session.client {
+        *link = session.client;
+        *waited = 0.0;
+    }
     *waited += time.delta_secs();
     if level.is_some() && !me.is_empty() {
         *waited = 0.0;

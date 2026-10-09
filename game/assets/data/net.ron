@@ -1,12 +1,33 @@
 // Netcode settings (design/systems/diagrams/net_architecture.png).
+//
+// The simulation rate and the snapshot rate are host settings (HOST GAME): `tick_hz` and `snapshot_hz` are
+// only their defaults. A joining client always runs at its host's tick rate (it reconnects at that rate if it
+// guessed another). Every duration below is in seconds, so it means the same at every tick rate; the game turns
+// it into ticks of the rate in play.
 (
-    tick_hz: 60,
-    port: 47820,              // game traffic, UDP
-    lan_beacon_port: 47821,   // LAN discovery beacon, UDP
-    snapshot_hz: 30,          // host -> clients replication rate (20 / 30 / 60)
+    tick_hz: 120,                // default simulation rate (ticks per second)
+    tick_rates: [60, 120],       // what HOST GAME offers
+    port: 47820,                 // game traffic, UDP
+    lan_beacon_port: 47821,      // LAN discovery beacon, UDP
+    snapshot_hz: 60,             // default host -> clients replication rate
+    snapshot_rates: [30, 60, 120], // what the host may pick (never above the tick rate)
     max_remote_clients: 9,
-    input_redundancy: 10,     // each input packet repeats the last N ticks to survive loss
-    interpolation_delay_ms: 100,
-    max_rollback_ticks: 20,
+    // Each input packet repeats the inputs of this last stretch of time, to survive packet loss
+    // (10 ticks at 60 Hz, 20 at 120 Hz).
+    input_redundancy_s: 0.167,
+    // Remote players are drawn this many snapshot intervals behind the newest snapshot (lightyear adds the
+    // jitter margin on top), and never less than `interpolation_min_ms`: 60 Hz snapshots ~33 ms + margin.
+    interpolation_snapshots: 2.0,
+    interpolation_min_ms: 25,
+    // How far back a misprediction may roll the client's simulation (20 ticks at 60 Hz, 40 at 120 Hz).
+    max_rollback_s: 0.334,
     upnp_lease_s: 7200,
+    // The host's upload, as the lobby estimates it: each snapshot goes to every remote player and carries every
+    // player's moving state (position, velocity, look, weapon), plus the packet's headers. Measured from the
+    // wire sizes of those components (vetf_net tests). Above `warn_mbit` the lobby warns the host.
+    upload: (
+        packet_overhead_bytes: 64,
+        player_bytes: 120,
+        warn_mbit: 5.0,
+    ),
 )

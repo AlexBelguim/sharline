@@ -24,7 +24,6 @@ pub enum DataError {
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct WeaponsFile {
-    pub tick_hz: u32,
     pub weapons: Vec<WeaponSpec>,
     pub spill_to_torso: SpillToTorso,
 }
@@ -1077,6 +1076,10 @@ pub struct ShotValidationSpec {
     pub hitbox_inflate_m: f32,
     pub hitbox_inflate_per_speed_s: f32,
     pub aim_tolerance_deg: f32,
+    /// How long a claim waits for the host to simulate the shot it names before it is dropped.
+    pub claim_wait_s: f32,
+    /// A shooter who died still lands the shots they fired this long before their death.
+    pub dead_shooter_grace_s: f32,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -1330,17 +1333,91 @@ pub struct LoadoutSpec {
     pub armor: String,
 }
 
+/// `net.ron`. The tick rate and the snapshot rate are host settings: `tick_hz` and `snapshot_hz` are their
+/// defaults until the game puts the session's rate in `tick_hz` ([`GameData::with_tick_hz`]); the simulation
+/// reads the rate in play from there. Durations are in seconds, so they hold at every tick rate.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct NetSpec {
+    /// The simulation rate in play (ticks per second); in `net.ron`, HOST GAME's default.
     pub tick_hz: u32,
+    /// The rates HOST GAME offers.
+    pub tick_rates: Vec<u32>,
     pub port: u16,
     pub lan_beacon_port: u16,
+    /// HOST GAME's default snapshot (replication) rate.
     pub snapshot_hz: u32,
+    /// The snapshot rates a host may pick (only those up to the tick rate: [`NetSpec::snapshot_rates_for`]).
+    pub snapshot_rates: Vec<u32>,
     pub max_remote_clients: u32,
-    pub input_redundancy: u32,
-    pub interpolation_delay_ms: u32,
-    pub max_rollback_ticks: u32,
+    /// Seconds of inputs each input packet repeats ([`NetSpec::input_redundancy_ticks`]).
+    pub input_redundancy_s: f32,
+    /// Remote players are drawn this many snapshot intervals behind the newest snapshot.
+    pub interpolation_snapshots: f32,
+    /// ... and never less than this (ms).
+    pub interpolation_min_ms: u32,
+    /// Seconds a misprediction may roll the client back ([`NetSpec::max_rollback_ticks`]).
+    pub max_rollback_s: f32,
     pub upnp_lease_s: u32,
+    /// The host's upload estimate ([`NetSpec::host_upload_mbit`]).
+    pub upload: UploadEstimate,
+}
+
+/// What one snapshot costs on the wire, for the lobby's estimate of the host's upload.
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
+pub struct UploadEstimate {
+    /// UDP/IP, netcode and replication headers of one snapshot packet.
+    pub packet_overhead_bytes: u32,
+    /// One moving player's state in a snapshot.
+    pub player_bytes: u32,
+    /// The lobby warns the host above this (Mbit/s).
+    pub warn_mbit: f32,
+}
+
+impl NetSpec {
+    /// `s` seconds in whole ticks of the rate in play (at least 1).
+    pub fn ticks(&self, s: f32) -> u32 {
+        ((s * self.tick_hz as f32).round() as u32).max(1)
+    }
+
+    /// Ticks of inputs each input packet repeats (10 at 60 Hz, 20 at 120 Hz).
+    pub fn input_redundancy_ticks(&self) -> u16 {
+        self.ticks(self.input_redundancy_s).min(u16::MAX as u32) as u16
+    }
+
+    /// The deepest rollback, in ticks (20 at 60 Hz, 40 at 120 Hz).
+    pub fn max_rollback_ticks(&self) -> u16 {
+        self.ticks(self.max_rollback_s).min(u16::MAX as u32) as u16
+    }
+
+    /// The snapshot rates a host running at `tick_hz` may pick: no more snapshots than ticks.
+    pub fn snapshot_rates_for(&self, tick_hz: u32) -> Vec<u32> {
+        self.snapshot_rates.iter().copied().filter(|r| *r <= tick_hz).collect()
+    }
+
+    /// `wanted` if a host at `tick_hz` may send that many snapshots a second, else the fastest it may.
+    pub fn snapshot_hz_for(&self, tick_hz: u32, wanted: u32) -> u32 {
+        let rates = self.snapshot_rates_for(tick_hz);
+        if rates.contains(&wanted) { wanted } else { rates.iter().copied().max().unwrap_or(tick_hz.max(1)) }
+    }
+
+    /// How far behind the newest snapshot remote players are drawn (seconds, before lightyear's jitter margin):
+    /// `interpolation_snapshots` snapshot intervals, at least `interpolation_min_ms`.
+    pub fn interpolation_delay_s(&self, snapshot_hz: u32) -> f32 {
+        (self.interpolation_snapshots / snapshot_hz.max(1) as f32).max(self.interpolation_min_ms as f32 / 1000.0)
+    }
+
+    /// The host's upload (Mbit/s) at `snapshot_hz` with `players` in the match (bots included: their state is
+    /// in every snapshot) of whom `remote` play over the network (the host's own player and bots do not).
+    pub fn host_upload_mbit(&self, snapshot_hz: u32, players: u32, remote: u32) -> f32 {
+        let u = &self.upload;
+        let packet = u.packet_overhead_bytes as f32 + players as f32 * u.player_bytes as f32;
+        packet * 8.0 * snapshot_hz as f32 * remote as f32 / 1_000_000.0
+    }
+
+    /// The host's upload is high enough to warn about.
+    pub fn upload_is_high(&self, mbit: f32) -> bool {
+        mbit > self.upload.warn_mbit
+    }
 }
 
 // ---------------------------------------------------------------------------------------------- all data
@@ -1509,11 +1586,16 @@ impl GameData {
             }
             // The gradual rewind (item 9c) starts after the aimed fire interval, so a held spray never rewinds: the
             // full rewind must be longer than that.
+            // At every tick rate a host may pick.
             if let RecoilSpec::Pattern(p) = &w.recoil {
-                let hz = self.net.tick_hz;
-                let hold = crate::weapon::fire_interval_ticks(w, hz, true);
-                if crate::weapon::secs_to_ticks(p.reset_after_s, hz) <= hold {
-                    return bad(format!("{}: recoil.reset_after_s must be longer than the aimed fire interval", w.id));
+                for &hz in &self.net.tick_rates {
+                    let hold = crate::weapon::fire_interval_ticks(w, hz, true);
+                    if crate::weapon::secs_to_ticks(p.reset_after_s, hz) <= hold {
+                        return bad(format!(
+                            "{}: recoil.reset_after_s must be longer than the aimed fire interval ({hz} Hz)",
+                            w.id
+                        ));
+                    }
                 }
             }
             if self.ammo.resolve(w.cls, AmmoChoice::STANDARD).is_none() {
@@ -1687,7 +1769,39 @@ impl GameData {
             }
         }
         self.throwables.validate().map_err(DataError::Invalid)?;
+        self.validate_net()?;
         Ok(())
+    }
+
+    /// `net.ron`: the offered tick rates hold the default and fit the client id's rate byte
+    /// (`vetf_net::client_id`), the default snapshot rate is one a host at the default tick rate may pick, and
+    /// every duration is positive.
+    fn validate_net(&self) -> Result<(), DataError> {
+        let n = &self.net;
+        let rates_ok = !n.tick_rates.is_empty()
+            && n.tick_rates.contains(&n.tick_hz)
+            && n.tick_rates.iter().all(|r| (1..=255).contains(r));
+        let snapshots_ok =
+            n.snapshot_rates.iter().all(|r| *r > 0) && n.snapshot_rates_for(n.tick_hz).contains(&n.snapshot_hz);
+        let times_ok = [n.input_redundancy_s, n.max_rollback_s, n.interpolation_snapshots].iter().all(|t| *t > 0.0);
+        let upload_ok = n.upload.player_bytes > 0 && n.upload.warn_mbit > 0.0;
+        if rates_ok && snapshots_ok && times_ok && upload_ok {
+            Ok(())
+        } else {
+            Err(DataError::Invalid(
+                "net: tick_rates (1-255 Hz) must hold tick_hz, snapshot_hz must be one of snapshot_rates up to                  tick_hz, and the redundancy, rollback, interpolation and upload numbers must be positive"
+                    .into(),
+            ))
+        }
+    }
+
+    /// The same data with the simulation at `tick_hz` (a host's pick, or the host's rate a client joined at).
+    /// Everything that counts ticks reads the rate from `net.tick_hz`, so this is the only switch. The
+    /// fingerprint stays that of the files: host and client compare the numbers, not the session's rate.
+    pub fn with_tick_hz(&self, tick_hz: u32) -> GameData {
+        let mut d = self.clone();
+        d.net.tick_hz = tick_hz.max(1);
+        d
     }
 
     pub fn tick_dt(&self) -> f32 {
@@ -1742,7 +1856,6 @@ mod tests {
     fn embedded_data_loads_and_validates() {
         let d = GameData::embedded();
         assert_eq!(d.weapons.weapons.len(), 3);
-        assert_eq!(d.net.tick_hz, d.weapons.tick_hz);
         assert!(d.weapon("ar7_mako").is_some());
         assert_eq!(d.weapon("sk9_skink").map(|w| w.cls), Some(WeaponClass::Smg));
         assert_ne!(d.fingerprint, 0);

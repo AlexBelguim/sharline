@@ -1847,6 +1847,8 @@ mod tests {
             max_players: 10,
             rules: d.rules.rulesets.get(mode),
             mag_check,
+            tick_hz: 120,
+            snapshot_hz: 60,
         };
         use MagCheckMode::{Estimate, Exact};
         let defaults = crate::settings::Settings::default().gameplay.range_mag_check.mode();
@@ -1908,6 +1910,8 @@ mod tests {
                 max_players: 10,
                 rules: d.rules.rulesets.tdm,
                 mag_check: MagCheckMode::default(),
+                tick_hz: 120,
+                snapshot_hz: 60,
             })
             .id();
         let root = app.world_mut().spawn((AmmoCounterRoot, Node { display: Display::None, ..default() })).id();

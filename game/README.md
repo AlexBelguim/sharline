@@ -207,11 +207,15 @@ val_etf --join 127.0.0.1:47820 --name JOINER --bot --yaw 90
 | `assets/data/*.ron` | **Every gameplay number.** They are loaded at start-up, so you can tune without rebuilding; the build also has a copy compiled in. `cargo test` fails if they drift from `design/systems/data/*.json`, except for the deliberate changes in [DESIGN_DELTAS.md](DESIGN_DELTAS.md). |
 
 ### Netcode model
-The design is a listen server ticking at 60 Hz.
+The design is a listen server. Its tick rate is a host setting (HOST GAME: 60 or 120 Hz, 120 by default); a client
+joins at its host's rate (its netcode id says its rate, the host answers with `TickRate`, and a client at the other
+rate reconnects at the host's). Every duration in `assets/data` is in seconds, so the game plays the same at both.
 
-- **Inputs:** clients send inputs every tick, each packet repeating the last 10.
-- **Prediction:** each client predicts its own movement and weapon, rolls back on mismatch, and interpolates
-  other players about 100 ms behind.
+- **Inputs:** clients send inputs every frame, each packet repeating the last 1/6 s of ticks (10 at 60 Hz, 20 at
+  120 Hz).
+- **Prediction:** each client predicts its own movement and weapon, rolls back on mismatch (up to 1/3 s), and
+  interpolates other players two snapshot intervals behind, plus a jitter margin (about 33 ms + margin at 60
+  snapshots a second).
 - **Shots:**
   - The shooter's client raycasts against what it sees and sends a `ShotClaim`: shot number, ray, the tick it was
     viewing, zone and point.
@@ -219,7 +223,8 @@ The design is a listen server ticking at 60 Hz.
     host-authoritative.
   - The host checks the claim: muzzle position, aim cone, rewinding the victim by at most 200 ms, an inflated
     zone hitbox, and line of sight through the level. Then it applies halo and zone damage.
-- **Replication:** the host sends snapshots at 30 Hz.
+- **Replication:** the host sends 30, 60 or 120 snapshots a second (HOST GAME or the lobby; 60 by default, 120
+  only at 120 Hz). The lobby shows the host's upload for it.
 
 ## Status: what works, what's next
 

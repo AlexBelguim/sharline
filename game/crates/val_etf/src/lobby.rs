@@ -1,6 +1,7 @@
 //! The lobby (hub spec 05, mockup 06): the room before a deathmatch. Team deathmatch shows both teams with
 //! halo, ping and READY; free-for-all shows one player list with its seats (no teams, no SWITCH TEAM). Then
-//! how friends join, with COPY; the match settings, where the host picks the mode and MAG CHECK; and LEAVE, LOADOUT,
+//! how friends join, with COPY; the match settings, where the host picks the mode, MAG CHECK and the snapshot rate
+//! (with the upload it costs for the players in the lobby); and LEAVE, LOADOUT,
 //! SWITCH TEAM (teams only), READY and (host only) ADD BOT, REMOVE BOT and START MATCH. It is a screen over the match while the
 //! match is in `MatchPhase::Lobby`, so the match underneath takes no input; START MATCH, or the end of a
 //! match (back here), moves everyone on.
@@ -33,6 +34,7 @@ impl Plugin for LobbyPlugin {
                 buttons,
                 mode_toggle,
                 mag_check_toggle,
+                snapshot_toggle,
                 demo,
                 refresh,
             )
@@ -83,6 +85,11 @@ struct ModeToggle;
 #[derive(Component)]
 struct MagCheckToggle;
 
+/// The host's SNAPSHOTS control in the match settings (`net.ron`'s `snapshot_rates`, those above the match's
+/// tick rate disabled).
+#[derive(Component)]
+struct SnapshotToggle;
+
 /// MAG CHECK's options, in the toggle's order.
 const MAG_CHECKS: [(MagCheckMode, &str); 2] = [(MagCheckMode::Estimate, "Estimate"), (MagCheckMode::Exact, "Exact")];
 
@@ -127,6 +134,7 @@ fn spawn_root(
     roots: Query<&ScreenRoot>,
     session: Res<Session>,
     fonts: Res<UiFonts>,
+    data: Res<Data>,
     mut commands: Commands,
 ) {
     if !screens.contains(Screen::Lobby) || roots.iter().any(|r| r.0 == Screen::Lobby) {
@@ -201,6 +209,24 @@ fn spawn_root(
                             .with_children(|t| {
                                 for (i, (_, label)) in MAG_CHECKS.iter().enumerate() {
                                     t.spawn((segment(fonts, label, TOGGLE, 34.0, false), SegOption(i)));
+                                }
+                            });
+                        },
+                    );
+                    // SNAPSHOTS: smoother other players for more of the host's upload (the row below says how much).
+                    p.spawn(Node { align_items: AlignItems::Center, column_gap: px(14), ..default() }).with_children(
+                        |row| {
+                            row.spawn(fonts.role(TextRole::RowLabel, "Snapshots"));
+                            row.spawn((
+                                SnapshotToggle,
+                                SegValue(0),
+                                Node { height: px(36), border: UiRect::all(px(1)), ..default() },
+                                BorderColor::all(STROKE_HI),
+                            ))
+                            .with_children(|t| {
+                                for (i, hz) in data.net.snapshot_rates.iter().enumerate() {
+                                    let label = crate::menu::copy::hz_label(*hz);
+                                    t.spawn((segment(fonts, &label, TOGGLE, 34.0, false), SegOption(i)));
                                 }
                             });
                         },
@@ -394,6 +420,61 @@ fn mag_check_toggle(
             v.0 = want;
         }
     }
+}
+
+/// The host's SNAPSHOTS toggle: a click asks the host to change the match setting; the toggle then follows the
+/// match (like MODE), with the rates above the match's tick rate disabled.
+#[allow(clippy::type_complexity, clippy::too_many_arguments)]
+fn snapshot_toggle(
+    presses: Query<(&Interaction, &SegOption, &ChildOf), (Changed<Interaction>, Without<Disabled>)>,
+    toggles: Query<(), With<SnapshotToggle>>,
+    screens: Res<Screens>,
+    time: Res<Time>,
+    data: Res<Data>,
+    mut asked: Local<f32>,
+    mut groups: Query<(&mut SegValue, &Children), With<SnapshotToggle>>,
+    segs: Query<(&SegOption, Has<Disabled>)>,
+    matches: Query<&MatchState>,
+    mut senders: Query<&mut MessageSender<LobbyAction>, With<Client>>,
+    mut commands: Commands,
+) {
+    let rates = &data.net.snapshot_rates;
+    if screens.top() == Some(Screen::Lobby) {
+        for (i, opt, parent) in &presses {
+            if *i != Interaction::Pressed || !toggles.contains(parent.parent()) {
+                continue;
+            }
+            let Some(hz) = rates.get(opt.0) else { continue };
+            *asked = time.elapsed_secs();
+            for mut s in &mut senders {
+                s.send::<ReliableChannel>(LobbyAction::SetSnapshotHz(*hz as u16));
+            }
+        }
+    }
+    let Some(m) = matches.iter().next() else { return };
+    for (mut v, kids) in &mut groups {
+        for kid in kids.iter() {
+            let Ok((opt, disabled)) = segs.get(kid) else { continue };
+            let off = rates.get(opt.0).is_none_or(|hz| *hz > m.tick_hz as u32);
+            if off && !disabled {
+                commands.entity(kid).insert(Disabled);
+            } else if !off && disabled {
+                commands.entity(kid).remove::<Disabled>();
+            }
+        }
+        let want = rates.iter().position(|hz| *hz == m.snapshot_hz as u32).unwrap_or(0);
+        if time.elapsed_secs() - *asked >= 1.0 && v.0 != want {
+            v.0 = want;
+        }
+    }
+}
+
+/// The host's upload for the players in the lobby (bots and the host's own player cost none, but their state is
+/// in every snapshot), and whether it is high.
+fn lobby_upload(data: &vetf_sim::GameData, snapshot_hz: u32, seats: &[Seat]) -> (f32, bool) {
+    let remote = seats.iter().filter(|s| !s.bot && !s.host).count() as u32;
+    let mbit = data.net.host_upload_mbit(snapshot_hz, seats.len() as u32, remote);
+    (mbit, data.net.upload_is_high(mbit))
 }
 
 /// `--demo-ui lobby-ready | lobby-switch | lobby-start | lobby-ffa`: press READY; SWITCH TEAM then READY; READY
@@ -594,6 +675,7 @@ fn refresh(
         });
     }
     let rules = data.rules.deathmatch(m.mode);
+    let (upload_mbit, upload_high) = lobby_upload(&data, m.snapshot_hz as u32, &seats);
     // What everyone picks in this mode: one armor tier and one ammo type for six magazines, within the points.
     // Agents are dealt at random when the match starts (these modes have no abilities).
     let loadout = match (data.rules.fixed_loadout(m.mode), vetf_sim::gear::gear_budget(&data, m.mode)) {
@@ -623,6 +705,8 @@ fn refresh(
         ("Loadout", loadout),
         ("Agents", if m.mode.is_deathmatch() { "RANDOM AT THE START" } else { "YOUR PICK" }.to_string()),
         ("Mag check", mag_check_row(m.mag_check)),
+        ("Tick rate", format!("{} HZ", m.tick_hz)),
+        ("Snapshots", crate::menu::copy::snapshot_row(m.snapshot_hz as u32, upload_mbit)),
     ];
     for e in &settings_box {
         commands.entity(e).despawn_children().with_children(|s| {
@@ -638,8 +722,17 @@ fn refresh(
                 ))
                 .with_children(|row| {
                     row.spawn(fonts.role(TextRole::RowLabel, *k));
-                    row.spawn(fonts.text(v.clone(), Face::Display, 600, 17.0, TEXT_HI, 0.06));
+                    // A host upload past `net.ron`'s line shows in the warning colour.
+                    let color = if *k == "Snapshots" && upload_high { BAD } else { TEXT_HI };
+                    row.spawn(fonts.text(v.clone(), Face::Display, 600, 17.0, color, 0.06));
                 });
+            }
+            if upload_high {
+                s.spawn(fonts.role_color(
+                    TextRole::Help,
+                    "That much upload is high for many home connections: fewer snapshots if anyone stutters.",
+                    BAD,
+                ));
             }
             s.spawn(fonts.role(TextRole::Help, "Only the host can start the match."));
         });
@@ -777,6 +870,34 @@ fn open_slot(c: &mut ChildSpawnerCommands, fonts: &UiFonts) {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    /// The lobby's upload counts every player's state in each snapshot, sent to the players on the network only:
+    /// alone with bots it is nothing, and 9 friends at 120 snapshots is high.
+    #[test]
+    fn the_lobby_estimates_the_hosts_upload_for_its_players() {
+        let d = vetf_sim::GameData::embedded();
+        let seat = |id: u64, host: bool, bot: bool| Seat {
+            id,
+            name: String::new(),
+            me: host,
+            host,
+            team: None,
+            tiers: Default::default(),
+            weight: vetf_sim::data::WeightClass::None,
+            ping_ms: 0,
+            ready: false,
+            bot,
+            agent: None,
+        };
+        let alone: Vec<Seat> =
+            std::iter::once(seat(0, true, false)).chain((1..4).map(|i| seat(i, false, true))).collect();
+        assert_eq!(lobby_upload(&d, 120, &alone), (0.0, false));
+        let full: Vec<Seat> = (0..10).map(|i| seat(i, i == 0, false)).collect();
+        let (at30, high30) = lobby_upload(&d, 30, &full);
+        let (at120, high120) = lobby_upload(&d, 120, &full);
+        assert!(!high30 && high120, "{at30} {at120}");
+        assert_eq!(crate::menu::copy::snapshot_row(60, 5.46), "60 HZ · ≈ 5.5 MBIT/S UP");
+    }
 
     /// The toggle offers both values, the estimate first (the default), and the row says what EXACT means.
     #[test]

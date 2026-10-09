@@ -52,6 +52,8 @@ impl Plugin for ServerPlugin {
                     demo_kill,
                     measure_ping,
                     count_seats,
+                    announce_tick_rate,
+                    follow_snapshot_rate,
                 )
                     .run_if(is_hosting),
             )
@@ -232,8 +234,6 @@ pub(crate) struct PendingClaim {
 #[derive(Resource, Default)]
 pub(crate) struct PendingClaims(Vec<PendingClaim>);
 
-/// Claims wait at most this many ticks for the host to simulate the matching shot.
-const CLAIM_WAIT_TICKS: u32 = 30;
 /// Seconds between the end of a match and the next one.
 const INTERMISSION_S: f32 = 8.0;
 
@@ -244,7 +244,7 @@ pub fn mode_for_map(map: &str, mode: MatchMode) -> MatchMode {
 
 /// The match entity. A deathmatch (team or free-for-all) starts in the lobby unless `lobby` is false
 /// (`--live`); the range is always live, whatever `mode` asks for. [`HostedMatch`] is the caller's (it must
-/// exist before the host's own client connects).
+/// exist before the host's own client connects). `tick_hz` and `snapshot_hz` are HOST GAME's rates.
 pub fn spawn_match(
     commands: &mut Commands,
     data: &GameData,
@@ -253,6 +253,7 @@ pub fn spawn_match(
     lobby_name: String,
     max_players: u32,
     lobby: bool,
+    (tick_hz, snapshot_hz): (u32, u32),
 ) {
     let mode = mode_for_map(map, mode);
     let rules = data.rules.deathmatch(mode);
@@ -271,6 +272,8 @@ pub fn spawn_match(
             rules: data.rules.rulesets.get(mode),
             // The estimate until the host picks EXACT in the lobby (user direction 2026-10-09).
             mag_check: Default::default(),
+            tick_hz: tick_hz as u16,
+            snapshot_hz: data.net.snapshot_hz_for(tick_hz, snapshot_hz) as u16,
         },
         Replicate::to_clients(NetworkTarget::All),
         // A session that ends must not leave its mode and rules to the next one.
@@ -321,6 +324,14 @@ pub(crate) fn on_link_connected(
     }
     let (Ok(remote), Some(level)) = (links.get(trigger.entity), level) else { return };
     let peer = remote.0;
+    // A client at another tick rate gets no seat: `announce_tick_rate` tells it the host's, and it reconnects at
+    // that rate (a 60 and a 120 Hz player never share a match).
+    if let Some(hz) = joiner_tick_hz(peer)
+        && hz != data.net.tick_hz
+    {
+        info!("{peer:?} runs at {hz} Hz, the host at {} Hz: it reconnects at the host's rate", data.net.tick_hz);
+        return;
+    }
     // The match entity may not exist yet when the host's own client connects: HOST GAME's mode decides.
     let mode = matches
         .iter()
@@ -375,6 +386,42 @@ pub(crate) fn on_link_connected(
         ))
         .id();
     info!("spawned player {player} for {peer:?} on team {team:?}");
+}
+
+/// The tick rate a joining client runs at (its netcode id carries it: `vetf_net::client_id`); none for the host's
+/// own client.
+pub fn joiner_tick_hz(peer: PeerId) -> Option<u32> {
+    match peer {
+        PeerId::Netcode(id) => Some(vetf_net::client_tick_hz(id)),
+        _ => None,
+    }
+}
+
+/// Tell every client that just connected the host's tick rate (one at another rate reconnects at it).
+fn announce_tick_rate(
+    mut links: Query<(&RemoteId, &mut MessageSender<TickRate>), (With<ClientOf>, Added<Connected>)>,
+    data: Res<Data>,
+) {
+    for (remote, mut sender) in &mut links {
+        if !remote.0.is_local() {
+            sender.send::<ReliableChannel>(TickRate { hz: data.net.tick_hz as u16 });
+        }
+    }
+}
+
+/// The host's SNAPSHOT RATE follows the match setting (HOST GAME's, then the lobby's).
+fn follow_snapshot_rate(matches: Query<&MatchState>, mut sent: Local<u16>, mut commands: Commands) {
+    let Some(m) = matches.iter().next() else { return };
+    if *sent != m.snapshot_hz {
+        *sent = m.snapshot_hz;
+        info!("sending {} snapshots a second", m.snapshot_hz);
+        commands.insert_resource(ReplicationMetadata::new(snapshot_interval(m.snapshot_hz as u32)));
+    }
+}
+
+/// Time between snapshots at `snapshot_hz`.
+pub fn snapshot_interval(snapshot_hz: u32) -> std::time::Duration {
+    std::time::Duration::from_secs_f64(1.0 / snapshot_hz.max(1) as f64)
 }
 
 /// A new player's gameplay components and the host's bookkeeping, fresh at `spawn` in `mode`'s default loadout
@@ -764,6 +811,12 @@ fn receive_lobby_actions(
                         m.mag_check = mag_check;
                     }
                 }
+                LobbyAction::SetSnapshotHz(hz) => {
+                    if lobby_snapshot_change(&data, &m, hz, from_host) {
+                        info!("the host sets the snapshot rate to {hz} Hz");
+                        m.snapshot_hz = hz;
+                    }
+                }
                 // The host's test bots (`bots.rs` checks the seats).
                 LobbyAction::AddBot if from_host => bots.0.push(crate::bots::BotRequest::Add),
                 LobbyAction::RemoveBot if from_host => bots.0.push(crate::bots::BotRequest::Remove),
@@ -788,6 +841,15 @@ fn receive_lobby_actions(
 /// range has a personal setting instead), and only to the other value.
 fn lobby_mag_check_change(m: &MatchState, mag_check: MagCheckMode, from_host: bool) -> bool {
     from_host && m.phase == MatchPhase::Lobby && m.mode.is_deathmatch() && m.mag_check != mag_check
+}
+
+/// Whether the host's SNAPSHOT RATE pick changes the match: only the host, only in the lobby, only to another
+/// rate `net.ron` offers at the match's tick rate (no more snapshots than ticks).
+fn lobby_snapshot_change(data: &GameData, m: &MatchState, hz: u16, from_host: bool) -> bool {
+    from_host
+        && m.phase == MatchPhase::Lobby
+        && m.snapshot_hz != hz
+        && data.net.snapshot_rates_for(m.tick_hz as u32).contains(&(hz as u32))
 }
 
 /// The lobby's seats after the host asks to change its mode to `mode`, or `None` when the change is refused:
@@ -1229,12 +1291,14 @@ fn resolve_claims(
     }
     let rules = match_rules(&matches);
     let tick = timeline.tick().0;
+    let sv = &data.combat.shot_validation;
+    let (wait, grace) = (data.net.ticks(sv.claim_wait_s), data.net.ticks(sv.dead_shooter_grace_s));
     let mut keep = Vec::new();
     for mut p in std::mem::take(&mut pending.0) {
         p.age += 1;
         let shooter = players.iter().find(|(.., sp)| sp.link == p.link).and_then(|(e, id, info, lo, v, _, sp)| {
             let shot = sp.shots.iter().find(|s| s.seq == p.claim.seq)?;
-            (!v.health.dead || shot.tick + 2 >= tick).then(|| Shooter {
+            (!v.health.dead || shot.tick + grace >= tick).then(|| Shooter {
                 entity: e,
                 id: id.0,
                 team: info.team,
@@ -1243,10 +1307,10 @@ fn resolve_claims(
             })
         });
         let Some(shooter) = shooter else {
-            if p.age == CLAIM_WAIT_TICKS {
+            if p.age == wait {
                 debug!("claim {} expired: no matching shot", p.claim.seq);
             }
-            if p.age < CLAIM_WAIT_TICKS {
+            if p.age < wait {
                 keep.push(p);
             }
             continue;
@@ -1599,7 +1663,7 @@ mod routing_tests {
     /// started server, the host's own client connected through it, and two joined players' links (peers 7 and
     /// 8; not linked to a socket, so what is queued for them stays in their transports to be counted).
     fn listen_server() -> (App, Entity, [Entity; 2]) {
-        let tick = std::time::Duration::from_secs_f64(1.0 / 60.0);
+        let tick = std::time::Duration::from_secs_f64(1.0 / GameData::embedded().net.tick_hz as f64);
         let mut app = App::new();
         app.add_plugins((MinimalPlugins, bevy::state::app::StatesPlugin));
         app.add_plugins((ServerPlugins { tick_duration: tick }, ClientPlugins { tick_duration: tick }));
@@ -1654,6 +1718,33 @@ mod routing_tests {
             app.update();
             assert!(host_feed(&mut app, host).is_empty(), "shown once");
         }
+    }
+
+    /// Every player joining over the network hears the host's tick rate once, as they connect (a client at the
+    /// other rate reconnects at it); the host's own client needs none.
+    #[test]
+    fn every_joiner_hears_the_hosts_tick_rate_once() {
+        let (mut app, host, joined) = listen_server();
+        app.insert_resource(Data(Arc::new(GameData::embedded())));
+        app.add_systems(Update, announce_tick_rate);
+        for link in joined {
+            queued::<ReliableChannel>(&app, link);
+        }
+        app.update();
+        app.update();
+        for link in joined {
+            assert_eq!(queued::<ReliableChannel>(&app, link), 1, "the rate, once");
+        }
+        app.update();
+        for link in joined {
+            assert_eq!(queued::<ReliableChannel>(&app, link), 0, "only as they connect");
+        }
+        let heard: Vec<TickRate> = app
+            .world_mut()
+            .get_mut::<MessageReceiver<TickRate>>(host)
+            .map(|mut r| r.receive().collect())
+            .unwrap_or_default();
+        assert!(heard.is_empty(), "the host's own client runs at its rate already");
     }
 
     /// Kill streak news (the feed's streak lines and the map-wide banner) reaches every player once, the host's
@@ -1813,6 +1904,8 @@ mod system_tests {
             max_players: rules.max_players,
             rules: d.rules.rulesets.get(mode),
             mag_check: Default::default(),
+            tick_hz: 120,
+            snapshot_hz: 60,
         });
         app.insert_resource(Data(Arc::new(d)));
         app.init_resource::<Time>();
@@ -2782,6 +2875,8 @@ mod tests {
             max_players: rules.max_players,
             rules: d.rules.rulesets.get(mode),
             mag_check: Default::default(),
+            tick_hz: 120,
+            snapshot_hz: 60,
         }
     }
 
@@ -2867,6 +2962,34 @@ mod tests {
         let started = MatchState { phase: MatchPhase::Live, ..ffa };
         assert!(!lobby_mag_check_change(&started, MagCheckMode::Exact, true), "not once the match is live");
         assert!(!lobby_mag_check_change(&live(MatchMode::Range), MagCheckMode::Exact, true), "the range is personal");
+    }
+
+    /// The host picks the snapshot rate in the lobby, among the rates its tick rate allows (no more snapshots than
+    /// ticks: 120 only at 120 Hz).
+    #[test]
+    fn only_the_host_sets_the_snapshot_rate_in_the_lobby() {
+        let d = GameData::embedded();
+        let lobby = MatchState { phase: MatchPhase::Lobby, tick_hz: 120, snapshot_hz: 60, ..live(MatchMode::Tdm) };
+        assert!(lobby_snapshot_change(&d, &lobby, 120, true));
+        assert!(lobby_snapshot_change(&d, &lobby, 30, true));
+        assert!(!lobby_snapshot_change(&d, &lobby, 120, false), "only the host");
+        assert!(!lobby_snapshot_change(&d, &lobby, 60, true), "already 60");
+        assert!(!lobby_snapshot_change(&d, &lobby, 45, true), "not a rate net.ron offers");
+        let slow = MatchState { tick_hz: 60, ..lobby.clone() };
+        assert!(!lobby_snapshot_change(&d, &slow, 120, true), "no more snapshots than ticks");
+        assert!(lobby_snapshot_change(&d, &slow, 30, true));
+        let started = MatchState { phase: MatchPhase::Live, ..lobby };
+        assert!(!lobby_snapshot_change(&d, &started, 120, true), "not once the match is live");
+        assert_eq!(snapshot_interval(60), std::time::Duration::from_secs_f64(1.0 / 60.0));
+    }
+
+    /// A joiner's netcode id says its tick rate (the host's own client has none): the host seats only those at
+    /// its own.
+    #[test]
+    fn a_joiners_tick_rate_comes_from_its_id() {
+        assert_eq!(joiner_tick_hz(PeerId::Netcode(vetf_net::client_id(60, 0xbeef))), Some(60));
+        assert_eq!(joiner_tick_hz(PeerId::Netcode(vetf_net::client_id(120, 0xbeef))), Some(120));
+        assert_eq!(joiner_tick_hz(PeerId::Local(0)), None);
     }
 
     #[test]
@@ -3177,7 +3300,7 @@ mod bot_tests {
     /// A host's world: lightyear's plugins and a started server (no links), the data, the arena, a match, and
     /// the host's tick in order: bot requests, bot brains, the simulation, the shot check, deaths, respawns.
     fn host(mode: MatchMode, phase: MatchPhase, max_players: u32) -> App {
-        let tick = std::time::Duration::from_secs_f64(1.0 / 60.0);
+        let tick = std::time::Duration::from_secs_f64(1.0 / GameData::embedded().net.tick_hz as f64);
         let mut app = App::new();
         app.add_plugins((MinimalPlugins, bevy::state::app::StatesPlugin));
         app.add_plugins((ServerPlugins { tick_duration: tick }, ClientPlugins { tick_duration: tick }));
@@ -3202,6 +3325,8 @@ mod bot_tests {
             max_players,
             rules: d.rules.rulesets.get(mode),
             mag_check: Default::default(),
+            tick_hz: 120,
+            snapshot_hz: 60,
         });
         app.insert_resource(Data(Arc::new(d)));
         app.insert_resource(CurrentLevel(Arc::new(arena())));
@@ -3306,13 +3431,38 @@ mod bot_tests {
         seats
     }
 
-    /// A player joining over the network (peer `id`) finishes connecting; their player, if they got one.
+    /// A player joining over the network (peer `id`, at the host's tick rate) finishes connecting; their player,
+    /// if they got one.
     fn join(app: &mut App, id: u64) -> Option<Entity> {
+        let hz = app.world().resource::<Data>().net.tick_hz;
+        join_at(app, id, hz)
+    }
+
+    /// A player joining at `tick_hz` (their netcode id says it: `vetf_net::client_id`).
+    fn join_at(app: &mut App, id: u64, tick_hz: u32) -> Option<Entity> {
+        let id = vetf_net::client_id(tick_hz, id);
         let server = app.world_mut().query_filtered::<Entity, With<Server>>().single(app.world()).unwrap();
         app.world_mut().spawn((LinkOf { server }, ClientOf, Connected, RemoteId(PeerId::Netcode(id))));
         tick(app);
         let mut q = app.world_mut().query::<(Entity, &PlayerId)>();
         q.iter(app.world()).find(|(_, p)| p.0 == PeerId::Netcode(id).to_bits()).map(|(e, _)| e)
+    }
+
+    /// A joiner at another tick rate gets no seat, and no bot gives one up for them: they reconnect at the host's
+    /// rate (and then take the bot's seat like anyone).
+    #[test]
+    fn a_joiner_at_another_tick_rate_gets_no_seat() {
+        let mut app = host(MatchMode::Ffa, MatchPhase::Live, 4);
+        open_to_joiners(&mut app);
+        host_player(&mut app, Vec3::new(0.0, 0.0, -15.0), None);
+        request(&mut app, BotRequest::Add, 3);
+        tick(&mut app);
+        let host_hz = app.world().resource::<Data>().net.tick_hz;
+        let other = *app.world().resource::<Data>().net.tick_rates.iter().find(|hz| **hz != host_hz).unwrap();
+        assert_eq!(join_at(&mut app, 42, other), None, "{other} Hz on a {host_hz} Hz host: no player");
+        assert_eq!(bots(&mut app).len(), 3, "and every bot keeps its seat");
+        assert!(join_at(&mut app, 42, host_hz).is_some(), "at the host's rate it joins");
+        assert_eq!(bots(&mut app).len(), 2);
     }
 
     fn players(app: &mut App) -> usize {
@@ -3428,7 +3578,8 @@ mod bot_tests {
             for _ in 0..(d.rules.ffa.spawn_protection_s / d.tick_dt()) as u32 + 2 {
                 tick(&mut app);
             }
-            let fire = Fire { id: ThrowId { owner, seq: 1 }, at: Vec3::new(0.0, 0.0, -15.0), age: 60 };
+            // A fire a second old (spread to its full size).
+            let fire = Fire { id: ThrowId { owner, seq: 1 }, at: Vec3::new(0.0, 0.0, -15.0), age: d.net.tick_hz };
             app.world_mut().resource_mut::<HostThrows>().world.fires.push(fire);
             let full = *app.world().get::<Vitals>(me).unwrap();
             let left = |app: &App| {
@@ -3437,7 +3588,7 @@ mod bot_tests {
             };
             let before = left(&app);
             // One second in it: four pulses' worth of damage, between the halo arc and health.
-            for _ in 0..60 {
+            for _ in 0..d.net.tick_hz {
                 tick(&mut app);
             }
             let pulse = fd.dps * fd.pulse_s;

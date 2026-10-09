@@ -1,6 +1,7 @@
 //! PLAY > HOST GAME (mockup 04b): lobby name, mode (team deathmatch or free-for-all), who can join, max
-//! players, port and password, then CREATE LOBBY, which opens the lobby on Showhome. The values live in
-//! [`HostSettings`] (kept across menu visits; the gun range hosts with them too, always as the range).
+//! players, tick rate and snapshot rate (with the upload they cost), port and password, then CREATE LOBBY, which
+//! opens the lobby on Showhome. The values live in [`HostSettings`] (kept across menu visits; the gun range hosts
+//! with them too, always as the range).
 
 use super::field::{self, Field, FieldEditor, FieldId, FieldSpec};
 use super::{Click, Ctx, Focus, FocusRing, FocusTarget, HostItem, MenuAction, MenuState, Sub, copy, ring};
@@ -17,7 +18,9 @@ use vetf_net::MatchMode;
 pub(super) fn plugin(app: &mut App) {
     app.add_systems(
         Update,
-        (follow_default_port, settings_from_widgets, follow_mode, visuals).chain().run_if(in_state(AppState::MainMenu)),
+        (follow_default_port, settings_from_widgets, follow_mode, follow_rates, visuals)
+            .chain()
+            .run_if(in_state(AppState::MainMenu)),
     );
 }
 
@@ -62,8 +65,16 @@ fn mode_index(mode: MatchMode) -> usize {
 }
 
 /// Keyboard order (the disabled password is skipped).
-pub(super) const ORDER: [HostItem; 6] =
-    [HostItem::Name, HostItem::Mode, HostItem::Access, HostItem::MaxPlayers, HostItem::Port, HostItem::Create];
+pub(super) const ORDER: [HostItem; 8] = [
+    HostItem::Name,
+    HostItem::Mode,
+    HostItem::Access,
+    HostItem::MaxPlayers,
+    HostItem::TickRate,
+    HostItem::Snapshots,
+    HostItem::Port,
+    HostItem::Create,
+];
 
 pub(super) fn step(item: HostItem, delta: i32) -> HostItem {
     let i = ORDER.iter().position(|h| *h == item).unwrap_or(0) as i32;
@@ -107,6 +118,41 @@ pub(super) struct AccessHelp;
 
 #[derive(Component)]
 pub(super) struct HostError;
+
+/// TICK RATE: `net.ron`'s `tick_rates`, in order.
+#[derive(Component)]
+pub(super) struct TickToggle;
+
+/// SNAPSHOT RATE: `net.ron`'s `snapshot_rates`, in order (those above the tick rate disabled).
+#[derive(Component)]
+pub(super) struct SnapshotToggle;
+
+/// SNAPSHOT RATE's help: the upload it costs (follows the rates and MAX PLAYERS).
+#[derive(Component)]
+pub(super) struct SnapshotHelp;
+
+/// The segment index of `hz` among `rates` (the first if it is not there).
+fn rate_index(rates: &[u32], hz: u32) -> usize {
+    rates.iter().position(|r| *r == hz).unwrap_or(0)
+}
+
+/// The host's upload at the snapshot rate in play, with MAX PLAYERS all playing over the network but the host,
+/// and whether it is high.
+fn upload(data: &vetf_sim::GameData, host: &HostSettings) -> (f32, bool) {
+    let players = hosted_players_for(data, host);
+    let mbit = data.net.host_upload_mbit(host.snapshot_hz_in_play(data), players, players.saturating_sub(1));
+    (mbit, data.net.upload_is_high(mbit))
+}
+
+/// The players CREATE LOBBY opens for (MAX PLAYERS within the mode's cap).
+fn hosted_players_for(data: &vetf_sim::GameData, host: &HostSettings) -> u32 {
+    crate::net::hosted_players(data, host.mode, host.max_players)
+}
+
+fn snapshot_help_text(data: &vetf_sim::GameData, host: &HostSettings) -> (String, Color) {
+    let (mbit, high) = upload(data, host);
+    (copy::snapshot_help(mbit, hosted_players_for(data, host), high), if high { BAD } else { TEXT_MID })
+}
 
 fn lobby_char(c: char) -> bool {
     !c.is_control()
@@ -266,6 +312,54 @@ pub(super) fn spawn_flyout(
                 row.spawn((MaxHelp, fonts.role(TextRole::Help, max_help(data, host.mode))));
             });
 
+            // TICK RATE and SNAPSHOT RATE, each with what it means; SNAPSHOT RATE's help is the upload it costs.
+            let rates = [
+                (HostItem::TickRate, "Tick rate", &data.net.tick_rates, host.tick_hz),
+                (HostItem::Snapshots, "Snapshots", &data.net.snapshot_rates, host.snapshot_hz_in_play(data)),
+            ];
+            for (item, label, options, value) in rates {
+                g.spawn((
+                    fonts.lbl(label),
+                    Node { align_self: AlignSelf::Start, margin: UiRect::top(px(10)), ..default() },
+                ));
+                g.spawn(Node { flex_direction: FlexDirection::Column, ..default() }).with_children(|col| {
+                    let mut toggle = col.spawn((
+                        SegValue(rate_index(options, value)),
+                        FocusRing(Focus::Host(item)),
+                        ring(),
+                        Node { height: px(36), border: UiRect::all(px(1)), align_self: AlignSelf::Start, ..default() },
+                        BorderColor::all(STROKE_HI),
+                    ));
+                    if item == HostItem::TickRate {
+                        toggle.insert(TickToggle);
+                    } else {
+                        toggle.insert(SnapshotToggle);
+                    }
+                    toggle.with_children(|t| {
+                        for (i, hz) in options.iter().enumerate() {
+                            let mut seg = t.spawn((
+                                segment(fonts, &copy::hz_label(*hz), TOGGLE, 34.0, false),
+                                SegOption(i),
+                                FocusTarget(Focus::Host(item)),
+                            ));
+                            if *hz == value {
+                                seg.insert(Active(true));
+                            }
+                            if item == HostItem::Snapshots && *hz > host.tick_hz {
+                                seg.insert(Disabled);
+                            }
+                        }
+                    });
+                    let below = Node { margin: UiRect::top(px(6)), ..default() };
+                    if item == HostItem::TickRate {
+                        col.spawn((fonts.role(TextRole::Help, copy::TICK_RATE_HELP), below));
+                    } else {
+                        let (text, color) = snapshot_help_text(data, host);
+                        col.spawn((SnapshotHelp, fonts.role_color(TextRole::Help, text, color), below));
+                    }
+                });
+            }
+
             g.spawn(fonts.lbl("Port"));
             g.spawn(Node { column_gap: px(10), align_items: AlignItems::Center, ..default() }).with_children(|row| {
                 field::spawn_field(
@@ -402,6 +496,64 @@ fn follow_mode(
     }
 }
 
+/// TICK RATE limits SNAPSHOT RATE (no more snapshots than ticks: the faster ones are disabled and the toggle shows
+/// the rate in play, keeping the wanted one for a switch back), and the upload help follows the rates and MAX
+/// PLAYERS.
+#[allow(clippy::type_complexity)]
+fn follow_rates(
+    host: Res<HostSettings>,
+    data: Res<crate::config::Data>,
+    mut last: Local<Option<(u32, u32, u32, MatchMode)>>,
+    mut toggles: Query<(&mut SegValue, &Children), (With<SnapshotToggle>, Without<TickToggle>)>,
+    mut ticks: Query<&mut SegValue, (With<TickToggle>, Without<SnapshotToggle>)>,
+    segs: Query<(&SegOption, Has<Disabled>)>,
+    mut help: Query<(&mut Text, &mut TextColor), With<SnapshotHelp>>,
+    mut commands: Commands,
+) {
+    let now = (host.tick_hz, host.snapshot_hz, host.max_players, host.mode);
+    if *last == Some(now) {
+        return;
+    }
+    *last = Some(now);
+    let rates = &data.net.snapshot_rates;
+    for mut v in &mut ticks {
+        let want = rate_index(&data.net.tick_rates, host.tick_hz);
+        if v.0 != want {
+            v.0 = want;
+        }
+    }
+    for (mut v, kids) in &mut toggles {
+        let want = rate_index(rates, host.snapshot_hz_in_play(&data));
+        if v.0 != want {
+            v.0 = want;
+        }
+        for kid in kids.iter() {
+            let Ok((opt, disabled)) = segs.get(kid) else { continue };
+            let off = rates.get(opt.0).is_some_and(|hz| *hz > host.tick_hz);
+            if off && !disabled {
+                commands.entity(kid).insert(Disabled);
+            } else if !off && disabled {
+                commands.entity(kid).remove::<Disabled>();
+            }
+        }
+    }
+    let (text, color) = snapshot_help_text(&data, &host);
+    for (mut t, mut c) in &mut help {
+        if t.0 != text {
+            t.0.clone_from(&text);
+        }
+        if c.0 != color {
+            c.0 = color;
+        }
+    }
+}
+
+/// The SNAPSHOT RATE the player wants after the toggle shows `shown`: like MAX PLAYERS, the toggle showing the
+/// wanted rate as the tick rate allows it keeps the wanted one (a look at 60 Hz does not lose 120 snapshots).
+fn wanted_snapshots(data: &vetf_sim::GameData, tick_hz: u32, wanted: u32, shown: u32) -> u32 {
+    if shown == data.net.snapshot_hz_for(tick_hz, wanted) { wanted } else { shown }
+}
+
 /// CREATE LOBBY: host the chosen mode on Showhome; it opens in the lobby.
 pub(super) fn actions(
     mut actions: MessageReader<MenuAction>,
@@ -415,14 +567,20 @@ pub(super) fn actions(
     }
 }
 
-/// ←/→ on MODE and WHO CAN JOIN; ←/→ and -/+ on MAX PLAYERS.
+/// ←/→ on MODE, WHO CAN JOIN, TICK RATE and SNAPSHOTS; ←/→ and -/+ on MAX PLAYERS.
 #[allow(clippy::type_complexity)]
 pub(super) fn keys(
     keys: Res<ButtonInput<KeyCode>>,
     mut state: ResMut<MenuState>,
     screens: Res<Screens>,
+    host: Res<HostSettings>,
+    data: Res<crate::config::Data>,
     mut toggles: Query<&mut SegValue, (With<AccessToggle>, Without<ModeToggle>)>,
     mut modes: Query<&mut SegValue, (With<ModeToggle>, Without<AccessToggle>)>,
+    mut rates: ParamSet<(
+        Query<&mut SegValue, (With<TickToggle>, Without<ModeToggle>, Without<AccessToggle>)>,
+        Query<&mut SegValue, (With<SnapshotToggle>, Without<ModeToggle>, Without<AccessToggle>)>,
+    )>,
     mut steppers: Query<(Entity, &mut StepperValue), With<MaxStepper>>,
     step_buttons: Query<(&Interaction, &ChildOf), (Changed<Interaction>, With<StepperButton>)>,
 ) {
@@ -470,6 +628,26 @@ pub(super) fn keys(
             }
             state.focus_visible = true;
         }
+        Focus::Host(HostItem::TickRate) if !keys.any_just_pressed([KeyCode::Minus, KeyCode::Equal]) => {
+            for mut v in &mut rates.p0() {
+                let next = (v.0 as i32 + delta).clamp(0, data.net.tick_rates.len() as i32 - 1) as usize;
+                if v.0 != next {
+                    v.0 = next;
+                }
+            }
+            state.focus_visible = true;
+        }
+        Focus::Host(HostItem::Snapshots) if !keys.any_just_pressed([KeyCode::Minus, KeyCode::Equal]) => {
+            // Only the rates the tick rate allows.
+            let allowed = data.net.snapshot_rates.iter().filter(|hz| **hz <= host.tick_hz).count().max(1);
+            for mut v in &mut rates.p1() {
+                let next = (v.0 as i32 + delta).clamp(0, allowed as i32 - 1) as usize;
+                if v.0 != next {
+                    v.0 = next;
+                }
+            }
+            state.focus_visible = true;
+        }
         _ => {}
     }
 }
@@ -484,6 +662,8 @@ fn settings_from_widgets(
     toggles: Query<&SegValue, (With<AccessToggle>, Changed<SegValue>)>,
     modes: Query<&SegValue, (With<ModeToggle>, Changed<SegValue>)>,
     steppers: Query<&StepperValue, (With<MaxStepper>, Changed<StepperValue>)>,
+    ticks: Query<&SegValue, (With<TickToggle>, Changed<SegValue>)>,
+    snapshots: Query<&SegValue, (With<SnapshotToggle>, Changed<SegValue>)>,
     mut editors: Query<(&FieldEditor, &mut EditableText)>,
     mut last_name: Local<String>,
 ) {
@@ -533,6 +713,19 @@ fn settings_from_widgets(
         let n = wanted_players(host.mode, host.max_players, s.value.max(2) as u32, cap);
         if host.max_players != n {
             host.max_players = n;
+        }
+    }
+    for v in &ticks {
+        let hz = data.net.tick_rates.get(v.0).copied().unwrap_or(data.net.tick_hz);
+        if host.tick_hz != hz {
+            host.tick_hz = hz;
+        }
+    }
+    for v in &snapshots {
+        let shown = data.net.snapshot_rates.get(v.0).copied().unwrap_or(data.net.snapshot_hz);
+        let hz = wanted_snapshots(&data, host.tick_hz, host.snapshot_hz, shown);
+        if host.snapshot_hz != hz {
+            host.snapshot_hz = hz;
         }
     }
     // A new player name renames a lobby that still has the default name.
@@ -647,6 +840,34 @@ mod tests {
         assert_eq!(step_access(2, -1), 1);
         assert_eq!(step_access(2, 1), 2, "no wrap");
         assert_eq!(step_access(0, -1), 0);
+    }
+
+    /// TICK RATE and SNAPSHOTS: 120 Hz and 60 snapshots by default; at 60 Hz the 120-snapshot option is shown as
+    /// 60 (no more snapshots than ticks) but stays wanted for a switch back; a rate stepped to sticks. The help
+    /// warns past `net.ron`'s upload line.
+    #[test]
+    fn the_rates_default_to_120_hz_and_60_snapshots() {
+        let d = vetf_sim::GameData::embedded();
+        let mut h = HostSettings::new(&d, None);
+        assert_eq!((h.tick_hz, h.snapshot_hz_in_play(&d)), (120, 60));
+        assert_eq!(rate_index(&d.net.tick_rates, h.tick_hz), 1);
+        assert_eq!(rate_index(&d.net.snapshot_rates, 60), 1);
+        h.snapshot_hz = 120;
+        h.tick_hz = 60;
+        assert_eq!(h.snapshot_hz_in_play(&d), 60, "no more snapshots than ticks");
+        assert_eq!(wanted_snapshots(&d, 60, 120, 60), 120, "only shown clamped");
+        h.tick_hz = 120;
+        assert_eq!(h.snapshot_hz_in_play(&d), 120, "back at 120 Hz: the wanted rate");
+        assert_eq!(wanted_snapshots(&d, 120, 120, 30), 30, "a rate stepped to sticks");
+        // 10 players at 120 snapshots: high; 30 snapshots: fine.
+        assert!(upload(&d, &h).1, "{:?}", upload(&d, &h));
+        h.snapshot_hz = 30;
+        assert!(!upload(&d, &h).1);
+        let (text, color) = snapshot_help_text(&d, &h);
+        assert!(text.starts_with("≈ 2.") && text.contains("with 10 players"), "{text}");
+        assert_eq!(color, TEXT_MID);
+        h.max_players = 2;
+        assert!(upload(&d, &h).0 < 0.2, "one friend: next to nothing");
     }
 
     #[test]

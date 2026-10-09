@@ -255,6 +255,26 @@ pub fn access_help(access: crate::net::JoinAccess, port: u16) -> String {
     }
 }
 
+/// TICK RATE's help.
+pub const TICK_RATE_HELP: &str = "Everyone plays at your rate. 120 Hz: crisper hits, about twice your CPU.";
+
+/// "60 Hz" for a rate segment.
+pub fn hz_label(hz: u32) -> String {
+    format!("{hz} Hz")
+}
+
+/// SNAPSHOT RATE's help: the host's upload with `players` (all over the network but the host), and whether it is
+/// high: "≈ 5.5 Mbit/s upload with 10 players · high for many home connections".
+pub fn snapshot_help(mbit: f32, players: u32, high: bool) -> String {
+    let base = format!("≈ {mbit:.1} Mbit/s upload with {players} players");
+    if high { format!("{base} · high for many home connections") } else { format!("{base} · smoother other players") }
+}
+
+/// The lobby's SNAPSHOTS row: "60 HZ · ≈ 2.4 MBIT/S UP" (the host's upload for the players in the lobby).
+pub fn snapshot_row(hz: u32, mbit: f32) -> String {
+    format!("{hz} HZ · ≈ {mbit:.1} MBIT/S UP")
+}
+
 pub const PORT_HELP: &str = "UDP. Only needed for Direct IP (port-forward).";
 pub const PORT_ERROR: &str = "Port must be 1024–65535.";
 pub const PASSWORD_PLACEHOLDER: &str = "optional · not available yet";

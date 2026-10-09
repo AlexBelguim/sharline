@@ -1126,6 +1126,8 @@ mod tests {
             max_players: 10,
             rules: GameData::embedded().rules.rulesets.tdm,
             mag_check: Default::default(),
+            tick_hz: 120,
+            snapshot_hz: 60,
         }
     }
 

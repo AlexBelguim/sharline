@@ -11,9 +11,10 @@
 //     fixed yaw, not a random one); moving adds random bloom on top, Apex-style: hip fire opens with speed and
 //     state (walk < jog < sprint, slide, air, zipline, jetpack) and sustained fire, aimed fire only a little
 //     (`ads_move_mult`, `bloom_max_ads`); the raise from a sprint (`sprint_to_fire_s`) is about the ADS time.
+//   - the simulation rate is a host setting (net.ron, 60 or 120 Hz), not a weapon number: every time here is in
+//     seconds and lands on whole ticks at both rates (the design's `tick_hz: 60` is superseded).
 // Angles in degrees, distances in metres, times in seconds.
 (
-    tick_hz: 60,
     weapons: [
         (
             id: "ar7_mako",

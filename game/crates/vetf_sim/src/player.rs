@@ -219,7 +219,8 @@ mod tests {
                 let mut items = ItemState::new(&l.kit);
                 let mut wounds = Wounds::default();
                 let mut shots = 0;
-                for t in 0..120 {
+                // two seconds of running
+                for t in 0..2 * d.net.tick_hz {
                     // Fire is pressed every other tick, so the bolt gun fires too.
                     let held = if t % 2 == 1 { bits & !Buttons::FIRE } else { bits };
                     let run = InputFrame { movement: Vec2::Y, buttons: Buttons(held), ..Default::default() };
@@ -422,7 +423,8 @@ mod tests {
         let mut launched = Vec::new();
         let mut shots = 0;
         let fire = InputFrame { buttons: Buttons(Buttons::FIRE), ..Default::default() };
-        let busy_ticks = crate::weapon::secs_to_ticks(d.throwables.throw.windup_s + d.throwables.throw.recover_s, 60);
+        let busy_ticks =
+            crate::weapon::secs_to_ticks(d.throwables.throw.windup_s + d.throwables.throw.recover_s, d.net.tick_hz);
         for _ in 0..busy_ticks {
             let ev = step(&d, &level, &l, &mut ms, &mut ws, &mut items, &mut wounds, &fire);
             shots += ev.weapon.shot.is_some() as u32;

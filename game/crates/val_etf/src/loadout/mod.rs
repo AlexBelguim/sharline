@@ -1230,6 +1230,8 @@ pub(crate) mod tests {
             max_players: 8,
             rules: d.rules.rulesets.ffa,
             mag_check: Default::default(),
+            tick_hz: 120,
+            snapshot_hz: 60,
         });
         let data = d.clone();
         let ctx = app

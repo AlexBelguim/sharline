@@ -793,9 +793,14 @@ mod tests {
         InputFrame { reload_slot: slot, ..input(0) }
     }
 
+    /// `secs` in ticks of the data's rate. The tests count time in seconds, so they hold at 60 and at 120 Hz.
+    fn ticks(d: &GameData, secs: f32) -> u16 {
+        secs_to_ticks(secs, d.net.tick_hz)
+    }
+
     fn run_reload(d: &GameData, l: &WeaponLoadout, s: &mut WeaponState) -> u16 {
         let mut done = 0;
-        for t in 1..=400 {
+        for t in 1..=ticks(d, 7.0) {
             if s.step(d, l, &input(0), &still()).reload_finished {
                 done = t;
                 break;
@@ -854,7 +859,7 @@ mod tests {
         }
         assert_eq!(shots, 30, "one magazine, then dry");
         assert_eq!(s.mag(), 0);
-        // 30 shots at 5 ticks each take 145 ticks after the first
+        // 30 shots at 720 RPM (5 ticks at 60 Hz, 10 at 120) take 2.4 s after the first, inside the 300 ticks
         assert_eq!(first, Some(0));
     }
 
@@ -862,14 +867,14 @@ mod tests {
     fn semi_needs_trigger_release() {
         let (d, l, mut s) = setup("ar7_mako");
         s.fire_mode = FireMode::Semi;
-        let shots = (0..60).filter(|_| s.step(&d, &l, &input(Buttons::FIRE), &still()).shot.is_some()).count();
-        assert_eq!(shots, 1);
+        let shots = (0..ticks(&d, 1.0)).filter(|_| s.step(&d, &l, &input(Buttons::FIRE), &still()).shot.is_some());
+        assert_eq!(shots.count(), 1);
     }
 
     #[test]
     fn tactical_reload_keeps_partial_mag() {
         let (d, l, mut s) = setup("ar7_mako");
-        for _ in 0..50 {
+        for _ in 0..ticks(&d, 0.83) {
             s.step(&d, &l, &input(Buttons::FIRE), &still());
         }
         let left = s.mag();
@@ -877,7 +882,7 @@ mod tests {
         s.step(&d, &l, &input(0), &still());
         let ev = s.step(&d, &l, &input(Buttons::RELOAD), &still());
         assert_eq!(ev.reload_started, Some(ReloadKind::Tactical));
-        assert_eq!(run_reload(&d, &l, &mut s), secs_to_ticks(2.1, 60));
+        assert_eq!(run_reload(&d, &l, &mut s), ticks(&d, 2.1));
         assert_eq!((s.loaded, s.mag()), (1, 30), "a tap takes the next slot");
         assert_eq!(s.rounds[0], left, "the partial magazine goes back to slot 1");
     }
@@ -931,7 +936,7 @@ mod tests {
         s.rounds[0] = 14;
         s.step(&d, &l, &input(Buttons::MAG_CHECK), &still());
         let mut est = None;
-        for _ in 0..70 {
+        for _ in 0..ticks(&d, 1.17) {
             if let Some(e) = s.step(&d, &l, &input(0), &still()).mag_checked {
                 est = Some(e);
             }
@@ -973,7 +978,7 @@ mod tests {
     #[test]
     fn sprint_blocks_fire_until_gun_is_up() {
         let (d, l, mut s) = setup("ar7_mako");
-        let wait = secs_to_ticks(l.spec(&d).sprint_to_fire_s * l.mods.sprint_to_fire, 60) as i32;
+        let wait = ticks(&d, l.spec(&d).sprint_to_fire_s * l.mods.sprint_to_fire) as i32;
         assert!(wait > 1);
         let mut sprint = still();
         sprint.sprinting = true;
@@ -982,10 +987,11 @@ mod tests {
                 assert!(s.step(&d, &l, &input(0), &sprint).shot.is_none());
             }
             assert!(s.lowered(), "a sprint lowers an idle gun");
-            let first = (1..60).find(|_| s.step(&d, &l, &input(Buttons::FIRE), &env).shot.is_some());
+            let second = ticks(&d, 1.0) as i32;
+            let first = (1..second).find(|_| s.step(&d, &l, &input(Buttons::FIRE), &env).shot.is_some());
             assert_eq!(first, Some(wait), "{why}");
             assert!(!s.lowered());
-            for _ in 0..secs_to_ticks(d.movement.speed.sprint_gun_hold_s, 60) + 1 {
+            for _ in 0..ticks(&d, d.movement.speed.sprint_gun_hold_s) + 1 {
                 s.step(&d, &l, &input(0), &sprint);
             }
         }
@@ -1002,9 +1008,10 @@ mod tests {
             let mut sprint = still();
             sprint.sprinting = true;
             s.step(&d, &l, &input(0), &sprint);
-            let wait = secs_to_ticks(l.spec(&d).sprint_to_fire_s * l.mods.sprint_to_fire, 60) as usize;
+            let wait = ticks(&d, l.spec(&d).sprint_to_fire_s * l.mods.sprint_to_fire) as usize;
             assert!(s.step(&d, &l, &input(Buttons::FIRE), &sprint).shot.is_none());
-            let shots: Vec<usize> = (1..60).filter(|_| s.step(&d, &l, &input(0), &sprint).shot.is_some()).collect();
+            let second = ticks(&d, 1.0) as usize;
+            let shots: Vec<usize> = (1..second).filter(|_| s.step(&d, &l, &input(0), &sprint).shot.is_some()).collect();
             // the pull's own tick counts: the shot goes off `sprint_to_fire_s` after it
             assert_eq!(shots, vec![wait - 1], "{gun} {mode:?}: one shot, when the gun is up");
         }
@@ -1026,11 +1033,12 @@ mod tests {
         s.fire_mode = FireMode::Semi;
         let mut sprint = still();
         sprint.sprinting = true;
-        let hold = secs_to_ticks(d.movement.speed.sprint_gun_hold_s, 60) as usize;
+        let hold = ticks(&d, d.movement.speed.sprint_gun_hold_s) as usize;
         let mut shots = vec![];
-        for t in 0..120 {
-            // a tap every 15 ticks (4 per second)
-            let bits = if t % 15 == 0 { Buttons::FIRE } else { 0 };
+        let every = ticks(&d, 0.25) as usize;
+        for t in 0..ticks(&d, 2.0) as usize {
+            // a tap every 0.25 s (4 per second)
+            let bits = if t % every == 0 { Buttons::FIRE } else { 0 };
             if s.step(&d, &l, &input(bits), &sprint).shot.is_some() {
                 shots.push(t);
             }
@@ -1052,7 +1060,7 @@ mod tests {
         // Aiming in (ads_s) can be quicker than bringing the gun up from the sprint pose (sprint_to_fire_s):
         // hold until both are done.
         let spec = l.spec(&d);
-        for _ in 0..=secs_to_ticks(spec.ads_s.max(spec.sprint_to_fire_s * l.mods.sprint_to_fire), 60) {
+        for _ in 0..=ticks(&d, spec.ads_s.max(spec.sprint_to_fire_s * l.mods.sprint_to_fire)) {
             s.step(&d, &l, &input(Buttons::ADS), &sprint);
         }
         assert_eq!(s.ads, 1.0, "the gun comes up to the eye on the run");
@@ -1060,12 +1068,12 @@ mod tests {
         s.step(&d, &l, &input(0), &sprint);
         assert!(s.ads < 1.0 && !s.lowered(), "aim let go: the gun comes down from the eye first");
         // a tap of mag check while sprinting runs to the end
-        for _ in 0..30 {
+        for _ in 0..ticks(&d, 0.5) {
             s.step(&d, &l, &input(0), &sprint);
         }
         s.step(&d, &l, &input(Buttons::MAG_CHECK), &sprint);
         assert!(matches!(s.action, WeaponAction::MagChecking { .. }));
-        let checked = (0..120).any(|_| s.step(&d, &l, &input(0), &sprint).mag_checked.is_some());
+        let checked = (0..ticks(&d, 2.0)).any(|_| s.step(&d, &l, &input(0), &sprint).mag_checked.is_some());
         assert!(checked, "a sprint does not cancel the mag check");
     }
 
@@ -1269,8 +1277,8 @@ mod tests {
             }
         }
         // The Mako settles at bullet 3 tapping 0.15 s apart and at bullet 2 at 0.2 s.
-        assert_eq!(tap_places("ar7_mako", 9, 10, true).last(), Some(&3));
-        assert_eq!(tap_places("ar7_mako", 12, 10, true).last(), Some(&2));
+        assert_eq!(tap_places("ar7_mako", ticks(&d, 0.15), 10, true).last(), Some(&3));
+        assert_eq!(tap_places("ar7_mako", ticks(&d, 0.2), 10, true).last(), Some(&2));
     }
 
     /// Item 9c: a pause mid-spray rewinds part of the pattern, not all or nothing.
@@ -1282,8 +1290,8 @@ mod tests {
             fired += s.step(&d, &l, &input(Buttons::FIRE), &still()).shot.is_some() as usize;
         }
         assert_eq!(s.burst, 15);
-        // 0.15 s after the 15th shot (9 ticks): a third of the way into the rewind.
-        for _ in 1..9 {
+        // 0.15 s after the 15th shot: a third of the way into the rewind.
+        for _ in 1..ticks(&d, 0.15) {
             s.step(&d, &l, &input(0), &still());
         }
         assert!(s.step(&d, &l, &input(Buttons::FIRE), &still()).shot.is_some());
@@ -1295,9 +1303,12 @@ mod tests {
     #[test]
     fn the_rewind_is_deterministic() {
         let (d, l, s0) = setup("ar7_mako");
-        // A messy trigger: bursts, pauses and taps, hip and aimed.
-        let script: Vec<u16> = (0..400u32)
+        // A messy trigger: bursts, pauses and taps, hip and aimed (written in 60 Hz steps, each held for as many
+        // ticks as one lasts at the data's rate).
+        let per = d.net.tick_hz / 60;
+        let script: Vec<u16> = (0..400 * per)
             .map(|t| {
+                let t = t / per;
                 let fire = (t % 37 < 11) || (t % 53 == 0) || (t / 90 == 2 && t % 9 == 0);
                 let ads = t / 120 % 2 == 1;
                 (fire as u16 * Buttons::FIRE) | (ads as u16 * Buttons::ADS)
@@ -1321,12 +1332,13 @@ mod tests {
         assert!(places.windows(2).any(|w| w[1] > 1 && w[1] <= w[0]), "{places:?}");
         // A copy taken mid-run (as a rollback restores one) continues exactly like the original.
         let mut s = s0;
-        for bits in &script[..200] {
+        let mid = 200 * per as usize;
+        for bits in &script[..mid] {
             s.step(&d, &l, &input(*bits), &still());
         }
         let restored: WeaponState = serde_json::from_str(&serde_json::to_string(&s).unwrap()).unwrap();
-        let (tail, end) = run(restored, 200);
-        assert_eq!(tail, a[200..].to_vec());
+        let (tail, end) = run(restored, mid);
+        assert_eq!(tail, a[mid..].to_vec());
         assert_eq!(end, sa);
     }
 
@@ -1610,7 +1622,7 @@ mod tests {
         let run = WeaponEnv { speed_frac: 1.0, ..still() };
         let first = s.spread_deg(&d, spec, &l, &run);
         let both = input(Buttons::FIRE | Buttons::ADS);
-        let shots = (0..90).filter(|_| s.step(&d, &l, &both, &run).shot.is_some()).count();
+        let shots = (0..ticks(&d, 1.5)).filter(|_| s.step(&d, &l, &both, &run).shot.is_some()).count();
         assert!(shots >= 14, "{shots}");
         assert!((s.bloom_deg - sp.bloom_max_hip).abs() < 1e-5, "a long spray on the run reaches the cap");
         let spread = s.spread_deg(&d, spec, &l, &run);
@@ -1758,9 +1770,10 @@ mod tests {
         let (_, _, mut rest) = setup("ar7_mako");
         let run = WeaponEnv { speed_frac: 1.0, ..still() };
         let (mut ran, mut stood) = (0, 0);
-        for t in 0..120 {
-            let env = if t < 40 { run } else { still() };
-            if t == 40 {
+        let stop = ticks(&d, 0.67);
+        for t in 0..ticks(&d, 2.0) {
+            let env = if t < stop { run } else { still() };
+            if t == stop {
                 assert!(s.bloom_deg > 0.5, "the bloom is still there, it just does not count standing still");
             }
             let a = s.step(&d, &l, &input(Buttons::FIRE), &env).shot;
@@ -1768,7 +1781,7 @@ mod tests {
             assert_eq!(a.is_some(), b.is_some(), "the same fire rate");
             let (Some(a), Some(b)) = (a, b) else { continue };
             assert_eq!((a.kick_pitch, a.kick_yaw), (b.kick_pitch, b.kick_yaw), "the same pattern, shot {}", a.seq);
-            if t < 40 {
+            if t < stop {
                 assert!(a.spread_deg > b.spread_deg, "running: bloom");
                 ran += 1;
             } else {
@@ -1777,7 +1790,7 @@ mod tests {
             }
         }
         assert!(ran >= 7 && stood >= 15, "{ran} {stood}");
-        for _ in 0..60 {
+        for _ in 0..ticks(&d, 1.0) {
             s.step(&d, &l, &input(0), &still());
         }
         assert_eq!(s.bloom_deg, 0.0, "a second later it has settled");
@@ -1793,20 +1806,21 @@ mod tests {
             let spec = l.spec(&d);
             let run = WeaponEnv { speed_frac: 1.0, ..still() };
             let base = s.spread_deg(&d, spec, &l, &run);
-            let cones: Vec<f32> = (0..60)
+            let cones: Vec<f32> = (0..ticks(&d, 1.0))
                 .filter_map(|_| s.step(&d, &l, &input(Buttons::FIRE), &run).shot.map(|s| s.spread_deg))
                 .collect();
             assert!(cones.len() >= 10, "{gun}");
             assert_eq!(cones[0], base, "{gun}: the first shot has the movement cone alone");
             assert!(cones.windows(2).all(|w| w[1] > w[0]), "{gun}: every shot opens it more: {cones:?}");
-            let after: Vec<f32> = (0..60)
+            let after: Vec<f32> = (0..ticks(&d, 1.0))
                 .map(|_| {
                     s.step(&d, &l, &input(0), &run);
                     s.spread_deg(&d, spec, &l, &run)
                 })
                 .collect();
             assert!(after.windows(2).all(|w| w[1] <= w[0]), "{gun}: it only closes: {after:?}");
-            assert!((after[59] - base).abs() < 1e-5, "{gun}: back to the movement cone: {}", after[59]);
+            let last = after[after.len() - 1];
+            assert!((last - base).abs() < 1e-5, "{gun}: back to the movement cone: {last}");
         }
     }
 
@@ -1831,7 +1845,7 @@ mod tests {
                 s.step(&d, &l, &input(0), &sprint);
                 assert!(s.lowered(), "{gun}");
                 let (mut aimed, mut shot) = (None, None);
-                for t in 1..60 {
+                for t in 1..ticks(&d, 1.0) as i32 {
                     let ev = s.step(&d, &l, &input(Buttons::ADS | Buttons::FIRE), &sprint);
                     if s.ads >= ADS_AIMED {
                         aimed.get_or_insert(t);
@@ -1841,7 +1855,7 @@ mod tests {
                     }
                 }
                 let (aimed, shot) = (aimed.unwrap(), shot.expect("it fires"));
-                let raise = secs_to_ticks(l.spec(&d).sprint_to_fire_s * l.mods.sprint_to_fire, 60) as i32;
+                let raise = ticks(&d, l.spec(&d).sprint_to_fire_s * l.mods.sprint_to_fire) as i32;
                 assert!(shot <= aimed, "{gun} {parts:?}: aimed at tick {aimed}, shot at {shot}");
                 assert_eq!(shot, raise.min(aimed), "{gun} {parts:?}: no sooner than the raise or the sight");
             }
@@ -1886,9 +1900,11 @@ mod tests {
         for sprinting in [false, true] {
             let (d, l, mut s) = setup("vk50_warden");
             let env = WeaponEnv { sprinting, ..still() };
-            let shots: Vec<i32> = (0..200)
+            // a tap 0.8 s in, mid-bolt (the bolt cycles in 1.25 s)
+            let mid = ticks(&d, 0.8) as i32;
+            let shots: Vec<i32> = (0..ticks(&d, 3.3) as i32)
                 .filter(|t| {
-                    let fire = if *t == 0 || (48..52).contains(t) { Buttons::FIRE } else { 0 };
+                    let fire = if *t == 0 || (mid..mid + 4).contains(t) { Buttons::FIRE } else { 0 };
                     s.step(&d, &l, &input(fire), &env).shot.is_some()
                 })
                 .collect();
@@ -1897,10 +1913,10 @@ mod tests {
         // Late in the bolt cycle, only the raise is in the way: that tap fires when the gun is up.
         let (d, l, mut s) = setup("vk50_warden");
         let env = WeaponEnv { sprinting: true, ..still() };
-        let raise = secs_to_ticks(l.spec(&d).sprint_to_fire_s * l.mods.sprint_to_fire, 60) as i32;
-        let cycle = fire_interval_ticks(l.spec(&d), 60, false) as i32;
+        let raise = ticks(&d, l.spec(&d).sprint_to_fire_s * l.mods.sprint_to_fire) as i32;
+        let cycle = fire_interval_ticks(l.spec(&d), d.net.tick_hz, false) as i32;
         let tap = cycle - raise + 2;
-        let shots: Vec<i32> = (0..200)
+        let shots: Vec<i32> = (0..ticks(&d, 3.3) as i32)
             .filter(|t| {
                 let fire = if *t == 0 || *t == tap { Buttons::FIRE } else { 0 };
                 s.step(&d, &l, &input(fire), &env).shot.is_some()
@@ -1913,14 +1929,15 @@ mod tests {
     fn aiming_slows_auto_fire() {
         let (d, l, mut s) = setup("ar7_mako");
         let both = Buttons::FIRE | Buttons::ADS;
-        let mut ticks = vec![];
-        for t in 0..60 {
+        let mut at = vec![];
+        for t in 0..ticks(&d, 1.0) {
             if s.step(&d, &l, &input(both), &still()).shot.is_some() {
-                ticks.push(t);
+                at.push(t);
             }
         }
-        let gaps: Vec<_> = ticks.windows(2).map(|w| w[1] - w[0]).collect();
-        assert!(gaps.iter().skip(3).all(|g| *g == 6), "{gaps:?}");
+        let gaps: Vec<_> = at.windows(2).map(|w| w[1] - w[0]).collect();
+        // 612 RPM aimed rounds to 0.1 s: 6 ticks at 60 Hz, 12 at 120 (720 RPM hip: 5 and 10)
+        assert!(gaps.iter().skip(3).all(|g| *g == ticks(&d, 0.1)), "{gaps:?}");
     }
 
     #[test]

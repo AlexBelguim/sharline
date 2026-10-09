@@ -762,3 +762,47 @@ New (item 9c2, user direction; the design docs have no streaks). All numbers in 
   while FIRE is held, and an empty gun shows its bolt held open (the Warden's bolt lifted and drawn back; the Mako
   has no bolt-carrier node, so its charging handle comes back instead) until the reload closes it
   (`weapon_models.ron` guns.moving). Visual only: nothing on the wire changed.
+
+
+## 34. 120 Hz, and the tick and snapshot rates as host settings (2026-10-09)
+- **Tick rate (HOST GAME):** 60 or 120 Hz, **120 by default** (the design's `tick_hz: 60` is superseded; `net.ron`
+  `tick_hz` is only the default and `tick_rates` what HOST GAME offers). Everyone in a match runs at the host's
+  rate: a joining client's netcode id carries its rate, the host gives a player only to a client at its own rate
+  (no bot gives up its seat for the others) and tells every joiner its rate (`TickRate`); a client at the other
+  rate reconnects at once at the host's ("The host plays at 60 Hz: joining at 60 Hz..." on the connecting
+  screen). A host rate the build does not offer sends the client back to the menu with a message (last resort).
+  The rate is set between sessions only (lightyear's tick, Bevy's fixed step and the session's data).
+- **Snapshot rate (HOST GAME and the lobby's MATCH SETTINGS):** 30, 60 or 120 snapshots a second, **60 by default**
+  (was 30), 120 only at 120 Hz. The lobby shows it with the host's upload for the players in it, in the warning
+  colour past `net.ron` `upload.warn_mbit` (5 Mbit/s). The estimate, every player moving (about 120 bytes of state
+  each per snapshot plus 64 of headers, sent to every player on the network):
+
+  | players | 30/s | 60/s | 120/s |
+  |---|---|---|---|
+  | 2 | 0.07 | 0.15 | 0.29 Mbit/s |
+  | 4 | 0.39 | 0.78 | 1.57 Mbit/s |
+  | 6 | 0.94 | 1.88 | 3.76 Mbit/s |
+  | 8 | 1.72 | 3.44 | 6.88 Mbit/s |
+  | 10 | 2.73 | 5.46 | 10.92 Mbit/s |
+
+  The host sends at most one snapshot per rendered frame (lightyear), so 120 a second needs the host above 120 fps.
+  No per-client cap yet (lightyear has one replication timer for every client).
+- **Interpolation delay:** other players are drawn `interpolation_snapshots` (2) snapshot intervals behind the newest
+  snapshot, at least 25 ms, plus lightyear's jitter margin (4 x jitter + 1 tick): about 33 ms + margin at 60 a
+  second, 67 at 30, 25 at 120. Before, lightyear drew them 1.2 intervals behind at 30 a second (40 ms + margin; the
+  100 ms in `net.ron` was never used).
+- **Seconds, not ticks:** `net.ron` `input_redundancy_s` (1/6 s: 10 ticks at 60 Hz, 20 at 120) and `max_rollback_s`
+  (1/3 s: 20 and 40; now passed to lightyear, which used its own default of 20). The host's claim wait and the grace
+  for a dead shooter's last shots moved from code (30 and 2 ticks) to `combat.ron` (`claim_wait_s` 0.5,
+  `dead_shooter_grace_s` 0.034). `weapons.ron` loses its unused `tick_hz`.
+- **The same game at both rates (tested, `vetf_sim/tests/tick_rate.rs`):** every fire interval is the same time
+  (Mako 720 RPM: 5 or 10 ticks, 612 aimed: 6 or 12; Warden 48 RPM: 75 or 150, so the bolt sound still ends as it can
+  fire), reloads and other actions within half a 60 Hz tick. Movement and grenades keep their semi-implicit step,
+  whose error halves at 120 Hz: a jump peaks at 1.05 m at 60 Hz and 1.02 m at 120 (1.00 m exact), a sprint and stop
+  goes 6 cm (0.8 %) further, a slide 10 cm (1.3 %), a 15 m molotov lands 10 cm further.
+- **Projector sight:** its hologram fades in over 0.02 s (was 0.03), so at 120 Hz it is still in when the gun is up.
+- **Cost:** the host simulates twice the ticks: a throwaway probe of 10 players' movement and weapons (no game run)
+  took about 6 ms of CPU a second at 60 Hz and 8 ms at 120 (70-100 us a tick); the ESC menu shows the host's whole
+  tick live. Clients send as many input packets as before (one a frame) with twice the ticks in each, and a rollback
+  replays twice the ticks.
+- Wire: `TickRate`, the rates on `MatchState`, `LobbyAction::SetSnapshotHz`, the rate in the client id: protocol 15.

@@ -16,7 +16,7 @@ use lightyear::prelude::*;
 use std::net::{IpAddr, Ipv4Addr, SocketAddr, SocketAddrV4, UdpSocket};
 use std::sync::Arc;
 use std::time::Duration;
-use vetf_net::{Hello, JoinCode, MatchState, PlayerId, PlayerInfo, ReliableChannel};
+use vetf_net::{Hello, JoinCode, MatchState, PlayerId, PlayerInfo, PlayerInput, ReliableChannel, TickRate};
 use vetf_sim::GameData;
 
 pub struct NetPlugin;
@@ -29,7 +29,8 @@ impl Plugin for NetPlugin {
             .insert_resource(crate::user_config::load_or_default::<RecentServers>(RecentServers::FILE))
             .init_resource::<RecentPending>()
             .add_message::<NetRequest>()
-            .add_systems(Update, (poll_internet, handle_requests, finish_closing).chain())
+            .add_systems(Update, (poll_internet, follow_host_tick_rate, handle_requests, finish_closing).chain())
+            .add_systems(Update, follow_snapshot_rate)
             .add_systems(Startup, auto_start)
             .add_systems(OnEnter(AppState::InGame), arm_recent)
             .add_systems(Update, record_recent.run_if(in_state(AppState::InGame)))
@@ -64,6 +65,12 @@ pub struct HostSettings {
     pub port: u16,
     /// Not in the protocol yet (the panel shows the field disabled).
     pub password: Option<String>,
+    /// TICK RATE: the simulation rate the match runs at (`net.ron` offers 60 and 120 Hz). Joining clients run
+    /// at it.
+    pub tick_hz: u32,
+    /// SNAPSHOT RATE: snapshots a second to every player (never more than the tick rate: see
+    /// [`HostSettings::snapshot_hz_in_play`]). The lobby can change it.
+    pub snapshot_hz: u32,
 }
 
 impl HostSettings {
@@ -77,7 +84,14 @@ impl HostSettings {
             mode: vetf_net::MatchMode::Tdm,
             port: cli_port.unwrap_or(data.net.port),
             password: None,
+            tick_hz: data.net.tick_hz,
+            snapshot_hz: data.net.snapshot_hz,
         }
+    }
+
+    /// The snapshot rate the game opens with: SNAPSHOT RATE, or the fastest the tick rate allows below it.
+    pub fn snapshot_hz_in_play(&self, data: &GameData) -> u32 {
+        data.net.snapshot_hz_for(self.tick_hz, self.snapshot_hz)
     }
 
     /// The lobby's name: the typed one, else "<PLAYER>'S GAME".
@@ -222,6 +236,10 @@ pub enum NetRequest {
     Join {
         address: String,
     },
+    /// The host runs at `tick_hz`, not at our rate: join the same game again at its rate (`TickRate`).
+    Rejoin {
+        tick_hz: u32,
+    },
     Leave {
         reason: Option<String>,
     },
@@ -233,6 +251,212 @@ fn auto_start(cli: Res<Cli>, mut requests: MessageWriter<NetRequest>) {
         requests.write(NetRequest::Host { map, lobby: !cli.live });
     } else if let Some(address) = &cli.join {
         requests.write(NetRequest::Join { address: address.clone() });
+    }
+}
+
+/// Run the simulation at `tick_hz` from now on: the session's copy of the data (everything that counts ticks
+/// reads the rate from it), Bevy's fixed timestep and lightyear's tick, and the tick counts `net.ron` gives in
+/// seconds (input redundancy; the rollback depth is set where each join makes its prediction manager). Only
+/// between sessions: a host before it starts the server, a client before it connects.
+pub fn apply_tick_rate(world: &mut World, tick_hz: u32) {
+    let data = world.resource::<Data>().0.clone();
+    if data.net.tick_hz == tick_hz {
+        return;
+    }
+    let data = data.with_tick_hz(tick_hz);
+    let tick = Duration::from_secs_f64(1.0 / tick_hz.max(1) as f64);
+    info!("simulation at {tick_hz} Hz");
+    if let Some(mut d) = world.get_resource_mut::<lightyear::core::tick::TickDuration>() {
+        d.0 = tick;
+    }
+    world.resource_mut::<Time<Fixed>>().set_timestep(tick);
+    if let Some(mut input) = world.get_resource_mut::<lightyear::prelude::input::InputConfig<PlayerInput>>() {
+        input.packet_redundancy = data.net.input_redundancy_ticks();
+    }
+    world.insert_resource(Data(Arc::new(data)));
+}
+
+/// What a client's prediction may roll back: `net.ron`'s `max_rollback_s` at the session's tick rate.
+fn prediction_manager(data: &GameData) -> PredictionManager {
+    let mut manager = PredictionManager::default();
+    manager.rollback_policy.max_rollback_ticks = data.net.max_rollback_ticks();
+    manager
+}
+
+/// Connect to `address` at the data's tick rate (the netcode id carries it: `vetf_net::client_id`).
+fn start_join(
+    address: &str,
+    tick_hz: u32,
+    data: &GameData,
+    session: &mut Session,
+    commands: &mut Commands,
+) -> Result<(), String> {
+    let internet_id = iroh_transport::parse_invite(address);
+    let server_addr = if let Some(id) = internet_id {
+        match Bridge::join(id) {
+            Ok((bridge, addr)) => {
+                session.internet = Some(bridge);
+                Some(addr)
+            }
+            Err(e) => return Err(format!("Cannot start internet join: {e}")),
+        }
+    } else {
+        JoinCode::parse(address, data.net.port)
+    };
+    let Some(server_addr) = server_addr else {
+        return Err(format!("\"{}\" is not an invite or address.", address.trim()));
+    };
+    let client_id = vetf_net::client_id(tick_hz, random_client_id());
+    info!("joining {server_addr} as client {client_id:x} at {tick_hz} Hz");
+    let auth = Authentication::Manual {
+        server_addr,
+        client_id,
+        private_key: vetf_net::PRIVATE_KEY,
+        protocol_id: vetf_net::protocol_id(),
+    };
+    let config = ClientNetcodeConfig {
+        client_timeout_secs: if internet_id.is_some() { 45 } else { 5 },
+        token_expire_secs: -1,
+        ..default()
+    };
+    let netcode = match NetcodeClient::new(auth, config) {
+        Ok(n) => n,
+        Err(e) => {
+            session.internet = None;
+            return Err(format!("cannot create a connection: {e:?}"));
+        }
+    };
+    commands.insert_resource(prediction_manager(&data.with_tick_hz(tick_hz)));
+    let client = commands
+        .spawn((
+            Name::new("Client"),
+            Client,
+            ReplicationReceiver,
+            Link::default(),
+            LocalAddr(SocketAddr::new(Ipv4Addr::UNSPECIFIED.into(), 0)),
+            PeerAddr(server_addr),
+            netcode,
+            UdpIo::default(),
+        ))
+        .id();
+    commands.trigger(Connect { entity: client });
+    session.role = Role::Client;
+    session.client = Some(client);
+    session.join_code = Some(address.to_string());
+    session.status = Some(if internet_id.is_some() {
+        "Connecting to internet host...".into()
+    } else {
+        format!("connecting to {server_addr}...")
+    });
+    Ok(())
+}
+
+/// Drop our connection to a host (a leave, or a rejoin at the host's tick rate): the disconnect goes out, the
+/// link and its Iroh bridge are kept a moment for it, and the host's entities (players, the match) go: a stale
+/// player would keep `Controlled`, and the next game's camera would follow it.
+fn close_client(
+    session: &mut Session,
+    commands: &mut Commands,
+    closing: &mut Closing,
+    replicated: &Query<Entity, Or<(With<Replicate>, With<lightyear::prelude::client::Remote>)>>,
+) {
+    let bridge = session.internet.take();
+    if let Some(client) = session.client.take() {
+        commands.trigger(Disconnect { entity: client });
+        if let Some(old) = closing.client.replace(client) {
+            commands.entity(old).try_despawn();
+        }
+        closing.bridge = bridge;
+        closing.left_s = 0.5;
+    }
+    for e in replicated {
+        commands.entity(e).try_despawn();
+    }
+    commands.remove_resource::<CurrentLevel>();
+    session.role = Role::Offline;
+}
+
+/// The host told us its tick rate as we connected: at another rate than ours it has no player for us, so we
+/// join again at its rate. A host at a rate this build does not offer is left, with a message (the last resort).
+fn follow_host_tick_rate(
+    mut clients: Query<&mut MessageReceiver<TickRate>, With<Client>>,
+    session: Res<Session>,
+    data: Res<Data>,
+    mut requests: MessageWriter<NetRequest>,
+) {
+    if session.role != Role::Client {
+        return;
+    }
+    for mut rx in &mut clients {
+        for rate in rx.receive() {
+            let hz = rate.hz as u32;
+            match host_rate_answer(&data, hz) {
+                HostRate::Same => {}
+                HostRate::Rejoin => {
+                    info!("the host runs at {hz} Hz, we at {} Hz: joining again at {hz} Hz", data.net.tick_hz);
+                    requests.write(NetRequest::Rejoin { tick_hz: hz });
+                }
+                HostRate::Unsupported => {
+                    requests.write(NetRequest::Leave {
+                        reason: Some(format!(
+                            "The host runs the game at {hz} Hz, which this build cannot (it offers {}).",
+                            rates_text(&data.net.tick_rates)
+                        )),
+                    });
+                }
+            }
+        }
+    }
+}
+
+/// What a client does with the host's tick rate.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum HostRate {
+    /// Ours: carry on.
+    Same,
+    /// Another rate this build offers: join again at it.
+    Rejoin,
+    /// A rate this build does not offer (a host with other data): leave with a message.
+    Unsupported,
+}
+
+pub fn host_rate_answer(data: &GameData, host_hz: u32) -> HostRate {
+    if host_hz == data.net.tick_hz {
+        HostRate::Same
+    } else if data.net.tick_rates.contains(&host_hz) {
+        HostRate::Rejoin
+    } else {
+        HostRate::Unsupported
+    }
+}
+
+/// "60 or 120 Hz".
+pub fn rates_text(rates: &[u32]) -> String {
+    let words: Vec<String> = rates.iter().map(|r| r.to_string()).collect();
+    match words.split_last() {
+        Some((last, rest)) if !rest.is_empty() => format!("{} or {last} Hz", rest.join(", ")),
+        Some((last, _)) => format!("{last} Hz"),
+        None => String::new(),
+    }
+}
+
+/// A client draws other players `interpolation_snapshots` snapshot intervals behind the newest snapshot, at the
+/// match's snapshot rate (it can change in the lobby); lightyear adds its jitter margin on top.
+fn follow_snapshot_rate(
+    session: Res<Session>,
+    data: Res<Data>,
+    matches: Query<&MatchState>,
+    mut config: ResMut<lightyear::interpolation::timeline::InterpolationConfig>,
+) {
+    if session.role != Role::Client {
+        return;
+    }
+    let hz = matches.iter().next().map_or(data.net.snapshot_hz, |m| m.snapshot_hz as u32);
+    let delay = Duration::from_secs_f32(data.net.interpolation_delay_s(hz));
+    if config.min_delay != delay || config.send_interval_ratio != 0.0 {
+        info!("drawing other players {} ms behind ({hz} snapshots a second)", delay.as_millis());
+        config.min_delay = delay;
+        config.send_interval_ratio = 0.0;
     }
 }
 
@@ -273,11 +497,15 @@ fn handle_requests(
                     }
                 }
                 let level = level_by_name(map);
-                info!("hosting {} on UDP {port} for up to {max_players} players", level.name);
+                let (tick_hz, snapshot_hz) = (host.tick_hz, host.snapshot_hz_in_play(&data));
+                info!(
+                    "hosting {} on UDP {port} for up to {max_players} players, {tick_hz} Hz, {snapshot_hz} snapshots/s",
+                    level.name
+                );
+                // Before the server starts: the whole session runs at HOST GAME's tick rate.
+                commands.queue(move |world: &mut World| apply_tick_rate(world, tick_hz));
                 commands.insert_resource(CurrentLevel(Arc::new(level)));
-                commands.insert_resource(ReplicationMetadata::new(Duration::from_secs_f64(
-                    1.0 / data.net.snapshot_hz.max(1) as f64,
-                )));
+                commands.insert_resource(ReplicationMetadata::new(crate::server::snapshot_interval(snapshot_hz)));
                 // The lobby's seats can drop below the netcode's slots (a mode change): the seat check
                 // denies joiners once the match is full.
                 let seats = crate::server::Seats::new(netcode_max_clients(max_players) as u32);
@@ -320,7 +548,8 @@ fn handle_requests(
                     info!("friends join at {addr}");
                 }
                 let lobby_name = session.lobby_name.clone().unwrap_or_default();
-                crate::server::spawn_match(&mut commands, &data, map, mode, lobby_name, max_players, *lobby);
+                let rates = (tick_hz, snapshot_hz);
+                crate::server::spawn_match(&mut commands, &data, map, mode, lobby_name, max_players, *lobby, rates);
                 next.set(AppState::Connecting);
             }
             NetRequest::Join { address } => {
@@ -328,97 +557,54 @@ fn handle_requests(
                     continue;
                 }
                 session.host_error = false;
-                let internet_id = iroh_transport::parse_invite(address);
-                let server_addr = if let Some(id) = internet_id {
-                    match Bridge::join(id) {
-                        Ok((bridge, addr)) => {
-                            session.internet = Some(bridge);
-                            Some(addr)
-                        }
-                        Err(e) => {
-                            session.status = Some(format!("Cannot start internet join: {e}"));
-                            continue;
-                        }
-                    }
-                } else {
-                    JoinCode::parse(address, data.net.port)
-                };
-                let Some(server_addr) = server_addr else {
-                    session.status = Some(format!("\"{}\" is not an invite or address.", address.trim()));
+                // At the rate we last played at (the default, or the last host's): a host at another rate
+                // tells us its rate and we join again at it (`follow_host_tick_rate`).
+                match start_join(address, data.net.tick_hz, &data, &mut session, &mut commands) {
+                    Ok(()) => next.set(AppState::Connecting),
+                    Err(e) => session.status = Some(e),
+                }
+            }
+            NetRequest::Rejoin { tick_hz } => {
+                if session.role != Role::Client {
                     continue;
-                };
-                let client_id = random_client_id();
-                info!("joining {server_addr} as client {client_id:x}");
-                let auth = Authentication::Manual {
-                    server_addr,
-                    client_id,
-                    private_key: vetf_net::PRIVATE_KEY,
-                    protocol_id: vetf_net::protocol_id(),
-                };
-                let config = ClientNetcodeConfig {
-                    client_timeout_secs: if internet_id.is_some() { 45 } else { 5 },
-                    token_expire_secs: -1,
-                    ..default()
-                };
-                let netcode = match NetcodeClient::new(auth, config) {
-                    Ok(n) => n,
+                }
+                let Some(address) = session.join_code.clone() else { continue };
+                close_client(&mut session, &mut commands, &mut closing, &replicated);
+                let hz = *tick_hz;
+                commands.queue(move |world: &mut World| apply_tick_rate(world, hz));
+                // Still connecting: the screen says why it takes a moment longer.
+                match start_join(&address, hz, &data, &mut session, &mut commands) {
+                    Ok(()) => session.status = Some(format!("The host plays at {hz} Hz: joining at {hz} Hz...")),
                     Err(e) => {
-                        session.internet = None;
-                        session.status = Some(format!("cannot create a connection: {e:?}"));
-                        continue;
+                        session.status = Some(e);
+                        session.role = Role::Offline;
+                        session.join_code = None;
+                        next.set(AppState::MainMenu);
                     }
-                };
-                commands.insert_resource(PredictionManager::default());
-                let client = commands
-                    .spawn((
-                        Name::new("Client"),
-                        Client,
-                        ReplicationReceiver,
-                        Link::default(),
-                        LocalAddr(SocketAddr::new(Ipv4Addr::UNSPECIFIED.into(), 0)),
-                        PeerAddr(server_addr),
-                        netcode,
-                        UdpIo::default(),
-                    ))
-                    .id();
-                commands.trigger(Connect { entity: client });
-                session.role = Role::Client;
-                session.client = Some(client);
-                session.join_code = Some(address.clone());
-                session.status = Some(if internet_id.is_some() {
-                    "Connecting to internet host...".into()
-                } else {
-                    format!("connecting to {server_addr}...")
-                });
-                next.set(AppState::Connecting);
+                }
             }
             NetRequest::Leave { reason } => {
-                let bridge = session.internet.take();
                 session.internet_error = None;
                 if let Some(server) = session.server.take() {
                     commands.trigger(Stop { entity: server });
                     commands.entity(server).try_despawn();
                 }
-                if let Some(client) = session.client.take() {
-                    if session.role == Role::Client {
-                        commands.trigger(Disconnect { entity: client });
-                        // Keep the link (and Iroh bridge) a moment so the disconnect packets reach the host.
-                        // Otherwise it only notices at the timeout, with our player left standing there.
-                        if let Some(old) = closing.client.replace(client) {
-                            commands.entity(old).try_despawn();
-                        }
-                        closing.bridge = bridge;
-                        closing.left_s = 0.5;
-                    } else {
+                if session.role == Role::Client {
+                    // Keep the link (and Iroh bridge) a moment so the disconnect packets reach the host.
+                    // Otherwise it only notices at the timeout, with our player left standing there.
+                    close_client(&mut session, &mut commands, &mut closing, &replicated);
+                } else {
+                    session.internet = None;
+                    if let Some(client) = session.client.take() {
                         commands.entity(client).try_despawn();
                     }
+                    // Players and the match state of the game we left. A stale player would keep `Controlled`,
+                    // and the next game's camera would follow it.
+                    for e in &replicated {
+                        commands.entity(e).try_despawn();
+                    }
+                    commands.remove_resource::<CurrentLevel>();
                 }
-                // Players and the match state of the game we left (ours if we hosted, the host's copies if we
-                // joined). A stale player would keep `Controlled`, and the next game's camera would follow it.
-                for e in &replicated {
-                    commands.entity(e).try_despawn();
-                }
-                commands.remove_resource::<CurrentLevel>();
                 // A session's mode and seats never reach the next one.
                 commands.remove_resource::<crate::server::HostedMatch>();
                 commands.remove_resource::<crate::server::Seats>();
@@ -625,6 +811,71 @@ mod tests {
         assert_eq!(hosted_players(&d, vetf_net::MatchMode::Ffa, 10), ffa);
         assert_eq!(hosted_players(&d, vetf_net::MatchMode::Tdm, 0), 2);
         assert_eq!(hosted_players(&d, vetf_net::MatchMode::Range, 10), 10);
+    }
+
+    /// A session's tick rate reaches everything that counts ticks: the data the simulation reads, Bevy's fixed
+    /// step, lightyear's tick and the input redundancy (seconds in `net.ron`, ticks on the wire). As the game
+    /// starts, at `net.ron`'s default; a host or a joiner switches before it connects.
+    #[test]
+    fn a_session_runs_everything_at_its_tick_rate() {
+        use lightyear::prelude::client::ClientPlugins;
+        use lightyear::prelude::server::ServerPlugins;
+        let d = GameData::embedded();
+        let tick = Duration::from_secs_f64(1.0 / d.net.tick_hz as f64);
+        let mut app = App::new();
+        app.add_plugins((MinimalPlugins, bevy::state::app::StatesPlugin));
+        app.add_plugins((ServerPlugins { tick_duration: tick }, ClientPlugins { tick_duration: tick }));
+        app.add_plugins(vetf_net::ProtocolPlugin { input_redundancy: d.net.input_redundancy_ticks() });
+        app.insert_resource(Data(Arc::new(d.clone())));
+        app.finish();
+        app.cleanup();
+        let rates = |app: &App| {
+            let w = app.world();
+            (
+                w.resource::<Data>().net.tick_hz,
+                w.resource::<lightyear::core::tick::TickDuration>().0,
+                w.resource::<Time<Fixed>>().timestep(),
+                w.resource::<lightyear::prelude::input::InputConfig<PlayerInput>>().packet_redundancy,
+            )
+        };
+        let at = |hz: u32, redundancy: u16| {
+            let step = Duration::from_secs_f64(1.0 / hz as f64);
+            (hz, step, step, redundancy)
+        };
+        assert_eq!(d.net.tick_hz, 120, "120 Hz unless the host picks 60");
+        assert_eq!(rates(&app), at(120, 20));
+        apply_tick_rate(app.world_mut(), 60);
+        assert_eq!(rates(&app), at(60, 10), "10 ticks of inputs at 60 Hz, 20 at 120: the same 1/6 s");
+        assert_eq!(app.world().resource::<Data>().fingerprint, d.fingerprint, "the same numbers as the host's");
+        apply_tick_rate(app.world_mut(), 120);
+        assert_eq!(rates(&app), at(120, 20));
+        // The rollback window is the same time at both rates too.
+        assert_eq!(prediction_manager(&d.with_tick_hz(60)).rollback_policy.max_rollback_ticks, 20);
+        assert_eq!(prediction_manager(&d).rollback_policy.max_rollback_ticks, 40);
+    }
+
+    /// A client at another rate than its host's joins again at the host's; a rate this build does not offer is
+    /// the last resort, a message on the menu.
+    #[test]
+    fn a_client_follows_its_hosts_tick_rate() {
+        let d = GameData::embedded();
+        assert_eq!(host_rate_answer(&d, d.net.tick_hz), HostRate::Same);
+        assert_eq!(host_rate_answer(&d, 60), HostRate::Rejoin);
+        assert_eq!(host_rate_answer(&d.with_tick_hz(60), 120), HostRate::Rejoin);
+        assert_eq!(host_rate_answer(&d, 30), HostRate::Unsupported);
+        assert_eq!(rates_text(&d.net.tick_rates), "60 or 120 Hz");
+        assert_eq!(rates_text(&[60]), "60 Hz");
+    }
+
+    /// Remote players are drawn about two snapshot intervals behind (lightyear adds its jitter margin): 33 ms at
+    /// 60 snapshots, never under `interpolation_min_ms`.
+    #[test]
+    fn the_interpolation_delay_follows_the_snapshot_rate() {
+        let d = GameData::embedded();
+        let ms = |hz| (d.net.interpolation_delay_s(hz) * 1000.0).round() as u32;
+        assert_eq!((ms(30), ms(60), ms(120)), (67, 33, 25));
+        let h = HostSettings::new(&d, None);
+        assert_eq!((h.tick_hz, h.snapshot_hz), (120, 60));
     }
 
     #[test]

@@ -8,7 +8,7 @@
 //! on the row); Esc, the CLOSE key cap or a click on the backdrop closes it. Focus has two zones, the nav
 //! and the open modal: Up / Down move in the nav, Tab / Up / Down move inside the modal. Text fields get the keyboard through Bevy's `InputFocus` (see `field.rs`).
 
-mod copy;
+pub(crate) mod copy;
 mod field;
 mod host;
 mod join;
@@ -141,6 +141,8 @@ pub(crate) enum HostItem {
     Mode,
     Access,
     MaxPlayers,
+    TickRate,
+    Snapshots,
     Port,
     Create,
 }

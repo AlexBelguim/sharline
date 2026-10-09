@@ -330,9 +330,12 @@ mod tests {
     fn claim_setup() -> (GameData, CollisionWorld, PoseHistory, FiredShot) {
         let d = GameData::embedded();
         let mut h = PoseHistory::default();
-        // victim strafes along +x at 6 m/s (0.1 m per tick), 20 m north of the shooter
+        // victim strafes along +x at 6 m/s, 20 m north of the shooter, and is at x = 5 at tick 100 (the history
+        // keeps `history_s` of it, in ticks of the data's rate)
+        let hz = d.net.tick_hz as f32;
+        let keep = (d.combat.shot_validation.history_s * hz).ceil() as u32;
         for t in 0..=100 {
-            h.push(t, stand(Vec3::new(t as f32 * 0.1 - 5.0, 0.0, -20.0)), 30);
+            h.push(t, stand(Vec3::new(5.0 - (100 - t) as f32 * 6.0 / hz, 0.0, -20.0)), keep);
         }
         let shot = FiredShot {
             seq: 1,
@@ -348,12 +351,13 @@ mod tests {
     #[test]
     fn rewound_claim_is_accepted() {
         let (d, w, h, shot) = claim_setup();
-        // At tick 94 the victim was at x = 4.4: the client saw it there and shot it.
+        // 0.1 s before the shot the victim was at x = 4.4: the client saw it there and shot it.
         let target = Vec3::new(4.4, 1.15, -20.0);
         let dir = (target - shot.origin).normalize();
         let mut s = shot;
         s.aim = dir;
-        let claim = HitClaim { origin: shot.origin, dir, view_tick: 94.0, zone: Zone::Torso, point: target };
+        let view_tick = 100.0 - 0.1 * d.net.tick_hz as f32;
+        let claim = HitClaim { origin: shot.origin, dir, view_tick, zone: Zone::Torso, point: target };
         assert!(matches!(validate_claim(&d, &w, &s, &claim, &h, 100, 300.0), Verdict::Hit { zone: Zone::Torso, .. }));
     }
 
@@ -365,7 +369,8 @@ mod tests {
         let dir = (target - shot.origin).normalize();
         let mut s = shot;
         s.aim = dir;
-        let claim = HitClaim { origin: shot.origin, dir, view_tick: 70.0, zone: Zone::Torso, point: target };
+        let view_tick = 100.0 - 0.5 * d.net.tick_hz as f32;
+        let claim = HitClaim { origin: shot.origin, dir, view_tick, zone: Zone::Torso, point: target };
         assert_eq!(validate_claim(&d, &w, &s, &claim, &h, 100, 300.0), Verdict::Rejected(Reject::Hitbox));
     }
 

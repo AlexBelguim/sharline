@@ -55,6 +55,9 @@ fn superseded(path: &str) -> bool {
         || (path.starts_with("weapons.slice.json.weapons[") && path.ends_with(".recoil.reset_after_s"))
         // Playtest round 3: more steering in the air, without strafe-jump speed gains (DESIGN_DELTAS.md section 15).
         || path == "movement.slice.json.movement.air.air_wish_speed"
+        // The tick rate is a host setting, 60 or 120 Hz, default 120 (net.ron; DESIGN_DELTAS.md, '120 Hz').
+        || path == "weapons.slice.json.tick_hz"
+        || path == "movement.slice.json.tick_hz"
 }
 
 /// Playtest round 3 (DESIGN_DELTAS.md section 15): the Mako's pattern is a T, looping its two full sweeps, and

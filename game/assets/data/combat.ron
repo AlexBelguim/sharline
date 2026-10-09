@@ -24,5 +24,10 @@
         // Extra angle allowed between the claimed ray and the host's copy of the shooter's aim,
         // on top of the weapon's current spread (covers recoil and input timing).
         aim_tolerance_deg: 6.0,
+        // A claim waits this long for the host to simulate the shot it names (it arrives before the input that
+        // fired it), then it is dropped.
+        claim_wait_s: 0.5,
+        // A shot fired this long before its shooter died still counts (the shooter's claim is on its way).
+        dead_shooter_grace_s: 0.034,
     ),
 )

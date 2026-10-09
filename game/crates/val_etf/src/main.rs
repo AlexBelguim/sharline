@@ -95,12 +95,13 @@ fn main() -> AppExit {
     );
     // The frame's schedules on the executor that measured faster (render/executor.rs).
     app.add_plugins(render::executor::ExecutorPlugin);
-    // Both lightyear plugin groups, always: the same binary hosts or joins (same tick on both).
+    // Both lightyear plugin groups, always: the same binary hosts or joins (same tick on both). They start at
+    // `net.ron`'s default rate; each session sets its own before it connects (`net::apply_tick_rate`).
     app.add_plugins((
         lightyear::prelude::server::ServerPlugins { tick_duration: tick },
         lightyear::prelude::client::ClientPlugins { tick_duration: tick },
     ));
-    app.add_plugins(vetf_net::ProtocolPlugin { input_redundancy: data.net.input_redundancy as u16 });
+    app.add_plugins(vetf_net::ProtocolPlugin { input_redundancy: data.net.input_redundancy_ticks() });
     app.insert_resource(config::Data(std::sync::Arc::new(data)));
     // The name saved from the main menu, unless --name overrides it for this run.
     let profile = user_config::PlayerProfile::load();

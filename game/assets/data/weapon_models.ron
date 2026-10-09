@@ -73,7 +73,7 @@
         (id: "optic_reddot", file: "models/weapons/optics/ATT_optic_reddot.glb", socket: "Optic"),
         (id: "optic_holo", file: "models/weapons/optics/ATT_optic_holo.glb", socket: "Optic"),
         (id: "optic_projector", file: "models/weapons/optics/ATT_optic_projector.glb", socket: "Optic",
-            projector: Some((flap_open_s: 0.08, hologram_from_ads: 0.8, hologram_fade_s: 0.03))),
+            projector: Some((flap_open_s: 0.08, hologram_from_ads: 0.8, hologram_fade_s: 0.02))),
         (id: "optic_3x", file: "models/weapons/optics/ATT_optic_3x.glb", socket: "Optic", scope: Some(prism)),
         // The variable 1-3x has no model of its own yet: it wears the 3x's, its body tinted brass so the two can be
         // told apart (art to do: a low-profile 1-3x in assets/weapons/attachments/optics/build_optics.py).

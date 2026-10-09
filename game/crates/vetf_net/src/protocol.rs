@@ -20,7 +20,7 @@ use vetf_sim::throwable::{Launch, ThrowId, ThrowKind};
 use vetf_sim::weapon::WeaponState;
 
 /// Bumped whenever the protocol changes; part of the netcode protocol id, so old builds cannot connect.
-pub const PROTOCOL_VERSION: u64 = 14;
+pub const PROTOCOL_VERSION: u64 = 15;
 
 /// netcode.io protocol id shared by host and clients.
 pub fn protocol_id() -> u64 {
@@ -29,6 +29,21 @@ pub fn protocol_id() -> u64 {
 
 /// netcode.io private key. Prototype only: a fixed key means anyone with the build can mint tokens.
 pub const PRIVATE_KEY: [u8; 32] = [0; 32];
+
+// ---------------------------------------------------------------------------------------------- tick rate
+
+/// A joining client's netcode id: a random number with the client's tick rate in its low byte. The id is the one
+/// thing a client tells the host in the netcode handshake, so the host knows the rate before it seats anyone: a
+/// client at another rate gets no player, only [`TickRate`], and reconnects at the host's rate (a 60 and a 120 Hz
+/// player never share a match). Never 0 (the host's own id).
+pub fn client_id(tick_hz: u32, random: u64) -> u64 {
+    (random << 8) | u64::from(tick_hz.clamp(1, 255) as u8)
+}
+
+/// The tick rate a joining client runs at, from its netcode id ([`client_id`]).
+pub fn client_tick_hz(id: u64) -> u32 {
+    (id & 0xFF) as u32
+}
 
 // ---------------------------------------------------------------------------------------------- components
 
@@ -154,6 +169,11 @@ pub struct MatchState {
     /// default) or exact rounds, with a HUD counter. Everyone in the match plays with it. The gun range ignores
     /// it: there each player picks their own (Settings > Gameplay).
     pub mag_check: MagCheckMode,
+    /// The host's simulation rate (HOST GAME's TICK RATE; every player in the match runs at it).
+    pub tick_hz: u16,
+    /// How many snapshots a second the host sends (its SNAPSHOT RATE, which it may change in the lobby).
+    /// Clients draw other players [`vetf_sim::data::NetSpec::interpolation_delay_s`] behind them.
+    pub snapshot_hz: u16,
 }
 
 impl MatchState {
@@ -179,6 +199,8 @@ pub enum LobbyAction {
     RemoveBot,
     /// The host's MAG CHECK match setting (team deathmatch and free-for-all).
     SetMagCheck(MagCheckMode),
+    /// The host's SNAPSHOT RATE (snapshots a second; one `net.ron` offers at the match's tick rate).
+    SetSnapshotHz(u16),
 }
 
 // ---------------------------------------------------------------------------------------------- input
@@ -291,6 +313,13 @@ pub struct Hello {
     pub loadout: LoadoutChoice,
     /// [`vetf_sim::GameData::fingerprint`]: host and client must run the same gameplay numbers.
     pub data_fingerprint: u64,
+}
+
+/// Host -> a joining client, as it connects: the rate the host simulates at. A client running at another rate
+/// (it has no player: see [`client_id`]) reconnects at this one.
+#[derive(Serialize, Deserialize, Clone, Copy, Debug, PartialEq, Eq)]
+pub struct TickRate {
+    pub hz: u16,
 }
 
 /// Client -> host: one of my shots hit a player.
@@ -524,6 +553,7 @@ impl Plugin for ProtocolPlugin {
         app.register_message::<LobbyAction>().add_direction(NetworkDirection::ClientToServer);
         app.register_message::<ShotClaim>().add_direction(NetworkDirection::ClientToServer);
         app.register_message::<RespawnRequest>().add_direction(NetworkDirection::ClientToServer);
+        app.register_message::<TickRate>().add_direction(NetworkDirection::ServerToClient);
         app.register_message::<HitConfirm>().add_direction(NetworkDirection::ServerToClient);
         app.register_message::<DamageTaken>().add_direction(NetworkDirection::ServerToClient);
         app.register_message::<KillFeed>().add_direction(NetworkDirection::ServerToClient);
@@ -659,7 +689,10 @@ mod tests {
             max_players: 10,
             rules: d.rules.rulesets.tdm,
             mag_check: Default::default(),
+            tick_hz: 120,
+            snapshot_hz: 60,
         });
+        roundtrip(&TickRate { hz: 120 });
         // The lobby: its phase, READY and the actions players send.
         roundtrip(&MatchPhase::Lobby);
         roundtrip(&PlayerNet { ping_ms: 48, ready: true });
@@ -674,6 +707,7 @@ mod tests {
             LobbyAction::RemoveBot,
             LobbyAction::SetMagCheck(MagCheckMode::Exact),
             LobbyAction::SetMagCheck(MagCheckMode::Estimate),
+            LobbyAction::SetSnapshotHz(120),
         ] {
             roundtrip(&action);
         }
@@ -695,6 +729,8 @@ mod tests {
             max_players: d.rules.ffa.max_players,
             rules: d.rules.rulesets.ffa,
             mag_check: MagCheckMode::Exact,
+            tick_hz: 60,
+            snapshot_hz: 30,
         };
         roundtrip(&ffa);
         assert!(!ffa.has_teams());
@@ -729,6 +765,8 @@ mod tests {
             max_players: 10,
             rules: d.rules.rulesets.tdm,
             mag_check: MagCheckMode::default(),
+            tick_hz: 120,
+            snapshot_hz: 60,
         };
         assert_eq!(base.mag_check, MagCheckMode::Estimate, "the estimate is the default");
         for mode in [MatchMode::Tdm, MatchMode::Ffa] {
@@ -811,8 +849,8 @@ mod tests {
         roundtrip(&PlayerAgent(None));
         assert_eq!(PlayerAgent::default(), PlayerAgent(None));
         assert_eq!(
-            PROTOCOL_VERSION, 14,
-            "agent + deathmatch picks 6, no ADS MOVE 7, death screen 8, test bots (bot mark, ADD/REMOVE BOT) 9,              recap per opponent life + kills, assists 10, MAG CHECK match setting 11, kill feed cause 12,              kill streaks (Score::streak, StreakNews) 13, smoke and molotovs (ThrowNews, throw keys, the hand) 14"
+            PROTOCOL_VERSION, 15,
+            "agent + deathmatch picks 6, no ADS MOVE 7, death screen 8, test bots (bot mark, ADD/REMOVE BOT) 9,              recap per opponent life + kills, assists 10, MAG CHECK match setting 11, kill feed cause 12,              kill streaks (Score::streak, StreakNews) 13, smoke and molotovs (ThrowNews, throw keys, the hand) 14,              tick and snapshot rates as host settings (TickRate, MatchState rates, SetSnapshotHz, rate in the id) 15"
         );
     }
 
@@ -911,6 +949,51 @@ mod tests {
         let throw =
             InputFrame { buttons: Buttons(Buttons::THROW_SMOKE | Buttons::THROW_MOLOTOV), ..Default::default() };
         assert_eq!(PlayerInput::from_frame(&throw).frame(), throw, "the throw keys ride in the buttons");
+    }
+
+    /// A client's netcode id carries its tick rate, so the host knows it before seating them; the random part
+    /// keeps ids apart, and no id is the host's 0.
+    #[test]
+    fn the_client_id_carries_the_tick_rate() {
+        for hz in [60, 120] {
+            for random in [0, 1, 0x00ab_cdef_1234_5678, u64::MAX >> 8] {
+                let id = client_id(hz, random);
+                assert_eq!(client_tick_hz(id), hz);
+                assert_ne!(id, 0);
+                assert_eq!(id >> 8, random, "the random part survives");
+            }
+        }
+        assert_ne!(client_id(60, 7), client_id(120, 7));
+        assert_eq!(client_tick_hz(client_id(1000, 3)), 255, "out-of-range rates are clamped, never wrap");
+    }
+
+    /// `net.ron`'s upload estimate counts at least what a moving player's snapshot carries: its movement, look
+    /// and weapon on the wire (postcard, as lightyear sends them), plus a few bytes of entity and component ids
+    /// each.
+    #[test]
+    fn the_upload_estimate_covers_a_moving_players_state() {
+        let d = GameData::embedded();
+        let loadout = Loadout::default_for(&d, MatchMode::Tdm);
+        let mut ms = MoveState::spawn(Vec3::new(31.25, 2.5, -48.75), 1.6);
+        ms.vel = Vec3::new(4.8, -1.25, 3.5);
+        let mut ws = WeaponState::new(&d, &loadout.weapon);
+        (ws.cooldown, ws.since_shot, ws.shot_seq, ws.bloom_deg, ws.ads) = (7, 3, 41, 1.25, 0.5);
+        let state = [
+            roundtrip(&PlayerMove(ms)).len(),
+            roundtrip(&PlayerLook { yaw: 2.75, pitch: -0.25 }).len(),
+            roundtrip(&PlayerWeapon(ws)).len(),
+        ];
+        let ids = 4 * state.len();
+        let carried = state.iter().sum::<usize>() + ids;
+        let u = d.net.upload;
+        assert!(u.player_bytes as usize >= carried, "player_bytes {} < {carried} ({state:?})", u.player_bytes);
+        assert!((u.player_bytes as usize) < 2 * carried, "and not wildly more: {carried}");
+        // 10 players (9 over the network) at 60 snapshots a second: about 5 Mbit/s up, the warning line.
+        let up = |hz| d.net.host_upload_mbit(hz, 10, 9);
+        assert!((4.0..6.0).contains(&up(60)), "{}", up(60));
+        assert!((up(120) / up(60) - 2.0).abs() < 1e-4 && (up(60) / up(30) - 2.0).abs() < 1e-4);
+        assert!(d.net.upload_is_high(up(120)) && !d.net.upload_is_high(up(30)));
+        assert_eq!(d.net.host_upload_mbit(60, 4, 0), 0.0, "alone with bots: nothing goes out");
     }
 
     #[test]
