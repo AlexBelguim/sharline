@@ -1443,12 +1443,18 @@ pub enum FeedbackSound {
     Damage(DamageTaken),
     /// You were credited with an assist on someone else's kill.
     Assist,
+    /// A player reached an announced kill streak tier of `kills` (`rules.ron` `streaks`): everyone hears its
+    /// stinger and, once one is set, its voice line.
+    Streak {
+        kills: u16,
+    },
 }
 
 /// Your hits: the kill confirm, head or flesh hit, and the shield tink pitched by the tier of the victim's
 /// arc. Hits you take: the impact, and the tink of your own arc when the halo took it.
 fn feedback_sounds(
     mut sfx: Sfx,
+    data: Res<Data>,
     mut heard: MessageReader<FeedbackSound>,
     players: Query<(&PlayerId, &PlayerLoadout, Has<Controlled>)>,
 ) {
@@ -1471,6 +1477,12 @@ fn feedback_sounds(
             FeedbackSound::Assist => {
                 for id in assist_cues() {
                     sfx.play(Play::new(id));
+                }
+            }
+            FeedbackSound::Streak { kills } => {
+                let news = vetf_net::StreakNews::Reached { player: 0, kills: *kills };
+                for id in crate::streaks::announce_sounds(&news, &data.rules.streaks) {
+                    sfx.play(Play::new(&id));
                 }
             }
             FeedbackSound::Damage(d) => {
@@ -2311,6 +2323,19 @@ mod tests {
         let d = data();
         for id in assist_cues() {
             assert!(d.sounds.contains_key(id), "{id} is in sounds.ron");
+        }
+    }
+
+    /// Kill streaks: every tier's stinger and voice line (when one is set) is a sound in sounds.ron.
+    #[test]
+    fn every_streak_sound_is_in_the_data() {
+        let d = data();
+        let tiers = &game().rules.streaks.tiers;
+        assert!(tiers.iter().any(|t| t.stinger.is_some()), "an announced tier has its stinger");
+        for t in tiers {
+            for id in t.stinger.iter().chain(&t.voice) {
+                assert!(d.sounds.contains_key(id.as_str()), "{id} (the {}-kill tier) is in sounds.ron", t.kills);
+            }
         }
     }
 

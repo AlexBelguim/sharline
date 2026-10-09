@@ -37,6 +37,39 @@
         assist_min_damage: 40.0,  // like team deathmatch; anyone but the killer and the victim can assist
         assist_window_s: 10.0,
     ),
+    // Kill streaks in team deathmatch and free-for-all (user direction, item 9c2). A streak is a player's kills
+    // in a row within one life: every kill that scores (an enemy, in a live match) adds one, dying resets it,
+    // assists do not count. Placeholders until playtests tune them.
+    streaks: (
+        hud_min: 2,      // the counter left of the health block shows from a 2 streak (hidden at 0 and 1)
+        ended_min: 3,    // "WREN ended ORCA's 5 STREAK" in the kill feed for a streak of 3 or more
+        aura_min: 5,     // the bounty aura (warm embers rising around the body), seen by everyone, from 5
+        banner_s: 3.0,   // the map-wide banner of an announced tier stays this long
+        toast_s: 2.5,    // the streaker's own reward toast (under the crosshair)
+        // Each streak length that does something. `announce`: a big centre banner for everyone (`title` is its
+        // caption) and the `stinger` sound; otherwise a kill feed line only. `voice`: the announcer's voice line
+        // (a sounds.ron id), played after the stinger: the hook for a recorded line, none yet (no voice model).
+        // Rewards, given by the host: FullHealth (every region), FullShield (every arc), RefillMags (every
+        // magazine, the one in the gun too: the "mag reset"). Grenade exists as a stub for when throwables
+        // (smoke, molotov) come; the data check rejects it until then.
+        tiers: [
+            (kills: 3, rewards: [FullHealth, FullShield]),
+            (kills: 5, announce: true, title: "BOUNTY", stinger: Some("announcer/streak_5"), rewards: [RefillMags]),
+            (kills: 10, announce: true, title: "MOST WANTED", stinger: Some("announcer/streak_10")),
+        ],
+        // The bounty aura's look (visual only): a few small embers spiralling up from the feet to just over the
+        // halo and fading out, in a warm gold. Unlike a teammate's rim glow it is no outline on the body.
+        aura: (
+            embers: 10,
+            radius_m: 0.42,
+            height_m: 2.15,
+            rise_s: 1.6,
+            swirl_turns: 0.35,
+            size_m: 0.045,
+            color: (1.0, 0.72, 0.28),
+            glow: 6.0,
+        ),
+    ),
     // The team deathmatch and free-for-all loadout (DIRECTION_LOG 17; the point table is explained in
     // game/DESIGN_DELTAS.md).
     // - No agent pick: these modes have no abilities, and the host deals every player a random agent at the

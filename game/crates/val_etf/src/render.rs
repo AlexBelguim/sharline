@@ -11,6 +11,7 @@ pub mod feel;
 pub mod friend_foe;
 pub mod hit_fx;
 pub mod inspect;
+mod streak_aura;
 mod tracer_fx;
 
 use crate::AppState;
@@ -48,6 +49,7 @@ impl Plugin for RenderPlugin {
             .init_resource::<StepEye>()
             .add_message::<hit_fx::HaloHit>()
             .add_plugins(friend_foe::FriendFoePlugin)
+            .add_plugins(streak_aura::StreakAuraPlugin)
             .add_systems(Startup, setup_menu_camera)
             .add_systems(FixedPostUpdate, (record_ads, record_footing))
             .add_systems(

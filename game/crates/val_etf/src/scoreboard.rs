@@ -370,7 +370,7 @@ fn ffa_winner(phase: Option<MatchPhase>) -> Option<u64> {
 
 /// KDA, one decimal: (kills + assists) / deaths, deaths counted as at least 1.
 fn kda_text(r: &Row) -> String {
-    format!("{:.1}", Score { kills: r.kills, deaths: r.deaths, assists: r.assists }.kda())
+    format!("{:.1}", Score { kills: r.kills, deaths: r.deaths, assists: r.assists, streak: 0 }.kda())
 }
 
 /// The winner first (free-for-all, once it has ended), then most kills, then fewest deaths, then by name (a

@@ -19,7 +19,7 @@ use vetf_sim::player::{Loadout, Wounds};
 use vetf_sim::weapon::WeaponState;
 
 /// Bumped whenever the protocol changes; part of the netcode protocol id, so old builds cannot connect.
-pub const PROTOCOL_VERSION: u64 = 12;
+pub const PROTOCOL_VERSION: u64 = 13;
 
 /// netcode.io protocol id shared by host and clients.
 pub fn protocol_id() -> u64 {
@@ -89,6 +89,9 @@ pub struct Score {
     /// Kills this player helped with (the host's assist rule, `rules.ron` `assist_min_damage` within
     /// `assist_window_s`).
     pub assists: u16,
+    /// Kills in a row this life (`rules.ron` `streaks`; dying resets it, assists do not count). Everyone sees it:
+    /// the HUD counter for its owner, the bounty aura on the streaker for the rest.
+    pub streak: u16,
 }
 
 impl Score {
@@ -382,6 +385,17 @@ impl KillFeed {
     }
 }
 
+/// Host -> everyone: kill streak news for the kill feed, and for an announced tier the map-wide banner and
+/// stinger (`rules.ron` `streaks`). Host and clients run the same data (its fingerprint is checked on join), so
+/// a client finds the tier (its banner title, sounds and rewards) from the kill count.
+#[derive(Serialize, Deserialize, Clone, Copy, Debug, PartialEq, Eq)]
+pub enum StreakNews {
+    /// `player` reached a tier of `kills` in a row ("WREN: 3 STREAK", "WREN is on a 5 STREAK").
+    Reached { player: u64, kills: u16 },
+    /// `player`'s streak of `kills` ended: killed by `by` (`None`: no player, e.g. a fall, see `cause`).
+    Ended { player: u64, by: Option<u64>, kills: u16, cause: DeathCause },
+}
+
 /// Client -> host: respawn me now (the death screen's RESPAWN, once the respawn timer is out).
 #[derive(Serialize, Deserialize, Clone, Copy, Debug, PartialEq, Eq)]
 pub struct RespawnRequest;
@@ -496,6 +510,7 @@ impl Plugin for ProtocolPlugin {
         app.register_message::<HitConfirm>().add_direction(NetworkDirection::ServerToClient);
         app.register_message::<DamageTaken>().add_direction(NetworkDirection::ServerToClient);
         app.register_message::<KillFeed>().add_direction(NetworkDirection::ServerToClient);
+        app.register_message::<StreakNews>().add_direction(NetworkDirection::ServerToClient);
         app.register_message::<ShotFx>().add_direction(NetworkDirection::ServerToClient);
         app.register_message::<crate::recap::LifeRecap>().add_direction(NetworkDirection::ServerToClient);
     }
@@ -599,7 +614,10 @@ mod tests {
         });
         roundtrip(&KillFeed { killer: Some(5), victim: 2, zone: None, assists: vec![], cause: DeathCause::Bleed });
         roundtrip(&KillFeed { killer: None, victim: 2, zone: None, assists: vec![6], cause: DeathCause::Fire });
-        roundtrip(&Score { kills: 7, deaths: 2, assists: 4 });
+        roundtrip(&Score { kills: 7, deaths: 2, assists: 4, streak: 5 });
+        roundtrip(&StreakNews::Reached { player: 3, kills: 5 });
+        roundtrip(&StreakNews::Ended { player: 3, by: Some(9), kills: 7, cause: DeathCause::Shot });
+        roundtrip(&StreakNews::Ended { player: 3, by: None, kills: 4, cause: DeathCause::Fall });
         // A hit confirm carries the shot number and where it hit, for the marker on the victim.
         for kind in [HitKind::Shield, HitKind::Health, HitKind::Kill] {
             roundtrip(&HitConfirm {
@@ -775,8 +793,8 @@ mod tests {
         roundtrip(&PlayerAgent(None));
         assert_eq!(PlayerAgent::default(), PlayerAgent(None));
         assert_eq!(
-            PROTOCOL_VERSION, 12,
-            "agent + deathmatch picks 6, no ADS MOVE 7, death screen 8, test bots (bot mark, ADD/REMOVE BOT) 9,              recap per opponent life + kills, assists 10, MAG CHECK match setting 11, kill feed cause 12"
+            PROTOCOL_VERSION, 13,
+            "agent + deathmatch picks 6, no ADS MOVE 7, death screen 8, test bots (bot mark, ADD/REMOVE BOT) 9,              recap per opponent life + kills, assists 10, MAG CHECK match setting 11, kill feed cause 12,              kill streaks (Score::streak, StreakNews) 13"
         );
     }
 
@@ -833,10 +851,10 @@ mod tests {
     /// KDA: (kills + assists) / deaths, with no deaths counted as one.
     #[test]
     fn kda_counts_assists_and_never_divides_by_zero() {
-        assert_eq!(Score { kills: 10, deaths: 4, assists: 2 }.kda(), 3.0);
-        assert_eq!(Score { kills: 3, deaths: 0, assists: 1 }.kda(), 4.0, "no deaths: as one");
+        assert_eq!(Score { kills: 10, deaths: 4, assists: 2, streak: 0 }.kda(), 3.0);
+        assert_eq!(Score { kills: 3, deaths: 0, assists: 1, streak: 0 }.kda(), 4.0, "no deaths: as one");
         assert_eq!(Score::default().kda(), 0.0);
-        assert_eq!(Score { kills: 0, deaths: 3, assists: 1 }.kda(), 1.0 / 3.0);
+        assert_eq!(Score { kills: 0, deaths: 3, assists: 1, streak: 0 }.kda(), 1.0 / 3.0);
     }
 
     #[test]

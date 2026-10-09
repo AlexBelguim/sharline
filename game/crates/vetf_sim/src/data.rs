@@ -1090,6 +1090,8 @@ pub struct RulesFile {
     pub ffa: FfaRules,
     /// The loadout of team deathmatch and free-for-all (see [`RulesFile::fixed_loadout`]).
     pub deathmatch_loadout: DeathmatchLoadout,
+    /// Kill streaks in team deathmatch and free-for-all (item 9c2, see [`crate::streak`]).
+    pub streaks: crate::streak::StreakRules,
     pub rulesets: Rulesets,
     pub default_loadout: LoadoutSpec,
 }
@@ -1587,6 +1589,9 @@ impl GameData {
         }
         if self.armor.preset(&l.armor).is_none() {
             return bad(format!("default loadout: unknown armor {}", l.armor));
+        }
+        if let Some(p) = self.rules.streaks.problem() {
+            return bad(p);
         }
         let kit = &self.rules.deathmatch_loadout;
         if !(1..=crate::weapon::MAX_MAGS).contains(&(kit.mags as usize)) {

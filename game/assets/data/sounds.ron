@@ -137,6 +137,10 @@
         // The announcer's lines. "announcer/assist" is a placeholder stinger: a recorded voice line ("ASSIST")
         // drops in by listing its file here (no code change).
         "announcer/assist": (files: ["announcer/assist.ogg"], category: Hits, volume: 0.55),
+        // Kill streaks (rules.ron streaks): the map-wide stinger of each announced tier, heard by everyone. A tier's
+        // recorded voice line drops in as its own sound here, named in that tier's `voice` in rules.ron.
+        "announcer/streak_5": (files: ["announcer/streak_5.ogg"], category: Hits, volume: 0.6),
+        "announcer/streak_10": (files: ["announcer/streak_10.ogg"], category: Hits, volume: 0.65),
         // ------------------------------------------------------------------ items (ABILITIES & HALOS slider)
         "items/heal": (
             files: ["items/heal.ogg"], category: Abilities, volume: 0.7, pitch_jitter: 0.03,

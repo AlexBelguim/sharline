@@ -26,6 +26,7 @@ use crate::config::{Cli, Data};
 use crate::net::Session;
 use crate::render::ViewCamera;
 use crate::settings::{DamageFlash, Settings, Ultrawide, crosshair_rects, rgb_color};
+use crate::streaks::StreakLine;
 use crate::ui_kit::{self as kit, Face, UiFonts, abs, panel};
 use bevy::prelude::*;
 use bevy::ui::{ColorStop, RadialGradient, RadialGradientShape, UiPosition};
@@ -54,6 +55,7 @@ impl Plugin for HudPlugin {
                     update_crosshair,
                     update_feed,
                     update_assist_popup,
+                    update_streak_hud,
                     update_overlays,
                     update_damage_indicators,
                     update_connecting.run_if(in_state(AppState::Connecting)),
@@ -93,6 +95,8 @@ const GHOST_HOLD_S: f32 = 0.45;
 const GHOST_DRAIN: f32 = 90.0;
 /// A fire-mode change shows under the crosshair this long.
 const TOAST_S: f32 = 1.2;
+/// Kill streaks: the feed's streak tag, the banner, the toast and the counter (a warm gold, like the aura).
+const STREAK_GOLD: Color = Color::srgb(1.0, 0.76, 0.33);
 /// The most KILL FEED LINES offers; the setting shows 3, 5 or 7 of them.
 const FEED_ROWS: usize = 7;
 /// The camera's vertical field of view when there is no perspective view camera (render.rs's default).
@@ -193,12 +197,28 @@ enum Part {
     Lead,
     Helper,
     Cause,
+    Mid,
     Victim,
     Tag,
 }
 /// The ASSIST popup under the crosshair.
 #[derive(Component)]
 struct AssistPopup;
+/// The kill streak counter, left of the vitals, and its number.
+#[derive(Component)]
+struct StreakCounter;
+#[derive(Component)]
+struct StreakCount;
+/// Your kill streak reward toast.
+#[derive(Component)]
+struct StreakToastText;
+/// The map-wide kill streak banner, its caption and headline.
+#[derive(Component)]
+struct StreakBannerRoot;
+#[derive(Component)]
+struct StreakBannerCaption;
+#[derive(Component)]
+struct StreakBannerHeadline;
 #[derive(Component)]
 struct CenterBanner;
 #[derive(Component)]
@@ -257,7 +277,37 @@ fn spawn_hud(mut commands: Commands, data: Res<Data>, fonts: Res<UiFonts>) {
         .spawn((HudSafeArea, abs(Some(32.0), Some(32.0), Some(32.0), Some(32.0)), Pickable::IGNORE, ChildOf(root)))
         .id();
 
-    // --- vitals (bottom left)
+    // --- bottom left: the kill streak counter, then the vitals
+    let bottom_left = commands
+        .spawn((
+            Node { align_items: AlignItems::FlexEnd, column_gap: px(10), ..abs(Some(0.0), None, None, Some(0.0)) },
+            Pickable::IGNORE,
+            ChildOf(edges),
+        ))
+        .id();
+    // The streak counter, just left of the health block: its slot is kept in team deathmatch and free-for-all
+    // (so the vitals never jump when it appears) and gone in the gun range.
+    commands.spawn((
+        StreakCounter,
+        kit::panel_bg(
+            Node {
+                flex_direction: FlexDirection::Column,
+                align_items: AlignItems::Center,
+                padding: UiRect::axes(px(8), px(8)),
+                row_gap: px(2),
+                width: px(68),
+                display: Display::None,
+                ..default()
+            },
+            kit::PANEL.with_alpha(0.45),
+        ),
+        Visibility::Hidden,
+        ChildOf(bottom_left),
+        children![
+            (StreakCount, fonts.text("", Face::Display, 700, 30.0, STREAK_GOLD, 0.0)),
+            fonts.text("STREAK", Face::Display, 700, 11.0, kit::TEXT_MID, 0.16),
+        ],
+    ));
     let vitals = commands
         .spawn((
             kit::panel_bg(
@@ -265,11 +315,11 @@ fn spawn_hud(mut commands: Commands, data: Res<Data>, fonts: Res<UiFonts>) {
                     flex_direction: FlexDirection::Column,
                     padding: UiRect::axes(px(14), px(12)),
                     row_gap: px(7),
-                    ..abs(Some(0.0), None, None, Some(0.0))
+                    ..default()
                 },
                 kit::PANEL.with_alpha(0.45),
             ),
-            ChildOf(edges),
+            ChildOf(bottom_left),
         ))
         .id();
     commands.spawn((
@@ -463,6 +513,37 @@ fn spawn_hud(mut commands: Commands, data: Res<Data>, fonts: Res<UiFonts>) {
         )],
     ));
 
+    // --- kill streak reward toast (yours), under the action readout
+    commands.spawn((
+        Node {
+            width: percent(100),
+            justify_content: JustifyContent::Center,
+            top: percent(50),
+            margin: UiRect::top(px(100)),
+            ..abs(Some(0.0), None, None, None)
+        },
+        ChildOf(root),
+        children![(StreakToastText, fonts.text("", Face::Display, 700, 14.0, STREAK_GOLD, 0.14), Visibility::Hidden)],
+    ));
+
+    // --- kill streak banner (map-wide, an announced tier): a caption over a headline, above the death banner
+    commands.spawn((
+        StreakBannerRoot,
+        Node {
+            width: percent(100),
+            flex_direction: FlexDirection::Column,
+            align_items: AlignItems::Center,
+            row_gap: px(2),
+            ..abs(None, None, Some(118.0), None)
+        },
+        Visibility::Hidden,
+        ChildOf(root),
+        children![
+            (StreakBannerCaption, fonts.text("", Face::Display, 700, 15.0, STREAK_GOLD, 0.3)),
+            (StreakBannerHeadline, fonts.text("", Face::Display, 700, 30.0, kit::TEXT_HI, 0.06)),
+        ],
+    ));
+
     // --- score (top centre)
     // Hidden until the match state says which mode this is: the range has no teams (no team boxes).
     commands.spawn((
@@ -545,7 +626,7 @@ fn spawn_hud(mut commands: Commands, data: Res<Data>, fonts: Res<UiFonts>) {
                 (FeedPart(i, Part::Lead), fonts.text("", Face::Display, 700, 15.0, kit::TEXT, 0.04)),
                 (FeedPart(i, Part::Helper), fonts.text("", Face::Display, 700, 13.0, kit::TEXT, 0.04)),
                 (FeedPart(i, Part::Cause), fonts.text("", Face::Display, 700, 13.0, kit::TEXT_MID, 0.08)),
-                (fonts.text(">", Face::Display, 700, 15.0, kit::TEXT_LOW, 0.0)),
+                (FeedPart(i, Part::Mid), fonts.text(">", Face::Display, 700, 15.0, kit::TEXT_LOW, 0.0)),
                 (FeedPart(i, Part::Victim), fonts.text("", Face::Display, 700, 15.0, kit::TEXT, 0.04)),
                 (FeedPart(i, Part::Tag), fonts.text("", Face::Display, 700, 11.0, kit::WARN, 0.16)),
             ],
@@ -1188,13 +1269,27 @@ fn demo_hud_fx(
         (fall.killer, fall.helpers, fall.cause) = (None, vec!["VESPER".into()], DeathCause::Fall);
         feedback.kills.extend([helped, fall]);
         feedback.assist_s = ASSIST_POPUP_S;
+        // Kill streak lines, the map-wide banner and the reward toast.
+        let mut run = FeedEntry::kill("ORCA", "", false);
+        run.streak = Some(StreakLine::Reached { kills: 5, announced: true });
+        let mut ended = FeedEntry::kill(you, "ORCA", false);
+        ended.streak = Some(StreakLine::Ended { kills: 5 });
+        feedback.kills.extend([run, ended]);
+        let headline = "ORCA IS ON A 5 STREAK".into();
+        feedback.streak_banner = Some(crate::streaks::Banner { caption: "BOUNTY".into(), headline, left_s: 30.0 });
+        let text = "3 STREAK: FULL HEALTH + FULL SHIELD".into();
+        feedback.streak_toast = Some(crate::streaks::Toast { text, left_s: 30.0 });
     }
 }
 
-/// A kill feed line's texts: the lead name, the helper part and the cause, then the victim.
-/// - a kill: "KILLER", "+ HELPER +N" (the top helper by damage, and how many more), "" (or "+ BLEED")
+/// A kill feed line's texts, left to right: the lead name, the helper part and the cause, the middle word,
+/// the victim and the tag. Empty parts take no room.
+/// - a kill: "KILLER", "+ HELPER +N" (the top helper by damage, and how many more), "" (or "+ BLEED"), ">",
+///   "VICTIM", "HEADSHOT" (or "")
 /// - a death no player caused, after a fight: "HELPER", "+N", "+ FALL" (the top helper leads)
 /// - with nobody to credit: "FALL" (or "--" for a suicide), "", ""
+/// - a kill streak ([`StreakLine`]): "WREN:" "3 STREAK", "WREN" "is on a" "5 STREAK", "ORCA" "ended" "WREN's"
+///   "5 STREAK"
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct FeedText {
     pub lead: String,
@@ -1204,47 +1299,101 @@ pub struct FeedText {
     /// The player the helper part names (its colour), if any.
     pub helper_name: Option<String>,
     pub cause: String,
+    /// ">" for a kill, a word for a streak line ("is on a", "ended").
+    pub mid: String,
+    pub victim: String,
+    /// The player the victim part names (its colour), if any.
+    pub victim_name: Option<String>,
+    pub tag: String,
+    /// The tag is a streak ("5 STREAK", in the streak colour) rather than HEADSHOT.
+    pub tag_streak: bool,
 }
 
 impl FeedText {
     /// The whole line, as a player reads it: "KILLER + HELPER +1 > VICTIM".
-    pub fn line(&self, victim: &str) -> String {
-        let left: Vec<&str> =
-            [&self.lead, &self.helper, &self.cause].into_iter().map(String::as_str).filter(|s| !s.is_empty()).collect();
-        format!("{} > {victim}", left.join(" "))
+    pub fn line(&self) -> String {
+        let parts = [&self.lead, &self.helper, &self.cause, &self.mid, &self.victim, &self.tag];
+        parts.into_iter().map(String::as_str).filter(|s| !s.is_empty()).collect::<Vec<_>>().join(" ")
+    }
+
+    fn plain(lead: String, lead_name: Option<String>) -> FeedText {
+        FeedText {
+            lead,
+            lead_name,
+            helper: String::new(),
+            helper_name: None,
+            cause: String::new(),
+            mid: String::new(),
+            victim: String::new(),
+            victim_name: None,
+            tag: String::new(),
+            tag_streak: false,
+        }
     }
 }
 
 pub fn feed_text(e: &FeedEntry) -> FeedText {
+    if let Some(s) = e.streak {
+        return streak_text(e, s);
+    }
     let more = |n: usize| if n > 0 { format!("+{n}") } else { String::new() };
     let cause = if e.cause.is_environmental() { e.cause.label() } else { "" };
     let plus_cause = if cause.is_empty() { String::new() } else { format!("+ {cause}") };
-    match (&e.killer, e.helpers.split_first()) {
+    let mut t = match (&e.killer, e.helpers.split_first()) {
         (Some(k), top) => FeedText {
-            lead: k.clone(),
-            lead_name: Some(k.clone()),
             helper: top.map_or(String::new(), |(h, rest)| match rest.len() {
                 0 => format!("+ {h}"),
                 n => format!("+ {h} +{n}"),
             }),
             helper_name: top.map(|(h, _)| h.clone()),
             cause: plus_cause,
+            ..FeedText::plain(k.clone(), Some(k.clone()))
         },
-        (None, Some((h, rest))) => FeedText {
-            lead: h.clone(),
-            lead_name: Some(h.clone()),
-            helper: more(rest.len()),
-            helper_name: None,
-            cause: plus_cause,
-        },
-        (None, None) => FeedText {
-            lead: if cause.is_empty() { "--".into() } else { cause.into() },
-            lead_name: None,
-            helper: String::new(),
-            helper_name: None,
-            cause: String::new(),
-        },
+        (None, Some((h, rest))) => {
+            FeedText { helper: more(rest.len()), cause: plus_cause, ..FeedText::plain(h.clone(), Some(h.clone())) }
+        }
+        (None, None) => FeedText::plain(if cause.is_empty() { "--".into() } else { cause.into() }, None),
+    };
+    t.mid = ">".into();
+    t.victim = e.victim.clone();
+    t.victim_name = Some(e.victim.clone());
+    if e.headshot {
+        t.tag = "HEADSHOT".into();
     }
+    t
+}
+
+/// A kill streak line: "WREN: 3 STREAK", "WREN is on a 5 STREAK", "ORCA ended WREN's 5 STREAK" (with no
+/// player to name, the cause: "FALL ended WREN's 5 STREAK", else "WREN's 5 STREAK ended").
+fn streak_text(e: &FeedEntry, s: StreakLine) -> FeedText {
+    let who = e.killer.clone().unwrap_or_default();
+    let mut t = match s {
+        StreakLine::Reached { kills, announced: false } => {
+            FeedText { tag: format!("{kills} STREAK"), ..FeedText::plain(format!("{who}:"), Some(who)) }
+        }
+        StreakLine::Reached { kills, announced: true } => FeedText {
+            mid: "is on a".into(),
+            tag: format!("{kills} STREAK"),
+            ..FeedText::plain(who.clone(), Some(who))
+        },
+        StreakLine::Ended { kills } => {
+            let cause = e.cause.is_environmental().then_some(e.cause.label());
+            let (lead, lead_name, mid, tag) = match (&e.killer, cause) {
+                (Some(k), _) => (k.clone(), Some(k.clone()), "ended", format!("{kills} STREAK")),
+                (None, Some(c)) => (c.to_string(), None, "ended", format!("{kills} STREAK")),
+                (None, None) => (String::new(), None, "", format!("{kills} STREAK ended")),
+            };
+            FeedText {
+                mid: mid.into(),
+                victim: format!("{}'s", e.victim),
+                victim_name: Some(e.victim.clone()),
+                tag,
+                ..FeedText::plain(lead, lead_name)
+            }
+        }
+    };
+    t.tag_streak = true;
+    t
 }
 
 /// The ASSIST popup: on for a moment after an assist of yours, fading out over its last third.
@@ -1257,6 +1406,81 @@ fn update_assist_popup(
         *vis = if t > 0.0 { Visibility::Inherited } else { Visibility::Hidden };
         color.0 = kit::TEXT_HI.with_alpha(assist_popup_alpha(t));
     }
+}
+
+/// The kill streak HUD: the counter left of the vitals (team deathmatch and free-for-all; shown from
+/// `streaks.hud_min`), the map-wide banner and your reward toast, each fading out over its last moments.
+#[allow(clippy::type_complexity)]
+fn update_streak_hud(
+    data: Res<Data>,
+    feedback: Res<Feedback>,
+    me: Query<&Score, With<Controlled>>,
+    matches: Query<&MatchState>,
+    mut counter: Query<(&mut Node, &mut Visibility), With<StreakCounter>>,
+    mut count: Query<&mut Text, (With<StreakCount>, Without<StreakBannerCaption>, Without<StreakBannerHeadline>)>,
+    mut banner: Query<&mut Visibility, (With<StreakBannerRoot>, Without<StreakCounter>, Without<StreakToastText>)>,
+    mut lines: Query<
+        (&mut Text, &mut TextColor, Has<StreakBannerCaption>),
+        (Or<(With<StreakBannerCaption>, With<StreakBannerHeadline>)>, Without<StreakCount>),
+    >,
+    mut toast: Query<
+        (&mut Text, &mut TextColor, &mut Visibility),
+        (
+            With<StreakToastText>,
+            Without<StreakCount>,
+            Without<StreakBannerCaption>,
+            Without<StreakBannerHeadline>,
+            Without<StreakCounter>,
+            Without<StreakBannerRoot>,
+        ),
+    >,
+) {
+    let rules = &data.rules.streaks;
+    let deathmatch = matches.iter().next().is_some_and(|m| m.mode.is_deathmatch());
+    let streak = me.iter().next().map_or(0, |s| s.streak);
+    for (mut node, mut vis) in &mut counter {
+        node.display = if deathmatch { Display::Flex } else { Display::None };
+        vis.set_if_neq(if rules.shows_counter(streak) { Visibility::Inherited } else { Visibility::Hidden });
+    }
+    for mut t in &mut count {
+        let text = streak.to_string();
+        if t.0 != text {
+            t.0 = text;
+        }
+    }
+    let b = feedback.streak_banner.as_ref();
+    for mut vis in &mut banner {
+        vis.set_if_neq(if b.is_some() { Visibility::Inherited } else { Visibility::Hidden });
+    }
+    if let Some(b) = b {
+        let alpha = fade_out(b.left_s);
+        for (mut t, mut c, caption) in &mut lines {
+            let (text, col) = if caption { (&b.caption, STREAK_GOLD) } else { (&b.headline, kit::TEXT_HI) };
+            if &t.0 != text {
+                t.0 = text.clone();
+            }
+            c.0 = col.with_alpha(alpha);
+        }
+    }
+    for (mut t, mut c, mut vis) in &mut toast {
+        match &feedback.streak_toast {
+            Some(toast) => {
+                if t.0 != toast.text {
+                    t.0 = toast.text.clone();
+                }
+                c.0 = STREAK_GOLD.with_alpha(fade_out(toast.left_s));
+                vis.set_if_neq(Visibility::Inherited);
+            }
+            None => {
+                vis.set_if_neq(Visibility::Hidden);
+            }
+        }
+    }
+}
+
+/// A banner's or toast's opacity with `left_s` seconds to go: full, then fading out over its last half second.
+pub fn fade_out(left_s: f32) -> f32 {
+    (left_s / 0.5).clamp(0.0, 1.0)
 }
 
 /// The popup's opacity with `left_s` seconds to go: full, then fading out over the last third.
@@ -1294,8 +1518,10 @@ fn update_feed(
             Part::Lead => (ft.lead.clone(), named(&ft.lead_name)),
             Part::Helper => (ft.helper.clone(), named(&ft.helper_name)),
             Part::Cause => (ft.cause.clone(), kit::TEXT_MID),
-            Part::Victim => (e.victim.clone(), color(&e.victim)),
-            Part::Tag => (if e.headshot { "HEADSHOT".into() } else { String::new() }, kit::WARN),
+            // A kill's ">" is quiet; a streak line's words ("is on a", "ended") read a little brighter.
+            Part::Mid => (ft.mid.clone(), if e.streak.is_some() { kit::TEXT_MID } else { kit::TEXT_LOW }),
+            Part::Victim => (ft.victim.clone(), named(&ft.victim_name)),
+            Part::Tag => (ft.tag.clone(), if ft.tag_streak { STREAK_GOLD } else { kit::WARN }),
         };
         // An empty part takes no room (the row's gap would leave a hole).
         let display = if text.is_empty() { Display::None } else { Display::Flex };
@@ -1382,11 +1608,12 @@ mod tests {
             victim: "MOTH".into(),
             headshot: false,
             left_s: 1.0,
+            streak: None,
         }
     }
 
     fn line(killer: Option<&str>, helpers: &[&str], cause: DeathCause) -> String {
-        feed_text(&entry(killer, helpers, cause)).line("MOTH")
+        feed_text(&entry(killer, helpers, cause)).line()
     }
 
     /// The kill feed: "KILLER + HELPER > VICTIM", with several helpers the top one (most damage) and "+N".

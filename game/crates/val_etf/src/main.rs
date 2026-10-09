@@ -35,6 +35,7 @@ mod shared;
 mod showhome_ground;
 mod showhome_kit;
 mod sound;
+mod streaks;
 mod ui_kit;
 mod user_config;
 mod video;

@@ -654,3 +654,28 @@ Assists (item 9-pre: `assist_min_damage` within `assist_window_s` in `rules.ron`
   crosshair (1.1 s, fading out over its last third) and hear `combat/assist` plus the announcer hook
   `announcer/assist`. The announcer line is a placeholder stinger: a recorded voice line drops in by listing its file
   under that id in `sounds.ron` (no code change).
+
+## 28. Kill streaks in team deathmatch and free-for-all (2026-10-09)
+
+New (item 9c2, user direction; the design docs have no streaks). All numbers in `rules.ron` `streaks`, rules in
+`vetf_sim::streak`.
+- **The count:** kills in a row within one life. A kill adds one only when it scores (an enemy, in a live match: a
+  teamkill or a kill in the lobby or the intermission does not) and the killer is alive (a trade on the same tick
+  ends that life). Any death resets it. Assists do not count. It is `Score::streak`, replicated to everyone
+  (protocol version 13), so a late joiner sees the aura too.
+- **Tiers** (placeholders): 3 = a feed line ("WREN: 3 STREAK") and full health on every region plus every halo arc
+  full; 5 = announced map-wide ("WREN is on a 5 STREAK" in the feed, a centre banner "BOUNTY" / "WREN IS ON A 5
+  STREAK" for 3 s for everyone, the `announcer/streak_5` stinger) and every magazine refilled, the one in the gun
+  too (the "mag reset"); 10 = announced ("MOST WANTED"), no reward. Ending a streak of 3 or more is in the feed:
+  "ORCA ended WREN's 5 STREAK", "FALL ended WREN's 4 STREAK". The host applies the rewards; the streaker sees a
+  toast under the crosshair ("3 STREAK: FULL HEALTH + FULL SHIELD"). The news is a new host-to-everyone message
+  (`StreakNews`), sent like the kill feed so the host's own client gets it.
+- **Rewards** are data: `FullHealth`, `FullShield`, `RefillMags`, and `Grenade`, a stub for when throwables exist
+  (it gives nothing, and the data check rejects it in a tier until then).
+- **Announcer:** no voice model, so each announced tier plays a placeholder stinger. A tier's `voice` field (a
+  `sounds.ron` id, none set) is the hook for a recorded line, played with the stinger.
+- **Bounty aura** from a 5 streak: ten small warm-gold embers spiral up around the body from the feet to just over
+  the halo (unlit, additive, no shadows; look in `streaks.aura`). It is a marker on the player, not an outline, so it
+  reads apart from the teammate rim glow. The local player has no aura of their own (first person).
+- **HUD:** a streak counter just left of the health block (team deathmatch and free-for-all; shown from 2). Its
+  slot is kept in those modes, so the vitals block sits about 80 px further right there than in the gun range.

@@ -384,6 +384,19 @@ def announcer_assist():
     return norm(fade(x), -12)
 
 
+def announcer_streak(base, total, level):
+    # A kill streak's map-wide stinger (placeholder until a voice line drops in): a bright rising sweep into a
+    # warm major chord, a little bigger for the higher tier.
+    n = n_of(total)
+    sweep = chirp(base * 0.5, base * 1.6, total * 0.6)
+    sweep = sweep * env(len(sweep), 0.01, total * 0.25)
+    chord = (sine(base, total) + 0.8 * sine(base * 1.26, total) + 0.6 * sine(base * 1.5, total))
+    chord = chord * env(n, 0.03, total * 0.45)
+    x = 0.45 * at(total, 0.0, sweep) + at(total, 0.12, chord[: n - n_of(0.12)])
+    x = x + 0.12 * burst(total, 801 + int(base), 2500, 8000, 0.005, 0.08)
+    return norm(fade(x), level)
+
+
 def damage_taken():
     total = 0.35
     x = thump(70, total, 0.12) + 0.6 * burst(total, 790, 40, 450, 0.002, 0.06)
@@ -487,6 +500,8 @@ def sounds():
     s["combat/damage_taken"] = damage_taken()
     s["combat/assist"] = assist()
     s["announcer/assist"] = announcer_assist()
+    s["announcer/streak_5"] = announcer_streak(523.0, 0.8, -11)
+    s["announcer/streak_10"] = announcer_streak(659.0, 1.1, -10)
     s["items/heal"] = heal()
     s["ui/click"] = ui_click()
     s["ui/hover"] = ui_hover()

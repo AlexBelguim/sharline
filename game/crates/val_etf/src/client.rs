@@ -57,6 +57,7 @@ impl Plugin for ClientPlugin {
                     fire_claims,
                     recoil_recovery,
                     receive_feedback,
+                    crate::streaks::receive_streaks,
                     tick_feedback,
                 )
                     .chain()
@@ -134,6 +135,10 @@ pub struct Feedback {
     pub kills: Vec<FeedEntry>,
     /// The ASSIST popup's seconds left (0: hidden); an assist of yours sets it.
     pub assist_s: f32,
+    /// The map-wide kill streak banner (an announced tier), while it shows.
+    pub streak_banner: Option<crate::streaks::Banner>,
+    /// Your own streak reward toast, while it shows.
+    pub streak_toast: Option<crate::streaks::Toast>,
     /// New tracers: (from, to, seconds since the shot, own shot); `render::tracer_fx` flies them.
     pub tracers: Vec<(Vec3, Vec3, f32, bool)>,
     /// New bullet impacts on the level (point, surface normal); `impacts` turns them into marks and debris.
@@ -141,7 +146,8 @@ pub struct Feedback {
 }
 
 /// One kill feed line: "KILLER + HELPER +N > VICTIM", or for a death no player caused,
-/// "HELPER + FALL > VICTIM" (`hud::feed_text` writes it).
+/// "HELPER + FALL > VICTIM", or a kill streak's ("WREN: 3 STREAK", "ORCA ended WREN's 5 STREAK", see
+/// [`crate::streaks::StreakLine`]) (`hud::feed_text` writes it).
 #[derive(Debug, Clone, PartialEq)]
 pub struct FeedEntry {
     pub killer: Option<String>,
@@ -152,6 +158,8 @@ pub struct FeedEntry {
     pub headshot: bool,
     /// Seconds left on screen.
     pub left_s: f32,
+    /// A kill streak line instead of a kill.
+    pub streak: Option<crate::streaks::StreakLine>,
 }
 
 impl FeedEntry {
@@ -164,6 +172,7 @@ impl FeedEntry {
             victim: victim.into(),
             headshot,
             left_s: FEED_LINE_S,
+            streak: None,
         }
     }
 }
@@ -785,8 +794,9 @@ fn receive_feedback(
                 victim: name(k.victim),
                 headshot: k.zone == Some(vetf_sim::Zone::Head) && !k.cause.is_environmental(),
                 left_s: FEED_LINE_S,
+                streak: None,
             };
-            info!("kill feed: {}", crate::hud::feed_text(&entry).line(&entry.victim));
+            info!("kill feed: {}", crate::hud::feed_text(&entry).line());
             feedback.kills.push(entry);
             // Only a helper gets the popup and the sound.
             if me.is_some_and(|m| k.assisted_by(m)) {
@@ -822,6 +832,18 @@ fn tick_feedback(time: Res<Time>, mut feedback: ResMut<Feedback>) {
         k.left_s > 0.0
     });
     feedback.assist_s = (feedback.assist_s - dt).max(0.0);
+    if let Some(b) = &mut feedback.streak_banner {
+        b.left_s -= dt;
+        if b.left_s <= 0.0 {
+            feedback.streak_banner = None;
+        }
+    }
+    if let Some(t) = &mut feedback.streak_toast {
+        t.left_s -= dt;
+        if t.left_s <= 0.0 {
+            feedback.streak_toast = None;
+        }
+    }
     // As many as the longest KILL FEED LINES choice; the HUD shows the player's number of them.
     let keep = crate::settings::KillFeed::ALL.iter().map(|k| k.lines()).max().unwrap_or(5);
     if feedback.kills.len() > keep {

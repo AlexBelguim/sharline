@@ -23,6 +23,7 @@ use vetf_sim::items::{self, ItemState};
 use vetf_sim::level::{Level, SpawnPoint, Team};
 use vetf_sim::movement::MoveState;
 use vetf_sim::player::{self, Loadout, Wounds};
+use vetf_sim::streak;
 use vetf_sim::weapon::{MAX_MAGS, WeaponLoadout, WeaponState, shot_direction, shot_seed};
 
 pub struct ServerPlugin;
@@ -33,6 +34,7 @@ impl Plugin for ServerPlugin {
             .init_resource::<crate::bots::BotRequests>()
             .add_message::<PlayerDied>()
             .add_message::<FeedOut>()
+            .add_message::<StreakOut>()
             .add_observer(on_new_link)
             .add_observer(on_link_connected)
             .add_observer(on_link_lost)
@@ -58,6 +60,7 @@ impl Plugin for ServerPlugin {
                     resolve_claims,
                     handle_deaths,
                     send_kill_feed,
+                    send_streak_news,
                     send_recaps,
                     sync_teams,
                     respawn_players,
@@ -212,6 +215,10 @@ pub struct PlayerDied {
 /// A kill feed line the host decided on (`handle_deaths`), on its way to every client (`send_kill_feed`).
 #[derive(Message, Debug, Clone, PartialEq)]
 pub struct FeedOut(pub KillFeed);
+
+/// Kill streak news the host decided on (`handle_deaths`), on its way to every client (`send_streak_news`).
+#[derive(Message, Debug, Clone, Copy, PartialEq)]
+pub struct StreakOut(pub StreakNews);
 
 pub(crate) struct PendingClaim {
     link: Entity,
@@ -1361,6 +1368,7 @@ fn handle_deaths(
     mut weapons: Query<(&mut PlayerWeapon, &PlayerLoadout)>,
     mut matches: Query<&mut MatchState>,
     mut feed: MessageWriter<FeedOut>,
+    mut streaks: MessageWriter<StreakOut>,
     mut kills: Local<u64>,
 ) {
     let mode = matches.iter().next().map_or(MatchMode::Tdm, |m| m.mode);
@@ -1383,6 +1391,13 @@ fn handle_deaths(
         }
         mv.0.vel = Vec3::ZERO;
         let (victim_id, victim_team) = (vid.0, vinfo.team);
+        // Dying ends the streak (any death: a fall or a teamkill too); a long one is in the kill feed.
+        let ended = score.streak;
+        score.streak = streak::after_death(ended);
+        if counts && data.rules.streaks.announces_end(ended) {
+            let news = StreakNews::Ended { player: victim_id, by: killer_id, kills: ended, cause: d.cause };
+            streaks.write(StreakOut(news));
+        }
         vsp.life.died(now);
         let victim_life = vsp.life.number;
         // Assists: everyone else who hurt this life enough, recently (team deathmatch: the victim's enemies).
@@ -1402,7 +1417,7 @@ fn handle_deaths(
             }
         }
         if let Some(k) = killer.filter(|_| counts)
-            && let Ok((_, kinfo, kv, mut kscore, _, mut ksp)) = players.get_mut(k)
+            && let Ok((kid, kinfo, mut kv, mut kscore, _, mut ksp)) = players.get_mut(k)
         {
             kscore.kills += 1;
             // When they reached this kill count: the free-for-all tie-break.
@@ -1417,6 +1432,25 @@ fn handle_deaths(
                 // Every kill tops up a magazine (user direction), so a good run keeps going.
                 if let Ok((mut w, l)) = weapons.get_mut(k) {
                     w.0.refill_mags(data.rules.deathmatch(m.mode).kill_refill_mags, l.0.weapon.mag_capacity);
+                }
+                // One more in a row, unless the killer is already dead (a trade: that life is over).
+                if !kv.health.dead {
+                    kscore.streak = streak::after_kill(kscore.streak);
+                    if let Some(tier) = data.rules.streaks.tier(kscore.streak) {
+                        if let Ok((mut w, l)) = weapons.get_mut(k) {
+                            let Vitals { health, halo, wounds, .. } = &mut *kv;
+                            let target = streak::RewardTarget {
+                                health,
+                                halo,
+                                halo_spec: &l.0.halo,
+                                weapon: &mut w.0,
+                                mag_capacity: l.0.weapon.mag_capacity,
+                            };
+                            streak::apply_rewards(&tier.rewards, target);
+                            wounds.sync(health, &data.rules.rulesets.get(m.mode));
+                        }
+                        streaks.write(StreakOut(StreakNews::Reached { player: kid.0, kills: kscore.streak }));
+                    }
                 }
             }
         }
@@ -1433,6 +1467,13 @@ fn handle_deaths(
 fn send_kill_feed(mut out: MessageReader<FeedOut>, mut feed: ClientLinks<KillFeed>) {
     for line in out.read() {
         send_to_every_client(&mut feed, line.0.clone());
+    }
+}
+
+/// Kill streak news goes to every client too, the host's own included, after the kill feed's line.
+fn send_streak_news(mut out: MessageReader<StreakOut>, mut links: ClientLinks<StreakNews>) {
+    for news in out.read() {
+        send_to_every_client(&mut links, news.0);
     }
 }
 
@@ -1600,6 +1641,34 @@ mod routing_tests {
         }
     }
 
+    /// Kill streak news (the feed's streak lines and the map-wide banner) reaches every player once, the host's
+    /// own client included, through `send_streak_news`.
+    #[test]
+    fn streak_news_reaches_the_host_and_each_joined_player_once() {
+        let (mut app, host, joined) = listen_server();
+        app.add_message::<StreakOut>();
+        let news = [
+            StreakNews::Reached { player: 0, kills: 3 },
+            StreakNews::Reached { player: 7, kills: 5 },
+            StreakNews::Ended { player: 7, by: Some(0), kills: 5, cause: DeathCause::Shot },
+        ];
+        for n in news {
+            app.world_mut().write_message(StreakOut(n));
+            app.world_mut().run_system_once(send_streak_news).unwrap();
+            app.world_mut().resource_mut::<Messages<StreakOut>>().clear();
+            app.update();
+            let got: Vec<StreakNews> = app
+                .world_mut()
+                .get_mut::<MessageReceiver<StreakNews>>(host)
+                .map(|mut r| r.receive().collect())
+                .unwrap_or_default();
+            assert_eq!(got, [n], "the host's own client");
+            for link in joined {
+                assert_eq!(queued::<ReliableChannel>(&app, link), 1, "a joined player");
+            }
+        }
+    }
+
     /// A hit confirm and a damage indicator for the host's own player go through its link's own sender (as
     /// `resolve_claims` sends them) and arrive in the host's own client: moving them onto the multi-sender, which
     /// the host's client never reads, would silently lose the host's hit markers and damage chevrons.
@@ -1715,7 +1784,7 @@ mod system_tests {
     fn world(mode: MatchMode, phase: MatchPhase) -> App {
         let d = GameData::embedded();
         let mut app = App::new();
-        app.add_message::<PlayerDied>().add_message::<FeedOut>();
+        app.add_message::<PlayerDied>().add_message::<FeedOut>().add_message::<StreakOut>();
         let rules = d.rules.deathmatch(mode);
         app.world_mut().spawn(MatchState {
             mode,
@@ -2098,6 +2167,162 @@ mod system_tests {
             feed_lines(&mut app),
             [KillFeed { killer: Some(1), victim: 4, zone: None, assists: vec![2], cause }]
         );
+    }
+
+    /// One kill, handled at once (the message is used up, so the next run does not see it again).
+    fn kill_now(app: &mut App, killer: Option<Entity>, victim: Entity, cause: DeathCause) {
+        app.world_mut().write_message(PlayerDied { victim, killer, zone: Some(Zone::Torso), cause });
+        app.world_mut().run_system_once(handle_deaths).unwrap();
+        app.world_mut().resource_mut::<Messages<PlayerDied>>().clear();
+    }
+
+    fn streak_of(app: &App, e: Entity) -> u16 {
+        app.world().get::<Score>(e).unwrap().streak
+    }
+
+    fn streak_news(app: &mut App) -> Vec<StreakNews> {
+        app.world_mut().resource_mut::<Messages<StreakOut>>().drain().map(|s| s.0).collect()
+    }
+
+    /// `n` kills in a row for `killer`, each on a new victim.
+    fn run_of_kills(app: &mut App, killer: Entity, n: u16, team: Option<Team>) {
+        for _ in 0..n {
+            let id = 1000 + app.world_mut().query::<&PlayerId>().iter(app.world()).count() as u64;
+            let victim = player(app, id, team);
+            kill_now(app, Some(killer), victim, DeathCause::Shot);
+        }
+    }
+
+    /// A streak counts kills in a row within one life: every kill adds one, an assist does not, dying (any
+    /// death) resets it, and outside a live match nothing counts.
+    #[test]
+    fn a_streak_counts_kills_in_a_row_and_resets_on_death() {
+        let min = GameData::embedded().rules.ffa.assist_min_damage;
+        let mut app = world(MatchMode::Ffa, MatchPhase::Live);
+        let (a, helper) = (player(&mut app, 1, None), player(&mut app, 2, None));
+        run_of_kills(&mut app, a, 2, None);
+        assert_eq!(streak_of(&app, a), 2);
+        // The helper hurt the next victim and gets an assist, not a streak.
+        let victim = player(&mut app, 50, None);
+        hurt(&mut app, victim, 2, min * 2.0);
+        kill_now(&mut app, Some(a), victim, DeathCause::Shot);
+        assert_eq!((streak_of(&app, a), streak_of(&app, helper)), (3, 0));
+        assert_eq!(app.world().get::<Score>(helper).unwrap().assists, 1);
+        // A fall ends it.
+        kill_now(&mut app, None, a, DeathCause::Fall);
+        assert_eq!(streak_of(&app, a), 0);
+        // A new life starts again at one.
+        app.world_mut().get_mut::<Vitals>(a).unwrap().health.dead = false;
+        run_of_kills(&mut app, a, 1, None);
+        assert_eq!(streak_of(&app, a), 1);
+        // The killer died on the same tick (a trade): that life is over, so the kill adds nothing to a streak.
+        let (b, c) = (player(&mut app, 3, None), player(&mut app, 4, None));
+        let cause = DeathCause::Shot;
+        app.world_mut().write_message(PlayerDied { victim: b, killer: Some(c), zone: None, cause });
+        app.world_mut().write_message(PlayerDied { victim: c, killer: Some(b), zone: None, cause });
+        app.world_mut().run_system_once(handle_deaths).unwrap();
+        app.world_mut().resource_mut::<Messages<PlayerDied>>().clear();
+        assert_eq!((streak_of(&app, b), streak_of(&app, c)), (0, 0), "both lives ended");
+        // Outside a live match nothing counts.
+        for phase in [MatchPhase::Lobby, MatchPhase::Ended { winner: None, player: None }] {
+            let mut app = world(MatchMode::Ffa, phase);
+            let a = player(&mut app, 1, None);
+            run_of_kills(&mut app, a, 3, None);
+            assert_eq!(streak_of(&app, a), 0, "{phase:?}");
+            assert!(streak_news(&mut app).is_empty(), "{phase:?}");
+        }
+    }
+
+    /// Team deathmatch: a teamkill is no kill, so it adds nothing to a streak; enemies do.
+    #[test]
+    fn a_teamkill_adds_nothing_to_a_streak() {
+        let mut app = world(MatchMode::Tdm, MatchPhase::Live);
+        let a = player(&mut app, 1, Some(Team::A));
+        run_of_kills(&mut app, a, 2, Some(Team::A));
+        assert_eq!(streak_of(&app, a), 0);
+        run_of_kills(&mut app, a, 2, Some(Team::B));
+        assert_eq!(streak_of(&app, a), 2);
+    }
+
+    /// The tiers' rewards, applied by the host: at 3 every region and every arc full; at 5 every magazine full
+    /// (the one in the gun too). Before a tier, a kill only refills its one magazine.
+    #[test]
+    fn streak_rewards_come_at_their_tier() {
+        let d = GameData::embedded();
+        let mut app = world(MatchMode::Ffa, MatchPhase::Live);
+        let a = player(&mut app, 1, None);
+        let hurt_a = |app: &mut App| {
+            let mut v = app.world_mut().get_mut::<Vitals>(a).unwrap();
+            v.health.hp.torso = 9.0;
+            v.health.hp.arms = 0.0;
+            v.halo.shield = vetf_sim::ZoneTable { head: 0.0, torso: 1.0, arms: 0.0, legs: 0.0 };
+        };
+        hurt_a(&mut app);
+        run_of_kills(&mut app, a, 2, None);
+        let v = *app.world().get::<Vitals>(a).unwrap();
+        assert_eq!((v.health.hp.torso, v.halo.shield.torso), (9.0, 1.0), "nothing at 2");
+        run_of_kills(&mut app, a, 1, None);
+        let v = *app.world().get::<Vitals>(a).unwrap();
+        let l = app.world().get::<PlayerLoadout>(a).unwrap().0.clone();
+        assert_eq!(v.health.hp, v.health.max, "full health at 3");
+        assert_eq!(v.halo.shield, l.halo.capacity, "every arc full at 3");
+        assert!(l.halo.total_capacity() > 0.0);
+        // Every magazine near empty (the one in the gun too) before the 5th kill.
+        hurt_a(&mut app);
+        run_of_kills(&mut app, a, 1, None);
+        app.world_mut().get_mut::<PlayerWeapon>(a).unwrap().0.rounds.fill(1);
+        run_of_kills(&mut app, a, 1, None);
+        assert_eq!(streak_of(&app, a), 5);
+        let cap = l.weapon.mag_capacity;
+        let w = &app.world().get::<PlayerWeapon>(a).unwrap().0;
+        assert!(w.rounds.iter().all(|r| *r == cap), "every magazine refilled at 5: {:?}", w.rounds);
+        assert_eq!(d.rules.streaks.tier(5).unwrap().rewards, [vetf_sim::streak::StreakReward::RefillMags]);
+        let v = app.world().get::<Vitals>(a).unwrap();
+        assert_eq!(v.health.hp.torso, 9.0, "5 does not heal (only 3 does)");
+    }
+
+    /// The kill feed and banner news: a line at each tier, and "X ended Y's N STREAK" for 3 or more; nothing
+    /// for a short streak ended.
+    #[test]
+    fn streak_news_names_the_tiers_and_the_ends() {
+        let mut app = world(MatchMode::Ffa, MatchPhase::Live);
+        let (a, c) = (player(&mut app, 1, None), player(&mut app, 9, None));
+        run_of_kills(&mut app, a, 5, None);
+        assert_eq!(
+            streak_news(&mut app),
+            [StreakNews::Reached { player: 1, kills: 3 }, StreakNews::Reached { player: 1, kills: 5 }]
+        );
+        kill_now(&mut app, Some(c), a, DeathCause::Shot);
+        assert_eq!(
+            streak_news(&mut app),
+            [StreakNews::Ended { player: 1, by: Some(9), kills: 5, cause: DeathCause::Shot }]
+        );
+        // Under 3: no line when it ends.
+        run_of_kills(&mut app, c, 1, None);
+        kill_now(&mut app, None, c, DeathCause::Fall);
+        assert_eq!(streak_of(&app, c), 0);
+        assert!(streak_news(&mut app).is_empty());
+        // Ended by a fall: no player to name, the cause instead.
+        let b = player(&mut app, 7, None);
+        run_of_kills(&mut app, b, 4, None);
+        streak_news(&mut app);
+        kill_now(&mut app, None, b, DeathCause::Fall);
+        let ended = StreakNews::Ended { player: 7, by: None, kills: 4, cause: DeathCause::Fall };
+        assert_eq!(streak_news(&mut app), [ended]);
+    }
+
+    /// The aura is drawn from the replicated streak: only a streak at its tier lights it, and a death puts it out.
+    #[test]
+    fn the_aura_follows_the_streak_from_its_tier() {
+        let d = GameData::embedded();
+        let mut app = world(MatchMode::Ffa, MatchPhase::Live);
+        let a = player(&mut app, 1, None);
+        for n in 1..=6 {
+            run_of_kills(&mut app, a, 1, None);
+            assert_eq!(d.rules.streaks.has_aura(streak_of(&app, a)), n >= d.rules.streaks.aura_min, "{n}");
+        }
+        kill_now(&mut app, None, a, DeathCause::Fall);
+        assert!(!d.rules.streaks.has_aura(streak_of(&app, a)), "gone with the death");
     }
 
     /// Team deathmatch after free-for-all: everyone without a team joins the smaller one, the host (id 0)
@@ -2931,7 +3156,7 @@ mod bot_tests {
         app.cleanup();
         app.world_mut().spawn((Name::new("Server"), Server::default(), Linked, Started));
         app.add_message::<PlayerDied>().add_message::<LocalShot>().add_message::<LocalPlayerEvents>();
-        app.add_message::<FeedOut>();
+        app.add_message::<FeedOut>().add_message::<StreakOut>();
         let d = GameData::embedded();
         let rules = d.rules.deathmatch(mode);
         app.world_mut().spawn(MatchState {
