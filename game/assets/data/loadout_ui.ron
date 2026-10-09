@@ -32,19 +32,20 @@
     },
     // The NO MAG row of the ammo picker (only the last magazine can be removed).
     no_mag_blurb: "Leave this slot empty.",
-    // The preview until the 3D viewport exists, per weapon: a render (game/assets/ui/img) drawn at
-    // (left, top, width, height) in the preview's 870 x 428 inner box, or a silhouette icon (white, tinted
-    // bone at `alpha`) drawn the same way. Hotspot dots are centred at (x, y) in that box; `side` is where
-    // the tag sits.
+    // The 2D preview of a gun without a 3D model (the Skink), or until its model has loaded, per weapon: a
+    // render (game/assets/ui/img) drawn at (left, top, width, height) in the preview's 870 x 428 inner box, or a
+    // silhouette icon (white, tinted bone at `alpha`) drawn the same way. Hotspot dots are centred at (x, y) in
+    // that box; `side` is where the tag sits. With the 3D model (gun_preview below) each dot sits on its slot's
+    // socket and follows the gun as it turns; `model_side` (else `side`) is then where the tag sits.
     previews: {
         "ar7_mako": (
             image: "mako_dark.jpg", icon: "", alpha: 1.0, rect: (0.0, -30.0, 870.0, 489.0),
             hotspots: [
-                (slot: optic, x: 524.0, y: 102.0, side: right),
-                (slot: stock, x: 718.0, y: 162.0, side: left),
-                (slot: mag, x: 497.0, y: 352.0, side: right),
-                (slot: under, x: 274.0, y: 337.0, side: left),
-                (slot: side, x: 198.0, y: 287.0, side: below),
+                (slot: optic, x: 524.0, y: 102.0, side: right, model_side: Some(above)),
+                (slot: stock, x: 718.0, y: 162.0, side: left, model_side: Some(above)),
+                (slot: mag, x: 497.0, y: 352.0, side: right, model_side: Some(left)),
+                (slot: under, x: 274.0, y: 337.0, side: left, model_side: Some(below)),
+                (slot: side, x: 198.0, y: 287.0, side: below, model_side: Some(right)),
                 (slot: shield, x: 98.0, y: 303.0, side: above),
             ],
         ),
@@ -53,9 +54,9 @@
             image: "", icon: "warden", alpha: 0.35, rect: (85.0, 134.0, 700.0, 160.0),
             hotspots: [
                 (slot: optic, x: 335.0, y: 156.0, side: above),
-                (slot: stock, x: 140.0, y: 205.0, side: below),
+                (slot: stock, x: 140.0, y: 205.0, side: below, model_side: Some(left)),
                 (slot: mag, x: 300.0, y: 238.0, side: below),
-                (slot: under, x: 590.0, y: 262.0, side: right),
+                (slot: under, x: 590.0, y: 262.0, side: right, model_side: Some(below)),
                 (slot: side, x: 470.0, y: 190.0, side: above),
             ],
         ),
@@ -69,4 +70,33 @@
             ],
         ),
     },
+    // The 3D gun preview (src/loadout/gun_preview.rs): the gun of the draft with its parts (or the part a hovered
+    // popover row would fit), drawn by its own camera while the screen is open. It opens on a three-quarter view
+    // of the gun's right side, muzzle to the right: turned `yaw_deg` to bring the muzzle toward you and tilted
+    // `pitch_deg` to show its top. Dragging turns it (`drag_deg_per_px` per UI pixel; the tilt stops at
+    // `pitch_limit_deg`), the wheel zooms within `zoom` (`zoom_per_notch` a notch; a touchpad's
+    // `pixels_per_notch` make one). At zoom 1 the gun's longest side fills `fill` of the preview's width, and a
+    // part that makes it longer or shorter reframes it over about `settle_s`. Studio lights, fixed to the view:
+    // yaw 0 is from the camera, + from the right; pitch + from above; lux; linear colour. `ambient` in cd/m².
+    gun_preview: (
+        yaw_deg: 24.0,
+        pitch_deg: 12.0,
+        pitch_limit_deg: 32.0,
+        drag_deg_per_px: 0.4,
+        fov_deg: 30.0,
+        fill: 0.8,
+        zoom: (0.7, 1.8),
+        zoom_per_notch: 0.1,
+        pixels_per_notch: 50.0,
+        settle_s: 0.12,
+        ambient: 600.0,
+        lights: [
+            // key: high front right, warm
+            (yaw_deg: 40.0, pitch_deg: 38.0, lux: 8000.0, rgb: (1.0, 0.95, 0.88)),
+            // fill: low front left, cool
+            (yaw_deg: -55.0, pitch_deg: 8.0, lux: 2400.0, rgb: (0.78, 0.86, 1.0)),
+            // rim: from behind, so the silhouette reads on the dark backdrop
+            (yaw_deg: 165.0, pitch_deg: 30.0, lux: 6500.0, rgb: (0.75, 0.95, 1.0)),
+        ],
+    ),
 )

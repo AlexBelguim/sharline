@@ -16,6 +16,44 @@ pub struct LoadoutUiFile {
     pub none_blurbs: HashMap<AttachmentCategory, String>,
     pub no_mag_blurb: String,
     pub previews: BTreeMap<String, PreviewSpec>,
+    pub gun_preview: GunPreviewSpec,
+}
+
+/// The 3D gun preview (`gun_preview.rs`): its default view, its controls and its studio lights.
+#[derive(Debug, Clone, PartialEq, Deserialize)]
+pub struct GunPreviewSpec {
+    /// The default three-quarter view: the gun's right side toward the viewer, muzzle to the right, turned
+    /// this far (degrees) to bring the muzzle toward the viewer and tilted this far to show its top.
+    pub yaw_deg: f32,
+    pub pitch_deg: f32,
+    /// Dragging tilts the gun at most this far either way (degrees); it turns all the way round.
+    pub pitch_limit_deg: f32,
+    /// Degrees of turn per UI pixel dragged.
+    pub drag_deg_per_px: f32,
+    /// The camera's vertical field of view (degrees).
+    pub fov_deg: f32,
+    /// At zoom 1 the gun's longest side fills this share of the preview's width.
+    pub fill: f32,
+    /// The wheel's zoom range (1 = the framing above) and how much one notch zooms (a share).
+    pub zoom: (f32, f32),
+    pub zoom_per_notch: f32,
+    /// A touchpad's pixels of scroll per wheel notch.
+    pub pixels_per_notch: f32,
+    /// Reframing (a part that makes the gun bigger or smaller) and zooming ease in over about this long (s).
+    pub settle_s: f32,
+    /// The ambient light (cd/m²) and the lights, fixed to the view.
+    pub ambient: f32,
+    pub lights: Vec<PreviewLight>,
+}
+
+/// A directional light of the preview, from the view: yaw 0 is from the camera, + from the right; pitch + from
+/// above (degrees); lux; linear colour.
+#[derive(Debug, Clone, Copy, PartialEq, Deserialize)]
+pub struct PreviewLight {
+    pub yaw_deg: f32,
+    pub pitch_deg: f32,
+    pub lux: f32,
+    pub rgb: (f32, f32, f32),
 }
 
 /// (value at an empty bar, value at a full bar) per stat.
@@ -56,6 +94,9 @@ pub struct HotspotSpec {
     pub x: f32,
     pub y: f32,
     pub side: TagSide,
+    /// With the 3D model (the dot on its socket): the tag's side, if not `side` (which suits the 2D picture).
+    #[serde(default)]
+    pub model_side: Option<TagSide>,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Deserialize)]

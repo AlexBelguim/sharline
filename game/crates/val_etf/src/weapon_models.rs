@@ -246,6 +246,12 @@ impl ModelData {
         }
     }
 
+    /// The gun socket an attachment slot's parts snap onto (`Side_R` for the side rail).
+    pub fn slot_socket(&self, data: &GameData, cat: AttachmentCategory) -> Option<&str> {
+        let row = self.parts.iter().find(|p| data.attachment(&p.id).is_some_and(|a| a.cat == cat))?;
+        Some(&row.socket)
+    }
+
     fn part(&self, id: &str) -> Option<usize> {
         self.parts.iter().position(|p| p.id == id)
     }
@@ -254,14 +260,19 @@ impl ModelData {
     /// stock (the weapon's default when the loadout names none); attachments without a model are left off.
     /// `None` for a gun without a model (the Skink).
     pub fn key(&self, data: &GameData, weapon: &WeaponLoadout) -> Option<GunKey> {
-        let id = &weapon.spec(data).id;
-        let gun = self.guns.iter().position(|g| &g.weapon == id)?;
-        let mut parts: Vec<usize> = weapon.attachments.iter().filter_map(|a| self.part(a)).collect();
+        self.key_for(data, &weapon.spec(data).id, &weapon.attachments)
+    }
+
+    /// [`ModelData::key`] for a gun id and its attachment ids (the Loadout screen's preview of a draft).
+    pub fn key_for(&self, data: &GameData, id: &str, attachments: &[String]) -> Option<GunKey> {
+        let gun = self.guns.iter().position(|g| g.weapon == id)?;
+        let mut parts: Vec<usize> = attachments.iter().filter_map(|a| self.part(a)).collect();
         for cat in [AttachmentCategory::Mag, AttachmentCategory::Stock] {
-            if weapon.attachments.iter().any(|a| data.attachment(a).is_some_and(|a| a.cat == cat)) {
+            if attachments.iter().any(|a| data.attachment(a).is_some_and(|a| a.cat == cat)) {
                 continue;
             }
-            let default = data.attachments.attachments.iter().find(|a| a.cat == cat && a.default_for.contains(id));
+            let default =
+                data.attachments.attachments.iter().find(|a| a.cat == cat && a.default_for.iter().any(|w| w == id));
             parts.extend(default.and_then(|a| self.part(&a.id)));
         }
         Some(GunKey { gun, parts })
@@ -780,6 +791,21 @@ impl WeaponModels {
         first_person_rig(gun, self.layout(&gun.base)?, optic)
     }
 
+    /// Every file of a gun has loaded (its model can be shown).
+    pub fn loaded(&self, key: &GunKey) -> bool {
+        let gun = &self.data.guns[key.gun];
+        self.layout(&gun.base).is_some() && key.parts.iter().all(|&i| self.layout(&self.data.parts[i].file).is_some())
+    }
+
+    /// Where a gun's socket for an attachment slot sits in the gun's own space (glTF axes), once its base has
+    /// loaded: the socket of the slot's parts (`weapon_models.ron`), on this gun.
+    pub fn slot_socket(&self, data: &GameData, key: &GunKey, cat: AttachmentCategory) -> Option<Vec3> {
+        let gun = &self.data.guns[key.gun];
+        let socket = self.data.slot_socket(data, cat)?;
+        let at = self.layout(&gun.base)?.nodes.get(&format!("{}_SOCKET_{socket}", gun.prefix))?;
+        Some(at.translation)
+    }
+
     /// Third person: where the right hand holds the gun (player space).
     pub fn hand(&self, key: &GunKey) -> Vec3 {
         Vec3::from(self.data.guns[key.gun].hand)
@@ -788,10 +814,17 @@ impl WeaponModels {
     /// Spawns a gun under `parent` at `place`: the base scene, then each part on its socket node once the base
     /// is in the world. The gun stays hidden until its last part is in too ([`Assembling`]): a part's scene
     /// comes in a frame after the base's, and the gun must never show bare. First-person guns cast no shadows
-    /// (they would shade the world from inside the camera).
-    pub fn spawn(&self, commands: &mut Commands, parent: Entity, key: &GunKey, place: Transform, first_person: bool) {
+    /// (they would shade the world from inside the camera). Returns the gun's root (None: its base is unknown).
+    pub fn spawn(
+        &self,
+        commands: &mut Commands,
+        parent: Entity,
+        key: &GunKey,
+        place: Transform,
+        first_person: bool,
+    ) -> Option<Entity> {
         let gun = &self.data.guns[key.gun];
-        let Some(base) = self.files.get(&gun.base).map(|f| f.scene.clone()) else { return };
+        let base = self.files.get(&gun.base).map(|f| f.scene.clone())?;
         let parts: Vec<(String, Handle<WorldAsset>, Dress)> = key
             .parts
             .iter()
@@ -836,7 +869,7 @@ impl WeaponModels {
                 commands.entity(gun).insert(Assembling(pending));
             }
         };
-        commands
+        let root = commands
             .spawn((
                 Name::new(gun.weapon.clone()),
                 WorldAssetRoot(base),
@@ -845,7 +878,9 @@ impl WeaponModels {
                 Assembling(0),
                 ChildOf(parent),
             ))
-            .observe(snap);
+            .observe(snap)
+            .id();
+        Some(root)
     }
 }
 

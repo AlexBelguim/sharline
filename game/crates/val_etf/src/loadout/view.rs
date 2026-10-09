@@ -4,6 +4,7 @@
 
 use super::apply::RespawnBtn;
 use super::focus::Focusable;
+use super::gun_preview::{GunPreview, HotspotAt, PreviewViewport};
 use super::halo::{Centre, HaloImages, HaloLook, spawn_halo};
 use super::model::{WeaponStats, parts_with, weapon_stats};
 use super::popover::{self, preview_part, view_icon};
@@ -76,6 +77,10 @@ pub struct View<'a> {
     pub respawn: Option<RespawnBtn>,
     /// The first Esc over the points showed its notice.
     pub warned: bool,
+    /// The 3D preview, while it shows the gun's model.
+    pub model: Option<&'a GunPreview>,
+    /// The gun has a model (shown or being built): the 2D picture is not drawn.
+    pub has_model: bool,
 }
 
 impl View<'_> {
@@ -112,7 +117,9 @@ impl View<'_> {
             )),
             Section::Agents => hash_of(&d.agent),
             Section::Tabs => hash_of(&d.weapon),
-            Section::Preview => hash_of(&(&d.weapon, parts, self.st.pop, preview)),
+            Section::Preview => {
+                hash_of(&(&d.weapon, parts, self.st.pop, preview, self.model.is_some(), self.has_model))
+            }
             Section::Slots => hash_of(&(&d.weapon, parts, self.st.pop, self.ctx)),
             Section::Mags => hash_of(&(
                 &d.mags,
@@ -218,8 +225,17 @@ pub fn spawn_root(commands: &mut Commands, z: i32, simple: bool) {
             })
             .with_children(|w| {
                 w.spawn((section(Section::Tabs), Node { height: px(62), column_gap: px(6), ..default() }));
+                // The preview box: the 3D gun (its camera's picture, `gun_preview`), and over it the section
+                // with the hotspots and hints (or the 2D picture of a gun without a model).
+                let fill = || Node {
+                    position_type: PositionType::Absolute,
+                    left: px(0),
+                    top: px(0),
+                    width: percent(100),
+                    height: percent(100),
+                    ..default()
+                };
                 w.spawn((
-                    section(Section::Preview),
                     Node {
                         height: px(430),
                         margin: UiRect::top(px(10)),
@@ -229,7 +245,11 @@ pub fn spawn_root(commands: &mut Commands, z: i32, simple: bool) {
                     },
                     BorderColor::all(STROKE),
                     BackgroundColor(PREVIEW_BG),
-                ));
+                ))
+                .with_children(|b| {
+                    b.spawn((PreviewViewport, RelativeCursorPosition::default(), FocusPolicy::Pass, fill()));
+                    b.spawn((section(Section::Preview), fill()));
+                });
                 w.spawn((
                     section(Section::Slots),
                     Node { height: px(76), margin: UiRect::top(px(10)), column_gap: px(6), ..default() },
@@ -316,7 +336,7 @@ pub fn refresh(
     st: Res<LoadoutUi>,
     state: Res<State<AppState>>,
     matches: Query<&MatchState>,
-    (death, me): (Option<Res<DeathState>>, Query<&Vitals, With<Controlled>>),
+    (death, me, gun): (Option<Res<DeathState>>, Query<&Vitals, With<Controlled>>, Option<Res<GunPreview>>),
 ) {
     let Some(halo) = halo else { return };
     let ctx = ScreenCtx::new(&data, state.get(), &matches, death.as_deref());
@@ -336,6 +356,8 @@ pub fn refresh(
         ctx,
         respawn,
         warned,
+        model: gun.as_deref().filter(|g| g.live()),
+        has_model: gun.as_deref().is_some_and(|g| g.has_model),
     };
     for (e, s, mut key) in &mut sections {
         let k = v.key(*s);
@@ -376,6 +398,44 @@ pub fn move_ghost(
     for mut n in &mut ghosts {
         n.left = px(at.x);
         n.top = px(at.y);
+    }
+}
+
+/// The preview box's inner size (its 1 px border inside the 872 x 430 box).
+const INNER: (f32, f32) = (870.0, 428.0);
+
+/// Place a hotspot: its dot centred on `xy` (UI px in the preview box), its tag on `side`.
+pub fn place_hotspot(node: &mut Node, side: TagSide, xy: Vec2) {
+    let (x, y) = (xy.x, xy.y);
+    *node = Node { position_type: PositionType::Absolute, align_items: AlignItems::Center, ..default() };
+    match side {
+        TagSide::Right => {
+            node.left = px(x - 7.0);
+            node.top = px(y - 12.0);
+            node.height = px(24);
+            node.column_gap = px(8);
+        }
+        TagSide::Left => {
+            node.right = px(INNER.0 - x - 7.0);
+            node.top = px(y - 12.0);
+            node.height = px(24);
+            node.column_gap = px(8);
+            node.flex_direction = FlexDirection::RowReverse;
+        }
+        TagSide::Below => {
+            node.left = px(x - 7.0);
+            node.top = px(y - 7.0);
+            node.flex_direction = FlexDirection::Column;
+            node.align_items = AlignItems::FlexStart;
+            node.row_gap = px(6);
+        }
+        TagSide::Above => {
+            node.left = px(x - 7.0);
+            node.bottom = px(INNER.1 - y - 7.0);
+            node.flex_direction = FlexDirection::ColumnReverse;
+            node.align_items = AlignItems::FlexStart;
+            node.row_gap = px(6);
+        }
     }
 }
 
@@ -791,7 +851,9 @@ impl View<'_> {
         let d = &self.edit.draft;
         let Some(spec) = self.ui.ui.previews.get(&d.weapon) else { return };
         let (l, t, w, h) = spec.rect;
-        let img = if !spec.image.is_empty() {
+        let img = if self.has_model {
+            None
+        } else if !spec.image.is_empty() {
             Some((self.images.art(Art::MakoDark), Color::WHITE))
         } else if !spec.icon.is_empty() {
             Some((self.images.icon(icon_by_name(&spec.icon)), translucent(BONE, spec.alpha)))
@@ -830,7 +892,6 @@ impl View<'_> {
         ));
         // Hotspots: one per slot that has parts for this gun.
         let preview = preview_part(d, self.st.pop, self.hover_row(), self.data, self.ui);
-        const INNER: (f32, f32) = (870.0, 428.0);
         for hs in &spec.hotspots {
             if super::model::parts_for(self.data, &d.weapon, hs.slot).is_empty() {
                 continue;
@@ -841,37 +902,21 @@ impl View<'_> {
                 _ => d.equipped(hs.slot, self.data),
             };
             let value = part.map_or("NONE".to_string(), |a| a.short_name().to_uppercase());
-            let mut node = Node { position_type: PositionType::Absolute, align_items: AlignItems::Center, ..default() };
-            match hs.side {
-                TagSide::Right => {
-                    node.left = px(hs.x - 7.0);
-                    node.top = px(hs.y - 12.0);
-                    node.height = px(24);
-                    node.column_gap = px(8);
-                }
-                TagSide::Left => {
-                    node.right = px(INNER.0 - hs.x - 7.0);
-                    node.top = px(hs.y - 12.0);
-                    node.height = px(24);
-                    node.column_gap = px(8);
-                    node.flex_direction = FlexDirection::RowReverse;
-                }
-                TagSide::Below => {
-                    node.left = px(hs.x - 7.0);
-                    node.top = px(hs.y - 7.0);
-                    node.flex_direction = FlexDirection::Column;
-                    node.align_items = AlignItems::FlexStart;
-                    node.row_gap = px(6);
-                }
-                TagSide::Above => {
-                    node.left = px(hs.x - 7.0);
-                    node.bottom = px(INNER.1 - hs.y - 7.0);
-                    node.flex_direction = FlexDirection::ColumnReverse;
-                    node.align_items = AlignItems::FlexStart;
-                    node.row_gap = px(6);
-                }
+            let mut node = Node::default();
+            // On the 3D gun the dot sits on its slot's socket and follows it (`gun_preview::place_hotspots`).
+            let at = HotspotAt { slot: hs.slot, side: hs.model_side.unwrap_or(hs.side) };
+            let model = self.model.map(|m| m.spot(hs.slot));
+            match model {
+                Some(Some(xy)) => place_hotspot(&mut node, at.side, xy),
+                // A slot the model has no socket for.
+                Some(None) => continue,
+                None => place_hotspot(&mut node, hs.side, Vec2::new(hs.x, hs.y)),
             }
-            p.spawn((Button, Act::Slot(hs.slot), Hotspot, node)).with_children(|g| {
+            let mut spot = p.spawn((Button, Act::Slot(hs.slot), Hotspot, node));
+            if model.is_some() {
+                spot.insert(at);
+            }
+            spot.with_children(|g| {
                 let (dot_bg, dot_border) = if selected { (TEAL, TEAL) } else { (K40, TEXT_HI) };
                 g.spawn((
                     HotspotDot { selected },

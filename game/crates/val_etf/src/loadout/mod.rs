@@ -22,6 +22,7 @@
 
 mod apply;
 mod focus;
+mod gun_preview;
 mod halo;
 mod kit_view;
 mod model;
@@ -31,6 +32,7 @@ mod text;
 mod ui_data;
 mod view;
 
+pub use gun_preview::StudioLight;
 pub use model::Draft;
 pub use presets::LoadoutsFile;
 #[allow(unused_imports)] // for the other hub screens
@@ -43,6 +45,8 @@ use crate::net::Session;
 use crate::screens::{EscPress, EscSystems, Screen, ScreenRoot, Screens, screen_on_top};
 use crate::ui_kit::*;
 use apply::{EscOutcome, RespawnBtn};
+use bevy::app::{HierarchyPropagatePlugin, PropagateSet};
+use bevy::camera::visibility::{RenderLayers, VisibilitySystems};
 use bevy::ecs::system::SystemParam;
 use bevy::input_focus::{FocusCause, InputFocus};
 use bevy::prelude::*;
@@ -91,7 +95,29 @@ impl Plugin for LoadoutScreenPlugin {
                     .after(open_screen)
                     .run_if(screen_on_top(Screen::Loadout).and_then(resource_exists::<LoadoutEdit>)),
             )
-            .add_systems(Update, halo::orbit_cells);
+            .add_systems(Update, halo::orbit_cells)
+            // The 3D gun preview: its camera and stage live while the screen's preview box does.
+            .add_plugins(HierarchyPropagatePlugin::<RenderLayers>::new(PostUpdate))
+            .configure_sets(
+                PostUpdate,
+                PropagateSet::<RenderLayers>::default().before(VisibilitySystems::CheckVisibility),
+            )
+            .add_systems(
+                Update,
+                (
+                    gun_preview::teardown,
+                    gun_preview::setup,
+                    gun_preview::drag_and_zoom
+                        .run_if(screen_on_top(Screen::Loadout).and_then(resource_exists::<gun_preview::GunPreview>)),
+                    (gun_preview::sync_gun, gun_preview::pose)
+                        .chain()
+                        .run_if(resource_exists::<gun_preview::GunPreview>.and_then(resource_exists::<LoadoutEdit>)),
+                )
+                    .chain()
+                    .after(open_screen)
+                    .before(view::refresh),
+            )
+            .add_systems(Update, gun_preview::place_hotspots.after(view::refresh));
     }
 }
 

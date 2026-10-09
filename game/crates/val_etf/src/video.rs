@@ -319,7 +319,7 @@ fn apply_shadows(
     settings: Res<Settings>,
     data: Res<SettingsData>,
     map: Option<Res<DirectionalLightShadowMap>>,
-    mut lights: Query<(Entity, &mut DirectionalLight)>,
+    mut lights: Query<(Entity, &mut DirectionalLight), Without<crate::loadout::StudioLight>>,
     mut applied: Local<Option<(Shadows, bool)>>,
     mut commands: Commands,
 ) {

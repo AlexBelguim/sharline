@@ -679,3 +679,15 @@ New (item 9c2, user direction; the design docs have no streaks). All numbers in 
   reads apart from the teammate rim glow. The local player has no aura of their own (first person).
 - **HUD:** a streak counter just left of the health block (team deathmatch and free-for-all; shown from 2). Its
   slot is kept in those modes, so the vitals block sits about 80 px further right there than in the gun range.
+
+## 29. The Loadout preview shows the real gun in 3D (2026-10-09)
+- **Design:** mockups 05 / 05b show a fixed render of the gun in the preview box, with hotspots at fixed places.
+- **Now (user direction, item 9d):** the preview box shows the draft's gun built from its glTF model with the parts
+  it carries, the same assembly the match uses (a gun always shows a stock and a magazine: its defaults when the
+  slot names none). Hovering a popover row puts that part on at once. LMB drag turns the gun (all the way round, the
+  tilt limited), the wheel zooms; it opens on a three-quarter view of the gun's right side, muzzle to the right,
+  under three studio lights. The slot hotspots sit on the gun's sockets and follow it as it turns. The view, the
+  controls and the lights are UI data (`loadout_ui.ron` `gun_preview`; each hotspot's `model_side`). It is drawn by
+  its own camera into an image on its own render layer, and exists only while the screen is open. A gun without a
+  model (the Skink) keeps its 2D picture. The same screen serves the deathmatch layout, the death screen's loadout
+  and the gun range's.
