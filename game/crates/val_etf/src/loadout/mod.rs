@@ -400,7 +400,10 @@ impl ScreenCtx {
         let m = matches.iter().next().filter(|_| in_match);
         let lobby = m.is_some_and(|m| m.phase == vetf_net::MatchPhase::Lobby);
         let dead = in_match && death.is_some_and(|d| d.dead);
-        Self { lobby, dead, ..Self::for_mode(data, in_match, m.map(|m| m.mode)) }
+        let ctx = Self::for_mode(data, in_match, m.map(|m| m.mode));
+        // The points this match allows: the host's lobby setting (`rules.ron`'s over the menu).
+        let budget = m.map_or(ctx.budget, |m| m.gear_budget());
+        Self { lobby, dead, budget, ..ctx }
     }
 
     /// `mode`: the match's, None over the menu (or before the match state arrives).
@@ -1232,6 +1235,8 @@ pub(crate) mod tests {
             mag_check: Default::default(),
             tick_hz: 120,
             snapshot_hz: 60,
+            // The host set POINTS to 13 in the lobby.
+            settings: vetf_net::MatchSettings { gear_budget: 13, ..d.rules.ffa.settings() },
         });
         let data = d.clone();
         let ctx = app
@@ -1243,7 +1248,7 @@ pub(crate) mod tests {
                 )
             })
             .unwrap();
-        assert_eq!((ctx.0.mode, ctx.0.budget), (MatchMode::Ffa, Some(10)), "in the match");
+        assert_eq!((ctx.0.mode, ctx.0.budget), (MatchMode::Ffa, Some(13)), "in the match: the host's POINTS");
         assert_eq!(ctx.1.mode, MatchMode::Tdm, "over the menu");
     }
 

@@ -274,6 +274,7 @@ pub fn spawn_match(
             mag_check: Default::default(),
             tick_hz: tick_hz as u16,
             snapshot_hz: data.net.snapshot_hz_for(tick_hz, snapshot_hz) as u16,
+            settings: rules.settings(),
         },
         Replicate::to_clients(NetworkTarget::All),
         // A session that ends must not leave its mode and rules to the next one.
@@ -572,6 +573,16 @@ pub enum LoadoutError {
 /// type, `vetf_sim::gear::loadout_cost`) within the mode's budget; the gun range has none. The healing kit
 /// comes from the mode, not the client.
 pub fn loadout_from_choice(data: &GameData, choice: &LoadoutChoice, mode: MatchMode) -> Result<Loadout, LoadoutError> {
+    loadout_within(data, choice, mode, gear_budget(data, mode))
+}
+
+/// [`loadout_from_choice`] against the points the match allows (the host's lobby setting, [`match_budget`]).
+pub fn loadout_within(
+    data: &GameData,
+    choice: &LoadoutChoice,
+    mode: MatchMode,
+    budget: Option<u32>,
+) -> Result<Loadout, LoadoutError> {
     let spec = data.weapon(&choice.weapon).ok_or(LoadoutError::UnknownWeapon)?;
     if spec.hidden {
         return Err(LoadoutError::HiddenWeapon);
@@ -597,7 +608,7 @@ pub fn loadout_from_choice(data: &GameData, choice: &LoadoutChoice, mode: MatchM
     let weapon = WeaponLoadout::resolve(data, &choice.weapon, &choice.mags, &choice.attachments)
         .ok_or(LoadoutError::UnknownWeapon)?;
     let cost = loadout_cost(data, mode, spec, &choice.halo, &choice.mags, &choice.attachments).total();
-    if let Some(budget) = gear_budget(data, mode)
+    if let Some(budget) = budget
         && cost > budget
     {
         return Err(LoadoutError::OverBudget { cost, budget });
@@ -609,6 +620,15 @@ pub fn loadout_from_choice(data: &GameData, choice: &LoadoutChoice, mode: MatchM
 /// The running match's rules (full rules before the match entity exists).
 fn match_rules(matches: &Query<&MatchState>) -> Ruleset {
     matches.iter().next().map_or(Ruleset::FULL, |m| m.rules)
+}
+
+/// The loadout points the running match allows (the host's lobby setting; `rules.ron`'s before the match
+/// entity exists; none in the gun range).
+fn match_budget(data: &GameData, matches: &Query<&MatchState>) -> Option<u32> {
+    match matches.iter().next() {
+        Some(m) => m.gear_budget(),
+        None => gear_budget(data, MatchMode::Tdm),
+    }
 }
 
 /// The running match's mode.
@@ -672,6 +692,7 @@ fn receive_hellos(
     data: Res<Data>,
 ) {
     let mode = match_mode(&matches);
+    let budget = match_budget(&data, &matches);
     for (link, mut rx) in &mut links {
         for hello in rx.receive() {
             if hello.data_fingerprint != data.fingerprint {
@@ -682,7 +703,7 @@ fn receive_hellos(
                     continue;
                 }
                 info.name = hello.name.chars().filter(|c| !c.is_control()).take(16).collect();
-                match loadout_from_choice(&data, &hello.loadout, mode) {
+                match loadout_within(&data, &hello.loadout, mode, budget) {
                     Ok(l) => {
                         info!("{}: loadout {}", info.name, loadout_words(&data, &l));
                         equip(&data, l, mode, (lo, w, it, v, mv));
@@ -717,6 +738,7 @@ fn receive_loadout_updates(
     data: Res<Data>,
 ) {
     let mode = match_mode(&matches);
+    let budget = match_budget(&data, &matches);
     let lobby = matches.iter().next().is_some_and(|m| m.phase == MatchPhase::Lobby);
     for (link, mut rx) in &mut links {
         for update in rx.receive() {
@@ -724,7 +746,7 @@ fn receive_loadout_updates(
                 if sp.link != link {
                     continue;
                 }
-                match loadout_from_choice(&data, &update.loadout, mode) {
+                match loadout_within(&data, &update.loadout, mode, budget) {
                     Ok(l) => {
                         sp.choice = Some(update.loadout.clone());
                         if lobby && !v.health.dead {
@@ -744,11 +766,13 @@ fn receive_loadout_updates(
 /// Lobby actions (see [`LobbyAction`]); anything outside the lobby is ignored.
 fn receive_lobby_actions(
     mut links: Query<(Entity, &mut MessageReceiver<LobbyAction>), With<ClientOf>>,
-    mut players: Query<(&mut PlayerInfo, &mut PlayerNet, &mut Vitals, &mut Score, &ServerPlayer)>,
+    mut players: Query<LobbyPlayer>,
+    bot_order: Query<&crate::bots::Bot>,
     mut matches: Query<&mut MatchState>,
     mut hosted: Option<ResMut<HostedMatch>>,
     mut bots: ResMut<crate::bots::BotRequests>,
     data: Res<Data>,
+    mut commands: Commands,
 ) {
     let Some(mut m) = matches.iter_mut().next() else { return };
     for (link, mut rx) in &mut links {
@@ -759,12 +783,22 @@ fn receive_lobby_actions(
             }
             let Some(team) = players.iter().find(|p| p.4.link == link).map(|p| p.0.team) else { continue };
             let from_host = players.iter().any(|p| p.4.link == link && p.4.peer.is_local());
-            let free = |to: Team, players: &Query<(&mut PlayerInfo, &mut PlayerNet, &mut Vitals, &mut Score, &ServerPlayer)>| {
+            let free = |to: Team, players: &Query<LobbyPlayer>| {
                 (players.iter().filter(|p| p.0.team == Some(to)).count() as u32) < (m.max_players / 2).max(1)
+            };
+            // Who holds a seat (and each bot's place in the order they were added), and the bots that leave so
+            // the lobby fits `max` seats (`None`: the players alone do not fit).
+            let seats: Vec<(Entity, crate::bots::Seat)> = players
+                .iter()
+                .map(|p| (p.5, crate::bots::Seat { team: p.0.team, bot: bot_order.get(p.5).ok().map(|b| b.added) }))
+                .collect();
+            let trim = |max: u32, teams: bool| -> Option<Vec<Entity>> {
+                let only: Vec<crate::bots::Seat> = seats.iter().map(|(_, s)| *s).collect();
+                crate::bots::bots_to_trim(max, teams, &only).map(|gone| gone.iter().map(|i| seats[*i].0).collect())
             };
             match action {
                 LobbyAction::Ready(ready) => {
-                    for (_, mut net, .., p) in &mut players {
+                    for (_, mut net, _, _, p, _) in &mut players {
                         if p.link == link {
                             net.ready = ready;
                         }
@@ -772,28 +806,46 @@ fn receive_lobby_actions(
                 }
                 LobbyAction::SetMode(mode) => {
                     let slots = hosted.as_ref().map_or(m.max_players, |h| h.slots);
-                    let Some(max) = lobby_mode_change(&data, &m, mode, slots, players.iter().count() as u32, from_host)
-                    else {
+                    let Some(max) = lobby_mode_change(&data, &m, mode, slots, from_host) else { continue };
+                    // Bots make room, the latest first; only players alone over the new seats refuse it.
+                    let Some(gone) = trim(max, mode.has_teams()) else {
+                        warn!("{mode:?} seats {max}, but more players are in the lobby: mode not changed");
                         continue;
                     };
-                    info!("the host switches the lobby to {mode:?} ({max} players)");
-                    let rules = data.rules.deathmatch(mode);
+                    info!("the host switches the lobby to {mode:?} ({max} players, {} bot(s) leave)", gone.len());
+                    for e in gone {
+                        commands.entity(e).despawn();
+                    }
                     if let Some(h) = hosted.as_mut() {
                         h.mode = mode;
                     }
-                    m.mode = mode;
-                    m.max_players = max;
-                    m.score_limit = rules.score_limit;
-                    m.rules = data.rules.rulesets.get(mode);
+                    switch_mode(&data, &mut m, mode, max);
                     // Teams follow on the next tick (`sync_teams`); everyone respawns for the new mode.
-                    reset_match(&mut m, &data, None, players.iter_mut().map(|(_, n, v, s, _)| (n, v, s)));
+                    reset_match(&mut m, None, players.iter_mut().map(|(_, n, v, s, ..)| (n, v, s)));
+                }
+                LobbyAction::SetSetting(setting, value) => {
+                    let slots = hosted.as_ref().map_or(m.max_players, |h| h.slots);
+                    let Some(value) = lobby_setting_change(&data, &m, setting, value, slots, from_host) else {
+                        continue;
+                    };
+                    if setting == MatchSetting::MaxPlayers {
+                        let Some(gone) = trim(value, m.has_teams()) else {
+                            warn!("MAX PLAYERS {value}: more players are in the lobby; not changed");
+                            continue;
+                        };
+                        for e in gone {
+                            commands.entity(e).despawn();
+                        }
+                    }
+                    info!("the host sets {setting:?} to {value}");
+                    apply_setting(&mut m, setting, value);
                 }
                 LobbyAction::SwitchTeam => {
                     if !m.has_teams() {
                         continue;
                     }
                     let Some(to) = team.map(Team::other).filter(|t| free(*t, &players)) else { continue };
-                    for (mut info, mut net, mut v, _, p) in &mut players {
+                    for (mut info, mut net, mut v, _, p, _) in &mut players {
                         if p.link == link {
                             info!("{} switches to team {to:?}", info.name);
                             info.team = Some(to);
@@ -826,14 +878,76 @@ fn receive_lobby_actions(
                         info!("the host starts the match");
                         reset_match(
                             &mut m,
-                            &data,
                             Some(MatchPhase::Live),
-                            players.iter_mut().map(|(_, n, v, s, _)| (n, v, s)),
+                            players.iter_mut().map(|(_, n, v, s, ..)| (n, v, s)),
                         );
                     }
                 }
             }
         }
+    }
+}
+
+/// A player as the lobby's actions see them (and the entity, for the bots that leave).
+type LobbyPlayer = (
+    &'static mut PlayerInfo,
+    &'static mut PlayerNet,
+    &'static mut Vitals,
+    &'static mut Score,
+    &'static ServerPlayer,
+    Entity,
+);
+
+/// The value the host's lobby stepper sets, or `None` when the change is refused or changes nothing: only the
+/// host, only in a deathmatch lobby, clamped to `rules.ron` `lobby_settings`. MAX PLAYERS: 2 up to the mode's
+/// seats and HOST GAME's `slots` ([`mode_max_players`]), even in team deathmatch (rounded down). The caller
+/// still checks that the players fit fewer seats (bots leave for them: `bots::bots_to_trim`).
+fn lobby_setting_change(
+    data: &GameData,
+    m: &MatchState,
+    setting: MatchSetting,
+    value: u32,
+    slots: u32,
+    from_host: bool,
+) -> Option<u32> {
+    if !from_host || m.phase != MatchPhase::Lobby || !m.mode.is_deathmatch() {
+        return None;
+    }
+    let value = match data.rules.lobby_settings.get(setting) {
+        Some(range) => range.clamp(value),
+        None => {
+            let v = value.clamp(2, mode_max_players(data, m.mode, slots));
+            if m.has_teams() { (v - v % 2).max(2) } else { v }
+        }
+    };
+    (value != m.setting(setting)).then_some(value)
+}
+
+/// The lobby switched to `mode` with `max` seats: its rules and the new mode's settings from `rules.ron` (the
+/// host's edits do not carry over; MAG CHECK and the snapshot rate stay).
+fn switch_mode(data: &GameData, m: &mut MatchState, mode: MatchMode, max: u32) {
+    let rules = data.rules.deathmatch(mode);
+    m.mode = mode;
+    m.max_players = max;
+    m.score_limit = rules.score_limit;
+    m.settings = rules.settings();
+    m.time_left_s = rules.time_limit_s;
+    m.rules = data.rules.rulesets.get(mode);
+}
+
+/// Put a lobby setting's value (in its stepper's units, already checked) on the match.
+fn apply_setting(m: &mut MatchState, setting: MatchSetting, value: u32) {
+    match setting {
+        MatchSetting::ScoreLimit => m.score_limit = value,
+        MatchSetting::TimeLimitMin => {
+            m.settings.time_limit_s = value as f32 * 60.0;
+            // The lobby's clock reads the new limit (the match starts from it).
+            m.time_left_s = m.settings.time_limit_s;
+        }
+        MatchSetting::MaxPlayers => m.max_players = value,
+        MatchSetting::RespawnS => m.settings.respawn_s = value as f32,
+        MatchSetting::KillRefillMags => m.settings.kill_refill_mags = value.min(u8::MAX as u32) as u8,
+        MatchSetting::GearBudget => m.settings.gear_budget = value,
     }
 }
 
@@ -853,28 +967,17 @@ fn lobby_snapshot_change(data: &GameData, m: &MatchState, hz: u16, from_host: bo
 }
 
 /// The lobby's seats after the host asks to change its mode to `mode`, or `None` when the change is refused:
-/// only the host, only in the lobby, only between the deathmatch modes (the range stays the range), and
-/// never to fewer seats than players already in the lobby. `slots` is what HOST GAME opened.
-fn lobby_mode_change(
-    data: &GameData,
-    m: &MatchState,
-    mode: MatchMode,
-    slots: u32,
-    players: u32,
-    from_host: bool,
-) -> Option<u32> {
+/// only the host, only in the lobby, only between the deathmatch modes (the range stays the range). `slots` is
+/// what HOST GAME opened. Whether the players fit the new seats is the caller's (`bots::bots_to_trim`: bots
+/// leave for them; players alone over the limit refuse the switch).
+fn lobby_mode_change(data: &GameData, m: &MatchState, mode: MatchMode, slots: u32, from_host: bool) -> Option<u32> {
     if !from_host || m.phase != MatchPhase::Lobby || !m.mode.is_deathmatch() || !mode.is_deathmatch() {
         return None;
     }
     if m.mode == mode {
         return None;
     }
-    let max = mode_max_players(data, mode, slots);
-    if players > max {
-        warn!("{mode:?} seats {max}, but {players} players are in the lobby: mode not changed");
-        return None;
-    }
-    Some(max)
+    Some(mode_max_players(data, mode, slots))
 }
 
 /// Teams follow the mode: none in free-for-all and the range; in team deathmatch a player without one
@@ -914,14 +1017,13 @@ fn sync_teams(matches: Query<&MatchState>, mut players: Query<(&PlayerId, &mut P
 /// everyone respawns on the next tick. Also the host's RESTART MATCH / BACK TO LOBBY (`esc_menu.rs`).
 pub(crate) fn reset_match<'a>(
     m: &mut MatchState,
-    data: &GameData,
     phase: Option<MatchPhase>,
     players: impl Iterator<Item = (Mut<'a, PlayerNet>, Mut<'a, Vitals>, Mut<'a, Score>)>,
 ) {
     m.score_a = 0;
     m.score_b = 0;
     if m.mode.is_deathmatch() {
-        m.time_left_s = data.rules.deathmatch(m.mode).time_limit_s;
+        m.time_left_s = m.settings.time_limit_s;
     }
     if let Some(phase) = phase {
         m.phase = phase;
@@ -1461,7 +1563,8 @@ fn handle_deaths(
         let killer_id = killer.and_then(|k| players.get(k).ok()).map(|p| p.0.0);
         let Ok((vid, vinfo, mut v, mut score, mut mv, mut vsp)) = players.get_mut(d.victim) else { continue };
         v.health.dead = true;
-        v.respawn_s = data.rules.deathmatch(mode).respawn_s;
+        // The host's lobby setting (the mode's `rules.ron` value until it changes it).
+        v.respawn_s = matches.iter().next().map_or(rules.respawn_s, |m| m.settings.respawn_s);
         // In a live match the death screen waits for RESPAWN; elsewhere (the lobby, the end of a match) the
         // timer alone brings them back, as before.
         v.awaiting_respawn = counts;
@@ -1510,7 +1613,7 @@ fn handle_deaths(
             {
                 // Every kill tops up a magazine (user direction), so a good run keeps going.
                 if let Ok((mut w, l)) = weapons.get_mut(k) {
-                    w.0.refill_mags(data.rules.deathmatch(m.mode).kill_refill_mags, l.0.weapon.mag_capacity);
+                    w.0.refill_mags(m.settings.kill_refill_mags, l.0.weapon.mag_capacity);
                 }
                 // One more in a row, unless the killer is already dead (a trade: that life is over).
                 if !kv.health.dead {
@@ -1906,6 +2009,7 @@ mod system_tests {
             mag_check: Default::default(),
             tick_hz: 120,
             snapshot_hz: 60,
+            settings: rules.settings(),
         });
         app.insert_resource(Data(Arc::new(d)));
         app.init_resource::<Time>();
@@ -1975,6 +2079,27 @@ mod system_tests {
         assert_eq!(standing(&app, victim), (0, 2, 0));
         assert!(app.world().get::<Vitals>(victim).unwrap().health.dead);
         assert_eq!(full_spares(&app, a), 1, "a kill refills one magazine");
+    }
+
+    /// The host's lobby settings reach the game: the respawn timer a death starts and the magazines a kill
+    /// refills.
+    #[test]
+    fn the_match_settings_drive_respawn_and_refill() {
+        for (respawn_s, refill) in [(9.0, 2), (2.0, 0)] {
+            let mut app = world(MatchMode::Ffa, MatchPhase::Live);
+            let (a, victim) = (player(&mut app, 1, None), player(&mut app, 2, None));
+            {
+                let mut q = app.world_mut().query::<&mut MatchState>();
+                let mut m = q.single_mut(app.world_mut()).unwrap();
+                m.settings.respawn_s = respawn_s;
+                m.settings.kill_refill_mags = refill;
+            }
+            spend_spares(&mut app, a);
+            kill(&mut app, a, victim);
+            app.world_mut().run_system_once(handle_deaths).unwrap();
+            assert_eq!(app.world().get::<Vitals>(victim).unwrap().respawn_s, respawn_s);
+            assert_eq!(full_spares(&app, a), refill as usize, "{refill} magazine(s) refilled");
+        }
     }
 
     /// Once the match has ended (the 8 s intermission) nothing changes the standings any more: a kill, a fall
@@ -2578,6 +2703,7 @@ fn respawn_players(
     let Some(level) = level else { return };
     let mode = match_mode(&matches);
     let auto_s = data.rules.deathmatch(mode).auto_respawn_s;
+    let budget = match_budget(&data, &matches);
     // Once the match is over (the end board) nobody waits for RESPAWN any more.
     let live = matches.iter().next().is_none_or(|m| m.phase == MatchPhase::Live);
     let dt = data.tick_dt();
@@ -2594,7 +2720,7 @@ fn respawn_players(
             continue;
         }
         // The player's choice as this mode takes it (a lobby mode change reshapes it), else the default.
-        match sp.choice.as_ref().map(|c| loadout_from_choice(&data, c, mode)) {
+        match sp.choice.as_ref().map(|c| loadout_within(&data, c, mode, budget)) {
             Some(Ok(l)) => lo.0 = l,
             Some(Err(_)) => {}
             None => lo.0 = default_loadout(&data, mode),
@@ -2697,12 +2823,7 @@ fn run_match(
             *intermission -= dt;
             if *intermission <= 0.0 {
                 // Back to the lobby: teams, loadouts and READY for the next one.
-                reset_match(
-                    &mut m,
-                    &data,
-                    Some(MatchPhase::Lobby),
-                    players.iter_mut().map(|(_, n, v, s, _)| (n, v, s)),
-                );
+                reset_match(&mut m, Some(MatchPhase::Lobby), players.iter_mut().map(|(_, n, v, s, _)| (n, v, s)));
             }
         }
     }
@@ -2877,6 +2998,7 @@ mod tests {
             mag_check: Default::default(),
             tick_hz: 120,
             snapshot_hz: 60,
+            settings: rules.settings(),
         }
     }
 
@@ -2931,19 +3053,101 @@ mod tests {
         let d = GameData::embedded();
         let lobby = MatchState { phase: MatchPhase::Lobby, max_players: 10, ..live(MatchMode::Tdm) };
         // Free-for-all seats at most 8 (rules.ron), team deathmatch 10 and even.
-        assert_eq!(lobby_mode_change(&d, &lobby, MatchMode::Ffa, 10, 3, true), Some(8));
-        assert_eq!(lobby_mode_change(&d, &lobby, MatchMode::Ffa, 10, 3, false), None, "only the host");
-        assert_eq!(lobby_mode_change(&d, &lobby, MatchMode::Ffa, 10, 9, true), None, "9 players do not fit");
-        assert_eq!(lobby_mode_change(&d, &lobby, MatchMode::Tdm, 10, 3, true), None, "already team deathmatch");
-        assert_eq!(lobby_mode_change(&d, &lobby, MatchMode::Range, 10, 3, true), None, "the range is a map");
+        // (Whether the players fit is `bots::bots_to_trim`'s: bots leave, players alone over it refuse.)
+        assert_eq!(lobby_mode_change(&d, &lobby, MatchMode::Ffa, 10, true), Some(8));
+        assert_eq!(lobby_mode_change(&d, &lobby, MatchMode::Ffa, 10, false), None, "only the host");
+        assert_eq!(lobby_mode_change(&d, &lobby, MatchMode::Tdm, 10, true), None, "already team deathmatch");
+        assert_eq!(lobby_mode_change(&d, &lobby, MatchMode::Range, 10, true), None, "the range is a map");
         let ffa = MatchState { mode: MatchMode::Ffa, max_players: 7, ..lobby.clone() };
-        assert_eq!(lobby_mode_change(&d, &ffa, MatchMode::Tdm, 7, 2, true), Some(6), "even for teams");
+        assert_eq!(lobby_mode_change(&d, &ffa, MatchMode::Tdm, 7, true), Some(6), "even for teams");
         let live_ffa = MatchState { phase: MatchPhase::Live, ..ffa };
-        assert_eq!(lobby_mode_change(&d, &live_ffa, MatchMode::Tdm, 7, 2, true), None, "only in the lobby");
+        assert_eq!(lobby_mode_change(&d, &live_ffa, MatchMode::Tdm, 7, true), None, "only in the lobby");
         assert_eq!(mode_max_players(&d, MatchMode::Ffa, 10), 8);
         assert_eq!(mode_max_players(&d, MatchMode::Ffa, 5), 5, "odd is fine without teams");
         assert_eq!(mode_max_players(&d, MatchMode::Tdm, 5), 4);
         assert_eq!(mode_max_players(&d, MatchMode::Tdm, 1), 2);
+    }
+
+    /// Item C: the host's lobby steppers. Each value is clamped to `rules.ron` `lobby_settings` (MAX PLAYERS to the
+    /// mode's seats and HOST GAME's slots, even for teams); only the host, only in a deathmatch lobby; a value
+    /// that changes nothing is no change.
+    #[test]
+    fn the_host_edits_the_match_settings_within_their_ranges() {
+        use MatchSetting::*;
+        let d = GameData::embedded();
+        let r = d.rules.lobby_settings;
+        let lobby = MatchState { phase: MatchPhase::Lobby, ..live(MatchMode::Tdm) };
+        assert_eq!(lobby.settings, d.rules.tdm.settings(), "a lobby opens with rules.ron's values");
+        assert_eq!((lobby.setting(TimeLimitMin), lobby.setting(RespawnS)), (10, 4));
+        let change = |m: &MatchState, s, v| lobby_setting_change(&d, m, s, v, 10, true);
+        assert_eq!(change(&lobby, ScoreLimit, 75), Some(75));
+        assert_eq!(change(&lobby, ScoreLimit, 100_000), Some(r.score_limit.max));
+        assert_eq!(change(&lobby, ScoreLimit, 0), Some(r.score_limit.min));
+        assert_eq!(change(&lobby, ScoreLimit, lobby.score_limit), None, "unchanged");
+        assert_eq!(change(&lobby, TimeLimitMin, 1000), Some(r.time_limit_min.max));
+        assert_eq!(change(&lobby, TimeLimitMin, 0), Some(r.time_limit_min.min));
+        assert_eq!(change(&lobby, RespawnS, 0), Some(r.respawn_s.min));
+        assert_eq!((change(&lobby, KillRefillMags, 9), change(&lobby, KillRefillMags, 0)), (Some(2), Some(0)));
+        assert_eq!(change(&lobby, GearBudget, 0), Some(r.gear_budget.min));
+        assert_eq!(change(&lobby, GearBudget, 999), Some(r.gear_budget.max));
+        // MAX PLAYERS: 2 up to the mode's seats and the slots; teams of equal size.
+        assert_eq!(change(&lobby, MaxPlayers, 12), None, "10 is team deathmatch's cap, and already set");
+        assert_eq!(change(&lobby, MaxPlayers, 7), Some(6), "even for teams");
+        assert_eq!(change(&lobby, MaxPlayers, 0), Some(2));
+        assert_eq!(lobby_setting_change(&d, &lobby, MaxPlayers, 10, 6, true), Some(6), "HOST GAME opened 6");
+        let ffa = MatchState { mode: MatchMode::Ffa, max_players: 8, ..lobby.clone() };
+        assert_eq!(change(&ffa, MaxPlayers, 7), Some(7), "odd is fine without teams");
+        assert_eq!(change(&ffa, MaxPlayers, 10), None, "free-for-all seats 8");
+        // Refused: not the host, not the lobby, not the range.
+        assert_eq!(lobby_setting_change(&d, &lobby, ScoreLimit, 75, 10, false), None);
+        let started = MatchState { phase: MatchPhase::Live, ..lobby.clone() };
+        assert_eq!(lobby_setting_change(&d, &started, ScoreLimit, 75, 10, true), None);
+        assert_eq!(lobby_setting_change(&d, &live(MatchMode::Range), ScoreLimit, 75, 10, true), None);
+        // Applied: every setting reads back as set; the lobby's clock follows the time limit.
+        let mut m = lobby.clone();
+        let edits = [
+            (ScoreLimit, 75),
+            (TimeLimitMin, 15),
+            (MaxPlayers, 6),
+            (RespawnS, 7),
+            (KillRefillMags, 2),
+            (GearBudget, 12),
+        ];
+        for (s, v) in edits {
+            apply_setting(&mut m, s, v);
+            assert_eq!(m.setting(s), v, "{s:?}");
+        }
+        assert_eq!((m.settings.time_limit_s, m.time_left_s), (900.0, 900.0));
+        assert_eq!((m.settings.respawn_s, m.settings.kill_refill_mags, m.gear_budget()), (7.0, 2, Some(12)));
+        assert_eq!(live(MatchMode::Range).gear_budget(), None, "the gun range has no points");
+        // A new match runs the clock from the setting.
+        reset_match(&mut m, Some(MatchPhase::Live), std::iter::empty());
+        assert_eq!(m.time_left_s, 900.0);
+        // A mode switch opens the new mode's settings from rules.ron.
+        let mut m = MatchState { phase: MatchPhase::Lobby, ..m };
+        switch_mode(&d, &mut m, MatchMode::Ffa, 8);
+        assert_eq!((m.mode, m.max_players, m.score_limit), (MatchMode::Ffa, 8, d.rules.ffa.score_limit));
+        assert_eq!((m.settings, m.time_left_s), (d.rules.ffa.settings(), d.rules.ffa.time_limit_s));
+        assert_eq!(m.rules, d.rules.rulesets.ffa);
+    }
+
+    /// The host's POINTS setting is the budget of its loadout check (the default loadout fits the lowest).
+    #[test]
+    fn the_points_setting_is_the_hosts_budget() {
+        let d = GameData::embedded();
+        let c = default_choice(&d);
+        for mode in [MatchMode::Tdm, MatchMode::Ffa] {
+            let shaped = c.for_mode(&d, mode);
+            let spec = d.weapon(&shaped.weapon).unwrap();
+            let cost = loadout_cost(&d, mode, spec, &shaped.halo, &shaped.mags, &shaped.attachments).total();
+            assert!(loadout_within(&d, &c, mode, Some(cost)).is_ok(), "{mode:?}: fits its cost");
+            assert_eq!(
+                loadout_within(&d, &c, mode, Some(cost - 1)).err(),
+                Some(LoadoutError::OverBudget { cost, budget: cost - 1 }),
+                "{mode:?}: a lower budget refuses it"
+            );
+            assert!(cost <= d.rules.lobby_settings.gear_budget.min, "{mode:?}: the default always fits");
+        }
     }
 
     /// MAG CHECK is the host's match rule: only the host sets it, only in a deathmatch lobby; a mode change keeps
@@ -3327,6 +3531,7 @@ mod bot_tests {
             mag_check: Default::default(),
             tick_hz: 120,
             snapshot_hz: 60,
+            settings: rules.settings(),
         });
         app.insert_resource(Data(Arc::new(d)));
         app.insert_resource(CurrentLevel(Arc::new(arena())));

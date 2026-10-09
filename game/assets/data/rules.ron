@@ -128,4 +128,16 @@
     ),
     // The gun range: throwables to practise with, every life.
     range_throwables: (smoke: 3, molotov: 3),
+    // The match settings the host edits in a team deathmatch or free-for-all lobby (item C): each stepper's
+    // range and step, in the stepper's units. A lobby opens with its mode's values above (tdm / ffa), and a mode
+    // switch goes back to the new mode's. MAX PLAYERS steps within the mode's max_players and HOST GAME's slots
+    // (by 2 in team deathmatch: teams of equal size). Placeholders until playtests say otherwise.
+    lobby_settings: (
+        score_limit: (min: 5, max: 200, step: 5),       // kills (free-for-all) or team kills
+        time_limit_min: (min: 2, max: 30, step: 1),     // whole minutes
+        respawn_s: (min: 1, max: 15, step: 1),          // whole seconds before RESPAWN
+        kill_refill_mags: (min: 0, max: 2, step: 1),    // magazines a kill refills
+        // Loadout points. Never under 2: the default loadout (T2 halo, standard ammo and magazine) must fit.
+        gear_budget: (min: 2, max: 20, step: 1),
+    ),
 )

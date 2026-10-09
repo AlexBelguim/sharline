@@ -831,7 +831,8 @@ fn refresh(
             node.display = want;
         }
     }
-    let total = rules.respawn_s.max(0.01);
+    // The host's lobby setting (the mode's `rules.ron` value until it changes it).
+    let total = matches.iter().next().map_or(rules.respawn_s, |m| m.settings.respawn_s).max(0.01);
     for mut node in &mut fill {
         let want = percent(((1.0 - left / total) * 100.0).clamp(0.0, 100.0));
         if node.width != want {

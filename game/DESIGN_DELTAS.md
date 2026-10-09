@@ -832,3 +832,26 @@ New (item 9c2, user direction; the design docs have no streaks). All numbers in 
   the climb, every grip only the sweep; other parts may raise either (tested: no stock or grip raises recoil).
   The 60-round drum and the UGL stay recoil-neutral: they already pay in reload, aim speed and move speed, and
   every magazine sprays the same T (section 15). No wire change.
+
+
+## 36. The host edits the match settings in the lobby; bots make room on a mode switch (2026-10-09)
+- **Before:** the lobby only showed the score limit, time limit, players, respawn, kill refill and points; they
+  came from `rules.ron` per mode. A switch to a mode with fewer seats (team deathmatch 10 to free-for-all 8) was
+  refused whenever the lobby held more than 8, bots included.
+- **Now (user, item C):**
+  - The host steps SCORE LIMIT, TIME (whole minutes), MAX PLAYERS, RESPAWN (whole seconds), KILL REFILL (0, 1 or
+    2 magazines) and POINTS in the match settings; everyone else reads the values live in the rows below. Ranges
+    and steps live in `rules.ron` `lobby_settings` (placeholders: score 5-200 by 5, time 2-30 min, respawn 1-15 s,
+    refill 0-2, points 2-20; points never under 2 so the default loadout always fits). MAX PLAYERS goes from 2 to
+    the mode's seats and HOST GAME's slots, by 2 in team deathmatch. The host clamps whatever it is sent.
+  - A lobby opens with its mode's `rules.ron` values, and a mode switch goes back to the new mode's (the host's
+    edits do not carry over; MAG CHECK and the snapshot rate stay).
+  - The settings drive the match: the clock a match starts with, the respawn timer a death starts (and the death
+    screen's bar), the magazines a kill refills, and the points budget of the host's loadout check and of the
+    Loadout screen (and the ESC menu's points). Auto-respawn, spawn protection and assists stay per mode in data.
+  - Bots on a switch to fewer seats, or a lower MAX PLAYERS (user: "remove automatically"): bots leave, the most
+    recently added first (in team deathmatch first from a team over its half), until everyone fits. Only real
+    players alone over the new limit refuse the change.
+- **Not yet:** a player whose loadout no longer fits lower POINTS is not told in the lobby: the host refuses the
+  loadout and they spawn with the default one until they pick a cheaper loadout.
+- Wire: `MatchState::settings`, `LobbyAction::SetSetting`: protocol 16.

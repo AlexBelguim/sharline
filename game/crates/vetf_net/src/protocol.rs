@@ -20,7 +20,7 @@ use vetf_sim::throwable::{Launch, ThrowId, ThrowKind};
 use vetf_sim::weapon::WeaponState;
 
 /// Bumped whenever the protocol changes; part of the netcode protocol id, so old builds cannot connect.
-pub const PROTOCOL_VERSION: u64 = 15;
+pub const PROTOCOL_VERSION: u64 = 16;
 
 /// netcode.io protocol id shared by host and clients.
 pub fn protocol_id() -> u64 {
@@ -133,6 +133,7 @@ pub struct PlayerNet {
 pub struct PlayerAgent(pub Option<String>);
 
 pub use vetf_sim::data::Mode as MatchMode;
+pub use vetf_sim::data::{MatchSetting, MatchSettings};
 pub use vetf_sim::weapon::MagCheckMode;
 
 #[derive(Serialize, Deserialize, Clone, Copy, Debug, PartialEq, Eq)]
@@ -174,12 +175,32 @@ pub struct MatchState {
     /// How many snapshots a second the host sends (its SNAPSHOT RATE, which it may change in the lobby).
     /// Clients draw other players [`vetf_sim::data::NetSpec::interpolation_delay_s`] behind them.
     pub snapshot_hz: u16,
+    /// The host's lobby settings beside the score limit and MAX PLAYERS: the clock, the respawn timer, the
+    /// kill refill and the loadout points (the mode's `rules.ron` values until the host changes them).
+    pub settings: MatchSettings,
 }
 
 impl MatchState {
     /// Players are split into two teams (team deathmatch).
     pub fn has_teams(&self) -> bool {
         self.mode.has_teams()
+    }
+
+    /// The loadout points this match allows (none in the gun range): the Loadout screen and the host's check.
+    pub fn gear_budget(&self) -> Option<u32> {
+        self.mode.is_deathmatch().then_some(self.settings.gear_budget)
+    }
+
+    /// A lobby setting's value in its stepper's units (whole minutes, whole seconds).
+    pub fn setting(&self, s: MatchSetting) -> u32 {
+        match s {
+            MatchSetting::ScoreLimit => self.score_limit,
+            MatchSetting::TimeLimitMin => (self.settings.time_limit_s / 60.0).round() as u32,
+            MatchSetting::MaxPlayers => self.max_players,
+            MatchSetting::RespawnS => self.settings.respawn_s.round() as u32,
+            MatchSetting::KillRefillMags => self.settings.kill_refill_mags as u32,
+            MatchSetting::GearBudget => self.settings.gear_budget,
+        }
     }
 }
 
@@ -201,6 +222,9 @@ pub enum LobbyAction {
     SetMagCheck(MagCheckMode),
     /// The host's SNAPSHOT RATE (snapshots a second; one `net.ron` offers at the match's tick rate).
     SetSnapshotHz(u16),
+    /// The host's lobby stepper: a setting and its new value in the stepper's units. The host clamps it to
+    /// `rules.ron` `lobby_settings` (MAX PLAYERS: to the mode's seats and HOST GAME's slots).
+    SetSetting(MatchSetting, u32),
 }
 
 // ---------------------------------------------------------------------------------------------- input
@@ -691,6 +715,7 @@ mod tests {
             mag_check: Default::default(),
             tick_hz: 120,
             snapshot_hz: 60,
+            settings: d.rules.tdm.settings(),
         });
         roundtrip(&TickRate { hz: 120 });
         // The lobby: its phase, READY and the actions players send.
@@ -713,6 +738,54 @@ mod tests {
         }
     }
 
+    /// Item C: the host's lobby settings ride on the match state to every player, and each stepper's request
+    /// survives the wire; a match the host has not touched carries the mode's `rules.ron` values.
+    #[test]
+    fn the_lobby_match_settings_roundtrip() {
+        let d = GameData::embedded();
+        let base = MatchState {
+            mode: MatchMode::Ffa,
+            map: "showhome".into(),
+            score_a: 0,
+            score_b: 0,
+            score_limit: d.rules.ffa.score_limit,
+            time_left_s: d.rules.ffa.time_limit_s,
+            phase: MatchPhase::Lobby,
+            lobby_name: "ASH'S GAME".into(),
+            max_players: 8,
+            rules: d.rules.rulesets.ffa,
+            mag_check: MagCheckMode::default(),
+            tick_hz: 120,
+            snapshot_hz: 60,
+            settings: d.rules.ffa.settings(),
+        };
+        assert_eq!(
+            (base.settings.time_limit_s, base.settings.respawn_s, base.settings.kill_refill_mags),
+            (d.rules.ffa.time_limit_s, d.rules.ffa.respawn_s, d.rules.ffa.kill_refill_mags)
+        );
+        assert_eq!(base.gear_budget(), Some(d.rules.ffa.gear_budget));
+        let edited = MatchState {
+            score_limit: 40,
+            max_players: 6,
+            settings: MatchSettings { time_limit_s: 900.0, respawn_s: 7.0, kill_refill_mags: 2, gear_budget: 12 },
+            ..base.clone()
+        };
+        let bytes = roundtrip(&edited);
+        let back: MatchState = postcard::from_bytes(&bytes).unwrap();
+        let read = MatchSetting::ALL.map(|s| back.setting(s));
+        assert_eq!(read, [40, 15, 6, 7, 2, 12], "score, minutes, players, seconds, magazines, points");
+        assert_ne!(bytes, roundtrip(&base));
+        assert_eq!(MatchState { mode: MatchMode::Range, ..edited }.gear_budget(), None, "the range has no points");
+        for s in MatchSetting::ALL {
+            roundtrip(&s);
+            roundtrip(&LobbyAction::SetSetting(s, 12));
+        }
+        assert_ne!(
+            roundtrip(&LobbyAction::SetSetting(MatchSetting::ScoreLimit, 5)),
+            roundtrip(&LobbyAction::SetSetting(MatchSetting::GearBudget, 5))
+        );
+    }
+
     /// Free-for-all: the mode, its rules and limits, and a winning player survive the wire.
     #[test]
     fn free_for_all_match_state_roundtrips() {
@@ -731,6 +804,7 @@ mod tests {
             mag_check: MagCheckMode::Exact,
             tick_hz: 60,
             snapshot_hz: 30,
+            settings: d.rules.ffa.settings(),
         };
         roundtrip(&ffa);
         assert!(!ffa.has_teams());
@@ -767,6 +841,7 @@ mod tests {
             mag_check: MagCheckMode::default(),
             tick_hz: 120,
             snapshot_hz: 60,
+            settings: d.rules.tdm.settings(),
         };
         assert_eq!(base.mag_check, MagCheckMode::Estimate, "the estimate is the default");
         for mode in [MatchMode::Tdm, MatchMode::Ffa] {
@@ -849,8 +924,8 @@ mod tests {
         roundtrip(&PlayerAgent(None));
         assert_eq!(PlayerAgent::default(), PlayerAgent(None));
         assert_eq!(
-            PROTOCOL_VERSION, 15,
-            "agent + deathmatch picks 6, no ADS MOVE 7, death screen 8, test bots (bot mark, ADD/REMOVE BOT) 9,              recap per opponent life + kills, assists 10, MAG CHECK match setting 11, kill feed cause 12,              kill streaks (Score::streak, StreakNews) 13, smoke and molotovs (ThrowNews, throw keys, the hand) 14,              tick and snapshot rates as host settings (TickRate, MatchState rates, SetSnapshotHz, rate in the id) 15"
+            PROTOCOL_VERSION, 16,
+            "agent + deathmatch picks 6, no ADS MOVE 7, death screen 8, test bots (bot mark, ADD/REMOVE BOT) 9,              recap per opponent life + kills, assists 10, MAG CHECK match setting 11, kill feed cause 12,              kill streaks (Score::streak, StreakNews) 13, smoke and molotovs (ThrowNews, throw keys, the hand) 14,              tick and snapshot rates as host settings (TickRate, MatchState rates, SetSnapshotHz, rate in the id) 15,              lobby match settings (MatchState::settings, SetSetting) 16"
         );
     }
 

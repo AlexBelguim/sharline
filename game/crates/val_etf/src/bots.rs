@@ -162,6 +162,36 @@ pub fn seat_joiner(max_players: u32, teams: bool, seats: &[Seat]) -> Option<Join
     Some(JoinSeat { team: team_without(Some(evict)), evict: Some(evict) })
 }
 
+/// The bots that leave so the `seats` of a lobby fit `max_players` (a mode switch to fewer seats, or a lower
+/// MAX PLAYERS; user direction: "remove automatically"), as indexes into `seats`: the most recently added first,
+/// in team deathmatch (`teams`) first from a team over its half. `None` when the players alone (bots aside)
+/// do not fit: the host refuses that change. Nothing to remove: an empty list.
+pub fn bots_to_trim(max_players: u32, teams: bool, seats: &[Seat]) -> Option<Vec<usize>> {
+    let players = seats.iter().filter(|s| s.bot.is_none()).count();
+    if players > max_players as usize {
+        return None;
+    }
+    let per_team = (max_players / 2).max(1) as usize;
+    let mut gone: Vec<usize> = Vec::new();
+    while seats.len() - gone.len() > max_players as usize {
+        let left = |i: &usize| !gone.contains(i);
+        let on = |t: Team| (0..seats.len()).filter(left).filter(|i| seats[*i].team == Some(t)).count();
+        let over: Vec<Team> =
+            if teams { [Team::A, Team::B].into_iter().filter(|t| on(*t) > per_team).collect() } else { vec![] };
+        let latest = |team_ok: &dyn Fn(Option<Team>) -> bool| {
+            (0..seats.len())
+                .filter(left)
+                .filter(|i| team_ok(seats[*i].team))
+                .filter_map(|i| seats[i].bot.map(|added| (i, added)))
+                .max_by_key(|(_, added)| *added)
+                .map(|(i, _)| i)
+        };
+        let pick = latest(&|t| t.is_some_and(|t| over.contains(&t))).or_else(|| latest(&|_| true))?;
+        gone.push(pick);
+    }
+    Some(gone)
+}
+
 /// `--bots N`: once the match and the host's own player are there, ask for N bots.
 fn cli_bots(
     cli: Res<Cli>,
@@ -400,5 +430,34 @@ mod tests {
             Some(JoinSeat { team: b, evict: Some(1) }),
             "the joiner faces the host"
         );
+    }
+
+    /// A switch to a mode with fewer seats (team deathmatch 10 to free-for-all 8) or a lower MAX PLAYERS: bots
+    /// leave, the most recently added first, until everyone fits; only players alone over the limit refuse it.
+    #[test]
+    fn a_smaller_lobby_sheds_its_latest_bots() {
+        let (a, b) = (Some(Team::A), Some(Team::B));
+        // TDM 10 -> FFA 8: host + 1 friend + 8 bots (added 0..8): the two latest go
+        let mut seats = vec![human(a), human(b)];
+        seats.extend((0..8).map(|i| bot(if i % 2 == 0 { b } else { a }, i)));
+        let mut gone = bots_to_trim(8, false, &seats).unwrap();
+        gone.sort_unstable();
+        assert_eq!(gone, vec![8, 9], "added 6 and 7: the latest");
+        // Fits already: nobody leaves.
+        assert_eq!(bots_to_trim(10, true, &seats), Some(vec![]));
+        // 9 players and no bots cannot fit 8 seats: refused; 8 players and a bot: the bot goes.
+        let full: Vec<Seat> = (0..9).map(|_| human(None)).collect();
+        assert_eq!(bots_to_trim(8, false, &full), None);
+        let mut eight: Vec<Seat> = (0..8).map(|_| human(None)).collect();
+        eight.push(bot(None, 0));
+        assert_eq!(bots_to_trim(8, false, &eight), Some(vec![8]));
+        // Team deathmatch down to 2 v 2: A holds 2 players and a bot, B a player and two bots. A's bot (over A's
+        // half) leaves rather than B's older bot.
+        let seats = [human(a), human(a), bot(a, 0), human(b), bot(b, 1), bot(b, 2)];
+        // B's bot added 2 goes first (both teams are over 2), then A's: B's bot added 1 stays.
+        assert_eq!(bots_to_trim(4, true, &seats), Some(vec![5, 2]));
+        // Recency, not the bot's number: a re-added bot (added 9) leaves before older ones.
+        let seats = [human(None), bot(None, 9), bot(None, 3)];
+        assert_eq!(bots_to_trim(2, false, &seats), Some(vec![1]));
     }
 }

@@ -1121,6 +1121,8 @@ pub struct RulesFile {
     /// Throwables every life starts with in the gun range (practice).
     #[serde(default)]
     pub range_throwables: crate::throwable::ThrowKit,
+    /// The ranges of the match settings the host edits in a deathmatch lobby (item C, see [`MatchSettings`]).
+    pub lobby_settings: LobbySettingRanges,
 }
 
 /// What a mode switches on. Team deathmatch is the gunplay and netcode test bed: per-region shields and
@@ -1335,6 +1337,133 @@ pub struct TdmRules {
     /// Throwables every life starts with (item 10b: smoke grenades and molotovs).
     #[serde(default)]
     pub throwables: crate::throwable::ThrowKit,
+}
+
+impl TdmRules {
+    /// The match settings a lobby of this mode opens with (the host may change them, see [`MatchSettings`]).
+    pub fn settings(&self) -> MatchSettings {
+        MatchSettings {
+            time_limit_s: self.time_limit_s,
+            respawn_s: self.respawn_s,
+            kill_refill_mags: self.kill_refill_mags,
+            gear_budget: self.gear_budget,
+        }
+    }
+}
+
+/// The match settings the host edits in a deathmatch lobby, beside the score limit and MAX PLAYERS (which the
+/// match state carries on their own): they ride on the match to every player. Defaults: the mode's
+/// `rules.ron` values ([`TdmRules::settings`]); ranges: `rules.ron` `lobby_settings`.
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
+pub struct MatchSettings {
+    /// The match clock.
+    pub time_limit_s: f32,
+    /// Seconds after a death before RESPAWN can be pressed.
+    pub respawn_s: f32,
+    /// Magazines each kill refills (0, 1 or 2).
+    pub kill_refill_mags: u8,
+    /// The loadout's points must fit this (the Loadout screen and the host's check).
+    pub gear_budget: u32,
+}
+
+/// One lobby setting the host steps (`LobbyAction::SetSetting`). Values are in the stepper's units: points,
+/// whole minutes, players, whole seconds, magazines.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
+pub enum MatchSetting {
+    ScoreLimit,
+    TimeLimitMin,
+    MaxPlayers,
+    RespawnS,
+    KillRefillMags,
+    GearBudget,
+}
+
+impl MatchSetting {
+    pub const ALL: [MatchSetting; 6] = [
+        MatchSetting::ScoreLimit,
+        MatchSetting::TimeLimitMin,
+        MatchSetting::MaxPlayers,
+        MatchSetting::RespawnS,
+        MatchSetting::KillRefillMags,
+        MatchSetting::GearBudget,
+    ];
+}
+
+/// One stepper's range, in its units (`rules.ron` `lobby_settings`).
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+pub struct SettingRange {
+    pub min: u32,
+    pub max: u32,
+    pub step: u32,
+}
+
+impl SettingRange {
+    pub fn clamp(&self, v: u32) -> u32 {
+        v.clamp(self.min, self.max)
+    }
+
+    pub fn contains(&self, v: u32) -> bool {
+        (self.min..=self.max).contains(&v)
+    }
+}
+
+/// The ranges of the host's lobby steppers (MAX PLAYERS has none here: the mode's seats and HOST GAME's slots
+/// bound it).
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+pub struct LobbySettingRanges {
+    pub score_limit: SettingRange,
+    pub time_limit_min: SettingRange,
+    pub respawn_s: SettingRange,
+    pub kill_refill_mags: SettingRange,
+    pub gear_budget: SettingRange,
+}
+
+impl LobbySettingRanges {
+    /// The range of a setting with a fixed range (`None`: MAX PLAYERS).
+    pub fn get(&self, s: MatchSetting) -> Option<SettingRange> {
+        match s {
+            MatchSetting::ScoreLimit => Some(self.score_limit),
+            MatchSetting::TimeLimitMin => Some(self.time_limit_min),
+            MatchSetting::RespawnS => Some(self.respawn_s),
+            MatchSetting::KillRefillMags => Some(self.kill_refill_mags),
+            MatchSetting::GearBudget => Some(self.gear_budget),
+            MatchSetting::MaxPlayers => None,
+        }
+    }
+
+    /// The first problem with the ranges, or with a mode's defaults outside them.
+    pub fn problem(&self, modes: &[(&str, &TdmRules)]) -> Option<String> {
+        for s in MatchSetting::ALL {
+            let Some(r) = self.get(s) else { continue };
+            if r.min > r.max || r.step == 0 {
+                return Some(format!("lobby_settings: {s:?} needs min <= max and a step above 0"));
+            }
+        }
+        if self.kill_refill_mags.max > 2 {
+            return Some("lobby_settings: a kill refills at most 2 magazines".into());
+        }
+        if self.respawn_s.min == 0 {
+            return Some("lobby_settings: respawn needs at least 1 s".into());
+        }
+        if self.time_limit_min.min == 0 {
+            return Some("lobby_settings: a match needs at least a minute".into());
+        }
+        for (name, r) in modes {
+            let defaults = [
+                (MatchSetting::ScoreLimit, r.score_limit),
+                (MatchSetting::TimeLimitMin, (r.time_limit_s / 60.0).round() as u32),
+                (MatchSetting::RespawnS, r.respawn_s.round() as u32),
+                (MatchSetting::KillRefillMags, r.kill_refill_mags as u32),
+                (MatchSetting::GearBudget, r.gear_budget),
+            ];
+            for (s, v) in defaults {
+                if self.get(s).is_some_and(|range| !range.contains(v)) {
+                    return Some(format!("lobby_settings: {name}'s default {s:?} ({v}) is outside its range"));
+                }
+            }
+        }
+        None
+    }
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -1719,6 +1848,9 @@ impl GameData {
         if let Some(p) = self.rules.streaks.problem() {
             return bad(p);
         }
+        if let Some(p) = self.rules.lobby_settings.problem(&[("tdm", &self.rules.tdm), ("ffa", &self.rules.ffa)]) {
+            return bad(p);
+        }
         let kit = &self.rules.deathmatch_loadout;
         if !(1..=crate::weapon::MAX_MAGS).contains(&(kit.mags as usize)) {
             return bad(format!("deathmatch loadout: 1..={} magazines", crate::weapon::MAX_MAGS));
@@ -2072,6 +2204,34 @@ mod tests {
             assert!(r.assist_min_damage > 0.0 && r.assist_window_s > 0.0, "{mode:?}: an assist rule");
         }
         assert_eq!((d.rules.tdm.assist_min_damage, d.rules.tdm.assist_window_s), (40.0, 10.0));
+    }
+
+    /// Item C: the host's lobby settings open with each mode's rules.ron values, inside the steppers' ranges;
+    /// a range that cannot hold its defaults, refills more than 2 magazines or allows a 0 s respawn is refused.
+    #[test]
+    fn lobby_setting_ranges_hold_the_defaults() {
+        let d = GameData::embedded();
+        let r = d.rules.lobby_settings;
+        let modes = [("tdm", &d.rules.tdm), ("ffa", &d.rules.ffa)];
+        assert_eq!(r.problem(&modes), None);
+        for (_, rules) in modes {
+            let m = rules.settings();
+            assert_eq!((m.time_limit_s, m.respawn_s), (rules.time_limit_s, rules.respawn_s));
+            assert_eq!((m.kill_refill_mags, m.gear_budget), (rules.kill_refill_mags, rules.gear_budget));
+        }
+        assert_eq!((r.kill_refill_mags.min, r.kill_refill_mags.max), (0, 2), "0, 1 or 2 magazines");
+        assert_eq!(r.get(MatchSetting::MaxPlayers), None, "the mode's seats bound MAX PLAYERS");
+        assert_eq!((r.score_limit.clamp(0), r.score_limit.clamp(u32::MAX)), (r.score_limit.min, r.score_limit.max));
+        let bad = |f: fn(&mut LobbySettingRanges)| {
+            let mut x = r;
+            f(&mut x);
+            x.problem(&modes)
+        };
+        assert!(bad(|x| x.kill_refill_mags.max = 3).is_some());
+        assert!(bad(|x| x.respawn_s.min = 0).is_some());
+        assert!(bad(|x| x.gear_budget.step = 0).is_some());
+        assert!(bad(|x| x.score_limit = SettingRange { min: 60, max: 100, step: 5 }).is_some(), "50 is outside");
+        assert!(bad(|x| x.time_limit_min.max = 5).is_some(), "10 minutes is outside");
     }
 
     /// The SMG is out for now (DIRECTION_LOG: "remove the smg for now"): its data stays, hidden, so the

@@ -1,12 +1,13 @@
 //! The lobby (hub spec 05, mockup 06): the room before a deathmatch. Team deathmatch shows both teams with
 //! halo, ping and READY; free-for-all shows one player list with its seats (no teams, no SWITCH TEAM). Then
 //! how friends join, with COPY; the match settings, where the host picks the mode, MAG CHECK and the snapshot rate
-//! (with the upload it costs for the players in the lobby); and LEAVE, LOADOUT,
+//! (with the upload it costs for the players in the lobby) and steps the score limit, time limit, MAX PLAYERS,
+//! respawn timer, kill refill and loadout points (item C; everyone else reads them live); and LEAVE, LOADOUT,
 //! SWITCH TEAM (teams only), READY and (host only) ADD BOT, REMOVE BOT and START MATCH. It is a screen over the match while the
 //! match is in `MatchPhase::Lobby`, so the match underneath takes no input; START MATCH, or the end of a
 //! match (back here), moves everyone on.
 //!
-//! Not yet: chat, the host editing the other match settings, moving or kicking players.
+//! Not yet: chat, moving or kicking players.
 
 use crate::AppState;
 use crate::config::{Cli, Data};
@@ -35,6 +36,7 @@ impl Plugin for LobbyPlugin {
                 mode_toggle,
                 mag_check_toggle,
                 snapshot_toggle,
+                setting_steppers.after(kit_controls),
                 demo,
                 refresh,
             )
@@ -89,6 +91,37 @@ struct MagCheckToggle;
 /// tick rate disabled).
 #[derive(Component)]
 struct SnapshotToggle;
+
+/// One of the host's setting steppers in the match settings (item C): it asks the host for the new value, then
+/// follows the match.
+#[derive(Component, Debug, Clone, Copy, PartialEq, Eq)]
+struct SettingStepper(MatchSetting);
+
+/// The host's steppers, in the panel's order (two to a row), with their labels.
+const STEPPERS: [(MatchSetting, &str); 6] = [
+    (MatchSetting::ScoreLimit, "Score limit"),
+    (MatchSetting::TimeLimitMin, "Time · min"),
+    (MatchSetting::MaxPlayers, "Max players"),
+    (MatchSetting::RespawnS, "Respawn · s"),
+    (MatchSetting::KillRefillMags, "Kill refill"),
+    (MatchSetting::GearBudget, "Points"),
+];
+
+/// A stepper's value and limits for the match `m` (the steppers' units: whole minutes and seconds). MAX PLAYERS
+/// goes from 2 to the mode's seats and HOST GAME's `slots`, by 2 with teams; the others use `rules.ron`
+/// `lobby_settings`.
+fn stepper_for(data: &vetf_sim::GameData, m: &MatchState, setting: MatchSetting, slots: u32) -> StepperValue {
+    let value = m.setting(setting) as i32;
+    match data.rules.lobby_settings.get(setting) {
+        Some(r) => StepperValue { value, min: r.min as i32, max: r.max as i32, step: r.step as i32 },
+        None => StepperValue {
+            value,
+            min: 2,
+            max: crate::server::mode_max_players(data, m.mode, slots) as i32,
+            step: if m.has_teams() { 2 } else { 1 },
+        },
+    }
+}
 
 /// MAG CHECK's options, in the toggle's order.
 const MAG_CHECKS: [(MagCheckMode, &str); 2] = [(MagCheckMode::Estimate, "Estimate"), (MagCheckMode::Exact, "Exact")];
@@ -213,6 +246,30 @@ fn spawn_root(
                             });
                         },
                     );
+                    // The steppers (item C), two to a row: the host's values; everyone else reads them below.
+                    p.spawn(Node {
+                        display: Display::Grid,
+                        grid_template_columns: vec![GridTrack::flex(1.0), GridTrack::flex(1.0)],
+                        column_gap: px(18),
+                        row_gap: px(8),
+                        margin: UiRect::vertical(px(4)),
+                        ..default()
+                    })
+                    .with_children(|g| {
+                        for (setting, label) in STEPPERS {
+                            g.spawn(Node {
+                                align_items: AlignItems::Center,
+                                justify_content: JustifyContent::SpaceBetween,
+                                column_gap: px(10),
+                                ..default()
+                            })
+                            .with_children(|row| {
+                                row.spawn(fonts.role(TextRole::RowLabel, label));
+                                // Placeholder limits: `setting_steppers` puts the match's on before it is seen.
+                                row.spawn((stepper(fonts, 0, 0, 0, 1), SettingStepper(setting)));
+                            });
+                        }
+                    });
                     // SNAPSHOTS: smoother other players for more of the host's upload (the row below says how much).
                     p.spawn(Node { align_items: AlignItems::Center, column_gap: px(14), ..default() }).with_children(
                         |row| {
@@ -469,6 +526,68 @@ fn snapshot_toggle(
     }
 }
 
+/// The host's setting steppers: a press on − / + (the kit has already stepped the value within its limits) asks
+/// the host for the new value; otherwise, a second after the last press, each stepper follows the match (a
+/// refused or clamped value springs back), with − / + disabled at the limits.
+#[allow(clippy::type_complexity, clippy::too_many_arguments)]
+fn setting_steppers(
+    presses: Query<(&Interaction, &ChildOf), (Changed<Interaction>, With<StepperButton>)>,
+    mut steppers: Query<(&SettingStepper, &mut StepperValue, &Children)>,
+    cells: Query<&Children>,
+    mut texts: Query<&mut Text, With<StepperText>>,
+    step_buttons: Query<(Entity, &StepperButton, Has<Disabled>)>,
+    screens: Res<Screens>,
+    time: Res<Time>,
+    data: Res<Data>,
+    hosted: Option<Res<crate::server::HostedMatch>>,
+    mut asked: Local<f32>,
+    matches: Query<&MatchState>,
+    mut senders: Query<&mut MessageSender<LobbyAction>, With<Client>>,
+    mut commands: Commands,
+) {
+    if screens.top() == Some(Screen::Lobby) {
+        for (i, parent) in &presses {
+            if *i != Interaction::Pressed {
+                continue;
+            }
+            let Ok((setting, v, _)) = steppers.get(parent.parent()) else { continue };
+            *asked = time.elapsed_secs();
+            let action = LobbyAction::SetSetting(setting.0, v.value.max(0) as u32);
+            for mut s in &mut senders {
+                s.send::<ReliableChannel>(action);
+            }
+        }
+    }
+    let Some(m) = matches.iter().next() else { return };
+    let slots = hosted.map_or(m.max_players, |h| h.slots);
+    let follow = time.elapsed_secs() - *asked >= 1.0;
+    for (setting, mut v, kids) in &mut steppers {
+        let want = stepper_for(&data, m, setting.0, slots);
+        let want = if follow { want } else { StepperValue { value: v.value, ..want } };
+        if *v != want {
+            *v = want;
+        }
+        for cell in kids.iter() {
+            for t in cells.get(cell).map(|c| c.iter().collect::<Vec<_>>()).unwrap_or_default() {
+                if let Ok(mut text) = texts.get_mut(t) {
+                    let shown = v.value.to_string();
+                    if text.0 != shown {
+                        text.0 = shown;
+                    }
+                }
+            }
+            if let Ok((e, b, disabled)) = step_buttons.get(cell) {
+                let at_limit = (b.0 < 0 && v.value <= v.min) || (b.0 > 0 && v.value >= v.max);
+                if at_limit && !disabled {
+                    commands.entity(e).insert(Disabled);
+                } else if !at_limit && disabled {
+                    commands.entity(e).remove::<Disabled>();
+                }
+            }
+        }
+    }
+}
+
 /// The host's upload for the players in the lobby (bots and the host's own player cost none, but their state is
 /// in every snapshot), and whether it is high.
 fn lobby_upload(data: &vetf_sim::GameData, snapshot_hz: u32, seats: &[Seat]) -> (f32, bool) {
@@ -674,16 +793,18 @@ fn refresh(
             }
         });
     }
-    let rules = data.rules.deathmatch(m.mode);
     let (upload_mbit, upload_high) = lobby_upload(&data, m.snapshot_hz as u32, &seats);
-    // What everyone picks in this mode: one armor tier and one ammo type for six magazines, within the points.
-    // Agents are dealt at random when the match starts (these modes have no abilities).
-    let loadout = match (data.rules.fixed_loadout(m.mode), vetf_sim::gear::gear_budget(&data, m.mode)) {
+    // What everyone picks in this mode: one armor tier and one ammo type for six magazines, within the points
+    // (the host's setting). Agents are dealt at random when the match starts (these modes have no abilities).
+    let loadout = match (data.rules.fixed_loadout(m.mode), m.gear_budget()) {
         (Some(k), Some(pts)) => {
             format!("NO HALO OR ARMOR T1–T{} · ONE AMMO TYPE · {} MAGS · {pts} PTS", k.armor.len(), k.mags)
         }
         _ => "ANY HALO · AMMO PER MAGAZINE".to_string(),
     };
+    let host = session.role == Role::Host;
+    // The host steps these above (the steppers show them); everyone else reads them here, live.
+    let stepped = |row: &str| host && ["Score limit", "Time limit", "Players", "Respawn", "Kill refill"].contains(&row);
     let rows = [
         ("Map", m.map.to_uppercase()),
         ("Mode", mode_title(m.mode).to_string()),
@@ -691,7 +812,7 @@ fn refresh(
             "Score limit",
             if teams { format!("FIRST TO {}", m.score_limit) } else { format!("FIRST TO {} KILLS", m.score_limit) },
         ),
-        ("Time limit", format!("{} MIN", (m.time_left_s / 60.0).round() as u32)),
+        ("Time limit", format!("{} MIN", m.setting(MatchSetting::TimeLimitMin))),
         (
             "Players",
             if teams {
@@ -700,8 +821,8 @@ fn refresh(
                 format!("{} · EVERYONE FOR THEMSELVES", m.max_players)
             },
         ),
-        ("Respawn", format!("{} S", rules.respawn_s)),
-        ("Kill refill", format!("{} MAGAZINE", rules.kill_refill_mags)),
+        ("Respawn", format!("{} S", m.setting(MatchSetting::RespawnS))),
+        ("Kill refill", refill_row(m.settings.kill_refill_mags)),
         ("Loadout", loadout),
         ("Agents", if m.mode.is_deathmatch() { "RANDOM AT THE START" } else { "YOUR PICK" }.to_string()),
         ("Mag check", mag_check_row(m.mag_check)),
@@ -710,7 +831,7 @@ fn refresh(
     ];
     for e in &settings_box {
         commands.entity(e).despawn_children().with_children(|s| {
-            for (k, v) in &rows {
+            for (k, v) in rows.iter().filter(|(k, _)| !stepped(k)) {
                 s.spawn((
                     Node {
                         justify_content: JustifyContent::SpaceBetween,
@@ -736,6 +857,15 @@ fn refresh(
             }
             s.spawn(fonts.role(TextRole::Help, "Only the host can start the match."));
         });
+    }
+}
+
+/// The kill refill row: how many magazines a kill tops up.
+fn refill_row(mags: u8) -> String {
+    match mags {
+        0 => "NONE".into(),
+        1 => "1 MAGAZINE".into(),
+        n => format!("{n} MAGAZINES"),
     }
 }
 
@@ -897,6 +1027,52 @@ mod tests {
         let (at120, high120) = lobby_upload(&d, 120, &full);
         assert!(!high30 && high120, "{at30} {at120}");
         assert_eq!(crate::menu::copy::snapshot_row(60, 5.46), "60 HZ · ≈ 5.5 MBIT/S UP");
+    }
+
+    /// The host's steppers start from the match (rules.ron's values) within their ranges: MAX PLAYERS up to the
+    /// mode's seats and HOST GAME's slots, by 2 with teams; every setting has one stepper.
+    #[test]
+    fn the_setting_steppers_follow_the_match_and_its_limits() {
+        let d = vetf_sim::GameData::embedded();
+        let m = MatchState {
+            mode: MatchMode::Tdm,
+            map: "showhome".into(),
+            score_a: 0,
+            score_b: 0,
+            score_limit: d.rules.tdm.score_limit,
+            time_left_s: d.rules.tdm.time_limit_s,
+            phase: MatchPhase::Lobby,
+            lobby_name: String::new(),
+            max_players: 10,
+            rules: d.rules.rulesets.tdm,
+            mag_check: Default::default(),
+            tick_hz: 120,
+            snapshot_hz: 60,
+            settings: d.rules.tdm.settings(),
+        };
+        assert_eq!(STEPPERS.map(|(s, _)| s), MatchSetting::ALL);
+        let r = d.rules.lobby_settings;
+        let score = stepper_for(&d, &m, MatchSetting::ScoreLimit, 10);
+        assert_eq!(
+            score,
+            StepperValue { value: 50, min: r.score_limit.min as i32, max: r.score_limit.max as i32, step: 5 }
+        );
+        assert_eq!(stepper_for(&d, &m, MatchSetting::TimeLimitMin, 10).value, 10, "600 s is 10 minutes");
+        assert_eq!(stepper_for(&d, &m, MatchSetting::KillRefillMags, 10).max, 2);
+        assert_eq!(
+            stepper_for(&d, &m, MatchSetting::MaxPlayers, 10),
+            StepperValue { value: 10, min: 2, max: 10, step: 2 }
+        );
+        assert_eq!(stepper_for(&d, &m, MatchSetting::MaxPlayers, 6).max, 6, "HOST GAME opened 6");
+        let ffa = MatchState { mode: MatchMode::Ffa, max_players: 8, ..m.clone() };
+        assert_eq!(
+            stepper_for(&d, &ffa, MatchSetting::MaxPlayers, 10),
+            StepperValue { value: 8, min: 2, max: 8, step: 1 }
+        );
+        assert_eq!(
+            (refill_row(0), refill_row(1), refill_row(2)),
+            ("NONE".into(), "1 MAGAZINE".into(), "2 MAGAZINES".into())
+        );
     }
 
     /// The toggle offers both values, the estimate first (the default), and the row says what EXACT means.

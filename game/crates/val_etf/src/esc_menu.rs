@@ -29,7 +29,6 @@ use lightyear::prelude::Controlled;
 use std::collections::VecDeque;
 use std::time::Instant;
 use vetf_net::*;
-use vetf_sim::GameData;
 use vetf_sim::data::WeightClass;
 use vetf_sim::level::Team;
 
@@ -595,13 +594,12 @@ fn key_hints(r: &mut ChildSpawnerCommands, fonts: &UiFonts, images: &UiImages) {
 
 /// The host's RESTART MATCH / BACK TO LOBBY: `server::reset_match` on the match.
 fn reset_match(
-    data: &GameData,
     matches: &mut Query<&mut MatchState>,
     players: &mut Query<(&mut PlayerNet, &mut Vitals, &mut Score), With<ServerPlayer>>,
     phase: Option<MatchPhase>,
 ) {
     let Some(mut m) = matches.iter_mut().next() else { return };
-    crate::server::reset_match(&mut m, data, phase, players.iter_mut());
+    crate::server::reset_match(&mut m, phase, players.iter_mut());
 }
 
 /// Rows: hover selects, ↑↓ move the selection over the enabled rows (wrapping), Enter or a click acts.
@@ -611,7 +609,6 @@ fn reset_match(
 fn menu_input(
     keys: Res<ButtonInput<KeyCode>>,
     session: Res<Session>,
-    data: Res<Data>,
     rows: Query<(&Interaction, &EscRow), (Changed<Interaction>, Without<Disabled>)>,
     copy_btn: Query<&Interaction, (Changed<Interaction>, With<CopyBtn>)>,
     mut ui: ResMut<EscUi>,
@@ -662,7 +659,7 @@ fn menu_input(
         // Everyone goes back to the lobby (the lobby screen takes over the stack), connections kept.
         Item::Lobby if host => {
             info!("the host sends everyone back to the lobby");
-            reset_match(&data, &mut matches, &mut players, Some(MatchPhase::Lobby));
+            reset_match(&mut matches, &mut players, Some(MatchPhase::Lobby));
         }
         Item::Danger if host => screens.push(Screen::Confirm(ConfirmKind::StopHosting)),
         Item::Danger => screens.push(Screen::Confirm(ConfirmKind::LeaveMatch)),
@@ -716,7 +713,11 @@ fn refresh_card(
     let join = JoinInfo::of(&session, data.net.port);
     let (code, kind) = join_lines(&join);
     // As this match's mode takes the loadout (team deathmatch over the menu).
-    let s = summary(&active.0, &data, m.map_or(MatchMode::Tdm, |m| m.mode));
+    let mut s = summary(&active.0, &data, m.map_or(MatchMode::Tdm, |m| m.mode));
+    // The points this match allows (the host's lobby setting).
+    if let Some(m) = m {
+        s.gear_budget = m.gear_budget();
+    }
     // The agent the host dealt you for this match (team deathmatch, free-for-all).
     let dealt = players.iter().find(|p| p.3).and_then(|p| p.5).and_then(|a| a.0.as_deref());
     // Free-for-all: your kills and the best of everyone else's (the HUD's score boxes).
@@ -962,7 +963,6 @@ fn cancel_button(fonts: &UiFonts) -> impl Bundle {
 fn modal_input(
     keys: Res<ButtonInput<KeyCode>>,
     session: Res<Session>,
-    data: Res<Data>,
     btns: Query<(&Interaction, &ModalBtn), Changed<Interaction>>,
     mut ui: ResMut<ModalUi>,
     mut screens: ResMut<Screens>,
@@ -996,7 +996,7 @@ fn modal_input(
             ConfirmKind::RestartMatch if session.role == Role::Host => {
                 info!("the host restarts the match");
                 let range = matches.iter().next().is_none_or(|m| m.mode == MatchMode::Range);
-                reset_match(&data, &mut matches, &mut players, (!range).then_some(MatchPhase::Live));
+                reset_match(&mut matches, &mut players, (!range).then_some(MatchPhase::Live));
                 // Back to the match.
                 screens.close(Screen::Esc);
             }
@@ -1063,6 +1063,7 @@ fn demo(
 #[cfg(test)]
 mod tests {
     use super::*;
+    use vetf_sim::GameData;
     use vetf_sim::ZoneTable;
     use vetf_sim::data::{AmmoKind, Core};
 
@@ -1128,6 +1129,7 @@ mod tests {
             mag_check: Default::default(),
             tick_hz: 120,
             snapshot_hz: 60,
+            settings: GameData::embedded().rules.tdm.settings(),
         }
     }
 

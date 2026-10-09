@@ -1849,6 +1849,7 @@ mod tests {
             mag_check,
             tick_hz: 120,
             snapshot_hz: 60,
+            settings: d.rules.deathmatch(mode).settings(),
         };
         use MagCheckMode::{Estimate, Exact};
         let defaults = crate::settings::Settings::default().gameplay.range_mag_check.mode();
@@ -1912,6 +1913,7 @@ mod tests {
                 mag_check: MagCheckMode::default(),
                 tick_hz: 120,
                 snapshot_hz: 60,
+                settings: d.rules.tdm.settings(),
             })
             .id();
         let root = app.world_mut().spawn((AmmoCounterRoot, Node { display: Display::None, ..default() })).id();
