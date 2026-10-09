@@ -51,6 +51,8 @@ fn superseded(path: &str) -> bool {
         || gun_tuning_round_1(path)
         || recoil_and_bloom_round_2(path)
         || recoil_roles_round_3(path)
+        // The recoil pattern rewinds gradually and is back at bullet 1 sooner (item 9c, DESIGN_DELTAS.md section 15).
+        || (path.starts_with("weapons.slice.json.weapons[") && path.ends_with(".recoil.reset_after_s"))
         // Playtest round 3: more steering in the air, without strafe-jump speed gains (DESIGN_DELTAS.md section 15).
         || path == "movement.slice.json.movement.air.air_wish_speed"
 }

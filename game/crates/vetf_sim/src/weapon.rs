@@ -509,12 +509,9 @@ impl WeaponState {
         if self.since_shot as f32 * dt >= sp.bloom_decay_delay_s {
             self.bloom_deg = (self.bloom_deg - sp.bloom_decay_deg_per_s * dt).max(0.0);
         }
-        // The recoil pattern restarts after a pause.
-        if let RecoilSpec::Pattern(p) = &spec.recoil {
-            if self.since_shot as f32 * dt >= p.reset_after_s {
-                self.burst = 0;
-            }
-        } else {
+        // The recoil pattern rewinds during a pause; `burst` keeps the place of the last shot, and the next shot
+        // continues from `pattern_pos` (see there).
+        if !matches!(spec.recoil, RecoilSpec::Pattern(_)) {
             self.burst = 0;
         }
 
@@ -584,7 +581,7 @@ impl WeaponState {
         let spread_deg = self.spread_deg(data, spec, loadout, env);
         *self.mag_mut() -= 1;
         self.cooldown = fire_interval_ticks(spec, hz, self.ads >= ADS_AIMED);
-        self.burst = self.burst.saturating_add(1);
+        self.burst = self.pattern_pos(spec, hz).saturating_add(1);
         self.since_shot = 0;
         self.shot_seq = self.shot_seq.wrapping_add(1);
         // Sustained fire blooms only while moving, by how much the player moves: standing still, the fixed pattern
@@ -594,6 +591,33 @@ impl WeaponState {
         let (kick_pitch, kick_yaw) = self.recoil_kick(data, spec, loadout, env);
         ev.shot = Some(Shot { seq: self.shot_seq, ammo_slot: self.loaded, spread_deg, kick_pitch, kick_yaw });
         ev
+    }
+
+    /// Where in its recoil pattern a shot fired now continues from: 0 = the next shot is bullet 1 (item 9c,
+    /// DESIGN_DELTAS.md section 15). A pause rewinds the pattern gradually, not all or nothing:
+    ///
+    /// - Within the gun's aimed fire interval of the last shot nothing rewinds, so a held spray (or taps as fast as
+    ///   one) follows the pattern exactly.
+    /// - After that the pattern rewinds in proportion to the pause, reaching bullet 1 `reset_after_s` after the last
+    ///   shot whatever the place: a pause of half the rewind takes the place about halfway back (rounded up, so
+    ///   never further back than earned). Slow taps (`reset_after_s` or more apart) are therefore always bullet 1,
+    ///   faster taps settle near the start, and a short pause mid-spray rewinds part of it.
+    ///
+    /// All in whole ticks and integers, so the predicting client and the host agree exactly. Kick guns have no
+    /// pattern (always 0).
+    pub fn pattern_pos(&self, spec: &WeaponSpec, tick_hz: u32) -> u16 {
+        let RecoilSpec::Pattern(p) = &spec.recoil else {
+            return 0;
+        };
+        let hold = u32::from(fire_interval_ticks(spec, tick_hz, true));
+        let full = u32::from(secs_to_ticks(p.reset_after_s, tick_hz)).max(hold + 1);
+        let window = full - hold;
+        let idle = u32::from(self.since_shot).saturating_sub(hold);
+        if idle >= window {
+            return 0;
+        }
+        let b = u32::from(self.burst);
+        (b * (window - idle)).div_ceil(window) as u16
     }
 
     /// The random spread cone (half-angle, degrees) a shot fired now gets: the bloom on top of the fixed recoil
@@ -1121,6 +1145,189 @@ mod tests {
         assert_eq!(kicks[1], (1.05, 0.0));
         assert_eq!(kicks[13], (0.8, 0.0), "the stem: rounds 1-15 straight up");
         assert_eq!(kicks[14], (0.45, 0.48), "the T's bar starts after round 15");
+    }
+
+    /// Tap the trigger `taps` times, `gap` ticks apart (one tick of fire, then nothing), standing still, hip or fully
+    /// aimed. Returns the pattern place (bullet number) of every shot.
+    fn tap_places(weapon: &str, gap: u16, taps: usize, aimed: bool) -> Vec<u16> {
+        let (d, l, mut s) = setup(weapon);
+        let ads = if aimed {
+            s.ads = 1.0;
+            Buttons::ADS
+        } else {
+            0
+        };
+        let mut places = vec![];
+        for _ in 0..taps {
+            let shot = s.step(&d, &l, &input(Buttons::FIRE | ads), &still()).shot;
+            assert!(shot.is_some(), "{weapon}: a tap {gap} ticks apart fires");
+            places.push(s.burst);
+            for _ in 1..gap {
+                assert!(s.step(&d, &l, &input(ads), &still()).shot.is_none());
+            }
+        }
+        places
+    }
+
+    /// The gun's full rewind and its hold (the aimed fire interval), in ticks.
+    fn rewind_ticks(d: &GameData, weapon: &str) -> (u16, u16) {
+        let spec = d.weapon(weapon).unwrap();
+        let RecoilSpec::Pattern(p) = &spec.recoil else { panic!("{weapon} has a pattern") };
+        let hz = d.net.tick_hz;
+        (secs_to_ticks(p.reset_after_s, hz), fire_interval_ticks(spec, hz, true))
+    }
+
+    /// Item 9c: a pause rewinds the pattern by the time since the last shot, not all or nothing. Nothing rewinds
+    /// within the aimed fire interval, then the place falls steadily to 0 (bullet 1 next) at `reset_after_s`.
+    #[test]
+    fn the_pattern_rewinds_by_elapsed_time() {
+        for weapon in ["ar7_mako", "sk9_skink"] {
+            let (d, _, mut s) = setup(weapon);
+            let spec = d.weapon(weapon).unwrap();
+            let hz = d.net.tick_hz;
+            let (full, hold) = rewind_ticks(&d, weapon);
+            s.burst = 15;
+            let mut last = u16::MAX;
+            for t in 0..=full + 5 {
+                s.since_shot = t;
+                let pos = s.pattern_pos(spec, hz);
+                assert!(pos <= last, "{weapon}: never winds forward ({t} ticks)");
+                if t <= hold {
+                    assert_eq!(pos, 15, "{weapon}: no rewind within the aimed fire interval ({t} ticks)");
+                }
+                if t >= full {
+                    assert_eq!(pos, 0, "{weapon}: back at bullet 1 after reset_after_s ({t} ticks)");
+                }
+                last = pos;
+            }
+            // Halfway through the rewind, about halfway back (rounded up: never further back than earned).
+            s.since_shot = hold + (full - hold) / 2;
+            let pos = s.pattern_pos(spec, hz);
+            assert!((7..=10).contains(&pos), "{weapon}: halfway: {pos}");
+        }
+        // The pinned Mako numbers: it rewinds after 0.1 s (6 ticks) and is at bullet 1 again after 0.25 s (15 ticks).
+        let (d, _, mut s) = setup("ar7_mako");
+        let spec = d.weapon("ar7_mako").unwrap();
+        s.burst = 15;
+        let places: Vec<u16> = [6, 7, 9, 12, 14, 15]
+            .iter()
+            .map(|t| {
+                s.since_shot = *t;
+                s.pattern_pos(spec, 60)
+            })
+            .collect();
+        assert_eq!(places, [15, 14, 10, 5, 2, 0]);
+        // A kick gun has no pattern to rewind.
+        let (d, _, s) = setup("vk50_warden");
+        assert_eq!(s.pattern_pos(d.weapon("vk50_warden").unwrap(), 60), 0);
+    }
+
+    /// Item 9c: taps `reset_after_s` or more apart always fire bullet 1.
+    #[test]
+    fn slow_taps_are_always_bullet_1() {
+        let d = GameData::embedded();
+        for weapon in ["ar7_mako", "sk9_skink"] {
+            let (full, _) = rewind_ticks(&d, weapon);
+            for gap in [full, full + 1, full + 7, 60] {
+                for aimed in [false, true] {
+                    assert!(tap_places(weapon, gap, 12, aimed).iter().all(|b| *b == 1), "{weapon} {gap} {aimed}");
+                }
+            }
+        }
+        // The Warden's bolt is slower than any rewind anyway.
+        let bolt = d.weapon("vk50_warden").unwrap().bolt_cycle_s.unwrap();
+        assert!(["ar7_mako", "sk9_skink"].iter().all(|w| rewind_ticks(&d, w).0 < secs_to_ticks(bolt, 60)));
+    }
+
+    /// Item 9c: tapping never gets further into the pattern than a held spray of as many shots, and taps a little
+    /// slower than the fire rate settle near the start instead of climbing the whole pattern.
+    #[test]
+    fn fast_taps_never_get_further_than_a_held_spray() {
+        let d = GameData::embedded();
+        for weapon in ["ar7_mako", "sk9_skink"] {
+            let spec = d.weapon(weapon).unwrap();
+            let (full, hold) = rewind_ticks(&d, weapon);
+            for aimed in [false, true] {
+                let fastest = fire_interval_ticks(spec, d.net.tick_hz, aimed);
+                for gap in fastest..full {
+                    let places = tap_places(weapon, gap, 30, aimed);
+                    for (k, b) in places.iter().enumerate() {
+                        assert!(*b as usize <= k + 1, "{weapon} gap {gap}: tap {} at bullet {b}", k + 1);
+                    }
+                    if gap <= hold {
+                        // As fast as the aimed fire rate: exactly the spray.
+                        assert_eq!(places, (1..=30).collect::<Vec<u16>>(), "{weapon} gap {gap}");
+                    } else {
+                        // Any slower and the place settles: it stops climbing.
+                        assert_eq!(places[28], places[29], "{weapon} gap {gap}: {places:?}");
+                    }
+                    // Halfway into the rewind or slower: never past the first two bullets.
+                    if gap > hold && 2 * (gap - hold) >= full - hold {
+                        assert!(places.iter().all(|b| *b <= 2), "{weapon} gap {gap}: {places:?}");
+                    }
+                }
+            }
+        }
+        // The Mako settles at bullet 3 tapping 0.15 s apart and at bullet 2 at 0.2 s.
+        assert_eq!(tap_places("ar7_mako", 9, 10, true).last(), Some(&3));
+        assert_eq!(tap_places("ar7_mako", 12, 10, true).last(), Some(&2));
+    }
+
+    /// Item 9c: a pause mid-spray rewinds part of the pattern, not all or nothing.
+    #[test]
+    fn a_pause_mid_spray_rewinds_part_of_the_pattern() {
+        let (d, l, mut s) = setup("ar7_mako");
+        let mut fired = 0;
+        while fired < 15 {
+            fired += s.step(&d, &l, &input(Buttons::FIRE), &still()).shot.is_some() as usize;
+        }
+        assert_eq!(s.burst, 15);
+        // 0.15 s after the 15th shot (9 ticks): a third of the way into the rewind.
+        for _ in 1..9 {
+            s.step(&d, &l, &input(0), &still());
+        }
+        assert!(s.step(&d, &l, &input(Buttons::FIRE), &still()).shot.is_some());
+        assert_eq!(s.burst, 11, "continues at bullet 11, not 16 and not 1");
+    }
+
+    /// Item 9c: the rewind is a pure function of the weapon state, so the predicting client and the host (or a
+    /// rollback replay from a restored copy) land on the same bullet from the same inputs.
+    #[test]
+    fn the_rewind_is_deterministic() {
+        let (d, l, s0) = setup("ar7_mako");
+        // A messy trigger: bursts, pauses and taps, hip and aimed.
+        let script: Vec<u16> = (0..400u32)
+            .map(|t| {
+                let fire = (t % 37 < 11) || (t % 53 == 0) || (t / 90 == 2 && t % 9 == 0);
+                let ads = t / 120 % 2 == 1;
+                (fire as u16 * Buttons::FIRE) | (ads as u16 * Buttons::ADS)
+            })
+            .collect();
+        let run = |mut s: WeaponState, from: usize| {
+            let mut out = vec![];
+            for bits in &script[from..] {
+                let shot = s.step(&d, &l, &input(*bits), &still()).shot;
+                out.push((shot.map(|x| (x.seq, x.kick_pitch.to_bits(), x.kick_yaw.to_bits())), s.burst));
+            }
+            (out, s)
+        };
+        let (a, sa) = run(s0.clone(), 0);
+        let (b, sb) = run(s0.clone(), 0);
+        assert_eq!(a, b);
+        assert_eq!(sa, sb);
+        // The whole magazine goes, and some shot lands mid-rewind (neither the next bullet nor bullet 1).
+        let places: Vec<u16> = a.iter().filter(|(x, _)| x.is_some()).map(|(_, b)| *b).collect();
+        assert_eq!(places.len(), 30);
+        assert!(places.windows(2).any(|w| w[1] > 1 && w[1] <= w[0]), "{places:?}");
+        // A copy taken mid-run (as a rollback restores one) continues exactly like the original.
+        let mut s = s0;
+        for bits in &script[..200] {
+            s.step(&d, &l, &input(*bits), &still());
+        }
+        let restored: WeaponState = serde_json::from_str(&serde_json::to_string(&s).unwrap()).unwrap();
+        let (tail, end) = run(restored, 200);
+        assert_eq!(tail, a[200..].to_vec());
+        assert_eq!(end, sa);
     }
 
     /// Fire `shots` rounds from a standstill (hip, or fully aimed) and add up the view kick (pitch, yaw).

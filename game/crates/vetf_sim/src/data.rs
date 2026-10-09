@@ -364,7 +364,8 @@ pub struct PatternRecoilSpec {
     pub ads_mult: f32,
     pub hip_mult: f32,
     pub crouch_mult: f32,
-    /// The pattern restarts after this long without firing.
+    /// The pattern rewinds gradually during a pause and is back at bullet 1 this long after the last shot
+    /// (`WeaponState::pattern_pos`): taps this far apart always fire bullet 1. Longer than the aimed fire interval.
     pub reset_after_s: f32,
     /// Fraction of the un-compensated climb that recovers on its own.
     pub recover_frac: f32,
@@ -1475,6 +1476,15 @@ impl GameData {
                 && !self.recoil_patterns.contains_key(&p.pattern)
             {
                 return bad(format!("{}: unknown recoil pattern {}", w.id, p.pattern));
+            }
+            // The gradual rewind (item 9c) starts after the aimed fire interval, so a held spray never rewinds: the
+            // full rewind must be longer than that.
+            if let RecoilSpec::Pattern(p) = &w.recoil {
+                let hz = self.net.tick_hz;
+                let hold = crate::weapon::fire_interval_ticks(w, hz, true);
+                if crate::weapon::secs_to_ticks(p.reset_after_s, hz) <= hold {
+                    return bad(format!("{}: recoil.reset_after_s must be longer than the aimed fire interval", w.id));
+                }
             }
             if self.ammo.resolve(w.cls, AmmoChoice::STANDARD).is_none() {
                 return bad(format!("{}: no ammo class entry for {:?}", w.id, w.cls));

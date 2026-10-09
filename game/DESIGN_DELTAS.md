@@ -362,7 +362,31 @@ front grips will then each lower the vertical or horizontal recoil". Skipped in 
 (`mako_attachments_scale_the_t_per_axis`, `the_mako_climb_is_pinned`) and `data.rs`
 (`stocks_lower_the_climb_and_grips_the_sweep`).
 
-- **Mako pattern** (`recoil_patterns.ron`, standard stock, no grip; hip degrees, aimed x0.7):
+- **The user's tune after testing it (2026-10-09, standard stock, no grip):**
+  - a 15-round stem: kicks 1-14 go straight up, 15.65° in all;
+  - about 70 % more total climb: 17.6° over a 30-round mag, against 10.3° before;
+  - a 60 % wider bar: right +4.16° over kicks 15-20, then sweeps of ±8.32° looping from kick 21.
+
+  The first version below is kept for the record.
+- **Tapping: the pattern rewinds gradually (item 9c, 2026-10-09).** It used to jump back to the first bullet after
+  0.3 s without a shot, all or nothing. The user asked for a shorter reset that does not make macro tapping a laser,
+  and chose a gradual one. Now, after a shot:
+  - within the gun's aimed fire interval (Mako 0.1 s, Skink 0.067 s) nothing rewinds, so a held spray, or taps as
+    fast as one, follows the pattern exactly;
+  - after that the pattern rewinds in proportion to the pause and is back at bullet 1 `reset_after_s` after the
+    last shot (weapons.ron: Mako 0.25 s, Skink 0.22 s, was 0.3 s for both). Half the rewind takes the place about
+    halfway back, rounded up: a 15-round Mako stem paused 0.15 s continues at bullet 11, 0.2 s at bullet 6;
+  - so taps `reset_after_s` or more apart (about 4 a second on the Mako) always fire the first bullet, which is
+    exact standing still; faster taps settle near the start (Mako tapped 0.2 s apart: bullet 2, 0.15 s: bullet 3,
+    0.12 s: bullet 9) and never get further than a held spray of as many shots;
+  - it is counted in whole ticks and integers (`WeaponState::pattern_pos`), so the predicting client and the host
+    agree exactly. The Warden has no pattern; its bolt (1.25 s) is slower than any rewind anyway.
+
+  Pinned by `weapon.rs` (`the_pattern_rewinds_by_elapsed_time`, `slow_taps_are_always_bullet_1`,
+  `fast_taps_never_get_further_than_a_held_spray`, `a_pause_mid_spray_rewinds_part_of_the_pattern`,
+  `the_rewind_is_deterministic`); the data check wants `reset_after_s` longer than the aimed fire interval.
+  Skipped in the sync test (`reset_after_s`); design follow-up: port the 0.25 / 0.22 s and the rule.
+- **Mako pattern, first version** (`recoil_patterns.ron`, standard stock, no grip; hip degrees, aimed x0.7):
   - The stem: kicks 1-9 go straight up (no yaw), 8.8° in all, so rounds 1-10 stack in one column. After 10 rounds
     the climb is 9.1° (round 2: 8.87° with a small wiggle).
   - The bar: the climb flattens (0.3° a round falling to 0.05°) and the gun sweeps right over rounds 11-16
