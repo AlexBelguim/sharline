@@ -93,7 +93,7 @@ pub struct Geometry {
 }
 
 impl Geometry {
-    fn clear(&mut self) {
+    pub(super) fn clear(&mut self) {
         self.positions.clear();
         self.colors.clear();
         self.indices.clear();
@@ -101,7 +101,7 @@ impl Geometry {
 
     /// A camera-facing ribbon from `a` to `b`: width and colour at each end come from `at(0..1)`, cut into pieces
     /// so the width holds on screen along a long one (`cuts` is scratch space).
-    fn ribbon(
+    pub(super) fn ribbon(
         &mut self,
         cuts: &mut Vec<f32>,
         view: &View,
@@ -173,12 +173,12 @@ fn cuts_into(out: &mut Vec<f32>, eye: Vec3, a: Vec3, dir: Vec3, len: f32) {
     }
 }
 
-fn mul_alpha(c: [f32; 4], a: f32) -> [f32; 4] {
+pub(super) fn mul_alpha(c: [f32; 4], a: f32) -> [f32; 4] {
     [c[0], c[1], c[2], c[3] * a.clamp(0.0, 1.0)]
 }
 
 /// Without HDR a colour above 1 would clip to white: scale it down, keeping its hue.
-fn fit_ldr(c: [f32; 4]) -> [f32; 4] {
+pub(super) fn fit_ldr(c: [f32; 4]) -> [f32; 4] {
     let m = c[0].max(c[1]).max(c[2]).max(1.0);
     [c[0] / m, c[1] / m, c[2] / m, c[3]]
 }
@@ -263,7 +263,7 @@ pub(crate) fn spawn_tracer_mesh(
 
 /// The mesh's buffers from `g` (a degenerate triangle when there is nothing, so the buffers are never empty),
 /// written into the buffers the mesh already has: they only grow, nothing is allocated per frame.
-fn write_mesh(mesh: &mut Mesh, g: &Geometry) {
+pub(super) fn write_mesh(mesh: &mut Mesh, g: &Geometry) {
     let empty = g.indices.is_empty();
     let n = if empty { 3 } else { g.positions.len() };
     match mesh.attribute_mut(Mesh::ATTRIBUTE_POSITION) {

@@ -1550,6 +1550,30 @@ mod tests {
         }
     }
 
+    /// The laser's stat still means something since standing still went exact (playtest round 2): it tightens the
+    /// moving hip cone by its `hip_spread`, leaves the sustained-fire bloom and aimed fire alone, and standing still
+    /// stays exact with or without it.
+    #[test]
+    fn the_laser_tightens_moving_hip_fire_only() {
+        let d = GameData::embedded();
+        let laser = d.attachment("laser").and_then(|a| a.hip_spread).expect("the laser has a hip_spread");
+        assert!(laser < 1.0, "a laser tightens hip fire: {laser}");
+        for gun in GUNS {
+            let plain = WeaponLoadout::resolve(&d, gun, &[AmmoChoice::STANDARD; 4], &[]).unwrap();
+            let lit = WeaponLoadout::resolve(&d, gun, &[AmmoChoice::STANDARD; 4], &["laser".into()]).unwrap();
+            let (spec, mut s) = (plain.spec(&d), WeaponState::new(&d, &plain));
+            let at = |l: &WeaponLoadout, s: &WeaponState, env: WeaponEnv| s.spread_deg(&d, spec, l, &env);
+            assert_eq!((at(&plain, &s, still()), at(&lit, &s, still())), (0.0, 0.0), "{gun}: still is exact");
+            let jog = WeaponEnv { speed_frac: 1.0, ..still() };
+            let (a, b) = (at(&plain, &s, jog), at(&lit, &s, jog));
+            assert!(b > 0.0 && (b - a * laser).abs() < 1e-5, "{gun}: jogging hip {a} -> {b} with the laser");
+            s.bloom_deg = 0.5;
+            assert!((at(&lit, &s, jog) - (b + 0.5)).abs() < 1e-5, "{gun}: the bloom is not scaled");
+            s.ads = 1.0;
+            assert!((at(&plain, &s, jog) - at(&lit, &s, jog)).abs() < 1e-6, "{gun}: aimed, no difference");
+        }
+    }
+
     /// The crosshair shows the live random cone: the plain cross for every gun standing still, the Warden too (its hip
     /// shot standing still is exact now), whatever bloom is left from a run, and on the move it opens by the real
     /// cone, by far the most for the Warden's hip fire (review: the crosshair hid the Warden's hip spread).

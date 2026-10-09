@@ -47,13 +47,13 @@
         (id: "grip_vertical", cat: under, fits: ["ar7_mako"], name: "BRACE GRIP", short: "BRACE", blurb: "Steadiest side-to-side sweep. A little slower to aim.", recoil_h: Some(0.78), ads_time: Some(1.03), sway: Some(0.95)),
         (id: "grip_angled", cat: under, fits: ["ar7_mako"], name: "ANGLED GRIP", blurb: "Fast to aim. A steadier sweep.", ads_time: Some(0.92), recoil_h: Some(0.88)),
         (id: "grip_stub", cat: under, fits: ["ar7_mako"], name: "STUB GRIP", blurb: "Hand stop. Tighter hip fire, a little steadier sweep.", hip_spread: Some(0.88), sprint_to_fire: Some(0.9), recoil_h: Some(0.94)),
-        (id: "ugl_launcher", cat: under, fits: ["ar7_mako"], name: "UGL-40 LAUNCHER", short: "UGL-40", blurb: "40 mm grenades. {G} to switch.", ads_time: Some(1.15), sway: Some(1.1), move: Some(0.97),
-            other: Some("40 mm grenade, see UGL table")),
+        (id: "ugl_launcher", cat: under, fits: ["ar7_mako"], name: "UGL-40 LAUNCHER", short: "UGL-40", blurb: "Grenades are not in yet: for now it is only weight.", ads_time: Some(1.15), sway: Some(1.1), move: Some(0.97),
+            other: Some("40 mm grenade, see UGL table; not simulated yet (no grenades in the sim)")),
         (id: "bipod", cat: under, fits: ["vk50_warden"], name: "BIPOD", blurb: "Deploy on cover: sway −80 %, recoil −40 %.", ads_time: Some(1.06), move: Some(0.99),
             other: Some("deployed: sway -80%, recoil -40%, look clamp yaw +-35 / pitch +-20 deg, deploy 0.40 s")),
         // side rail
-        (id: "laser", cat: side, fits: ["ar7_mako", "vk50_warden", "sk9_skink"], name: "LASER", blurb: "Tighter hip fire. Beam visible within 25 m.", hip_spread: Some(0.8), ads_time: Some(1.02),
-            other: Some("visible red dot always; beam visible <= 25 m; toggle")),
+        (id: "laser", cat: side, fits: ["ar7_mako", "vk50_warden", "sk9_skink"], name: "LASER", blurb: "Tighter hip fire on the move. Beam visible within 25 m.", hip_spread: Some(0.8), ads_time: Some(1.02),
+            other: Some("beam visible <= 25 m, dot where it points (feel.ron laser); no toggle yet")),
         (id: "flashlight", cat: side, fits: ["ar7_mako", "vk50_warden", "sk9_skink"], name: "FLASHLIGHT", blurb: "Blinds enemies up close.", ads_time: Some(1.02),
             other: Some("cone 30 deg, 25 m; glare on enemies <= 15 m inside 12 deg; toggle")),
         // gun shield

@@ -128,6 +128,18 @@
         // first `skip_own_m` (it would hang in front of the gun).
         smoke: (life_s: 0.45, width_m: 0.025, grow_m: 0.12, min_px: 1.5, max_px: 6.0, color: (0.92, 0.92, 0.9, 0.15), skip_own_m: 2.5),
     ),
+    // The LASER side-rail part (attachments.ron `laser`): a thin red beam from the part's emitter (its GLB's
+    // `*_SOCKET_Beam` node) to where its holder aims, and a dot where that aim meets the world or a player. Our own
+    // comes from the first-person gun, everyone else's from the gun in their hand along their aim. The beam shows
+    // for `beam_m` from the emitter, fading to nothing there (the blurb's "visible within 25 m"); the dot shows on
+    // anything up to `dot_max_m` away. Widths are metres kept between min and max px on screen at 1080p; colours
+    // are linear RGBA (above 1 glows with HDR).
+    laser: (
+        beam_m: 25.0,
+        dot_max_m: 120.0,
+        beam: (width_m: 0.004, min_px: 1.2, max_px: 2.5, own: (2.2, 0.08, 0.05, 0.45), other: (2.6, 0.1, 0.06, 0.6)),
+        dot: (width_m: 0.025, min_px: 3.0, max_px: 9.0, own: (4.0, 0.25, 0.15, 1.0), other: (4.0, 0.25, 0.15, 1.0)),
+    ),
     // Hit markers, drawn on the player you hit (where the shot landed on them), not on the crosshair. Colours
     // follow the HUD's rules: shield blue, flesh white, head gold, kill in the enemy colour; MOUSE & AIM's HIT
     // MARKERS picks which show. Sizes are px at 1080p.

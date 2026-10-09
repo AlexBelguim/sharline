@@ -16,6 +16,7 @@ pub struct FeelData {
     pub default_shot: ShotFeel,
     pub gun: GunFeel,
     pub tracers: TracerFeel,
+    pub laser: LaserFeel,
     pub hits: HitFeel,
     pub halo: HaloFeel,
 }
@@ -228,6 +229,17 @@ pub struct TracerFeel {
     pub core: Ribbon,
     pub glow: Ribbon,
     pub smoke: Smoke,
+}
+
+/// The LASER's beam and dot (`render::laser_fx`).
+#[derive(Debug, Clone, Copy, PartialEq, Deserialize)]
+pub struct LaserFeel {
+    /// How far from the emitter the beam shows (it fades out toward here).
+    pub beam_m: f32,
+    /// How far from the eye the dot still shows on what the aim meets.
+    pub dot_max_m: f32,
+    pub beam: Ribbon,
+    pub dot: Ribbon,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Deserialize)]

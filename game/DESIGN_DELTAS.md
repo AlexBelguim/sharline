@@ -702,3 +702,15 @@ New (item 9c2, user direction; the design docs have no streaks). All numbers in 
   STANDARD, the halo stays); `--weapon sk9_skink` asks for the Mako. The host refuses a client that still sends the
   Skink (`LoadoutError::HiddenWeapon`) and keeps them on their current loadout. Bots already play the default Mako.
   RIP ammo stays in the data, but no offered gun loads it now. Weapon indices are unchanged (no wire change).
+
+## 31. The laser draws its beam; the UGL says it is not in yet (2026-10-09)
+- **Before:** the LASER only changed stats (`hip_spread` 0.8, `ads_time` 1.02) and drew nothing; the UGL-40 was a
+  model and stats with a blurb promising grenades and a key to switch to them.
+- **Now (item 10):** the laser shows a thin red beam from its emitter (the model's `ATT_laser_R_SOCKET_Beam` node)
+  to where its holder aims, with a dot where that aim meets the level or a player: our own from the first-person
+  gun (hip and aimed), everyone else's from their held gun along their replicated look. The beam shows for 25 m
+  from the gun and fades out there; the dot shows up to 120 m (`feel.ron` `laser`, visual only, no wire change). It
+  is always on: the Laser key (V) does not toggle it yet. Since standing still is exact (section 12), the laser's
+  `hip_spread` only narrows the moving hip cone (not the bloom, not aimed fire); its blurb now says "Tighter hip
+  fire on the move". The UGL's blurb says grenades are not in yet (no `{G}` key hint) until the grenade-launcher
+  mode lands; its stats (slower ADS, sway, move) still apply.
