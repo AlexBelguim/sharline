@@ -493,8 +493,8 @@ The user: "after death screen could you add a simple and quick bot so i can solo
 lobby screen, just a stationary that aims at my head when in sight is fine". Not in the design docs (they plan no
 AI players in the slice); a testing aid:
 - **What a bot is:** a player the host simulates like its own, with no client, link or process (`src/bots.rs`; the
-  `--bot` client mode is unchanged). It takes a seat (bots count against MAX PLAYERS, so they can fill a lobby
-  that joiners would otherwise get), joins the team with fewer players in team deathmatch, is named BOT 1, BOT 2,
+  `--bot` client mode is unchanged). It takes a seat (bots count against MAX PLAYERS; ADD BOT needs a free one),
+  but gives it up to a joiner (see "Bots give up their seat" below), joins the team with fewer players in team deathmatch, is named BOT 1, BOT 2,
   ..., plays `rules.ron`'s default loadout, is always READY, and presses RESPAWN as soon as the timer allows.
   The lobby, the scoreboard and the replicated `PlayerInfo` mark it as a bot (protocol 9).
 - **What it does:** stands still where it spawned; once an enemy's head has been in its line of sight within
@@ -512,6 +512,15 @@ AI players in the slice); a testing aid:
   semi-automatic pulls, reloads, the aim error), the server's
   `a_bot_shoots_through_the_normal_path_scores_the_kill_and_respawns` and
   `bots_take_seats_on_the_smaller_team_and_hold_fire_in_the_lobby`, and `bots::tests`.
+- **Bots give up their seat (2026-10-09, the user: "make bot give up automatically"):** a player joining a full
+  lobby or match in progress is never turned away while a bot holds a seat: the host removes a bot and the joiner
+  takes its seat. In team deathmatch the bot comes from the team the joiner goes to (the smaller one, team A on a
+  tie), else from the team with more bots, and the joiner then takes the smaller team, so the sides stay even; in
+  free-for-all any bot. The most recently added bot goes first (a new `Bot::added` order; REMOVE BOT uses it too,
+  since numbers are reused). The netcode's seat check counts players only, so it lets the joiner through; the
+  removed bot leaves everyone's lobby list and scoreboard as a leaving player does. Only players in every seat
+  still mean "server full". Rules: `bots::seat_joiner`; pinned by its tests and the server's
+  `a_full_tdm_lobby_makes_room_by_dropping_a_bot` and `a_full_match_in_progress_drops_its_latest_bot`.
 
 ## 23. Variable scopes and a 1-3x optic (2026-10-09)
 The user: "i would like the 6x 12x be for min 6 to 12 and scroll should be gradual from 6x to 12x and the scope

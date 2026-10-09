@@ -10,6 +10,8 @@
 //! and damage as everyone's (`server::resolve_claims`). Numbers: `game/assets/data/bots.ron`.
 //!
 //! The host adds and removes bots with ADD BOT / REMOVE BOT in the lobby, or `--bots N` on the command line.
+//! A bot gives up its seat on its own when a player joins a full lobby or match (user direction 2026-10-09:
+//! "make bot give up automatically"): see [`seat_joiner`].
 
 use crate::config::{Cli, CurrentLevel, Data};
 use crate::server::{
@@ -73,6 +75,8 @@ pub struct BotRequests(pub Vec<BotRequest>);
 #[derive(Component, Debug, Clone)]
 pub struct Bot {
     pub n: u32,
+    /// The order bots were added in (higher: later). Numbers are reused, so they do not tell.
+    pub added: u64,
     pub brain: BotBrain,
     /// Just (re)spawned: the brain starts over from its spawn view on the next tick.
     pub fresh: bool,
@@ -100,14 +104,62 @@ pub fn bot_team(teams: bool, a: usize, b: usize) -> Option<Team> {
     teams.then_some(if a <= b { Team::A } else { Team::B })
 }
 
-/// A bot fits while the match has a free seat (bots take seats like players, so they also keep joiners out).
+/// A bot fits while the match has a free seat (it takes a seat like a player, and gives it up to a joiner).
 pub fn can_add_bot(max_players: u32, players: usize) -> bool {
     free_seats(max_players, players) > 0
 }
 
-/// The bot REMOVE BOT takes out: the last one added (the highest number).
-pub fn bot_to_remove(bots: &[(Entity, u32)]) -> Option<Entity> {
-    bots.iter().max_by_key(|(_, n)| *n).map(|(e, _)| *e)
+/// The bot REMOVE BOT takes out: the last one added (`bots` holds each bot's [`Bot::added`]).
+pub fn bot_to_remove(bots: &[(Entity, u64)]) -> Option<Entity> {
+    bots.iter().max_by_key(|(_, added)| *added).map(|(e, _)| *e)
+}
+
+/// A taken seat as the join rules see it: its team, and for a bot the order it was added in ([`Bot::added`]).
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct Seat {
+    pub team: Option<Team>,
+    pub bot: Option<u64>,
+}
+
+/// Where a player joining over the network sits: their team, and the seat (an index into the seats) of the
+/// bot that leaves to make room for them, if any.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct JoinSeat {
+    pub team: Option<Team>,
+    pub evict: Option<usize>,
+}
+
+/// The seat for a player joining a match of `max_players` (lobby or in progress) that holds `seats`. A free
+/// seat is theirs; with none, a bot gives up its seat: in team deathmatch one from the team the joiner goes
+/// to (the smaller one, team A on a tie), else from the team with more bots; in free-for-all any bot; the
+/// most recently added first. The joiner then takes the smaller team. `None` only when every seat holds a
+/// player: joining is never refused while a bot holds a seat.
+pub fn seat_joiner(max_players: u32, teams: bool, seats: &[Seat]) -> Option<JoinSeat> {
+    let count = |t: Team, skip: Option<usize>| {
+        seats.iter().enumerate().filter(|(i, s)| Some(*i) != skip && s.team == Some(t)).count()
+    };
+    let team_without = |skip: Option<usize>| bot_team(teams, count(Team::A, skip), count(Team::B, skip));
+    if free_seats(max_players, seats.len()) > 0 {
+        return Some(JoinSeat { team: team_without(None), evict: None });
+    }
+    // The latest bot on `team` (any team for `None`).
+    let latest = |team: Option<Team>| {
+        seats
+            .iter()
+            .enumerate()
+            .filter(|(_, s)| team.is_none() || s.team == team)
+            .filter_map(|(i, s)| s.bot.map(|added| (i, added)))
+            .max_by_key(|(_, added)| *added)
+            .map(|(i, _)| i)
+    };
+    let evict = if teams {
+        let bots_on = |t: Team| seats.iter().filter(|s| s.bot.is_some() && s.team == Some(t)).count();
+        let more = if bots_on(Team::A) >= bots_on(Team::B) { Team::A } else { Team::B };
+        team_without(None).and_then(|t| latest(Some(t))).or_else(|| latest(Some(more))).or_else(|| latest(None))
+    } else {
+        latest(None)
+    }?;
+    Some(JoinSeat { team: team_without(Some(evict)), evict: Some(evict) })
 }
 
 /// `--bots N`: once the match and the host's own player are there, ask for N bots.
@@ -149,7 +201,8 @@ pub(crate) fn apply_bot_requests(
     };
     // Who holds a seat, and on which team (bots added or removed in this batch included).
     let mut seats: Vec<(Entity, Option<Team>)> = players.iter().map(|(e, i, ..)| (e, i.team)).collect();
-    let mut taken: Vec<(Entity, u32)> = bots.iter().map(|(e, b)| (e, b.n)).collect();
+    // (entity, number, order added)
+    let mut taken: Vec<(Entity, u32, u64)> = bots.iter().map(|(e, b)| (e, b.n, b.added)).collect();
     for request in std::mem::take(&mut requests.0) {
         match request {
             BotRequest::Add => {
@@ -159,8 +212,9 @@ pub(crate) fn apply_bot_requests(
                 }
                 let count = |t: Team| seats.iter().filter(|(_, x)| *x == Some(t)).count();
                 let team = bot_team(m.has_teams(), count(Team::A), count(Team::B));
-                let numbers: Vec<u32> = taken.iter().map(|(_, n)| *n).collect();
+                let numbers: Vec<u32> = taken.iter().map(|(_, n, _)| *n).collect();
                 let n = next_bot_number(&numbers);
+                let added = taken.iter().map(|(.., a)| a + 1).max().unwrap_or(0);
                 let enemies: Vec<Vec3> = players
                     .iter()
                     .filter(|(_, i, _, v)| hostile(team, i.team) && !v.health.dead)
@@ -177,7 +231,7 @@ pub(crate) fn apply_bot_requests(
                 let sp = ServerPlayer::new(e, PeerId::Entity(id));
                 commands.entity(e).insert((
                     new_player(&data, m.mode, id, PlayerInfo { name, team, bot: true }, spawn, sp),
-                    Bot { n, brain: BotBrain::new(spawn.yaw, 0.0, id), fresh: true },
+                    Bot { n, added, brain: BotBrain::new(spawn.yaw, 0.0, id), fresh: true },
                     BotControl::default(),
                     Replicate::to_clients(NetworkTarget::All),
                     // Nobody predicts a bot: everyone sees it like another player.
@@ -185,14 +239,15 @@ pub(crate) fn apply_bot_requests(
                     DisableReplicateHierarchy,
                 ));
                 seats.push((e, team));
-                taken.push((e, n));
+                taken.push((e, n, added));
             }
             BotRequest::Remove => {
-                let Some(e) = bot_to_remove(&taken) else { continue };
+                let order: Vec<(Entity, u64)> = taken.iter().map(|(e, _, a)| (*e, *a)).collect();
+                let Some(e) = bot_to_remove(&order) else { continue };
                 info!("removing a bot");
                 commands.entity(e).despawn();
                 // Its seat frees up for the next request in this batch too.
-                taken.retain(|(x, _)| *x != e);
+                taken.retain(|(x, ..)| *x != e);
                 seats.retain(|(x, _)| *x != e);
             }
         }
@@ -283,5 +338,64 @@ mod tests {
         assert_eq!(bot_to_remove(&[]), None);
         assert_ne!(bot_id(1), 0, "never the host");
         assert_ne!(bot_id(1), bot_id(2));
+    }
+
+    fn human(team: Option<Team>) -> Seat {
+        Seat { team, bot: None }
+    }
+
+    fn bot(team: Option<Team>, added: u64) -> Seat {
+        Seat { team, bot: Some(added) }
+    }
+
+    /// A free seat is the joiner's, and no bot leaves for it.
+    #[test]
+    fn a_free_seat_needs_no_bot_to_leave() {
+        let (a, b) = (Some(Team::A), Some(Team::B));
+        let seats = [human(a), bot(b, 0), bot(a, 1)];
+        assert_eq!(seat_joiner(4, true, &seats), Some(JoinSeat { team: b, evict: None }), "the smaller team");
+        assert_eq!(seat_joiner(4, false, &[human(None), bot(None, 0)]), Some(JoinSeat { team: None, evict: None }));
+    }
+
+    /// Free-for-all, every seat taken: the most recently added bot leaves (not the highest number: numbers are
+    /// reused); with only players in the seats the joiner is turned away.
+    #[test]
+    fn a_full_ffa_lobby_drops_its_latest_bot() {
+        // BOT 1 (added 0), BOT 3 (added 2), BOT 2 re-added after a removal (added 5)
+        let seats = [human(None), bot(None, 0), bot(None, 2), bot(None, 5)];
+        assert_eq!(seat_joiner(4, false, &seats), Some(JoinSeat { team: None, evict: Some(3) }));
+        assert_eq!(seat_joiner(2, false, &[human(None), human(None)]), None, "players only: full");
+        assert_eq!(seat_joiner(2, false, &[human(None), bot(None, 0)]), Some(JoinSeat { team: None, evict: Some(1) }));
+        // a lobby that shrank below its players still lets one bot go per joiner
+        let over = [human(None), human(None), bot(None, 0), bot(None, 1)];
+        assert_eq!(seat_joiner(3, false, &over).and_then(|j| j.evict), Some(3));
+    }
+
+    /// Team deathmatch, every seat taken: a bot from the team the joiner goes to (the smaller one, A on a tie),
+    /// else from the team with more bots, and the joiner takes the seat it left, so the teams stay even.
+    #[test]
+    fn a_full_tdm_lobby_drops_a_bot_from_the_joiners_team() {
+        let (a, b) = (Some(Team::A), Some(Team::B));
+        // 2 v 2, a bot on each side: the joiner goes to A (tie), so A's bot leaves
+        let seats = [human(a), bot(b, 0), bot(a, 1), human(b)];
+        assert_eq!(seat_joiner(4, true, &seats), Some(JoinSeat { team: a, evict: Some(2) }));
+        // two bots on A: the latest of them
+        let seats = [human(a), bot(a, 0), bot(a, 3), human(b), human(b), bot(b, 4)];
+        assert_eq!(seat_joiner(6, true, &seats), Some(JoinSeat { team: a, evict: Some(2) }));
+        // 3 v 3, A has only players: the joiner would go to A, so B (the team with bots) gives its latest and
+        // the joiner takes B's seat
+        let seats = [human(a), human(a), human(b), bot(b, 0), bot(b, 1), human(a)];
+        assert_eq!(seat_joiner(6, true, &seats), Some(JoinSeat { team: b, evict: Some(4) }));
+        // uneven teams (a host swap): the smaller team B; its bot leaves
+        let seats = [human(a), human(a), bot(a, 0), human(b), bot(b, 1), human(a)];
+        assert_eq!(seat_joiner(6, true, &seats), Some(JoinSeat { team: b, evict: Some(4) }));
+        // players only: full
+        assert_eq!(seat_joiner(4, true, &[human(a), human(b), human(a), human(b)]), None);
+        // a bot not yet on a team (before the teams sync) still gives way
+        assert_eq!(
+            seat_joiner(2, true, &[human(a), bot(None, 0)]),
+            Some(JoinSeat { team: b, evict: Some(1) }),
+            "the joiner faces the host"
+        );
     }
 }

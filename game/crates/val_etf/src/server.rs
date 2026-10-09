@@ -145,7 +145,8 @@ pub struct HostedMatch {
 
 /// Seats left for players joining over the network, shared with the netcode server's connection-request
 /// handler ([`SeatCheck`]): the match's MAX PLAYERS (which a lobby mode change can lower) minus the players
-/// in it, recounted every frame by [`count_seats`]. A full lobby denies new joiners with "server full".
+/// in it, recounted every frame by [`count_seats`]. Test bots do not count: a bot gives up its seat to a
+/// joiner (`bots::seat_joiner`). A lobby full of players denies new joiners with "server full".
 #[derive(Resource, Debug, Clone, Default)]
 pub struct Seats(pub Arc<AtomicU32>);
 
@@ -179,8 +180,13 @@ impl lightyear::connection::shared::ConnectionRequestHandler for SeatCheck {
     }
 }
 
-/// Keep [`Seats`] in step with the match (its seats follow the lobby's mode) and the players in it.
-fn count_seats(seats: Option<Res<Seats>>, matches: Query<&MatchState>, players: Query<(), With<ServerPlayer>>) {
+/// Keep [`Seats`] in step with the match (its seats follow the lobby's mode) and the players in it (bots
+/// leave when someone joins, so they hold no seat here).
+fn count_seats(
+    seats: Option<Res<Seats>>,
+    matches: Query<&MatchState>,
+    players: Query<(), (With<ServerPlayer>, Without<crate::bots::Bot>)>,
+) {
     let (Some(seats), Some(m)) = (seats, matches.iter().next()) else { return };
     let free = free_seats(m.max_players, players.iter().count());
     if seats.free() != free {
@@ -270,11 +276,6 @@ pub fn mode_max_players(data: &GameData, mode: MatchMode, slots: u32) -> u32 {
     n.max(2)
 }
 
-/// A joiner finds no seat: the match already holds `max_players` (the host's own client always gets one).
-pub fn lobby_full(max_players: u32, players: usize, local: bool) -> bool {
-    !local && free_seats(max_players, players) == 0
-}
-
 /// Every new link (remote clients and the host's own) needs a replication sender.
 fn on_new_link(trigger: On<Add, LinkOf>, mut commands: Commands) {
     commands.entity(trigger.entity).insert(ReplicationSender);
@@ -291,12 +292,13 @@ fn on_link_lost(trigger: On<Remove, Connected>, players: Query<(Entity, &ServerP
     }
 }
 
-/// A client finished connecting: give them a player.
+/// A client finished connecting: give them a player. In a full lobby or match a test bot gives up its seat
+/// for them (`bots::seat_joiner`); despawning it takes it off everyone's lobby list and scoreboard.
 #[allow(clippy::too_many_arguments)]
-fn on_link_connected(
+pub(crate) fn on_link_connected(
     trigger: On<Add, Connected>,
     links: Query<&RemoteId, With<ClientOf>>,
-    players: Query<(&PlayerInfo, &PlayerMove, &Vitals)>,
+    players: Query<(Entity, &PlayerInfo, &PlayerMove, &Vitals, Option<&crate::bots::Bot>)>,
     matches: Query<&MatchState>,
     hosted: Option<Res<HostedMatch>>,
     session: Res<Session>,
@@ -309,13 +311,6 @@ fn on_link_connected(
     }
     let (Ok(remote), Some(level)) = (links.get(trigger.entity), level) else { return };
     let peer = remote.0;
-    // Backstop to the netcode seat check (`Seats`): two joiners racing for the last seat. Never the host.
-    if let Some(m) = matches.iter().next()
-        && lobby_full(m.max_players, players.iter().count(), peer.is_local())
-    {
-        warn!("{peer:?} connected to a full lobby ({} seats): no player for them", m.max_players);
-        return;
-    }
     // The match entity may not exist yet when the host's own client connects: HOST GAME's mode decides.
     let mode = matches
         .iter()
@@ -323,16 +318,30 @@ fn on_link_connected(
         .map(|m| m.mode)
         .or(hosted.map(|h| h.mode))
         .unwrap_or(if level.name.eq_ignore_ascii_case("range") { MatchMode::Range } else { MatchMode::Tdm });
-    let team = mode.has_teams().then(|| {
-        let a = players.iter().filter(|(i, _, _)| i.team == Some(Team::A)).count();
-        let b = players.iter().filter(|(i, _, _)| i.team == Some(Team::B)).count();
-        if a <= b { Team::A } else { Team::B }
-    });
+    let taken: Vec<(Entity, crate::bots::Seat)> = players
+        .iter()
+        .map(|(e, i, .., bot)| (e, crate::bots::Seat { team: i.team, bot: bot.map(|b| b.added) }))
+        .collect();
+    let seats: Vec<crate::bots::Seat> = taken.iter().map(|(_, s)| *s).collect();
+    // The host's own client always gets a seat (it connects first); others need a free one, or a bot's.
+    let max = matches.iter().next().map(|m| m.max_players).filter(|_| !peer.is_local()).unwrap_or(u32::MAX);
+    // Also the backstop to the netcode seat check (`Seats`): two joiners racing for the last seat.
+    let Some(seat) = crate::bots::seat_joiner(max, mode.has_teams(), &seats) else {
+        warn!("{peer:?} connected to a full lobby ({max} seats): no player for them");
+        return;
+    };
+    let gone = seat.evict.map(|i| taken[i].0);
+    if let Some(bot) = gone {
+        info!("a bot gives up its seat for {peer:?}");
+        commands.entity(bot).despawn();
+    }
+    let team = seat.team;
     let enemies: Vec<Vec3> = players
         .iter()
-        .filter(|(i, _, _)| hostile(team, i.team))
-        .filter(|(_, _, v)| !v.health.dead)
-        .map(|(_, m, _)| m.0.pos)
+        .filter(|(e, ..)| Some(*e) != gone)
+        .filter(|(_, i, ..)| hostile(team, i.team))
+        .filter(|(.., v, _)| !v.health.dead)
+        .map(|(_, _, m, ..)| m.0.pos)
         .collect();
     let id = peer.to_bits();
     let spawn = spawn_for(&data, &level, mode, team, &enemies, spawn_roll(id, players.iter().count() as u64, 0));
@@ -2139,9 +2148,9 @@ mod system_tests {
         app.world_mut().run_system_once(count_seats).unwrap();
         assert_eq!(seats.free(), 0);
         assert_eq!(check.handle_request(PeerId::Netcode(42)), Some(DeniedReason::ServerFull), "netcode says full");
-        assert!(lobby_full(8, 8, false), "the backstop agrees");
-        assert!(!lobby_full(8, 8, true), "never the host's own client");
-        assert!(!lobby_full(8, 7, false));
+        let people = [crate::bots::Seat { team: None, bot: None }; 8];
+        assert_eq!(crate::bots::seat_joiner(8, false, &people), None, "the backstop agrees");
+        assert!(crate::bots::seat_joiner(8, false, &people[..7]).is_some());
         assert_eq!(free_seats(6, 7), 0, "more players than seats (a lobby that shrank) is still full");
     }
 
@@ -3026,6 +3035,86 @@ mod bot_tests {
         request(&mut app, BotRequest::Remove, 9);
         tick(&mut app);
         assert!(bots(&mut app).is_empty(), "removing more than there are is fine");
+    }
+
+    /// The host's world ready for joiners: the join observer, the host's session and the seat count.
+    fn open_to_joiners(app: &mut App) -> Seats {
+        let mut session = crate::net::Session::default();
+        session.role = Role::Host;
+        app.insert_resource(session);
+        app.add_observer(on_link_connected);
+        let seats = Seats::new(16);
+        app.insert_resource(seats.clone());
+        app.add_systems(Update, count_seats);
+        seats
+    }
+
+    /// A player joining over the network (peer `id`) finishes connecting; their player, if they got one.
+    fn join(app: &mut App, id: u64) -> Option<Entity> {
+        let server = app.world_mut().query_filtered::<Entity, With<Server>>().single(app.world()).unwrap();
+        app.world_mut().spawn((LinkOf { server }, ClientOf, Connected, RemoteId(PeerId::Netcode(id))));
+        tick(app);
+        let mut q = app.world_mut().query::<(Entity, &PlayerId)>();
+        q.iter(app.world()).find(|(_, p)| p.0 == PeerId::Netcode(id).to_bits()).map(|(e, _)| e)
+    }
+
+    fn players(app: &mut App) -> usize {
+        app.world_mut().query::<&ServerPlayer>().iter(app.world()).count()
+    }
+
+    /// A team deathmatch lobby full of bots: the netcode lets a joiner in (bots hold no seat there), a bot
+    /// from the team the joiner goes to gives up its seat and the joiner takes it; once only players are
+    /// left, the next joiner is turned away.
+    #[test]
+    fn a_full_tdm_lobby_makes_room_by_dropping_a_bot() {
+        let mut app = host(MatchMode::Tdm, MatchPhase::Lobby, 4);
+        let seats = open_to_joiners(&mut app);
+        host_player(&mut app, Vec3::new(0.0, 0.0, -15.0), Some(Team::A));
+        request(&mut app, BotRequest::Add, 3);
+        tick(&mut app);
+        assert_eq!(players(&mut app), 4, "the host and BOT 1 (B), 2 (A), 3 (B)");
+        assert_eq!(seats.free(), 3, "the netcode still takes joiners");
+        // 2 v 2: the joiner goes to A, so A's bot (BOT 2) leaves
+        let p = join(&mut app, 42).expect("never refused while a bot holds a seat");
+        assert_eq!(app.world().get::<PlayerInfo>(p).unwrap().team, Some(Team::A));
+        let left: Vec<(u32, Option<Team>)> = bots(&mut app).into_iter().map(|(_, n, i)| (n, i.team)).collect();
+        assert_eq!(left, [(1, Some(Team::B)), (3, Some(Team::B))]);
+        assert_eq!(players(&mut app), 4);
+        assert_eq!(seats.free(), 2);
+        // A has only players now: B's latest bot (BOT 3) leaves and the joiner takes B's seat
+        let p = join(&mut app, 43).unwrap();
+        assert_eq!(app.world().get::<PlayerInfo>(p).unwrap().team, Some(Team::B));
+        assert_eq!(bots(&mut app).iter().map(|b| b.1).collect::<Vec<_>>(), [1]);
+        join(&mut app, 44).unwrap();
+        assert!(bots(&mut app).is_empty());
+        assert_eq!(players(&mut app), 4);
+        assert_eq!(seats.free(), 0, "four players: the netcode says full");
+        assert_eq!(join(&mut app, 45), None, "players only: no seat");
+        assert_eq!(players(&mut app), 4);
+    }
+
+    /// A free-for-all match in progress: each joiner takes the seat of the most recently added bot (not the
+    /// highest number: numbers are reused), while the match goes on.
+    #[test]
+    fn a_full_match_in_progress_drops_its_latest_bot() {
+        let mut app = host(MatchMode::Ffa, MatchPhase::Live, 4);
+        let seats = open_to_joiners(&mut app);
+        host_player(&mut app, Vec3::new(0.0, 0.0, -15.0), None);
+        request(&mut app, BotRequest::Add, 3);
+        tick(&mut app);
+        assert_eq!(players(&mut app), 4);
+        // as if BOT 1 had left and been added again last
+        let (b1, ..) = bots(&mut app)[0].clone();
+        app.world_mut().get_mut::<Bot>(b1).unwrap().added = 10;
+        let p = join(&mut app, 42).unwrap();
+        assert_eq!(app.world().get::<PlayerInfo>(p).unwrap().team, None);
+        assert_eq!(bots(&mut app).iter().map(|b| b.1).collect::<Vec<_>>(), [2, 3], "BOT 1, the latest, left");
+        let mut q = app.world_mut().query::<&MatchState>();
+        assert_eq!(q.single(app.world()).unwrap().phase, MatchPhase::Live, "the match goes on");
+        join(&mut app, 43).unwrap();
+        assert_eq!(bots(&mut app).iter().map(|b| b.1).collect::<Vec<_>>(), [2]);
+        assert_eq!(players(&mut app), 4);
+        assert_eq!(seats.free(), 1, "one bot left: one more joiner fits");
     }
 
     /// A live free-for-all: the bot sees the host's head, turns, fires; its shots go through the host's normal
