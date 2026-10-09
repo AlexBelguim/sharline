@@ -32,6 +32,7 @@ impl Plugin for ServerPlugin {
         app.init_resource::<PendingClaims>()
             .init_resource::<crate::bots::BotRequests>()
             .add_message::<PlayerDied>()
+            .add_message::<FeedOut>()
             .add_observer(on_new_link)
             .add_observer(on_link_connected)
             .add_observer(on_link_lost)
@@ -53,7 +54,16 @@ impl Plugin for ServerPlugin {
             .add_systems(FixedUpdate, simulate_authoritative.in_set(SimSystems::Simulate).run_if(is_hosting))
             .add_systems(
                 FixedUpdate,
-                (resolve_claims, handle_deaths, send_recaps, sync_teams, respawn_players, run_match, deal_agents)
+                (
+                    resolve_claims,
+                    handle_deaths,
+                    send_kill_feed,
+                    send_recaps,
+                    sync_teams,
+                    respawn_players,
+                    run_match,
+                    deal_agents,
+                )
                     .chain()
                     .in_set(SimSystems::Resolve)
                     .run_if(is_hosting),
@@ -189,7 +199,13 @@ pub struct PlayerDied {
     pub victim: Entity,
     pub killer: Option<Entity>,
     pub zone: Option<Zone>,
+    /// What killed them: a shot, or a non-player source (a fall, the level, bleeding, later fire).
+    pub cause: DeathCause,
 }
+
+/// A kill feed line the host decided on (`handle_deaths`), on its way to every client (`send_kill_feed`).
+#[derive(Message, Debug, Clone, PartialEq)]
+pub struct FeedOut(pub KillFeed);
 
 pub(crate) struct PendingClaim {
     link: Entity,
@@ -885,7 +901,12 @@ fn demo_kill(
     let t = time.elapsed_secs();
     if t - *since.get_or_insert(t) >= 2.0 {
         *done = true;
-        deaths.write(PlayerDied { victim: joined, killer: Some(host), zone: Some(Zone::Head) });
+        deaths.write(PlayerDied {
+            victim: joined,
+            killer: Some(host),
+            zone: Some(Zone::Head),
+            cause: DeathCause::Shot,
+        });
     }
 }
 
@@ -978,7 +999,13 @@ pub(crate) fn simulate_authoritative(
             let Vitals { health, wounds, .. } = &mut *vitals;
             wounds.sync(health, &rules);
             if out.died {
-                deaths.write(PlayerDied { victim: entity, killer: sp.last_attacker, zone: None });
+                // The last attacker keeps the kill; the others who hurt them recently assist.
+                deaths.write(PlayerDied {
+                    victim: entity,
+                    killer: sp.last_attacker,
+                    zone: None,
+                    cause: DeathCause::Bleed,
+                });
             }
         }
 
@@ -987,12 +1014,17 @@ pub(crate) fn simulate_authoritative(
             let Vitals { health, wounds, .. } = &mut *vitals;
             wounds.sync(health, &rules);
             if hp.died {
-                deaths.write(PlayerDied { victim: entity, killer: None, zone: Some(Zone::Legs) });
+                deaths.write(PlayerDied {
+                    victim: entity,
+                    killer: None,
+                    zone: Some(Zone::Legs),
+                    cause: DeathCause::Fall,
+                });
             }
         }
         if mv.0.pos.y < level.kill_y {
             vitals.health.dead = true;
-            deaths.write(PlayerDied { victim: entity, killer: None, zone: None });
+            deaths.write(PlayerDied { victim: entity, killer: None, zone: None, cause: DeathCause::OutOfBounds });
         }
 
         sp.history.push(tick, Pose { pos: mv.0.pos, yaw: look.yaw, stance: mv.0.stance }, keep);
@@ -1266,7 +1298,12 @@ fn resolve_claims(
             s.send::<ReliableChannel>(DamageTaken { from: shooter.shot.origin, zone, shield: report.hit_shield() });
         }
         if report.killed {
-            deaths.write(PlayerDied { victim: victim_e, killer: Some(shooter.entity), zone: Some(zone) });
+            deaths.write(PlayerDied {
+                victim: victim_e,
+                killer: Some(shooter.entity),
+                zone: Some(zone),
+                cause: DeathCause::Shot,
+            });
         }
         // Volt core: a breaking arc shocks the victim's enemies nearby (in free-for-all: everyone else).
         if report.shield_broke && halo_spec.core == Some(Core::Volt) {
@@ -1314,7 +1351,7 @@ fn handle_deaths(
     mut players: Query<(&PlayerId, &PlayerInfo, &mut Vitals, &mut Score, &mut PlayerMove, &mut ServerPlayer)>,
     mut weapons: Query<(&mut PlayerWeapon, &PlayerLoadout)>,
     mut matches: Query<&mut MatchState>,
-    mut feed: ClientLinks<KillFeed>,
+    mut feed: MessageWriter<FeedOut>,
     mut kills: Local<u64>,
 ) {
     let mode = matches.iter().next().map_or(MatchMode::Tdm, |m| m.mode);
@@ -1340,16 +1377,20 @@ fn handle_deaths(
         vsp.life.died(now);
         let victim_life = vsp.life.number;
         // Assists: everyone else who hurt this life enough, recently (team deathmatch: the victim's enemies).
+        // The same for any cause: a fall, the level, bleeding or (later) fire right after a fight still credits
+        // the ones who hurt them (with no killer, nobody is left out as one). The most damage first.
         let helpers = vsp.life.assisters(killer_id, now, rules.assist_min_damage, rules.assist_window_s);
         let mut assists = Vec::new();
         if counts {
-            for (id, info, _, mut s, _, _) in &mut players {
-                if id.0 != victim_id && helpers.contains(&id.0) && hostile(info.team, victim_team) {
+            for helper in helpers {
+                if let Some((id, info, _, mut s, _, _)) = players.iter_mut().find(|p| p.0.0 == helper)
+                    && id.0 != victim_id
+                    && hostile(info.team, victim_team)
+                {
                     s.assists += 1;
                     assists.push(id.0);
                 }
             }
-            assists.sort_unstable();
         }
         if let Some(k) = killer.filter(|_| counts)
             && let Ok((_, kinfo, kv, mut kscore, _, mut ksp)) = players.get_mut(k)
@@ -1370,12 +1411,19 @@ fn handle_deaths(
                 }
             }
         }
-        send_to_every_client(&mut feed, KillFeed { killer: killer_id, victim: victim_id, zone: d.zone, assists });
+        feed.write(FeedOut(KillFeed { killer: killer_id, victim: victim_id, zone: d.zone, assists, cause: d.cause }));
         if let Ok((.., mut sp)) = players.get_mut(d.victim) {
             sp.death = Some((killer_id, d.zone));
             sp.recap_due = true;
             sp.respawn_asked = false;
         }
+    }
+}
+
+/// Every kill feed line goes to every client, the host's own included (see [`send_to_every_client`]).
+fn send_kill_feed(mut out: MessageReader<FeedOut>, mut feed: ClientLinks<KillFeed>) {
+    for line in out.read() {
+        send_to_every_client(&mut feed, line.0.clone());
     }
 }
 
@@ -1525,8 +1573,8 @@ mod routing_tests {
         let (mut app, host, joined) = listen_server();
         // The assists ride along with the kill, so the host's own client gets them too.
         let kills = [
-            KillFeed { killer: Some(7), victim: 0, zone: Some(Zone::Head), assists: vec![8] },
-            KillFeed { killer: None, victim: 8, zone: None, assists: vec![] },
+            KillFeed { killer: Some(7), victim: 0, zone: Some(Zone::Head), assists: vec![8], cause: DeathCause::Shot },
+            KillFeed { killer: None, victim: 8, zone: None, assists: vec![], cause: DeathCause::OutOfBounds },
         ];
         for kill in kills {
             let sent = kill.clone();
@@ -1658,7 +1706,7 @@ mod system_tests {
     fn world(mode: MatchMode, phase: MatchPhase) -> App {
         let d = GameData::embedded();
         let mut app = App::new();
-        app.add_message::<PlayerDied>();
+        app.add_message::<PlayerDied>().add_message::<FeedOut>();
         let rules = d.rules.deathmatch(mode);
         app.world_mut().spawn(MatchState {
             mode,
@@ -1696,7 +1744,12 @@ mod system_tests {
     }
 
     fn kill(app: &mut App, killer: Entity, victim: Entity) {
-        app.world_mut().write_message(PlayerDied { victim, killer: Some(killer), zone: Some(Zone::Head) });
+        app.world_mut().write_message(PlayerDied {
+            victim,
+            killer: Some(killer),
+            zone: Some(Zone::Head),
+            cause: DeathCause::Shot,
+        });
     }
 
     fn standing(app: &App, e: Entity) -> (u16, u16, u64) {
@@ -1747,7 +1800,8 @@ mod system_tests {
             let (winner, victim) = (player(&mut app, 1, None), player(&mut app, 2, None));
             spend_spares(&mut app, winner);
             kill(&mut app, winner, victim);
-            app.world_mut().write_message(PlayerDied { victim: winner, killer: None, zone: None });
+            let cause = DeathCause::OutOfBounds;
+            app.world_mut().write_message(PlayerDied { victim: winner, killer: None, zone: None, cause });
             app.world_mut().run_system_once(handle_deaths).unwrap();
             assert_eq!(standing(&app, winner), (0, 0, 0), "{phase:?}");
             assert_eq!(standing(&app, victim), (0, 0, 0), "{phase:?}");
@@ -1924,7 +1978,8 @@ mod system_tests {
         let mut app = world(MatchMode::Ffa, MatchPhase::Live);
         let (a, victim) = (player(&mut app, 1, None), player(&mut app, 2, None));
         hurt(&mut app, victim, 1, min);
-        app.world_mut().write_message(PlayerDied { victim, killer: None, zone: None });
+        let cause = DeathCause::Fall;
+        app.world_mut().write_message(PlayerDied { victim, killer: None, zone: Some(Zone::Legs), cause });
         app.world_mut().run_system_once(handle_deaths).unwrap();
         assert_eq!(assists(&app, a), 1);
         // Outside a live match: nothing counts.
@@ -1934,6 +1989,106 @@ mod system_tests {
         kill(&mut app, killer, victim);
         app.world_mut().run_system_once(handle_deaths).unwrap();
         assert_eq!(assists(&app, a), 0);
+    }
+
+    fn feed_lines(app: &mut App) -> Vec<KillFeed> {
+        app.world_mut().resource_mut::<Messages<FeedOut>>().drain().map(|f| f.0).collect()
+    }
+
+    /// The kill feed line carries the killer, the helpers (the most damage first: the HUD names the top one,
+    /// then "+N") and the cause; nobody who did not help is in it.
+    #[test]
+    fn the_feed_line_names_the_killer_the_helpers_and_the_cause() {
+        let min = GameData::embedded().rules.tdm.assist_min_damage;
+        let mut app = world(MatchMode::Tdm, MatchPhase::Live);
+        let killer = player(&mut app, 1, Some(Team::A));
+        let (_small, _big, _bystander) = (
+            player(&mut app, 2, Some(Team::A)),
+            player(&mut app, 3, Some(Team::A)),
+            player(&mut app, 5, Some(Team::A)),
+        );
+        let victim = player(&mut app, 4, Some(Team::B));
+        hurt(&mut app, victim, 1, 100.0);
+        hurt(&mut app, victim, 2, min);
+        hurt(&mut app, victim, 3, min * 2.0);
+        kill(&mut app, killer, victim);
+        app.world_mut().run_system_once(handle_deaths).unwrap();
+        let line = KillFeed {
+            killer: Some(1),
+            victim: 4,
+            zone: Some(Zone::Head),
+            assists: vec![3, 2],
+            cause: DeathCause::Shot,
+        };
+        assert_eq!(feed_lines(&mut app), std::slice::from_ref(&line));
+        assert!(line.assisted_by(3) && line.assisted_by(2) && !line.assisted_by(5) && !line.assisted_by(1));
+        // One helper.
+        let mut app = world(MatchMode::Tdm, MatchPhase::Live);
+        let killer = player(&mut app, 1, Some(Team::A));
+        player(&mut app, 2, Some(Team::A));
+        let victim = player(&mut app, 4, Some(Team::B));
+        hurt(&mut app, victim, 2, min);
+        kill(&mut app, killer, victim);
+        app.world_mut().run_system_once(handle_deaths).unwrap();
+        assert_eq!(feed_lines(&mut app)[0].assists, [2]);
+    }
+
+    /// A non-player source (a fall, the level, bleeding without a shooter, later fire) right after a fight: the
+    /// ones who hurt the victim within the window still get their assists, and the feed names the cause. A
+    /// player who did not help gets nothing.
+    #[test]
+    fn environmental_deaths_still_credit_the_helpers() {
+        let min = GameData::embedded().rules.tdm.assist_min_damage;
+        for cause in [DeathCause::Fall, DeathCause::OutOfBounds, DeathCause::Fire, DeathCause::Bleed] {
+            let mut app = world(MatchMode::Tdm, MatchPhase::Live);
+            let (a, b, idle) = (
+                player(&mut app, 1, Some(Team::A)),
+                player(&mut app, 2, Some(Team::A)),
+                player(&mut app, 3, Some(Team::A)),
+            );
+            let victim = player(&mut app, 4, Some(Team::B));
+            hurt(&mut app, victim, 1, min);
+            hurt(&mut app, victim, 2, min * 1.5);
+            app.world_mut().write_message(PlayerDied { victim, killer: None, zone: None, cause });
+            app.world_mut().run_system_once(handle_deaths).unwrap();
+            assert_eq!([assists(&app, a), assists(&app, b), assists(&app, idle)], [1, 1, 0], "{cause:?}");
+            assert_eq!(standing(&app, victim).1, 1, "{cause:?}: a death");
+            assert_eq!(
+                feed_lines(&mut app),
+                [KillFeed { killer: None, victim: 4, zone: None, assists: vec![2, 1], cause }],
+                "{cause:?}"
+            );
+        }
+        // Too long after the fight (past the window): no assist, the feed names only the cause.
+        let mut app = world(MatchMode::Tdm, MatchPhase::Live);
+        let a = player(&mut app, 1, Some(Team::A));
+        let victim = player(&mut app, 4, Some(Team::B));
+        hurt(&mut app, victim, 1, min * 3.0);
+        let window = GameData::embedded().rules.tdm.assist_window_s;
+        app.world_mut().resource_mut::<Time>().advance_by(std::time::Duration::from_secs_f32(window + 1.0));
+        app.world_mut().write_message(PlayerDied { victim, killer: None, zone: None, cause: DeathCause::Fall });
+        app.world_mut().run_system_once(handle_deaths).unwrap();
+        assert_eq!(assists(&app, a), 0);
+        assert!(feed_lines(&mut app)[0].assists.is_empty());
+    }
+
+    /// Bleeding out: the last attacker keeps the kill, the others who hurt them assist.
+    #[test]
+    fn a_bleed_out_keeps_the_kill_and_the_assists() {
+        let min = GameData::embedded().rules.tdm.assist_min_damage;
+        let mut app = world(MatchMode::Tdm, MatchPhase::Live);
+        let (last, helper) = (player(&mut app, 1, Some(Team::A)), player(&mut app, 2, Some(Team::A)));
+        let victim = player(&mut app, 4, Some(Team::B));
+        hurt(&mut app, victim, 1, 30.0);
+        hurt(&mut app, victim, 2, min);
+        let cause = DeathCause::Bleed;
+        app.world_mut().write_message(PlayerDied { victim, killer: Some(last), zone: None, cause });
+        app.world_mut().run_system_once(handle_deaths).unwrap();
+        assert_eq!((standing(&app, last).0, assists(&app, helper), assists(&app, last)), (1, 1, 0));
+        assert_eq!(
+            feed_lines(&mut app),
+            [KillFeed { killer: Some(1), victim: 4, zone: None, assists: vec![2], cause }]
+        );
     }
 
     /// Team deathmatch after free-for-all: everyone without a team joins the smaller one, the host (id 0)
@@ -2767,6 +2922,7 @@ mod bot_tests {
         app.cleanup();
         app.world_mut().spawn((Name::new("Server"), Server::default(), Linked, Started));
         app.add_message::<PlayerDied>().add_message::<LocalShot>().add_message::<LocalPlayerEvents>();
+        app.add_message::<FeedOut>();
         let d = GameData::embedded();
         let rules = d.rules.deathmatch(mode);
         app.world_mut().spawn(MatchState {
@@ -2903,7 +3059,8 @@ mod bot_tests {
         assert!(!recap.taken.is_empty(), "and its recap");
         assert!(v.awaiting_respawn, "the host waits on the death screen");
         // The host shoots back (as its claim would): the bot dies, and presses RESPAWN once the timer is out.
-        app.world_mut().write_message(PlayerDied { victim: bot, killer: Some(me), zone: Some(Zone::Head) });
+        let cause = DeathCause::Shot;
+        app.world_mut().write_message(PlayerDied { victim: bot, killer: Some(me), zone: Some(Zone::Head), cause });
         tick(&mut app);
         assert!(app.world().get::<Vitals>(bot).unwrap().health.dead);
         let timer = (d.rules.ffa.respawn_s / d.tick_dt()).ceil() as usize + 3;

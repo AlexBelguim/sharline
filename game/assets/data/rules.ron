@@ -16,7 +16,8 @@
         kill_refill_mags: 1,      // user direction 2026-10-07: every kill refills one magazine
         // An assist (Tab scoreboard A and KDA): anyone but the killer who dealt at least this much damage
         // (halo + health) to the victim in the last assist_window_s seconds before the kill. Enemies of the
-        // victim only. Placeholders (item 9-pre).
+        // victim only. Placeholders (item 9-pre). The same for a death no player caused (a fall, the level,
+        // bleeding, later fire): whoever hurt them within the window still assists (item 9a3).
         assist_min_damage: 40.0,
         assist_window_s: 10.0,
     ),

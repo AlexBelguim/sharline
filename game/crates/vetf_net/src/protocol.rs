@@ -19,7 +19,7 @@ use vetf_sim::player::{Loadout, Wounds};
 use vetf_sim::weapon::WeaponState;
 
 /// Bumped whenever the protocol changes; part of the netcode protocol id, so old builds cannot connect.
-pub const PROTOCOL_VERSION: u64 = 11;
+pub const PROTOCOL_VERSION: u64 = 12;
 
 /// netcode.io protocol id shared by host and clients.
 pub fn protocol_id() -> u64 {
@@ -326,15 +326,60 @@ pub struct DamageTaken {
     pub shield: bool,
 }
 
+/// What killed a player: a player's shot, or something that is no player (the level, a wound). Any cause but
+/// [`DeathCause::Shot`] is environmental: those who hurt the victim recently still get their assists, and the
+/// kill feed names the cause ("HELPER + FALL > VICTIM").
+#[derive(Serialize, Deserialize, Clone, Copy, Debug, PartialEq, Eq, Default)]
+pub enum DeathCause {
+    /// A player's shot (the killer's, or a suicide).
+    #[default]
+    Shot,
+    /// Fall damage.
+    Fall,
+    /// Bled out (the last attacker still gets the kill).
+    Bleed,
+    /// Fell off the map.
+    OutOfBounds,
+    /// Fire (molotovs, later): burning is a non-player source like the rest.
+    Fire,
+}
+
+impl DeathCause {
+    /// Not a player's shot: the kill feed names it.
+    pub fn is_environmental(self) -> bool {
+        self != DeathCause::Shot
+    }
+
+    /// The kill feed's word for it (empty for a shot).
+    pub fn label(self) -> &'static str {
+        match self {
+            DeathCause::Shot => "",
+            DeathCause::Fall => "FALL",
+            DeathCause::Bleed => "BLEED",
+            DeathCause::OutOfBounds => "OUT OF BOUNDS",
+            DeathCause::Fire => "FIRE",
+        }
+    }
+}
+
 /// Host -> everyone.
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq)]
 pub struct KillFeed {
-    /// `None` for suicides and falls.
+    /// `None` for suicides and environmental deaths without a killer (falls, the level).
     pub killer: Option<u64>,
     pub victim: u64,
     pub zone: Option<Zone>,
-    /// The players credited with an assist on this kill (never the killer).
+    /// The players credited with an assist on this kill (never the killer), the most damage first.
     pub assists: Vec<u64>,
+    /// What killed them.
+    pub cause: DeathCause,
+}
+
+impl KillFeed {
+    /// Did `me` help with this kill (an assist, not the kill itself)? Their ASSIST popup and sound.
+    pub fn assisted_by(&self, me: u64) -> bool {
+        self.killer != Some(me) && self.victim != me && self.assists.contains(&me)
+    }
 }
 
 /// Client -> host: respawn me now (the death screen's RESPAWN, once the respawn timer is out).
@@ -537,8 +582,23 @@ mod tests {
         };
         roundtrip(&Hello { name: "KESTREL_YOU".into(), loadout: choice.clone(), data_fingerprint: d.fingerprint });
         roundtrip(&LoadoutUpdate { loadout: choice });
-        roundtrip(&KillFeed { killer: Some(1), victim: 2, zone: Some(Zone::Head), assists: vec![3, 9] });
-        roundtrip(&KillFeed { killer: None, victim: 2, zone: None, assists: vec![] });
+        roundtrip(&KillFeed {
+            killer: Some(1),
+            victim: 2,
+            zone: Some(Zone::Head),
+            assists: vec![3, 9],
+            cause: DeathCause::Shot,
+        });
+        roundtrip(&KillFeed { killer: None, victim: 2, zone: None, assists: vec![], cause: DeathCause::OutOfBounds });
+        roundtrip(&KillFeed {
+            killer: None,
+            victim: 2,
+            zone: Some(Zone::Legs),
+            assists: vec![4],
+            cause: DeathCause::Fall,
+        });
+        roundtrip(&KillFeed { killer: Some(5), victim: 2, zone: None, assists: vec![], cause: DeathCause::Bleed });
+        roundtrip(&KillFeed { killer: None, victim: 2, zone: None, assists: vec![6], cause: DeathCause::Fire });
         roundtrip(&Score { kills: 7, deaths: 2, assists: 4 });
         // A hit confirm carries the shot number and where it hit, for the marker on the victim.
         for kind in [HitKind::Shield, HitKind::Health, HitKind::Kill] {
@@ -715,8 +775,8 @@ mod tests {
         roundtrip(&PlayerAgent(None));
         assert_eq!(PlayerAgent::default(), PlayerAgent(None));
         assert_eq!(
-            PROTOCOL_VERSION, 11,
-            "agent + deathmatch picks 6, no ADS MOVE 7, death screen 8, test bots (bot mark, ADD/REMOVE BOT) 9,              recap per opponent life + kills, assists 10, MAG CHECK match setting 11"
+            PROTOCOL_VERSION, 12,
+            "agent + deathmatch picks 6, no ADS MOVE 7, death screen 8, test bots (bot mark, ADD/REMOVE BOT) 9,              recap per opponent life + kills, assists 10, MAG CHECK match setting 11, kill feed cause 12"
         );
     }
 
@@ -747,6 +807,27 @@ mod tests {
         roundtrip(&log.recap(Some(7), Some(Zone::Head)));
         roundtrip(&log.recap(None, None));
         roundtrip(&LifeLog::default().recap(None, None));
+    }
+
+    /// The ASSIST popup goes to the helpers only: never the killer, the victim or anyone who did not help.
+    #[test]
+    fn only_helpers_get_the_assist_popup() {
+        let k = KillFeed { killer: Some(1), victim: 2, zone: None, assists: vec![3, 4], cause: DeathCause::Shot };
+        assert!(k.assisted_by(3) && k.assisted_by(4));
+        assert!(!k.assisted_by(1), "the killer gets the kill, not an assist");
+        assert!(!k.assisted_by(2), "nor the victim");
+        assert!(!k.assisted_by(5), "nothing for a player who did not help");
+        let fall = KillFeed { killer: None, victim: 2, zone: None, assists: vec![3], cause: DeathCause::Fall };
+        assert!(fall.assisted_by(3) && !fall.assisted_by(5));
+    }
+
+    /// Every cause but a shot is environmental and has a feed word.
+    #[test]
+    fn environmental_causes_have_a_feed_word() {
+        assert!(!DeathCause::Shot.is_environmental() && DeathCause::Shot.label().is_empty());
+        for c in [DeathCause::Fall, DeathCause::Bleed, DeathCause::OutOfBounds, DeathCause::Fire] {
+            assert!(c.is_environmental() && !c.label().is_empty(), "{c:?}");
+        }
     }
 
     /// KDA: (kills + assists) / deaths, with no deaths counted as one.

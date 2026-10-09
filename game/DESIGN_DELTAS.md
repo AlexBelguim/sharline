@@ -606,3 +606,18 @@ the default everywhere.
 - **Unchanged:** the gun model's magazine window keeps its coarse level, the sim's mag check is the same, and with
   ESTIMATE nothing new shows. The client has always held its own exact round counts (predicted weapon state), so
   the setting changes only what the HUD shows. The host does not hide the counts from clients.
+
+## 27. Assists shown: kill feed, ASSIST popup, environmental deaths (2026-10-09)
+
+Assists (item 9-pre: `assist_min_damage` within `assist_window_s` in `rules.ron`) now show, and every death has a cause.
+- **Kill feed:** "KILLER + HELPER > VICTIM". With several helpers the one who dealt the most damage is named, then
+  "+N" (`LifeLog::assisters` now orders by damage, ties by id). Every client gets the line, the host's own included.
+- **Environmental deaths:** `KillFeed::cause` (`DeathCause`: Shot, Fall, Bleed, OutOfBounds, Fire) is new on the wire
+  (protocol version 12). Any cause but a shot is a non-player source: those who hurt the victim within the window
+  still get their assists (one rule, keyed on the cause, so molotov fire needs no new rule). The feed names the
+  cause: "HELPER + FALL > VICTIM", "HELPER +1 + FIRE > VICTIM", or "FALL > VICTIM" with nobody to credit. Kill credit
+  is unchanged: a bleed-out still gives the kill to the last attacker ("KILLER + HELPER + BLEED > VICTIM").
+- **ASSIST popup:** only the helpers (never the killer, the victim or a bystander) see a short "ASSIST" under the
+  crosshair (1.1 s, fading out over its last third) and hear `combat/assist` plus the announcer hook
+  `announcer/assist`. The announcer line is a placeholder stinger: a recorded voice line drops in by listing its file
+  under that id in `sounds.ron` (no code change).

@@ -348,13 +348,17 @@ pub mod cue {
     pub const SHIELD_BREAK: &str = "combat/shield_break";
     pub const KILL: &str = "combat/kill";
     pub const DAMAGE_TAKEN: &str = "combat/damage_taken";
+    /// You helped with someone else's kill.
+    pub const ASSIST: &str = "combat/assist";
+    /// The announcer's assist line: a placeholder stinger until a voice line drops in (data only).
+    pub const ANNOUNCER_ASSIST: &str = "announcer/assist";
     pub const HEAL: &str = "items/heal";
     pub const UI_CLICK: &str = "ui/click";
     pub const UI_HOVER: &str = "ui/hover";
     pub const UI_CONFIRM: &str = "ui/confirm";
     pub const UI_BACK: &str = "ui/back";
 
-    pub const ALL: [&str; 23] = [
+    pub const ALL: [&str; 25] = [
         DRY_FIRE,
         LOW_MAG,
         MAG_OUT,
@@ -373,6 +377,8 @@ pub mod cue {
         SHIELD_BREAK,
         KILL,
         DAMAGE_TAKEN,
+        ASSIST,
+        ANNOUNCER_ASSIST,
         HEAL,
         UI_CLICK,
         UI_HOVER,
@@ -642,6 +648,11 @@ pub fn hit_cues(h: &HitConfirm, shield_tink: bool, headshot: bool) -> Vec<&'stat
         out.push(cue::SHIELD_BREAK);
     }
     out
+}
+
+/// What a helper hears for an assist: the short blip and the announcer's line.
+pub fn assist_cues() -> [&'static str; 2] {
+    [cue::ASSIST, cue::ANNOUNCER_ASSIST]
 }
 
 /// LOW-MAG CUE after a shot: on once fewer than `start` (a fraction, [`LowMagCue::start`]) of the magazine's
@@ -1430,6 +1441,8 @@ fn local_one_shots(
 pub enum FeedbackSound {
     Hit(HitConfirm),
     Damage(DamageTaken),
+    /// You were credited with an assist on someone else's kill.
+    Assist,
 }
 
 /// Your hits: the kill confirm, head or flesh hit, and the shield tink pitched by the tier of the victim's
@@ -1453,6 +1466,11 @@ fn feedback_sounds(
                         1.0
                     };
                     sfx.play(Play::new(id).pitch(pitch));
+                }
+            }
+            FeedbackSound::Assist => {
+                for id in assist_cues() {
+                    sfx.play(Play::new(id));
                 }
             }
             FeedbackSound::Damage(d) => {
@@ -2284,6 +2302,16 @@ mod tests {
         assert_eq!(press_cue("LOADOUT", false, ui), cue::UI_CLICK);
         assert_eq!(press_cue("NORTH UP", false, ui), cue::UI_CLICK, "whole words only");
         assert_eq!(press_cue("", false, ui), cue::UI_CLICK);
+    }
+
+    /// An assist: the short blip and the announcer's line (a placeholder stinger, in the data like the rest).
+    #[test]
+    fn an_assist_plays_its_blip_and_the_announcer_line() {
+        assert_eq!(assist_cues(), [cue::ASSIST, cue::ANNOUNCER_ASSIST]);
+        let d = data();
+        for id in assist_cues() {
+            assert!(d.sounds.contains_key(id), "{id} is in sounds.ron");
+        }
     }
 
     #[test]

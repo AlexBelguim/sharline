@@ -213,7 +213,7 @@ impl LifeLog {
 
     /// Who earns an assist for this player's death at `now_s`: everyone but the killer (and this player) who
     /// dealt at least `min_damage` (halo and health) to this life within `window_s` before it. Team rules are
-    /// the host's to apply. Ordered by player id.
+    /// the host's to apply. The most damage first (the kill feed names the top helper), ties by player id.
     pub fn assisters(&self, killer: Option<u64>, now_s: f64, min_damage: f32, window_s: f32) -> Vec<u64> {
         let mut sums: Vec<(u64, f32)> = Vec::new();
         for t in &self.hits_taken {
@@ -225,9 +225,9 @@ impl LifeLog {
                 None => sums.push((t.shooter, t.damage)),
             }
         }
-        let mut out: Vec<u64> = sums.into_iter().filter(|(_, d)| *d >= min_damage.max(0.0)).map(|(p, _)| p).collect();
-        out.sort_unstable();
-        out
+        sums.retain(|(_, d)| *d >= min_damage.max(0.0));
+        sums.sort_by(|(pa, da), (pb, db)| db.total_cmp(da).then(pa.cmp(pb)));
+        sums.into_iter().map(|(p, _)| p).collect()
     }
 
     /// The recap of this life for its owner, who was killed by `killer` (`None`: a fall, the level) with a hit
@@ -415,7 +415,8 @@ mod tests {
         assert_eq!(r.died_at_s, 100.0);
     }
 
-    /// Assists: everyone but the killer who dealt at least the threshold within the window before the death.
+    /// Assists: everyone but the killer who dealt at least the threshold within the window before the death,
+    /// the most damage first (ties by id).
     #[test]
     fn assists_need_enough_damage_recently() {
         let mut log = LifeLog::default();
@@ -428,9 +429,9 @@ mod tests {
         let (min, window) = (40.0, 10.0);
         assert_eq!(log.assisters(Some(6), 60.0, min, window), [2, 3]);
         assert_eq!(log.assisters(Some(6), 60.5, min, window), [3], "player 2's damage just left the window");
-        assert_eq!(log.assisters(None, 60.0, min, window), [2, 3, 6], "a fall: everyone who hurt them recently");
+        assert_eq!(log.assisters(None, 60.0, min, window), [6, 2, 3], "a fall: everyone who hurt them recently");
         assert_eq!(log.assisters(Some(6), 60.0, 39.0, window), [2, 3, 4]);
-        assert_eq!(log.assisters(Some(6), 60.0, min, 30.0), [2, 3, 5]);
+        assert_eq!(log.assisters(Some(6), 60.0, min, 30.0), [5, 2, 3], "80 damage tops the feed");
     }
 
     /// A respawn starts an empty log with the next life number.

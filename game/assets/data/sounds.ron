@@ -131,6 +131,12 @@
         "combat/shield_break": (files: ["combat/shield_break.ogg"], category: Hits, volume: 0.75, pitch_jitter: 0.03),
         "combat/kill": (files: ["combat/kill.ogg"], category: Hits, volume: 0.75),
         "combat/damage_taken": (files: ["combat/damage_taken.ogg"], category: Hits, volume: 0.8, pitch_jitter: 0.05),
+        // An assist (you helped with someone else's kill): a soft blip under the kill confirm.
+        "combat/assist": (files: ["combat/assist.ogg"], category: Hits, volume: 0.6),
+        // ------------------------------------------------------------------ announcer (HITS slider for now)
+        // The announcer's lines. "announcer/assist" is a placeholder stinger: a recorded voice line ("ASSIST")
+        // drops in by listing its file here (no code change).
+        "announcer/assist": (files: ["announcer/assist.ogg"], category: Hits, volume: 0.55),
         // ------------------------------------------------------------------ items (ABILITIES & HALOS slider)
         "items/heal": (
             files: ["items/heal.ogg"], category: Abilities, volume: 0.7, pitch_jitter: 0.03,

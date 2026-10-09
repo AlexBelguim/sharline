@@ -21,7 +21,7 @@
 //! counter of the rounds in the gun's magazine, and the mag check card gives the exact count.
 
 use crate::AppState;
-use crate::client::Feedback;
+use crate::client::{ASSIST_POPUP_S, FeedEntry, Feedback};
 use crate::config::{Cli, Data};
 use crate::net::Session;
 use crate::render::ViewCamera;
@@ -53,6 +53,7 @@ impl Plugin for HudPlugin {
                     update_score,
                     update_crosshair,
                     update_feed,
+                    update_assist_popup,
                     update_overlays,
                     update_damage_indicators,
                     update_connecting.run_if(in_state(AppState::Connecting)),
@@ -184,12 +185,20 @@ struct CrosshairPart(usize);
 struct DamageFlashEdge;
 #[derive(Component)]
 struct FeedRow(usize);
+/// One text of a kill feed row (`feed_text`): row index and which part.
 #[derive(Component)]
-struct FeedKiller(usize);
+struct FeedPart(usize, Part);
+#[derive(Clone, Copy, PartialEq, Eq)]
+enum Part {
+    Lead,
+    Helper,
+    Cause,
+    Victim,
+    Tag,
+}
+/// The ASSIST popup under the crosshair.
 #[derive(Component)]
-struct FeedVictim(usize);
-#[derive(Component)]
-struct FeedTag(usize);
+struct AssistPopup;
 #[derive(Component)]
 struct CenterBanner;
 #[derive(Component)]
@@ -437,6 +446,23 @@ fn spawn_hud(mut commands: Commands, data: Res<Data>, fonts: Res<UiFonts>) {
         ],
     ));
 
+    // --- ASSIST popup (just under the crosshair, above the action readout): short, like a kill confirm
+    commands.spawn((
+        Node {
+            width: percent(100),
+            justify_content: JustifyContent::Center,
+            top: percent(50),
+            margin: UiRect::top(px(36)),
+            ..abs(Some(0.0), None, None, None)
+        },
+        ChildOf(root),
+        children![(
+            AssistPopup,
+            fonts.text("ASSIST", Face::Display, 700, 15.0, kit::TEXT_HI, 0.24),
+            Visibility::Hidden
+        )],
+    ));
+
     // --- score (top centre)
     // Hidden until the match state says which mode this is: the range has no teams (no team boxes).
     commands.spawn((
@@ -516,10 +542,12 @@ fn spawn_hud(mut commands: Commands, data: Res<Data>, fonts: Res<UiFonts>) {
             }),
             ChildOf(feed),
             children![
-                (FeedKiller(i), fonts.text("", Face::Display, 700, 15.0, kit::TEXT, 0.04)),
+                (FeedPart(i, Part::Lead), fonts.text("", Face::Display, 700, 15.0, kit::TEXT, 0.04)),
+                (FeedPart(i, Part::Helper), fonts.text("", Face::Display, 700, 13.0, kit::TEXT, 0.04)),
+                (FeedPart(i, Part::Cause), fonts.text("", Face::Display, 700, 13.0, kit::TEXT_MID, 0.08)),
                 (fonts.text(">", Face::Display, 700, 15.0, kit::TEXT_LOW, 0.0)),
-                (FeedVictim(i), fonts.text("", Face::Display, 700, 15.0, kit::TEXT, 0.04)),
-                (FeedTag(i), fonts.text("", Face::Display, 700, 11.0, kit::WARN, 0.16)),
+                (FeedPart(i, Part::Victim), fonts.text("", Face::Display, 700, 15.0, kit::TEXT, 0.04)),
+                (FeedPart(i, Part::Tag), fonts.text("", Face::Display, 700, 11.0, kit::WARN, 0.16)),
             ],
         ));
     }
@@ -1151,9 +1179,89 @@ fn demo_hud_fx(
         let you = info.name.as_str();
         for (killer, victim) in [("WREN", "ORCA"), ("VESPER", "MOTH"), (you, "VESPER"), ("ORCA", "LARK"), (you, "WREN")]
         {
-            feedback.kills.push((killer.into(), victim.into(), killer == "ORCA", 6.0));
+            feedback.kills.push(FeedEntry::kill(killer, victim, killer == "ORCA"));
         }
+        // An assist line and a fall right after a fight.
+        let mut helped = FeedEntry::kill("WREN", "LARK", false);
+        helped.helpers = vec![you.into(), "ORCA".into()];
+        let mut fall = FeedEntry::kill("", "MOTH", false);
+        (fall.killer, fall.helpers, fall.cause) = (None, vec!["VESPER".into()], DeathCause::Fall);
+        feedback.kills.extend([helped, fall]);
+        feedback.assist_s = ASSIST_POPUP_S;
     }
+}
+
+/// A kill feed line's texts: the lead name, the helper part and the cause, then the victim.
+/// - a kill: "KILLER", "+ HELPER +N" (the top helper by damage, and how many more), "" (or "+ BLEED")
+/// - a death no player caused, after a fight: "HELPER", "+N", "+ FALL" (the top helper leads)
+/// - with nobody to credit: "FALL" (or "--" for a suicide), "", ""
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct FeedText {
+    pub lead: String,
+    /// The player the lead names (its colour), if any.
+    pub lead_name: Option<String>,
+    pub helper: String,
+    /// The player the helper part names (its colour), if any.
+    pub helper_name: Option<String>,
+    pub cause: String,
+}
+
+impl FeedText {
+    /// The whole line, as a player reads it: "KILLER + HELPER +1 > VICTIM".
+    pub fn line(&self, victim: &str) -> String {
+        let left: Vec<&str> =
+            [&self.lead, &self.helper, &self.cause].into_iter().map(String::as_str).filter(|s| !s.is_empty()).collect();
+        format!("{} > {victim}", left.join(" "))
+    }
+}
+
+pub fn feed_text(e: &FeedEntry) -> FeedText {
+    let more = |n: usize| if n > 0 { format!("+{n}") } else { String::new() };
+    let cause = if e.cause.is_environmental() { e.cause.label() } else { "" };
+    let plus_cause = if cause.is_empty() { String::new() } else { format!("+ {cause}") };
+    match (&e.killer, e.helpers.split_first()) {
+        (Some(k), top) => FeedText {
+            lead: k.clone(),
+            lead_name: Some(k.clone()),
+            helper: top.map_or(String::new(), |(h, rest)| match rest.len() {
+                0 => format!("+ {h}"),
+                n => format!("+ {h} +{n}"),
+            }),
+            helper_name: top.map(|(h, _)| h.clone()),
+            cause: plus_cause,
+        },
+        (None, Some((h, rest))) => FeedText {
+            lead: h.clone(),
+            lead_name: Some(h.clone()),
+            helper: more(rest.len()),
+            helper_name: None,
+            cause: plus_cause,
+        },
+        (None, None) => FeedText {
+            lead: if cause.is_empty() { "--".into() } else { cause.into() },
+            lead_name: None,
+            helper: String::new(),
+            helper_name: None,
+            cause: String::new(),
+        },
+    }
+}
+
+/// The ASSIST popup: on for a moment after an assist of yours, fading out over its last third.
+fn update_assist_popup(
+    feedback: Res<Feedback>,
+    mut popup: Query<(&mut Visibility, &mut TextColor), With<AssistPopup>>,
+) {
+    let t = feedback.assist_s;
+    for (mut vis, mut color) in &mut popup {
+        *vis = if t > 0.0 { Visibility::Inherited } else { Visibility::Hidden };
+        color.0 = kit::TEXT_HI.with_alpha(assist_popup_alpha(t));
+    }
+}
+
+/// The popup's opacity with `left_s` seconds to go: full, then fading out over the last third.
+pub fn assist_popup_alpha(left_s: f32) -> f32 {
+    (left_s / (ASSIST_POPUP_S / 3.0)).clamp(0.0, 1.0)
 }
 
 #[allow(clippy::type_complexity)]
@@ -1161,10 +1269,8 @@ fn update_feed(
     feedback: Res<Feedback>,
     me: Query<&PlayerInfo, With<Controlled>>,
     players: Query<&PlayerInfo>,
-    mut rows: Query<(&FeedRow, &mut Node)>,
-    mut killers: Query<(&FeedKiller, &mut Text, &mut TextColor), (Without<FeedVictim>, Without<FeedTag>)>,
-    mut victims: Query<(&FeedVictim, &mut Text, &mut TextColor), (Without<FeedKiller>, Without<FeedTag>)>,
-    mut tags: Query<(&FeedTag, &mut Text), (Without<FeedKiller>, Without<FeedVictim>)>,
+    mut rows: Query<(&FeedRow, &mut Node), Without<FeedPart>>,
+    mut parts: Query<(&FeedPart, &mut Text, &mut TextColor, &mut Node), Without<FeedRow>>,
     settings: Res<Settings>,
 ) {
     let mine = me.iter().next().map(|i| (i.name.clone(), i.team));
@@ -1180,22 +1286,26 @@ fn update_feed(
     for (row, mut node) in &mut rows {
         node.display = if row.0 < entries.len() { Display::Flex } else { Display::None };
     }
-    for (k, mut t, mut c) in &mut killers {
-        if let Some((killer, ..)) = entries.get(k.0) {
-            t.0 = if killer.is_empty() { "--".into() } else { killer.clone() };
-            c.0 = if killer.is_empty() { kit::TEXT_MID } else { color(killer) };
+    let texts: Vec<FeedText> = entries.iter().map(|e| feed_text(e)).collect();
+    for (part, mut t, mut c, mut node) in &mut parts {
+        let (Some(e), Some(ft)) = (entries.get(part.0), texts.get(part.0)) else { continue };
+        let named = |name: &Option<String>| name.as_deref().map_or(kit::TEXT_MID, color);
+        let (text, col) = match part.1 {
+            Part::Lead => (ft.lead.clone(), named(&ft.lead_name)),
+            Part::Helper => (ft.helper.clone(), named(&ft.helper_name)),
+            Part::Cause => (ft.cause.clone(), kit::TEXT_MID),
+            Part::Victim => (e.victim.clone(), color(&e.victim)),
+            Part::Tag => (if e.headshot { "HEADSHOT".into() } else { String::new() }, kit::WARN),
+        };
+        // An empty part takes no room (the row's gap would leave a hole).
+        let display = if text.is_empty() { Display::None } else { Display::Flex };
+        if node.display != display {
+            node.display = display;
         }
-    }
-    for (v, mut t, mut c) in &mut victims {
-        if let Some((_, victim, ..)) = entries.get(v.0) {
-            t.0 = victim.clone();
-            c.0 = color(victim);
+        if t.0 != text {
+            t.0 = text;
         }
-    }
-    for (tag, mut t) in &mut tags {
-        if let Some((_, _, hs, _)) = entries.get(tag.0) {
-            t.0 = if *hs { "HEADSHOT".into() } else { String::new() };
-        }
+        c.0 = col;
     }
 }
 
@@ -1263,6 +1373,58 @@ fn update_damage_indicators(
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    fn entry(killer: Option<&str>, helpers: &[&str], cause: DeathCause) -> FeedEntry {
+        FeedEntry {
+            killer: killer.map(Into::into),
+            helpers: helpers.iter().map(|h| h.to_string()).collect(),
+            cause,
+            victim: "MOTH".into(),
+            headshot: false,
+            left_s: 1.0,
+        }
+    }
+
+    fn line(killer: Option<&str>, helpers: &[&str], cause: DeathCause) -> String {
+        feed_text(&entry(killer, helpers, cause)).line("MOTH")
+    }
+
+    /// The kill feed: "KILLER + HELPER > VICTIM", with several helpers the top one (most damage) and "+N".
+    #[test]
+    fn the_feed_line_names_the_killer_and_the_top_helper() {
+        assert_eq!(line(Some("WREN"), &[], DeathCause::Shot), "WREN > MOTH");
+        assert_eq!(line(Some("WREN"), &["ORCA"], DeathCause::Shot), "WREN + ORCA > MOTH");
+        assert_eq!(line(Some("WREN"), &["ORCA", "LARK", "VESPER"], DeathCause::Shot), "WREN + ORCA +2 > MOTH");
+        let t = feed_text(&entry(Some("WREN"), &["ORCA", "LARK"], DeathCause::Shot));
+        assert_eq!((t.lead_name.as_deref(), t.helper_name.as_deref()), (Some("WREN"), Some("ORCA")), "each its colour");
+        // Bled out: the last attacker kept the kill; the cause shows too.
+        assert_eq!(line(Some("WREN"), &["ORCA"], DeathCause::Bleed), "WREN + ORCA + BLEED > MOTH");
+    }
+
+    /// A death no player caused, right after a fight: "HELPER + FALL > VICTIM"; with nobody to credit, the
+    /// cause alone.
+    #[test]
+    fn environmental_deaths_name_the_helper_and_the_cause() {
+        assert_eq!(line(None, &["ORCA"], DeathCause::Fall), "ORCA + FALL > MOTH");
+        assert_eq!(line(None, &["ORCA", "LARK"], DeathCause::Fire), "ORCA +1 + FIRE > MOTH");
+        assert_eq!(line(None, &["ORCA"], DeathCause::OutOfBounds), "ORCA + OUT OF BOUNDS > MOTH");
+        assert_eq!(line(None, &[], DeathCause::Fall), "FALL > MOTH");
+        assert_eq!(line(None, &[], DeathCause::Shot), "-- > MOTH", "a suicide, as before");
+        let t = feed_text(&entry(None, &["ORCA", "LARK"], DeathCause::Fall));
+        assert_eq!((t.lead_name.as_deref(), t.helper_name), (Some("ORCA"), None), "the top helper leads");
+        assert_eq!(feed_text(&entry(None, &[], DeathCause::Fall)).lead_name, None, "a cause is no player");
+    }
+
+    /// The ASSIST popup: full for the first two thirds, then fading out; gone at zero.
+    #[test]
+    fn the_assist_popup_fades_out_at_the_end() {
+        assert_eq!(assist_popup_alpha(ASSIST_POPUP_S), 1.0);
+        assert_eq!(assist_popup_alpha(ASSIST_POPUP_S * 0.5), 1.0);
+        let late = assist_popup_alpha(ASSIST_POPUP_S / 6.0);
+        assert!((late - 0.5).abs() < 1e-4, "{late}");
+        assert_eq!(assist_popup_alpha(0.0), 0.0);
+        const { assert!(ASSIST_POPUP_S > 0.5 && ASSIST_POPUP_S < 2.0, "short, like a kill confirm") };
+    }
 
     #[test]
     fn the_range_header_has_no_team_scores() {

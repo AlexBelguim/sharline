@@ -130,13 +130,48 @@ pub struct Feedback {
     pub claims: Vec<ClaimedHit>,
     /// (world position the damage came from, seconds left)
     pub damage: Vec<(Vec3, f32)>,
-    /// (killer, victim, headshot, seconds left)
-    pub kills: Vec<(String, String, bool, f32)>,
+    /// The kill feed's recent lines, oldest first.
+    pub kills: Vec<FeedEntry>,
+    /// The ASSIST popup's seconds left (0: hidden); an assist of yours sets it.
+    pub assist_s: f32,
     /// New tracers: (from, to, seconds since the shot, own shot); `render::tracer_fx` flies them.
     pub tracers: Vec<(Vec3, Vec3, f32, bool)>,
     /// New bullet impacts on the level (point, surface normal); `impacts` turns them into marks and debris.
     pub impacts: Vec<(Vec3, Vec3)>,
 }
+
+/// One kill feed line: "KILLER + HELPER +N > VICTIM", or for a death no player caused,
+/// "HELPER + FALL > VICTIM" (`hud::feed_text` writes it).
+#[derive(Debug, Clone, PartialEq)]
+pub struct FeedEntry {
+    pub killer: Option<String>,
+    /// The players credited with an assist, the most damage first.
+    pub helpers: Vec<String>,
+    pub cause: DeathCause,
+    pub victim: String,
+    pub headshot: bool,
+    /// Seconds left on screen.
+    pub left_s: f32,
+}
+
+impl FeedEntry {
+    /// A line with no helpers and no cause (the HUD demo).
+    pub fn kill(killer: &str, victim: &str, headshot: bool) -> Self {
+        FeedEntry {
+            killer: Some(killer.into()),
+            helpers: Vec::new(),
+            cause: DeathCause::Shot,
+            victim: victim.into(),
+            headshot,
+            left_s: FEED_LINE_S,
+        }
+    }
+}
+
+/// How long a kill feed line stays.
+pub const FEED_LINE_S: f32 = 6.0;
+/// How long the ASSIST popup stays (short, like a kill confirm).
+pub const ASSIST_POPUP_S: f32 = 1.1;
 
 /// Visual smoothing of the predicted position between fixed ticks.
 #[derive(Component, Default)]
@@ -719,10 +754,12 @@ fn receive_feedback(
     mut kills: Query<&mut MessageReceiver<KillFeed>, With<Client>>,
     mut fx: Query<&mut MessageReceiver<ShotFx>, With<Client>>,
     players: Query<(&PlayerId, &PlayerInfo)>,
+    me: Query<&PlayerId, With<Controlled>>,
     level: Option<Res<CurrentLevel>>,
     mut feedback: ResMut<Feedback>,
     mut sounds: MessageWriter<crate::sound::FeedbackSound>,
 ) {
+    let me = me.iter().next().map(|p| p.0);
     let name = |id: u64| {
         players.iter().find(|(p, _)| p.0 == id).map(|(_, i)| i.name.clone()).unwrap_or_else(|| format!("{id:x}"))
     };
@@ -741,9 +778,21 @@ fn receive_feedback(
     }
     for mut rx in &mut kills {
         for k in rx.receive() {
-            info!("kill feed: {:?} -> {:x}", k.killer, k.victim);
-            let killer = k.killer.map(name).unwrap_or_default();
-            feedback.kills.push((killer, name(k.victim), k.zone == Some(vetf_sim::Zone::Head), 6.0));
+            let entry = FeedEntry {
+                killer: k.killer.map(name),
+                helpers: k.assists.iter().copied().map(name).collect(),
+                cause: k.cause,
+                victim: name(k.victim),
+                headshot: k.zone == Some(vetf_sim::Zone::Head) && !k.cause.is_environmental(),
+                left_s: FEED_LINE_S,
+            };
+            info!("kill feed: {}", crate::hud::feed_text(&entry).line(&entry.victim));
+            feedback.kills.push(entry);
+            // Only a helper gets the popup and the sound.
+            if me.is_some_and(|m| k.assisted_by(m)) {
+                feedback.assist_s = ASSIST_POPUP_S;
+                sounds.write(crate::sound::FeedbackSound::Assist);
+            }
         }
     }
     for mut rx in &mut fx {
@@ -768,10 +817,11 @@ fn tick_feedback(time: Res<Time>, mut feedback: ResMut<Feedback>) {
         *t -= dt;
         *t > 0.0
     });
-    feedback.kills.retain_mut(|(.., t)| {
-        *t -= dt;
-        *t > 0.0
+    feedback.kills.retain_mut(|k| {
+        k.left_s -= dt;
+        k.left_s > 0.0
     });
+    feedback.assist_s = (feedback.assist_s - dt).max(0.0);
     // As many as the longest KILL FEED LINES choice; the HUD shows the player's number of them.
     let keep = crate::settings::KillFeed::ALL.iter().map(|k| k.lines()).max().unwrap_or(5);
     if feedback.kills.len() > keep {

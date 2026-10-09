@@ -365,6 +365,25 @@ def kill():
     return norm(fade(x), -8)
 
 
+def assist():
+    # A lighter cousin of the kill confirm: one soft, rising two-note blip.
+    total = 0.22
+    a = sine(990, 0.07) * env(n_of(0.07), 0.003, 0.035)
+    b = sine(1180, 0.1) * env(n_of(0.1), 0.003, 0.05)
+    x = at(total, 0.0, a) + at(total, 0.05, b)
+    return norm(fade(x), -12)
+
+
+def announcer_assist():
+    # The announcer hook's placeholder: a short airy stinger (a sweep and a chord) until a voice line drops in.
+    total = 0.45
+    n = n_of(total)
+    sweep = chirp(420, 1250, total) * env(n, 0.01, 0.12)
+    chord = (sine(660, total) + 0.7 * sine(830, total) + 0.5 * sine(990, total)) * env(n, 0.02, 0.15)
+    x = 0.5 * sweep + at(total, 0.06, chord[: n - n_of(0.06)]) + 0.15 * burst(total, 795, 2000, 7000, 0.005, 0.05)
+    return norm(fade(x), -12)
+
+
 def damage_taken():
     total = 0.35
     x = thump(70, total, 0.12) + 0.6 * burst(total, 790, 40, 450, 0.002, 0.06)
@@ -466,6 +485,8 @@ def sounds():
     s["combat/shield_break"] = shield_break()
     s["combat/kill"] = kill()
     s["combat/damage_taken"] = damage_taken()
+    s["combat/assist"] = assist()
+    s["announcer/assist"] = announcer_assist()
     s["items/heal"] = heal()
     s["ui/click"] = ui_click()
     s["ui/hover"] = ui_hover()
