@@ -357,8 +357,15 @@ pub mod cue {
     pub const UI_HOVER: &str = "ui/hover";
     pub const UI_CONFIRM: &str = "ui/confirm";
     pub const UI_BACK: &str = "ui/back";
+    /// Smoke grenades and molotovs (`throwables.rs`).
+    pub const THROW: &str = "throw/throw";
+    pub const THROW_BOUNCE: &str = "throw/bounce";
+    pub const SMOKE_POP: &str = "throw/smoke_pop";
+    pub const MOLOTOV_BURST: &str = "throw/molotov_burst";
+    pub const FIRE_LOOP: &str = "throw/fire_loop";
+    pub const DOUSE: &str = "throw/douse";
 
-    pub const ALL: [&str; 25] = [
+    pub const ALL: [&str; 31] = [
         DRY_FIRE,
         LOW_MAG,
         MAG_OUT,
@@ -384,6 +391,12 @@ pub mod cue {
         UI_HOVER,
         UI_CONFIRM,
         UI_BACK,
+        THROW,
+        THROW_BOUNCE,
+        SMOKE_POP,
+        MOLOTOV_BURST,
+        FIRE_LOOP,
+        DOUSE,
     ];
 }
 

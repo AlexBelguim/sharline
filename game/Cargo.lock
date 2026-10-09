@@ -9532,6 +9532,8 @@ dependencies = [
  "bevy",
  "iroh",
  "lightyear",
+ "naga",
+ "naga_oil",
  "ron",
  "serde",
  "serde_json",

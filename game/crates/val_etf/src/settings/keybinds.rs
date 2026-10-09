@@ -82,6 +82,8 @@ const RIGHT: &[Row] = &[
     Row::Act("Ultimate", &[Action::Ultimate], "LB + RB"),
     Row::Group("ITEMS & HEALTH"),
     Row::Act("Heal · item radial (toggle)", &[Action::Heal], "D-pad ← hold"),
+    Row::Act("Smoke grenade (throw)", &[Action::ThrowSmoke], "—"),
+    Row::Act("Molotov (throw)", &[Action::ThrowMolotov], "—"),
     Row::Group("INTERFACE"),
     Row::Act("Scoreboard + join code (hold)", &[Action::Scoreboard], "View hold"),
     Row::Act("Ping / mark", &[Action::Ping], "R3 hold"),

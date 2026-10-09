@@ -131,6 +131,7 @@ folder).
 | R | Tap: reload the next magazine in slot order. Hold: magazine radial; release over a slot (or press 1-6) to load it. Magazines keep their slots |
 | B | Heal ring: click an item; a region item opens a second ring to pick the region. Right click steps back |
 | T | Mag check. Gives an estimate only; there is no ammo counter anywhere (genre rule) |
+| 4 / 5 | Throw a smoke grenade / a molotov (each life carries some, shown bottom right). Smoke hides what is behind it and puts out fire; a shot through it leaves a short see-through tunnel |
 | Tab (hold) | Scoreboard: kills, deaths and ping per player |
 | F6 | Copy the host's invite to the system clipboard |
 | Esc | Match menu: resume, loadout, settings, key reference, leave (or stop hosting) |
@@ -236,6 +237,8 @@ The design is a listen server ticking at 60 Hz.
   (up to six ordered magazines) in the gun range.
 - Rulesets: team deathmatch has no bleeding or broken-limb penalties; the range runs the full rules.
 - Healing items with a heal ring: whole-body items (the only kind in team deathmatch) and region items.
+- Smoke grenades and molotovs (DESIGN_DELTAS 32): a deterministic, host-run throw with bounces; smoke clouds
+  that hide players from bots and markers and put out fire; burning areas that hurt through halo and health.
 - The full movement set: sprint, slide, jump, jetpack with design max-rise values, mantle, zipline, step-up and
   ramps.
 - Recoil pattern and recovery; ADS behaviour.

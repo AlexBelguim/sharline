@@ -95,6 +95,9 @@ pub struct LocalControl {
     /// After a ring menu closes, the mouse buttons stay off until released (the click that picked must
     /// not fire the gun or cancel the item).
     pub mouse_block: bool,
+    /// The same for the throw keys: a number key that picked on a ring (the reload radial's 1-6) throws nothing
+    /// until it is released.
+    pub throw_block: bool,
     /// The variable scope in hand and its live zoom (`scope_zoom`).
     pub scope: ScopeZoom,
 }
@@ -117,6 +120,7 @@ impl Default for LocalControl {
             heal: None,
             item_pick: (0, 0),
             mouse_block: false,
+            throw_block: false,
             scope: ScopeZoom::default(),
         }
     }
@@ -143,6 +147,8 @@ pub struct Feedback {
     pub tracers: Vec<(Vec3, Vec3, f32, bool)>,
     /// New bullet impacts on the level (point, surface normal); `impacts` turns them into marks and debris.
     pub impacts: Vec<(Vec3, Vec3)>,
+    /// New bullet lines (from, to), every shot seen; `throwables` cuts see-through tunnels in smoke along them.
+    pub bullet_paths: Vec<(Vec3, Vec3)>,
 }
 
 /// One kill feed line: "KILLER + HELPER +N > VICTIM", or for a death no player caused,
@@ -410,6 +416,7 @@ fn gather_input(
     // The ring menus steer an on-screen cursor in pixels, the same hand distance at any DPI.
     let tuning = tables.radial;
     let ring_delta = mouse_delta * crate::radial::px_per_count(m.dpi, &tuning);
+    let ring_before = control.heal.is_some() || control.reload_radial.is_some();
     heal_input(&mut control, kb, &input, ring_delta, &kit, &tuning);
     let dt = time.delta_secs();
     let ring = RingSettings { hold_s: g.radial_hold_s, pick: g.radial_pick, tuning };
@@ -420,6 +427,11 @@ fn gather_input(
         control.toggles.ads = false;
     } else if !kb.pressed(Action::Fire, &input) && !kb.pressed(Action::Ads, &input) {
         control.mouse_block = false;
+    }
+    if ring_open || ring_before {
+        control.throw_block = true;
+    } else if !kb.pressed(Action::ThrowSmoke, &input) && !kb.pressed(Action::ThrowMolotov, &input) {
+        control.throw_block = false;
     }
     if !ring_open {
         let (optic, zoom) =
@@ -460,6 +472,8 @@ fn gather_input(
         (Buttons::MAG_CHECK, held(Action::MagCheck)),
         (Buttons::FIRE_MODE, held(Action::FireMode)),
         (Buttons::INTERACT, held(Action::Interact)),
+        (Buttons::THROW_SMOKE, !control.throw_block && held(Action::ThrowSmoke)),
+        (Buttons::THROW_MOLOTOV, !control.throw_block && held(Action::ThrowMolotov)),
     ] {
         if on {
             bits |= bit;
@@ -725,6 +739,8 @@ fn fire_claims(
         );
         let start = s.origin + vetf_sim::input::view_rotation(s.yaw, s.pitch) * own_tracer_start(&rig, ads, lens);
         feedback.tracers.push((start, s.origin + dir * end_t, 0.0, true));
+        // From the eye: the line you look along is the one cleared through smoke.
+        feedback.bullet_paths.push((s.origin, s.origin + dir * end_t));
         if let (None, Some((d, normal))) = (best, world_hit) {
             feedback.impacts.push((s.origin + dir * d, normal));
         }
@@ -808,6 +824,7 @@ fn receive_feedback(
     for mut rx in &mut fx {
         for s in rx.receive() {
             feedback.tracers.push((s.origin, s.end, 0.0, false));
+            feedback.bullet_paths.push((s.origin, s.end));
             // The host sends where the shot met the level; find the surface it hit for the decal.
             let len = s.origin.distance(s.end);
             if let Some(level) = &level
@@ -1164,6 +1181,39 @@ mod tests {
         keys.clear();
         let c = app.world().resource::<LocalControl>();
         (c.held, c.movement, (c.yaw - yaw + PI).rem_euclid(TAU) - PI, c.pitch - pitch)
+    }
+
+    /// 4 throws a smoke and 5 a molotov by default. A number that picks a magazine on the open reload radial
+    /// throws nothing, nor while it stays held after the pick; pressed again, it throws.
+    #[test]
+    fn the_number_keys_throw_unless_they_pick_on_a_ring() {
+        let mut app = input_app();
+        let data = vetf_sim::GameData::embedded();
+        let lo = vetf_sim::player::Loadout::default_for(&data, vetf_sim::data::Mode::Tdm);
+        assert!(lo.weapon.mags.len() >= 4);
+        let items = vetf_sim::items::ItemState::for_loadout(&lo);
+        app.world_mut().spawn((PlayerLoadout(lo), PlayerItems(items), Controlled));
+        let throws = Buttons::THROW_SMOKE | Buttons::THROW_MOLOTOV;
+        assert_eq!(frame(&mut app, &[KeyCode::Digit4], Vec2::ZERO).0 & throws, Buttons::THROW_SMOKE);
+        assert_eq!(frame(&mut app, &[KeyCode::Digit5], Vec2::ZERO).0 & throws, Buttons::THROW_MOLOTOV);
+        assert_eq!(frame(&mut app, &[], Vec2::ZERO).0 & throws, 0);
+        let tuning = app.world().resource::<SettingsData>().radial;
+        app.world_mut().resource_mut::<LocalControl>().reload_radial = Some(Radial::new(4, &tuning));
+        let step = |app: &mut App, down: bool| {
+            {
+                let mut keys = app.world_mut().resource_mut::<ButtonInput<KeyCode>>();
+                if down { keys.press(KeyCode::Digit4) } else { keys.release(KeyCode::Digit4) }
+            }
+            app.update();
+            app.world_mut().resource_mut::<ButtonInput<KeyCode>>().clear();
+            let c = app.world().resource::<LocalControl>();
+            (c.held & throws, c.reload_pick)
+        };
+        assert_eq!(step(&mut app, true), (0, 4), "4 picked magazine 4 and threw nothing");
+        app.world_mut().resource_mut::<LocalControl>().reload_pick = 0;
+        assert_eq!(step(&mut app, true).0, 0, "still held after the pick: no throw");
+        assert_eq!(step(&mut app, false).0, 0);
+        assert_eq!(step(&mut app, true), (Buttons::THROW_SMOKE, 0), "pressed again, it throws");
     }
 
     /// Item 8d in the running input: aimed through the Warden's 6-12x scope the wheel zooms (wheel down no longer

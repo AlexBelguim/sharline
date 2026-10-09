@@ -36,6 +36,7 @@ use vetf_net::*;
 use vetf_sim::Zone;
 use vetf_sim::data::FireMode;
 use vetf_sim::level::Team;
+use vetf_sim::throwable::ThrowKind;
 use vetf_sim::weapon::{MagCheckMode, MagEstimate, ReloadKind, WeaponAction, secs_to_ticks};
 
 pub struct HudPlugin;
@@ -50,6 +51,7 @@ impl Plugin for HudPlugin {
                     update_vitals,
                     update_mag_card,
                     update_ammo_counter,
+                    update_throwables,
                     update_action,
                     update_score,
                     update_crosshair,
@@ -152,6 +154,11 @@ struct AmmoCounterRoot;
 struct AmmoCounterRounds;
 #[derive(Component)]
 struct AmmoCounterMag;
+/// The throwables carried (bottom right, under the magazine cards).
+#[derive(Component)]
+struct ThrowRoot;
+#[derive(Component)]
+struct ThrowSlot(ThrowKind);
 #[derive(Component)]
 struct ActionRoot;
 #[derive(Component)]
@@ -465,6 +472,25 @@ fn spawn_hud(mut commands: Commands, data: Res<Data>, fonts: Res<UiFonts>) {
         children![(fonts.lbl("ROUNDS")), (AmmoCounterMag, fonts.text("", Face::Display, 700, 13.0, kit::TEXT, 0.12))],
     ));
     commands.spawn((AmmoCounterRounds, fonts.text("", Face::Display, 700, 30.0, kit::TEXT_HI, 0.04), ChildOf(counter)));
+    // The throwables carried: each kind with its key and how many are left (grenades are counted: the no-counter
+    // rule is about rounds).
+    let throws = commands
+        .spawn((
+            ThrowRoot,
+            panel(Node {
+                justify_content: JustifyContent::SpaceBetween,
+                padding: UiRect::axes(px(12), px(8)),
+                column_gap: px(14),
+                width: px(240),
+                display: Display::None,
+                ..default()
+            }),
+            ChildOf(corner),
+        ))
+        .id();
+    for kind in ThrowKind::ALL {
+        commands.spawn((ThrowSlot(kind), fonts.text("", Face::Display, 700, 13.0, kit::TEXT, 0.12), ChildOf(throws)));
+    }
 
     // --- action readout (under the crosshair): reload, item use, mag check, fire mode
     commands.spawn((
@@ -912,6 +938,48 @@ fn update_ammo_counter(
     for mut t in &mut mag {
         if t.0 != which {
             t.0.clone_from(&which);
+        }
+    }
+}
+
+/// One throwable's HUD text: its key, its name and how many are left ("4  SMOKE ×1").
+pub(crate) fn throw_text(kind: ThrowKind, key: Option<&str>, left: u8) -> String {
+    let key = key.map_or(String::new(), |k| format!("{k}  "));
+    format!("{key}{} ×{left}", kind.label())
+}
+
+/// The throwables carried, under the magazine cards: shown while alive with a life's share of them, each dimmed
+/// once none is left.
+#[allow(clippy::type_complexity)]
+fn update_throwables(
+    me: Query<(&PlayerItems, &PlayerLoadout, &Vitals), With<Controlled>>,
+    settings: Res<Settings>,
+    mut root: Query<&mut Node, With<ThrowRoot>>,
+    mut slots: Query<(&ThrowSlot, &mut Text, &mut TextColor)>,
+) {
+    use crate::settings::Action;
+    let shown = me.iter().next().filter(|(_, lo, v)| !v.health.dead && lo.0.throws.total() > 0);
+    let display = if shown.is_some() { Display::Flex } else { Display::None };
+    for mut n in &mut root {
+        if n.display != display {
+            n.display = display;
+        }
+    }
+    let Some((items, ..)) = shown else { return };
+    for (slot, mut text, mut color) in &mut slots {
+        let action = match slot.0 {
+            ThrowKind::Smoke => Action::ThrowSmoke,
+            ThrowKind::Molotov => Action::ThrowMolotov,
+        };
+        let key = settings.keybinds.slot(action, 0).map(|b| b.label());
+        let left = items.0.throw.left.get(slot.0);
+        let want = throw_text(slot.0, key.as_deref(), left);
+        if text.0 != want {
+            text.0 = want;
+        }
+        let c = if left > 0 { kit::TEXT } else { kit::TEXT_LOW };
+        if color.0 != c {
+            color.0 = c;
         }
     }
 }
@@ -1599,6 +1667,13 @@ fn update_damage_indicators(
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    /// The throwables line: the key, the name and how many are left; no key when it is unbound.
+    #[test]
+    fn throwables_read_key_name_and_count() {
+        assert_eq!(throw_text(ThrowKind::Smoke, Some("4"), 1), "4  SMOKE ×1");
+        assert_eq!(throw_text(ThrowKind::Molotov, None, 0), "MOLOTOV ×0");
+    }
 
     fn entry(killer: Option<&str>, helpers: &[&str], cause: DeathCause) -> FeedEntry {
         FeedEntry {

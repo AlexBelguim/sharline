@@ -170,6 +170,12 @@ impl CollisionWorld {
         t.hit().then_some((t.fraction * max_dist, t.normal))
     }
 
+    /// Sweep a box against everything that stops players or bullets (a thrown grenade: it bounces off walls,
+    /// glass and the map's invisible bounds alike).
+    pub fn trace_solid(&self, start: Vec3, end: Vec3, half: Vec3) -> Trace {
+        self.trace_filtered(start, end, half, |b| b.blocks_players() || b.blocks_bullets())
+    }
+
     /// True when nothing that stops bullets lies between `a` and `b`.
     pub fn line_of_sight(&self, a: Vec3, b: Vec3) -> bool {
         let t = self.trace_filtered(a, b, Vec3::ZERO, Brush::blocks_bullets);

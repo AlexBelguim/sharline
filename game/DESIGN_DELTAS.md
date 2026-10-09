@@ -714,3 +714,34 @@ New (item 9c2, user direction; the design docs have no streaks). All numbers in 
   `hip_spread` only narrows the moving hip cone (not the bloom, not aimed fire); its blurb now says "Tighter hip
   fire on the move". The UGL's blurb says grenades are not in yet (no `{G}` key hint) until the grenade-launcher
   mode lands; its stats (slower ADS, sway, move) still apply.
+
+## 32. Smoke grenades and molotovs (2026-10-09)
+- **Design:** throwables were not in the slice yet (the UGL's grenades were promised for later).
+- **Now (user direction, item 10b):** every life in team deathmatch and free-for-all starts with one smoke grenade
+  and one molotov (`rules.ron` `throwables`; three of each in the gun range, `range_throwables`). Keys **4** smoke and
+  **5** molotov (Settings > Keybinds; a settings file from before keeps its own keys, and a new action never takes a
+  key already in use). The HUD lists them bottom right with their counts (grenades are counted; the no-counter rule
+  is about rounds). The numbers are in `throwables.ron`, the look in `throwable_fx.ron`:
+  - **Throw:** a 0.3 s wind-up (the gun goes down), then the grenade leaves the right hand along the aim lifted 8°,
+    at 16 m/s plus 60 % of your own velocity; the gun comes back up 0.35 s later. Not while reloading, using an
+    item or mantling; a sprint is fine. It ends spawn protection. Deterministic and host-authoritative: the host
+    flies every grenade; the thrower sees their own at once on the same arc, everyone else from the host's message.
+  - **Flight:** a small ball under 14 m/s² of gravity that bounces off walls, glass and the map's bounds (keeps 35 %
+    of its speed into a surface, 65 % along it) and comes to rest on a floor. Grenades pass through players.
+  - **Smoke** pops 2 s after the throw or as soon as it lies still. The cloud grows to 4.5 m across (2.6 m half
+    height) over 1.5 s, holds 15 s and thins out over 3 s. While dense it hides what is behind it: the test bots
+    do not see (or shoot at) a head behind it, and a teammate in or behind it gets their marker as behind a wall.
+    Bullets still go through smoke. A shot through it leaves a see-through tunnel along its path for about
+    2.6 s on every client that saw the shot (visual only; the host's sight test ignores tunnels).
+  - **Molotov** bursts on its first impact (on a wall, on the ground below it). Fire spreads to 3 m over 0.6 s and
+    burns 7 s. Anyone whose feet are in it burns, the thrower and teammates too: 40 dps in 0.25 s pulses on the
+    legs, the legs' halo arc soaking half of each pulse while it holds, the rest to health (broken legs spill into
+    the torso). A burn kill is the thrower's kill when the victim is their enemy (kill feed "THROWER + FIRE"),
+    otherwise nobody's; burning counts for assists like any damage. No damage in the lobby or after a match.
+  - **Smoke puts out fire:** a fire goes out once a cloud reaches 0.5 m past its edge (a smoke landing in fire, or
+    a molotov bursting under smoke).
+  - Grenades, clouds and fires are cleared when the map or the match phase changes. A player who joins mid-match
+    does not see clouds or fires already burning (they last seconds).
+  - Wire: `ThrowNews` (thrown, burst, doused, clear), the throw keys in the buttons, the hand in the predicted
+    items, the loadout's share per life: protocol 14.
+

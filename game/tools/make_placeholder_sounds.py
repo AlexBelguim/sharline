@@ -397,6 +397,73 @@ def announcer_streak(base, total, level):
     return norm(fade(x), level)
 
 
+def throw_whoosh():
+    # A grenade leaving the hand: a short rising whoosh of air and a cloth rustle.
+    total = 0.32
+    n = n_of(total)
+    air = band(noise(total, 1000), 500, 3500)
+    air = air / (np.max(np.abs(air)) + 1e-9) * env(n, 0.09, 0.07)
+    x = air * np.linspace(0.6, 1.0, n) + 0.3 * burst(total, 1001, 200, 1200, 0.005, 0.05)
+    return norm(fade(x, 0.002, 0.05), -12)
+
+
+def throw_bounce():
+    # A metal can or a bottle knocking on the ground.
+    total = 0.16
+    x = click(0.12, 1150, 1010, decay=0.02, noise_mix=0.5) + 0.6 * thump(210, 0.12, 0.03)
+    return norm(fade(at(total, 0.0, x)), -10)
+
+
+def smoke_pop():
+    # The smoke canister going off: a dull pop, then a long pressurised hiss that fades.
+    total = 1.8
+    n = n_of(total)
+    pop = thump(120, total, 0.06) + 0.5 * burst(total, 1020, 200, 2000, 0.001, 0.03)
+    hiss = band(noise(total, 1021), 2500, 10000)
+    hiss = hiss / (np.max(np.abs(hiss)) + 1e-9) * env(n, 0.05, 0.6, hold=0.3)
+    return norm(fade(pop + 0.55 * hiss, 0.001, 0.2), -9)
+
+
+def molotov_burst():
+    # A bottle smashing and the fuel catching: glass tinkles over a low whoomp swelling up.
+    total = 1.2
+    n = n_of(total)
+    r = rng(1030)
+    x = np.zeros(n)
+    for _ in range(22):
+        t = r.uniform(0, 0.25) * r.uniform(0.2, 1.0)
+        f = r.uniform(2500, 7500)
+        x += at(total, t, sine(f, 0.15) * env(n_of(0.15), 0.0005, r.uniform(0.015, 0.05))) * r.uniform(0.2, 0.7)
+    whoomp = lowpass(noise(total, 1031), 500)
+    whoomp = whoomp / (np.max(np.abs(whoomp)) + 1e-9) * env(n, 0.12, 0.35)
+    x += 0.9 * whoomp + 0.5 * thump(70, total, 0.15)
+    return norm(fade(x, 0.001, 0.15), -7)
+
+
+def fire_loop():
+    # Loop: a bed of roaring flame and crackles, all periodic over 2 s (seamless).
+    total = 2.0
+    n = n_of(total)
+    roar = lowpass(noise(total, 1040), 900)
+    roar = roar / (np.max(np.abs(roar)) + 1e-9) * periodic_lfo(n, 5, 0.35)
+    r = rng(1041)
+    crack = np.zeros(n)
+    hits = r.integers(0, n, size=60)
+    crack[hits] = r.uniform(-1, 1, size=len(hits))
+    crack = band(crack, 1500, 7000)
+    crack /= np.max(np.abs(crack)) + 1e-9
+    return norm(0.7 * roar + 0.5 * crack, -12)
+
+
+def douse():
+    # Fire put out: a steamy hiss falling away.
+    total = 0.9
+    n = n_of(total)
+    x = band(noise(total, 1050), 1800, 9000)
+    x = x / (np.max(np.abs(x)) + 1e-9) * env(n, 0.01, 0.3)
+    return norm(fade(x, 0.002, 0.1), -11)
+
+
 def damage_taken():
     total = 0.35
     x = thump(70, total, 0.12) + 0.6 * burst(total, 790, 40, 450, 0.002, 0.06)
@@ -503,6 +570,12 @@ def sounds():
     s["announcer/streak_5"] = announcer_streak(523.0, 0.8, -11)
     s["announcer/streak_10"] = announcer_streak(659.0, 1.1, -10)
     s["items/heal"] = heal()
+    s["throw/throw"] = throw_whoosh()
+    s["throw/bounce"] = throw_bounce()
+    s["throw/smoke_pop"] = smoke_pop()
+    s["throw/molotov_burst"] = molotov_burst()
+    s["throw/fire_loop"] = fire_loop()
+    s["throw/douse"] = douse()
     s["ui/click"] = ui_click()
     s["ui/hover"] = ui_hover()
     s["ui/confirm"] = ui_confirm()

@@ -32,6 +32,8 @@ pub enum Action {
     Signature,
     Ultimate,
     Heal,
+    ThrowSmoke,
+    ThrowMolotov,
     Scoreboard,
     Ping,
     Chat,
@@ -39,7 +41,7 @@ pub enum Action {
 }
 
 impl Action {
-    pub const ALL: [Action; 28] = [
+    pub const ALL: [Action; 30] = [
         Action::MoveForward,
         Action::MoveLeft,
         Action::MoveBack,
@@ -64,6 +66,8 @@ impl Action {
         Action::Signature,
         Action::Ultimate,
         Action::Heal,
+        Action::ThrowSmoke,
+        Action::ThrowMolotov,
         Action::Scoreboard,
         Action::Ping,
         Action::Chat,
@@ -97,6 +101,8 @@ impl Action {
             Signature => "Signature",
             Ultimate => "Ultimate",
             Heal => "Heal",
+            ThrowSmoke => "Smoke grenade",
+            ThrowMolotov => "Molotov",
             Scoreboard => "Scoreboard",
             Ping => "Ping",
             Chat => "Chat",
@@ -336,10 +342,20 @@ impl Keybinds {
         self.0.insert(a, v);
     }
 
-    /// Actions a newer build added keep their defaults in an older settings file.
+    /// Actions a newer build added keep their defaults in an older settings file, except an input the player
+    /// already uses for another action (that slot stays empty: no clash is made).
     pub fn fill_missing(&mut self, defaults: &Keybinds) {
+        let mut added = Vec::new();
         for (a, v) in &defaults.0 {
-            self.0.entry(*a).or_insert(*v);
+            if !self.0.contains_key(a) {
+                added.push((*a, *v));
+            }
+        }
+        for (a, v) in added {
+            let shares = |o: &Action| ALLOWED_SHARES.iter().any(|(x, y)| (*x == a && y == o) || (*y == a && x == o));
+            let taken = |b: &Binding| self.0.iter().any(|(o, slots)| !shares(o) && slots.contains(&Some(*b)));
+            let free = v.map(|b| b.filter(|b| !taken(b)));
+            self.0.insert(a, free);
         }
     }
 
@@ -509,5 +525,19 @@ mod tests {
         user.set(Action::Jump, 0, None);
         user.fill_missing(&defaults);
         assert_eq!(user.slot(Action::Jump, 0), None, "a cleared binding stays cleared");
+    }
+
+    /// An action added since a settings file was saved takes its default key, unless the player already uses that
+    /// key for something else: then it stays unbound (no clash is made).
+    #[test]
+    fn a_new_action_never_takes_a_key_in_use() {
+        let four = Some(Binding::Key(KeyCode::Digit4));
+        let five = Some(Binding::Key(KeyCode::Digit5));
+        let defaults = kb(&[(Action::ThrowSmoke, four, None), (Action::ThrowMolotov, five, None)]);
+        let mut user = kb(&[(Action::Melee, four, None)]);
+        user.fill_missing(&defaults);
+        assert_eq!(user.slot(Action::ThrowSmoke, 0), None, "4 is the player's melee");
+        assert_eq!(user.slot(Action::ThrowMolotov, 0), five);
+        assert!(user.conflicts().is_empty(), "{:?}", user.conflicts());
     }
 }

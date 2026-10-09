@@ -108,12 +108,16 @@ pub struct ItemUse {
     pub total: u16,
 }
 
-/// Item counts and the item in use. Predicted by the owner, authoritative on the host.
+/// Item counts and the item in use, and the throwables in hand. Predicted by the owner, authoritative on the
+/// host.
 #[derive(Debug, Clone, PartialEq, Default, Serialize, Deserialize)]
 pub struct ItemState {
     /// Items left per kit slot.
     pub counts: Vec<u8>,
     pub using: Option<ItemUse>,
+    /// Smoke grenades and molotovs left this life, and a throw in progress.
+    #[serde(default)]
+    pub throw: crate::throwable::ThrowHand,
 }
 
 /// What happened this tick.
@@ -142,8 +146,14 @@ pub fn encode_pick(slot: u8, zone: Option<Zone>) -> (u8, u8) {
 }
 
 impl ItemState {
+    /// A kit's items, and no throwables.
     pub fn new(kit: &[KitSlot]) -> Self {
-        Self { counts: kit.iter().map(|k| k.count).collect(), using: None }
+        Self { counts: kit.iter().map(|k| k.count).collect(), using: None, throw: Default::default() }
+    }
+
+    /// A fresh life of `loadout`: its kit's items and its throwables.
+    pub fn for_loadout(loadout: &crate::player::Loadout) -> Self {
+        Self { throw: crate::throwable::ThrowHand::new(loadout.throws), ..Self::new(&loadout.kit) }
     }
 
     pub fn count(&self, slot: u8) -> u8 {

@@ -1,0 +1,76 @@
+// Throwables: smoke grenades and molotovs (item 10b; vetf_sim/src/throwable.rs). Host-authoritative and
+// deterministic: the host flies every grenade, pops the smoke, lights and puts out the fire and deals the burn
+// damage; the thrower's own client flies its grenade at once along the same arc, and everyone else flies it from
+// the host's message. How many each life carries is in rules.ron (`throwables`). The look (puff and flame cards,
+// the light, bullet tunnels) is visual only, in throwable_fx.ron. Lengths are metres, times seconds.
+// Placeholders until playtests tune them.
+(
+    throw: (
+        // The key is pressed: the gun goes down and the arm winds up for windup_s, then the grenade leaves the
+        // hand; the gun comes back up recover_s later (plus the gun's usual raise from a lowered pose).
+        windup_s: 0.30,
+        recover_s: 0.35,
+        // Launch: speed along the aim, tilted lift_deg above it (a lob, so a level throw carries), plus a share
+        // of the thrower's own velocity (a running throw goes further).
+        speed_mps: 16.0,
+        lift_deg: 8.0,
+        inherit: 0.6,
+        // Where it leaves from, in view space from the eye: right, up, forward (the right hand, just ahead).
+        // Out of a wall's way: a hand inside a wall throws from the eye instead.
+        hand: (0.18, -0.12, 0.35),
+    ),
+    projectile: (
+        // A grenade is a small ball: it bounces off anything that stops players or bullets (not players).
+        radius_m: 0.06,
+        gravity: 14.0,
+        // A bounce keeps `restitution` of the speed into the surface (bounced back) and `friction` of the
+        // speed along it.
+        restitution: 0.35,
+        friction: 0.65,
+        // Slower than this on a floor (a surface facing up), it stops and lies there.
+        rest_speed_mps: 1.2,
+        // Still flying after this long, it goes off where it is.
+        max_flight_s: 6.0,
+    ),
+    smoke: (
+        // Pops this long after the throw, or as soon as it lies still, whichever comes first.
+        fuse_s: 2.0,
+        // The cloud: grows to radius_m (across) and height_m (half its height, its centre lift_m over where it
+        // popped) over grow_s, holds for hold_s, then thins out over fade_s.
+        radius_m: 4.5,
+        height_m: 2.6,
+        lift_m: 1.6,
+        grow_s: 1.5,
+        hold_s: 15.0,
+        fade_s: 3.0,
+        // It hides what is behind it from sight (bots, markers) while its density is at least this (0..1), for a
+        // line running at least sight_chord_m through it (the thin rim does not).
+        sight_min_density: 0.35,
+        sight_chord_m: 1.2,
+        // Smoke puts out fire: a burning area goes out once the cloud reaches douse_overlap_m past the fire's
+        // edge (a smoke landing in fire, or fire spreading under smoke).
+        douse_overlap_m: 0.5,
+    ),
+    molotov: (
+        // Bursts on its first impact. On a wall or a ceiling the fire takes the ground under the hit, up to
+        // ground_drop_m below it.
+        ground_drop_m: 4.0,
+        // The burning area spreads over the ground to radius_m in spread_s and burns for burn_s in all.
+        radius_m: 3.0,
+        spread_s: 0.6,
+        burn_s: 7.0,
+        // Anyone whose feet are in it (the thrower and teammates too) burns, from feet height up to height_m
+        // above the flames' ground.
+        height_m: 1.2,
+        // Burn damage: dps in pulses every pulse_s on `zone`, through the usual rules (an arc down or a broken
+        // limb spills into the torso). The zone's halo arc soaks shield_soak of each pulse while it holds; the
+        // rest burns through to health. At 40 dps a fresh player who stands in it for the whole burn just dies
+        // (legs 85 HP, then the torso's 120 through the 0.7 spill); stepping out in time leaves broken legs.
+        damage: (
+            dps: 40.0,
+            pulse_s: 0.25,
+            zone: legs,
+            shield_soak: 0.5,
+        ),
+    ),
+)

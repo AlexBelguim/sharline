@@ -275,6 +275,7 @@ pub(crate) fn drive_bots(
         &mut PlayerNet,
     )>,
     others: Query<(&PlayerId, &PlayerInfo, &PlayerMove, &PlayerLook, &Vitals)>,
+    throws: Option<Res<crate::throwables::HostThrows>>,
 ) {
     let Some(level) = level else { return };
     let t = &tuning.0;
@@ -309,7 +310,9 @@ pub(crate) fn drive_bots(
         let eye = mv.0.eye_pos();
         let enemies =
             heads.iter().filter(|(e, team, _)| *e != id.0 && hostile(info.team, *team)).map(|(e, _, h)| (*e, *h));
-        let seen = if armed { pick_target(t, &level.world, eye, enemies, bot.brain.target) } else { None };
+        // Smoke hides heads from bots as walls do.
+        let veiled = |a, b| throws.as_ref().is_some_and(|w| w.sight_blocked(&data.throwables, dt, a, b));
+        let seen = if armed { pick_target(t, &level.world, veiled, eye, enemies, bot.brain.target) } else { None };
         ctl.frame = bot.brain.think(t, eye, seen, &weapon.0, dt);
     }
 }

@@ -17,6 +17,7 @@ pub mod player;
 pub mod recoil;
 pub mod rng;
 pub mod streak;
+pub mod throwable;
 pub mod weapon;
 pub mod zone;
 

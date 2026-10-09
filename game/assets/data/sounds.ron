@@ -146,6 +146,30 @@
             files: ["items/heal.ogg"], category: Abilities, volume: 0.7, pitch_jitter: 0.03,
             spatial: true, ref_distance_m: 1.5, max_distance_m: 14.0,
         ),
+        // ------------------------------------------------------------------ throwables (WEAPONS slider; placeholders)
+        // Smoke grenades and molotovs (item 10b, src/throwables.rs). Your own throw is not spatial; the rest is heard
+        // from where it happens, everyone's alike. The fire loop plays while a fire burns.
+        "throw/throw": (files: ["throw/throw.ogg"], category: Weapons, volume: 0.6, pitch_jitter: 0.05),
+        "throw/bounce": (
+            files: ["throw/bounce.ogg"], category: Weapons, volume: 0.6, pitch_jitter: 0.08,
+            spatial: true, ref_distance_m: 2.0, max_distance_m: 30.0,
+        ),
+        "throw/smoke_pop": (
+            files: ["throw/smoke_pop.ogg"], category: Weapons, volume: 0.8, pitch_jitter: 0.04,
+            spatial: true, ref_distance_m: 4.0, max_distance_m: 60.0,
+        ),
+        "throw/molotov_burst": (
+            files: ["throw/molotov_burst.ogg"], category: Weapons, volume: 0.85, pitch_jitter: 0.04,
+            spatial: true, ref_distance_m: 4.0, max_distance_m: 70.0,
+        ),
+        "throw/fire_loop": (
+            files: ["throw/fire_loop.ogg"], category: Weapons, volume: 0.55,
+            spatial: true, ref_distance_m: 3.0, max_distance_m: 30.0, looped: true,
+        ),
+        "throw/douse": (
+            files: ["throw/douse.ogg"], category: Weapons, volume: 0.7, pitch_jitter: 0.05,
+            spatial: true, ref_distance_m: 3.0, max_distance_m: 40.0,
+        ),
         // ------------------------------------------------------------------ interface
         "ui/click": (files: ["ui/click.ogg"], category: Interface, volume: 0.7, pitch_jitter: 0.02),
         "ui/hover": (files: ["ui/hover.ogg"], category: Interface, volume: 0.5, pitch_jitter: 0.03),

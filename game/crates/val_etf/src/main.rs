@@ -36,6 +36,7 @@ mod showhome_ground;
 mod showhome_kit;
 mod sound;
 mod streaks;
+mod throwables;
 mod ui_kit;
 mod user_config;
 mod video;
@@ -136,6 +137,8 @@ fn main() -> AppExit {
     ));
     // Test bots the host runs (after the host's systems it orders itself around).
     app.add_plugins(bots::BotsPlugin);
+    // Smoke grenades and molotovs: each client's view of them (the host's side runs in the server's chain).
+    app.add_plugins(throwables::ThrowablesPlugin);
     // Showhome's hedges and lawn grass (after the map materials it reads).
     app.add_plugins(foliage::FoliagePlugin);
     // The art exports are already in Bevy's design frame; the ground interprets their RGBA blend masks.

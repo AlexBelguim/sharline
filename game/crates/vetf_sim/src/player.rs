@@ -6,6 +6,7 @@ use crate::input::InputFrame;
 use crate::items::{ItemEvents, ItemState, KitSlot};
 use crate::level::Level;
 use crate::movement::{self, MoveEvents, MoveMode, MoveModifiers, MoveState, Stance};
+use crate::throwable::{self, Launch, ThrowKind, ThrowKit};
 use crate::weapon::{WeaponAction, WeaponEnv, WeaponEvents, WeaponLoadout, WeaponState};
 use crate::zone::ZoneSet;
 use serde::{Deserialize, Serialize};
@@ -19,16 +20,32 @@ pub struct Loadout {
     pub weight: WeightClass,
     /// Healing items in heal-ring order.
     pub kit: Vec<KitSlot>,
+    /// Throwables each life starts with (the mode's, `rules.ron` `throwables`).
+    #[serde(default)]
+    pub throws: ThrowKit,
 }
 
 impl Loadout {
     pub fn new(weapon: WeaponLoadout, armor: &ArmorStats, kit: Vec<KitSlot>) -> Self {
-        Self { weapon, armor_id: armor.id.clone(), halo: HaloSpec::from_armor(armor), weight: armor.weight_class, kit }
+        Self {
+            weapon,
+            armor_id: armor.id.clone(),
+            halo: HaloSpec::from_armor(armor),
+            weight: armor.weight_class,
+            kit,
+            throws: ThrowKit::default(),
+        }
+    }
+
+    /// The same loadout carrying `throws` each life.
+    pub fn with_throws(self, throws: ThrowKit) -> Self {
+        Self { throws, ..self }
     }
 
     pub fn default_for(data: &GameData, mode: Mode) -> Self {
         let armor = data.armor.resolve_id(&data.rules.default_loadout.armor).expect("valid default armor");
         Self::new(WeaponLoadout::default_for(data), &armor, data.items.kit(mode))
+            .with_throws(data.rules.throw_kit(mode))
     }
 }
 
@@ -59,6 +76,16 @@ pub struct PlayerEvents {
     pub movement: MoveEvents,
     pub weapon: WeaponEvents,
     pub items: ItemEvents,
+    pub throw: ThrowEvents,
+}
+
+/// What the throwing hand did this tick.
+#[derive(Debug, Clone, Copy, PartialEq, Default)]
+pub struct ThrowEvents {
+    /// A throw key started a wind-up.
+    pub started: Option<ThrowKind>,
+    /// A grenade left the hand (the host flies it; the thrower's client flies its own at once).
+    pub launched: Option<Launch>,
 }
 
 /// What changes a player's speed: the gun they carry, an item in use, wounds and the halo's weight. Aiming and
@@ -121,15 +148,32 @@ pub fn step(
     let mut env = weapon_env(data, ms, wounds);
     let lowered = env.sprinting || env.mode == MoveMode::Mantle;
     let hands_free = matches!(ws.action, WeaponAction::Ready | WeaponAction::MagChecking { .. });
-    let item_ev = items.step(&data.items, &loadout.kit, &input, hands_free, lowered, data.net.tick_hz);
+    // No item while a throw is in hand.
+    let throwing = items.throw.busy();
+    let item_ev = items.step(&data.items, &loadout.kit, &input, hands_free && !throwing, lowered, data.net.tick_hz);
     // The gun stays down while an item is in hand and on the tick it is put away, except when a reload
     // cancelled it: that one-tick request must reach the weapon, or it would be lost.
     let reload_request = input.buttons.held(crate::input::Buttons::RELOAD) || input.reload_slot != 0;
-    env.hands_busy = items.using.is_some() || item_ev.finished.is_some() || (item_ev.cancelled && !reload_request);
+    // A throw: with the gun idle (not reloading), no item in hand, and not mantling (a sprint is fine).
+    let can_throw = hands_free
+        && items.using.is_none()
+        && item_ev.finished.is_none()
+        && !reload_request
+        && ms.mode != MoveMode::Mantle;
+    let hand = items.throw.step(&data.throwables.throw, input.buttons, can_throw, data.net.tick_hz);
+    let launched = hand.released.map(|(kind, seq)| {
+        let (origin, vel) =
+            throwable::launch(&data.throwables.throw, &level.world, ms.eye_pos(), ms.vel, input.yaw, input.pitch);
+        Launch { kind, seq, origin, vel }
+    });
+    env.hands_busy = items.using.is_some()
+        || item_ev.finished.is_some()
+        || (item_ev.cancelled && !reload_request)
+        || items.throw.busy();
     let weapon = ws.step(data, &loadout.weapon, &input, &env);
     wounds.tag_slow_s = (wounds.tag_slow_s - dt).max(0.0);
     wounds.volt_slow_s = (wounds.volt_slow_s - dt).max(0.0);
-    PlayerEvents { movement, weapon, items: item_ev }
+    PlayerEvents { movement, weapon, items: item_ev, throw: ThrowEvents { started: hand.started, launched } }
 }
 
 #[cfg(test)]
@@ -333,5 +377,79 @@ mod tests {
         }
         assert_eq!(d.rules.rulesets.range, Ruleset::FULL, "the range runs the full extraction rules");
         assert!(!d.rules.rulesets.tdm.regional_items);
+    }
+
+    /// Every life in team deathmatch and free-for-all starts with the rules' smokes and molotovs (1 and 1), the gun
+    /// range with its practice share; a fresh life's hand holds them.
+    #[test]
+    fn each_life_starts_with_the_modes_throwables() {
+        let d = GameData::embedded();
+        for mode in [Mode::Tdm, Mode::Ffa] {
+            let l = Loadout::default_for(&d, mode);
+            assert_eq!(l.throws, ThrowKit { smoke: 1, molotov: 1 }, "{mode:?}");
+            assert_eq!(l.throws, d.rules.throw_kit(mode));
+            let items = ItemState::for_loadout(&l);
+            assert_eq!(items.throw.left, l.throws);
+            assert!(!items.throw.busy());
+        }
+        let range = Loadout::default_for(&d, Mode::Range);
+        assert_eq!(range.throws, d.rules.range_throwables);
+        assert!(range.throws.total() > 0);
+        // The plain kit constructor carries none (old saves, tests).
+        assert_eq!(ItemState::new(&range.kit).throw.left, ThrowKit::default());
+    }
+
+    /// A throw through the player step: the key starts the wind-up and takes one, the gun is down (no shot)
+    /// until the recovery is over, the grenade leaves after the wind-up from ahead of the eye with the next
+    /// number, and with none left the key does nothing.
+    #[test]
+    fn throwing_lowers_the_gun_and_launches_once() {
+        let d = GameData::embedded();
+        let level = flat();
+        let l = Loadout::default_for(&d, Mode::Tdm);
+        let mut ms = MoveState::spawn(Vec3::ZERO, 1.6);
+        let mut ws = WeaponState::new(&d, &l.weapon);
+        let mut items = ItemState::for_loadout(&l);
+        let mut wounds = Wounds::default();
+        // Let the gun come up first.
+        for _ in 0..120 {
+            step(&d, &level, &l, &mut ms, &mut ws, &mut items, &mut wounds, &InputFrame::default());
+        }
+        let throw_fire = InputFrame { buttons: Buttons(Buttons::THROW_SMOKE | Buttons::FIRE), ..Default::default() };
+        let ev = step(&d, &level, &l, &mut ms, &mut ws, &mut items, &mut wounds, &throw_fire);
+        assert_eq!(ev.throw.started, Some(ThrowKind::Smoke));
+        assert_eq!(items.throw.left.smoke, 0);
+        let mut launched = Vec::new();
+        let mut shots = 0;
+        let fire = InputFrame { buttons: Buttons(Buttons::FIRE), ..Default::default() };
+        let busy_ticks = crate::weapon::secs_to_ticks(d.throwables.throw.windup_s + d.throwables.throw.recover_s, 60);
+        for _ in 0..busy_ticks {
+            let ev = step(&d, &level, &l, &mut ms, &mut ws, &mut items, &mut wounds, &fire);
+            shots += ev.weapon.shot.is_some() as u32;
+            launched.extend(ev.throw.launched);
+        }
+        assert_eq!(shots, 0, "no shot while the arm is busy");
+        assert_eq!(launched.len(), 1);
+        let g = launched[0];
+        assert_eq!((g.kind, g.seq), (ThrowKind::Smoke, 1));
+        assert!(g.origin.distance(ms.eye_pos()) < 0.6 && g.vel.length() > 10.0, "{g:?}");
+        // The smoke key again: none left.
+        let none = InputFrame::default();
+        step(&d, &level, &l, &mut ms, &mut ws, &mut items, &mut wounds, &none);
+        let smoke = InputFrame { buttons: Buttons(Buttons::THROW_SMOKE), ..Default::default() };
+        assert_eq!(step(&d, &level, &l, &mut ms, &mut ws, &mut items, &mut wounds, &smoke).throw.started, None);
+        // The molotov still throws, numbered 2.
+        let molotov = InputFrame { buttons: Buttons(Buttons::THROW_MOLOTOV), ..Default::default() };
+        assert_eq!(
+            step(&d, &level, &l, &mut ms, &mut ws, &mut items, &mut wounds, &molotov).throw.started,
+            Some(ThrowKind::Molotov)
+        );
+        let mut seq = None;
+        for _ in 0..60 {
+            if let Some(g) = step(&d, &level, &l, &mut ms, &mut ws, &mut items, &mut wounds, &none).throw.launched {
+                seq = Some(g.seq);
+            }
+        }
+        assert_eq!(seq, Some(2));
     }
 }

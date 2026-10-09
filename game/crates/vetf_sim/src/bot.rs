@@ -89,18 +89,20 @@ pub struct Seen {
     pub head: Vec3,
 }
 
-/// The enemy head the bot shoots at: of the `heads` (enemies' ids and head centres) within range and with
-/// nothing that stops bullets between `eye` and the head, the one it is already on (`current`), else the nearest.
+/// The enemy head the bot shoots at: of the `heads` (enemies' ids and head centres) within range, with nothing
+/// that stops bullets between `eye` and the head and no smoke hiding it (`veiled(eye, head)`, see
+/// [`crate::throwable::ThrowWorld::sight_blocked`]), the one it is already on (`current`), else the nearest.
 pub fn pick_target(
     t: &BotTuning,
     world: &CollisionWorld,
+    veiled: impl Fn(Vec3, Vec3) -> bool,
     eye: Vec3,
     heads: impl IntoIterator<Item = (u64, Vec3)>,
     current: Option<u64>,
 ) -> Option<Seen> {
     let visible: Vec<Seen> = heads
         .into_iter()
-        .filter(|(_, h)| h.distance(eye) <= t.range_m && world.line_of_sight(eye, *h))
+        .filter(|(_, h)| h.distance(eye) <= t.range_m && world.line_of_sight(eye, *h) && !veiled(eye, *h))
         .map(|(id, head)| Seen { id, head })
         .collect();
     visible
@@ -306,13 +308,45 @@ mod tests {
         let walled = (2, Vec3::new(20.0, 1.6, 0.0));
         let far = (3, Vec3::new(0.0, 1.6, t.range_m + 5.0));
         let near = (4, Vec3::new(-8.0, 1.6, 0.0));
-        let pick = |heads: &[(u64, Vec3)], cur| pick_target(&t, &world, eye, heads.iter().copied(), cur);
+        let pick = |heads: &[(u64, Vec3)], cur| pick_target(&t, &world, |_, _| false, eye, heads.iter().copied(), cur);
         assert_eq!(pick(&[open], None).map(|s| s.id), Some(1), "in sight");
         assert_eq!(pick(&[walled], None), None, "out of sight");
         assert_eq!(pick(&[far], None), None, "out of range");
         assert_eq!(pick(&[open, walled, far, near], None).map(|s| s.id), Some(4), "the nearest");
         assert_eq!(pick(&[open, near], Some(1)).map(|s| s.id), Some(1), "the one it is on");
         assert_eq!(pick(&[open, near], Some(2)).map(|s| s.id), Some(4), "its old one is gone");
+    }
+
+    /// Smoke hides a head from the bot like a wall does: a cloud between them and it sees nothing (and keeps to
+    /// a head it can still see); once the cloud thins out it sees again.
+    #[test]
+    fn smoke_hides_heads_from_the_bot() {
+        use crate::throwable::{Smoke, ThrowId, ThrowWorld};
+        let d = GameData::embedded();
+        let t = tuning();
+        let world = CollisionWorld::default();
+        let eye = Vec3::new(0.0, 1.6, 0.0);
+        let s = &d.throwables.smoke;
+        let grown = (s.grow_s / DT) as u32 + 1;
+        let mut smoke = ThrowWorld::default();
+        smoke.smokes.push(Smoke { id: ThrowId { owner: 1, seq: 1 }, at: Vec3::new(0.0, 0.0, -10.0), age: grown });
+        let behind = (1, Vec3::new(0.0, 1.6, -20.0));
+        let beside = (2, Vec3::new(-20.0, 1.6, 0.0));
+        let pick = |w: &ThrowWorld, heads: &[(u64, Vec3)], cur| {
+            let veiled = |a, b| w.sight_blocked(&d.throwables, DT, a, b);
+            pick_target(&t, &world, veiled, eye, heads.iter().copied(), cur).map(|s| s.id)
+        };
+        assert_eq!(pick(&smoke, &[behind], None), None, "behind the smoke");
+        assert_eq!(pick(&smoke, &[behind, beside], Some(1)), Some(2), "it turns to the one it can see");
+        smoke.smokes[0].age = ((s.grow_s + s.hold_s + s.fade_s * 0.95) / DT) as u32;
+        assert_eq!(pick(&smoke, &[behind], None), Some(1), "the smoke has thinned out");
+        // And the brain does not fire on a head it cannot see: no target, no trigger.
+        let mut brain = BotBrain::new(0.0, 0.0, 1);
+        let w = gun(&d);
+        for _ in 0..240 {
+            let f = brain.think(&t, eye, None, &w, DT);
+            assert!(!f.buttons.held(Buttons::FIRE));
+        }
     }
 
     /// Nothing before the reaction time; then it turns at its turn speed (never faster), and fires once on target.

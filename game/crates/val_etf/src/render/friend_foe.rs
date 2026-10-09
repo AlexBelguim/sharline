@@ -140,7 +140,13 @@ pub fn marker_alpha(m: &MarkerData, distance_m: f32) -> f32 {
 
 /// Whether the camera at `eye` sees any of `points` (a player's sight heights) past the map's walls.
 pub fn in_sight(world: &CollisionWorld, eye: Vec3, points: &[Vec3]) -> bool {
-    points.iter().any(|p| world.line_of_sight(eye, *p))
+    in_clear_sight(world, eye, points, |_, _| false)
+}
+
+/// [`in_sight`], with smoke too: `veiled(eye, p)` says smoke hides `p` (`throwables::ThrowView::veiled`). A
+/// teammate inside or behind a smoke cloud gets their marker, as one behind a wall does.
+pub fn in_clear_sight(world: &CollisionWorld, eye: Vec3, points: &[Vec3], veiled: impl Fn(Vec3, Vec3) -> bool) -> bool {
+    points.iter().any(|p| world.line_of_sight(eye, *p) && !veiled(eye, *p))
 }
 
 /// A player's sight points: `heights` above the feet, squashed like the body when crouched or sliding.
@@ -295,8 +301,11 @@ fn place_ally_markers(
     mut markers: Query<(Entity, &AllyMarker, &mut Node, &mut Visibility), Without<MarkerLayer>>,
     mut texts: Query<(&mut Text, &mut TextColor, &mut TextShadow)>,
     mut dots: Query<&mut BackgroundColor>,
+    (game, throws): (Res<crate::config::Data>, Option<Res<crate::throwables::ThrowView>>),
 ) {
     let Some((layer, mut layer_vis)) = layer.iter_mut().next() else { return };
+    let dt = game.tick_dt();
+    let veiled = |a: Vec3, b: Vec3| throws.as_ref().is_some_and(|t| t.veiled(&game.throwables, dt, a, b));
     // Hidden with the HUD while a hub screen is open over the match.
     layer_vis.set_if_neq(if screens.is_empty() { Visibility::Inherited } else { Visibility::Hidden });
     let m = &data.marker;
@@ -311,7 +320,7 @@ fn place_ally_markers(
                 continue;
             }
             let points = sight_points(mv.0.pos, mv.0.stance, &m.sight_heights_m);
-            if in_sight(&level.world, cam.translation, &points) {
+            if in_clear_sight(&level.world, cam.translation, &points, veiled) {
                 continue;
             }
             let top = points.iter().map(|p| p.y).fold(mv.0.pos.y, f32::max);
@@ -690,6 +699,15 @@ mod tests {
         assert!(!in_sight(&w, eye, &sight_points(behind, Stance::Crouch, heights)), "crouched behind it");
         let beside = Vec3::new(6.0, 0.0, -9.0);
         assert!(in_sight(&w, eye, &sight_points(beside, Stance::Stand, heights)), "beside the wall");
+        // Smoke hides a teammate as a wall does (their marker shows).
+        let smoke = |a: Vec3, b: Vec3| {
+            use vetf_sim::throwable::{Smoke, ThrowId, sight_blocked};
+            let g = vetf_sim::GameData::embedded();
+            let cloud = Smoke { id: ThrowId { owner: 1, seq: 1 }, at: Vec3::new(6.0, 0.0, -5.0), age: 300 };
+            sight_blocked(&[cloud], &g.throwables, 1.0 / 60.0, a, b)
+        };
+        assert!(!in_clear_sight(&w, eye, &sight_points(beside, Stance::Stand, heights), smoke), "in the smoke");
+        assert!(in_clear_sight(&w, eye, &sight_points(beside, Stance::Stand, heights), |_, _| false));
         // on a 1 m step behind the wall the head shows over it
         let raised = Vec3::new(0.0, 1.0, -9.0);
         assert!(in_sight(&w, Vec3::new(0.0, 2.6, 0.0), &sight_points(raised, Stance::Stand, heights)));

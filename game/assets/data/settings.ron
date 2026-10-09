@@ -109,7 +109,8 @@
         ),
         // Today's controls (game/README.md). Esc is the match menu and not bindable; 1-6 pick a magazine
         // while the reload radial is open. Auto-sprint is on, so Shift walks and Sprint (Alt) is for players who
-        // turn it off; scoped, Shift also holds your breath. B heals, H switches the fire mode.
+        // turn it off; scoped, Shift also holds your breath. B heals, H switches the fire mode, 4 throws a smoke
+        // and 5 a molotov.
         keybinds: {
             MoveForward: (Some("KeyW"), None),
             MoveLeft: (Some("KeyA"), None),
@@ -136,6 +137,10 @@
             Signature: (Some("KeyE"), None),
             Ultimate: (Some("KeyX"), None),
             Heal: (Some("KeyB"), None),
+            // Smoke grenade and molotov (item 10b): the number row next to melee. While the reload radial is open
+            // its 1-6 pick a magazine instead (no throw).
+            ThrowSmoke: (Some("Digit4"), None),
+            ThrowMolotov: (Some("Digit5"), None),
             Scoreboard: (Some("Tab"), None),
             Ping: (Some("MouseMiddle"), Some("KeyZ")),
             Chat: (Some("Enter"), Some("KeyY")),

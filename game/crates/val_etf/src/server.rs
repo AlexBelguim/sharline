@@ -35,6 +35,8 @@ impl Plugin for ServerPlugin {
             .add_message::<PlayerDied>()
             .add_message::<FeedOut>()
             .add_message::<StreakOut>()
+            .add_message::<crate::throwables::ThrowLaunched>()
+            .init_resource::<crate::throwables::HostThrows>()
             .add_observer(on_new_link)
             .add_observer(on_link_connected)
             .add_observer(on_link_lost)
@@ -58,6 +60,7 @@ impl Plugin for ServerPlugin {
                 FixedUpdate,
                 (
                     resolve_claims,
+                    crate::throwables::host_step,
                     handle_deaths,
                     send_kill_feed,
                     send_streak_news,
@@ -393,7 +396,7 @@ pub(crate) fn new_player(
         PlayerMove(MoveState::spawn(spawn.pos, loadout_fuel(data, &loadout))),
         PlayerLook { yaw: spawn.yaw, pitch: 0.0 },
         PlayerWeapon(WeaponState::new(data, &loadout.weapon)),
-        PlayerItems(ItemState::new(&loadout.kit)),
+        PlayerItems(ItemState::for_loadout(&loadout)),
         fresh_vitals(data, &loadout, mode),
         PlayerLoadout(loadout),
         Score::default(),
@@ -553,7 +556,7 @@ pub fn loadout_from_choice(data: &GameData, choice: &LoadoutChoice, mode: MatchM
         return Err(LoadoutError::OverBudget { cost, budget });
     }
     let armor = data.armor.resolve_halo(&choice.halo);
-    Ok(Loadout::new(weapon, &armor, data.items.kit(mode)))
+    Ok(Loadout::new(weapon, &armor, data.items.kit(mode)).with_throws(data.rules.throw_kit(mode)))
 }
 
 /// The running match's rules (full rules before the match entity exists).
@@ -579,7 +582,7 @@ type Gear<'a> =
 fn equip(data: &GameData, l: Loadout, mode: MatchMode, gear: Gear) {
     let (mut lo, mut w, mut it, mut v, mut mv) = gear;
     *w = PlayerWeapon(WeaponState::new(data, &l.weapon));
-    *it = PlayerItems(ItemState::new(&l.kit));
+    *it = PlayerItems(ItemState::for_loadout(&l));
     *v = fresh_vitals(data, &l, mode);
     mv.0.fuel = loadout_fuel(data, &l);
     *lo = PlayerLoadout(l);
@@ -973,6 +976,7 @@ pub(crate) fn simulate_authoritative(
     mut feedback: ResMut<crate::client::Feedback>,
     mut claims: ResMut<PendingClaims>,
     infos: Query<&PlayerInfo>,
+    mut launches: MessageWriter<crate::throwables::ThrowLaunched>,
 ) {
     let Some(level) = level else { return };
     let rules = match_rules(&matches);
@@ -1049,6 +1053,11 @@ pub(crate) fn simulate_authoritative(
         }
 
         sp.history.push(tick, Pose { pos: mv.0.pos, yaw: look.yaw, stance: mv.0.stance }, keep);
+        // A grenade left the hand: the host flies it (`throwables::host_step`).
+        if let Some(launch) = ev.throw.launched {
+            vitals.protected_s = 0.0;
+            launches.write(crate::throwables::ThrowLaunched { owner: id.0, launch });
+        }
 
         if let Some(shot) = ev.weapon.shot {
             debug!("{:x} fired shot {} at tick {tick}", id.0, shot.seq);
@@ -1126,6 +1135,7 @@ pub(crate) fn simulate_authoritative(
         // tracers and bullet holes here (its own shots go through `LocalShot` like everyone's).
         if !s.local {
             feedback.tracers.push((s.origin, end, 0.0, false));
+            feedback.bullet_paths.push((s.origin, end));
             if let Some(normal) = impact {
                 feedback.impacts.push((end, normal));
             }
@@ -2506,7 +2516,7 @@ fn respawn_players(
         mv.0 = MoveState::spawn(spawn.pos, loadout_fuel(&data, &lo.0));
         *look = PlayerLook { yaw: spawn.yaw, pitch: 0.0 };
         w.0 = WeaponState::new(&data, &lo.0.weapon);
-        it.0 = ItemState::new(&lo.0.kit);
+        it.0 = ItemState::for_loadout(&lo.0);
         sp.history.clear();
         sp.shots.clear();
         sp.last_attacker = None;
@@ -3177,6 +3187,7 @@ mod bot_tests {
         app.world_mut().spawn((Name::new("Server"), Server::default(), Linked, Started));
         app.add_message::<PlayerDied>().add_message::<LocalShot>().add_message::<LocalPlayerEvents>();
         app.add_message::<FeedOut>().add_message::<StreakOut>();
+        app.add_message::<crate::throwables::ThrowLaunched>().init_resource::<crate::throwables::HostThrows>();
         let d = GameData::embedded();
         let rules = d.rules.deathmatch(mode);
         app.world_mut().spawn(MatchState {
@@ -3204,6 +3215,7 @@ mod bot_tests {
                 crate::bots::drive_bots,
                 simulate_authoritative,
                 resolve_claims,
+                crate::throwables::host_step,
                 handle_deaths,
                 respawn_players,
             )
@@ -3360,6 +3372,107 @@ mod bot_tests {
         assert_eq!(bots(&mut app).iter().map(|b| b.1).collect::<Vec<_>>(), [2]);
         assert_eq!(players(&mut app), 4);
         assert_eq!(seats.free(), 1, "one bot left: one more joiner fits");
+    }
+
+    /// Smoke hides the host from a bot: with a cloud between them it never fires; once the smoke is gone it does.
+    #[test]
+    fn a_bot_does_not_see_through_smoke() {
+        use crate::throwables::HostThrows;
+        use vetf_sim::throwable::{Smoke, ThrowId};
+        let d = GameData::embedded();
+        let mut app = host(MatchMode::Ffa, MatchPhase::Live, 8);
+        let me = host_player(&mut app, Vec3::new(0.0, 0.0, -15.0), None);
+        request(&mut app, BotRequest::Add, 1);
+        tick(&mut app);
+        let grown = (d.throwables.smoke.grow_s / d.tick_dt()) as u32 + 1;
+        let cloud = Smoke { id: ThrowId { owner: 0, seq: 1 }, at: Vec3::new(0.0, 0.0, -7.5), age: grown };
+        app.world_mut().resource_mut::<HostThrows>().world.smokes.push(cloud);
+        let full = *app.world().get::<Vitals>(me).unwrap();
+        for _ in 0..600 {
+            tick(&mut app);
+            let bot = bots(&mut app)[0].0;
+            let fire = app.world().get::<BotControl>(bot).unwrap().frame.buttons.held(Buttons::FIRE);
+            assert!(!fire, "no shot into the smoke");
+        }
+        let v = *app.world().get::<Vitals>(me).unwrap();
+        assert_eq!((v.health, v.halo.shield), (full.health, full.halo.shield), "untouched behind the smoke");
+        app.world_mut().resource_mut::<HostThrows>().world.smokes.clear();
+        let mut hurt = false;
+        for _ in 0..600 {
+            tick(&mut app);
+            let v = app.world().get::<Vitals>(me).unwrap();
+            hurt |= v.health != full.health || v.halo.shield != full.halo.shield;
+        }
+        assert!(hurt, "with the smoke gone, it shoots");
+    }
+
+    /// Fire burns whoever stands in it, over time, through the halo and health: a fire the host threw kills the
+    /// host with nobody credited (a suicide, cause FIRE); an enemy's fire gives that enemy the kill. Someone
+    /// standing beside it is untouched.
+    #[test]
+    fn fire_burns_over_time_and_credits_an_enemy_thrower() {
+        use crate::throwables::HostThrows;
+        use vetf_sim::throwable::{Fire, ThrowId};
+        let d = GameData::embedded();
+        let fd = d.throwables.molotov.damage;
+        for thrower_is_bot in [false, true] {
+            let mut app = host(MatchMode::Ffa, MatchPhase::Live, 8);
+            // A blind bot (it sees nobody): only the fire hurts here.
+            app.insert_resource(Tuning(BotTuning { range_m: 0.01, ..BotTuning::embedded() }));
+            let me = host_player(&mut app, Vec3::new(0.0, 0.0, -15.0), None);
+            request(&mut app, BotRequest::Add, 1);
+            tick(&mut app);
+            let bot = bots(&mut app)[0].0;
+            let owner = if thrower_is_bot { bot_id(1) } else { 0 };
+            // Past the spawn protection.
+            for _ in 0..(d.rules.ffa.spawn_protection_s / d.tick_dt()) as u32 + 2 {
+                tick(&mut app);
+            }
+            let fire = Fire { id: ThrowId { owner, seq: 1 }, at: Vec3::new(0.0, 0.0, -15.0), age: 60 };
+            app.world_mut().resource_mut::<HostThrows>().world.fires.push(fire);
+            let full = *app.world().get::<Vitals>(me).unwrap();
+            let left = |app: &App| {
+                let v = app.world().get::<Vitals>(me).unwrap();
+                v.health.hp.iter().map(|(_, h)| h.max(0.0)).sum::<f32>() + v.halo.total()
+            };
+            let before = left(&app);
+            // One second in it: four pulses' worth of damage, between the halo arc and health.
+            for _ in 0..60 {
+                tick(&mut app);
+            }
+            let pulse = fd.dps * fd.pulse_s;
+            let lost = before - left(&app);
+            assert!(lost >= pulse * 3.5 && lost <= pulse * 4.5 + 1.0, "{lost} for {pulse} a pulse");
+            assert!(app.world().get::<Vitals>(me).unwrap().health.hp[fd.zone] < full.health.hp[fd.zone]);
+            // Already hurt badly: the fire finishes them.
+            {
+                let mut v = app.world_mut().get_mut::<Vitals>(me).unwrap();
+                v.health.hp.legs = 0.0;
+                v.health.hp.torso = 12.0;
+            }
+            let mut died = false;
+            for _ in 0..120 {
+                tick(&mut app);
+                died |= app.world().get::<Vitals>(me).unwrap().health.dead;
+                if died {
+                    break;
+                }
+            }
+            assert!(died, "burnt to death");
+            let bot_v = app.world().get::<Vitals>(bot).unwrap();
+            assert_eq!(bot_v.health.hp, Health::new(d.armor.zone_hp).hp, "the bot away from it is untouched");
+            let sp = app.world().get::<ServerPlayer>(me).unwrap();
+            assert_eq!(app.world().get::<Score>(me).unwrap().deaths, 1);
+            let kills = app.world().get::<Score>(bot).unwrap().kills;
+            if thrower_is_bot {
+                assert_eq!(kills, 1, "the enemy thrower gets the kill");
+                assert_eq!(sp.death.and_then(|(k, _)| k), Some(bot_id(1)));
+            } else {
+                assert_eq!(kills, 0);
+                assert_eq!(sp.death.and_then(|(k, _)| k), None, "burning yourself is nobody's kill");
+            }
+            assert!(!sp.life.taken.is_empty(), "the recap lists the burns");
+        }
     }
 
     /// A live free-for-all: the bot sees the host's head, turns, fires; its shots go through the host's normal

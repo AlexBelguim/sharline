@@ -1102,6 +1102,9 @@ pub struct RulesFile {
     pub streaks: crate::streak::StreakRules,
     pub rulesets: Rulesets,
     pub default_loadout: LoadoutSpec,
+    /// Throwables every life starts with in the gun range (practice).
+    #[serde(default)]
+    pub range_throwables: crate::throwable::ThrowKit,
 }
 
 /// What a mode switches on. Team deathmatch is the gunplay and netcode test bed: per-region shields and
@@ -1172,6 +1175,15 @@ impl RulesFile {
         match mode {
             Mode::Ffa => &self.ffa,
             Mode::Tdm | Mode::Range => &self.tdm,
+        }
+    }
+
+    /// The throwables each life starts with in `mode` (team deathmatch and free-for-all: their `throwables`).
+    pub fn throw_kit(&self, mode: Mode) -> crate::throwable::ThrowKit {
+        match mode {
+            Mode::Tdm => self.tdm.throwables,
+            Mode::Ffa => self.ffa.throwables,
+            Mode::Range => self.range_throwables,
         }
     }
 
@@ -1304,6 +1316,9 @@ pub struct TdmRules {
     /// victim within `assist_window_s` before the kill (team deathmatch: enemies of the victim only).
     pub assist_min_damage: f32,
     pub assist_window_s: f32,
+    /// Throwables every life starts with (item 10b: smoke grenades and molotovs).
+    #[serde(default)]
+    pub throwables: crate::throwable::ThrowKit,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -1344,11 +1359,13 @@ pub struct GameData {
     pub rules: RulesFile,
     pub net: NetSpec,
     pub items: crate::items::ItemsFile,
+    /// Smoke grenades and molotovs (`throwables.ron`, see [`crate::throwable`]).
+    pub throwables: crate::throwable::ThrowablesFile,
     /// FNV-1a hash of the source text, so host and clients can check they run the same numbers.
     pub fingerprint: u64,
 }
 
-const FILES: [&str; 11] = [
+const FILES: [&str; 12] = [
     "weapons.ron",
     "ammo.ron",
     "recoil_patterns.ron",
@@ -1360,6 +1377,7 @@ const FILES: [&str; 11] = [
     "rules.ron",
     "net.ron",
     "items.ron",
+    "throwables.ron",
 ];
 
 macro_rules! embedded {
@@ -1368,7 +1386,7 @@ macro_rules! embedded {
     };
 }
 
-const EMBEDDED: [(&str, &str); 11] = [
+const EMBEDDED: [(&str, &str); 12] = [
     embedded!("weapons.ron"),
     embedded!("ammo.ron"),
     embedded!("recoil_patterns.ron"),
@@ -1380,6 +1398,7 @@ const EMBEDDED: [(&str, &str); 11] = [
     embedded!("rules.ron"),
     embedded!("net.ron"),
     embedded!("items.ron"),
+    embedded!("throwables.ron"),
 ];
 
 fn parse<T: serde::de::DeserializeOwned>(file: &str, text: &str) -> Result<T, DataError> {
@@ -1427,6 +1446,7 @@ impl GameData {
             rules: parse(FILES[8], &texts[8])?,
             net: parse(FILES[9], &texts[9])?,
             items: parse(FILES[10], &texts[10])?,
+            throwables: parse(FILES[11], &texts[11])?,
             fingerprint,
         };
         data.validate()?;
@@ -1666,6 +1686,7 @@ impl GameData {
                 return bad(format!("item {}: use_s > 0, heal_hp >= 0, shield_frac within 0..1", i.id));
             }
         }
+        self.throwables.validate().map_err(DataError::Invalid)?;
         Ok(())
     }
 

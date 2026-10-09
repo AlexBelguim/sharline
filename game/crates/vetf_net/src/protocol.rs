@@ -16,10 +16,11 @@ use vetf_sim::items::ItemState;
 use vetf_sim::level::Team;
 use vetf_sim::movement::MoveState;
 use vetf_sim::player::{Loadout, Wounds};
+use vetf_sim::throwable::{Launch, ThrowId, ThrowKind};
 use vetf_sim::weapon::WeaponState;
 
 /// Bumped whenever the protocol changes; part of the netcode protocol id, so old builds cannot connect.
-pub const PROTOCOL_VERSION: u64 = 13;
+pub const PROTOCOL_VERSION: u64 = 14;
 
 /// netcode.io protocol id shared by host and clients.
 pub fn protocol_id() -> u64 {
@@ -408,6 +409,22 @@ pub struct ShotFx {
     pub end: Vec3,
 }
 
+/// Host -> everyone (the host's own client too): smoke grenades and molotovs (item 10b). Each client flies the
+/// grenades itself from the launch (the same deterministic arc as the host's; the thrower's own is in the air
+/// already, predicted) and keeps the areas from the bursts, until they end on their own clocks or the host puts
+/// one out.
+#[derive(Serialize, Deserialize, Clone, Copy, Debug, PartialEq)]
+pub enum ThrowNews {
+    /// A grenade left `id.owner`'s hand.
+    Thrown { id: ThrowId, launch: Launch },
+    /// It went off: a smoke cloud or a fire grows from the ground point `at`.
+    Burst { id: ThrowId, kind: ThrowKind, at: Vec3 },
+    /// Smoke put this fire out.
+    Doused { id: ThrowId },
+    /// Every grenade, cloud and fire is gone (a new match).
+    Clear,
+}
+
 // ---------------------------------------------------------------------------------------------- channels
 
 /// Reliable, ordered: hello, kill feed, hit confirms, respawn requests and life recaps.
@@ -512,6 +529,7 @@ impl Plugin for ProtocolPlugin {
         app.register_message::<KillFeed>().add_direction(NetworkDirection::ServerToClient);
         app.register_message::<StreakNews>().add_direction(NetworkDirection::ServerToClient);
         app.register_message::<ShotFx>().add_direction(NetworkDirection::ServerToClient);
+        app.register_message::<ThrowNews>().add_direction(NetworkDirection::ServerToClient);
         app.register_message::<crate::recap::LifeRecap>().add_direction(NetworkDirection::ServerToClient);
     }
 }
@@ -793,8 +811,8 @@ mod tests {
         roundtrip(&PlayerAgent(None));
         assert_eq!(PlayerAgent::default(), PlayerAgent(None));
         assert_eq!(
-            PROTOCOL_VERSION, 13,
-            "agent + deathmatch picks 6, no ADS MOVE 7, death screen 8, test bots (bot mark, ADD/REMOVE BOT) 9,              recap per opponent life + kills, assists 10, MAG CHECK match setting 11, kill feed cause 12,              kill streaks (Score::streak, StreakNews) 13"
+            PROTOCOL_VERSION, 14,
+            "agent + deathmatch picks 6, no ADS MOVE 7, death screen 8, test bots (bot mark, ADD/REMOVE BOT) 9,              recap per opponent life + kills, assists 10, MAG CHECK match setting 11, kill feed cause 12,              kill streaks (Score::streak, StreakNews) 13, smoke and molotovs (ThrowNews, throw keys, the hand) 14"
         );
     }
 
@@ -855,6 +873,44 @@ mod tests {
         assert_eq!(Score { kills: 3, deaths: 0, assists: 1, streak: 0 }.kda(), 4.0, "no deaths: as one");
         assert_eq!(Score::default().kda(), 0.0);
         assert_eq!(Score { kills: 0, deaths: 3, assists: 1, streak: 0 }.kda(), 1.0 / 3.0);
+    }
+
+    /// Throwables on the wire: the hand in the predicted items (counts, a wind-up, the throw number), the
+    /// loadout's per-life share, and every piece of throw news.
+    #[test]
+    fn throwables_roundtrip() {
+        use vetf_sim::throwable::{ThrowHand, ThrowKit, Windup};
+        let d = GameData::embedded();
+        let loadout = Loadout::default_for(&d, MatchMode::Tdm);
+        assert_eq!(loadout.throws, ThrowKit { smoke: 1, molotov: 1 });
+        roundtrip(&PlayerLoadout(loadout.clone()));
+        let mut items = ItemState::for_loadout(&loadout);
+        items.throw = ThrowHand {
+            left: ThrowKit { smoke: 0, molotov: 1 },
+            windup: Some(Windup { kind: ThrowKind::Smoke, left: 7 }),
+            recover: 3,
+            seq: 65535,
+            keys: Buttons::THROW_SMOKE,
+        };
+        roundtrip(&PlayerItems(items));
+        let id = ThrowId { owner: 0x5eed_0001, seq: 3 };
+        let launch = Launch {
+            kind: ThrowKind::Molotov,
+            seq: 3,
+            origin: Vec3::new(1.0, 1.5, -2.0),
+            vel: Vec3::new(0.5, 4.0, -14.0),
+        };
+        for news in [
+            ThrowNews::Thrown { id, launch },
+            ThrowNews::Burst { id, kind: ThrowKind::Smoke, at: Vec3::new(3.0, 0.0, -9.5) },
+            ThrowNews::Doused { id },
+            ThrowNews::Clear,
+        ] {
+            roundtrip(&news);
+        }
+        let throw =
+            InputFrame { buttons: Buttons(Buttons::THROW_SMOKE | Buttons::THROW_MOLOTOV), ..Default::default() };
+        assert_eq!(PlayerInput::from_frame(&throw).frame(), throw, "the throw keys ride in the buttons");
     }
 
     #[test]
