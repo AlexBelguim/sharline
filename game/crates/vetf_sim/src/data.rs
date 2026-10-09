@@ -1289,6 +1289,10 @@ pub struct TdmRules {
     /// at random (0: always the farthest).
     #[serde(default)]
     pub spawn_slack_m: f32,
+    /// An assist: a player other than the killer who dealt at least this much damage (halo and health) to the
+    /// victim within `assist_window_s` before the kill (team deathmatch: enemies of the victim only).
+    pub assist_min_damage: f32,
+    pub assist_window_s: f32,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -1862,7 +1866,10 @@ mod tests {
             let r = d.rules.deathmatch(mode);
             assert!(r.respawn_s > 0.0, "{mode:?}: a respawn timer");
             assert!(r.auto_respawn_s > 0.0, "{mode:?}: time to read the death screen before the fallback");
+            // Assists: some real damage, recently (not a single graze, not a fight long over).
+            assert!(r.assist_min_damage > 0.0 && r.assist_window_s > 0.0, "{mode:?}: an assist rule");
         }
+        assert_eq!((d.rules.tdm.assist_min_damage, d.rules.tdm.assist_window_s), (40.0, 10.0));
     }
 
     #[test]

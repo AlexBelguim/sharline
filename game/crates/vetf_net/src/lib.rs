@@ -14,4 +14,4 @@ pub mod recap;
 
 pub use join_code::JoinCode;
 pub use protocol::*;
-pub use recap::{DamageLine, Hit, LifeLog, LifeRecap};
+pub use recap::{DamageLine, Encounter, Hit, KillMark, LifeLog, LifeRecap};

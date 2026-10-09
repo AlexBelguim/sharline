@@ -1,6 +1,6 @@
 //! The scoreboard (hold the Scoreboard key, Tab by default, in a match; hub spec 06, mockup 07): mode, map,
 //! score target, time left and host; the team score; one row per player (your team on top) with halo,
-//! kills, deaths and ping; and the server card. Free-for-all has one list sorted by kills (your row
+//! kills, deaths, assists, KDA ((kills + assists) / deaths, at least 1) and ping; and the server card. Free-for-all has one list sorted by kills (your row
 //! highlighted, everyone else an enemy) and your kills against the leader's. It is pinned while a finished
 //! match waits to restart, and then names the winner. No ammo information, ever.
 
@@ -33,18 +33,23 @@ struct BoardRoot;
 #[derive(Component)]
 struct BoardBody;
 
-/// The table's columns (one grid per row, so the header and every row line up): badge, player, halo, K, D,
-/// ping.
+/// The table's columns (one grid per row, so the header and every row line up): badge, player, halo, K, D, A,
+/// KDA, ping.
 fn columns() -> Vec<RepeatedGridTrack> {
     vec![
         GridTrack::px(56.0),
         GridTrack::flex(1.0),
         GridTrack::px(170.0),
-        GridTrack::px(90.0),
-        GridTrack::px(90.0),
+        GridTrack::px(76.0),
+        GridTrack::px(76.0),
+        GridTrack::px(76.0),
+        GridTrack::px(96.0),
         GridTrack::px(110.0),
     ]
 }
+
+/// The header over [`columns`].
+const HEADS: [&str; 8] = ["", "Player", "Halo", "K", "D", "A", "KDA", "Ping"];
 
 const WIDTH: f32 = 1240.0;
 
@@ -102,6 +107,7 @@ struct Row {
     weight: vetf_sim::data::WeightClass,
     kills: u16,
     deaths: u16,
+    assists: u16,
     ping_ms: u16,
     /// A test bot: its ping reads BOT.
     bot: bool,
@@ -155,6 +161,7 @@ fn rebuild(
             weight: loadout.0.weight,
             kills: score.kills,
             deaths: score.deaths,
+            assists: score.assists,
             ping_ms: net.map_or(0, |n| n.ping_ms),
             bot: info.bot,
             agent: agent.and_then(|a| a.0.clone()),
@@ -320,7 +327,7 @@ fn table(
         ..default()
     })
     .with_children(|h| {
-        for (i, label) in ["", "Player", "Halo", "K", "D", "Ping"].iter().enumerate() {
+        for (i, label) in HEADS.iter().enumerate() {
             h.spawn(cell(i != 1)).with_children(|c| {
                 c.spawn(fonts.role(TextRole::TableHead, *label));
             });
@@ -359,6 +366,11 @@ fn ffa_winner(phase: Option<MatchPhase>) -> Option<u64> {
         Some(MatchPhase::Ended { player, .. }) => player,
         _ => None,
     }
+}
+
+/// KDA, one decimal: (kills + assists) / deaths, deaths counted as at least 1.
+fn kda_text(r: &Row) -> String {
+    format!("{:.1}", Score { kills: r.kills, deaths: r.deaths, assists: r.assists }.kda())
 }
 
 /// The winner first (free-for-all, once it has ended), then most kills, then fewest deaths, then by name (a
@@ -436,11 +448,14 @@ fn player_row(blk: &mut ChildSpawnerCommands, fonts: &UiFonts, images: &UiImages
             c.spawn(arc_chip(images, r.tiers));
             c.spawn(weight_squares(weight_lit(r.weight)));
         });
-        for v in [r.kills, r.deaths] {
+        for v in [r.kills.to_string(), r.deaths.to_string(), r.assists.to_string()] {
             row.spawn(cell(true)).with_children(|c| {
-                c.spawn(fonts.text(v.to_string(), Face::Display, 600, 19.0, ink, 0.0));
+                c.spawn(fonts.text(v, Face::Display, 600, 19.0, ink, 0.0));
             });
         }
+        row.spawn(cell(true)).with_children(|c| {
+            c.spawn(fonts.text(kda_text(r), Face::Display, 600, 19.0, if r.dead { TEXT_MID } else { TEXT }, 0.0));
+        });
         row.spawn(cell(true)).with_children(|c| {
             let ping = if r.bot { "BOT".to_string() } else { r.ping_ms.to_string() };
             c.spawn(fonts.text(ping, Face::Display, 600, 16.0, TEXT_MID, 0.0));
@@ -492,6 +507,7 @@ mod tests {
             weight: vetf_sim::data::WeightClass::None,
             kills,
             deaths,
+            assists: 0,
             ping_ms: 0,
             bot: false,
             agent: None,
@@ -512,6 +528,27 @@ mod tests {
         assert_eq!(kills_vs_best_other(&rows), (9, 9), "your 9 against LARK's 9");
         rows[0].kills = 3;
         assert_eq!(kills_vs_best_other(&rows), (9, 4), "you lead: the best of the rest is 4");
+    }
+
+    /// A and KDA: (K + A) / max(D, 1) to one decimal, a column each; assists do not change the order.
+    #[test]
+    fn the_board_shows_assists_and_kda() {
+        assert_eq!(HEADS.len(), columns().len(), "a header per column");
+        assert_eq!(&HEADS[3..7], ["K", "D", "A", "KDA"]);
+        let mut r = row(1, "WREN", 7, 3, false);
+        r.assists = 4;
+        assert_eq!(kda_text(&r), "3.7");
+        let mut flawless = row(2, "ORCA", 5, 0, false);
+        flawless.assists = 2;
+        assert_eq!(kda_text(&flawless), "7.0", "no deaths: divided by one");
+        assert_eq!(kda_text(&row(3, "MOTH", 0, 0, false)), "0.0");
+        assert_eq!(kda_text(&row(4, "LARK", 1, 3, false)), "0.3");
+        // Sorted as before: kills, then deaths; a pile of assists does not jump the queue.
+        let mut helper = row(5, "AAAA", 2, 1, false);
+        helper.assists = 20;
+        let mut rows = vec![helper, row(6, "ZULU", 3, 9, false)];
+        sort_rows(&mut rows, None);
+        assert_eq!(rows[0].name, "ZULU");
     }
 
     #[test]

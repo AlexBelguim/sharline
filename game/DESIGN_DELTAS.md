@@ -466,7 +466,7 @@ where". After `design/ui/mockups/death.html` (mockup 10), with these differences
 - **Recap:** one row per player and direction (damage you took, damage you dealt) for the life that ended:
   hits per zone, damage to the halo and to health, the distance of the last hit. The mockup's per-hit timeline
   is folded into these rows (a recap, not a log). The host records every accepted hit and sends the recap to the
-  player who died (`LifeRecap`, protocol 8; again if a shot they fired before dying lands while they are dead).
+  player who died (`LifeRecap`, protocol 8; again if a shot they fired before dying lands while they are dead). Replaced by section 24.
 - Pinned by `vetf_net::recap` tests (per zone, shield apart from health, several attackers, a new life), the
   server's `respawn_waits_for_the_player_then_falls_back`,
   `a_death_waits_for_respawn_with_a_recap_then_starts_a_new_life` and
@@ -539,3 +539,34 @@ cross". The design's sniper scope toggles 6x / 12x (`attachments_stats.slice.jso
   view), `client::aimed_through_a_variable_scope_the_wheel_zooms`, `data::variable_optics_have_a_zoom_range`,
   `gear::the_variable_optic_costs_more_than_the_fixed_3x`, `loadout::model::the_variable_optic_is_a_priced_pick`
   and the `weapon_models` reticle and tint tests.
+
+## 24. The death recap per opponent life, and assists and KDA (2026-10-09)
+The user, on the first death screen: "so damage you dealt should not be across lives? should show total kills and
+can we make it more visual like the kill per headshot or other, and then if you die the guy you dm in the last 5sec
+... with a silhouette or something, total dm and shield dm not remaining health, and leave out the per body part
+one, can the tab show assist and kda". The recap of section 20 changes:
+- **Per opponent life:** the host numbers each player's lives; your damage to an opponent is one encounter per life
+  of theirs, so an opponent who died and came back during your life is never summed into one row (the "BOT 1 ...
+  1230 health" row).
+- **No per-zone columns.** The recap now shows, for the life that ended: KILLS / HEADSHOT KILLS / DAMAGE DEALT
+  tiles; KILLS THIS LIFE as one icon per kill (the headshot mark, or a body for any other kill, bleed-outs
+  included) with the victim's name; YOUR LAST FIGHT, a card for each opponent you hit in the last `last_fight_s`
+  (5 s, `death_screen.ron` `recap`) before you died and did not kill, with a silhouette lit where you hit them
+  (brighter for more hits, no numbers), their name and gun, your total damage and the part of it their halo took
+  (never what they have left); DAMAGE YOU TOOK per attacker as a bar (your halo's part first) with their gun,
+  the total, the shield part and the distance. A shot or kill that lands after you died (a trade) re-sends it.
+- **Assists (new rule):** when a player dies, every other player who dealt at least `assist_min_damage` (40,
+  halo + health) to that life within `assist_window_s` (10 s) before the death gets an assist (`rules.ron`,
+  placeholders). The killer never does; in team deathmatch only the victim's enemies; in free-for-all anyone. A
+  fall right after a fight credits whoever hurt them. Only a live match counts, like kills. Assists reach every
+  client in `Score` (replicated) and in the kill feed message (`KillFeed::assists`, sent to every client, the
+  host's own included); the HUD kill feed itself is unchanged.
+- **Tab scoreboard:** new A and KDA columns in team deathmatch and free-for-all; KDA = (K + A) / max(D, 1), one
+  decimal. The sort is unchanged (kills, then deaths).
+- Protocol 10 (`Score::assists`, `KillFeed::assists`, the new `LifeRecap`).
+- Pinned by `vetf_net::recap` tests (per-life encounters, the last-fight window, headshot kills, the assist rule,
+  a new life), `protocol` round trips and `kda_counts_assists_and_never_divides_by_zero`, the server's
+  `assists_go_to_the_victims_enemies_who_hurt_them_enough`, `a_death_waits_for_respawn_with_a_recap_then_starts_a_new_life`
+  (the killer's kill icon, the next life number), `a_life_recap_reaches_the_host_and_only_the_dead_player` and
+  `every_kill_reaches_the_host_and_each_joined_player_once` (with assists), `death` tests (kill icons, the last
+  fight, the silhouette, the bars, the layout) and `scoreboard::the_board_shows_assists_and_kda`.

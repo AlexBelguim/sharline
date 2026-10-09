@@ -34,18 +34,31 @@
         // The damage recap on the right.
         recap_top: 72.0,
         recap_w: 660.0,
-        // Rows per table (taken, dealt); more players fold into "+N more".
+        // DAMAGE YOU TOOK: rows (attackers); more fold into "+N more".
         recap_rows: 5,
-        // Recap table columns: player, weapon, one per zone (head, torso, arms, legs), shield, health, distance.
-        col_player: 128.0,
-        col_weapon: 112.0,
-        col_zone: 46.0,
-        col_damage: 64.0,
+        // DAMAGE YOU TOOK columns: player, weapon, a damage bar (at least col_bar_min, it takes the rest),
+        // total, shield, distance.
+        col_player: 150.0,
+        col_weapon: 116.0,
+        col_bar_min: 120.0,
+        col_damage: 60.0,
         col_range: 56.0,
         // The countdown and the buttons, centred at the bottom.
         respawn_bottom: 72.0,
         // The clear centre between the columns must be at least this wide (the killer is framed there).
         min_centre_w: 520.0,
+    ),
+    // The recap of the life that ended (item 9-pre, user direction 2026-10-09: "should show total kills ... more
+    // visual ... the guy you dm in the last 5sec ... total dm and shield dm not remaining health, and leave out
+    // the per body part one").
+    recap: (
+        // YOUR LAST FIGHT: the opponents you hit in this many seconds before you died and did not kill.
+        last_fight_s: 5.0,
+        // At most this many last-fight cards, this many to a row; more fold into "+N more".
+        fight_cards: 4,
+        fight_cols: 2,
+        // KILLS THIS LIFE: at most this many kill icons; more fold into "+N".
+        kills_shown: 7,
     ),
     // The killer's health and halo as a rough read: never numbers. A bar of `segments` pips (any health left
     // shows at least one) and the word of the first threshold the share left reaches.

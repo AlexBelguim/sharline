@@ -1135,6 +1135,7 @@ fn resolve_claims(
     data: Res<Data>,
     level: Option<Res<CurrentLevel>>,
     timeline: Res<LocalTimeline>,
+    time: Res<Time>,
     mut pending: ResMut<PendingClaims>,
     mut players: Query<(Entity, &PlayerId, &PlayerInfo, &PlayerLoadout, &mut Vitals, &PlayerMove, &mut ServerPlayer)>,
     mut confirms: Query<&mut MessageSender<HitConfirm>>,
@@ -1207,16 +1208,19 @@ fn resolve_claims(
             bypass_roll(shooter.id, p.claim.seq, p.claim.victim),
         );
         vsp.last_attacker = Some(shooter.entity);
-        // The death screen's recap: what this life took, and (below) what the shooter's life dealt.
+        // The death screen's recap: what this life took, and (below) what the shooter's life dealt to this
+        // life of the victim's.
         let hit = Hit {
             shooter: shooter.id,
             victim: p.claim.victim,
+            victim_life: vsp.life.number,
             weapon: &weapon.id,
             zone,
             shield: report.absorbed,
             health: report.to_hp,
             range_m: range,
             from: shooter.shot.origin,
+            at_s: time.elapsed_secs_f64(),
         };
         vsp.life.took(&hit);
         vitals.wounds.sync(&mut health, &rules);
@@ -1291,6 +1295,7 @@ fn score_kill(m: &mut MatchState, killer: Option<Team>, victim: Option<Team>) ->
 #[allow(clippy::too_many_arguments, clippy::type_complexity)]
 fn handle_deaths(
     data: Res<Data>,
+    time: Res<Time>,
     mut died: MessageReader<PlayerDied>,
     mut players: Query<(&PlayerId, &PlayerInfo, &mut Vitals, &mut Score, &mut PlayerMove, &mut ServerPlayer)>,
     mut weapons: Query<(&mut PlayerWeapon, &PlayerLoadout)>,
@@ -1302,8 +1307,12 @@ fn handle_deaths(
     // Kills and deaths count only in a live match (the range is always live): a fall or a bleed-out in the
     // lobby or in the intermission after the winner is decided leaves the standings alone.
     let counts = matches.iter().next().is_none_or(|m| m.phase == MatchPhase::Live);
+    let rules = data.rules.deathmatch(mode);
+    let now = time.elapsed_secs_f64();
     for d in died.read() {
-        let Ok((vid, vinfo, mut v, mut score, mut mv, _)) = players.get_mut(d.victim) else { continue };
+        let killer = d.killer.filter(|k| *k != d.victim);
+        let killer_id = killer.and_then(|k| players.get(k).ok()).map(|p| p.0.0);
+        let Ok((vid, vinfo, mut v, mut score, mut mv, mut vsp)) = players.get_mut(d.victim) else { continue };
         v.health.dead = true;
         v.respawn_s = data.rules.deathmatch(mode).respawn_s;
         // In a live match the death screen waits for RESPAWN; elsewhere (the lobby, the end of a match) the
@@ -1314,15 +1323,30 @@ fn handle_deaths(
         }
         mv.0.vel = Vec3::ZERO;
         let (victim_id, victim_team) = (vid.0, vinfo.team);
-        let killer = d.killer.filter(|k| *k != d.victim);
-        let killer_id = killer.and_then(|k| players.get(k).ok()).map(|p| p.0.0);
+        vsp.life.died(now);
+        let victim_life = vsp.life.number;
+        // Assists: everyone else who hurt this life enough, recently (team deathmatch: the victim's enemies).
+        let helpers = vsp.life.assisters(killer_id, now, rules.assist_min_damage, rules.assist_window_s);
+        let mut assists = Vec::new();
+        if counts {
+            for (id, info, _, mut s, _, _) in &mut players {
+                if id.0 != victim_id && helpers.contains(&id.0) && hostile(info.team, victim_team) {
+                    s.assists += 1;
+                    assists.push(id.0);
+                }
+            }
+            assists.sort_unstable();
+        }
         if let Some(k) = killer.filter(|_| counts)
-            && let Ok((_, kinfo, _, mut kscore, _, mut ksp)) = players.get_mut(k)
+            && let Ok((_, kinfo, kv, mut kscore, _, mut ksp)) = players.get_mut(k)
         {
             kscore.kills += 1;
             // When they reached this kill count: the free-for-all tie-break.
             *kills += 1;
             ksp.kill_seq = *kills;
+            // The killer's death screen: a kill icon (a trade: their recap, already sent, goes out again).
+            ksp.life.killed(victim_id, victim_life, d.zone);
+            ksp.recap_due |= kv.health.dead && ksp.death.is_some();
             if let Some(mut m) = matches.iter_mut().next()
                 && score_kill(&mut m, kinfo.team, victim_team)
             {
@@ -1332,7 +1356,7 @@ fn handle_deaths(
                 }
             }
         }
-        send_to_every_client(&mut feed, KillFeed { killer: killer_id, victim: victim_id, zone: d.zone });
+        send_to_every_client(&mut feed, KillFeed { killer: killer_id, victim: victim_id, zone: d.zone, assists });
         if let Ok((.., mut sp)) = players.get_mut(d.victim) {
             sp.death = Some((killer_id, d.zone));
             sp.recap_due = true;
@@ -1485,13 +1509,15 @@ mod routing_tests {
     #[test]
     fn every_kill_reaches_the_host_and_each_joined_player_once() {
         let (mut app, host, joined) = listen_server();
+        // The assists ride along with the kill, so the host's own client gets them too.
         let kills = [
-            KillFeed { killer: Some(7), victim: 0, zone: Some(Zone::Head) },
-            KillFeed { killer: None, victim: 8, zone: None },
+            KillFeed { killer: Some(7), victim: 0, zone: Some(Zone::Head), assists: vec![8] },
+            KillFeed { killer: None, victim: 8, zone: None, assists: vec![] },
         ];
         for kill in kills {
+            let sent = kill.clone();
             app.world_mut()
-                .run_system_once(move |mut links: ClientLinks<KillFeed>| send_to_every_client(&mut links, kill))
+                .run_system_once(move |mut links: ClientLinks<KillFeed>| send_to_every_client(&mut links, sent.clone()))
                 .unwrap();
             app.update();
             assert_eq!(host_feed(&mut app, host), vec![kill], "the host's kill feed");
@@ -1547,15 +1573,23 @@ mod routing_tests {
         let hit = Hit {
             shooter: 7,
             victim: 0,
+            victim_life: 0,
             weapon: "ar7_mako",
             zone: Zone::Head,
             shield: 30.0,
             health: 41.0,
             range_m: 21.0,
             from: Vec3::new(3.0, 1.6, -18.0),
+            at_s: 40.0,
         };
         log.took(&hit);
+        // A kill and a last-fight encounter, so the whole recap travels.
+        log.dealt(&Hit { shooter: 0, victim: 8, victim_life: 2, zone: Zone::Torso, ..hit });
+        log.killed(8, 2, Some(Zone::Torso));
+        log.dealt(&Hit { shooter: 0, victim: 7, victim_life: 5, at_s: 39.0, ..hit });
+        log.died(41.0);
         let recap = log.recap(Some(7), Some(Zone::Head));
+        assert_eq!((recap.kills.len(), recap.last_fight(5.0).len()), (1, 1));
         for (dead, link) in [(host, host), (joined[0], joined[0])] {
             let mut sp = ServerPlayer::new(link, PeerId::Netcode(1));
             sp.life = log.clone();
@@ -1625,6 +1659,7 @@ mod system_tests {
             rules: d.rules.rulesets.get(mode),
         });
         app.insert_resource(Data(Arc::new(d)));
+        app.init_resource::<Time>();
         app
     }
 
@@ -1739,12 +1774,14 @@ mod system_tests {
         let hit = Hit {
             shooter: 1,
             victim: 2,
+            victim_life: 0,
             weapon: "ar7_mako",
             zone: Zone::Torso,
             shield: 20.0,
             health: 30.0,
             range_m: 12.0,
             from: Vec3::X,
+            at_s: 0.0,
         };
         app.world_mut().get_mut::<ServerPlayer>(victim).unwrap().life.took(&hit);
         app.world_mut().get_mut::<ServerPlayer>(victim).unwrap().life.dealt(&Hit { shooter: 2, victim: 1, ..hit });
@@ -1755,6 +1792,12 @@ mod system_tests {
         assert!(sp.recap_due);
         let recap = sp.life.recap(Some(1), Some(Zone::Head));
         assert_eq!((recap.taken.len(), recap.dealt.len()), (1, 1));
+        assert_eq!(recap.last_fight(5.0).len(), 1, "they hit the killer back and did not kill them");
+        // The killer's life got a headshot kill on the victim's life 0.
+        let ksp = app.world().get::<ServerPlayer>(killer).unwrap();
+        assert_eq!(ksp.life.kills, [KillMark { victim: 2, zone: Some(Zone::Head) }]);
+        assert!(ksp.life.dealt.iter().any(|e| e.player == 2 && e.life == 0 && e.killed));
+        assert!(!ksp.recap_due, "the killer is alive: no recap for them");
         assert!(app.world().get::<Vitals>(victim).unwrap().awaiting_respawn);
         // The timer runs out, and then some: still dead, waiting for RESPAWN.
         let ticks = (d.rules.ffa.respawn_s / d.tick_dt()).ceil() as usize + 5;
@@ -1770,7 +1813,8 @@ mod system_tests {
         let v = *app.world().get::<Vitals>(victim).unwrap();
         assert!(!v.health.dead && !v.awaiting_respawn, "back in");
         let sp = app.world().get::<ServerPlayer>(victim).unwrap();
-        assert_eq!(sp.life, LifeLog::default(), "a new life, a new recap");
+        assert!(sp.life.is_empty(), "a new life, a new recap");
+        assert_eq!(sp.life.number, 1, "the next life: the killer's hits on it are a new encounter");
         assert_eq!((sp.death, sp.respawn_asked), (None, false));
         // Nobody presses RESPAWN: the fallback brings them back after `auto_respawn_s`.
         kill(&mut app, killer, victim);
@@ -1802,6 +1846,79 @@ mod system_tests {
         kill(&mut app, killer, victim);
         app.world_mut().run_system_once(handle_deaths).unwrap();
         assert!(!app.world().get::<Vitals>(victim).unwrap().awaiting_respawn);
+    }
+
+    fn hurt(app: &mut App, victim: Entity, shooter: u64, damage: f32) {
+        let victim_id = app.world().get::<PlayerId>(victim).unwrap().0;
+        app.world_mut().get_mut::<ServerPlayer>(victim).unwrap().life.took(&Hit {
+            shooter,
+            victim: victim_id,
+            victim_life: 0,
+            weapon: "ar7_mako",
+            zone: Zone::Torso,
+            shield: damage * 0.5,
+            health: damage * 0.5,
+            range_m: 10.0,
+            from: Vec3::ZERO,
+            at_s: 0.0,
+        });
+    }
+
+    fn assists(app: &App, e: Entity) -> u16 {
+        app.world().get::<Score>(e).unwrap().assists
+    }
+
+    /// Team deathmatch: an assist for each of the victim's enemies, but the killer, who dealt enough damage
+    /// recently; a teammate of the victim never gets one, nor does anyone under the threshold. Free-for-all:
+    /// anyone. Nothing counts outside a live match.
+    #[test]
+    fn assists_go_to_the_victims_enemies_who_hurt_them_enough() {
+        let min = GameData::embedded().rules.tdm.assist_min_damage;
+        let mut app = world(MatchMode::Tdm, MatchPhase::Live);
+        let killer = player(&mut app, 1, Some(Team::A));
+        let helper = player(&mut app, 2, Some(Team::A));
+        let grazer = player(&mut app, 3, Some(Team::A));
+        let victim = player(&mut app, 4, Some(Team::B));
+        let mate = player(&mut app, 5, Some(Team::B));
+        hurt(&mut app, victim, 1, 100.0);
+        hurt(&mut app, victim, 2, min * 0.6);
+        hurt(&mut app, victim, 2, min * 0.6);
+        hurt(&mut app, victim, 3, min - 1.0);
+        hurt(&mut app, victim, 5, min * 2.0);
+        kill(&mut app, killer, victim);
+        app.world_mut().run_system_once(handle_deaths).unwrap();
+        assert_eq!(assists(&app, helper), 1, "enough damage, summed over hits");
+        assert_eq!(assists(&app, killer), 0, "the killer gets the kill, not an assist");
+        assert_eq!(standing(&app, killer).0, 1);
+        assert_eq!(assists(&app, grazer), 0, "under the threshold");
+        assert_eq!(assists(&app, mate), 0, "never for the victim's own team");
+        // Free-for-all: anyone but the killer.
+        let mut app = world(MatchMode::Ffa, MatchPhase::Live);
+        let (killer, a, b, victim) = (
+            player(&mut app, 1, None),
+            player(&mut app, 2, None),
+            player(&mut app, 3, None),
+            player(&mut app, 4, None),
+        );
+        hurt(&mut app, victim, 2, min);
+        hurt(&mut app, victim, 3, min);
+        kill(&mut app, killer, victim);
+        app.world_mut().run_system_once(handle_deaths).unwrap();
+        assert_eq!([assists(&app, a), assists(&app, b), assists(&app, killer)], [1, 1, 0]);
+        // A fall right after a fight: the ones who hurt them still assist (there is no killer to leave out).
+        let mut app = world(MatchMode::Ffa, MatchPhase::Live);
+        let (a, victim) = (player(&mut app, 1, None), player(&mut app, 2, None));
+        hurt(&mut app, victim, 1, min);
+        app.world_mut().write_message(PlayerDied { victim, killer: None, zone: None });
+        app.world_mut().run_system_once(handle_deaths).unwrap();
+        assert_eq!(assists(&app, a), 1);
+        // Outside a live match: nothing counts.
+        let mut app = world(MatchMode::Ffa, MatchPhase::Lobby);
+        let (killer, a, victim) = (player(&mut app, 1, None), player(&mut app, 2, None), player(&mut app, 3, None));
+        hurt(&mut app, victim, 2, min * 3.0);
+        kill(&mut app, killer, victim);
+        app.world_mut().run_system_once(handle_deaths).unwrap();
+        assert_eq!(assists(&app, a), 0);
     }
 
     /// Team deathmatch after free-for-all: everyone without a team joins the smaller one, the host (id 0)
@@ -1984,8 +2101,8 @@ fn respawn_players(
         sp.history.clear();
         sp.shots.clear();
         sp.last_attacker = None;
-        // A new life: a new recap.
-        sp.life.clear();
+        // A new life: a new recap (and a new life number, so hits on it are a new encounter for others).
+        sp.life.new_life();
         sp.death = None;
         sp.recap_due = false;
         sp.respawn_asked = false;

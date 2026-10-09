@@ -14,6 +14,11 @@
         spawn_protection_s: 1.5,  // placeholder: named in the net diagram, no value given
         max_players: 10,          // 5 v 5 max on Showhome
         kill_refill_mags: 1,      // user direction 2026-10-07: every kill refills one magazine
+        // An assist (Tab scoreboard A and KDA): anyone but the killer who dealt at least this much damage
+        // (halo + health) to the victim in the last assist_window_s seconds before the kill. Enemies of the
+        // victim only. Placeholders (item 9-pre).
+        assist_min_damage: 40.0,
+        assist_window_s: 10.0,
     ),
     // Free-for-all deathmatch on Showhome (user direction 2026-10-08: "i want a free for all deathmatch").
     // Everyone against everyone: no teams, the player with the most kills wins (tie: fewer deaths, then the
@@ -28,6 +33,8 @@
         max_players: 8,           // 8 at most on Showhome
         kill_refill_mags: 1,      // like team deathmatch: every kill refills one magazine
         spawn_slack_m: 6.0,       // spawn at random among the points within 6 m of the farthest from enemies
+        assist_min_damage: 40.0,  // like team deathmatch; anyone but the killer and the victim can assist
+        assist_window_s: 10.0,
     ),
     // The team deathmatch and free-for-all loadout (DIRECTION_LOG 17; the point table is explained in
     // game/DESIGN_DELTAS.md).

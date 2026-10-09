@@ -4,8 +4,12 @@
 //!   position while you can see them, else the last spot you saw them at, else where the killing shot came
 //!   from), zoomed in to frame them;
 //! - who killed you with what and from how far, and their health and halo left as a rough read (never numbers);
-//! - the damage recap of that life (the host's [`LifeRecap`]): per attacker and per victim, the hits per zone,
-//!   the damage to the halo and to health, and the distance of the last hit;
+//! - the recap of that life (the host's [`LifeRecap`], item 9-pre), drawn rather than tabled: your kills as
+//!   icons (a headshot or a body kill, with the victim's name), YOUR LAST FIGHT (each opponent you hit in the
+//!   last few seconds and did not kill, as a silhouette lit where you hit them, with your total damage and the
+//!   part of it their halo took: never what they have left), and the damage you took per attacker as bars
+//!   (gun, total, the part your halo took, distance). No per-zone numbers anywhere. Damage dealt is per
+//!   opponent LIFE: an opponent who died and came back is a new encounter;
 //! - LOADOUT (the Loadout screen over this one) and RESPAWN with the match's respawn timer (`rules.ron`
 //!   `respawn_s`): it becomes active at 0 and respawns you on a click, Enter or Space. A player who never
 //!   presses it is respawned by the host `auto_respawn_s` later.
@@ -64,7 +68,18 @@ impl Plugin for DeathScreenPlugin {
 pub struct DeathScreenData {
     pub cam: CamSpec,
     pub layout: LayoutSpec,
+    pub recap: RecapSpec,
     pub reads: Reads,
+}
+
+/// What the recap shows (`death_screen.ron` `recap`).
+#[derive(Debug, Clone, Copy, PartialEq, Deserialize)]
+pub struct RecapSpec {
+    /// YOUR LAST FIGHT: the opponents hit in this many seconds before the death (and not killed).
+    pub last_fight_s: f32,
+    pub fight_cards: usize,
+    pub fight_cols: usize,
+    pub kills_shown: usize,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Deserialize)]
@@ -88,7 +103,7 @@ pub struct LayoutSpec {
     pub recap_rows: usize,
     pub col_player: f32,
     pub col_weapon: f32,
-    pub col_zone: f32,
+    pub col_bar_min: f32,
     pub col_damage: f32,
     pub col_range: f32,
     pub respawn_bottom: f32,
@@ -96,14 +111,20 @@ pub struct LayoutSpec {
 }
 
 impl LayoutSpec {
-    /// The recap table's columns: player, weapon, head, torso, arms, legs, shield, health, distance.
-    fn columns(&self) -> [f32; 9] {
-        let (z, d) = (self.col_zone, self.col_damage);
-        [self.col_player, self.col_weapon, z, z, z, z, d, d, self.col_range]
+    /// DAMAGE YOU TOOK's fixed columns: player, weapon, total, shield, distance (the bar takes the rest).
+    fn fixed_columns(&self) -> [f32; 5] {
+        [self.col_player, self.col_weapon, self.col_damage, self.col_damage, self.col_range]
+    }
+
+    /// The width inside the recap panel.
+    fn recap_inner(&self) -> f32 {
+        self.recap_w - 2.0 * Self::RECAP_PAD - 2.0
     }
 
     /// Horizontal padding inside the recap panel.
     const RECAP_PAD: f32 = 20.0;
+    /// Gap between the recap's cards and tiles.
+    const GAP: f32 = 10.0;
 }
 
 /// The killer's health and halo as a rough read (see [`Reads::read`]).
@@ -261,10 +282,11 @@ fn receive_recaps(mut rx: Query<&mut MessageReceiver<LifeRecap>, With<Client>>, 
     for mut r in &mut rx {
         for recap in r.receive() {
             debug!(
-                "life recap: killer {:?}, {} attackers, {} victims",
+                "life recap: killer {:?}, {} attackers, {} encounters, {} kills",
                 recap.killer,
                 recap.taken.len(),
-                recap.dealt.len()
+                recap.dealt.len(),
+                recap.kills.len()
             );
             state.recap = Some(recap);
         }
@@ -827,12 +849,15 @@ fn refresh(
     }
 }
 
-/// The recap tables: DAMAGE YOU TOOK, then DAMAGE YOU DEALT (rebuilt when a new recap arrives).
+/// The recap (rebuilt when a new recap arrives): the life's numbers at a glance, KILLS THIS LIFE, YOUR LAST
+/// FIGHT and DAMAGE YOU TOOK.
+#[allow(clippy::too_many_arguments)]
 fn rebuild_recap(
     data: Res<DeathScreenData>,
     game: Res<Data>,
     settings: Res<Settings>,
     fonts: Res<UiFonts>,
+    images: Res<UiImages>,
     mut state: ResMut<DeathState>,
     boxes: Query<Entity, With<RecapBox>>,
     added: Query<(), Added<RecapBox>>,
@@ -847,90 +872,428 @@ fn rebuild_recap(
     let names =
         |id: u64| players.iter().find(|(p, _)| p.0 == id).map_or_else(|| "--".into(), |(_, i)| i.name.to_uppercase());
     let gun = |id: &str| game.weapon(id).map_or_else(|| id.to_uppercase(), |w| w.name.to_uppercase());
-    let enemy = settings.team_colors().1;
-    let l = data.layout;
-    let fonts = &*fonts;
+    let ink = RecapInk { enemy: settings.team_colors().1 };
+    let (l, spec) = (data.layout, data.recap);
+    let (fonts, images) = (&*fonts, &*images);
     let recap = state.recap.clone();
     commands.entity(e).despawn_children().with_children(|p| {
         let Some(recap) = recap else {
-            p.spawn(fonts.role(TextRole::H2Card, "Damage recap"));
+            p.spawn(fonts.role(TextRole::H2Card, "Your life"));
             p.spawn(fonts.role(TextRole::Note, "Waiting for the host..."));
             return;
         };
-        for (title, lines, dealt) in
-            [("Damage you took", &recap.taken, false), ("Damage you dealt", &recap.dealt, true)]
-        {
-            p.spawn((
-                fonts.role(TextRole::H2Card, title),
-                Node { margin: UiRect::top(px(if dealt { 14 } else { 0 })), ..default() },
-            ));
-            if lines.is_empty() {
-                let none = if dealt { "You hit nobody this life." } else { "No player hit you this life." };
-                p.spawn(fonts.role(TextRole::Note, none));
-                continue;
+        stat_tiles(p, fonts, &l, &recap);
+        section(p, fonts, "Kills this life", None);
+        kill_row(p, fonts, images, &spec, &recap, &names);
+        let window = format!("{} s", spec.last_fight_s.max(0.0).round() as u32);
+        section(p, fonts, "Your last fight", Some(format!("Hit in your last {window}, not killed by you")));
+        last_fight(p, fonts, &l, &spec, &recap, ink, &names, &gun);
+        section(p, fonts, "Damage you took", None);
+        damage_taken(p, fonts, images, &l, &recap, ink, &names, &gun);
+    });
+}
+
+/// The recap's colours: the enemy colour follows the player's team colours setting.
+#[derive(Clone, Copy)]
+struct RecapInk {
+    enemy: Color,
+}
+
+/// The halo's part of a damage bar.
+const SHIELD_INK: Color = TIERS[2];
+/// The health part of a damage bar.
+const FLESH_INK: Color = FLESH_TEXT;
+
+fn section(p: &mut ChildSpawnerCommands, fonts: &UiFonts, title: &str, sub: Option<String>) {
+    p.spawn(Node { margin: UiRect::top(px(14)), column_gap: px(12), align_items: AlignItems::Baseline, ..default() })
+        .with_children(|h| {
+            h.spawn(fonts.role(TextRole::H2Card, title));
+            if let Some(sub) = sub {
+                h.spawn(fonts.role(TextRole::Micro, sub));
             }
-            let rows = recap_rows(lines, l.recap_rows);
-            p.spawn(grid_node(&l)).with_children(|h| {
-                for head in ["Player", "Weapon", "Head", "Torso", "Arms", "Legs", "Shield", "Health", "Dist"] {
-                    h.spawn(fonts.role(TextRole::TableHead, head));
-                }
+        });
+}
+
+/// KILLS, HEADSHOTS and DAMAGE DEALT this life, big.
+fn stat_tiles(p: &mut ChildSpawnerCommands, fonts: &UiFonts, l: &LayoutSpec, recap: &LifeRecap) {
+    let w = (l.recap_inner() - 2.0 * LayoutSpec::GAP) / 3.0;
+    p.spawn(Node { column_gap: px(LayoutSpec::GAP), ..default() }).with_children(|row| {
+        let tiles = [
+            ("Kills", recap.kills.len().to_string(), TEXT_HI),
+            ("Headshot kills", recap.headshot_kills().to_string(), TIERS[4]),
+            ("Damage dealt", whole(recap.dealt_total()), TEXT_HI),
+        ];
+        for (label, value, color) in tiles {
+            row.spawn((
+                Node {
+                    width: px(w),
+                    flex_direction: FlexDirection::Column,
+                    row_gap: px(2),
+                    padding: UiRect::axes(px(14), px(10)),
+                    border: UiRect::left(px(3)),
+                    ..default()
+                },
+                BackgroundColor(W04),
+                BorderColor::all(if color == TEXT_HI { STROKE_MID } else { color }),
+            ))
+            .with_children(|t| {
+                t.spawn(fonts.role_color(TextRole::ValueL, value, color));
+                t.spawn(fonts.role(TextRole::StatKey, label));
             });
-            for line in rows.shown {
-                p.spawn((Node { border: UiRect::top(px(1)), ..grid_node(&l) }, BorderColor::all(STROKE)))
-                    .with_children(|r| {
-                        let killer = !dealt && Some(line.player) == recap.killer;
-                        r.spawn(fonts.text(names(line.player), Face::Display, 700, 15.0, enemy, 0.04));
-                        r.spawn(fonts.role(TextRole::TableCell, gun(&line.weapon)));
-                        for z in Zone::ALL {
-                            let n = line.hits[z];
-                            let (s, c) = if n == 0 { ("-".to_string(), TEXT_LOW) } else { (n.to_string(), TEXT_HI) };
-                            r.spawn(fonts.role_color(
-                                TextRole::Num,
-                                s,
-                                if killer && recap.zone == Some(z) { ENEMY } else { c },
-                            ));
-                        }
-                        r.spawn(fonts.role_color(TextRole::Num, damage_cell(line.shield), TIERS[2]));
-                        r.spawn(fonts.role_color(TextRole::Num, damage_cell(line.health), FLESH_TEXT));
-                        r.spawn(fonts.role_color(TextRole::Num, format!("{:.0} m", line.range_m), TEXT));
-                    });
-            }
-            if rows.more > 0 {
-                p.spawn(fonts.role(TextRole::Micro, format!("+{} more", rows.more)));
-            }
-            let (shield, health) = LifeRecap::totals(lines);
-            let total = format!("Total {} shield · {} health", shield.round() as i64, health.round() as i64);
-            p.spawn(fonts.role(TextRole::CardLine, total));
         }
     });
 }
 
-/// A table row's node: the recap columns (`death_screen.ron`).
-fn grid_node(l: &LayoutSpec) -> Node {
+/// One icon per kill (a headshot or a body kill) with the victim's name under it.
+fn kill_row(
+    p: &mut ChildSpawnerCommands,
+    fonts: &UiFonts,
+    images: &UiImages,
+    spec: &RecapSpec,
+    recap: &LifeRecap,
+    names: &dyn Fn(u64) -> String,
+) {
+    if recap.kills.is_empty() {
+        p.spawn(fonts.role(TextRole::Note, "No kills this life."));
+        return;
+    }
+    let shown = fold(&recap.kills, spec.kills_shown);
+    p.spawn(Node { column_gap: px(8), align_items: AlignItems::FlexStart, ..default() }).with_children(|row| {
+        for k in shown.items {
+            let head = k.headshot();
+            let color = if head { TIERS[4] } else { TEXT_HI };
+            row.spawn(Node {
+                width: px(KILL_CHIP_W),
+                flex_direction: FlexDirection::Column,
+                align_items: AlignItems::Center,
+                row_gap: px(4),
+                ..default()
+            })
+            .with_children(|c| {
+                c.spawn((
+                    Node {
+                        width: px(46),
+                        height: px(46),
+                        justify_content: JustifyContent::Center,
+                        align_items: AlignItems::Center,
+                        border: UiRect::all(px(1)),
+                        border_radius: BorderRadius::all(px(3)),
+                        ..default()
+                    },
+                    BackgroundColor(if head { fade(TIERS[4], 0.14) } else { W06 }),
+                    BorderColor::all(if head { fade(TIERS[4], 0.6) } else { STROKE_MID }),
+                    children![icon(images, kill_icon(k), 28.0, color)],
+                ));
+                c.spawn((
+                    Node { max_width: px(KILL_CHIP_W), overflow: Overflow::clip(), ..default() },
+                    children![(fonts.role_color(TextRole::Micro, names(k.victim), TEXT), TextLayout::no_wrap())],
+                ));
+            });
+        }
+        if shown.more > 0 {
+            row.spawn((
+                Node { height: px(46), align_items: AlignItems::Center, ..default() },
+                children![fonts.role(TextRole::ValueL, format!("+{}", shown.more))],
+            ));
+        }
+    });
+}
+
+/// A kill icon's width.
+const KILL_CHIP_W: f32 = 64.0;
+
+/// The icon of a kill: the headshot mark, or a body.
+pub fn kill_icon(k: &KillMark) -> Icon {
+    if k.headshot() { Icon::Headshot } else { Icon::Torso }
+}
+
+/// YOUR LAST FIGHT: a card per opponent you hit in the last seconds and did not kill.
+#[allow(clippy::too_many_arguments)]
+fn last_fight(
+    p: &mut ChildSpawnerCommands,
+    fonts: &UiFonts,
+    l: &LayoutSpec,
+    spec: &RecapSpec,
+    recap: &LifeRecap,
+    ink: RecapInk,
+    names: &dyn Fn(u64) -> String,
+    gun: &dyn Fn(&str) -> String,
+) {
+    let fight = recap.last_fight(spec.last_fight_s);
+    if fight.is_empty() {
+        p.spawn(fonts.role(TextRole::Note, last_fight_note(recap, spec.last_fight_s)));
+        return;
+    }
+    let shown = fold(&fight, spec.fight_cards);
+    let cols = spec.fight_cols.max(1);
+    let w = (l.recap_inner() - (cols - 1) as f32 * LayoutSpec::GAP) / cols as f32;
+    p.spawn(Node {
+        flex_wrap: FlexWrap::Wrap,
+        column_gap: px(LayoutSpec::GAP),
+        row_gap: px(LayoutSpec::GAP),
+        ..default()
+    })
+    .with_children(|grid| {
+        for e in shown.items {
+            fight_card(grid, fonts, w, e, ink, names, gun);
+        }
+    });
+    if shown.more > 0 {
+        p.spawn(fonts.role(TextRole::Micro, format!("+{} more", shown.more)));
+    }
+}
+
+/// Why YOUR LAST FIGHT is empty.
+pub fn last_fight_note(recap: &LifeRecap, window_s: f32) -> String {
+    let secs = window_s.max(0.0).round() as u32;
+    let any = recap.dealt.iter().any(|e| e.total() > 0.0 && recap.died_at_s - e.at_s <= window_s.max(0.0) as f64);
+    if any {
+        format!("You killed everyone you hit in your last {secs} s.")
+    } else {
+        format!("You hit no one in your last {secs} s.")
+    }
+}
+
+fn fight_card(
+    grid: &mut ChildSpawnerCommands,
+    fonts: &UiFonts,
+    w: f32,
+    e: &Encounter,
+    ink: RecapInk,
+    names: &dyn Fn(u64) -> String,
+    gun: &dyn Fn(&str) -> String,
+) {
+    grid.spawn((
+        Node {
+            width: px(w),
+            column_gap: px(14),
+            padding: UiRect::all(px(10)),
+            border: UiRect::all(px(1)),
+            align_items: AlignItems::Center,
+            ..default()
+        },
+        BackgroundColor(W04),
+        BorderColor::all(STROKE),
+    ))
+    .with_children(|c| {
+        silhouette(c, e, ink.enemy);
+        c.spawn(Node { flex_direction: FlexDirection::Column, flex_grow: 1.0, row_gap: px(3), ..default() })
+            .with_children(|t| {
+                t.spawn((
+                    Node { overflow: Overflow::clip(), ..default() },
+                    children![(
+                        fonts.text(names(e.player), Face::Display, 700, 16.0, ink.enemy, 0.04),
+                        TextLayout::no_wrap()
+                    )],
+                ));
+                t.spawn(fonts.role(TextRole::Micro, gun(&e.weapon)));
+                t.spawn(Node {
+                    column_gap: px(6),
+                    align_items: AlignItems::Baseline,
+                    margin: UiRect::top(px(4)),
+                    ..default()
+                })
+                .with_children(|v| {
+                    v.spawn(fonts.role(TextRole::ValueL, whole(e.total())));
+                    v.spawn(fonts.role(TextRole::Unit, "DMG"));
+                });
+                damage_bar(t, e.shield, e.total(), e.total(), 6.0);
+                t.spawn(fonts.role_color(TextRole::Micro, format!("{} into shield", whole(e.shield)), SHIELD_INK));
+            });
+    });
+}
+
+/// One part of the silhouette (px in a [`SIL_W`] x [`SIL_H`] box).
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct BodyPart {
+    pub zone: Zone,
+    pub x: f32,
+    pub y: f32,
+    pub w: f32,
+    pub h: f32,
+    pub r: f32,
+}
+
+pub const SIL_W: f32 = 48.0;
+pub const SIL_H: f32 = 92.0;
+
+/// The silhouette: a head, a torso, two arms and two legs.
+pub const BODY: [BodyPart; 6] = [
+    BodyPart { zone: Zone::Head, x: 17.0, y: 0.0, w: 14.0, h: 14.0, r: 7.0 },
+    BodyPart { zone: Zone::Torso, x: 14.0, y: 16.0, w: 20.0, h: 32.0, r: 3.0 },
+    BodyPart { zone: Zone::Arms, x: 5.0, y: 17.0, w: 7.0, h: 30.0, r: 3.0 },
+    BodyPart { zone: Zone::Arms, x: 36.0, y: 17.0, w: 7.0, h: 30.0, r: 3.0 },
+    BodyPart { zone: Zone::Legs, x: 14.0, y: 50.0, w: 9.0, h: 42.0, r: 3.0 },
+    BodyPart { zone: Zone::Legs, x: 25.0, y: 50.0, w: 9.0, h: 42.0, r: 3.0 },
+];
+
+/// How brightly a zone you hit `hits` times lights up (0: unlit). More hits glow more; no numbers shown.
+pub fn zone_glow(hits: u16) -> f32 {
+    match hits {
+        0 => 0.0,
+        1 => 0.55,
+        2 => 0.78,
+        _ => 1.0,
+    }
+}
+
+fn silhouette(c: &mut ChildSpawnerCommands, e: &Encounter, lit: Color) {
+    c.spawn(Node { width: px(SIL_W), height: px(SIL_H), flex_shrink: 0.0, ..default() }).with_children(|s| {
+        for part in BODY {
+            let glow = zone_glow(e.hits[part.zone]);
+            s.spawn((
+                Node {
+                    width: px(part.w),
+                    height: px(part.h),
+                    border_radius: BorderRadius::all(px(part.r)),
+                    ..abs(Some(part.x), None, Some(part.y), None)
+                },
+                BackgroundColor(if glow > 0.0 { fade(lit, glow) } else { W10 }),
+            ));
+        }
+    });
+}
+
+/// A damage bar: `total` of `max` filled, the halo's part (`shield`) first.
+fn damage_bar(p: &mut ChildSpawnerCommands, shield: f32, total: f32, max: f32, height: f32) {
+    let (fill, shield_part) = bar_split(shield, total, max);
+    p.spawn((Node { width: percent(100), height: px(height), ..default() }, BackgroundColor(W06))).with_children(
+        |track| {
+            track.spawn(Node { width: percent(fill * 100.0), height: percent(100), ..default() }).with_children(|f| {
+                f.spawn((
+                    Node { width: percent(shield_part * 100.0), height: percent(100), ..default() },
+                    BackgroundColor(SHIELD_INK),
+                ));
+                f.spawn((Node { flex_grow: 1.0, height: percent(100), ..default() }, BackgroundColor(FLESH_INK)));
+            });
+        },
+    );
+}
+
+/// A damage bar's (filled share of the track, the halo's share of the fill), both 0..1.
+pub fn bar_split(shield: f32, total: f32, max: f32) -> (f32, f32) {
+    let ok = |v: f32| if v.is_finite() { v.max(0.0) } else { 0.0 };
+    let (shield, total, max) = (ok(shield), ok(total), ok(max));
+    let fill = if max > 0.0 { (total / max).min(1.0) } else { 0.0 };
+    let part = if total > 0.0 { (shield / total).min(1.0) } else { 0.0 };
+    (fill, part)
+}
+
+/// DAMAGE YOU TOOK: per attacker, their gun, a bar of their damage (your halo's part first), the total, the
+/// halo's part and the distance; the killer marked.
+#[allow(clippy::too_many_arguments)]
+fn damage_taken(
+    p: &mut ChildSpawnerCommands,
+    fonts: &UiFonts,
+    images: &UiImages,
+    l: &LayoutSpec,
+    recap: &LifeRecap,
+    ink: RecapInk,
+    names: &dyn Fn(u64) -> String,
+    gun: &dyn Fn(&str) -> String,
+) {
+    if recap.taken.is_empty() {
+        p.spawn(fonts.role(TextRole::Note, "No player hit you this life."));
+        return;
+    }
+    let rows = fold(&recap.taken, l.recap_rows);
+    let max = recap.taken.iter().map(DamageLine::total).fold(0.0, f32::max);
+    p.spawn(taken_grid(l, 26.0)).with_children(|h| {
+        for (i, head) in ["Player", "Weapon", "Damage", "Total", "Shield", "Dist"].into_iter().enumerate() {
+            h.spawn(cell(i >= 3)).with_children(|c| {
+                c.spawn(fonts.role(TextRole::TableHead, head));
+            });
+        }
+    });
+    for line in rows.items {
+        let killer = Some(line.player) == recap.killer;
+        p.spawn((Node { border: UiRect::top(px(1)), ..taken_grid(l, 36.0) }, BorderColor::all(STROKE))).with_children(
+            |r| {
+                r.spawn(cell(false)).with_children(|c| {
+                    c.spawn((
+                        Node { overflow: Overflow::clip(), ..default() },
+                        children![(
+                            fonts.text(names(line.player), Face::Display, 700, 15.0, ink.enemy, 0.04),
+                            TextLayout::no_wrap()
+                        )],
+                    ));
+                    if killer {
+                        if recap.zone == Some(Zone::Head) {
+                            c.spawn(icon(images, Icon::Headshot, 14.0, TIERS[4]));
+                        }
+                        c.spawn((
+                            Node { padding: UiRect::axes(px(5), px(1)), ..default() },
+                            BackgroundColor(ink.enemy),
+                            children![fonts.role(TextRole::TagXs, "Killer")],
+                        ));
+                    }
+                });
+                r.spawn(cell(false)).with_children(|c| {
+                    c.spawn(fonts.role(TextRole::TableCell, gun(&line.weapon)));
+                });
+                r.spawn(cell(false)).with_children(|c| damage_bar(c, line.shield, line.total(), max, 8.0));
+                r.spawn(cell(true)).with_children(|c| {
+                    c.spawn(fonts.role_color(TextRole::Num, whole(line.total()), TEXT_HI));
+                });
+                r.spawn(cell(true)).with_children(|c| {
+                    c.spawn(fonts.role_color(TextRole::Num, whole(line.shield), SHIELD_INK));
+                });
+                r.spawn(cell(true)).with_children(|c| {
+                    c.spawn(fonts.role_color(TextRole::Num, format!("{:.0} m", line.range_m), TEXT));
+                });
+            },
+        );
+    }
+    if rows.more > 0 {
+        p.spawn(fonts.role(TextRole::Micro, format!("+{} more", rows.more)));
+    }
+    let (shield, total) = recap.taken_totals();
+    p.spawn(fonts.role(TextRole::CardLine, format!("Total {} · {} into your shield", whole(total), whole(shield))));
+}
+
+/// A DAMAGE YOU TOOK row: the columns of `death_screen.ron`, the bar taking what is left.
+fn taken_grid(l: &LayoutSpec, height: f32) -> Node {
+    let [player, weapon, total, shield, range] = l.fixed_columns();
     Node {
         display: Display::Grid,
-        grid_template_columns: l.columns().iter().map(|w| GridTrack::px(*w)).collect(),
-        height: px(32),
+        grid_template_columns: vec![
+            GridTrack::px(player),
+            GridTrack::px(weapon),
+            GridTrack::flex(1.0),
+            GridTrack::px(total),
+            GridTrack::px(shield),
+            GridTrack::px(range),
+        ],
+        height: px(height),
         align_items: AlignItems::Center,
         ..default()
     }
 }
 
-/// A damage cell: whole points, a dash for none.
-pub fn damage_cell(v: f32) -> String {
-    let v = v.round() as i64;
-    if v <= 0 { "-".into() } else { v.to_string() }
+fn cell(right: bool) -> Node {
+    Node {
+        column_gap: px(6),
+        padding: UiRect::horizontal(px(4)),
+        align_items: AlignItems::Center,
+        justify_content: if right { JustifyContent::FlexEnd } else { JustifyContent::FlexStart },
+        ..default()
+    }
 }
 
-/// The lines a table shows (at most `max`) and how many more there were.
-pub struct RecapRows<'a> {
-    pub shown: &'a [DamageLine],
+/// Whole damage points.
+pub fn whole(v: f32) -> String {
+    if v.is_finite() { (v.max(0.0).round() as i64).to_string() } else { "0".into() }
+}
+
+/// The items a list shows (at most `max`, at least one) and how many more there were.
+pub struct Fold<'a, T> {
+    pub items: &'a [T],
     pub more: usize,
 }
 
-pub fn recap_rows(lines: &[DamageLine], max: usize) -> RecapRows<'_> {
-    let n = lines.len().min(max.max(1));
-    RecapRows { shown: &lines[..n], more: lines.len() - n }
+pub fn fold<T>(items: &[T], max: usize) -> Fold<'_, T> {
+    let n = items.len().min(max.max(1));
+    Fold { items: &items[..n], more: items.len() - n }
 }
 
 #[cfg(test)]
@@ -1049,12 +1412,14 @@ mod tests {
         log.took(&Hit {
             shooter: 7,
             victim: 1,
+            victim_life: 0,
             weapon: "ar7_mako",
             zone: Zone::Head,
             shield: 10.0,
             health: 40.0,
             range_m: 21.4,
             from: Vec3::ZERO,
+            at_s: 3.0,
         });
         let recap = log.recap(Some(7), Some(Zone::Head));
         let loadout = vetf_sim::player::Loadout::default_for(&game, MatchMode::Tdm);
@@ -1114,41 +1479,120 @@ mod tests {
         assert_eq!(respawn_lines(0.0, 2.5, true).1, "RESPAWNING");
     }
 
-    /// The recap tables: whole damage points and a dash for none; long lists fold into "+N more".
-    #[test]
-    fn the_recap_tables_stay_compact() {
-        assert_eq!(damage_cell(0.0), "-");
-        assert_eq!(damage_cell(0.4), "-");
-        assert_eq!(damage_cell(41.6), "42");
-        let mut log = LifeLog::default();
-        for shooter in 0..8 {
-            log.took(&Hit {
-                shooter,
-                victim: 99,
-                weapon: "ar7_mako",
-                zone: Zone::Torso,
-                shield: 1.0,
-                health: shooter as f32,
-                range_m: 5.0,
-                from: Vec3::ZERO,
-            });
+    fn dealt(victim: u64, life: u32, zone: Zone, shield: f32, health: f32, at_s: f64) -> Hit<'static> {
+        Hit {
+            shooter: 1,
+            victim,
+            victim_life: life,
+            weapon: "ar7_mako",
+            zone,
+            shield,
+            health,
+            range_m: 15.0,
+            from: Vec3::ZERO,
+            at_s,
         }
-        let max = data().layout.recap_rows;
-        let rows = recap_rows(&log.taken, max);
-        assert_eq!((rows.shown.len(), rows.more), (max, 8 - max));
-        let rows = recap_rows(&log.taken[..2], max);
-        assert_eq!((rows.shown.len(), rows.more), (2, 0));
     }
 
-    /// The layout keeps the centre clear for the death cam, and the recap's columns fit its panel.
+    /// Whole damage points; long lists fold into "+N more"; a damage bar splits the halo's part from the rest
+    /// and never overflows its track.
+    #[test]
+    fn the_recap_stays_compact() {
+        assert_eq!([whole(0.4), whole(41.6), whole(-3.0), whole(f32::NAN)], ["0", "42", "0", "0"]);
+        let max = data().layout.recap_rows;
+        let items: Vec<u32> = (0..8).collect();
+        let f = fold(&items, max);
+        assert_eq!((f.items.len(), f.more), (max, 8 - max));
+        let f = fold(&items[..2], max);
+        assert_eq!((f.items.len(), f.more), (2, 0));
+        assert_eq!(fold(&items, 0).items.len(), 1, "always at least one");
+        assert_eq!(bar_split(30.0, 120.0, 240.0), (0.5, 0.25));
+        assert_eq!(bar_split(0.0, 80.0, 80.0), (1.0, 0.0));
+        assert_eq!(bar_split(10.0, 0.0, 0.0), (0.0, 0.0));
+        assert_eq!(bar_split(500.0, 300.0, 100.0), (1.0, 1.0), "clamped");
+        assert_eq!(bar_split(f32::NAN, f32::INFINITY, 10.0), (0.0, 0.0));
+    }
+
+    /// KILLS THIS LIFE: one icon per kill, the headshot mark for a headshot kill and a body for the rest (a
+    /// bleed-out included), and the count matches the kills.
+    #[test]
+    fn kill_icons_tell_headshots_from_body_kills() {
+        let mut log = LifeLog::default();
+        log.dealt(&dealt(3, 0, Zone::Head, 40.0, 80.0, 10.0));
+        log.killed(3, 0, Some(Zone::Head));
+        log.killed(4, 1, Some(Zone::Legs));
+        log.killed(5, 0, None);
+        let r = log.recap(None, None);
+        let icons: Vec<Icon> = r.kills.iter().map(kill_icon).collect();
+        assert_eq!(icons, [Icon::Headshot, Icon::Torso, Icon::Torso]);
+        assert_eq!((r.kills.len(), r.headshot_kills()), (3, 1));
+        assert_eq!(r.kills.iter().map(|k| k.victim).collect::<Vec<_>>(), [3, 4, 5], "in order, each with a name");
+    }
+
+    /// YOUR LAST FIGHT reads the data file's window: the user's case, two opponents hurt in a gunfight just
+    /// before the death and neither killed, plus an older fight and a kill that stay out. The silhouette lights
+    /// only the zones hit, brighter for more hits; an empty fight says why.
+    #[test]
+    fn the_last_fight_shows_who_got_away() {
+        let spec = data().recap;
+        assert_eq!(spec.last_fight_s, 5.0, "the user's 5 s");
+        let mut log = LifeLog::default();
+        log.dealt(&dealt(3, 0, Zone::Torso, 50.0, 30.0, 20.0)); // long before
+        log.dealt(&dealt(4, 2, Zone::Head, 30.0, 0.0, 57.0));
+        log.dealt(&dealt(4, 2, Zone::Torso, 20.0, 15.0, 58.0));
+        log.dealt(&dealt(4, 2, Zone::Torso, 0.0, 25.0, 59.0));
+        log.dealt(&dealt(6, 0, Zone::Legs, 0.0, 22.0, 58.5));
+        log.dealt(&dealt(7, 1, Zone::Torso, 0.0, 90.0, 56.0));
+        log.killed(7, 1, Some(Zone::Torso));
+        log.died(60.0);
+        let r = log.recap(Some(4), Some(Zone::Torso));
+        let fight = r.last_fight(spec.last_fight_s);
+        let got: Vec<(u64, f32, f32)> = fight.iter().map(|e| (e.player, e.total(), e.shield)).collect();
+        assert_eq!(got, [(4, 90.0, 50.0), (6, 22.0, 0.0)]);
+        let glow: Vec<f32> = Zone::ALL.iter().map(|z| zone_glow(fight[0].hits[*z])).collect();
+        assert_eq!(glow, [zone_glow(1), zone_glow(2), 0.0, 0.0], "head once, torso twice, nothing else");
+        assert!(zone_glow(1) > 0.0 && zone_glow(2) > zone_glow(1) && zone_glow(9) >= zone_glow(3));
+        assert_eq!(zone_glow(9), 1.0);
+        // Nobody left: say why.
+        let mut killed_all = LifeLog::default();
+        killed_all.dealt(&dealt(7, 0, Zone::Torso, 0.0, 90.0, 9.0));
+        killed_all.killed(7, 0, Some(Zone::Torso));
+        killed_all.died(10.0);
+        let r = killed_all.recap(None, None);
+        assert!(r.last_fight(spec.last_fight_s).is_empty());
+        assert_eq!(last_fight_note(&r, spec.last_fight_s), "You killed everyone you hit in your last 5 s.");
+        let quiet = LifeLog::default().recap(None, None);
+        assert_eq!(last_fight_note(&quiet, spec.last_fight_s), "You hit no one in your last 5 s.");
+    }
+
+    /// The silhouette has every zone, inside its box.
+    #[test]
+    fn the_silhouette_covers_every_zone() {
+        for z in Zone::ALL {
+            assert!(BODY.iter().any(|p| p.zone == z), "{z:?}");
+        }
+        for p in BODY {
+            assert!(p.x >= 0.0 && p.y >= 0.0 && p.x + p.w <= SIL_W && p.y + p.h <= SIL_H, "{p:?}");
+        }
+    }
+
+    /// The layout keeps the centre clear for the death cam, and the recap's columns and cards fit its panel.
     #[test]
     fn the_layout_leaves_the_centre_clear() {
         let l = data().layout;
         let centre = REF_WIDTH - 2.0 * l.margin_x - l.killer_w - l.recap_w;
         assert!(centre >= l.min_centre_w, "{centre} px between the columns");
-        let cols: f32 = l.columns().iter().sum();
-        assert!(cols + 2.0 * LayoutSpec::RECAP_PAD + 2.0 <= l.recap_w, "{cols} px of columns");
+        let cols: f32 = l.fixed_columns().iter().sum::<f32>() + l.col_bar_min;
+        assert!(cols <= l.recap_inner(), "{cols} px of columns");
         assert!(l.recap_rows >= 1);
+        let r = data().recap;
+        assert!(r.fight_cards >= 1 && r.fight_cols >= 1 && r.kills_shown >= 1 && r.last_fight_s > 0.0);
+        // A fight card fits a silhouette and a damage number beside it.
+        let card = (l.recap_inner() - (r.fight_cols - 1) as f32 * LayoutSpec::GAP) / r.fight_cols as f32;
+        assert!(card >= SIL_W + 150.0, "{card} px per fight card");
+        // The kill icons fit one row.
+        let kills = r.kills_shown as f32 * (KILL_CHIP_W + 8.0) + 48.0;
+        assert!(kills <= l.recap_inner(), "{kills} px of kill icons");
         let cam = data().cam;
         assert!(cam.turn_rate > 0.0 && cam.zoom_rate > 0.0 && cam.min_fov_deg > 5.0);
         assert!((0.0..=1.0).contains(&cam.aim_height));

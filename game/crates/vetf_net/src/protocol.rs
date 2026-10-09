@@ -19,7 +19,7 @@ use vetf_sim::player::{Loadout, Wounds};
 use vetf_sim::weapon::WeaponState;
 
 /// Bumped whenever the protocol changes; part of the netcode protocol id, so old builds cannot connect.
-pub const PROTOCOL_VERSION: u64 = 9;
+pub const PROTOCOL_VERSION: u64 = 10;
 
 /// netcode.io protocol id shared by host and clients.
 pub fn protocol_id() -> u64 {
@@ -86,6 +86,16 @@ pub struct Vitals {
 pub struct Score {
     pub kills: u16,
     pub deaths: u16,
+    /// Kills this player helped with (the host's assist rule, `rules.ron` `assist_min_damage` within
+    /// `assist_window_s`).
+    pub assists: u16,
+}
+
+impl Score {
+    /// (kills + assists) / deaths, deaths counted as at least 1.
+    pub fn kda(&self) -> f32 {
+        (self.kills as f32 + self.assists as f32) / self.deaths.max(1) as f32
+    }
 }
 
 /// The player's connection as the host measures it, and their lobby state.
@@ -310,12 +320,14 @@ pub struct DamageTaken {
 }
 
 /// Host -> everyone.
-#[derive(Serialize, Deserialize, Clone, Copy, Debug, PartialEq)]
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq)]
 pub struct KillFeed {
     /// `None` for suicides and falls.
     pub killer: Option<u64>,
     pub victim: u64,
     pub zone: Option<Zone>,
+    /// The players credited with an assist on this kill (never the killer).
+    pub assists: Vec<u64>,
 }
 
 /// Client -> host: respawn me now (the death screen's RESPAWN, once the respawn timer is out).
@@ -518,7 +530,9 @@ mod tests {
         };
         roundtrip(&Hello { name: "KESTREL_YOU".into(), loadout: choice.clone(), data_fingerprint: d.fingerprint });
         roundtrip(&LoadoutUpdate { loadout: choice });
-        roundtrip(&KillFeed { killer: Some(1), victim: 2, zone: Some(Zone::Head) });
+        roundtrip(&KillFeed { killer: Some(1), victim: 2, zone: Some(Zone::Head), assists: vec![3, 9] });
+        roundtrip(&KillFeed { killer: None, victim: 2, zone: None, assists: vec![] });
+        roundtrip(&Score { kills: 7, deaths: 2, assists: 4 });
         // A hit confirm carries the shot number and where it hit, for the marker on the victim.
         for kind in [HitKind::Shield, HitKind::Health, HitKind::Kill] {
             roundtrip(&HitConfirm {
@@ -655,32 +669,47 @@ mod tests {
         roundtrip(&PlayerAgent(None));
         assert_eq!(PlayerAgent::default(), PlayerAgent(None));
         assert_eq!(
-            PROTOCOL_VERSION, 9,
-            "agent + deathmatch picks 6, no ADS MOVE 7, death screen 8, test bots (bot mark, ADD/REMOVE BOT) 9"
+            PROTOCOL_VERSION, 10,
+            "agent + deathmatch picks 6, no ADS MOVE 7, death screen 8, test bots (bot mark, ADD/REMOVE BOT) 9,              recap per opponent life + kills, assists 10"
         );
     }
 
-    /// The death screen's recap: lines with hits per zone, the killer's zone, or none of it (a fall).
+    /// The death screen's recap: damage taken, encounters per opponent life, kills; or none of it (a fall).
     #[test]
     fn the_life_recap_roundtrips() {
         use crate::recap::{Hit, LifeLog};
         let mut log = LifeLog::default();
-        let h = |shooter, victim, zone, shield, health| Hit {
+        let h = |shooter, victim, victim_life, zone, shield, health| Hit {
             shooter,
             victim,
+            victim_life,
             weapon: "ar7_mako",
             zone,
             shield,
             health,
             range_m: 21.5,
             from: Vec3::new(-4.0, 1.6, 12.25),
+            at_s: 812.25,
         };
-        log.took(&h(7, 1, Zone::Head, 30.0, 35.0));
-        log.took(&h(8, 1, Zone::Legs, 0.0, 22.0));
-        log.dealt(&h(1, 7, Zone::Torso, 42.0, 0.0));
+        log.took(&h(7, 1, 0, Zone::Head, 30.0, 35.0));
+        log.took(&h(8, 1, 0, Zone::Legs, 0.0, 22.0));
+        log.dealt(&h(1, 7, 3, Zone::Torso, 42.0, 0.0));
+        log.dealt(&h(1, 7, 4, Zone::Head, 10.0, 60.0));
+        log.killed(7, 4, Some(Zone::Head));
+        log.killed(9, 1, None);
+        log.died(813.0);
         roundtrip(&log.recap(Some(7), Some(Zone::Head)));
         roundtrip(&log.recap(None, None));
         roundtrip(&LifeLog::default().recap(None, None));
+    }
+
+    /// KDA: (kills + assists) / deaths, with no deaths counted as one.
+    #[test]
+    fn kda_counts_assists_and_never_divides_by_zero() {
+        assert_eq!(Score { kills: 10, deaths: 4, assists: 2 }.kda(), 3.0);
+        assert_eq!(Score { kills: 3, deaths: 0, assists: 1 }.kda(), 4.0, "no deaths: as one");
+        assert_eq!(Score::default().kda(), 0.0);
+        assert_eq!(Score { kills: 0, deaths: 3, assists: 1 }.kda(), 1.0 / 3.0);
     }
 
     #[test]
