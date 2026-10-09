@@ -31,7 +31,7 @@ impl Plugin for ShowhomeKitPlugin {
         app.init_resource::<ShowhomeKitAssets>()
             .init_resource::<KitDepthState>()
             .init_resource::<KitMipState>()
-            .add_systems(OnEnter(AppState::InGame), spawn_kit)
+            .add_systems(OnEnter(AppState::InGame), (spawn_kit, spawn_test_props))
             .add_systems(
                 Update,
                 (
@@ -143,6 +143,53 @@ fn spawn_kit(
                 DespawnOnExit(AppState::InGame),
             ))
             .observe(mark_scene_meshes);
+    }
+}
+
+/// Local test props: `maps/showhome/test_props.ron` (not committed) lists glTF scenes to place by hand for a look in
+/// game (e.g. the image-to-3D prop tests). Visual only, with no collision. Nothing happens when the file is missing.
+#[derive(Deserialize)]
+struct TestProps {
+    props: Vec<TestProp>,
+}
+
+#[derive(Deserialize)]
+struct TestProp {
+    path: String,
+    translation: (f32, f32, f32),
+    yaw_deg: f32,
+    scale: f32,
+}
+
+fn spawn_test_props(mut commands: Commands, level: Res<CurrentLevel>, server: Res<AssetServer>) {
+    if !is_showhome(&level) {
+        return;
+    }
+    let root = crate::config::assets_root();
+    let Ok(text) = std::fs::read_to_string(root.join("maps/showhome/test_props.ron")) else { return };
+    let list: TestProps = match ron::from_str(&text) {
+        Ok(list) => list,
+        Err(e) => {
+            warn!("maps/showhome/test_props.ron: {e}");
+            return;
+        }
+    };
+    for prop in list.props {
+        if !root.join(&prop.path).is_file() {
+            warn!("test prop {} is missing", prop.path);
+            continue;
+        }
+        let (x, y, z) = prop.translation;
+        commands.spawn((
+            WorldAssetRoot(server.load(GltfAssetLabel::Scene(0).from_asset(prop.path.clone()))),
+            Transform::from_xyz(x, y, z)
+                .with_rotation(Quat::from_rotation_y(prop.yaw_deg.to_radians()))
+                .with_scale(Vec3::splat(prop.scale)),
+            Visibility::Inherited,
+            DespawnOnExit(AppState::InGame),
+            Name::new(format!("test prop {}", prop.path)),
+        ));
+        info!("test prop {} placed", prop.path);
     }
 }
 
