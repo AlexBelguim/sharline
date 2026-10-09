@@ -91,6 +91,26 @@
         // Sprinting the gun is lowered and turned in; it eases down over `ease_s`, and comes back up with the
         // simulation's bring-up (sprint_to_fire_s), so it is up on the tick the first shot can go.
         sprint_pose: (shift: (0.05, -0.06, 0.04), yaw_deg: 28.6, ease_s: 0.08),
+        // A mag check: the gun turns its magazine window toward you (src/render/inspect.rs). It turns in over
+        // `in_s`, and a tap (released before the gun would turn back) turns it back over `out_s` so it is back as
+        // the check ends (weapons.ron `mag_check_s`, 0.9-1.2 s): that is when the estimate card shows. Held, the gun
+        // stays turned while the key is down (the card stays too), and turns back over `out_s` on release. Aiming,
+        // firing or a reload cancels it: back over `cancel_s`.
+        // The pose, from the hip: `shift` (view axes, metres) brings it up and in, then it turns about the grip by
+        // `yaw_deg` (muzzle toward the middle of the screen, so its left side faces you), `pitch_deg` (muzzle up)
+        // and `roll_deg` (canted clockwise, the magazine swung up toward the eye).
+        // Third person (what others see): the held gun turns about the grip by the same kind of turn, eased over
+        // `ease_s`, while that player checks.
+        mag_inspect: (
+            in_s: 0.22,
+            out_s: 0.26,
+            cancel_s: 0.12,
+            shift: (-0.07, 0.085, 0.05),
+            yaw_deg: 38.0,
+            pitch_deg: 14.0,
+            roll_deg: -40.0,
+            third_person: (yaw_deg: 25.0, pitch_deg: 15.0, roll_deg: -45.0, ease_s: 0.08),
+        ),
     ),
     // Tracers fly from the muzzle (through a magnified scope: from the scope's centre) to where the shot ended.
     // Each is a hot core inside a wider glow, both camera-facing ribbons fading toward the tail, plus a faint smoke

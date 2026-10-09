@@ -174,6 +174,30 @@ pub struct GunFeel {
     pub ads_shift_mult: f32,
     pub ads_kick_mult: f32,
     pub sprint_pose: SprintPose,
+    pub mag_inspect: MagInspectFeel,
+}
+
+/// A mag check's turn of the gun toward the eye (`render::inspect`): its timing, the first-person pose (a shift
+/// in view space, then a turn about the grip) and the third-person turn.
+#[derive(Debug, Clone, Copy, PartialEq, Deserialize)]
+pub struct MagInspectFeel {
+    pub in_s: f32,
+    pub out_s: f32,
+    pub cancel_s: f32,
+    pub shift: [f32; 3],
+    pub yaw_deg: f32,
+    pub pitch_deg: f32,
+    pub roll_deg: f32,
+    pub third_person: HeldInspect,
+}
+
+/// The third-person gun's turn about the grip during a mag check, eased in and out over `ease_s`.
+#[derive(Debug, Clone, Copy, PartialEq, Deserialize)]
+pub struct HeldInspect {
+    pub yaw_deg: f32,
+    pub pitch_deg: f32,
+    pub roll_deg: f32,
+    pub ease_s: f32,
 }
 
 /// A camera-facing ribbon: its width and its colours (linear RGBA, above 1 glows) for own and others' shots.

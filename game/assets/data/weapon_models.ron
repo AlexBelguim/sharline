@@ -10,6 +10,20 @@
     // range lights, so the 1x sights' `_Glass` gets `glass_alpha`; reticles glow at their emissive times
     // `reticle_glow`, so the dot reads against a bright wall.
     optics: (glass_alpha: 0.1, reticle_glow: 3.0),
+    // The magazine window (src/weapon_models.rs MagWindow): the cartridges seen through a magazine's window (the
+    // Mako's `<mag>_Stack_NN` and top `_Round`, the Warden's `_Round_NN` and follower) show a LEVEL, never the count:
+    // the gun's magazine is read as the mag check's estimate, and the window shows this share of a full magazine for
+    // it (kept within the estimate's own range, so the window never disagrees with the card). Rounds fired between
+    // two estimate steps change nothing in the window. Only your own first-person gun's window is driven.
+    mag_window: (
+        empty: 0.0,
+        almost_empty: 0.1,
+        less_than_half: 0.28,
+        about_half: 0.5,
+        more_than_half: 0.72,
+        nearly_full: 0.92,
+        full: 1.0,
+    ),
     guns: [
         (
             weapon: "ar7_mako",

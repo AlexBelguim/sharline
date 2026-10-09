@@ -570,3 +570,22 @@ one, can the tab show assist and kda". The recap of section 20 changes:
   (the killer's kill icon, the next life number), `a_life_recap_reaches_the_host_and_only_the_dead_player` and
   `every_kill_reaches_the_host_and_each_joined_player_once` (with assists), `death` tests (kill icons, the last
   fight, the silhouette, the bars, the layout) and `scoreboard::the_board_shows_assists_and_kda`.
+
+## 25. The mag check turns the gun to its magazine window (2026-10-09)
+The user: "can you add that the check magazine does an inspect magazine animation so the gun its magazine gets
+turned to you slightly, so you can see how many bullets, and holding the button does the check with that popup".
+- **Inspect (visual only, `feel.ron` gun.mag_inspect):** when the simulation starts a mag check the first-person gun
+  turns its magazine window toward the eye (up and in, muzzle across, canted) over `in_s` 0.22 s. A tap turns it
+  back over `out_s` 0.26 s so it is back as the check ends (`mag_check_s`, 0.9-1.2 s, unchanged): that is when the
+  estimate card shows. Held past that point, the gun stays turned (and the card stays, as before) until the key
+  comes up. Aiming, firing, a reload or a dropped check turns it back over `cancel_s` 0.12 s. Others see the gun in
+  that player's hand turn too (from the replicated weapon state; no protocol change).
+- **The magazine window shows a level, not a count:** the Mako's `<mag>_Stack_NN` cartridges and top round and the
+  Warden's rounds and follower now follow the magazine in your own gun, but read as the mag check's estimate: the
+  window shows a fixed share of a full magazine per estimate (`weapon_models.ron` `mag_window`, kept within the
+  estimate's own range), so it changes only on an estimate step and never counts down. Only the first-person gun's
+  window is driven; third-person magazines keep the export (full) look.
+- The sim's mag check (its time, what cancels it, the card) is unchanged.
+- Pinned by `render::inspect` tests (tap vs hold, cancel, the turn fits every gun's check, the pose faces the Mako's
+  and Warden's windows to the eye, others' turn) and `weapon_models` tests (`the_mag_window_shows_a_level_never_a_count`,
+  `magazine_windows_are_read_from_the_exports`).

@@ -10,6 +10,7 @@ pub mod executor;
 pub mod feel;
 pub mod friend_foe;
 pub mod hit_fx;
+pub mod inspect;
 mod tracer_fx;
 
 use crate::AppState;
@@ -39,6 +40,7 @@ impl Plugin for RenderPlugin {
             .init_resource::<ViewmodelRig>()
             .insert_resource(feel::FeelData::load())
             .init_resource::<camera_fx::ViewFeel>()
+            .init_resource::<inspect::ViewInspect>()
             .init_resource::<tracer_fx::Tracers>()
             .init_resource::<hit_fx::HitMemory>()
             .init_resource::<hit_fx::ShardAssets>()
@@ -62,6 +64,7 @@ impl Plugin for RenderPlugin {
                     update_player_visuals,
                     sync_viewmodel,
                     camera_fx::step_feel.before(update_camera),
+                    inspect::step_inspect.before(update_camera),
                     smooth_step_eye.before(update_camera),
                     update_camera,
                 )
@@ -107,6 +110,8 @@ struct Viewmodel(Option<GunLook>);
 struct HeldGun {
     look: Option<GunLook>,
     hand: Vec3,
+    /// How far it is turned to show its magazine window (a mag check, `inspect`), 0..1.
+    inspect: f32,
 }
 
 /// Where a gun without a model is held (player space), and the box that stands in for it.
@@ -498,7 +503,7 @@ fn attach_player_visuals(
             });
             // The gun is built by `sync_held_guns` (and rebuilt when the loadout changes).
             p.spawn((
-                HeldGun { look: None, hand: HELD_PLACEHOLDER },
+                HeldGun { look: None, hand: HELD_PLACEHOLDER, inspect: 0.0 },
                 Transform::from_translation(HELD_PLACEHOLDER),
                 Visibility::default(),
             ));
@@ -613,12 +618,15 @@ fn sync_held_guns(
 
 #[allow(clippy::type_complexity)]
 fn update_player_visuals(
+    time: Res<Time>,
+    feel: Res<feel::FeelData>,
     mut players: Query<
         (
             &PlayerMove,
             &PlayerLook,
             &Vitals,
             &PlayerLoadout,
+            Option<&PlayerWeapon>,
             &mut Transform,
             &mut Visibility,
             &Children,
@@ -629,9 +637,10 @@ fn update_player_visuals(
     tree: Query<&Children>,
     mut bodies: Query<&mut Transform, (With<Body>, Without<PlayerVisual>)>,
     mut arcs: Query<(&HaloArc, &mut Visibility), Without<PlayerVisual>>,
-    mut guns: Query<(&HeldGun, &mut Transform), (Without<PlayerVisual>, Without<Body>)>,
+    mut guns: Query<(&mut HeldGun, &mut Transform), (Without<PlayerVisual>, Without<Body>)>,
 ) {
-    for (mv, look, vitals, loadout, mut t, mut vis, children, mine) in &mut players {
+    let held = &feel.gun.mag_inspect.third_person;
+    for (mv, look, vitals, loadout, weapon, mut t, mut vis, children, mine) in &mut players {
         let pose = PlayerPose::new(mv.0.pos, look, mv.0.stance);
         *t = pose.root;
         // Our own body never shows (it can get visuals if it arrived a frame before `Controlled` did).
@@ -647,8 +656,12 @@ fn update_player_visuals(
                     }
                 }
             }
-            if let Ok((gun, mut g)) = guns.get_mut(child) {
+            if let Ok((mut gun, mut g)) = guns.get_mut(child) {
+                // A mag check turns the gun's magazine toward its holder (`inspect`): others see the check.
+                let checking = !vitals.health.dead && weapon.is_some_and(|w| inspect::held_inspecting(&w.0));
+                gun.inspect = inspect::ease_held(gun.inspect, checking, held, time.delta_secs());
                 *g = pose.gun(gun.hand);
+                g.rotation *= inspect::held_turn(held, gun.inspect);
             }
         }
     }
@@ -947,6 +960,7 @@ fn update_camera(
     step: Res<StepEye>,
     rig: Res<ViewmodelRig>,
     feel: Res<camera_fx::ViewFeel>,
+    view_inspect: Res<inspect::ViewInspect>,
     data: Res<feel::FeelData>,
     me: Query<(&PlayerMove, Option<&Smoothed>, &PlayerLoadout, &Vitals), With<Controlled>>,
     mut camera: Query<
@@ -1033,6 +1047,8 @@ fn update_camera(
         // Eased in and out (`feel.ron`).
         t.translation += Vec3::from(sprint.shift) * now.sprint;
         t.rotation = Quat::from_rotation_y(sprint.yaw_deg.to_radians() * now.sprint) * t.rotation;
+        // A mag check turns the magazine window toward the eye (`inspect`); the sway goes on top.
+        *t = inspect::inspect_gun(&data.gun.mag_inspect, *t, if dead { 0.0 } else { view_inspect.state.weight });
         *t = now.gun.move_gun(*t, now.ads);
         if let Some(left) = inspect {
             *t = inspect_pose(&rig, left);

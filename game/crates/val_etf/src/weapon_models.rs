@@ -31,7 +31,7 @@ use std::sync::OnceLock;
 use vetf_net::*;
 use vetf_sim::GameData;
 use vetf_sim::data::{AttachmentCategory, WeaponClass};
-use vetf_sim::weapon::{ADS_AIMED, WeaponLoadout};
+use vetf_sim::weapon::{ADS_AIMED, MagEstimate, WeaponLoadout};
 
 pub struct WeaponModelsPlugin;
 
@@ -41,7 +41,7 @@ impl Plugin for WeaponModelsPlugin {
             .init_resource::<Tinted>()
             .add_systems(Startup, load_models)
             .add_systems(Update, read_layouts)
-            .add_systems(Update, drive_projectors.run_if(in_state(AppState::InGame)))
+            .add_systems(Update, (drive_projectors, drive_mag_windows).run_if(in_state(AppState::InGame)))
             .add_systems(OnEnter(AppState::InGame), spawn_scope_overlay)
             .add_systems(Update, update_scope_overlay.run_if(in_state(AppState::InGame)));
     }
@@ -53,8 +53,71 @@ impl Plugin for WeaponModelsPlugin {
 #[derive(Debug, Clone, PartialEq, Deserialize)]
 pub struct ModelData {
     pub optics: OpticLook,
+    pub mag_window: WindowFill,
     pub guns: Vec<GunRow>,
     pub parts: Vec<PartRow>,
+}
+
+/// What a magazine window shows for each mag check estimate: a share of a full magazine (see [`window_rounds`]).
+#[derive(Debug, Clone, Copy, PartialEq, Deserialize)]
+pub struct WindowFill {
+    pub empty: f32,
+    pub almost_empty: f32,
+    pub less_than_half: f32,
+    pub about_half: f32,
+    pub more_than_half: f32,
+    pub nearly_full: f32,
+    pub full: f32,
+}
+
+impl WindowFill {
+    pub fn share(&self, est: MagEstimate) -> f32 {
+        match est {
+            MagEstimate::Empty => self.empty,
+            MagEstimate::AlmostEmpty => self.almost_empty,
+            MagEstimate::LessThanHalf => self.less_than_half,
+            MagEstimate::AboutHalf => self.about_half,
+            MagEstimate::MoreThanHalf => self.more_than_half,
+            MagEstimate::NearlyFull => self.nearly_full,
+            MagEstimate::Full => self.full,
+        }
+    }
+}
+
+/// The rounds a magazine window shows for an estimate (hard rule: a level, never a count). It depends only on the
+/// estimate and the capacity, so firing between two estimate steps changes nothing: the share of a full magazine
+/// from the data, kept within the round counts that read as that estimate so the window never disagrees with the
+/// card (an estimate no count of this capacity gives keeps the plain share).
+pub fn window_rounds(est: MagEstimate, capacity: u16, fill: &WindowFill) -> u16 {
+    let want = (fill.share(est).clamp(0.0, 1.0) * capacity as f32).round() as u16;
+    let reads = |r: &u16| MagEstimate::from_rounds(*r, capacity) == est;
+    match ((0..=capacity).find(reads), (0..=capacity).rev().find(reads)) {
+        (Some(lo), Some(hi)) => want.clamp(lo, hi),
+        _ => want,
+    }
+}
+
+/// What a node of a magazine is for in its window, from its extras (the art's rules, ar7_mako/build_mako.py
+/// STACK_RULE and vk50_warden/build_warden.py): a cartridge shown while the magazine holds at least its
+/// `min_rounds` (the Mako's) or `round_index` (the Warden's, 1 = the top round), or the Warden's follower, raised by
+/// `offset_by_rounds_left_m[rounds]` (metres, up).
+#[derive(Debug, Clone, PartialEq)]
+pub enum WindowRole {
+    Cartridge(u16),
+    Follower(Vec<f32>),
+}
+
+impl WindowRole {
+    pub fn of(extras: &str) -> Option<WindowRole> {
+        let e: serde_json::Value = serde_json::from_str(extras).ok()?;
+        let num = |k: &str| e.get(k).and_then(|v| v.as_u64()).map(|v| v.min(u16::MAX as u64) as u16);
+        if let Some(n) = num("min_rounds").or_else(|| num("round_index")) {
+            return Some(WindowRole::Cartridge(n));
+        }
+        let offsets = e.get("offset_by_rounds_left_m")?.as_str()?;
+        let offsets: Vec<f32> = offsets.split(',').filter_map(|v| v.trim().parse().ok()).collect();
+        (!offsets.is_empty()).then_some(WindowRole::Follower(offsets))
+    }
 }
 
 /// How the optics' see-through parts draw in the game.
@@ -473,11 +536,25 @@ fn dress(
             hologram: None,
             state: ProjectorState::default(),
         });
+        let mut window = MagWindow::default();
         for e in tree.iter_descendants(ready.entity) {
             if let (Some(pose), Ok((extras, t))) = (&d.pose, extras.get(e))
                 && let Some(rotation) = pose_rotation(&extras.value, pose)
             {
                 commands.entity(e).insert(t.with_rotation(rotation));
+            }
+            // Our own magazine's window shows its level (`drive_mag_windows`).
+            if d.first_person
+                && let Ok((extras, t)) = extras.get(e)
+            {
+                match WindowRole::of(&extras.value) {
+                    Some(WindowRole::Cartridge(n)) => {
+                        commands.entity(e).insert(Visibility::Inherited);
+                        window.cartridges.push((e, n));
+                    }
+                    Some(WindowRole::Follower(offsets)) => window.follower = Some((e, t.translation, offsets)),
+                    None => {}
+                }
             }
             if let Some(p) = projector.as_mut().filter(|_| players.contains(e)) {
                 p.player = Some(e);
@@ -524,6 +601,54 @@ fn dress(
         }
         if let Some(p) = projector {
             commands.entity(ready.entity).insert(p);
+        }
+        if !window.cartridges.is_empty() || window.follower.is_some() {
+            commands.entity(ready.entity).insert(window);
+        }
+    }
+}
+
+/// A first-person magazine's window: its cartridges (each shown from its round count) and its follower (the
+/// node, its exported place, its rise by rounds), and the rounds it shows now.
+#[derive(Component, Debug, Clone, Default)]
+pub struct MagWindow {
+    cartridges: Vec<(Entity, u16)>,
+    follower: Option<(Entity, Vec3, Vec<f32>)>,
+    shown: Option<u16>,
+}
+
+/// The follower's rise (metres) under `rounds`: the table's entry, the last one past its end.
+pub fn follower_rise(offsets: &[f32], rounds: u16) -> f32 {
+    offsets.get(rounds as usize).or(offsets.last()).copied().unwrap_or(0.0)
+}
+
+/// Shows our magazine's level in its window: the cartridges for [`window_rounds`] of the mag check estimate of the
+/// magazine in the gun (never its count), the follower under them.
+fn drive_mag_windows(
+    models: Res<WeaponModels>,
+    me: Query<(&PlayerWeapon, &PlayerLoadout), With<Controlled>>,
+    mut windows: Query<&mut MagWindow>,
+    mut visibility: Query<&mut Visibility>,
+    mut places: Query<&mut Transform>,
+) {
+    let Some((weapon, loadout)) = me.iter().next() else { return };
+    let capacity = loadout.0.weapon.mag_capacity;
+    let est = MagEstimate::from_rounds(weapon.0.mag(), capacity);
+    let shown = window_rounds(est, capacity, &models.data.mag_window);
+    for mut w in &mut windows {
+        if w.shown == Some(shown) {
+            continue;
+        }
+        w.shown = Some(shown);
+        for &(e, n) in &w.cartridges {
+            if let Ok(mut v) = visibility.get_mut(e) {
+                v.set_if_neq(if shown >= n { Visibility::Inherited } else { Visibility::Hidden });
+            }
+        }
+        if let Some((e, base, offsets)) = &w.follower
+            && let Ok(mut t) = places.get_mut(*e)
+        {
+            t.translation = *base + Vec3::Y * follower_rise(offsets, shown);
         }
     }
 }
@@ -979,6 +1104,97 @@ mod tests {
             children,
             extras: extras.map(str::to_string),
         }
+    }
+
+    /// Hard rule: a magazine window shows a level, never a count. Whatever is left, it shows one of the seven
+    /// estimate levels' round counts, the one that reads as the card's estimate.
+    #[test]
+    fn the_mag_window_shows_a_level_never_a_count() {
+        let fill = ModelData::embedded().mag_window;
+        let mut shares = [
+            fill.empty,
+            fill.almost_empty,
+            fill.less_than_half,
+            fill.about_half,
+            fill.more_than_half,
+            fill.nearly_full,
+            fill.full,
+        ];
+        assert_eq!((shares[0], shares[6]), (0.0, 1.0), "empty shows none, full all");
+        assert!(shares.windows(2).all(|w| w[0] < w[1]), "the levels rise: {shares:?}");
+        shares.sort_by(f32::total_cmp);
+        for capacity in 1..=100u16 {
+            let shown: Vec<u16> = (0..=capacity)
+                .map(|r| {
+                    let est = MagEstimate::from_rounds(r, capacity);
+                    let n = window_rounds(est, capacity, &fill);
+                    assert_eq!(MagEstimate::from_rounds(n, capacity), est, "{r}/{capacity}: shows {n}");
+                    n
+                })
+                .collect();
+            let mut levels = shown.clone();
+            levels.dedup();
+            assert!(levels.len() <= 7, "{capacity}: {levels:?}");
+            assert!(shown.windows(2).all(|w| w[0] <= w[1]), "{capacity}: more rounds never show fewer");
+            if capacity >= 20 {
+                // Firing a round off a big magazine changes the window only on an estimate step (never a countdown).
+                let changes = shown.windows(2).filter(|w| w[0] != w[1]).count();
+                assert!(changes <= 6, "{capacity}: {changes} steps");
+            }
+        }
+    }
+
+    /// The real magazines' window nodes, read as the game reads them: the Mako's cartridges in the window (and its
+    /// top round), the Warden's rounds and follower.
+    #[test]
+    fn magazine_windows_are_read_from_the_exports() {
+        let fill = ModelData::embedded().mag_window;
+        for (file, capacity, cartridges, follower) in [
+            ("models/weapons/mako/MAKO_mag_30.glb", 30, 18, false),
+            ("models/weapons/mako/MAKO_mag_45.glb", 45, 31, false),
+            ("models/weapons/mako/MAKO_mag_drum60.glb", 60, 9, false),
+            ("models/weapons/warden/warden_mag_5.glb", 5, 5, true),
+            ("models/weapons/warden/warden_mag_8.glb", 8, 8, true),
+        ] {
+            let Some(nodes) = glb_nodes(&asset(file)) else {
+                eprintln!("{file} is not checked out; skipped");
+                continue;
+            };
+            let roles: Vec<WindowRole> = nodes.iter().filter_map(|n| WindowRole::of(n.extras.as_deref()?)).collect();
+            let shown_from: Vec<u16> =
+                roles.iter().filter_map(|r| if let WindowRole::Cartridge(n) = r { Some(*n) } else { None }).collect();
+            assert_eq!(shown_from.len(), cartridges, "{file}");
+            assert!(shown_from.iter().all(|&n| (1..=capacity).contains(&n)), "{file}: {shown_from:?}");
+            let offsets =
+                roles.iter().find_map(|r| if let WindowRole::Follower(o) = r { Some(o.clone()) } else { None });
+            assert_eq!(offsets.is_some(), follower, "{file}");
+            if let Some(o) = offsets {
+                assert_eq!(o.len(), capacity as usize + 1, "{file}: a rise for 0..=capacity rounds");
+                assert_eq!(follower_rise(&o, capacity), 0.0, "{file}: full, the follower is where it was exported");
+                assert!(follower_rise(&o, 0) > follower_rise(&o, 1), "{file}: empty, it rises to the lips");
+            }
+            // As the magazine is emptied the window steps down at most once per estimate level.
+            let visible = |rounds: u16| {
+                let n = window_rounds(MagEstimate::from_rounds(rounds, capacity), capacity, &fill);
+                shown_from.iter().filter(|&&m| n >= m).count()
+            };
+            let counts: Vec<usize> = (0..=capacity).rev().map(visible).collect();
+            let steps = counts.windows(2).filter(|w| w[0] != w[1]).count();
+            assert!(steps <= 6, "{file}: {counts:?}");
+            assert_eq!((counts[0], *counts.last().unwrap()), (cartridges, 0), "{file}: full shows all, empty none");
+        }
+    }
+
+    #[test]
+    fn window_roles_come_from_the_extras() {
+        assert_eq!(WindowRole::of(r#"{"min_rounds": 12, "round_index": 11}"#), Some(WindowRole::Cartridge(12)));
+        assert_eq!(WindowRole::of(r#"{"round_index": 3}"#), Some(WindowRole::Cartridge(3)));
+        assert_eq!(
+            WindowRole::of(r#"{"offset_by_rounds_left_m": "0.02,0.01,0.00"}"#),
+            Some(WindowRole::Follower(vec![0.02, 0.01, 0.0]))
+        );
+        assert_eq!(WindowRole::of(r#"{"capacity": 30}"#), None);
+        assert_eq!(follower_rise(&[0.02, 0.01, 0.0], 9), 0.0, "past the table: its last entry");
     }
 
     #[test]
