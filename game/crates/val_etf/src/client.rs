@@ -478,6 +478,7 @@ fn gather_input(
         (Buttons::ADS, ads),
         (Buttons::MAG_CHECK, held(Action::MagCheck)),
         (Buttons::FIRE_MODE, held(Action::FireMode)),
+        (Buttons::LASER, held(Action::Laser)),
         (Buttons::INTERACT, held(Action::Interact)),
         (Buttons::THROW_SMOKE, !control.throw_block && held(Action::ThrowSmoke)),
         (Buttons::THROW_MOLOTOV, !control.throw_block && held(Action::ThrowMolotov)),
@@ -1363,6 +1364,9 @@ mod tests {
         // H switches the fire mode now, B does not (it opens the heal ring)
         assert_ne!(frame(&mut app, &[KeyCode::KeyH], Vec2::ZERO).0 & Buttons::FIRE_MODE, 0);
         assert_eq!(frame(&mut app, &[KeyCode::KeyB], Vec2::ZERO).0 & Buttons::FIRE_MODE, 0);
+        // V is the laser's switch (D2)
+        assert_ne!(frame(&mut app, &[KeyCode::KeyV], Vec2::ZERO).0 & Buttons::LASER, 0);
+        assert_eq!(frame(&mut app, &[KeyCode::KeyH], Vec2::ZERO).0 & Buttons::LASER, 0);
     }
 
     /// The review of round 1: with SPRINT set to TOGGLE, a sprint toggled on before the heal ring opened was

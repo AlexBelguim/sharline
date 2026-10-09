@@ -22,6 +22,8 @@ impl Buttons {
     /// Throw a smoke grenade / a molotov (a press starts the wind-up, see `throwable::ThrowHand`).
     pub const THROW_SMOKE: u16 = 1 << 10;
     pub const THROW_MOLOTOV: u16 = 1 << 11;
+    /// Turn the laser on or off (a press toggles it, see `weapon::WeaponState::laser_on`).
+    pub const LASER: u16 = 1 << 12;
 
     pub fn held(self, bit: u16) -> bool {
         self.0 & bit != 0

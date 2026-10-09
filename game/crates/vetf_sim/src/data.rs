@@ -760,6 +760,10 @@ pub struct AttachmentSpec {
     /// screen lists it. The zoom is listed from `zoom`, not here.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub effects: Vec<PartEffect>,
+    /// A laser (D2): the Laser key (V) turns it on and off, and its `hip_spread` counts only while it is on. Its
+    /// other stats are the part's weight and always count.
+    #[serde(default, skip_serializing_if = "std::ops::Not::not")]
+    pub laser: bool,
     // Not `#[serde(flatten)]`: RON cannot deserialise flattened structs reliably.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub ads_time: Option<f32>,

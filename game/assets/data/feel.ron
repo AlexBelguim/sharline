@@ -160,9 +160,16 @@
     // for `beam_m` from the emitter, fading to nothing there (the blurb's "visible within 25 m"); the dot shows on
     // anything up to `dot_max_m` away. Widths are metres kept between min and max px on screen at 1080p; colours
     // are linear RGBA (above 1 glows with HDR).
+    // V turns it on and off (D2; replicated, so nobody sees a beam that is off). With the gun up the beam runs to
+    // where its holder aims; once the barrel points away from the aim (the sprint pose, a mag check, an item, any
+    // pose with the gun down or busy) the beam leaves along the BARREL and the dot lands where the barrel points,
+    // blending from aim to barrel between the two angles of `follow_barrel_deg` (degrees between barrel and aim;
+    // the first is above the sway's turns). Fully aimed through a magnified optic the gun is hidden: our own dot
+    // still shows in the scope view, where the aim lands, with no beam.
     laser: (
         beam_m: 25.0,
         dot_max_m: 120.0,
+        follow_barrel_deg: (6.0, 16.0),
         beam: (width_m: 0.004, min_px: 1.2, max_px: 2.5, own: (2.2, 0.08, 0.05, 0.45), other: (2.6, 0.1, 0.06, 0.6)),
         dot: (width_m: 0.025, min_px: 3.0, max_px: 9.0, own: (4.0, 0.25, 0.15, 1.0), other: (4.0, 0.25, 0.15, 1.0)),
     ),

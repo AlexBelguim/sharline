@@ -14,7 +14,9 @@
 // `name`, `short` and `blurb` are display copy for the Loadout screen (`{G}` in a blurb draws a key cap). `effects`
 // lists what a part does besides its stats, as the Loadout screen shows it (the zoom comes from `zoom`); an effect
 // with `not_yet: true` is promised but not in the game yet, and the screen says so. Every stat a part sets is listed
-// there too (a test holds it). `other` is a design note, never shown.
+// there too (a test holds it). `other` is a design note, never shown. `laser: true` marks a laser: the Laser key (V)
+// turns it on and off (on at spawn, everyone sees whether it is on), and its `hip_spread` counts only while it is on;
+// its other stats are the part's weight and always count (D2, DESIGN_DELTAS.md).
 (
     attachments: [
         // optics
@@ -62,9 +64,9 @@
             effects: [(text: "Deploys on cover: sway −80 %, recoil −40 %", not_yet: true)]),
         // side rail
         (id: "laser", cat: side, fits: ["ar7_mako", "vk50_warden", "sk9_skink"], name: "LASER", blurb: "Tighter hip fire on the move. Beam visible within 25 m.", hip_spread: Some(0.8), ads_time: Some(1.02),
-            recoil_h: Some(1.05), other: Some("beam visible <= 25 m, dot where it points (feel.ron laser); no toggle yet"),
-            effects: [(text: "Everyone sees its beam within 25 m"), (text: "A red dot where you aim"), (text: "Always on"),
-                (text: "On / off with V", not_yet: true)]),
+            recoil_h: Some(1.05), laser: true, other: Some("beam visible <= 25 m, dot where it points (feel.ron laser); the hip_spread only while on"),
+            effects: [(text: "Everyone sees its beam within 25 m"), (text: "A red dot where you aim"),
+                (text: "On / off with V (on when you spawn)"), (text: "Tighter hip fire only while on")]),
         (id: "flashlight", cat: side, fits: ["ar7_mako", "vk50_warden", "sk9_skink"], name: "FLASHLIGHT", blurb: "The light is not in yet: for now it is only weight.", ads_time: Some(1.02),
             other: Some("cone 30 deg, 25 m; glare on enemies <= 15 m inside 12 deg; toggle"),
             effects: [(text: "Lights 25 m ahead", not_yet: true), (text: "Blinds enemies within 15 m", not_yet: true)]),

@@ -1411,6 +1411,8 @@ fn local_one_shots(
     }
     for (on, id) in [
         (wev.fire_mode_changed, cue::FIRE_MODE),
+        // The laser's switch: the same small click as the selector.
+        (wev.laser_toggled, cue::FIRE_MODE),
         (wev.reload_started.is_some(), cue::MAG_OUT),
         (wev.mag_check_started, cue::MAG_CHECK),
         (ev.movement.jumped, cue::JUMP),

@@ -710,7 +710,7 @@ New (item 9c2, user direction; the design docs have no streaks). All numbers in 
   to where its holder aims, with a dot where that aim meets the level or a player: our own from the first-person
   gun (hip and aimed), everyone else's from their held gun along their replicated look. The beam shows for 25 m
   from the gun and fades out there; the dot shows up to 120 m (`feel.ron` `laser`, visual only, no wire change). It
-  is always on: the Laser key (V) does not toggle it yet. Since standing still is exact (section 12), the laser's
+  was always on then (V toggles it since section 38). Since standing still is exact (section 12), the laser's
   `hip_spread` only narrows the moving hip cone (not the bloom, not aimed fire); its blurb now says "Tighter hip
   fire on the move". The UGL's blurb says grenades are not in yet (no `{G}` key hint) until the grenade-launcher
   mode lands; its stats (slower ADS, sway, move) still apply.
@@ -877,3 +877,19 @@ New (item 9c2, user direction; the design docs have no streaks). All numbers in 
       the body instead; `Off` turns it off. The streaker never sees their own. Look in `friend_foe.ron` `bounty`.
       **This is a deliberate exception to DIRECTION_LOG 17's "no enemy tells"** (the user's ask for a bounty), so
       it is limited to free-for-all and to a streak of 5 or more.
+
+## 38. The laser switches on and off; the beam follows the barrel; the dot shows in the scope (2026-10-09)
+- **Before:** the laser was always on and V did nothing; its beam always ran to the crosshair, even with the gun
+  lowered in the sprint pose; fully scoped through a magnified optic the gun and its laser were hidden.
+- **Now (item D2, user answers):**
+  - **V toggles the laser** (`Buttons::LASER`, `WeaponState::laser_on`, on at spawn, a small click). The state is
+    replicated, so other players see a beam only while it is on (protocol 18). It toggles at any time, gun up or not.
+  - **The laser's `hip_spread` (0.8) counts only while it is on.** Its `ads_time` and `recoil_h` are the part's
+    weight and always count (attachments.ron `laser: true`). Turning it off trades tighter moving hip fire for not
+    being seen.
+  - **The beam follows the barrel:** once the barrel points more than `feel.ron` `laser.follow_barrel_deg` (6 to 16
+    degrees, eased) away from the aim (sprint pose, mag check, reload, an item, any pose with the gun down or busy),
+    the beam leaves along the barrel and the dot lands where the barrel ray hits. This is measured from the gun as
+    drawn, for our own viewmodel and for other players' third-person guns. With the gun up it is as before.
+  - **Scoped:** fully aimed through a magnified optic, our own dot still shows in the scope view where the aim
+    lands. There is no beam.

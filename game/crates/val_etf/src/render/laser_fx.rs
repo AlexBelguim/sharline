@@ -1,7 +1,15 @@
 //! The LASER side-rail part (attachments.ron `laser`) made visible: a thin red beam from the part's emitter to where
 //! its holder aims, and a dot where that aim meets the level or a player. Our own laser comes from the first-person
 //! gun (hip or aimed, so the beam runs from the gun on screen to the crosshair); everyone else's from the gun in
-//! their hand along their replicated look. Visual only: the laser's gameplay effect is its `hip_spread` stat.
+//! their hand along their replicated look. Visual only: the laser's gameplay effect is its `hip_spread` stat, which
+//! counts only while the laser is on.
+//!
+//! D2 (user): V turns the laser on and off (`WeaponState::laser_on`, replicated), so a beam shows only while its
+//! holder has it on. With the gun up the beam runs to the aim point as before; once the barrel points away from the
+//! aim (the sprint pose, a mag check, an item: any pose with the gun down or busy) it leaves along the BARREL and
+//! the dot lands where the barrel points ([`barrel_follow`], [`Laser::along`]), on our own gun and on everyone
+//! else's. Fully aimed through a magnified optic our gun is hidden, but our own dot still shows in the scope view
+//! where the aim lands ([`Laser::scoped`]).
 //!
 //! The emitter is the laser model's `*_SOCKET_Beam` node (the GLB places it at the lens), found by name when the
 //! part's scene spawns ([`tag_emitters`]). Every beam and dot is drawn into ONE mesh, rebuilt each frame into the
@@ -11,7 +19,7 @@
 
 use super::feel::{FeelData, LaserFeel};
 use super::tracer_fx::{Geometry, View, fit_ldr, mul_alpha, write_mesh};
-use super::{PlayerVisual, ViewCamera, Viewmodel, vfov_of};
+use super::{HeldGun, PlayerVisual, SmoothedAds, ViewCamera, Viewmodel, ViewmodelRig, vfov_of};
 use crate::AppState;
 use crate::client::LocalControl;
 use crate::config::{CurrentLevel, Data};
@@ -24,7 +32,7 @@ use bevy::prelude::*;
 use bevy::transform::TransformSystems;
 use lightyear::prelude::*;
 use std::f32::consts::TAU;
-use vetf_net::{PlayerLook, PlayerMove, Vitals};
+use vetf_net::{PlayerLook, PlayerMove, PlayerWeapon, Vitals};
 use vetf_sim::hitbox::{self, Pose};
 use vetf_sim::input::view_dir;
 
@@ -95,6 +103,54 @@ impl Laser {
         };
         Laser { emitter, end, dot: hit.map(|d| eye + dir * d), own }
     }
+
+    /// A laser at `emitter` pointing along `dir` (unit: the barrel's way, see [`beam_dir`]), meeting something
+    /// `hit` metres along it (None: nothing). The beam runs to that point, cut at `beam_m`; the dot sits on it
+    /// within `dot_max_m`.
+    pub fn along(emitter: Vec3, dir: Vec3, hit: Option<f32>, own: bool, f: &LaserFeel) -> Laser {
+        let hit = hit.filter(|d| *d <= f.dot_max_m);
+        let end = emitter + dir * hit.map_or(f.beam_m, |d| d.min(f.beam_m));
+        Laser { emitter, end, dot: hit.map(|d| emitter + dir * d), own }
+    }
+
+    /// Our own laser fully aimed through a magnified optic, the gun hidden: no beam, only the dot where the aim
+    /// from `eye` along `dir` meets something `hit` metres away (within `dot_max_m`), in the middle of the scope.
+    pub fn scoped(eye: Vec3, dir: Vec3, hit: Option<f32>, f: &LaserFeel) -> Laser {
+        let at = hit.filter(|d| *d <= f.dot_max_m).map(|d| eye + dir * d);
+        let p = at.unwrap_or(eye);
+        Laser { emitter: p, end: p, dot: at, own: true }
+    }
+}
+
+/// How far the beam follows the barrel instead of the aim (0: the gun is up, the beam goes to the aim point; 1: the
+/// gun is down or busy, it goes where the barrel points), from the angle between the aim `dir` and the `barrel`'s
+/// way (both unit): eased between the two angles of `follow_barrel_deg`.
+pub fn barrel_follow(dir: Vec3, barrel: Vec3, f: &LaserFeel) -> f32 {
+    let deg = dir.angle_between(barrel).to_degrees();
+    let (lo, hi) = f.follow_barrel_deg;
+    let t = ((deg - lo) / (hi - lo).max(1e-3)).clamp(0.0, 1.0);
+    t * t * (3.0 - 2.0 * t)
+}
+
+/// The way the beam leaves the `emitter`: toward the aim's `target` with the gun up (`follow` 0), along the
+/// `barrel` with it down (1), between the two on the way. A target behind the emitter (a wall nearer than the
+/// gun's front) counts as the barrel's way.
+pub fn beam_dir(emitter: Vec3, target: Vec3, barrel: Vec3, follow: f32) -> Vec3 {
+    let to = (target - emitter).normalize_or_zero();
+    let to = if to != Vec3::ZERO && to.dot(barrel) > -0.99 { to } else { barrel };
+    to.lerp(barrel, follow.clamp(0.0, 1.0)).normalize_or(barrel)
+}
+
+/// Our first-person gun's barrel in the world: the gun's forward (the way it points in its `up` pose, the rig's
+/// hip-to-aimed pose this frame, which looks down the view) carried through the gun's world transform (the
+/// lowering, the sway, the lens squeeze), so it follows the gun as drawn.
+pub fn viewmodel_barrel(gun: &GlobalTransform, up: Quat) -> Vec3 {
+    gun.affine().transform_vector3(up.inverse() * Vec3::NEG_Z).normalize_or_zero()
+}
+
+/// A player's held gun's barrel in the world: its forward (it points along the look when up).
+fn held_barrel(gun: &GlobalTransform) -> Vec3 {
+    gun.affine().transform_vector3(Vec3::NEG_Z).normalize_or_zero()
 }
 
 /// Every laser's beam, then the dots over them.
@@ -194,10 +250,10 @@ fn tag_emitters(mut commands: Commands, named: Query<(Entity, &Name), Added<Name
 /// Whose gun an emitter is on.
 #[derive(Debug, Clone, Copy, PartialEq)]
 enum Holder {
-    /// Our first-person gun.
-    Me,
-    /// A player's held gun (the player's entity).
-    Player(Entity),
+    /// Our first-person gun (the viewmodel's entity).
+    Me(Entity),
+    /// A player's held gun (the player's entity, and the held gun's).
+    Player(Entity, Option<Entity>),
 }
 
 /// Buffers kept from frame to frame.
@@ -240,51 +296,77 @@ pub(crate) fn draw_lasers(
     data: Res<Data>,
     level: Option<Res<CurrentLevel>>,
     control: Res<LocalControl>,
+    view_gun: (Res<ViewmodelRig>, Res<SmoothedAds>, Res<Time<Fixed>>),
     camera: Query<(&GlobalTransform, &Projection, Has<Hdr>), With<ViewCamera>>,
     emitters: Query<(Entity, &GlobalTransform, &InheritedVisibility), With<LaserEmitter>>,
     parents: Query<&ChildOf>,
-    viewmodels: Query<(), With<Viewmodel>>,
+    viewmodels: Query<&GlobalTransform, With<Viewmodel>>,
+    held: Query<&GlobalTransform, With<HeldGun>>,
     players: Query<(Entity, &PlayerMove, &PlayerLook, &Vitals, Has<Controlled>), With<PlayerVisual>>,
+    weapons: Query<(&PlayerWeapon, Has<Controlled>)>,
     mut meshes: ResMut<Assets<Mesh>>,
     shown: Query<&Mesh3d, With<LaserMesh>>,
     mut scratch: Local<Scratch>,
 ) {
     let Some((cam, projection, hdr)) = camera.iter().next() else { return };
+    let (rig, smoothed_ads, fixed) = view_gun;
+    let ads = smoothed_ads.at(fixed.overstep_fraction());
     let f = &feel.laser;
     let level = level.as_deref();
+    let my_laser_on = weapons.iter().find(|(_, mine)| *mine).is_some_and(|(w, _)| w.0.laser_on);
+    let my_alive = players.iter().find(|p| p.4).is_some_and(|p| !p.3.health.dead);
     let Scratch { geometry: g, cuts, lasers } = &mut *scratch;
     lasers.clear();
     for (e, at, visible) in &emitters {
-        // A hidden gun (ours behind a scope or while dead, our own third-person body, a dead player's) draws none.
-        if !visible.get() {
-            continue;
-        }
         let mut node = e;
         let mut holder = None;
+        let mut held_gun = None;
         for _ in 0..MAX_DEPTH {
             if viewmodels.contains(node) {
-                holder = Some(Holder::Me);
+                holder = Some(Holder::Me(node));
                 break;
             }
             if players.contains(node) {
-                holder = Some(Holder::Player(node));
+                holder = Some(Holder::Player(node, held_gun));
                 break;
+            }
+            if held.contains(node) {
+                held_gun = Some(node);
             }
             let Ok(up) = parents.get(node) else { break };
             node = up.parent();
         }
         let emitter = at.translation();
         let laser = match holder {
-            Some(Holder::Me) => {
+            Some(Holder::Me(gun)) => {
+                if !my_laser_on {
+                    continue;
+                }
                 let (eye, dir) = (cam.translation(), view_dir(control.yaw, control.pitch));
-                let hit = aim_hit(&data.0, level, &players, |_, mine| mine, eye, dir, f.dot_max_m);
-                Laser::aimed(emitter, eye, dir, hit, true, f)
+                let skip = |_, mine| mine;
+                let hit = aim_hit(&data.0, level, &players, skip, eye, dir, f.dot_max_m);
+                if !visible.get() {
+                    // Hidden behind a magnified scope: only our dot, where the aim lands (D2). Hidden for anything
+                    // else (dead, a fixed camera): nothing.
+                    if my_alive && crate::weapon_models::scoped(&rig, ads) {
+                        lasers.push(Laser::scoped(eye, dir, hit, f));
+                    }
+                    continue;
+                }
+                let barrel = viewmodels.get(gun).map_or(dir, |t| viewmodel_barrel(t, rig.pose(ads).rotation));
+                pointed(&data.0, level, &players, skip, (emitter, eye, dir, barrel), hit, true, f)
             }
-            Some(Holder::Player(p)) => {
+            Some(Holder::Player(p, gun)) => {
+                // A hidden gun (our own third-person body, a dead player's) draws none, nor does a laser turned off.
+                if !visible.get() || !weapons.get(p).is_ok_and(|(w, _)| w.0.laser_on) {
+                    continue;
+                }
                 let Ok((_, mv, look, ..)) = players.get(p) else { continue };
                 let (eye, dir) = (mv.0.eye_pos(), view_dir(look.yaw, look.pitch));
-                let hit = aim_hit(&data.0, level, &players, |other, _| other == p, eye, dir, f.dot_max_m);
-                Laser::aimed(emitter, eye, dir, hit, false, f)
+                let skip = |other, _| other == p;
+                let hit = aim_hit(&data.0, level, &players, skip, eye, dir, f.dot_max_m);
+                let barrel = gun.and_then(|g| held.get(g).ok()).map_or(dir, held_barrel);
+                pointed(&data.0, level, &players, skip, (emitter, eye, dir, barrel), hit, false, f)
             }
             // A gun somewhere else (none in a match today): no aim to follow.
             None => continue,
@@ -298,6 +380,30 @@ pub(crate) fn draw_lasers(
             write_mesh(&mut mesh, g);
         }
     }
+}
+
+/// One laser from its `emitter` whose holder aims from `eye` along `dir` (the aim meeting something `hit` metres
+/// along it) with the barrel pointing along `barrel`: to the aim point with the gun up, along the barrel (cast
+/// again from the emitter) once the barrel turns away from the aim.
+#[allow(clippy::too_many_arguments, clippy::type_complexity)]
+fn pointed(
+    data: &vetf_sim::GameData,
+    level: Option<&CurrentLevel>,
+    players: &Query<(Entity, &PlayerMove, &PlayerLook, &Vitals, Has<Controlled>), With<PlayerVisual>>,
+    skip: impl Fn(Entity, bool) -> bool,
+    (emitter, eye, dir, barrel): (Vec3, Vec3, Vec3, Vec3),
+    hit: Option<f32>,
+    own: bool,
+    f: &LaserFeel,
+) -> Laser {
+    let follow = if barrel == Vec3::ZERO { 0.0 } else { barrel_follow(dir, barrel, f) };
+    if follow <= 0.0 {
+        return Laser::aimed(emitter, eye, dir, hit, own, f);
+    }
+    let target = eye + dir * hit.map_or(f.dot_max_m, |d| d.min(f.dot_max_m));
+    let way = beam_dir(emitter, target, barrel, follow);
+    let hit = aim_hit(data, level, players, skip, emitter, way, f.dot_max_m);
+    Laser::along(emitter, way, hit, own, f)
 }
 
 #[cfg(test)]
@@ -383,6 +489,103 @@ mod tests {
             assert!((p - centre).dot(centre.normalize()).abs() < 1e-5, "faces the eye");
         }
         assert!(g.colors.iter().all(|c| c.iter().all(|v| (0.0..=1.0).contains(v))), "LDR colours fit");
+    }
+
+    /// D2: fully aimed through a magnified optic (the gun hidden), our dot sits where the aim lands, in the middle of
+    /// the scope view, with no beam; past `dot_max_m` or with nothing hit there is none.
+    #[test]
+    fn the_scoped_dot_sits_where_the_aim_lands() {
+        let f = feel();
+        let (eye, dir) = (Vec3::new(3.0, 1.6, -2.0), view_dir(0.7, -0.1));
+        let l = Laser::scoped(eye, dir, Some(42.0), &f);
+        let at = eye + dir * 42.0;
+        assert_eq!(l.dot, Some(at));
+        assert!(l.own && l.emitter == l.end, "no beam: {l:?}");
+        // On screen: dead centre of the zoomed view (a 4x scope's narrow FOV), drawn as just the dot.
+        let view = View::new(eye, 12f32.to_radians());
+        let g = build(&[l], &f, &view, true);
+        assert_eq!(g.positions.len(), DOT_SIDES + 1, "only the dot");
+        let centre = Vec3::from(g.positions[0]);
+        assert!((centre - eye).normalize().angle_between(dir) < 1e-4, "on the crosshair: {centre}");
+        assert_eq!(Laser::scoped(eye, dir, Some(f.dot_max_m + 1.0), &f).dot, None);
+        assert_eq!(Laser::scoped(eye, dir, None, &f).dot, None);
+        assert!(build(&[Laser::scoped(eye, dir, None, &f)], &f, &view, true).indices.is_empty());
+    }
+
+    /// Our gun in view space at the hip, with a lean like a model rig's, and the camera.
+    fn own_gun(lowered: Quat, lens: f32) -> (GlobalTransform, Quat, Vec3) {
+        let up = Quat::from_euler(EulerRot::YXZ, 0.04, 0.02, -0.03) * Quat::from_rotation_y(std::f32::consts::PI);
+        let cam = Transform::from_xyz(1.0, 1.6, 4.0).with_rotation(Quat::from_rotation_y(0.4));
+        let lens = Transform::from_scale(Vec3::new(lens, lens, 1.0));
+        let gun = Transform::from_xyz(0.2, -0.2, -0.5).with_rotation(lowered * up);
+        let world = GlobalTransform::from(cam) * GlobalTransform::from(lens) * GlobalTransform::from(gun);
+        (world, up, cam.rotation * Vec3::NEG_Z)
+    }
+
+    /// With the gun up the beam goes to the crosshair as before: the barrel looks down the view.
+    #[test]
+    fn with_the_gun_up_the_beam_goes_to_the_aim() {
+        let f = feel();
+        let (gun, up, aim) = own_gun(Quat::IDENTITY, 0.92);
+        let barrel = viewmodel_barrel(&gun, up);
+        assert!(barrel.angle_between(aim) < 1e-4, "{barrel} vs {aim}");
+        assert_eq!(barrel_follow(aim, barrel, &f), 0.0);
+        // the sway's turns stay under the threshold too
+        let (gun, up, aim) = own_gun(Quat::from_rotation_x(4f32.to_radians()), 1.0);
+        assert_eq!(barrel_follow(aim, viewmodel_barrel(&gun, up), &f), 0.0, "a landing's dip is still aimed");
+    }
+
+    /// D2: lowered (the sprint pose's turn) the beam leaves along the barrel and the dot lands where the barrel
+    /// points, not on the crosshair.
+    #[test]
+    fn lowered_the_beam_follows_the_barrel() {
+        let f = feel();
+        let sprint = FeelData::embedded().gun.sprint_pose;
+        let lowered = Quat::from_rotation_y(sprint.yaw_deg.to_radians());
+        let (gun, up, aim) = own_gun(lowered, 0.95);
+        let barrel = viewmodel_barrel(&gun, up);
+        assert!(barrel.angle_between(aim).to_degrees() > f.follow_barrel_deg.1, "the sprint pose turns it away");
+        let follow = barrel_follow(aim, barrel, &f);
+        assert_eq!(follow, 1.0);
+        let emitter = gun.translation();
+        let eye = Vec3::new(1.0, 1.6, 4.0);
+        let target = eye + aim * 20.0;
+        let way = beam_dir(emitter, target, barrel, follow);
+        assert!(way.angle_between(barrel) < 1e-5, "along the barrel: {way} vs {barrel}");
+        let l = Laser::along(emitter, way, Some(8.0), true, &f);
+        let dot = l.dot.unwrap();
+        assert!((dot - (emitter + barrel * 8.0)).length() < 1e-4 && l.end == dot, "{l:?}");
+        let off = (dot - eye).normalize().angle_between(aim).to_degrees();
+        assert!(off > 10.0, "the dot is not on the crosshair: {off} deg off");
+        // Far: the beam stops at `beam_m` along the barrel, the dot beyond it on what the barrel points at.
+        let far = Laser::along(emitter, way, Some(60.0), false, &f);
+        assert!((far.end - (emitter + way * f.beam_m)).length() < 1e-4 && far.dot == Some(emitter + way * 60.0));
+        assert_eq!(Laser::along(emitter, way, None, false, &f).dot, None);
+        // Half way up the beam is between the two, and it eases in from the threshold.
+        let mid = beam_dir(emitter, target, barrel, 0.5);
+        let to = (target - emitter).normalize();
+        assert!(mid.angle_between(to) > 0.0 && mid.angle_between(barrel) < to.angle_between(barrel));
+        let (lo, hi) = f.follow_barrel_deg;
+        let at = |deg: f32| barrel_follow(Vec3::NEG_Z, Quat::from_rotation_y(deg.to_radians()) * Vec3::NEG_Z, &f);
+        assert!(at(lo * 0.9) == 0.0 && at((lo + hi) / 2.0) > 0.4 && at((lo + hi) / 2.0) < 0.6 && at(hi + 1.0) == 1.0);
+    }
+
+    /// Another player's gun: along their look when up, along its barrel while they check the magazine (the gun
+    /// turns its window toward them).
+    #[test]
+    fn another_players_beam_follows_their_barrel() {
+        let f = feel();
+        let look = PlayerLook { yaw: 1.1, pitch: 0.2 };
+        let pose = super::super::PlayerPose::new(Vec3::new(2.0, 0.0, 1.0), &look, vetf_sim::movement::Stance::Stand);
+        let held = FeelData::embedded().gun.mag_inspect.third_person;
+        let at = |inspect: f32| {
+            let mut gun = pose.gun(Vec3::new(0.2, 1.3, -0.3));
+            gun.rotation *= super::super::inspect::held_turn(&held, inspect);
+            held_barrel(&(GlobalTransform::from(pose.root) * GlobalTransform::from(gun)))
+        };
+        let aim = view_dir(look.yaw, look.pitch);
+        assert!(at(0.0).angle_between(aim) < 1e-4 && barrel_follow(aim, at(0.0), &f) == 0.0);
+        assert_eq!(barrel_follow(aim, at(1.0), &f), 1.0, "checking the magazine, the beam follows the barrel");
     }
 
     /// The blurb's range is the beam's.

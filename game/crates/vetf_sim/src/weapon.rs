@@ -58,6 +58,10 @@ pub struct WeaponLoadout {
     /// zoom is the aiming player's own (the client's `scope_zoom`) and never goes over the wire.
     pub zoom: f32,
     pub mods: ModTotals,
+    /// The gun carries a laser (attachments.ron `laser: true`): the Laser key turns it on and off.
+    pub laser: bool,
+    /// `mods.hip_spread` with the laser off: the laser's own `hip_spread` counts only while it is on (D2).
+    pub hip_spread_laser_off: f32,
 }
 
 /// Serializable copy of [`ModifierTotals`].
@@ -122,6 +126,8 @@ impl WeaponLoadout {
             .and_then(|a| a.capacity)
             .or_else(|| data.attachment(&spec.mag_default).and_then(|a| a.capacity))?;
         let zoom = chosen.iter().find(|a| a.cat == AttachmentCategory::Optic).map_or(1.0, |a| a.start_zoom());
+        let laser = chosen.iter().any(|a| a.laser);
+        let hip_spread_laser_off = ModifierTotals::combine(chosen.iter().copied().filter(|a| !a.laser)).hip_spread;
         Some(Self {
             weapon: weapon as u8,
             mags,
@@ -129,7 +135,14 @@ impl WeaponLoadout {
             mag_capacity,
             zoom,
             mods: ModifierTotals::combine(chosen.iter().copied()).into(),
+            laser,
+            hip_spread_laser_off,
         })
+    }
+
+    /// The attachments' hip-spread multiplier with the laser on or off (a gun without a laser: the same either way).
+    pub fn hip_spread(&self, laser_on: bool) -> f32 {
+        if self.laser && !laser_on { self.hip_spread_laser_off } else { self.mods.hip_spread }
     }
 
     pub fn spec<'a>(&self, data: &'a GameData) -> &'a WeaponSpec {
@@ -300,6 +313,10 @@ pub struct WeaponState {
     /// 0 = hip, 1 = fully aimed down sights.
     pub ads: f32,
     pub card: Option<MagCard>,
+    /// The laser is on (the Laser key toggles it; on at spawn). Replicated, so everyone draws a beam only while it
+    /// is on, and the laser's `hip_spread` counts only then ([`WeaponLoadout::hip_spread`]). Meaningless on a gun
+    /// without a laser.
+    pub laser_on: bool,
 }
 
 /// Movement facts the weapon needs this tick.
@@ -338,6 +355,7 @@ pub struct WeaponEvents {
     pub mag_check_started: bool,
     pub mag_checked: Option<MagEstimate>,
     pub fire_mode_changed: bool,
+    pub laser_toggled: bool,
 }
 
 impl WeaponState {
@@ -375,6 +393,7 @@ impl WeaponState {
             bloom_deg: 0.0,
             ads: 0.0,
             card: None,
+            laser_on: true,
         }
     }
 
@@ -425,6 +444,12 @@ impl WeaponState {
         let prev = self.prev_buttons;
         self.prev_buttons = b;
         let mut ev = WeaponEvents::default();
+
+        // The laser toggles at any time, whatever the gun is doing.
+        if loadout.laser && b.pressed(prev, Buttons::LASER) {
+            self.laser_on = !self.laser_on;
+            ev.laser_toggled = true;
+        }
 
         self.cooldown = self.cooldown.saturating_sub(1);
         self.since_shot = self.since_shot.saturating_add(1);
@@ -642,7 +667,7 @@ impl WeaponState {
         let sp = &spec.spread_deg;
         let crouch = if env.crouched { sp.crouch_mult } else { 1.0 };
         let cone = move_cone_deg(data, spec, env);
-        let hip = cone * loadout.mods.hip_spread + self.bloom_deg;
+        let hip = cone * loadout.hip_spread(self.laser_on) + self.bloom_deg;
         let ads = cone * sp.ads_move_mult + self.bloom_deg * aimed_bloom_frac(spec);
         let aimed = (self.ads / ADS_AIMED).clamp(0.0, 1.0);
         lerp(hip, ads, aimed).max(0.0) * crouch
@@ -1616,6 +1641,59 @@ mod tests {
             assert!((at(&lit, &s, jog) - (b + 0.5)).abs() < 1e-5, "{gun}: the bloom is not scaled");
             s.ads = 1.0;
             assert!((at(&plain, &s, jog) - at(&lit, &s, jog)).abs() < 1e-6, "{gun}: aimed, no difference");
+        }
+    }
+
+    /// D2: V toggles the laser on a press (not while held), at any time, starting on; a gun without a laser
+    /// ignores it.
+    #[test]
+    fn the_laser_key_toggles_the_laser() {
+        let d = GameData::embedded();
+        let lit = WeaponLoadout::resolve(&d, "ar7_mako", &[AmmoChoice::STANDARD; 4], &["laser".into()]).unwrap();
+        assert!(lit.laser);
+        let mut s = WeaponState::new(&d, &lit);
+        assert!(s.laser_on, "on at spawn");
+        let press = InputFrame { buttons: Buttons(Buttons::LASER), ..Default::default() };
+        let none = InputFrame::default();
+        // while it is still equipping, too
+        let ev = s.step(&d, &lit, &press, &still());
+        assert!(!s.laser_on && ev.laser_toggled, "a press turns it off");
+        let ev = s.step(&d, &lit, &press, &still());
+        assert!(!s.laser_on && !ev.laser_toggled, "held, nothing more");
+        s.step(&d, &lit, &none, &still());
+        s.step(&d, &lit, &press, &WeaponEnv { sprinting: true, hands_busy: true, ..still() });
+        assert!(s.laser_on, "pressed again (even with the gun down), back on");
+        let (d, plain, mut s) = setup("ar7_mako");
+        assert!(!plain.laser);
+        let ev = s.step(&d, &plain, &press, &still());
+        assert!(s.laser_on && !ev.laser_toggled, "no laser: nothing to switch");
+    }
+
+    /// D2: the laser's `hip_spread` counts only while it is on; its weight (ADS time, the sweep) always counts.
+    #[test]
+    fn the_laser_tightens_hip_fire_only_while_on() {
+        let d = GameData::embedded();
+        let k = d.attachment("laser").and_then(|a| a.hip_spread).unwrap();
+        for gun in GUNS {
+            let plain = WeaponLoadout::resolve(&d, gun, &[AmmoChoice::STANDARD; 4], &[]).unwrap();
+            let lit = WeaponLoadout::resolve(&d, gun, &[AmmoChoice::STANDARD; 4], &["laser".into()]).unwrap();
+            assert!((lit.hip_spread(true) - plain.mods.hip_spread * k).abs() < 1e-6, "{gun}");
+            assert!((lit.hip_spread(false) - plain.mods.hip_spread).abs() < 1e-6, "{gun}");
+            assert_eq!(
+                (plain.hip_spread(true), plain.hip_spread(false)),
+                (plain.mods.hip_spread, plain.mods.hip_spread)
+            );
+            let (spec, mut s) = (lit.spec(&d), WeaponState::new(&d, &lit));
+            let jog = WeaponEnv { speed_frac: 1.0, ..still() };
+            let on = s.spread_deg(&d, spec, &lit, &jog);
+            s.laser_on = false;
+            let off = s.spread_deg(&d, spec, &lit, &jog);
+            let bare = s.spread_deg(&d, spec, &plain, &jog);
+            assert!((off - bare).abs() < 1e-6 && (on - off * k).abs() < 1e-5, "{gun}: on {on}, off {off}");
+            let a = d.attachment("laser").unwrap();
+            let (t, h) = (a.ads_time.unwrap_or(1.0), a.recoil_h.unwrap_or(1.0));
+            assert!((lit.mods.ads_time - plain.mods.ads_time * t).abs() < 1e-6, "{gun}: its weight always counts");
+            assert!((lit.mods.recoil_h - plain.mods.recoil_h * h).abs() < 1e-6, "{gun}: its sweep always counts");
         }
     }
 

@@ -258,6 +258,9 @@ pub struct LaserFeel {
     pub beam_m: f32,
     /// How far from the eye the dot still shows on what the aim meets.
     pub dot_max_m: f32,
+    /// The beam follows the barrel instead of the aim once the barrel turns this far (degrees) from the aim: none
+    /// at the first, all of it from the second (the gun lowered, folded or busy).
+    pub follow_barrel_deg: (f32, f32),
     pub beam: Ribbon,
     pub dot: Ribbon,
 }
