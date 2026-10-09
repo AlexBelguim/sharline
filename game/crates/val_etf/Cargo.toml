@@ -21,3 +21,5 @@ tokio = { version = "1.53.2", features = ["rt-multi-thread", "net", "sync", "tim
 # Shader checks in tests (`render::throw_fx`): the same naga and naga_oil Bevy compiles its shaders with.
 naga = { version = "29.0.4", features = ["wgsl-in"] }
 naga_oil = { version = "0.22", default-features = false, features = ["test_shader"] }
+# Sound checks in tests (`sound`): decodes the OGG files (the same decoder Bevy's audio plays them with).
+lewton = "0.10.2"

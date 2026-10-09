@@ -36,6 +36,14 @@
             no_optic_eye: (height: 0.07, behind: 0.16),
             // Third person: the grip in the right hand, in player space (+X right, -Z ahead, feet at 0).
             hand: (0.2, 1.28, -0.24),
+            // Moving nodes (`<prefix>_<node>`, glTF axes: muzzle +Z): `slide` in metres, a turn of `turn_deg` about
+            // the node's `axis`, over `move_s`. `trigger` while FIRE is held; `hold_open` while the magazine in the
+            // gun is empty, so an empty gun shows it at a glance (the reload closes it). The Mako's bolt carrier is
+            // not a node of its own, so its charging handle comes back the export's `stroke_m` instead.
+            moving: [
+                (node: "Trigger", when: trigger, axis: (1.0, 0.0, 0.0), turn_deg: 12.0, move_s: 0.04),
+                (node: "ChargingHandle", when: hold_open, slide: (0.0, 0.0, -0.05), move_s: 0.05),
+            ],
         ),
         (
             weapon: "vk50_warden",
@@ -44,6 +52,13 @@
             hip: (pos: (0.16, -0.215, -0.3), yaw: 2.5, pitch: 1.5, roll: -5.0),
             no_optic_eye: (height: 0.07, behind: 0.2),
             hand: (0.2, 1.28, -0.22),
+            // The bolt held open while the magazine is empty: its handle lifted 60 degrees about the bore (-Z) and the
+            // bolt drawn 0.13 m toward the butt (the export's lift_deg and travel_m).
+            moving: [
+                (node: "Trigger", when: trigger, axis: (1.0, 0.0, 0.0), turn_deg: 12.0, move_s: 0.04),
+                (node: "Bolt", when: hold_open, slide: (0.0, 0.0, -0.13), axis: (0.0, 0.0, -1.0), turn_deg: 60.0,
+                    move_s: 0.15),
+            ],
         ),
     ],
     // `id` is the gameplay id (attachments.ron). `scope`: a magnified optic seen through the scope view when

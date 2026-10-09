@@ -11,6 +11,8 @@
 //! Each part is dressed for the game as it spawns, by its node roles: a 1x sight's glass clears and its reticle
 //! glows, the projector's flaps (its ADS_Open clip) and hologram follow the ADS blend, and a part can take a pose
 //! from its extras (the folded bipod). Aimed through a magnified optic, a scope picture replaces the gun.
+//! The base model's moving nodes follow the holder's gun ([`MovingNode`]): the trigger comes back while FIRE is
+//! held, and the bolt or charging handle stays back while the magazine in the gun is empty (a hold-open).
 //!
 //! glTF axes: the muzzle is +Z, up +Y, the shooter's right -X (Blender's -Y front becomes +Z). The view looks
 //! down -Z with +X on the right, so a gun turns half a turn about Y to face ahead.
@@ -31,7 +33,8 @@ use std::sync::OnceLock;
 use vetf_net::*;
 use vetf_sim::GameData;
 use vetf_sim::data::{AttachmentCategory, WeaponClass};
-use vetf_sim::weapon::{ADS_AIMED, MagEstimate, WeaponLoadout};
+use vetf_sim::input::Buttons;
+use vetf_sim::weapon::{ADS_AIMED, MagEstimate, WeaponLoadout, WeaponState};
 
 pub struct WeaponModelsPlugin;
 
@@ -41,7 +44,10 @@ impl Plugin for WeaponModelsPlugin {
             .init_resource::<Tinted>()
             .add_systems(Startup, load_models)
             .add_systems(Update, read_layouts)
-            .add_systems(Update, (drive_projectors, drive_mag_windows).run_if(in_state(AppState::InGame)))
+            .add_systems(
+                Update,
+                (drive_projectors, drive_mag_windows, drive_moving_nodes).run_if(in_state(AppState::InGame)),
+            )
             .add_systems(OnEnter(AppState::InGame), spawn_scope_overlay)
             .add_systems(Update, update_scope_overlay.run_if(in_state(AppState::InGame)));
     }
@@ -140,6 +146,80 @@ pub struct GunRow {
     pub no_optic_eye: NoOpticEye,
     /// Third person: the grip in the right hand, in player space.
     pub hand: [f32; 3],
+    /// The base model's moving nodes.
+    #[serde(default)]
+    pub moving: Vec<MovingNode>,
+}
+
+/// When a moving node moves (`weapon_models.ron` guns.moving).
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum MoveWhen {
+    /// While FIRE is held.
+    Trigger,
+    /// While the magazine in the gun is empty: the bolt held back.
+    HoldOpen,
+}
+
+fn x_axis() -> [f32; 3] {
+    [1.0, 0.0, 0.0]
+}
+
+/// A node of a gun's base model (`<prefix>_<node>`) that moves with the gun: all the way it slides by `slide`
+/// (its parent's axes, metres) and turns `turn_deg` about `axis` (its own axes, about its origin), getting there
+/// and back over `move_s`.
+#[derive(Debug, Clone, PartialEq, Deserialize)]
+pub struct MovingNode {
+    pub node: String,
+    pub when: MoveWhen,
+    #[serde(default)]
+    pub slide: [f32; 3],
+    #[serde(default = "x_axis")]
+    pub axis: [f32; 3],
+    #[serde(default)]
+    pub turn_deg: f32,
+    pub move_s: f32,
+}
+
+impl MovingNode {
+    /// How far it should be (0 at rest, 1 all the way) for the holder's gun.
+    pub fn target(&self, w: &WeaponState) -> f32 {
+        let on = match self.when {
+            MoveWhen::Trigger => w.prev_buttons.held(Buttons::FIRE),
+            MoveWhen::HoldOpen => w.mag() == 0,
+        };
+        if on { 1.0 } else { 0.0 }
+    }
+
+    /// From `at` toward `target` for `dt` seconds.
+    pub fn ease(&self, at: f32, target: f32, dt: f32) -> f32 {
+        if self.move_s <= 0.0 {
+            return target;
+        }
+        let step = dt.max(0.0) / self.move_s;
+        if target > at { (at + step).min(target) } else { (at - step).max(target) }
+    }
+
+    /// Its place `at` of the way (0..1) from `rest`.
+    pub fn pose(&self, rest: Transform, at: f32) -> Transform {
+        let at = at.clamp(0.0, 1.0);
+        let axis = Vec3::from(self.axis).normalize_or(Vec3::X);
+        Transform {
+            translation: rest.translation + Vec3::from(self.slide) * at,
+            rotation: rest.rotation * Quat::from_axis_angle(axis, (self.turn_deg * at).to_radians()),
+            scale: rest.scale,
+        }
+    }
+}
+
+/// A moving node of a gun in the world: its data, its exported place, how far it is now, and whether the gun is
+/// our own first-person one (else its holder is the player it hangs under).
+#[derive(Component, Debug, Clone)]
+pub struct MovingPart {
+    spec: MovingNode,
+    rest: Transform,
+    at: f32,
+    first_person: bool,
 }
 
 /// A pose in view space: where the grip sits and how the gun turns (degrees) from straight ahead.
@@ -701,6 +781,30 @@ fn drive_projectors(
     }
 }
 
+/// Moves the guns' moving nodes with their holder's gun: ours from our predicted weapon, everyone else's from
+/// their replicated one. The trigger comes back while FIRE is held; the bolt or charging handle stays back while
+/// the magazine is empty, so an empty gun shows it (and closes when the reload is done).
+fn drive_moving_nodes(
+    time: Res<Time>,
+    me: Query<&PlayerWeapon, With<Controlled>>,
+    weapons: Query<&PlayerWeapon>,
+    parents: Query<&ChildOf>,
+    mut parts: Query<(Entity, &mut MovingPart, &mut Transform)>,
+) {
+    let dt = time.delta_secs();
+    for (e, mut part, mut t) in &mut parts {
+        let weapon = if part.first_person {
+            me.iter().next()
+        } else {
+            parents.iter_ancestors(e).find_map(|a| weapons.get(a).ok())
+        };
+        let target = weapon.map_or(0.0, |w| part.spec.target(&w.0));
+        let at = part.spec.ease(part.at, target, dt);
+        part.at = at;
+        t.set_if_neq(part.spec.pose(part.rest, at));
+    }
+}
+
 // ---------------------------------------------------------------------------------------------- loading
 
 struct ModelFile {
@@ -842,10 +946,13 @@ impl WeaponModels {
                 Some((format!("{}_SOCKET_{}", gun.prefix, part.socket), file.scene.clone(), dress))
             })
             .collect();
+        let moving: Vec<(String, MovingNode)> =
+            gun.moving.iter().map(|m| (format!("{}_{}", gun.prefix, m.node), m.clone())).collect();
         let snap = move |ready: On<WorldInstanceReady>,
                          mut commands: Commands,
                          tree: Query<&Children>,
                          names: Query<&Name>,
+                         places: Query<&Transform>,
                          meshes: Query<(), With<Mesh3d>>| {
             let gun = ready.entity;
             let mut pending = 0;
@@ -854,6 +961,11 @@ impl WeaponModels {
                     commands.entity(node).insert(NotShadowCaster);
                 }
                 let Ok(name) = names.get(node) else { continue };
+                // The trigger, the bolt or charging handle (`drive_moving_nodes`).
+                for (_, spec) in moving.iter().filter(|(n, _)| n == name.as_str()) {
+                    let rest = places.get(node).copied().unwrap_or_default();
+                    commands.entity(node).insert(MovingPart { spec: spec.clone(), rest, at: 0.0, first_person });
+                }
                 for (socket, scene, d) in parts.iter().filter(|(s, ..)| s == name.as_str()) {
                     pending += 1;
                     commands
@@ -1509,6 +1621,67 @@ mod tests {
         let (deployed, folded) = (feet(&Layout::from_nodes(&nodes)), feet(&Layout::from_nodes(&folded)));
         assert!(deployed.y < -0.15, "exported deployed: {deployed}");
         assert!(folded.y > -0.06 && folded.z > 0.1, "folded up and forward, along the barrel: {folded}");
+    }
+
+    /// The moving nodes: each gun's trigger comes back while FIRE is held, and its bolt (the Mako: its charging
+    /// handle) stays back while the magazine is empty; each names a node of its base export.
+    #[test]
+    fn the_trigger_and_the_hold_open_move_with_the_gun() {
+        let m = ModelData::embedded();
+        let d = GameData::embedded();
+        for gun in &m.guns {
+            let when: Vec<MoveWhen> = gun.moving.iter().map(|n| n.when).collect();
+            assert!(when.contains(&MoveWhen::Trigger) && when.contains(&MoveWhen::HoldOpen), "{}", gun.weapon);
+            let lo = WeaponLoadout::resolve(&d, &gun.weapon, &[], &[]).unwrap();
+            let mut w = WeaponState::new(&d, &lo);
+            for n in &gun.moving {
+                assert!(n.move_s > 0.0 && n.move_s <= 0.2, "{} {}: quick", gun.weapon, n.node);
+                w.rounds[w.loaded as usize] = 3;
+                w.prev_buttons = Buttons(0);
+                assert_eq!(n.target(&w), 0.0, "{} {}: at rest with rounds and no trigger", gun.weapon, n.node);
+                w.prev_buttons = Buttons(Buttons::FIRE);
+                assert_eq!(n.target(&w), (n.when == MoveWhen::Trigger) as u8 as f32, "{} {}", gun.weapon, n.node);
+                w.prev_buttons = Buttons(0);
+                w.rounds[w.loaded as usize] = 0;
+                assert_eq!(n.target(&w), (n.when == MoveWhen::HoldOpen) as u8 as f32, "{} {}", gun.weapon, n.node);
+                // There in move_s at any frame rate, and back.
+                for fps in [30.0, 144.0] {
+                    let (mut at, dt) = (0.0, 1.0 / fps);
+                    for _ in 0..((n.move_s * fps).ceil() as usize) {
+                        at = n.ease(at, 1.0, dt);
+                    }
+                    assert_eq!(at, 1.0);
+                    assert!(n.ease(at, 0.0, dt) < 1.0);
+                }
+            }
+            // The exported nodes (skipped when the GLB is a Git LFS pointer).
+            let Some(nodes) = glb_nodes(&asset(&gun.base)) else {
+                eprintln!("{} not checked out (Git LFS); skipped", gun.base);
+                continue;
+            };
+            for n in &gun.moving {
+                let name = format!("{}_{}", gun.prefix, n.node);
+                assert!(nodes.iter().any(|x| x.name == name), "{}: {name} is in the export", gun.weapon);
+            }
+        }
+        // The motions (glTF: muzzle +Z, up +Y; a node turns about its origin).
+        let row = |w: &str| m.guns.iter().find(|g| g.weapon == w).unwrap();
+        let node = |w: &str, when: MoveWhen| row(w).moving.iter().find(|n| n.when == when).unwrap().clone();
+        let rest = Transform::default();
+        for w in ["ar7_mako", "vk50_warden"] {
+            // The trigger blade (it hangs below its pivot) swings back toward the grip.
+            let tip = Vec3::new(0.0, -0.035, 0.0);
+            let pulled = node(w, MoveWhen::Trigger).pose(rest, 1.0).transform_point(tip);
+            assert!(pulled.z < -0.005 && pulled.y < 0.0, "{w}: {pulled}");
+        }
+        let handle = node("ar7_mako", MoveWhen::HoldOpen);
+        assert_eq!(handle.node, "ChargingHandle");
+        assert!(handle.pose(rest, 1.0).translation.z <= -0.04, "the Mako's handle comes back");
+        // The Warden's bolt handle (out to the -X side, below the bore) lifts and the bolt comes back.
+        let bolt = node("vk50_warden", MoveWhen::HoldOpen);
+        let knob = bolt.pose(rest, 1.0).transform_point(Vec3::new(-0.079, -0.069, 0.0));
+        assert!(knob.y > 0.0 && knob.z < -0.1, "the Warden's bolt is open: {knob}");
+        assert_eq!(bolt.pose(rest, 0.0), rest);
     }
 
     /// A scene of named nodes: the first is the root, the rest its children.

@@ -111,6 +111,32 @@
             roll_deg: -40.0,
             third_person: (yaw_deg: 25.0, pitch_deg: 15.0, roll_deg: -45.0, ease_s: 0.08),
         ),
+        // The empty gun (src/render/dry_fire.rs), with the loud dry click (sounds.ron weapons/dry_fire), so the
+        // player sees at once that the magazine is out: no HUD text.
+        // Each empty pull: a short twitch of the trigger hand, the gun nodding `twitch_pitch_deg` (muzzle down)
+        // and dipping `twitch_down_m`, springing back at `twitch` (no recoil, no camera kick).
+        // `shake_after_pulls` empty pulls in a row (each within `reset_after_s` of the last; a reload also starts
+        // the count again): a frustrated shake of the gun for `shake_s`. A smack down as it starts
+        // (`smack_down_m`, nodding `smack_pitch_deg`, at its deepest `smack_s` in), then a rattle side to side
+        // (`shake_roll_deg` roll and `shake_yaw_deg` yaw at `shake_hz`) dying away. Aiming, a reload or a swap
+        // stops it, fading over `cancel_s`; aiming when the count comes round skips it. Others see it on the gun
+        // in that player's hand at `third_person_mult` of the turn.
+        dry_fire: (
+            twitch_pitch_deg: 1.2,
+            twitch_down_m: 0.004,
+            twitch: (hz: 7.0, damping: 0.55),
+            shake_after_pulls: 3,
+            reset_after_s: 1.5,
+            shake_s: 0.5,
+            smack_down_m: 0.02,
+            smack_pitch_deg: 6.0,
+            smack_s: 0.06,
+            shake_hz: 7.0,
+            shake_roll_deg: 9.0,
+            shake_yaw_deg: 3.0,
+            cancel_s: 0.1,
+            third_person_mult: 1.5,
+        ),
     ),
     // Tracers fly from the muzzle (through a magnified scope: from the scope's centre) to where the shot ended.
     // Each is a hot core inside a wider glow, both camera-facing ribbons fading toward the tail, plus a faint smoke

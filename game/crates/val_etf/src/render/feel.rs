@@ -176,6 +176,26 @@ pub struct GunFeel {
     pub ads_kick_mult: f32,
     pub sprint_pose: SprintPose,
     pub mag_inspect: MagInspectFeel,
+    pub dry_fire: DryFireFeel,
+}
+
+/// The empty gun's twitch on each dry pull, and the frustrated shake after a few in a row (`render::dry_fire`).
+#[derive(Debug, Clone, Copy, PartialEq, Deserialize)]
+pub struct DryFireFeel {
+    pub twitch_pitch_deg: f32,
+    pub twitch_down_m: f32,
+    pub twitch: SpringSpec,
+    pub shake_after_pulls: u32,
+    pub reset_after_s: f32,
+    pub shake_s: f32,
+    pub smack_down_m: f32,
+    pub smack_pitch_deg: f32,
+    pub smack_s: f32,
+    pub shake_hz: f32,
+    pub shake_roll_deg: f32,
+    pub shake_yaw_deg: f32,
+    pub cancel_s: f32,
+    pub third_person_mult: f32,
 }
 
 /// A mag check's turn of the gun toward the eye (`render::inspect`): its timing, the first-person pose (a shift

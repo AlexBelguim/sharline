@@ -33,6 +33,7 @@
 use crate::AppState;
 use crate::config::{Cli, CurrentLevel, Data};
 use crate::render::ViewCamera;
+use crate::render::dry_fire::DryPull;
 use crate::screens::{Screen, Screens};
 use crate::settings::{AudioSettings, Settings};
 use crate::shared::LocalPlayerEvents;
@@ -80,6 +81,7 @@ impl Plugin for SoundPlugin {
             .init_resource::<Voices>()
             .init_resource::<Delayed>()
             .add_message::<FeedbackSound>()
+            .add_message::<DryPull>()
             .add_systems(Startup, (load_sounds, setup_mix))
             .add_systems(
                 Update,
@@ -1211,6 +1213,7 @@ fn player_sounds(
     level: Option<Res<CurrentLevel>>,
     mut events: MessageReader<LocalPlayerEvents>,
     mut delayed: ResMut<Delayed>,
+    mut dry_pulls: MessageWriter<DryPull>,
     mut players: Query<(
         Entity,
         &PlayerId,
@@ -1278,7 +1281,10 @@ fn player_sounds(
                 }
             }
             for ev in local_events.iter().filter(|e| e.player == id.0) {
-                local_one_shots(&mut sfx, h, &ev.events, ev.trigger, w, lo, &ws, &mut delayed);
+                if local_one_shots(&mut sfx, h, &ev.events, ev.trigger, w, lo, &ws, &mut delayed) {
+                    // The gun twitches with each dry click (`render::dry_fire`).
+                    dry_pulls.write(DryPull { player: entity });
+                }
             }
         } else {
             let moves = sfx.data().moves.clone();
@@ -1313,6 +1319,7 @@ fn player_sounds(
             let busy = using || m.mode == MoveMode::Mantle;
             if h.dry.remote(TriggerTick::of(&w.0), w.0.shot_seq != h.shot_seq, busy) {
                 sfx.play(Play::new(cue::DRY_FIRE).at(body));
+                dry_pulls.write(DryPull { player: entity });
             }
             let left = items_left(items);
             if using && !h.using {
@@ -1378,7 +1385,8 @@ fn shot(
     }
 }
 
-/// Your own sounds from one tick's simulation events and the trigger after it.
+/// Your own sounds from one tick's simulation events and the trigger after it. Returns whether the dry click
+/// played.
 #[allow(clippy::too_many_arguments)]
 fn local_one_shots(
     sfx: &mut Sfx,
@@ -1389,7 +1397,7 @@ fn local_one_shots(
     lo: &PlayerLoadout,
     ws: &WeaponSounds,
     delayed: &mut Delayed,
-) {
+) -> bool {
     // In the order the tick does them: a reload ends, then the fire mode, a new reload or mag check, the shot.
     let wev = &ev.weapon;
     if wev.reload_finished {
@@ -1424,7 +1432,8 @@ fn local_one_shots(
             }
         }
     }
-    if h.dry.local(wev, trigger) {
+    let dry = h.dry.local(wev, trigger);
+    if dry {
         sfx.play(Play::new(cue::DRY_FIRE));
     }
     if ev.movement.mantle_started {
@@ -1445,6 +1454,7 @@ fn local_one_shots(
         let e = h.heal.take();
         sfx.stop(e);
     }
+    dry
 }
 
 // ---------------------------------------------------------------------------------------------- hits
@@ -1787,6 +1797,129 @@ mod tests {
             assert!(s.spatial && s.far.as_ref().is_some_and(|f| f.sound == "weapons/shot_distant"), "{}", gun.shot);
         }
         assert!(d.sounds[cue::DRY_FIRE].spatial, "other players' dry clicks are heard nearby");
+    }
+
+    /// A sound file decoded (lewton, the decoder Bevy's audio plays OGG Vorbis with): mono samples in -1..1 and
+    /// the sample rate.
+    fn decode(file: &str) -> (Vec<f32>, f32) {
+        let (x, rate, _) = decode_with_length(file);
+        (x, rate)
+    }
+
+    /// [`decode`], and the stream's own length in samples (its last granule position): the decoder can hand out a
+    /// few ms of the last block's padding past it.
+    fn decode_with_length(file: &str) -> (Vec<f32>, f32, usize) {
+        let path = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../assets/audio").join(file);
+        let f = std::fs::File::open(&path).unwrap_or_else(|e| panic!("{}: {e}", path.display()));
+        let mut ogg = lewton::inside_ogg::OggStreamReader::new(std::io::BufReader::new(f))
+            .unwrap_or_else(|e| panic!("{file} is OGG Vorbis (a Git LFS pointer?): {e}"));
+        let ch = ogg.ident_hdr.audio_channels.max(1) as usize;
+        let rate = ogg.ident_hdr.audio_sample_rate as f32;
+        let mut out = Vec::new();
+        while let Some(p) = ogg.read_dec_packet_itl().expect("decodes") {
+            out.extend(p.chunks(ch).map(|c| c.iter().map(|v| *v as f32 / 32768.0).sum::<f32>() / ch as f32));
+        }
+        let len = ogg.get_last_absgp().map_or(out.len(), |g| g as usize);
+        (out, rate, len)
+    }
+
+    /// RMS level (dBFS) of `x[from..to]`.
+    fn rms_db(x: &[f32]) -> f32 {
+        let ms = x.iter().map(|v| v * v).sum::<f32>() / x.len().max(1) as f32;
+        10.0 * ms.max(1e-12).log10()
+    }
+
+    /// The bolt is worked `bolt_delay_s` after the shot and its sound ends exactly as the gun can fire again
+    /// (user: "when it is done you should be able to shoot again so should be as long as the time between
+    /// bullets"): delay + length = the simulation's cycle (weapons.ron bolt_cycle_s, in whole ticks) within a few
+    /// ms, at the sound's pitch and with no pitch jitter to stretch it. Its last loud click (the bolt locking) is
+    /// at the very end, so "ready" is heard on the tick the next shot can go.
+    #[test]
+    fn the_bolt_sound_ends_as_the_gun_can_fire_again() {
+        let (d, g) = (data(), game());
+        let mut bolt_guns = 0;
+        for (id, ws) in &d.weapons {
+            let Some(bolt) = &ws.bolt else { continue };
+            bolt_guns += 1;
+            let spec = g.weapon(id).unwrap_or_else(|| panic!("{id} is a gun"));
+            let hz = g.net.tick_hz as f32;
+            let cycle = vetf_sim::weapon::fire_interval_ticks(spec, g.net.tick_hz, false) as f32 / hz;
+            assert_eq!(
+                cycle,
+                vetf_sim::weapon::fire_interval_ticks(spec, g.net.tick_hz, true) as f32 / hz,
+                "{id}: a bolt cycles as fast aimed"
+            );
+            let s = &d.sounds[bolt];
+            assert_eq!(s.pitch_jitter, 0.0, "{bolt}: a jitter would stretch it off the cycle");
+            assert!(!s.looped);
+            assert!(ws.bolt_delay_s > 0.0 && ws.bolt_delay_s < cycle, "{id}: the bolt is worked inside the cycle");
+            for f in &s.files {
+                let (x, rate, samples) = decode_with_length(f);
+                assert!(
+                    x.len() >= samples && x.len() - samples < (rate * 0.02) as usize,
+                    "{f}: at most padding past it"
+                );
+                let x = &x[..samples];
+                let len = samples as f32 / rate / s.pitch;
+                let end = ws.bolt_delay_s + len;
+                assert!(
+                    (end - cycle).abs() <= 0.005,
+                    "{id}: {f} ends {end:.3} s after the shot, the cycle is {cycle} s"
+                );
+                // The lock click: the last 5 ms window within 12 dB of the loudest is in the last 0.1 s.
+                let w = (rate * 0.005) as usize;
+                let levels: Vec<f32> = x.chunks(w).map(rms_db).collect();
+                let top = levels.iter().copied().fold(f32::MIN, f32::max);
+                let last = levels.iter().rposition(|l| *l > top - 12.0).unwrap();
+                let at = (last * w) as f32 / rate / s.pitch;
+                assert!(len - at <= 0.1, "{f}: the last click is {:.3} s before the end", len - at);
+            }
+        }
+        assert!(bolt_guns > 0, "the Warden works its bolt");
+    }
+
+    /// The loudest 30 ms of a sound (dBFS RMS) as it plays, at its data volume.
+    fn played_level_db(id: &str) -> f32 {
+        let s = &data().sounds[id];
+        s.files
+            .iter()
+            .map(|f| {
+                let (x, rate) = decode(f);
+                let w = ((rate * 0.03) as usize).min(x.len());
+                (0..=x.len() - w).step_by(48).map(|i| rms_db(&x[i..i + w])).fold(f32::MIN, f32::max)
+            })
+            .fold(f32::MAX, f32::min)
+            + 20.0 * s.volume.log10()
+    }
+
+    /// The empty click is loud and crisp (user: "the clicking because of no bullets can be really hard"): a short,
+    /// dense click near full scale with a hard attack, that plays clearly louder than any other handling sound
+    /// of the gun.
+    #[test]
+    fn the_dry_click_is_loud_and_crisp() {
+        let d = data();
+        let dry = &d.sounds[cue::DRY_FIRE];
+        assert!(dry.max_distance_m >= 8.0, "others hear it nearby");
+        for f in &dry.files {
+            let (x, rate) = decode(f);
+            let len = x.len() as f32 / rate;
+            assert!(len <= 0.2, "{f}: a click, not {len:.2} s");
+            let peak = x.iter().fold(0.0f32, |m, v| m.max(v.abs()));
+            assert!(20.0 * peak.log10() >= -1.5, "{f}: near full scale ({:.1} dBFS)", 20.0 * peak.log10());
+            let at = x.iter().position(|v| v.abs() >= peak * 0.9).unwrap() as f32 / rate;
+            assert!(at <= 0.02, "{f}: hard attack (peak {at:.3} s in)");
+            // Dense, not a thin tick: its first 30 ms are within 14 dB of the peak.
+            let body = rms_db(&x[..(rate * 0.03) as usize]);
+            assert!(body >= 20.0 * peak.log10() - 14.0, "{f}: loud body ({body:.1} dBFS)");
+        }
+        let click = played_level_db(cue::DRY_FIRE);
+        for id in [cue::MAG_OUT, cue::MAG_IN, cue::FIRE_MODE, cue::MAG_CHECK, cue::EQUIP] {
+            let other = played_level_db(id);
+            assert!(click >= other + 3.0, "the dry click ({click:.1} dB) is clearly louder than {id} ({other:.1} dB)");
+        }
+        // The low-mag cue borrows the file, much quieter and higher.
+        let low = &d.sounds[cue::LOW_MAG];
+        assert!(low.volume < 0.25 * dry.volume && low.pitch > 1.0);
     }
 
     #[test]

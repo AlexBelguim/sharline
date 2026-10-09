@@ -4,7 +4,10 @@
 // `<category>/<name>_<n>.ogg` for variations (one to three per sound). The placeholders come from
 // game/tools/make_placeholder_sounds.py. To put a real sound in (e.g. a MiniMax H3 pick from
 // assets/audio/h3_test/<category>/<name>_<n>.ogg): copy the picked files to game/assets/audio/<category>/ under
-// the same names, list them in that id's `files` below, and delete the placeholder files no longer listed. The
+// the same names, list them in that id's `files` below, and delete the placeholder files no longer listed.
+// MiniMax H3 so far (round 2, assets/audio/h3_round2/listen.html lists every candidate and the pick): the
+// concrete, gravel and wood steps, the landing, the Warden's shot and bolt, and the dry click. Their volumes
+// keep the placeholders' balance (A-weighted), the grass steps (still the placeholder) being the reference. The
 // test `sound::tests::the_data_file_parses_and_every_id_and_file_exists` checks every listed file exists.
 // The low-mag cue (weapons/low_mag_click) has no files of its own: it plays the dry click lighter and higher, so
 // list the same files there as in weapons/dry_fire (the test fails until they match).
@@ -29,9 +32,10 @@
             spatial: true, ref_distance_m: 4.0, max_distance_m: 140.0,
             far: Some((sound: "weapons/shot_distant", beyond_m: 60.0)),
         ),
+        // About 5 dB(A) over the Mako: a crack, a boom and a rolling echo.
         "weapons/warden_shot": (
             files: ["weapons/warden_shot_1.ogg", "weapons/warden_shot_2.ogg", "weapons/warden_shot_3.ogg"],
-            category: Weapons, volume: 1.0, pitch_jitter: 0.03,
+            category: Weapons, volume: 0.72, pitch_jitter: 0.03,
             spatial: true, ref_distance_m: 6.0, max_distance_m: 180.0,
             far: Some((sound: "weapons/shot_distant", beyond_m: 60.0)),
         ),
@@ -47,16 +51,20 @@
             category: Weapons, volume: 0.7, pitch_jitter: 0.06,
             spatial: true, ref_distance_m: 60.0, max_distance_m: 400.0,
         ),
-        // The trigger pulled on an empty magazine: once per pull, every gun. Other players' are heard nearby.
+        // The trigger pulled on an empty magazine: once per pull, every gun. Other players' are heard nearby. Loud
+        // and crisp (user direction: "the clicking because of no bullets can be really hard"): a hot, dense metal
+        // clack near full scale, about 9 dB(A) over the magazine sounds and 14 dB over the old placeholder.
         "weapons/dry_fire": (
-            files: ["weapons/dry_fire.ogg"], category: Weapons, volume: 0.8, pitch_jitter: 0.03,
-            spatial: true, ref_distance_m: 1.0, max_distance_m: 8.0,
+            files: ["weapons/dry_fire_1.ogg", "weapons/dry_fire_2.ogg"], category: Weapons, volume: 0.6,
+            pitch_jitter: 0.03, spatial: true, ref_distance_m: 1.0, max_distance_m: 10.0,
         ),
         // The low-mag cue (AUDIO > LOW-MAG CUE, off by default): a lighter trigger click under each shot once the
         // magazine is about ALMOST EMPTY (see low_mag_cue at the end). Approximate by design, like a mag check:
-        // never a count. Its files are always the same as weapons/dry_fire's.
+        // never a count. Its files are always the same as weapons/dry_fire's (so it is far quieter than the click
+        // itself: the hot dry click at this volume is as loud as the old one was at 0.35).
         "weapons/low_mag_click": (
-            files: ["weapons/dry_fire.ogg"], category: Weapons, volume: 0.35, pitch: 1.3, pitch_jitter: 0.03,
+            files: ["weapons/dry_fire_1.ogg", "weapons/dry_fire_2.ogg"], category: Weapons, volume: 0.045, pitch: 1.3,
+            pitch_jitter: 0.03,
         ),
         "weapons/mag_out": (
             files: ["weapons/mag_out.ogg"], category: Weapons, volume: 0.8, pitch_jitter: 0.04,
@@ -66,8 +74,12 @@
             files: ["weapons/mag_in.ogg"], category: Weapons, volume: 0.85, pitch_jitter: 0.04,
             spatial: true, ref_distance_m: 1.5, max_distance_m: 18.0,
         ),
+        // Lift, back, forward, lock, cut to end exactly as the Warden can fire again: its length is weapons.ron's
+        // bolt_cycle_s minus the bolt_delay_s below (1.25 - 0.35 = 0.90 s), its lock click in the last 0.07 s.
+        // No pitch jitter: it would stretch the sound off the cycle (sound.rs test
+        // the_bolt_sound_ends_as_the_gun_can_fire_again).
         "weapons/bolt_cycle": (
-            files: ["weapons/bolt_cycle.ogg"], category: Weapons, volume: 0.8, pitch_jitter: 0.03,
+            files: ["weapons/bolt_cycle_1.ogg", "weapons/bolt_cycle_2.ogg"], category: Weapons, volume: 0.75,
             spatial: true, ref_distance_m: 1.5, max_distance_m: 20.0,
         ),
         "weapons/fire_mode": (
@@ -85,7 +97,7 @@
         // ------------------------------------------------------------------ movement
         "movement/step_concrete": (
             files: ["movement/step_concrete_1.ogg", "movement/step_concrete_2.ogg", "movement/step_concrete_3.ogg"],
-            category: Movement, volume: 0.55, pitch_jitter: 0.06,
+            category: Movement, volume: 0.30, pitch_jitter: 0.06,
             spatial: true, ref_distance_m: 2.0, max_distance_m: 32.0,
         ),
         "movement/step_grass": (
@@ -95,12 +107,12 @@
         ),
         "movement/step_gravel": (
             files: ["movement/step_gravel_1.ogg", "movement/step_gravel_2.ogg", "movement/step_gravel_3.ogg"],
-            category: Movement, volume: 0.6, pitch_jitter: 0.06,
+            category: Movement, volume: 0.33, pitch_jitter: 0.06,
             spatial: true, ref_distance_m: 2.0, max_distance_m: 36.0,
         ),
         "movement/step_wood": (
             files: ["movement/step_wood_1.ogg", "movement/step_wood_2.ogg", "movement/step_wood_3.ogg"],
-            category: Movement, volume: 0.55, pitch_jitter: 0.06,
+            category: Movement, volume: 0.17, pitch_jitter: 0.06,
             spatial: true, ref_distance_m: 2.0, max_distance_m: 32.0,
         ),
         "movement/jump": (
@@ -108,7 +120,8 @@
             spatial: true, ref_distance_m: 2.0, max_distance_m: 28.0,
         ),
         "movement/land": (
-            files: ["movement/land.ogg"], category: Movement, volume: 0.7, pitch_jitter: 0.06,
+            files: ["movement/land_1.ogg", "movement/land_2.ogg", "movement/land_3.ogg"], category: Movement,
+            volume: 0.26, pitch_jitter: 0.06,
             spatial: true, ref_distance_m: 2.0, max_distance_m: 34.0,
         ),
         "movement/slide": (
@@ -181,7 +194,9 @@
     },
 
     // Shot sounds per weapon id (weapons.ron). A gun without a row uses `default_weapon`. A bolt gun works its
-    // bolt `bolt_delay_s` after each shot, and after a reload from empty when `bolt_after_empty_reload`.
+    // bolt `bolt_delay_s` after each shot, and after a reload from empty when `bolt_after_empty_reload`. The bolt
+    // sound is cut to end as the gun can fire again: bolt_delay_s + its length = weapons.ron bolt_cycle_s (tested),
+    // so a change to either needs the sound re-cut (assets/audio/h3_round2).
     weapons: {
         "ar7_mako": (shot: "weapons/mako_shot"),
         "vk50_warden": (

@@ -3,9 +3,11 @@
 //!
 //! The feel lives in submodules, all visual only (`feel.ron`): the camera's bob and shot shake and the gun's
 //! sway ([`camera_fx`]), tracers ([`tracer_fx`]), and hit markers and halo cracks on the player hit ([`hit_fx`]).
-//! Teammates' glow and name markers, and everyone else's plain look, are [`friend_foe`]'s.
+//! Teammates' glow and name markers, and everyone else's plain look, are [`friend_foe`]'s. The empty gun's twitch
+//! and frustrated shake are [`dry_fire`]'s.
 
 mod camera_fx;
+pub mod dry_fire;
 pub mod executor;
 pub mod feel;
 pub mod friend_foe;
@@ -44,6 +46,8 @@ impl Plugin for RenderPlugin {
             .insert_resource(feel::FeelData::load())
             .init_resource::<camera_fx::ViewFeel>()
             .init_resource::<inspect::ViewInspect>()
+            .init_resource::<dry_fire::ViewDryFire>()
+            .add_message::<dry_fire::DryPull>()
             .init_resource::<tracer_fx::Tracers>()
             .init_resource::<hit_fx::HitMemory>()
             .init_resource::<hit_fx::ShardAssets>()
@@ -71,6 +75,8 @@ impl Plugin for RenderPlugin {
                     sync_viewmodel,
                     camera_fx::step_feel.before(update_camera),
                     inspect::step_inspect.before(update_camera),
+                    dry_fire::step_view_dry_fire.before(update_camera),
+                    dry_fire::step_held_dry_fire.before(update_player_visuals),
                     smooth_step_eye.before(update_camera),
                     update_camera,
                 )
@@ -633,6 +639,7 @@ fn update_player_visuals(
             &Vitals,
             &PlayerLoadout,
             Option<&PlayerWeapon>,
+            Option<&dry_fire::HeldDryFire>,
             &mut Transform,
             &mut Visibility,
             &Children,
@@ -646,7 +653,7 @@ fn update_player_visuals(
     mut guns: Query<(&mut HeldGun, &mut Transform), (Without<PlayerVisual>, Without<Body>)>,
 ) {
     let held = &feel.gun.mag_inspect.third_person;
-    for (mv, look, vitals, loadout, weapon, mut t, mut vis, children, mine) in &mut players {
+    for (mv, look, vitals, loadout, weapon, dry, mut t, mut vis, children, mine) in &mut players {
         let pose = PlayerPose::new(mv.0.pos, look, mv.0.stance);
         *t = pose.root;
         // Our own body never shows (it can get visuals if it arrived a frame before `Controlled` did).
@@ -668,6 +675,10 @@ fn update_player_visuals(
                 gun.inspect = inspect::ease_held(gun.inspect, checking, held, time.delta_secs());
                 *g = pose.gun(gun.hand);
                 g.rotation *= inspect::held_turn(held, gun.inspect);
+                // Empty pulls twitch it, and a few in a row shake it (`dry_fire`): others see the gun is empty.
+                if let Some(dry) = dry.filter(|_| !vitals.health.dead) {
+                    g.rotation *= dry_fire::held_turn(&feel.gun.dry_fire, &dry.0);
+                }
             }
         }
     }
@@ -966,7 +977,7 @@ fn update_camera(
     step: Res<StepEye>,
     rig: Res<ViewmodelRig>,
     feel: Res<camera_fx::ViewFeel>,
-    view_inspect: Res<inspect::ViewInspect>,
+    view_fx: (Res<inspect::ViewInspect>, Res<dry_fire::ViewDryFire>),
     data: Res<feel::FeelData>,
     me: Query<(&PlayerMove, Option<&Smoothed>, &PlayerLoadout, &Vitals), With<Controlled>>,
     mut camera: Query<
@@ -980,6 +991,7 @@ fn update_camera(
 ) {
     let Some((mv, smoothed, loadout, vitals)) = me.iter().next() else { return };
     let (game, level, death) = world;
+    let (view_inspect, view_dry) = view_fx;
     // The death screen's death cam: where we died, turning toward the killer (`death.rs`).
     let death_cam = death.0.filter(|_| vitals.health.dead);
     let m = &settings.mouse;
@@ -1055,6 +1067,10 @@ fn update_camera(
         t.rotation = Quat::from_rotation_y(sprint.yaw_deg.to_radians() * now.sprint) * t.rotation;
         // A mag check turns the magazine window toward the eye (`inspect`); the sway goes on top.
         *t = inspect::inspect_gun(&data.gun.mag_inspect, *t, if dead { 0.0 } else { view_inspect.state.weight });
+        // An empty pull twitches the gun, a few in a row shake it (`dry_fire`).
+        if !dead {
+            *t = dry_fire::view_gun(&data.gun.dry_fire, *t, &view_dry.fx);
+        }
         *t = now.gun.move_gun(*t, now.ads);
         if let Some(left) = inspect {
             *t = inspect_pose(&rig, left);

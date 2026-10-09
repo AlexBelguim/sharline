@@ -745,3 +745,20 @@ New (item 9c2, user direction; the design docs have no streaks). All numbers in 
   - Wire: `ThrowNews` (thrown, burst, doused, clear), the throw keys in the buttons, the hand in the predicted
     items, the loadout's share per life: protocol 14.
 
+
+## 33. Sound round 2 and the empty gun (2026-10-09)
+- **Sounds (user playtest):** the concrete, gravel and wood steps, the landing, the Warden's shot and its bolt are now
+  MiniMax H3 picks (`assets/audio/h3_round2/listen.html` lists every candidate and the pick, to override by ear);
+  the grass steps stay. Volumes keep the placeholders' balance (A-weighted, grass as the reference); the Warden's
+  shot sits about 5 dB(A) over the Mako's.
+- **Bolt timing:** the bolt sound ends exactly as the Warden can fire again: `bolt_delay_s` (0.35 s) + its length
+  (0.90 s) = `bolt_cycle_s` (1.25 s), its lock click in the last 0.07 s, no pitch jitter (tested). A change to the
+  cycle or the delay needs the sound re-cut.
+- **Empty gun (no HUD text):** the dry click is loud and crisp (about 14 dB over the old placeholder; the low-mag
+  cue, which borrows its file, stays as quiet as before). Each empty pull twitches the gun in the hands (no recoil,
+  no camera kick); the third empty pull in a row (within 1.5 s of each other; a reload starts the count again)
+  gives a 0.5 s frustrated shake of the gun, stopped by aiming, a reload or a swap (`feel.ron` gun.dry_fire). Others
+  see the shake on the gun in that player's hand. The gun models' moving nodes now move: the trigger comes back
+  while FIRE is held, and an empty gun shows its bolt held open (the Warden's bolt lifted and drawn back; the Mako
+  has no bolt-carrier node, so its charging handle comes back instead) until the reload closes it
+  (`weapon_models.ron` guns.moving). Visual only: nothing on the wire changed.

@@ -9531,6 +9531,7 @@ version = "0.1.0"
 dependencies = [
  "bevy",
  "iroh",
+ "lewton",
  "lightyear",
  "naga",
  "naga_oil",

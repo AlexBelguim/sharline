@@ -6,7 +6,8 @@ clicks, tones and seamless loops: short, quiet-ish and clearly placeholders. Rea
 replace them: copy the picks to game/assets/audio/<category>/<name>_<n>.ogg and list them in sounds.ron.
 
 Only missing files are written, so a real sound already in place is never overwritten; --force rewrites every
-placeholder this script makes (and would overwrite a real sound with the same name).
+placeholder this script makes (and would overwrite a real sound with the same name). A placeholder whose file
+sounds.ron no longer lists (a real sound took its place under other names) is not written.
 
 Format: OGG Vorbis, mono. Bevy's default `audio` feature decodes Vorbis (no extra engine feature). The script
 encodes with `soundfile` when it can write OGG, else with `ffmpeg` (libvorbis) on PATH. It needs numpy.
@@ -631,12 +632,15 @@ def main():
     names = [a for a in args if a != "--force"]
     only = names[0] if names else ""
     how = encoder()
+    listed = open(os.path.join(OUT, "..", "data", "sounds.ron"), encoding="utf-8").read()
     total, kept = 0, 0
     with tempfile.TemporaryDirectory() as tmp:
         for name, (x, sr, quality) in sorted(sounds().items()):
             if not name.startswith(only):
                 continue
             path = os.path.join(OUT, *name.split("/")) + ".ogg"
+            if f'"{name}.ogg"' not in listed:
+                continue
             if os.path.exists(path) and not force:
                 kept += 1
                 continue
