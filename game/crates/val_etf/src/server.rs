@@ -237,6 +237,8 @@ pub fn spawn_match(
             lobby_name,
             max_players: mode_max_players(data, mode, max_players),
             rules: data.rules.rulesets.get(mode),
+            // The estimate until the host picks EXACT in the lobby (user direction 2026-10-09).
+            mag_check: Default::default(),
         },
         Replicate::to_clients(NetworkTarget::All),
         // A session that ends must not leave its mode and rules to the next one.
@@ -716,6 +718,12 @@ fn receive_lobby_actions(
                         }
                     }
                 }
+                LobbyAction::SetMagCheck(mag_check) => {
+                    if lobby_mag_check_change(&m, mag_check, from_host) {
+                        info!("the host sets MAG CHECK to {}", mag_check.label());
+                        m.mag_check = mag_check;
+                    }
+                }
                 // The host's test bots (`bots.rs` checks the seats).
                 LobbyAction::AddBot if from_host => bots.0.push(crate::bots::BotRequest::Add),
                 LobbyAction::RemoveBot if from_host => bots.0.push(crate::bots::BotRequest::Remove),
@@ -734,6 +742,12 @@ fn receive_lobby_actions(
             }
         }
     }
+}
+
+/// Whether the host's MAG CHECK pick changes the match: only the host, only in a deathmatch lobby (the gun
+/// range has a personal setting instead), and only to the other value.
+fn lobby_mag_check_change(m: &MatchState, mag_check: MagCheckMode, from_host: bool) -> bool {
+    from_host && m.phase == MatchPhase::Lobby && m.mode.is_deathmatch() && m.mag_check != mag_check
 }
 
 /// The lobby's seats after the host asks to change its mode to `mode`, or `None` when the change is refused:
@@ -1657,6 +1671,7 @@ mod system_tests {
             lobby_name: String::new(),
             max_players: rules.max_players,
             rules: d.rules.rulesets.get(mode),
+            mag_check: Default::default(),
         });
         app.insert_resource(Data(Arc::new(d)));
         app.init_resource::<Time>();
@@ -2362,6 +2377,7 @@ mod tests {
             lobby_name: String::new(),
             max_players: rules.max_players,
             rules: d.rules.rulesets.get(mode),
+            mag_check: Default::default(),
         }
     }
 
@@ -2429,6 +2445,24 @@ mod tests {
         assert_eq!(mode_max_players(&d, MatchMode::Ffa, 5), 5, "odd is fine without teams");
         assert_eq!(mode_max_players(&d, MatchMode::Tdm, 5), 4);
         assert_eq!(mode_max_players(&d, MatchMode::Tdm, 1), 2);
+    }
+
+    /// MAG CHECK is the host's match rule: only the host sets it, only in a deathmatch lobby; a mode change keeps
+    /// it, and a new match starts with the estimate.
+    #[test]
+    fn only_the_host_sets_mag_check_in_the_lobby() {
+        let lobby = MatchState { phase: MatchPhase::Lobby, ..live(MatchMode::Tdm) };
+        assert_eq!(lobby.mag_check, MagCheckMode::Estimate, "the default");
+        assert!(lobby_mag_check_change(&lobby, MagCheckMode::Exact, true));
+        assert!(!lobby_mag_check_change(&lobby, MagCheckMode::Exact, false), "only the host");
+        assert!(!lobby_mag_check_change(&lobby, MagCheckMode::Estimate, true), "already the estimate");
+        let ffa = MatchState { mode: MatchMode::Ffa, ..lobby.clone() };
+        assert!(lobby_mag_check_change(&ffa, MagCheckMode::Exact, true), "free-for-all too");
+        let exact = MatchState { mag_check: MagCheckMode::Exact, ..ffa.clone() };
+        assert!(lobby_mag_check_change(&exact, MagCheckMode::Estimate, true), "and back");
+        let started = MatchState { phase: MatchPhase::Live, ..ffa };
+        assert!(!lobby_mag_check_change(&started, MagCheckMode::Exact, true), "not once the match is live");
+        assert!(!lobby_mag_check_change(&live(MatchMode::Range), MagCheckMode::Exact, true), "the range is personal");
     }
 
     #[test]
@@ -2746,6 +2780,7 @@ mod bot_tests {
             lobby_name: String::new(),
             max_players,
             rules: d.rules.rulesets.get(mode),
+            mag_check: Default::default(),
         });
         app.insert_resource(Data(Arc::new(d)));
         app.insert_resource(CurrentLevel(Arc::new(arena())));

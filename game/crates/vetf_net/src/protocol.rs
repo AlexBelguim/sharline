@@ -19,7 +19,7 @@ use vetf_sim::player::{Loadout, Wounds};
 use vetf_sim::weapon::WeaponState;
 
 /// Bumped whenever the protocol changes; part of the netcode protocol id, so old builds cannot connect.
-pub const PROTOCOL_VERSION: u64 = 10;
+pub const PROTOCOL_VERSION: u64 = 11;
 
 /// netcode.io protocol id shared by host and clients.
 pub fn protocol_id() -> u64 {
@@ -114,6 +114,7 @@ pub struct PlayerNet {
 pub struct PlayerAgent(pub Option<String>);
 
 pub use vetf_sim::data::Mode as MatchMode;
+pub use vetf_sim::weapon::MagCheckMode;
 
 #[derive(Serialize, Deserialize, Clone, Copy, Debug, PartialEq, Eq)]
 pub enum MatchPhase {
@@ -145,6 +146,10 @@ pub struct MatchState {
     pub max_players: u32,
     /// What this mode switches on (status effects, regional items). Clients use it for the HUD and menus.
     pub rules: Ruleset,
+    /// MAG CHECK, a match rule the host picks in the lobby (team deathmatch, free-for-all): the estimate (the
+    /// default) or exact rounds, with a HUD counter. Everyone in the match plays with it. The gun range ignores
+    /// it: there each player picks their own (Settings > Gameplay).
+    pub mag_check: MagCheckMode,
 }
 
 impl MatchState {
@@ -168,6 +173,8 @@ pub enum LobbyAction {
     /// removes the last one added.
     AddBot,
     RemoveBot,
+    /// The host's MAG CHECK match setting (team deathmatch and free-for-all).
+    SetMagCheck(MagCheckMode),
 }
 
 // ---------------------------------------------------------------------------------------------- input
@@ -555,6 +562,7 @@ mod tests {
             lobby_name: "ASH'S GAME".into(),
             max_players: 10,
             rules: d.rules.rulesets.tdm,
+            mag_check: Default::default(),
         });
         // The lobby: its phase, READY and the actions players send.
         roundtrip(&MatchPhase::Lobby);
@@ -568,6 +576,8 @@ mod tests {
             LobbyAction::SetMode(MatchMode::Tdm),
             LobbyAction::AddBot,
             LobbyAction::RemoveBot,
+            LobbyAction::SetMagCheck(MagCheckMode::Exact),
+            LobbyAction::SetMagCheck(MagCheckMode::Estimate),
         ] {
             roundtrip(&action);
         }
@@ -588,6 +598,7 @@ mod tests {
             lobby_name: "ASH'S GAME".into(),
             max_players: d.rules.ffa.max_players,
             rules: d.rules.rulesets.ffa,
+            mag_check: MagCheckMode::Exact,
         };
         roundtrip(&ffa);
         assert!(!ffa.has_teams());
@@ -603,6 +614,41 @@ mod tests {
         // The bytes the wire carries: the mode is its own variant, so a free-for-all never decodes as team
         // deathmatch.
         assert_ne!(roundtrip(&MatchMode::Ffa), roundtrip(&MatchMode::Tdm));
+    }
+
+    /// MAG CHECK is a match rule: it rides on the match state to every player, and the host's change survives the
+    /// wire. A match the host has not touched plays with the estimate.
+    #[test]
+    fn the_mag_check_match_setting_roundtrips() {
+        let d = GameData::embedded();
+        let base = MatchState {
+            mode: MatchMode::Tdm,
+            map: "showhome".into(),
+            score_a: 0,
+            score_b: 0,
+            score_limit: 50,
+            time_left_s: 600.0,
+            phase: MatchPhase::Lobby,
+            lobby_name: "ASH'S GAME".into(),
+            max_players: 10,
+            rules: d.rules.rulesets.tdm,
+            mag_check: MagCheckMode::default(),
+        };
+        assert_eq!(base.mag_check, MagCheckMode::Estimate, "the estimate is the default");
+        for mode in [MatchMode::Tdm, MatchMode::Ffa] {
+            for mag_check in MagCheckMode::ALL {
+                let m = MatchState { mode, mag_check, ..base.clone() };
+                let bytes = roundtrip(&m);
+                let back: MatchState = postcard::from_bytes(&bytes).unwrap();
+                assert_eq!(back.mag_check, mag_check, "{mode:?}");
+                roundtrip(&LobbyAction::SetMagCheck(mag_check));
+            }
+        }
+        assert_ne!(
+            roundtrip(&MatchState { mag_check: MagCheckMode::Exact, ..base.clone() }),
+            roundtrip(&base),
+            "EXACT never decodes as ESTIMATE"
+        );
     }
 
     /// The Loadout screen's output: six ordered magazines with mixed ammo, a mixed-tier custom halo and
@@ -669,8 +715,8 @@ mod tests {
         roundtrip(&PlayerAgent(None));
         assert_eq!(PlayerAgent::default(), PlayerAgent(None));
         assert_eq!(
-            PROTOCOL_VERSION, 10,
-            "agent + deathmatch picks 6, no ADS MOVE 7, death screen 8, test bots (bot mark, ADD/REMOVE BOT) 9,              recap per opponent life + kills, assists 10"
+            PROTOCOL_VERSION, 11,
+            "agent + deathmatch picks 6, no ADS MOVE 7, death screen 8, test bots (bot mark, ADD/REMOVE BOT) 9,              recap per opponent life + kills, assists 10, MAG CHECK match setting 11"
         );
     }
 

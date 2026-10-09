@@ -48,6 +48,7 @@ pub enum Ch {
     Jetpack,
     Slide,
     MagCard,
+    RangeMagCheck,
     RadialPick,
     ImportGame,
     AdsScaling,
@@ -278,6 +279,7 @@ pub fn get_choice(s: &Settings, ui: &UiState, d: &SettingsData, c: Ch) -> usize 
         Ch::Jetpack => s.gameplay.jetpack.index(),
         Ch::Slide => s.gameplay.slide.index(),
         Ch::MagCard => s.gameplay.mag_card.index(),
+        Ch::RangeMagCheck => s.gameplay.range_mag_check.index(),
         Ch::RadialPick => s.gameplay.radial_pick.index(),
         Ch::ImportGame => s.mouse.import_game.index(),
         Ch::AdsScaling => s.mouse.ads_scaling.index(),
@@ -326,6 +328,7 @@ pub fn set_choice(s: &mut Settings, ui: &mut UiState, d: &SettingsData, c: Ch, i
         Ch::Jetpack => s.gameplay.jetpack = Jetpack::from_index(i),
         Ch::Slide => s.gameplay.slide = Slide::from_index(i),
         Ch::MagCard => s.gameplay.mag_card = MagCard::from_index(i),
+        Ch::RangeMagCheck => s.gameplay.range_mag_check = RangeMagCheck::from_index(i),
         Ch::RadialPick => s.gameplay.radial_pick = RadialPick::from_index(i),
         Ch::ImportGame => {
             s.mouse.import_game = ImportGame::from_index(i);
@@ -381,6 +384,7 @@ pub fn choice_labels(ui: &UiState, d: &SettingsData, c: Ch, s: &Settings) -> Vec
         Ch::Jetpack => l(Jetpack::LABELS),
         Ch::Slide => l(Slide::LABELS),
         Ch::MagCard => l(MagCard::LABELS),
+        Ch::RangeMagCheck => l(RangeMagCheck::LABELS),
         Ch::RadialPick => l(RadialPick::LABELS),
         Ch::ImportGame => l(ImportGame::LABELS),
         Ch::AdsScaling => l(AdsScaling::LABELS),

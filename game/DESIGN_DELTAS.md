@@ -589,3 +589,20 @@ turned to you slightly, so you can see how many bullets, and holding the button 
 - Pinned by `render::inspect` tests (tap vs hold, cancel, the turn fits every gun's check, the pose faces the Mako's
   and Warden's windows to the eye, others' turn) and `weapon_models` tests (`the_mag_window_shows_a_level_never_a_count`,
   `magazine_windows_are_read_from_the_exports`).
+
+## 26. MAG CHECK: EXACT, an optional round counter (2026-10-09)
+
+The user's exception to the genre rule "no exact ammo counters". It is an option, off by default: the estimate stays
+the default everywhere.
+- **Team deathmatch and free-for-all:** a host match setting in the lobby, MAG CHECK: ESTIMATE / EXACT
+  (`MatchState::mag_check`, set with `LobbyAction::SetMagCheck`). Only the host can change it, and only in the lobby.
+  It goes to every player with the match state, so everyone in the match plays with the same setting. A newly hosted
+  match starts on ESTIMATE, and a mode change keeps the setting. Protocol version 11.
+- **Gun range:** the player's own setting, Settings > Gameplay > RANGE MAG CHECK (`range_mag_check` in
+  `settings.ron`, default ESTIMATE). The range ignores the match setting.
+- **With EXACT:** the HUD keeps a permanent counter in the bottom right, "23 / 30" with the magazine's slot and ammo
+  (hidden while dead), under the mag check card. The card's headline is the exact rounds instead of the estimate
+  (footnote "EXACT COUNT"), and the reload radial shows each magazine's rounds ("AP II  23/30").
+- **Unchanged:** the gun model's magazine window keeps its coarse level, the sim's mag check is the same, and with
+  ESTIMATE nothing new shows. The client has always held its own exact round counts (predicted weapon state), so
+  the setting changes only what the HUD shows. The host does not hide the counts from clients.

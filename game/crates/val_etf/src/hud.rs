@@ -5,7 +5,8 @@
 //!   HP). Recent damage trails in orange. Bleeding and broken limbs show as chips on the row, only where
 //!   the mode's rules have them.
 //! - **No weapon panel.** A mag check leaves a small card (estimate + which magazine and ammo); reloads,
-//!   item use and fire-mode changes show briefly under the crosshair.
+//!   item use and fire-mode changes show briefly under the crosshair. With MAG CHECK on EXACT (an option, see
+//!   below) a round counter sits in the bottom right corner too.
 //! - Score (top centre, ally/enemy colours: your team and theirs, or in free-for-all your kills and the
 //!   leader's), kill feed (top right), crosshair and damage direction stay. Hit markers are drawn on the player
 //!   hit, not here (`render::hit_fx`).
@@ -14,7 +15,10 @@
 //! (the crosshair keeps its own size), the crosshair and hit markers follow MOUSE & AIM, and the kill feed
 //! lines, team colours, damage flash and reduce flashing follow HUD & ACCESSIBILITY.
 //!
-//! Hard rule: no exact ammo count anywhere. Rounds are only ever reported as a mag-check estimate.
+//! The genre rule: no exact ammo count. Rounds are reported as a mag-check estimate. The one exception is the
+//! MAG CHECK option (user direction 2026-10-09), off by default: on EXACT ([`mag_check_mode`]: the host's match
+//! setting in team deathmatch and free-for-all, the player's own in the gun range) the HUD keeps a permanent
+//! counter of the rounds in the gun's magazine, and the mag check card gives the exact count.
 
 use crate::AppState;
 use crate::client::Feedback;
@@ -31,7 +35,7 @@ use vetf_net::*;
 use vetf_sim::Zone;
 use vetf_sim::data::FireMode;
 use vetf_sim::level::Team;
-use vetf_sim::weapon::{ReloadKind, WeaponAction, secs_to_ticks};
+use vetf_sim::weapon::{MagCheckMode, MagEstimate, ReloadKind, WeaponAction, secs_to_ticks};
 
 pub struct HudPlugin;
 
@@ -44,6 +48,7 @@ impl Plugin for HudPlugin {
                 (
                     update_vitals,
                     update_mag_card,
+                    update_ammo_counter,
                     update_action,
                     update_score,
                     update_crosshair,
@@ -132,6 +137,16 @@ struct MagCardEstimate;
 struct MagCardMag;
 #[derive(Component)]
 struct MagCardSegment(u8);
+/// The mag check card's footnote (estimate or exact count).
+#[derive(Component)]
+struct MagCardNote;
+/// The permanent round counter (MAG CHECK on EXACT only).
+#[derive(Component)]
+struct AmmoCounterRoot;
+#[derive(Component)]
+struct AmmoCounterRounds;
+#[derive(Component)]
+struct AmmoCounterMag;
 #[derive(Component)]
 struct ActionRoot;
 #[derive(Component)]
@@ -327,7 +342,19 @@ fn spawn_hud(mut commands: Commands, data: Res<Data>, fonts: Res<UiFonts>) {
         }
     }
 
-    // --- mag check card (bottom right): an estimate, never a count
+    // --- bottom right: the mag check card, over the round counter (MAG CHECK on EXACT only)
+    let corner = commands
+        .spawn((
+            Node {
+                flex_direction: FlexDirection::Column,
+                align_items: AlignItems::FlexEnd,
+                row_gap: px(8),
+                ..abs(None, Some(0.0), None, Some(0.0))
+            },
+            Pickable::IGNORE,
+            ChildOf(edges),
+        ))
+        .id();
     let card = commands
         .spawn((
             MagCardRoot,
@@ -336,10 +363,10 @@ fn spawn_hud(mut commands: Commands, data: Res<Data>, fonts: Res<UiFonts>) {
                 padding: UiRect::all(px(12)),
                 row_gap: px(6),
                 width: px(240),
-                ..abs(None, Some(0.0), None, Some(0.0))
+                ..default()
             }),
             Visibility::Hidden,
-            ChildOf(edges),
+            ChildOf(corner),
         ))
         .id();
     commands.spawn((
@@ -357,7 +384,28 @@ fn spawn_hud(mut commands: Commands, data: Res<Data>, fonts: Res<UiFonts>) {
             ChildOf(segs),
         ));
     }
-    commands.spawn((fonts.micro("AN ESTIMATE, NOT A COUNT"), ChildOf(card)));
+    commands.spawn((MagCardNote, fonts.micro(ESTIMATE_NOTE), ChildOf(card)));
+    // The round counter: which magazine, and its rounds out of the capacity.
+    let counter = commands
+        .spawn((
+            AmmoCounterRoot,
+            panel(Node {
+                flex_direction: FlexDirection::Column,
+                padding: UiRect::axes(px(12), px(10)),
+                row_gap: px(4),
+                width: px(240),
+                display: Display::None,
+                ..default()
+            }),
+            ChildOf(corner),
+        ))
+        .id();
+    commands.spawn((
+        Node { justify_content: JustifyContent::SpaceBetween, ..default() },
+        ChildOf(counter),
+        children![(fonts.lbl("ROUNDS")), (AmmoCounterMag, fonts.text("", Face::Display, 700, 13.0, kit::TEXT, 0.12))],
+    ));
+    commands.spawn((AmmoCounterRounds, fonts.text("", Face::Display, 700, 30.0, kit::TEXT_HI, 0.04), ChildOf(counter)));
 
     // --- action readout (under the crosshair): reload, item use, mag check, fire mode
     commands.spawn((
@@ -652,27 +700,110 @@ fn halo_header(core: Option<vetf_sim::data::Core>, weight: vetf_sim::data::Weigh
     }
 }
 
-#[allow(clippy::type_complexity)]
+/// The mag check card's footnote with the estimate, and with the exact count.
+const ESTIMATE_NOTE: &str = "AN ESTIMATE, NOT A COUNT";
+const EXACT_NOTE: &str = "EXACT COUNT · MAG CHECK: EXACT";
+
+/// How this player reads their rounds: in team deathmatch and free-for-all the host's MAG CHECK match setting
+/// (everyone plays with the same); in the gun range (or with no match yet) the player's own, from Settings >
+/// Gameplay.
+pub(crate) fn mag_check_mode(m: Option<&MatchState>, range: MagCheckMode) -> MagCheckMode {
+    match m {
+        Some(m) if m.mode.is_deathmatch() => m.mag_check,
+        _ => range,
+    }
+}
+
+/// The player's MAG CHECK from the replicated match and their settings.
+pub(crate) fn current_mag_check(matches: &Query<&MatchState>, settings: &Settings) -> MagCheckMode {
+    mag_check_mode(matches.iter().next(), settings.gameplay.range_mag_check.mode())
+}
+
+/// Rounds out of a magazine's capacity, as the counter and the exact card write them: `23 / 30`.
+pub(crate) fn rounds_text(rounds: u16, capacity: u16) -> String {
+    format!("{rounds} / {capacity}")
+}
+
+/// The round counter's text, or `None`: there is a counter only with MAG CHECK on EXACT.
+fn ammo_counter_text(mode: MagCheckMode, rounds: u16, capacity: u16) -> Option<String> {
+    mode.is_exact().then(|| rounds_text(rounds, capacity))
+}
+
+/// The mag check card's headline and footnote: the estimate, or with MAG CHECK on EXACT the exact rounds.
+fn mag_card_lines(mode: MagCheckMode, estimate: MagEstimate, rounds: u16, capacity: u16) -> (String, &'static str) {
+    match mode {
+        MagCheckMode::Estimate => (estimate.label().to_string(), ESTIMATE_NOTE),
+        MagCheckMode::Exact => (rounds_text(rounds, capacity), EXACT_NOTE),
+    }
+}
+
+#[allow(clippy::type_complexity, clippy::too_many_arguments)]
 fn update_mag_card(
     me: Query<(&PlayerWeapon, &PlayerLoadout), With<Controlled>>,
+    matches: Query<&MatchState>,
+    settings: Res<Settings>,
     mut root: Query<&mut Visibility, With<MagCardRoot>>,
-    mut est: Query<&mut Text, (With<MagCardEstimate>, Without<MagCardMag>)>,
-    mut mag: Query<&mut Text, (With<MagCardMag>, Without<MagCardEstimate>)>,
+    mut est: Query<&mut Text, (With<MagCardEstimate>, Without<MagCardMag>, Without<MagCardNote>)>,
+    mut mag: Query<&mut Text, (With<MagCardMag>, Without<MagCardEstimate>, Without<MagCardNote>)>,
+    mut note: Query<&mut Text, (With<MagCardNote>, Without<MagCardEstimate>, Without<MagCardMag>)>,
     mut segs: Query<(&MagCardSegment, &mut BackgroundColor)>,
 ) {
-    let card = me.iter().next().and_then(|(w, lo)| Some((w.0.card?, lo)));
+    let card = me.iter().next().and_then(|(w, lo)| Some((w.0.card?, &w.0, lo)));
     for mut v in &mut root {
         *v = if card.is_some() { Visibility::Inherited } else { Visibility::Hidden };
     }
-    let Some((card, lo)) = card else { return };
+    let Some((card, w, lo)) = card else { return };
+    let rounds = w.rounds.get(card.slot as usize).copied().unwrap_or(0);
+    let (headline, footnote) =
+        mag_card_lines(current_mag_check(&matches, &settings), card.estimate, rounds, lo.0.weapon.mag_capacity);
     for mut t in &mut est {
-        t.0 = card.estimate.label().into();
+        t.0.clone_from(&headline);
+    }
+    for mut t in &mut note {
+        if t.0 != footnote {
+            t.0 = footnote.into();
+        }
     }
     for mut t in &mut mag {
         t.0 = format!("MAG {}  {}", card.slot + 1, lo.0.weapon.ammo(card.slot).label);
     }
     for (s, mut bg) in &mut segs {
         bg.0 = if s.0 == card.estimate.segment() { kit::TEXT_HI } else { kit::UNLIT };
+    }
+}
+
+/// The permanent round counter: shown only with MAG CHECK on EXACT, while alive; the rounds in the gun's
+/// magazine out of its capacity, and which magazine (its slot and ammo).
+#[allow(clippy::type_complexity)]
+fn update_ammo_counter(
+    me: Query<(&PlayerWeapon, &PlayerLoadout, &Vitals), With<Controlled>>,
+    matches: Query<&MatchState>,
+    settings: Res<Settings>,
+    mut root: Query<&mut Node, With<AmmoCounterRoot>>,
+    mut rounds: Query<&mut Text, (With<AmmoCounterRounds>, Without<AmmoCounterMag>)>,
+    mut mag: Query<&mut Text, (With<AmmoCounterMag>, Without<AmmoCounterRounds>)>,
+) {
+    let mode = current_mag_check(&matches, &settings);
+    let shown = me.iter().next().filter(|(.., v)| !v.health.dead).and_then(|(w, lo, _)| {
+        let text = ammo_counter_text(mode, w.0.mag(), lo.0.weapon.mag_capacity)?;
+        Some((text, format!("MAG {}  {}", w.0.loaded + 1, lo.0.weapon.ammo(w.0.loaded).label)))
+    });
+    let display = if shown.is_some() { Display::Flex } else { Display::None };
+    for mut n in &mut root {
+        if n.display != display {
+            n.display = display;
+        }
+    }
+    let Some((text, which)) = shown else { return };
+    for mut t in &mut rounds {
+        if t.0 != text {
+            t.0.clone_from(&text);
+        }
+    }
+    for mut t in &mut mag {
+        if t.0 != which {
+            t.0.clone_from(&which);
+        }
     }
 }
 
@@ -1234,5 +1365,106 @@ mod tests {
     fn the_feed_has_a_row_for_every_kill_feed_choice() {
         let most = crate::settings::KillFeed::ALL.iter().map(|k| k.lines()).max();
         assert_eq!(most, Some(FEED_ROWS));
+    }
+    /// MAG CHECK: the host's match setting in team deathmatch and free-for-all (whatever a player picked for the
+    /// range), the player's own in the gun range; the estimate when nobody picked anything.
+    #[test]
+    fn mag_check_follows_the_match_in_deathmatch_and_the_player_in_the_range() {
+        let d = vetf_sim::GameData::embedded();
+        let m = |mode, mag_check| MatchState {
+            mode,
+            map: "showhome".into(),
+            score_a: 0,
+            score_b: 0,
+            score_limit: 50,
+            time_left_s: 600.0,
+            phase: MatchPhase::Live,
+            lobby_name: String::new(),
+            max_players: 10,
+            rules: d.rules.rulesets.get(mode),
+            mag_check,
+        };
+        use MagCheckMode::{Estimate, Exact};
+        let defaults = crate::settings::Settings::default().gameplay.range_mag_check.mode();
+        assert_eq!(defaults, Estimate, "the range's default is the estimate");
+        for mode in [MatchMode::Tdm, MatchMode::Ffa] {
+            assert_eq!(mag_check_mode(Some(&m(mode, Exact)), Estimate), Exact, "{mode:?}: the host's EXACT");
+            assert_eq!(mag_check_mode(Some(&m(mode, Estimate)), Exact), Estimate, "{mode:?}: not the player's");
+            assert_eq!(mag_check_mode(Some(&m(mode, MagCheckMode::default())), defaults), Estimate);
+        }
+        assert_eq!(mag_check_mode(Some(&m(MatchMode::Range, Estimate)), Exact), Exact, "the range: the player's");
+        assert_eq!(mag_check_mode(Some(&m(MatchMode::Range, Exact)), Estimate), Estimate);
+        assert_eq!(mag_check_mode(None, defaults), Estimate);
+    }
+
+    /// The counter exists only with EXACT; the card says the estimate, or with EXACT the rounds.
+    #[test]
+    fn the_counter_and_the_card_text_in_both_modes() {
+        assert_eq!(ammo_counter_text(MagCheckMode::Estimate, 23, 30), None, "no counter with the estimate");
+        assert_eq!(ammo_counter_text(MagCheckMode::Exact, 23, 30).as_deref(), Some("23 / 30"));
+        assert_eq!(ammo_counter_text(MagCheckMode::Exact, 0, 60).as_deref(), Some("0 / 60"));
+        let est = MagEstimate::from_rounds(23, 30);
+        assert_eq!(mag_card_lines(MagCheckMode::Estimate, est, 23, 30), ("MORE THAN HALF".into(), ESTIMATE_NOTE));
+        assert_eq!(mag_card_lines(MagCheckMode::Exact, est, 23, 30), ("23 / 30".into(), EXACT_NOTE));
+        assert!(!mag_card_lines(MagCheckMode::Estimate, est, 23, 30).0.contains("23"), "no number in the estimate");
+    }
+
+    /// The HUD's round counter, as the system draws it: hidden with the estimate, `rounds / capacity` with EXACT
+    /// (the match's in a deathmatch, the player's own setting in the range), hidden again while dead.
+    #[test]
+    fn the_round_counter_shows_only_with_exact() {
+        use bevy::ecs::system::RunSystemOnce;
+        let d = vetf_sim::GameData::embedded();
+        let lo = vetf_sim::player::Loadout::default_for(&d, MatchMode::Tdm);
+        let cap = lo.weapon.mag_capacity;
+        let mut w = vetf_sim::weapon::WeaponState::new(&d, &lo.weapon);
+        w.rounds[0] = cap - 7;
+        let vitals = Vitals {
+            health: vetf_sim::combat::Health::new(d.armor.zone_hp),
+            halo: vetf_sim::combat::HaloState::full(&lo.halo),
+            wounds: Default::default(),
+            respawn_s: 0.0,
+            protected_s: 0.0,
+            awaiting_respawn: false,
+        };
+        let mut app = App::new();
+        app.insert_resource(crate::settings::Settings::default());
+        let me = app.world_mut().spawn((PlayerWeapon(w), PlayerLoadout(lo), vitals, Controlled)).id();
+        let m = app
+            .world_mut()
+            .spawn(MatchState {
+                mode: MatchMode::Tdm,
+                map: "showhome".into(),
+                score_a: 0,
+                score_b: 0,
+                score_limit: 50,
+                time_left_s: 600.0,
+                phase: MatchPhase::Live,
+                lobby_name: String::new(),
+                max_players: 10,
+                rules: d.rules.rulesets.tdm,
+                mag_check: MagCheckMode::default(),
+            })
+            .id();
+        let root = app.world_mut().spawn((AmmoCounterRoot, Node { display: Display::None, ..default() })).id();
+        let rounds = app.world_mut().spawn((AmmoCounterRounds, Text::new(""))).id();
+        app.world_mut().spawn((AmmoCounterMag, Text::new("")));
+        let shown = |app: &mut App| {
+            app.world_mut().run_system_once(update_ammo_counter).unwrap();
+            let on = app.world().get::<Node>(root).unwrap().display != Display::None;
+            (on, app.world().get::<Text>(rounds).unwrap().0.clone())
+        };
+        assert!(!shown(&mut app).0, "the estimate (the default): no counter");
+        app.world_mut().get_mut::<MatchState>(m).unwrap().mag_check = MagCheckMode::Exact;
+        assert_eq!(shown(&mut app), (true, format!("{} / {cap}", cap - 7)), "the host's EXACT");
+        app.world_mut().get_mut::<Vitals>(me).unwrap().health.dead = true;
+        assert!(!shown(&mut app).0, "not while dead");
+        app.world_mut().get_mut::<Vitals>(me).unwrap().health.dead = false;
+        // The range ignores the match setting: the player's own decides.
+        app.world_mut().get_mut::<MatchState>(m).unwrap().mode = MatchMode::Range;
+        assert!(!shown(&mut app).0, "the range: the player's ESTIMATE");
+        app.world_mut().resource_mut::<crate::settings::Settings>().gameplay.range_mag_check =
+            crate::settings::RangeMagCheck::Exact;
+        assert!(shown(&mut app).0, "the range: the player's EXACT");
     }
 }

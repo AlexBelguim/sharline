@@ -77,6 +77,9 @@
             jetpack: HoldJumpInAir,
             slide: CrouchWhileSprinting,
             mag_card: ThreeSeconds,
+            // The gun range's MAG CHECK: ESTIMATE (the genre rule) or EXACT rounds with a HUD counter. Team
+            // deathmatch and free-for-all use the host's match setting instead (user direction 2026-10-09).
+            range_mag_check: Estimate,
             radial_hold_s: 0.20,
             radial_pick: Release,
         ),

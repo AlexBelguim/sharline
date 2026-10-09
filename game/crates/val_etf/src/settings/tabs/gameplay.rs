@@ -30,6 +30,8 @@ const GAMEPLAY: &[Row] = &[
     // OFF and WHILE HELD wait for the game to honour them (the sim always slides; the card is timed).
     ("SLIDE", None, Ctl::Seg(Ch::Slide, &[1])),
     ("MAG CHECK CARD", None, Ctl::Seg(Ch::MagCard, &[1])),
+    // The exact count is an option, off by default; matches use the host's lobby setting (2026-10-09).
+    ("RANGE MAG CHECK", Some("Gun range only · EXACT adds a round counter"), Ctl::Seg(Ch::RangeMagCheck, &[])),
 ];
 
 const RADIAL: &[Row] = &[
@@ -182,6 +184,7 @@ mod tests {
             ("JETPACK", "HOLD JUMP IN AIR"),
             ("SLIDE", "CROUCH WHILE RUNNING"),
             ("MAG CHECK CARD", "3 S"),
+            ("RANGE MAG CHECK", "ESTIMATE"),
             ("RADIAL HOLD TIME", "0.20 s"),
             ("RADIAL PICK", "RELEASE"),
             // the game's port (net.ron), not the mockup's 7777

@@ -1,8 +1,9 @@
 //! Weapon state machine: fire rate, fire modes, reloads, mag checks, ADS, spread and bloom.
 //!
 //! Timers are counted in fixed ticks so predicted and authoritative copies compare exactly.
-//! Hard rule: the player never sees an exact round count. The HUD only gets a [`MagEstimate`] from a
-//! mag check, and the round counts here stay internal.
+//! The player normally never sees an exact round count: the HUD only gets a [`MagEstimate`] from a mag check.
+//! The one exception is the [`MagCheckMode::Exact`] option (user direction 2026-10-09): a match setting the host
+//! picks in the lobby (team deathmatch, free-for-all) or a personal one in the gun range. Off by default.
 
 use crate::data::{
     AmmoChoice, AmmoSpec, AttachmentCategory, FireMode, GameData, ModifierTotals, RecoilSpec, WeaponClass, WeaponSpec,
@@ -205,6 +206,32 @@ impl MagEstimate {
             Self::NearlyFull => 4,
             Self::Full => 5,
         }
+    }
+}
+
+/// How exactly a player reads their rounds (user direction 2026-10-09). [`MagCheckMode::Estimate`], the
+/// default everywhere, is the genre rule: no counter, a mag check gives a [`MagEstimate`]. With
+/// [`MagCheckMode::Exact`] the HUD keeps a counter of the rounds in the gun's magazine, the mag check card and
+/// the reload radial give exact counts too. The gun model's magazine window keeps its coarse level either way.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default, Serialize, Deserialize)]
+pub enum MagCheckMode {
+    #[default]
+    Estimate,
+    Exact,
+}
+
+impl MagCheckMode {
+    pub const ALL: [MagCheckMode; 2] = [MagCheckMode::Estimate, MagCheckMode::Exact];
+
+    pub fn label(self) -> &'static str {
+        match self {
+            Self::Estimate => "ESTIMATE",
+            Self::Exact => "EXACT",
+        }
+    }
+
+    pub fn is_exact(self) -> bool {
+        self == Self::Exact
     }
 }
 
@@ -906,6 +933,15 @@ mod tests {
         assert_eq!(MagEstimate::from_rounds(29, 30), MagEstimate::NearlyFull);
         assert_eq!(MagEstimate::from_rounds(30, 30), MagEstimate::Full);
         assert_eq!(MagEstimate::from_rounds(1, 5), MagEstimate::LessThanHalf);
+    }
+
+    /// The exact count is an option: the estimate is the default everywhere (user direction 2026-10-09).
+    #[test]
+    fn the_estimate_is_the_default_mag_check() {
+        assert_eq!(MagCheckMode::default(), MagCheckMode::Estimate);
+        assert!(!MagCheckMode::default().is_exact());
+        assert!(MagCheckMode::Exact.is_exact());
+        assert_eq!(MagCheckMode::ALL.map(MagCheckMode::label), ["ESTIMATE", "EXACT"]);
     }
 
     /// The gun comes up `sprint_to_fire_s` after it was lowered, and the sprint itself no longer has to end: firing

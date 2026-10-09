@@ -1,6 +1,6 @@
 //! The lobby (hub spec 05, mockup 06): the room before a deathmatch. Team deathmatch shows both teams with
 //! halo, ping and READY; free-for-all shows one player list with its seats (no teams, no SWITCH TEAM). Then
-//! how friends join, with COPY; the match settings, where the host picks the mode; and LEAVE, LOADOUT,
+//! how friends join, with COPY; the match settings, where the host picks the mode and MAG CHECK; and LEAVE, LOADOUT,
 //! SWITCH TEAM (teams only), READY and (host only) ADD BOT, REMOVE BOT and START MATCH. It is a screen over the match while the
 //! match is in `MatchPhase::Lobby`, so the match underneath takes no input; START MATCH, or the end of a
 //! match (back here), moves everyone on.
@@ -32,6 +32,7 @@ impl Plugin for LobbyPlugin {
                 keep_esc.in_set(EscSystems::Top).run_if(screen_on_top(Screen::Lobby)),
                 buttons,
                 mode_toggle,
+                mag_check_toggle,
                 demo,
                 refresh,
             )
@@ -77,6 +78,21 @@ struct WaitingForHost;
 /// The host's MODE control in the match settings (team deathmatch or free-for-all).
 #[derive(Component)]
 struct ModeToggle;
+
+/// The host's MAG CHECK control in the match settings (the estimate or exact rounds).
+#[derive(Component)]
+struct MagCheckToggle;
+
+/// MAG CHECK's options, in the toggle's order.
+const MAG_CHECKS: [(MagCheckMode, &str); 2] = [(MagCheckMode::Estimate, "Estimate"), (MagCheckMode::Exact, "Exact")];
+
+/// The MAG CHECK row in the match settings, as everyone reads it.
+fn mag_check_row(mode: MagCheckMode) -> String {
+    match mode {
+        MagCheckMode::Estimate => "ESTIMATE".into(),
+        MagCheckMode::Exact => "EXACT · ROUND COUNTER ON".into(),
+    }
+}
 
 /// The modes the host can switch the lobby between, in the toggle's order.
 const MODES: [(MatchMode, &str); 2] = [(MatchMode::Tdm, "Team deathmatch"), (MatchMode::Ffa, "Free-for-all")];
@@ -172,6 +188,23 @@ fn spawn_root(
                             t.spawn((segment(fonts, label, TOGGLE, 34.0, false), SegOption(i)));
                         }
                     });
+                    // MAG CHECK, a match rule: the estimate (the default) or exact rounds with a HUD counter.
+                    p.spawn(Node { align_items: AlignItems::Center, column_gap: px(14), ..default() }).with_children(
+                        |row| {
+                            row.spawn(fonts.role(TextRole::RowLabel, "Mag check"));
+                            row.spawn((
+                                MagCheckToggle,
+                                SegValue(0),
+                                Node { height: px(36), border: UiRect::all(px(1)), ..default() },
+                                BorderColor::all(STROKE_HI),
+                            ))
+                            .with_children(|t| {
+                                for (i, (_, label)) in MAG_CHECKS.iter().enumerate() {
+                                    t.spawn((segment(fonts, label, TOGGLE, 34.0, false), SegOption(i)));
+                                }
+                            });
+                        },
+                    );
                 }
                 p.spawn((SettingsBox, Node { flex_direction: FlexDirection::Column, row_gap: px(8), ..default() }));
             });
@@ -319,6 +352,43 @@ fn mode_toggle(
         return;
     }
     let want = MODES.iter().position(|(mode, _)| *mode == m.mode).unwrap_or(0);
+    for mut v in &mut groups {
+        if v.0 != want {
+            v.0 = want;
+        }
+    }
+}
+
+/// The host's MAG CHECK toggle: a click asks the host to change the match setting; the toggle then follows the
+/// match (like MODE).
+#[allow(clippy::type_complexity)]
+fn mag_check_toggle(
+    presses: Query<(&Interaction, &SegOption, &ChildOf), Changed<Interaction>>,
+    toggles: Query<(), With<MagCheckToggle>>,
+    screens: Res<Screens>,
+    time: Res<Time>,
+    mut asked: Local<f32>,
+    mut groups: Query<&mut SegValue, With<MagCheckToggle>>,
+    matches: Query<&MatchState>,
+    mut senders: Query<&mut MessageSender<LobbyAction>, With<Client>>,
+) {
+    if screens.top() == Some(Screen::Lobby) {
+        for (i, opt, parent) in &presses {
+            if *i != Interaction::Pressed || !toggles.contains(parent.parent()) {
+                continue;
+            }
+            let Some((mode, _)) = MAG_CHECKS.get(opt.0) else { continue };
+            *asked = time.elapsed_secs();
+            for mut s in &mut senders {
+                s.send::<ReliableChannel>(LobbyAction::SetMagCheck(*mode));
+            }
+        }
+    }
+    let Some(m) = matches.iter().next() else { return };
+    if time.elapsed_secs() - *asked < 1.0 {
+        return;
+    }
+    let want = MAG_CHECKS.iter().position(|(mode, _)| *mode == m.mag_check).unwrap_or(0);
     for mut v in &mut groups {
         if v.0 != want {
             v.0 = want;
@@ -552,6 +622,7 @@ fn refresh(
         ("Kill refill", format!("{} MAGAZINE", rules.kill_refill_mags)),
         ("Loadout", loadout),
         ("Agents", if m.mode.is_deathmatch() { "RANDOM AT THE START" } else { "YOUR PICK" }.to_string()),
+        ("Mag check", mag_check_row(m.mag_check)),
     ];
     for e in &settings_box {
         commands.entity(e).despawn_children().with_children(|s| {
@@ -701,4 +772,18 @@ fn open_slot(c: &mut ChildSpawnerCommands, fonts: &UiFonts) {
         BorderColor::all(STROKE),
         children![fonts.role(TextRole::Hint, "Open slot")],
     ));
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    /// The toggle offers both values, the estimate first (the default), and the row says what EXACT means.
+    #[test]
+    fn the_mag_check_setting_reads_estimate_by_default() {
+        assert_eq!(MAG_CHECKS[0].0, MagCheckMode::default());
+        assert_eq!(MAG_CHECKS.map(|(m, _)| m), MagCheckMode::ALL);
+        assert_eq!(mag_check_row(MagCheckMode::default()), "ESTIMATE");
+        assert_eq!(mag_check_row(MagCheckMode::Exact), "EXACT · ROUND COUNTER ON");
+    }
 }

@@ -14,7 +14,7 @@ use crate::settings::RadialTuning;
 use crate::ui_kit::{self as kit, Face, UiFonts};
 use bevy::prelude::*;
 use lightyear::prelude::Controlled;
-use vetf_net::{PlayerItems, PlayerLoadout, PlayerWeapon, Vitals};
+use vetf_net::{MagCheckMode, MatchState, PlayerItems, PlayerLoadout, PlayerWeapon, Vitals};
 use vetf_sim::Zone;
 use vetf_sim::items::{ItemScope, would_help};
 
@@ -319,19 +319,32 @@ fn spawn_ring(mut commands: Commands, fonts: Res<UiFonts>) {
     }
 }
 
+/// A magazine's label on the reload radial: its ammo, and with MAG CHECK on EXACT its rounds too (`AP II  23/30`).
+pub fn mag_option_label(ammo: &str, mode: MagCheckMode, rounds: u16, capacity: u16) -> String {
+    match mode {
+        MagCheckMode::Estimate => ammo.to_string(),
+        MagCheckMode::Exact => format!("{ammo}  {rounds}/{capacity}"),
+    }
+}
+
 /// Fill the ring layers from whichever menu is open.
 #[allow(clippy::type_complexity)]
 fn fill_rings(
     control: Res<LocalControl>,
     data: Res<Data>,
     me: Query<(&PlayerWeapon, &PlayerItems, &PlayerLoadout, Option<&Vitals>), With<Controlled>>,
+    matches: Query<&MatchState>,
+    settings: Res<crate::settings::Settings>,
     mut view: ResMut<RingView>,
 ) {
     view.layers.clear();
     let Some((w, items, lo, vitals)) = me.iter().next() else { return };
     if let Some(radial) = control.reload_radial {
         // The magazine radial: one option per slot, its ammo under the number, spent magazines dimmed (you
-        // emptied them yourself; nothing says how many rounds the others hold).
+        // emptied them yourself; with the estimate nothing says how many rounds the others hold, with MAG CHECK
+        // on EXACT each magazine shows its rounds).
+        let mode = crate::hud::current_mag_check(&matches, &settings);
+        let cap = lo.0.weapon.mag_capacity;
         let options =
             lo.0.weapon
                 .mags
@@ -339,7 +352,7 @@ fn fill_rings(
                 .enumerate()
                 .map(|(i, ammo)| RingOption {
                     key: (i + 1).to_string(),
-                    label: ammo.label.clone(),
+                    label: mag_option_label(&ammo.label, mode, w.0.rounds.get(i).copied().unwrap_or(0), cap),
                     enabled: w.0.slot_has_rounds(i as u8),
                     current: w.0.loaded as usize == i,
                 })
@@ -610,5 +623,13 @@ mod tests {
         assert_eq!(r.selected(), None, "inside the wider dead zone");
         r.steer(Vec2::new(0.0, -15.0));
         assert_eq!(r.selected(), Some(0));
+    }
+
+    /// The reload radial gives each magazine's exact rounds only with MAG CHECK on EXACT.
+    #[test]
+    fn spare_magazines_show_their_rounds_only_with_exact() {
+        assert_eq!(mag_option_label("AP II", MagCheckMode::Estimate, 23, 30), "AP II");
+        assert_eq!(mag_option_label("AP II", MagCheckMode::Exact, 23, 30), "AP II  23/30");
+        assert_eq!(mag_option_label("STANDARD", MagCheckMode::Exact, 0, 30), "STANDARD  0/30");
     }
 }

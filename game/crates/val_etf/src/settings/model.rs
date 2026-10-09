@@ -48,6 +48,21 @@ choice!(Jetpack { HoldJumpInAir = "HOLD JUMP IN AIR", SeparateKey = "SEPARATE KE
 // A slide starts from a forward run as well as a sprint (the variant keeps its saved name).
 choice!(Slide { CrouchWhileSprinting = "CROUCH WHILE RUNNING", Off = "OFF" });
 choice!(MagCard { ThreeSeconds = "3 S", WhileHeld = "WHILE HELD" });
+choice!(
+    /// The gun range's MAG CHECK, the player's own (team deathmatch and free-for-all use the host's match
+    /// setting): the estimate, or exact rounds with a HUD counter (user direction 2026-10-09).
+    RangeMagCheck { Estimate = "ESTIMATE", Exact = "EXACT" }
+);
+
+impl RangeMagCheck {
+    pub fn mode(self) -> vetf_sim::weapon::MagCheckMode {
+        match self {
+            RangeMagCheck::Estimate => vetf_sim::weapon::MagCheckMode::Estimate,
+            RangeMagCheck::Exact => vetf_sim::weapon::MagCheckMode::Exact,
+        }
+    }
+}
+
 choice!(RadialPick { Release = "RELEASE", Click = "CLICK" });
 choice!(ImportGame { Valorant = "VALORANT", Cs2 = "CS2", Apex = "APEX", Overwatch2 = "OVERWATCH 2" });
 choice!(AdsScaling { MatchFocal = "MATCH FOCAL LENGTH", SameCm = "SAME CM/360", Custom = "CUSTOM" });
@@ -226,6 +241,8 @@ section!(GameplaySettings from defaults.gameplay {
     jetpack: Jetpack,
     slide: Slide,
     mag_card: MagCard,
+    /// MAG CHECK in the gun range (matches use the host's setting).
+    range_mag_check: RangeMagCheck,
     /// Seconds reload (or heal) must be held to open the ring.
     radial_hold_s: f32,
     radial_pick: RadialPick,

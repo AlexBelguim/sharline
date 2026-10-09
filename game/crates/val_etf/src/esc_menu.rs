@@ -1125,6 +1125,7 @@ mod tests {
             lobby_name: String::new(),
             max_players: 10,
             rules: GameData::embedded().rules.rulesets.tdm,
+            mag_check: Default::default(),
         }
     }
 

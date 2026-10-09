@@ -1195,6 +1195,7 @@ pub(crate) mod tests {
             lobby_name: String::new(),
             max_players: 8,
             rules: d.rules.rulesets.ffa,
+            mag_check: Default::default(),
         });
         let data = d.clone();
         let ctx = app
