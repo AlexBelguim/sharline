@@ -855,3 +855,25 @@ New (item 9c2, user direction; the design docs have no streaks). All numbers in 
 - **Not yet:** a player whose loadout no longer fits lower POINTS is not told in the lobby: the host refuses the
   loadout and they spawn with the default one until they pick a cheaper loadout.
 - Wire: `MatchState::settings`, `LobbyAction::SetSetting`: protocol 16.
+
+## 37. Your own streak aura, repeat announcements, and the free-for-all bounty (2026-10-09)
+- **Before (section 28):** the bounty aura was for others only, 10 was the last announced streak, and a streak gave
+  only its tier rewards, the same in team deathmatch and free-for-all.
+- **Now (user, item D):**
+  - **Your own aura:** from the aura's tier (5) the streaker sees a faint version in first person: a few dim gold
+    embers rising around the gun hand and lightly at the left and right screen edges, never within 15 degrees of
+    the crosshair (tested at every FOV and screen shape), gone when the streak resets. Look in `rules.ron`
+    `streaks.own_aura` (counts, places, `intensity`, `glow`, `clear_deg`).
+  - **Repeat announcements:** after the last tier (10, "MOST WANTED"), every `streaks.repeat_every` (5) kills more
+    are announced again with that tier's banner and stinger, no rewards: 15, 20, 25 ... and nothing in between.
+  - **The bounty (free-for-all only; team deathmatch keeps its streaks as they were):** `streaks.bounty`, with the
+    modes listed per effect (`speed_modes`, `reveal_modes`: `[Ffa]`).
+    - Speed: from a 5 streak every kill adds 5 % movement speed (5 kills +5 %, 6 +10 % ...), at most +25 %; it goes
+      with the streak on death. The host sets it on the player's `Wounds::bounty_speed`, which goes into the
+      movement speed multiplier, so the host and the owner's prediction move alike (protocol 17).
+    - Reveal: from a 5 streak everyone else sees the streaker through walls (`reveal: Name`, the default: their
+      name and a small bounty icon, a ring around a dot, above the head, in the bounty gold, never the ally
+      colour; fades to 55 % far out but never hides). `reveal: Silhouette` draws a faint rounded outline around
+      the body instead; `Off` turns it off. The streaker never sees their own. Look in `friend_foe.ron` `bounty`.
+      **This is a deliberate exception to DIRECTION_LOG 17's "no enemy tells"** (the user's ask for a bounty), so
+      it is limited to free-for-all and to a streak of 5 or more.

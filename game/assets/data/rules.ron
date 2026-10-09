@@ -61,6 +61,9 @@
             (kills: 5, announce: true, title: "BOUNTY", stinger: Some("announcer/streak_5"), rewards: [RefillMags]),
             (kills: 10, announce: true, title: "MOST WANTED", stinger: Some("announcer/streak_10")),
         ],
+        // After the last tier (it must be announced), announce it again every this many kills more: 15, 20, 25 ...
+        // (its banner, stinger and voice; no rewards). 0: never.
+        repeat_every: 5,
         // The bounty aura's look (visual only): a few small embers spiralling up from the feet to just over the
         // halo and fading out, in a warm gold. Unlike a teammate's rim glow it is no outline on the body.
         aura: (
@@ -72,6 +75,37 @@
             size_m: 0.045,
             color: (1.0, 0.72, 0.28),
             glow: 6.0,
+        ),
+        // The streaker's own aura in first person (visual only; the body is not drawn): a few faint embers rising
+        // around the gun hand and lightly at the left and right screen edges, in the aura's colour. View space
+        // (metres in front of the eye, right, up). Never within `clear_deg` of the crosshair, so it never blocks aim.
+        own_aura: (
+            hand_embers: 6,
+            edge_embers: 6,
+            depth_m: 0.5,
+            hand_center: (0.2, -0.26),  // right of and below the view axis: around the gun hand
+            hand_spread_m: 0.1,
+            edge_frac: 0.9,             // of the view's half-width at depth_m: near the screen's left and right edges
+            rise_m: 0.3,                // the edge embers rise twice this
+            rise_s: 1.8,
+            size_m: 0.004,
+            edge_scale: 0.8,
+            intensity: 0.45,            // dimmer than the aura others see
+            glow: 2.0,
+            clear_deg: 15.0,
+        ),
+        // The bounty (user direction 2026-10-09): free-for-all only; team deathmatch keeps the streaks as they are.
+        // From a `min` streak every kill adds `speed_per_kill` movement speed (5 kills +5 %, 6 +10 % ...), at most
+        // `speed_cap`; it goes with the streak on death. And everyone else sees the streaker through walls:
+        // `reveal` Name (a name marker with a bounty icon above the head, in the bounty colour), Silhouette (a
+        // faint outline of the body) or Off. A deliberate exception to "no enemy tells" (DIRECTION_LOG 17).
+        bounty: (
+            min: 5,
+            speed_modes: [Ffa],
+            speed_per_kill: 0.05,
+            speed_cap: 0.25,
+            reveal_modes: [Ffa],
+            reveal: Name,
         ),
     ),
     // The team deathmatch and free-for-all loadout (DIRECTION_LOG 17; the point table is explained in

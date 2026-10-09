@@ -68,6 +68,8 @@ pub struct FriendFoeData {
     pub head_color: [f32; 3],
     pub rim: RimData,
     pub marker: MarkerData,
+    /// A kill streak's bounty seen through walls (`bounty_reveal`).
+    pub bounty: super::bounty_reveal::BountyLook,
 }
 
 /// A teammate's glow.

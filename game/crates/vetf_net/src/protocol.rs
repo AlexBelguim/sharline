@@ -20,7 +20,7 @@ use vetf_sim::throwable::{Launch, ThrowId, ThrowKind};
 use vetf_sim::weapon::WeaponState;
 
 /// Bumped whenever the protocol changes; part of the netcode protocol id, so old builds cannot connect.
-pub const PROTOCOL_VERSION: u64 = 16;
+pub const PROTOCOL_VERSION: u64 = 17;
 
 /// netcode.io protocol id shared by host and clients.
 pub fn protocol_id() -> u64 {
@@ -924,8 +924,8 @@ mod tests {
         roundtrip(&PlayerAgent(None));
         assert_eq!(PlayerAgent::default(), PlayerAgent(None));
         assert_eq!(
-            PROTOCOL_VERSION, 16,
-            "agent + deathmatch picks 6, no ADS MOVE 7, death screen 8, test bots (bot mark, ADD/REMOVE BOT) 9,              recap per opponent life + kills, assists 10, MAG CHECK match setting 11, kill feed cause 12,              kill streaks (Score::streak, StreakNews) 13, smoke and molotovs (ThrowNews, throw keys, the hand) 14,              tick and snapshot rates as host settings (TickRate, MatchState rates, SetSnapshotHz, rate in the id) 15,              lobby match settings (MatchState::settings, SetSetting) 16"
+            PROTOCOL_VERSION, 17,
+            "agent + deathmatch picks 6, no ADS MOVE 7, death screen 8, test bots (bot mark, ADD/REMOVE BOT) 9,              recap per opponent life + kills, assists 10, MAG CHECK match setting 11, kill feed cause 12,              kill streaks (Score::streak, StreakNews) 13, smoke and molotovs (ThrowNews, throw keys, the hand) 14,              tick and snapshot rates as host settings (TickRate, MatchState rates, SetSnapshotHz, rate in the id) 15,              lobby match settings (MatchState::settings, SetSetting) 16,              streak bounty speed (Wounds::bounty_speed) 17"
         );
     }
 

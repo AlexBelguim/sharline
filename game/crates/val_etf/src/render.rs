@@ -3,9 +3,11 @@
 //!
 //! The feel lives in submodules, all visual only (`feel.ron`): the camera's bob and shot shake and the gun's
 //! sway ([`camera_fx`]), tracers ([`tracer_fx`]), and hit markers and halo cracks on the player hit ([`hit_fx`]).
-//! Teammates' glow and name markers, and everyone else's plain look, are [`friend_foe`]'s. The empty gun's twitch
+//! Teammates' glow and name markers, and everyone else's plain look, are [`friend_foe`]'s; a free-for-all
+//! bounty seen through walls is [`bounty_reveal`]'s. The empty gun's twitch
 //! and frustrated shake are [`dry_fire`]'s.
 
+mod bounty_reveal;
 mod camera_fx;
 pub mod dry_fire;
 pub mod executor;
@@ -56,6 +58,7 @@ impl Plugin for RenderPlugin {
             .add_message::<hit_fx::HaloHit>()
             .add_plugins(friend_foe::FriendFoePlugin)
             .add_plugins(streak_aura::StreakAuraPlugin)
+            .add_plugins(bounty_reveal::BountyRevealPlugin)
             .add_plugins(laser_fx::LaserPlugin)
             .add_plugins(throw_fx::ThrowFxPlugin)
             .add_systems(Startup, setup_menu_camera)

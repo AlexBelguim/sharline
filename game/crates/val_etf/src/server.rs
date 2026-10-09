@@ -1031,6 +1031,7 @@ pub(crate) fn reset_match<'a>(
     for (mut net, mut v, mut s) in players {
         *s = Score::default();
         net.ready = false;
+        v.wounds.bounty_speed = 0.0;
         v.health.dead = true;
         v.respawn_s = 0.0;
         // No death screen: everyone is back on the next tick.
@@ -1576,6 +1577,8 @@ fn handle_deaths(
         // Dying ends the streak (any death: a fall or a teamkill too); a long one is in the kill feed.
         let ended = score.streak;
         score.streak = streak::after_death(ended);
+        // ... and its bounty speed with it.
+        v.wounds.bounty_speed = 0.0;
         if counts && data.rules.streaks.announces_end(ended) {
             let news = StreakNews::Ended { player: victim_id, by: killer_id, kills: ended, cause: d.cause };
             streaks.write(StreakOut(news));
@@ -1618,6 +1621,8 @@ fn handle_deaths(
                 // One more in a row, unless the killer is already dead (a trade: that life is over).
                 if !kv.health.dead {
                     kscore.streak = streak::after_kill(kscore.streak);
+                    // The bounty (free-for-all): faster with every kill from its streak on, up to the cap.
+                    kv.wounds.bounty_speed = data.rules.streaks.bounty_speed(m.mode, kscore.streak);
                     if let Some(tier) = data.rules.streaks.tier(kscore.streak) {
                         if let Ok((mut w, l)) = weapons.get_mut(k) {
                             let Vitals { health, halo, wounds, .. } = &mut *kv;
@@ -2556,6 +2561,49 @@ mod system_tests {
         }
         kill_now(&mut app, None, a, DeathCause::Fall);
         assert!(!d.rules.streaks.has_aura(streak_of(&app, a)), "gone with the death");
+    }
+
+    /// After 10 the host announces the streak again every 5 kills (15, 20, 25), nothing in between.
+    #[test]
+    fn long_streaks_are_announced_again_every_five_kills() {
+        let mut app = world(MatchMode::Ffa, MatchPhase::Live);
+        let a = player(&mut app, 1, None);
+        run_of_kills(&mut app, a, 26, None);
+        let reached: Vec<u16> = streak_news(&mut app)
+            .into_iter()
+            .filter_map(|n| match n {
+                StreakNews::Reached { player: 1, kills } => Some(kills),
+                _ => None,
+            })
+            .collect();
+        assert_eq!(reached, [3, 5, 10, 15, 20, 25]);
+    }
+
+    fn bounty_speed_of(app: &App, e: Entity) -> f32 {
+        app.world().get::<Vitals>(e).unwrap().wounds.bounty_speed
+    }
+
+    /// Free-for-all: from a 5 streak every kill adds 5 % speed (the host sets it on the player's wounds, which the
+    /// owner predicts with), up to 25 %; a death takes it away. Team deathmatch has no bounty speed.
+    #[test]
+    fn the_bounty_speed_grows_per_kill_in_free_for_all_only() {
+        let near = |a: f32, b: f32| (a - b).abs() < 1e-5;
+        let mut app = world(MatchMode::Ffa, MatchPhase::Live);
+        let (a, c) = (player(&mut app, 1, None), player(&mut app, 9, None));
+        let mut seen = Vec::new();
+        for _ in 0..11 {
+            run_of_kills(&mut app, a, 1, None);
+            seen.push(bounty_speed_of(&app, a));
+        }
+        let want = [0.0, 0.0, 0.0, 0.0, 0.05, 0.10, 0.15, 0.20, 0.25, 0.25, 0.25];
+        assert!(seen.iter().zip(want).all(|(s, w)| near(*s, w)), "{seen:?}");
+        kill_now(&mut app, Some(c), a, DeathCause::Shot);
+        assert_eq!(bounty_speed_of(&app, a), 0.0, "reset on death");
+        // Team deathmatch keeps the streaks as they were.
+        let mut app = world(MatchMode::Tdm, MatchPhase::Live);
+        let a = player(&mut app, 1, Some(Team::A));
+        run_of_kills(&mut app, a, 8, Some(Team::B));
+        assert_eq!((streak_of(&app, a), bounty_speed_of(&app, a)), (8, 0.0));
     }
 
     /// Team deathmatch after free-for-all: everyone without a team joins the smaller one, the host (id 0)

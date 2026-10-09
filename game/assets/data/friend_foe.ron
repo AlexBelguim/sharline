@@ -6,7 +6,7 @@
 // hides it: there is no silhouette through walls. A teammate fully behind cover shows only a small name marker
 // above the head, fading with distance. Everyone else looks plain: one body colour for all, no glow, no team or
 // enemy colour (the halo arcs keep their tier colours: they show armour and weight, not a side). In the
-// extraction mode squad members are the teammates.
+// extraction mode squad members are the teammates. The one exception is a kill streak's bounty (`bounty` below).
 //
 // Units: metres; colours sRGB 0..1; glow strengths are emissive (linear; the halo arcs glow at 1.5).
 (
@@ -35,5 +35,25 @@
         // Seen from the camera, a teammate counts as in view while any of these heights above the feet (or above
         // the crouched body's squashed height) is in line of sight; otherwise the marker shows.
         sight_heights_m: [1.75, 1.2, 0.5],
+    ),
+    // A kill streak's bounty seen through walls (rules.ron streaks.bounty: free-for-all only, from a 5 streak, to
+    // everyone but the streaker). A deliberate exception to "no enemy tells": it is in the bounty colour (the
+    // streak gold), never the ally colour, and shows in sight and behind walls alike.
+    bounty: (
+        color: (1.0, 0.76, 0.33),
+        // reveal Name: the name, a small bounty icon under it (a ring around a dot), above the head.
+        above_head_m: 0.35,
+        font_px: 15.0,
+        icon_px: 11.0,
+        icon_ring_px: 2.0,
+        // Full strength up to near_m, fading to far_alpha at far_m and staying there: a bounty is never hidden.
+        near_m: 15.0,
+        far_m: 80.0,
+        far_alpha: 0.55,
+        // reveal Silhouette: a faint rounded outline around the body (body_width_m wide, from the feet to the top
+        // sight height), drawn over the walls.
+        body_width_m: 0.7,
+        outline_px: 2.0,
+        outline_alpha: 0.4,
     ),
 )

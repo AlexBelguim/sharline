@@ -4,11 +4,17 @@
 //! match) adds one, dying sets it back to 0, and assists do not count. Some streak lengths are tiers
 //! (`rules.ron` `streaks.tiers`): reaching one puts a line in the kill feed, may announce it to the whole map
 //! (a banner and a stinger) and gives its rewards, which the host applies. A long enough streak lights a bounty
-//! aura everyone sees, and ending one of `ended_min` or more is in the feed too.
+//! aura everyone sees (the streaker sees a faint one of their own in first person), and ending one of `ended_min`
+//! or more is in the feed too. After the last tier, every `repeat_every` more kills are announced again.
+//!
+//! The bounty (`streaks.bounty`, free-for-all only with the shipped data): from its streak on, every kill makes
+//! the streaker a little faster (through the movement speed multiplier, [`StreakRules::bounty_speed`]) and
+//! everyone else sees them through walls ([`StreakRules::reveal_for`]).
 //!
 //! Every number lives in `rules.ron`; this module is the rules on them.
 
 use crate::combat::{HaloSpec, HaloState, Health};
+use crate::data::Mode;
 use crate::weapon::WeaponState;
 use serde::{Deserialize, Serialize};
 
@@ -27,8 +33,74 @@ pub struct StreakRules {
     pub toast_s: f32,
     /// The streak lengths that do something, in rising order.
     pub tiers: Vec<StreakTier>,
+    /// After the last tier (an announced one), announce again every this many kills more: its banner, stinger
+    /// and voice, no rewards (10, then 15, 20, 25 ...). 0: never.
+    #[serde(default)]
+    pub repeat_every: u16,
     /// What the bounty aura looks like (visual only).
     pub aura: AuraLook,
+    /// The streaker's own faint aura in first person (visual only).
+    pub own_aura: OwnAuraLook,
+    /// The bounty on a long streak: speed and a reveal through walls, in the modes listed.
+    pub bounty: Bounty,
+}
+
+/// The bounty on a long streak (user direction 2026-10-09, free-for-all only with the shipped data).
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct Bounty {
+    /// From this streak on.
+    pub min: u16,
+    /// The modes where every kill from `min` on makes the streaker faster.
+    pub speed_modes: Vec<Mode>,
+    /// Extra movement speed per kill from `min` on (0.05: `min` kills = +5 %, one more = +10 % ...).
+    pub speed_per_kill: f32,
+    /// The most extra speed a streak gives (0.25 = +25 %).
+    pub speed_cap: f32,
+    /// The modes where everyone else sees the streaker through walls.
+    pub reveal_modes: Vec<Mode>,
+    /// How they are seen.
+    pub reveal: Reveal,
+}
+
+/// How a bounty is seen through walls.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+pub enum Reveal {
+    /// Not at all.
+    Off,
+    /// A name marker with a small bounty icon above the head, in the bounty colour.
+    Name,
+    /// A faint outline of the body.
+    Silhouette,
+}
+
+/// The streaker's own aura in first person: a few faint embers rising around the gun hand and lightly at the
+/// screen's left and right edges, kept clear of the crosshair. In view space (camera-local, -Z forward).
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct OwnAuraLook {
+    /// Embers around the gun hand.
+    pub hand_embers: u8,
+    /// Embers at the screen edges (alternating left and right).
+    pub edge_embers: u8,
+    /// How far in front of the eye they float (metres).
+    pub depth_m: f32,
+    /// The middle of the hand embers' column, right and down from the view axis at `depth_m` (metres).
+    pub hand_center: [f32; 2],
+    /// How far left and right of that middle they spread (metres).
+    pub hand_spread_m: f32,
+    /// The edge embers' distance from the view axis, as a share of the half-width of the view at `depth_m`.
+    pub edge_frac: f32,
+    /// How far an ember rises in one loop (metres; the edge embers twice as far).
+    pub rise_m: f32,
+    /// Seconds for one loop.
+    pub rise_s: f32,
+    /// A hand ember's size at its biggest; the edge embers are `edge_scale` of it.
+    pub size_m: f32,
+    pub edge_scale: f32,
+    /// How bright against the third-person aura's colour (0..1 dims it) and glow.
+    pub intensity: f32,
+    pub glow: f32,
+    /// No ember ever comes within this angle of the crosshair (degrees).
+    pub clear_deg: f32,
 }
 
 /// One streak length that does something.
@@ -107,9 +179,33 @@ pub struct AuraLook {
 }
 
 impl StreakRules {
-    /// The tier a streak of exactly `kills` reaches, if any.
-    pub fn tier(&self, kills: u16) -> Option<&StreakTier> {
-        self.tiers.iter().find(|t| t.kills == kills)
+    /// The tier a streak of exactly `kills` reaches, if any: one in the list, or past the last (announced) one
+    /// every `repeat_every` kills, its announcement again without rewards.
+    pub fn tier(&self, kills: u16) -> Option<StreakTier> {
+        if let Some(t) = self.tiers.iter().find(|t| t.kills == kills) {
+            return Some(t.clone());
+        }
+        let last = self.tiers.last().filter(|t| t.announce && self.repeat_every > 0)?;
+        kills.checked_sub(last.kills).filter(|p| *p > 0 && p % self.repeat_every == 0)?;
+        Some(StreakTier { kills, rewards: Vec::new(), ..last.clone() })
+    }
+
+    /// The bounty's extra movement speed for a streak in `mode` (0.05 = +5 %): from `bounty.min`, one step per
+    /// kill (the `min`-th kill is the first), up to the cap; none in a mode without it.
+    pub fn bounty_speed(&self, mode: Mode, streak: u16) -> f32 {
+        let b = &self.bounty;
+        if !b.speed_modes.contains(&mode) || streak < b.min.max(1) {
+            return 0.0;
+        }
+        ((streak - b.min.max(1) + 1) as f32 * b.speed_per_kill).min(b.speed_cap)
+    }
+
+    /// How a player on `streak` in `mode` is seen through walls by a viewer (`own`: the streaker themselves,
+    /// who never is), if at all.
+    pub fn reveal_for(&self, mode: Mode, streak: u16, own: bool) -> Option<Reveal> {
+        let b = &self.bounty;
+        let on = !own && b.reveal != Reveal::Off && b.reveal_modes.contains(&mode) && streak >= b.min.max(1);
+        on.then_some(b.reveal)
     }
 
     /// The HUD counter shows (hidden at 0 and 1 with the shipped numbers).
@@ -143,6 +239,27 @@ impl StreakRules {
         }
         if self.hud_min < 1 || self.ended_min < 2 || self.aura_min < 2 {
             return Some("streaks: hud_min must be 1 or more, ended_min and aura_min 2 or more".into());
+        }
+        if self.tiers.last().is_some_and(|t| !t.announce) && self.repeat_every > 0 {
+            return Some(
+                "streaks: repeat_every repeats the last tier's announcement, so that tier must announce".into(),
+            );
+        }
+        let b = &self.bounty;
+        if b.min < 2 || !(b.speed_per_kill >= 0.0 && (0.0..=1.0).contains(&b.speed_cap)) {
+            return Some(
+                "streaks: bounty min must be 2 or more, speed_per_kill 0 or more, speed_cap within 0..1".into(),
+            );
+        }
+        let o = &self.own_aura;
+        let own_ok = o.depth_m > 0.0
+            && o.rise_s > 0.0
+            && o.size_m > 0.0
+            && (0.0..=1.0).contains(&o.intensity)
+            && (0.0..1.0).contains(&o.edge_frac)
+            && o.glow >= 0.0;
+        if !own_ok {
+            return Some("streaks: own_aura sizes and times must be positive, intensity within 0..1".into());
         }
         let a = &self.aura;
         let aura_ok = a.radius_m > 0.0 && a.height_m > 0.0 && a.rise_s > 0.0 && a.size_m > 0.0 && a.glow >= 0.0;
@@ -250,6 +367,82 @@ mod tests {
         }
     }
 
+    /// After the 10 announcement, every 5 kills more are announced again (15, 20, 25 ...), the 10's banner and
+    /// stinger without rewards, and nothing in between.
+    #[test]
+    fn the_last_tier_repeats_every_five_kills() {
+        let r = rules();
+        assert_eq!(r.repeat_every, 5);
+        let ten = r.tier(10).unwrap();
+        for k in [15, 20, 25, 30, 100] {
+            let t = r.tier(k).unwrap_or_else(|| panic!("{k} is announced"));
+            assert!(t.announce, "{k}");
+            assert_eq!((t.kills, &t.title, &t.stinger), (k, &ten.title, &ten.stinger), "{k}");
+            assert!(t.rewards.is_empty(), "{k}: no rewards");
+        }
+        for k in (11..15).chain(16..20).chain(21..25).chain([6, 7, 8, 9, 31]) {
+            assert!(r.tier(k).is_none(), "{k}");
+        }
+        let mut off = r.clone();
+        off.repeat_every = 0;
+        assert!(off.tier(15).is_none() && off.tier(10).is_some(), "0: no repeats");
+        // A repeat needs an announced last tier.
+        let mut quiet = r.clone();
+        quiet.tiers.last_mut().unwrap().announce = false;
+        assert!(quiet.problem().is_some());
+    }
+
+    /// The bounty's speed (free-for-all): from a 5 streak every kill adds 5 %, at most 25 %; nothing before, and
+    /// nothing in team deathmatch or on the range. A death resets the streak and so the speed.
+    #[test]
+    fn the_bounty_speed_per_kill_its_cap_and_its_reset() {
+        let r = rules();
+        let b = &r.bounty;
+        assert_eq!((b.min, b.speed_per_kill, b.speed_cap), (5, 0.05, 0.25));
+        let near = |a: f32, b: f32| (a - b).abs() < 1e-5;
+        for s in 0..5 {
+            assert_eq!(r.bounty_speed(Mode::Ffa, s), 0.0, "{s}");
+        }
+        assert!(near(r.bounty_speed(Mode::Ffa, 5), 0.05));
+        assert!(near(r.bounty_speed(Mode::Ffa, 6), 0.10));
+        assert!(near(r.bounty_speed(Mode::Ffa, 9), 0.25));
+        for s in [10, 12, 40, u16::MAX] {
+            assert!(near(r.bounty_speed(Mode::Ffa, s), 0.25), "capped at {s}");
+        }
+        for s in 0..30 {
+            assert_eq!(r.bounty_speed(Mode::Tdm, s), 0.0, "TDM keeps streaks as they were: {s}");
+            assert_eq!(r.bounty_speed(Mode::Range, s), 0.0);
+        }
+        assert_eq!(r.bounty_speed(Mode::Ffa, after_death(12)), 0.0, "gone on death");
+    }
+
+    /// The reveal (free-for-all): from a 5 streak, to everyone but the streaker; never in team deathmatch.
+    #[test]
+    fn the_bounty_reveal_is_from_its_tier_to_everyone_else() {
+        let r = rules();
+        assert_eq!(r.bounty.reveal, Reveal::Name, "the shipped default");
+        for s in 0..5 {
+            assert_eq!(r.reveal_for(Mode::Ffa, s, false), None, "{s}");
+        }
+        for s in 5..30 {
+            assert_eq!(r.reveal_for(Mode::Ffa, s, false), Some(Reveal::Name), "{s}");
+            assert_eq!(r.reveal_for(Mode::Ffa, s, true), None, "never to the streaker: {s}");
+            assert_eq!(r.reveal_for(Mode::Tdm, s, false), None, "not in TDM: {s}");
+            assert_eq!(r.reveal_for(Mode::Range, s, false), None);
+        }
+        let mut sil = r.clone();
+        sil.bounty.reveal = Reveal::Silhouette;
+        assert_eq!(sil.reveal_for(Mode::Ffa, 6, false), Some(Reveal::Silhouette));
+        sil.bounty.reveal = Reveal::Off;
+        assert_eq!(sil.reveal_for(Mode::Ffa, 6, false), None);
+        // A host could turn it on for TDM in the data.
+        let mut tdm = r.clone();
+        tdm.bounty.reveal_modes.push(Mode::Tdm);
+        tdm.bounty.speed_modes.push(Mode::Tdm);
+        assert_eq!(tdm.reveal_for(Mode::Tdm, 5, false), Some(Reveal::Name));
+        assert!(tdm.bounty_speed(Mode::Tdm, 5) > 0.0);
+    }
+
     fn hurt_player(d: &GameData) -> (Loadout, Health, HaloState, WeaponState) {
         let l = Loadout::default_for(d, crate::data::Mode::Tdm);
         let mut h = Health::new(d.armor.zone_hp);
@@ -346,6 +539,15 @@ mod tests {
         assert!(r.problem().is_some(), "an announced tier without a title");
         let mut r = rules();
         r.aura.rise_s = 0.0;
+        assert!(r.problem().is_some());
+        let mut r = rules();
+        r.bounty.speed_cap = 2.0;
+        assert!(r.problem().is_some(), "a runaway cap");
+        let mut r = rules();
+        r.bounty.min = 1;
+        assert!(r.problem().is_some());
+        let mut r = rules();
+        r.own_aura.intensity = 1.5;
         assert!(r.problem().is_some());
     }
 }

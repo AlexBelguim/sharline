@@ -49,7 +49,8 @@ impl Loadout {
     }
 }
 
-/// Conditions from the host's damage model that change how a player moves and shoots.
+/// Conditions from the host's damage model (and a kill streak's bounty) that change how a player moves and
+/// shoots. The host sets them; the owner predicts with the replicated copy, so both move alike.
 #[derive(Debug, Clone, Copy, PartialEq, Default, Serialize, Deserialize)]
 pub struct Wounds {
     pub broken: ZoneSet,
@@ -57,6 +58,9 @@ pub struct Wounds {
     pub tag_slow_s: f32,
     /// Seconds of Volt-pulse slow left.
     pub volt_slow_s: f32,
+    /// Extra movement speed from a kill streak's bounty (0.05 = +5 %; `rules.ron` `streaks.bounty`, free-for-all
+    /// only). The host sets it on each kill and clears it on death.
+    pub bounty_speed: f32,
 }
 
 impl Wounds {
@@ -88,8 +92,8 @@ pub struct ThrowEvents {
     pub launched: Option<Launch>,
 }
 
-/// What changes a player's speed: the gun they carry, an item in use, wounds and the halo's weight. Aiming and
-/// firing never do (user direction 2026-10-08).
+/// What changes a player's speed: the gun they carry, an item in use, wounds, a streak's bounty and the halo's
+/// weight. Aiming and firing never do (user direction 2026-10-08).
 pub fn move_modifiers(data: &GameData, loadout: &Loadout, items: &ItemState, wounds: &Wounds) -> MoveModifiers {
     let spec = loadout.weapon.spec(data);
     let gear = spec.move_mult_held * loadout.weapon.mods.move_mult;
@@ -108,6 +112,7 @@ pub fn move_modifiers(data: &GameData, loadout: &Loadout, items: &ItemState, wou
     if wounds.volt_slow_s > 0.0 && !phase {
         speed *= 1.0 - data.combat.volt_pulse.slow_frac;
     }
+    speed *= 1.0 + wounds.bounty_speed.max(0.0);
     MoveModifiers {
         weight: loadout.weight,
         fx: data.armor.effects(loadout.weight),
@@ -241,6 +246,34 @@ mod tests {
                     assert!(shots > 0, "{gun} {bits:#x}: fires on the move");
                 }
             }
+        }
+    }
+
+    /// A streak's bounty speed goes through the movement speed multiplier: a run with +15 % is 15 % faster, jog
+    /// and sprint, as the host and the owner's prediction both step it.
+    #[test]
+    fn the_bounty_speed_makes_a_run_faster() {
+        let d = GameData::embedded();
+        let level = flat();
+        let l = Loadout::default_for(&d, Mode::Ffa);
+        let run = |bits: u16, bonus: f32| {
+            let mut ms = MoveState::spawn(Vec3::ZERO, 1.6);
+            let mut ws = WeaponState::new(&d, &l.weapon);
+            let mut items = ItemState::new(&l.kit);
+            let mut wounds = Wounds { bounty_speed: bonus, ..Default::default() };
+            let input = InputFrame { movement: Vec2::Y, buttons: Buttons(bits), ..Default::default() };
+            for _ in 0..2 * d.net.tick_hz {
+                step(&d, &level, &l, &mut ms, &mut ws, &mut items, &mut wounds, &input);
+            }
+            assert_eq!(wounds.bounty_speed, bonus, "a step keeps it (only the host changes it)");
+            ms.horizontal_speed()
+        };
+        let streak = &d.rules.streaks;
+        let bonus = streak.bounty_speed(Mode::Ffa, streak.bounty.min + 2);
+        assert!(bonus > 0.0);
+        for bits in [0, Buttons::SPRINT] {
+            let (plain, fast) = (run(bits, 0.0), run(bits, bonus));
+            assert!((fast / plain - (1.0 + bonus)).abs() < 0.01, "{bits:#x}: {plain} -> {fast}");
         }
     }
 
