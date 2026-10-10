@@ -1,0 +1,38 @@
+{
+  "triangles": {
+    "SAGE": 41654,
+    "CLAY": 41654
+  },
+  "materials": [
+    "M_SH_Concrete",
+    "M_SH_Decking",
+    "M_SH_Fabric",
+    "M_SH_FibreCementPaintedFace",
+    "M_SH_GlassDark",
+    "M_SH_GlassFrost",
+    "M_SH_LampWarm",
+    "M_SH_Metal",
+    "M_SH_OakBoards",
+    "M_SH_Paint",
+    "M_SH_Plaster",
+    "M_SH_PrintedConcrete",
+    "M_SH_RidgeVerge",
+    "M_SH_RoofShingle",
+    "M_SH_SolarPanel",
+    "M_SH_TimberBoards",
+    "M_SH_TrimSheet"
+  ],
+  "panel": {
+    "width_m": 1.2,
+    "height_m": 2.4,
+    "joint_width_m": 0.014,
+    "joint_depth_m": 0.009,
+    "bevel_m": 0.0018
+  },
+  "roof": {
+    "course_m": 0.25,
+    "butt_m": 0.01,
+    "solar_proud_m": 0.0195
+  },
+  "frame": "design x east, y north, z up; glTF x,z,-y at identity"
+}

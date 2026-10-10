@@ -1,0 +1,326 @@
+{
+ "doc": "Brush-matched props placed by build_ground.py (geometry from build_props.py). design_loc: metres, x east, y north, z up (Blender / layout frame). bevy_translation = (x, z, -y); bevy rotation = Quat::from_rotation_y(bevy_yaw_rad). In ground.glb the node of each placement is named <prop>__<anchor>.",
+ "placements": [
+  {
+   "prop": "PROP_MoverTruck",
+   "anchor": "C_MOVER_BOX",
+   "brushes": [
+    "C_MOVER_BOX",
+    "C_MOVER_CAB"
+   ],
+   "design_loc": [
+    36.0,
+    23.0,
+    0.0
+   ],
+   "yaw_deg": 0,
+   "bevy_translation": [
+    36.0,
+    0.0,
+    -23.0
+   ],
+   "bevy_yaw_rad": 0.0,
+   "owner": "ground.glb"
+  },
+  {
+   "prop": "PROP_KerbPod",
+   "anchor": "W_KERBPOD",
+   "brushes": [
+    "W_KERBPOD"
+   ],
+   "design_loc": [
+    30.8,
+    32.3,
+    0.0
+   ],
+   "yaw_deg": 0,
+   "bevy_translation": [
+    30.8,
+    0.0,
+    -32.3
+   ],
+   "bevy_yaw_rad": 0.0,
+   "owner": "ground.glb"
+  },
+  {
+   "prop": "PROP_KerbPod",
+   "anchor": "E_KERBPOD",
+   "brushes": [
+    "E_KERBPOD"
+   ],
+   "design_loc": [
+    41.2,
+    32.3,
+    0.0
+   ],
+   "yaw_deg": 180,
+   "bevy_translation": [
+    41.2,
+    0.0,
+    -32.3
+   ],
+   "bevy_yaw_rad": 3.141593,
+   "owner": "ground.glb"
+  },
+  {
+   "prop": "PROP_Fence_Run_S",
+   "anchor": "W_FENCE_FS",
+   "brushes": [
+    "W_FENCE_FS"
+   ],
+   "design_loc": [
+    27.5,
+    19.7,
+    0.0
+   ],
+   "yaw_deg": 0,
+   "bevy_translation": [
+    27.5,
+    0.0,
+    -19.7
+   ],
+   "bevy_yaw_rad": 0.0,
+   "owner": "ground.glb"
+  },
+  {
+   "prop": "PROP_Fence_Run_S",
+   "anchor": "E_FENCE_FS",
+   "brushes": [
+    "E_FENCE_FS"
+   ],
+   "design_loc": [
+    44.5,
+    19.7,
+    0.0
+   ],
+   "yaw_deg": 0,
+   "bevy_translation": [
+    44.5,
+    0.0,
+    -19.7
+   ],
+   "bevy_yaw_rad": 0.0,
+   "owner": "ground.glb"
+  },
+  {
+   "prop": "PROP_Fence_Run_N",
+   "anchor": "W_FENCE_FN",
+   "brushes": [
+    "W_FENCE_FN"
+   ],
+   "design_loc": [
+    27.5,
+    29.5,
+    0.0
+   ],
+   "yaw_deg": 0,
+   "bevy_translation": [
+    27.5,
+    0.0,
+    -29.5
+   ],
+   "bevy_yaw_rad": 0.0,
+   "owner": "ground.glb"
+  },
+  {
+   "prop": "PROP_Fence_Run_N",
+   "anchor": "E_FENCE_FN",
+   "brushes": [
+    "E_FENCE_FN"
+   ],
+   "design_loc": [
+    44.5,
+    29.5,
+    0.0
+   ],
+   "yaw_deg": 0,
+   "bevy_translation": [
+    44.5,
+    0.0,
+    -29.5
+   ],
+   "bevy_yaw_rad": 0.0,
+   "owner": "ground.glb"
+  },
+  {
+   "prop": "PROP_Hedge_Boundary",
+   "anchor": "W_HEDGE",
+   "brushes": [
+    "W_HEDGE"
+   ],
+   "design_loc": [
+    0.5,
+    24.0,
+    0.0
+   ],
+   "yaw_deg": 0,
+   "bevy_translation": [
+    0.5,
+    0.0,
+    -24.0
+   ],
+   "bevy_yaw_rad": 0.0,
+   "owner": "ground.glb"
+  },
+  {
+   "prop": "PROP_Hedge_Boundary",
+   "anchor": "E_HEDGE",
+   "brushes": [
+    "E_HEDGE"
+   ],
+   "design_loc": [
+    71.5,
+    24.0,
+    0.0
+   ],
+   "yaw_deg": 0,
+   "bevy_translation": [
+    71.5,
+    0.0,
+    -24.0
+   ],
+   "bevy_yaw_rad": 0.0,
+   "owner": "ground.glb"
+  },
+  {
+   "prop": "PROP_Hedge_Lawn",
+   "anchor": "W_HEDGE_LAWN",
+   "brushes": [
+    "W_HEDGE_LAWN"
+   ],
+   "design_loc": [
+    25.6,
+    14.0,
+    0.0
+   ],
+   "yaw_deg": 0,
+   "bevy_translation": [
+    25.6,
+    0.0,
+    -14.0
+   ],
+   "bevy_yaw_rad": 0.0,
+   "owner": "ground.glb"
+  },
+  {
+   "prop": "PROP_Hedge_Lawn",
+   "anchor": "E_HEDGE_LAWN",
+   "brushes": [
+    "E_HEDGE_LAWN"
+   ],
+   "design_loc": [
+    46.4,
+    14.0,
+    0.0
+   ],
+   "yaw_deg": 0,
+   "bevy_translation": [
+    46.4,
+    0.0,
+    -14.0
+   ],
+   "bevy_yaw_rad": 0.0,
+   "owner": "ground.glb"
+  },
+  {
+   "prop": "PROP_Arbour",
+   "anchor": "W_ARBOUR",
+   "brushes": [
+    "W_ARBOUR"
+   ],
+   "design_loc": [
+    9.5,
+    42.0,
+    0.0
+   ],
+   "yaw_deg": 0,
+   "bevy_translation": [
+    9.5,
+    0.0,
+    -42.0
+   ],
+   "bevy_yaw_rad": 0.0,
+   "owner": "ground.glb"
+  },
+  {
+   "prop": "PROP_Arbour",
+   "anchor": "E_ARBOUR",
+   "brushes": [
+    "E_ARBOUR"
+   ],
+   "design_loc": [
+    62.5,
+    42.0,
+    0.0
+   ],
+   "yaw_deg": 0,
+   "bevy_translation": [
+    62.5,
+    0.0,
+    -42.0
+   ],
+   "bevy_yaw_rad": 0.0,
+   "owner": "ground.glb"
+  },
+  {
+   "prop": "PROP_Pylon",
+   "anchor": "W_PYLON_MAST",
+   "brushes": [
+    "W_PYLON_MAST",
+    "W_PYLON_PAD"
+   ],
+   "design_loc": [
+    25.0,
+    45.5,
+    0.0
+   ],
+   "yaw_deg": 0,
+   "bevy_translation": [
+    25.0,
+    0.0,
+    -45.5
+   ],
+   "bevy_yaw_rad": 0.0,
+   "owner": "ground.glb"
+  },
+  {
+   "prop": "PROP_Pylon",
+   "anchor": "E_PYLON_MAST",
+   "brushes": [
+    "E_PYLON_MAST",
+    "E_PYLON_PAD"
+   ],
+   "design_loc": [
+    47.0,
+    45.5,
+    0.0
+   ],
+   "yaw_deg": 180,
+   "bevy_translation": [
+    47.0,
+    0.0,
+    -45.5
+   ],
+   "bevy_yaw_rad": 3.141593,
+   "owner": "ground.glb"
+  },
+  {
+   "prop": "PROP_Zipline_Cable",
+   "anchor": "ZIPLINE",
+   "brushes": [],
+   "design_loc": [
+    25.0,
+    45.5,
+    6.3
+   ],
+   "yaw_deg": 0,
+   "bevy_translation": [
+    25.0,
+    6.3,
+    -45.5
+   ],
+   "bevy_yaw_rad": 0.0,
+   "owner": "ground.glb"
+  }
+ ]
+}

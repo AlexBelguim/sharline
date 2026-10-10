@@ -1,0 +1,21 @@
+{
+ "name": "weapons/dry_fire_snap",
+ "seed": 303,
+ "prompt": "summary: Extreme close-up of a finger pulling the trigger of an empty black rifle on a workbench; the hammer snaps forward on an empty chamber.\n\ndetailed_description:\n[Shot 1] Extreme close-up of a finger pulling the trigger of an empty black rifle on a workbench; the hammer snaps forward on an empty chamber. Nothing fires. The camera is static and locked-off.\n\noverall_soundscape: Foley recording, very close microphone, isolated sound: one single loud sharp crisp metallic click of a hammer snapping on an empty chamber, bright and hard, then complete silence. Nothing else is heard: no music, no speech, no voices.\n\nnon_diegetic_music: N/A",
+ "settings": {
+  "w": 128,
+  "h": 128,
+  "frames": 73,
+  "steps": 6,
+  "lora": "turbo4",
+  "shift_video": 12.0,
+  "shift_audio": 3.0,
+  "sampler": "res_multistep",
+  "scheduler": "simple",
+  "style": "structured"
+ },
+ "exec_s": 3.316,
+ "wall_s": 3.7,
+ "peak_vram_gib": 15.13,
+ "audio_s": 3.04
+}

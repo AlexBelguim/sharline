@@ -1,0 +1,1340 @@
+{
+  "total_library_triangles": 175896,
+  "placed_triangles": 107780,
+  "props": [
+    {
+      "name": "MoverTruck",
+      "category": "matched",
+      "triangles": 11676,
+      "bounds": [
+        [
+          -1.257,
+          -4.014,
+          0.0
+        ],
+        [
+          1.257,
+          6.51,
+          3.2
+        ]
+      ],
+      "materials": [
+        "M_TruckWhite",
+        "M_AluTrim",
+        "M_DecalDark",
+        "M_DecalAccent",
+        "M_Amber",
+        "M_BoxDark",
+        "M_CabinetWhite",
+        "M_Bumper",
+        "M_Rubber",
+        "M_BoxFace",
+        "M_TailLight",
+        "M_Chassis",
+        "M_ArchLiner",
+        "M_Tyre",
+        "M_Rim",
+        "M_Plate",
+        "M_GlassDark",
+        "M_LedIce",
+        "M_HeadLight"
+      ]
+    },
+    {
+      "name": "KerbPod",
+      "category": "matched",
+      "triangles": 6752,
+      "bounds": [
+        [
+          -1.008,
+          -1.806,
+          -0.0
+        ],
+        [
+          1.008,
+          1.806,
+          2.2
+        ]
+      ],
+      "materials": [
+        "M_Bumper",
+        "M_TruckWhite",
+        "M_GlassDark",
+        "M_TailLight",
+        "M_LedIce",
+        "M_CabinetWhite",
+        "M_Chassis",
+        "M_DecalAccent",
+        "M_ArchLiner",
+        "M_Tyre",
+        "M_Rim"
+      ]
+    },
+    {
+      "name": "Box_S",
+      "category": "detail",
+      "triangles": 144,
+      "bounds": [
+        [
+          -0.2,
+          -0.151,
+          0.0
+        ],
+        [
+          0.2,
+          0.151,
+          0.301
+        ]
+      ],
+      "materials": [
+        "M_BoxFace",
+        "M_PackingTape"
+      ]
+    },
+    {
+      "name": "Box_M",
+      "category": "detail",
+      "triangles": 144,
+      "bounds": [
+        [
+          -0.3,
+          -0.201,
+          0.0
+        ],
+        [
+          0.3,
+          0.201,
+          0.421
+        ]
+      ],
+      "materials": [
+        "M_BoxFace",
+        "M_PackingTape"
+      ]
+    },
+    {
+      "name": "Box_L",
+      "category": "detail",
+      "triangles": 144,
+      "bounds": [
+        [
+          -0.4,
+          -0.276,
+          0.0
+        ],
+        [
+          0.4,
+          0.276,
+          0.551
+        ]
+      ],
+      "materials": [
+        "M_BoxFace",
+        "M_PackingTape"
+      ]
+    },
+    {
+      "name": "Box_M_Open",
+      "category": "detail",
+      "triangles": 88,
+      "bounds": [
+        [
+          -0.42,
+          -0.37,
+          0.0
+        ],
+        [
+          0.42,
+          0.37,
+          0.57
+        ]
+      ],
+      "materials": [
+        "M_Cardboard",
+        "M_BoxDark"
+      ]
+    },
+    {
+      "name": "BoxStack_1m",
+      "category": "matched",
+      "triangles": 476,
+      "bounds": [
+        [
+          -0.504,
+          -0.501,
+          0.0
+        ],
+        [
+          0.502,
+          0.501,
+          1.001
+        ]
+      ],
+      "materials": [
+        "M_Cardboard",
+        "M_BoxFace",
+        "M_PackingTape"
+      ]
+    },
+    {
+      "name": "Crate_Wood_1m",
+      "category": "matched",
+      "triangles": 2148,
+      "bounds": [
+        [
+          -0.5,
+          -0.5,
+          0.0
+        ],
+        [
+          0.5,
+          0.5,
+          1.0
+        ]
+      ],
+      "materials": [
+        "M_Plywood",
+        "M_Batten",
+        "M_Stencil"
+      ]
+    },
+    {
+      "name": "Armchair",
+      "category": "matched",
+      "triangles": 880,
+      "bounds": [
+        [
+          -0.6,
+          -0.6,
+          0.0
+        ],
+        [
+          0.6,
+          0.6,
+          0.801
+        ]
+      ],
+      "materials": [
+        "M_FabricOrangeDark",
+        "M_Cardboard",
+        "M_WoodLeg",
+        "M_FabricOrange",
+        "M_BoxFace",
+        "M_PackingTape"
+      ]
+    },
+    {
+      "name": "Sofa",
+      "category": "matched",
+      "triangles": 1024,
+      "bounds": [
+        [
+          -1.25,
+          -0.45,
+          0.0
+        ],
+        [
+          1.25,
+          0.45,
+          0.801
+        ]
+      ],
+      "materials": [
+        "M_FabricBlueDark",
+        "M_Cardboard",
+        "M_WoodLeg",
+        "M_FabricBlue",
+        "M_BoxFace",
+        "M_PackingTape"
+      ]
+    },
+    {
+      "name": "Fence_Run_S",
+      "category": "matched",
+      "triangles": 9744,
+      "bounds": [
+        [
+          -0.15,
+          -5.3,
+          0.0
+        ],
+        [
+          0.15,
+          5.3,
+          1.2
+        ]
+      ],
+      "materials": [
+        "M_PicketBack",
+        "M_Picket"
+      ]
+    },
+    {
+      "name": "Fence_Run_N",
+      "category": "matched",
+      "triangles": 4644,
+      "bounds": [
+        [
+          -0.15,
+          -2.5,
+          0.0
+        ],
+        [
+          0.15,
+          2.5,
+          1.2
+        ]
+      ],
+      "materials": [
+        "M_PicketBack",
+        "M_Picket"
+      ]
+    },
+    {
+      "name": "Fence_Picket_2m",
+      "category": "free",
+      "triangles": 1916,
+      "bounds": [
+        [
+          -0.15,
+          -1.0,
+          0.0
+        ],
+        [
+          0.15,
+          1.0,
+          1.2
+        ]
+      ],
+      "materials": [
+        "M_PicketBack",
+        "M_Picket"
+      ]
+    },
+    {
+      "name": "Fence_Picket_1m",
+      "category": "free",
+      "triangles": 1020,
+      "bounds": [
+        [
+          -0.15,
+          -0.5,
+          0.0
+        ],
+        [
+          0.15,
+          0.5,
+          1.2
+        ]
+      ],
+      "materials": [
+        "M_PicketBack",
+        "M_Picket"
+      ]
+    },
+    {
+      "name": "Fence_Gate_1m",
+      "category": "free",
+      "triangles": 688,
+      "bounds": [
+        [
+          -0.012,
+          0.02,
+          0.06
+        ],
+        [
+          0.05,
+          0.97,
+          1.116
+        ]
+      ],
+      "materials": [
+        "M_PicketBack",
+        "M_Picket",
+        "M_SteelDark"
+      ]
+    },
+    {
+      "name": "Fence_Post",
+      "category": "free",
+      "triangles": 152,
+      "bounds": [
+        [
+          -0.15,
+          -0.07,
+          0.0
+        ],
+        [
+          0.15,
+          0.07,
+          1.2
+        ]
+      ],
+      "materials": [
+        "M_Picket"
+      ]
+    },
+    {
+      "name": "Hedge_Boundary",
+      "category": "matched",
+      "triangles": 8540,
+      "bounds": [
+        [
+          -0.497,
+          -22.995,
+          0.004
+        ],
+        [
+          0.497,
+          22.997,
+          2.997
+        ]
+      ],
+      "materials": [
+        "M_Hedge"
+      ]
+    },
+    {
+      "name": "Hedge_Lawn",
+      "category": "matched",
+      "triangles": 1300,
+      "bounds": [
+        [
+          -2.595,
+          -0.396,
+          0.004
+        ],
+        [
+          2.596,
+          0.396,
+          1.995
+        ]
+      ],
+      "materials": [
+        "M_Hedge"
+      ]
+    },
+    {
+      "name": "Hedge_Block_2m",
+      "category": "free",
+      "triangles": 620,
+      "bounds": [
+        [
+          -0.995,
+          -0.396,
+          0.005
+        ],
+        [
+          0.996,
+          0.395,
+          1.196
+        ]
+      ],
+      "materials": [
+        "M_Hedge"
+      ]
+    },
+    {
+      "name": "Hedge_Block_4m_Tall",
+      "category": "free",
+      "triangles": 1200,
+      "bounds": [
+        [
+          -1.995,
+          -0.495,
+          0.005
+        ],
+        [
+          1.995,
+          0.496,
+          2.395
+        ]
+      ],
+      "materials": [
+        "M_Hedge"
+      ]
+    },
+    {
+      "name": "Arbour",
+      "category": "matched",
+      "triangles": 5668,
+      "bounds": [
+        [
+          -1.512,
+          -3.009,
+          0.0
+        ],
+        [
+          1.514,
+          3.011,
+          2.409
+        ]
+      ],
+      "materials": [
+        "M_Vine",
+        "M_Timber",
+        "M_Flower",
+        "M_FlowerWhite"
+      ]
+    },
+    {
+      "name": "Pylon",
+      "category": "matched",
+      "triangles": 2004,
+      "bounds": [
+        [
+          -1.0,
+          -1.0,
+          0.0
+        ],
+        [
+          1.0,
+          1.0,
+          6.6
+        ]
+      ],
+      "materials": [
+        "M_PoleConcrete",
+        "M_Concrete",
+        "M_SteelDark",
+        "M_SteelGalv",
+        "M_Grating",
+        "M_SafetyYellow",
+        "M_Insulator",
+        "M_CabinetWhite",
+        "M_Cable"
+      ]
+    },
+    {
+      "name": "Zipline_Cable",
+      "category": "matched",
+      "triangles": 780,
+      "bounds": [
+        [
+          0.197,
+          -0.022,
+          -0.822
+        ],
+        [
+          21.803,
+          0.022,
+          0.022
+        ]
+      ],
+      "materials": [
+        "M_Cable"
+      ]
+    },
+    {
+      "name": "Wire_Span_20m",
+      "category": "free",
+      "triangles": 488,
+      "bounds": [
+        [
+          -0.001,
+          -0.015,
+          -0.563
+        ],
+        [
+          20.001,
+          0.015,
+          0.013
+        ]
+      ],
+      "materials": [
+        "M_Cable"
+      ]
+    },
+    {
+      "name": "HotTub",
+      "category": "matched",
+      "triangles": 284,
+      "bounds": [
+        [
+          -1.25,
+          -1.254,
+          0.0
+        ],
+        [
+          1.25,
+          1.25,
+          1.004
+        ]
+      ],
+      "materials": [
+        "M_WoodStainedH",
+        "M_WaterCover",
+        "M_TrimDark",
+        "M_TrimCream"
+      ]
+    },
+    {
+      "name": "OutdoorKitchen",
+      "category": "matched",
+      "triangles": 972,
+      "bounds": [
+        [
+          -1.5,
+          -0.519,
+          0.0
+        ],
+        [
+          1.5,
+          0.5,
+          2.2
+        ]
+      ],
+      "materials": [
+        "M_Printed",
+        "M_TrimCream",
+        "M_TrimDark",
+        "M_SteelDark",
+        "M_Anthracite",
+        "M_SteelGalv"
+      ]
+    },
+    {
+      "name": "KitchenIsland",
+      "category": "matched",
+      "triangles": 324,
+      "bounds": [
+        [
+          -1.0,
+          -1.25,
+          0.0
+        ],
+        [
+          1.014,
+          1.25,
+          1.0
+        ]
+      ],
+      "materials": [
+        "M_CabinetWhite",
+        "M_Worktop",
+        "M_TrimDark",
+        "M_SteelDark"
+      ]
+    },
+    {
+      "name": "Workbench",
+      "category": "matched",
+      "triangles": 324,
+      "bounds": [
+        [
+          -0.35,
+          -2.0,
+          0.0
+        ],
+        [
+          0.364,
+          2.0,
+          1.0
+        ]
+      ],
+      "materials": [
+        "M_Anthracite",
+        "M_TimberH",
+        "M_TrimDark",
+        "M_SteelDark"
+      ]
+    },
+    {
+      "name": "Dresser",
+      "category": "matched",
+      "triangles": 652,
+      "bounds": [
+        [
+          -0.3,
+          -1.0,
+          0.0
+        ],
+        [
+          0.315,
+          1.0,
+          1.2
+        ]
+      ],
+      "materials": [
+        "M_WoodStained",
+        "M_TimberH",
+        "M_SteelDark"
+      ]
+    },
+    {
+      "name": "Shelving",
+      "category": "matched",
+      "triangles": 2744,
+      "bounds": [
+        [
+          -2.005,
+          -0.289,
+          0.0
+        ],
+        [
+          2.005,
+          0.275,
+          2.2
+        ]
+      ],
+      "materials": [
+        "M_Anthracite",
+        "M_SteelGalv",
+        "M_Cardboard"
+      ]
+    },
+    {
+      "name": "HeatPump",
+      "category": "matched",
+      "triangles": 952,
+      "bounds": [
+        [
+          -1.0,
+          -0.516,
+          0.0
+        ],
+        [
+          1.0,
+          0.5,
+          1.2
+        ]
+      ],
+      "materials": [
+        "M_CabinetWhite",
+        "M_SteelDark",
+        "M_SteelGalv",
+        "M_TrimDark"
+      ]
+    },
+    {
+      "name": "GarageCar",
+      "category": "matched",
+      "triangles": 1028,
+      "bounds": [
+        [
+          -0.965,
+          -2.2,
+          0.0
+        ],
+        [
+          0.966,
+          2.212,
+          1.5
+        ]
+      ],
+      "materials": [
+        "M_CarSilver",
+        "M_GlassDark",
+        "M_Tyre",
+        "M_Rim",
+        "M_HeadLight"
+      ]
+    },
+    {
+      "name": "RainTank",
+      "category": "matched",
+      "triangles": 808,
+      "bounds": [
+        [
+          -1.607,
+          -1.614,
+          0.0
+        ],
+        [
+          1.607,
+          1.607,
+          2.808
+        ]
+      ],
+      "materials": [
+        "M_TankPaint",
+        "M_TrimDark",
+        "M_SteelDark"
+      ]
+    },
+    {
+      "name": "BinStore",
+      "category": "matched",
+      "triangles": 388,
+      "bounds": [
+        [
+          -1.5,
+          -3.0,
+          0.0
+        ],
+        [
+          1.516,
+          3.0,
+          2.2
+        ]
+      ],
+      "materials": [
+        "M_WoodStained",
+        "M_TimberH",
+        "M_BinGrey",
+        "M_BinLidGreen",
+        "M_SteelDark",
+        "M_BinLidBlue",
+        "M_BinLidBrown"
+      ]
+    },
+    {
+      "name": "ParcelLockers",
+      "category": "matched",
+      "triangles": 3812,
+      "bounds": [
+        [
+          -1.0,
+          -4.0,
+          0.0
+        ],
+        [
+          1.016,
+          4.0,
+          2.2
+        ]
+      ],
+      "materials": [
+        "M_LockerBody",
+        "M_TrimDark",
+        "M_LockerDoor",
+        "M_Anthracite",
+        "M_GlassDark"
+      ]
+    },
+    {
+      "name": "ChargerIsland",
+      "category": "matched",
+      "triangles": 1192,
+      "bounds": [
+        [
+          -1.015,
+          -2.0,
+          0.0
+        ],
+        [
+          1.015,
+          2.0,
+          2.4
+        ]
+      ],
+      "materials": [
+        "M_Concrete",
+        "M_CabinetWhite",
+        "M_Anthracite",
+        "M_GlassDark",
+        "M_Cable"
+      ]
+    },
+    {
+      "name": "ModelTable",
+      "category": "matched",
+      "triangles": 316,
+      "bounds": [
+        [
+          -2.0,
+          -1.0,
+          0.0
+        ],
+        [
+          2.0,
+          1.0,
+          1.01
+        ]
+      ],
+      "materials": [
+        "M_TrimCream",
+        "M_ModelGreen",
+        "M_ModelWhite",
+        "M_TrimDark"
+      ]
+    },
+    {
+      "name": "ShuttleStop",
+      "category": "matched",
+      "triangles": 276,
+      "bounds": [
+        [
+          -2.0,
+          -1.0,
+          0.0
+        ],
+        [
+          2.0,
+          1.016,
+          2.6
+        ]
+      ],
+      "materials": [
+        "M_CabinetWhite",
+        "M_TrimDark",
+        "M_GH_Panel",
+        "M_GH_Frame",
+        "M_WoodStainedH"
+      ]
+    },
+    {
+      "name": "Pallet",
+      "category": "free",
+      "triangles": 352,
+      "bounds": [
+        [
+          -0.6,
+          -0.4,
+          0.0
+        ],
+        [
+          0.6,
+          0.4,
+          0.166
+        ]
+      ],
+      "materials": [
+        "M_TimberH"
+      ]
+    },
+    {
+      "name": "PrintedBlockStack",
+      "category": "free",
+      "triangles": 3592,
+      "bounds": [
+        [
+          -0.6,
+          -0.4,
+          0.0
+        ],
+        [
+          0.6,
+          0.4,
+          0.966
+        ]
+      ],
+      "materials": [
+        "M_TimberH",
+        "M_Printed",
+        "M_SteelDark"
+      ]
+    },
+    {
+      "name": "RebarBundle",
+      "category": "free",
+      "triangles": 664,
+      "bounds": [
+        [
+          -3.0,
+          -0.325,
+          0.0
+        ],
+        [
+          3.0,
+          0.325,
+          0.347
+        ]
+      ],
+      "materials": [
+        "M_TimberH",
+        "M_SiteSteel",
+        "M_SteelDark"
+      ]
+    },
+    {
+      "name": "CementBag",
+      "category": "free",
+      "triangles": 284,
+      "bounds": [
+        [
+          -0.31,
+          -0.18,
+          0.006
+        ],
+        [
+          0.31,
+          0.18,
+          0.163
+        ]
+      ],
+      "materials": [
+        "M_CementBag",
+        "M_BagStripe"
+      ]
+    },
+    {
+      "name": "CementBagPallet",
+      "category": "free",
+      "triangles": 4896,
+      "bounds": [
+        [
+          -0.6,
+          -0.4,
+          0.0
+        ],
+        [
+          0.6,
+          0.4,
+          0.778
+        ]
+      ],
+      "materials": [
+        "M_TimberH",
+        "M_CementBag",
+        "M_BagStripe"
+      ]
+    },
+    {
+      "name": "TrafficCone",
+      "category": "free",
+      "triangles": 264,
+      "bounds": [
+        [
+          -0.24,
+          -0.24,
+          0.0
+        ],
+        [
+          0.24,
+          0.24,
+          0.75
+        ]
+      ],
+      "materials": [
+        "M_Rubber",
+        "M_SiteOrange",
+        "M_TrimCream"
+      ]
+    },
+    {
+      "name": "PlasticBarrier",
+      "category": "free",
+      "triangles": 544,
+      "bounds": [
+        [
+          -1.0,
+          -0.38,
+          0.0
+        ],
+        [
+          1.0,
+          0.38,
+          0.98
+        ]
+      ],
+      "materials": [
+        "M_SiteOrange",
+        "M_TrimDark",
+        "M_TrimCream"
+      ]
+    },
+    {
+      "name": "Rock_Low",
+      "category": "free",
+      "triangles": 20,
+      "bounds": [
+        [
+          -0.577,
+          -0.428,
+          -0.033
+        ],
+        [
+          0.613,
+          0.454,
+          0.513
+        ]
+      ],
+      "materials": [
+        "M_Rock"
+      ]
+    },
+    {
+      "name": "Rock_Tall",
+      "category": "free",
+      "triangles": 20,
+      "bounds": [
+        [
+          -0.367,
+          -0.419,
+          -0.051
+        ],
+        [
+          0.4,
+          0.421,
+          0.77
+        ]
+      ],
+      "materials": [
+        "M_Rock"
+      ]
+    },
+    {
+      "name": "PebbleCluster",
+      "category": "free",
+      "triangles": 180,
+      "bounds": [
+        [
+          -0.355,
+          -0.304,
+          -0.003
+        ],
+        [
+          0.46,
+          0.153,
+          0.108
+        ]
+      ],
+      "materials": [
+        "M_Pebble"
+      ]
+    },
+    {
+      "name": "DirtMound",
+      "category": "free",
+      "triangles": 80,
+      "bounds": [
+        [
+          -1.214,
+          -0.842,
+          -0.058
+        ],
+        [
+          1.259,
+          0.776,
+          0.438
+        ]
+      ],
+      "materials": [
+        "M_SiteDirt"
+      ]
+    },
+    {
+      "name": "SandMound",
+      "category": "free",
+      "triangles": 80,
+      "bounds": [
+        [
+          -1.245,
+          -1.295,
+          -0.08
+        ],
+        [
+          1.238,
+          1.22,
+          0.571
+        ]
+      ],
+      "materials": [
+        "M_SiteSand"
+      ]
+    },
+    {
+      "name": "Greenhouse_Sage",
+      "category": "matched",
+      "triangles": 1840,
+      "bounds": [
+        [
+          -1.856,
+          -0.106,
+          0.0
+        ],
+        [
+          3.856,
+          4.106,
+          2.8
+        ]
+      ],
+      "materials": [
+        "M_Concrete",
+        "M_KickSage",
+        "M_GH_Panel",
+        "M_GH_Frame",
+        "M_TrimCream",
+        "M_GH_Roof",
+        "M_TrimDark",
+        "M_SteelDark",
+        "M_SteelGalv"
+      ]
+    },
+    {
+      "name": "Greenhouse_Clay",
+      "category": "matched",
+      "triangles": 1840,
+      "bounds": [
+        [
+          -0.406,
+          -0.106,
+          0.0
+        ],
+        [
+          5.306,
+          4.106,
+          2.8
+        ]
+      ],
+      "materials": [
+        "M_Concrete",
+        "M_KickClay",
+        "M_GH_Panel",
+        "M_GH_Frame",
+        "M_TrimCream",
+        "M_GH_Roof",
+        "M_TrimDark",
+        "M_SteelDark",
+        "M_SteelGalv"
+      ]
+    },
+    {
+      "name": "Studio_Sage",
+      "category": "matched",
+      "triangles": 23644,
+      "bounds": [
+        [
+          -3.1,
+          -0.1,
+          0.0
+        ],
+        [
+          3.106,
+          5.108,
+          2.8
+        ]
+      ],
+      "materials": [
+        "M_Concrete",
+        "M_Printed",
+        "M_TrimCream",
+        "M_RoofMembrane",
+        "M_TrimDark",
+        "M_SteelDark",
+        "M_SteelGalv"
+      ]
+    },
+    {
+      "name": "Studio_Clay",
+      "category": "matched",
+      "triangles": 23644,
+      "bounds": [
+        [
+          -3.106,
+          -0.1,
+          0.0
+        ],
+        [
+          3.1,
+          5.108,
+          2.8
+        ]
+      ],
+      "materials": [
+        "M_Concrete",
+        "M_Printed",
+        "M_TrimCream",
+        "M_RoofMembrane",
+        "M_TrimDark",
+        "M_SteelDark",
+        "M_SteelGalv"
+      ]
+    },
+    {
+      "name": "Shed_Sage",
+      "category": "matched",
+      "triangles": 500,
+      "bounds": [
+        [
+          -2.0,
+          -2.0,
+          0.0
+        ],
+        [
+          2.0,
+          2.0,
+          2.6
+        ]
+      ],
+      "materials": [
+        "M_Concrete",
+        "M_WoodStained",
+        "M_TrimCream",
+        "M_RoofMembrane",
+        "M_TrimDark",
+        "M_SteelDark",
+        "M_SteelGalv"
+      ]
+    },
+    {
+      "name": "Shed_Clay",
+      "category": "matched",
+      "triangles": 500,
+      "bounds": [
+        [
+          -2.0,
+          -2.0,
+          0.0
+        ],
+        [
+          2.0,
+          2.0,
+          2.6
+        ]
+      ],
+      "materials": [
+        "M_Concrete",
+        "M_ShedClay",
+        "M_TrimCream",
+        "M_RoofMembrane",
+        "M_TrimDark",
+        "M_SteelDark",
+        "M_SteelGalv"
+      ]
+    },
+    {
+      "name": "SalesOffice",
+      "category": "matched",
+      "triangles": 33104,
+      "bounds": [
+        [
+          -6.131,
+          -0.125,
+          0.0
+        ],
+        [
+          6.131,
+          7.133,
+          3.0
+        ]
+      ],
+      "materials": [
+        "M_Concrete",
+        "M_Printed",
+        "M_TrimCream",
+        "M_RoofMembrane",
+        "M_TrimDark",
+        "M_SteelDark",
+        "M_SteelGalv"
+      ]
+    },
+    {
+      "name": "ParcelHub",
+      "category": "matched",
+      "triangles": 3536,
+      "bounds": [
+        [
+          -2.0,
+          -2.5,
+          0.0
+        ],
+        [
+          2.0,
+          2.5,
+          3.0
+        ]
+      ],
+      "materials": [
+        "M_Concrete",
+        "M_Printed",
+        "M_TrimCream",
+        "M_RoofMembrane",
+        "M_TrimDark",
+        "M_SteelDark",
+        "M_SteelGalv"
+      ]
+    }
+  ]
+}

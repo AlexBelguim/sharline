@@ -1,0 +1,434 @@
+[
+  {
+    "name": "FOL_hedge_west",
+    "foliage": "hedge",
+    "density": 1,
+    "tint": "sage_hedge",
+    "aabb": {
+      "min": [
+        330.35,
+        621.85,
+        0
+      ],
+      "max": [
+        331.65,
+        671,
+        6
+      ]
+    }
+  },
+  {
+    "name": "FOL_hedge_east",
+    "foliage": "hedge",
+    "density": 1,
+    "tint": "sage_hedge",
+    "aabb": {
+      "min": [
+        408.35,
+        621.85,
+        0
+      ],
+      "max": [
+        409.65,
+        671,
+        6
+      ]
+    }
+  },
+  {
+    "name": "FOL_hedge_south_back",
+    "foliage": "hedge",
+    "density": 1,
+    "tint": "sage_hedge",
+    "aabb": {
+      "min": [
+        330.35,
+        620.55,
+        0
+      ],
+      "max": [
+        409.65,
+        621.85,
+        6
+      ]
+    }
+  },
+  {
+    "name": "FOL_hedge_roadside_west",
+    "foliage": "hedge",
+    "density": 1,
+    "tint": "sage_hedge",
+    "aabb": {
+      "min": [
+        331.65,
+        669.7,
+        0
+      ],
+      "max": [
+        364.15,
+        671,
+        6
+      ]
+    }
+  },
+  {
+    "name": "FOL_hedge_roadside_east",
+    "foliage": "hedge",
+    "density": 1,
+    "tint": "sage_hedge",
+    "aabb": {
+      "min": [
+        375.85,
+        669.7,
+        0
+      ],
+      "max": [
+        408.35,
+        671,
+        6
+      ]
+    }
+  },
+  {
+    "name": "FOL_hedge_marked_west_frame",
+    "foliage": "hedge",
+    "density": 1,
+    "tint": "sage_hedge",
+    "aabb": {
+      "min": [
+        346.35,
+        632.25,
+        0
+      ],
+      "max": [
+        350.35,
+        633.45,
+        2.75
+      ]
+    }
+  },
+  {
+    "name": "FOL_hedge_upper_framed_347",
+    "foliage": "hedge",
+    "density": 1,
+    "tint": "sage_hedge",
+    "aabb": {
+      "min": [
+        346.4,
+        646.8,
+        0
+      ],
+      "max": [
+        347.6,
+        655.2,
+        2.75
+      ]
+    }
+  },
+  {
+    "name": "FOL_bush_upper_bush_347647",
+    "foliage": "bush",
+    "density": 1,
+    "tint": "sage_hedge",
+    "aabb": {
+      "min": [
+        346.35,
+        646.4,
+        0
+      ],
+      "max": [
+        347.65,
+        647.6,
+        1.2
+      ]
+    }
+  },
+  {
+    "name": "FOL_bush_upper_bush_347656",
+    "foliage": "bush",
+    "density": 1,
+    "tint": "sage_hedge",
+    "aabb": {
+      "min": [
+        346.35,
+        655.4,
+        0
+      ],
+      "max": [
+        347.65,
+        656.6,
+        1.2
+      ]
+    }
+  },
+  {
+    "name": "FOL_hedge_upper_framed_393",
+    "foliage": "hedge",
+    "density": 1,
+    "tint": "sage_hedge",
+    "aabb": {
+      "min": [
+        392.4,
+        646.8,
+        0
+      ],
+      "max": [
+        393.6,
+        655.2,
+        2.75
+      ]
+    }
+  },
+  {
+    "name": "FOL_bush_upper_bush_393647",
+    "foliage": "bush",
+    "density": 1,
+    "tint": "sage_hedge",
+    "aabb": {
+      "min": [
+        392.35,
+        646.4,
+        0
+      ],
+      "max": [
+        393.65,
+        647.6,
+        1.2
+      ]
+    }
+  },
+  {
+    "name": "FOL_bush_upper_bush_393656",
+    "foliage": "bush",
+    "density": 1,
+    "tint": "sage_hedge",
+    "aabb": {
+      "min": [
+        392.35,
+        655.4,
+        0
+      ],
+      "max": [
+        393.65,
+        656.6,
+        1.2
+      ]
+    }
+  },
+  {
+    "name": "FOL_bush_front_bush_362.0634.2",
+    "foliage": "bush",
+    "density": 1,
+    "tint": "sage_hedge",
+    "aabb": {
+      "min": [
+        361.35,
+        633.6500000000001,
+        0
+      ],
+      "max": [
+        362.65,
+        634.75,
+        0.7
+      ]
+    }
+  },
+  {
+    "name": "FOL_bush_front_bush_362.0638.8",
+    "foliage": "bush",
+    "density": 1,
+    "tint": "sage_hedge",
+    "aabb": {
+      "min": [
+        361.35,
+        638.25,
+        0
+      ],
+      "max": [
+        362.65,
+        639.3499999999999,
+        0.7
+      ]
+    }
+  },
+  {
+    "name": "FOL_bush_front_bush_362.0642.3",
+    "foliage": "bush",
+    "density": 1,
+    "tint": "sage_hedge",
+    "aabb": {
+      "min": [
+        361.35,
+        641.75,
+        0
+      ],
+      "max": [
+        362.65,
+        642.8499999999999,
+        0.7
+      ]
+    }
+  },
+  {
+    "name": "FOL_bush_front_bush_362.0646.2",
+    "foliage": "bush",
+    "density": 1,
+    "tint": "sage_hedge",
+    "aabb": {
+      "min": [
+        361.35,
+        645.6500000000001,
+        0
+      ],
+      "max": [
+        362.65,
+        646.75,
+        0.7
+      ]
+    }
+  },
+  {
+    "name": "FOL_bush_front_bush_362.0650.8",
+    "foliage": "bush",
+    "density": 1,
+    "tint": "sage_hedge",
+    "aabb": {
+      "min": [
+        361.35,
+        650.25,
+        0
+      ],
+      "max": [
+        362.65,
+        651.3499999999999,
+        0.7
+      ]
+    }
+  },
+  {
+    "name": "FOL_bush_front_bush_362.0654.3",
+    "foliage": "bush",
+    "density": 1,
+    "tint": "sage_hedge",
+    "aabb": {
+      "min": [
+        361.35,
+        653.75,
+        0
+      ],
+      "max": [
+        362.65,
+        654.8499999999999,
+        0.7
+      ]
+    }
+  },
+  {
+    "name": "FOL_bush_front_bush_378.0634.2",
+    "foliage": "bush",
+    "density": 1,
+    "tint": "sage_hedge",
+    "aabb": {
+      "min": [
+        377.35,
+        633.6500000000001,
+        0
+      ],
+      "max": [
+        378.65,
+        634.75,
+        0.7
+      ]
+    }
+  },
+  {
+    "name": "FOL_bush_front_bush_378.0638.8",
+    "foliage": "bush",
+    "density": 1,
+    "tint": "sage_hedge",
+    "aabb": {
+      "min": [
+        377.35,
+        638.25,
+        0
+      ],
+      "max": [
+        378.65,
+        639.3499999999999,
+        0.7
+      ]
+    }
+  },
+  {
+    "name": "FOL_bush_front_bush_378.0642.3",
+    "foliage": "bush",
+    "density": 1,
+    "tint": "sage_hedge",
+    "aabb": {
+      "min": [
+        377.35,
+        641.75,
+        0
+      ],
+      "max": [
+        378.65,
+        642.8499999999999,
+        0.7
+      ]
+    }
+  },
+  {
+    "name": "FOL_bush_front_bush_378.0646.2",
+    "foliage": "bush",
+    "density": 1,
+    "tint": "sage_hedge",
+    "aabb": {
+      "min": [
+        377.35,
+        645.6500000000001,
+        0
+      ],
+      "max": [
+        378.65,
+        646.75,
+        0.7
+      ]
+    }
+  },
+  {
+    "name": "FOL_bush_front_bush_378.0650.8",
+    "foliage": "bush",
+    "density": 1,
+    "tint": "sage_hedge",
+    "aabb": {
+      "min": [
+        377.35,
+        650.25,
+        0
+      ],
+      "max": [
+        378.65,
+        651.3499999999999,
+        0.7
+      ]
+    }
+  },
+  {
+    "name": "FOL_bush_front_bush_378.0654.3",
+    "foliage": "bush",
+    "density": 1,
+    "tint": "sage_hedge",
+    "aabb": {
+      "min": [
+        377.35,
+        653.75,
+        0
+      ],
+      "max": [
+        378.65,
+        654.8499999999999,
+        0.7
+      ]
+    }
+  }
+]

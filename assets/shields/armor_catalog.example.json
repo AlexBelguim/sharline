@@ -42,13 +42,13 @@
           "Volt",
           "Phase"
         ],
-        "description": "Ring silhouette: HALO_<core>_Arc_* + HALO_<core>_Band_* meshes, HALO_Core_<core> pickup."
+        "description": "Ring silhouette: HALO_<core>_Arc_* glass + one HALO_<core>_Frame_<weight> mesh, cells HALO_PowerCell_<core>, HALO_Core_<core> pickup."
       },
       "tier": {
         "type": "integer",
         "minimum": 1,
         "maximum": 4,
-        "description": "Headline tier = highest arc tier. Number of tier pips shown (HALO_<core>_PIP_1..tier) and the pip/cell/band-lip colour."
+        "description": "Headline tier = highest arc tier. Number of tier pips shown (centred row HALO_<core>_PIP_<tier>_1..<tier>) and the pip/cell/band-lip colour."
       },
       "coverage": {
         "type": "array",
@@ -137,7 +137,7 @@
         "type": "integer",
         "minimum": 1,
         "maximum": 3,
-        "description": "Orbiting HALO_PowerCell count (1 Light, 2 Medium, 3 Heavy)."
+        "description": "Orbiting HALO_PowerCell_<core> count (1 Light, 2 Medium, 3 Heavy)."
       },
       "food_drain_mult": {
         "type": "number",
@@ -283,7 +283,7 @@
         "band_mesh": "Medium",
         "power_cells": 2,
         "orbit_radius_local": 0.245,
-        "orbit_height_local": 0.058,
+        "orbit_height_local": 0.065,
         "orbit_period_s": 3.4
       },
       "Heavy": {
@@ -291,7 +291,7 @@
         "band_mesh": "Heavy",
         "power_cells": 3,
         "orbit_radius_local": 0.275,
-        "orbit_height_local": 0.058,
+        "orbit_height_local": 0.08,
         "orbit_period_s": 4.6
       }
     },

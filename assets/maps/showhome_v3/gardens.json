@@ -1,0 +1,26 @@
+{
+  "notes": "Four deliberately different, usable plots. Doors face paths; hot tubs belong to patios; planters sit on soil/paving without an extra kerb ring.",
+  "props": [
+    {"id":"greenhouse","position":[337,635,0],"yaw":0},
+    {"id":"shed","position":[345.4,640.6,0],"yaw":0},
+    {"id":"hot_tub","position":[344.8,626.5,0],"yaw":0},
+    {"id":"pergola","position":[342.5,627.5,0],"yaw":0},
+    {"id":"raised_planter","position":[334.3,640,0],"yaw":90},
+    {"id":"greenhouse","position":[336.5,649.5,0],"yaw":180},
+    {"id":"shed","position":[334.8,660.5,0],"yaw":90},
+    {"id":"hot_tub","position":[342,660.5,0],"yaw":0},
+    {"id":"raised_planter","position":[341,653.5,0],"yaw":0},
+    {"id":"greenhouse","position":[403.5,638.5,0],"yaw":90},
+    {"id":"shed","position":[396,635,0],"yaw":-90},
+    {"id":"hot_tub","position":[398,626,0],"yaw":0},
+    {"id":"raised_planter","position":[405.5,630,0],"yaw":0},
+    {"id":"greenhouse","position":[403,657.5,0],"yaw":0},
+    {"id":"shed","position":[398,651,0],"yaw":0},
+    {"id":"pergola","position":[404,650,0],"yaw":0},
+    {"id":"raised_planter","position":[394,659,0],"yaw":90}
+  ],
+  "paths": [[339,622,341,644],[339,646,341,663],[392.5,626,394.5,644],[400,646,402,663]],
+  "patios": [[340,624.5,347,630],[340,658.5,344,663],[396,624,401,628.5],[401.5,647.5,406.5,652.5]],
+  "gravel_pads": [[334.8,632,339.2,638],[334.3,646.5,338.7,652.5],[400.5,636.3,406.5,640.7],[400.8,654.5,405.2,660.5]],
+  "shed_pads": [[343.8,638.7,347,642.5],[332.8,658.9,336.8,662.1],[394.1,633.4,397.9,636.6],[396.4,649.1,399.6,652.9]]
+}

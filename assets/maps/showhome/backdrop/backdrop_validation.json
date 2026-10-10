@@ -1,0 +1,23 @@
+{
+  "export": "backdrop.glb",
+  "bytes": 20146000,
+  "triangles": {
+    "Near": 69774,
+    "Mid": 25488,
+    "Far": 12240
+  },
+  "total_triangles": 107502,
+  "material_count": 10,
+  "meshes": 20,
+  "root_nodes": [
+    "SHB_Far",
+    "SHB_Mid",
+    "SHB_Near"
+  ],
+  "all_nodes_identity": true,
+  "glTF_Y_up_design_frame": true,
+  "all_meshes_uv_color_0_single_material": true,
+  "position_samples_checked": 262642,
+  "clearance_violations": [],
+  "alpha_blended_materials": 0
+}

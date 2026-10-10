@@ -1,0 +1,266 @@
+{
+ "-2deg_Bulwark_Light": {
+  "true_cells": 1,
+  "visible_count_fraction_of_orbit": {
+   "1": 1.0
+  },
+  "true_count_fraction": 1.0
+ },
+ "-2deg_Bulwark_Medium": {
+  "true_cells": 2,
+  "visible_count_fraction_of_orbit": {
+   "2": 1.0
+  },
+  "true_count_fraction": 1.0
+ },
+ "-2deg_Bulwark_Heavy": {
+  "true_cells": 3,
+  "visible_count_fraction_of_orbit": {
+   "3": 1.0
+  },
+  "true_count_fraction": 1.0
+ },
+ "-2deg_Mender_Light": {
+  "true_cells": 1,
+  "visible_count_fraction_of_orbit": {
+   "1": 1.0
+  },
+  "true_count_fraction": 1.0
+ },
+ "-2deg_Mender_Medium": {
+  "true_cells": 2,
+  "visible_count_fraction_of_orbit": {
+   "2": 1.0
+  },
+  "true_count_fraction": 1.0
+ },
+ "-2deg_Mender_Heavy": {
+  "true_cells": 3,
+  "visible_count_fraction_of_orbit": {
+   "3": 1.0
+  },
+  "true_count_fraction": 1.0
+ },
+ "-2deg_Volt_Light": {
+  "true_cells": 1,
+  "visible_count_fraction_of_orbit": {
+   "1": 1.0
+  },
+  "true_count_fraction": 1.0
+ },
+ "-2deg_Volt_Medium": {
+  "true_cells": 2,
+  "visible_count_fraction_of_orbit": {
+   "2": 1.0
+  },
+  "true_count_fraction": 1.0
+ },
+ "-2deg_Volt_Heavy": {
+  "true_cells": 3,
+  "visible_count_fraction_of_orbit": {
+   "3": 1.0
+  },
+  "true_count_fraction": 1.0
+ },
+ "-2deg_Phase_Light": {
+  "true_cells": 1,
+  "visible_count_fraction_of_orbit": {
+   "1": 1.0
+  },
+  "true_count_fraction": 1.0
+ },
+ "-2deg_Phase_Medium": {
+  "true_cells": 2,
+  "visible_count_fraction_of_orbit": {
+   "2": 1.0
+  },
+  "true_count_fraction": 1.0
+ },
+ "-2deg_Phase_Heavy": {
+  "true_cells": 3,
+  "visible_count_fraction_of_orbit": {
+   "3": 1.0
+  },
+  "true_count_fraction": 1.0
+ },
+ "-5deg_Bulwark_Light": {
+  "true_cells": 1,
+  "visible_count_fraction_of_orbit": {
+   "1": 1.0
+  },
+  "true_count_fraction": 1.0
+ },
+ "-5deg_Bulwark_Medium": {
+  "true_cells": 2,
+  "visible_count_fraction_of_orbit": {
+   "2": 1.0
+  },
+  "true_count_fraction": 1.0
+ },
+ "-5deg_Bulwark_Heavy": {
+  "true_cells": 3,
+  "visible_count_fraction_of_orbit": {
+   "3": 1.0
+  },
+  "true_count_fraction": 1.0
+ },
+ "-5deg_Mender_Light": {
+  "true_cells": 1,
+  "visible_count_fraction_of_orbit": {
+   "1": 1.0
+  },
+  "true_count_fraction": 1.0
+ },
+ "-5deg_Mender_Medium": {
+  "true_cells": 2,
+  "visible_count_fraction_of_orbit": {
+   "2": 1.0
+  },
+  "true_count_fraction": 1.0
+ },
+ "-5deg_Mender_Heavy": {
+  "true_cells": 3,
+  "visible_count_fraction_of_orbit": {
+   "3": 1.0
+  },
+  "true_count_fraction": 1.0
+ },
+ "-5deg_Volt_Light": {
+  "true_cells": 1,
+  "visible_count_fraction_of_orbit": {
+   "1": 1.0
+  },
+  "true_count_fraction": 1.0
+ },
+ "-5deg_Volt_Medium": {
+  "true_cells": 2,
+  "visible_count_fraction_of_orbit": {
+   "2": 1.0
+  },
+  "true_count_fraction": 1.0
+ },
+ "-5deg_Volt_Heavy": {
+  "true_cells": 3,
+  "visible_count_fraction_of_orbit": {
+   "3": 1.0
+  },
+  "true_count_fraction": 1.0
+ },
+ "-5deg_Phase_Light": {
+  "true_cells": 1,
+  "visible_count_fraction_of_orbit": {
+   "1": 1.0
+  },
+  "true_count_fraction": 1.0
+ },
+ "-5deg_Phase_Medium": {
+  "true_cells": 2,
+  "visible_count_fraction_of_orbit": {
+   "2": 1.0
+  },
+  "true_count_fraction": 1.0
+ },
+ "-5deg_Phase_Heavy": {
+  "true_cells": 3,
+  "visible_count_fraction_of_orbit": {
+   "3": 1.0
+  },
+  "true_count_fraction": 1.0
+ },
+ "-10deg_Bulwark_Light": {
+  "true_cells": 1,
+  "visible_count_fraction_of_orbit": {
+   "0": 0.22,
+   "1": 0.78
+  },
+  "true_count_fraction": 0.78
+ },
+ "-10deg_Bulwark_Medium": {
+  "true_cells": 2,
+  "visible_count_fraction_of_orbit": {
+   "1": 0.42,
+   "2": 0.58
+  },
+  "true_count_fraction": 0.58
+ },
+ "-10deg_Bulwark_Heavy": {
+  "true_cells": 3,
+  "visible_count_fraction_of_orbit": {
+   "2": 0.68,
+   "3": 0.33
+  },
+  "true_count_fraction": 0.33
+ },
+ "-10deg_Mender_Light": {
+  "true_cells": 1,
+  "visible_count_fraction_of_orbit": {
+   "0": 0.11,
+   "1": 0.89
+  },
+  "true_count_fraction": 0.89
+ },
+ "-10deg_Mender_Medium": {
+  "true_cells": 2,
+  "visible_count_fraction_of_orbit": {
+   "1": 0.33,
+   "2": 0.67
+  },
+  "true_count_fraction": 0.67
+ },
+ "-10deg_Mender_Heavy": {
+  "true_cells": 3,
+  "visible_count_fraction_of_orbit": {
+   "2": 0.53,
+   "3": 0.47
+  },
+  "true_count_fraction": 0.47
+ },
+ "-10deg_Volt_Light": {
+  "true_cells": 1,
+  "visible_count_fraction_of_orbit": {
+   "0": 0.23,
+   "1": 0.78
+  },
+  "true_count_fraction": 0.78
+ },
+ "-10deg_Volt_Medium": {
+  "true_cells": 2,
+  "visible_count_fraction_of_orbit": {
+   "1": 0.42,
+   "2": 0.58
+  },
+  "true_count_fraction": 0.58
+ },
+ "-10deg_Volt_Heavy": {
+  "true_cells": 3,
+  "visible_count_fraction_of_orbit": {
+   "2": 0.6,
+   "3": 0.4
+  },
+  "true_count_fraction": 0.4
+ },
+ "-10deg_Phase_Light": {
+  "true_cells": 1,
+  "visible_count_fraction_of_orbit": {
+   "0": 0.17,
+   "1": 0.82
+  },
+  "true_count_fraction": 0.82
+ },
+ "-10deg_Phase_Medium": {
+  "true_cells": 2,
+  "visible_count_fraction_of_orbit": {
+   "1": 0.37,
+   "2": 0.63
+  },
+  "true_count_fraction": 0.63
+ },
+ "-10deg_Phase_Heavy": {
+  "true_cells": 3,
+  "visible_count_fraction_of_orbit": {
+   "2": 0.55,
+   "3": 0.45
+  },
+  "true_count_fraction": 0.45
+ }
+}

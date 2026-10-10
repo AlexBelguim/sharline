@@ -1,0 +1,3239 @@
+{
+  "frame": "GLB: x=east,y=up,z=south; identity load; design=(x,-z,y)",
+  "assets": [
+    {
+      "path": "kit\\houses.glb",
+      "status": "PASS",
+      "sha256": "a810f551975bdb257127e33f97104a1775badff1cee005f659c1a5ef50073bb5",
+      "bytes": 11566312,
+      "meshes": 62,
+      "materials": 17,
+      "images": 26,
+      "unique_triangles": 83308,
+      "instanced_triangles": 83308,
+      "roots": [
+        "SH_CLAY_Cladding_clad",
+        "SH_CLAY_Doors_glass",
+        "SH_CLAY_Doors_metal",
+        "SH_CLAY_Doors_paint",
+        "SH_CLAY_Doors_trim",
+        "SH_CLAY_Interior_concrete",
+        "SH_CLAY_Interior_fabric",
+        "SH_CLAY_Interior_lamp",
+        "SH_CLAY_Interior_oak",
+        "SH_CLAY_Interior_paint",
+        "SH_CLAY_Interior_plaster",
+        "SH_CLAY_Interior_trim",
+        "SH_CLAY_Props_fabric",
+        "SH_CLAY_Props_glass",
+        "SH_CLAY_Props_lamp",
+        "SH_CLAY_Props_metal",
+        "SH_CLAY_Props_oak",
+        "SH_CLAY_Props_paint",
+        "SH_CLAY_Props_trim",
+        "SH_CLAY_Roof_clad",
+        "SH_CLAY_Roof_roof",
+        "SH_CLAY_Roof_roof_edge",
+        "SH_CLAY_Shell_clad",
+        "SH_CLAY_Shell_deck",
+        "SH_CLAY_Shell_frost",
+        "SH_CLAY_Shell_printed",
+        "SH_CLAY_Shell_timber",
+        "SH_CLAY_Shell_trim",
+        "SH_CLAY_Solar_solar",
+        "SH_CLAY_Solar_trim",
+        "SH_CLAY_Trim_trim",
+        "SH_SAGE_Cladding_clad",
+        "SH_SAGE_Doors_glass",
+        "SH_SAGE_Doors_metal",
+        "SH_SAGE_Doors_paint",
+        "SH_SAGE_Doors_trim",
+        "SH_SAGE_Interior_concrete",
+        "SH_SAGE_Interior_fabric",
+        "SH_SAGE_Interior_lamp",
+        "SH_SAGE_Interior_oak",
+        "SH_SAGE_Interior_paint",
+        "SH_SAGE_Interior_plaster",
+        "SH_SAGE_Interior_trim",
+        "SH_SAGE_Props_fabric",
+        "SH_SAGE_Props_glass",
+        "SH_SAGE_Props_lamp",
+        "SH_SAGE_Props_metal",
+        "SH_SAGE_Props_oak",
+        "SH_SAGE_Props_paint",
+        "SH_SAGE_Props_trim",
+        "SH_SAGE_Roof_clad",
+        "SH_SAGE_Roof_roof",
+        "SH_SAGE_Roof_roof_edge",
+        "SH_SAGE_Shell_clad",
+        "SH_SAGE_Shell_deck",
+        "SH_SAGE_Shell_frost",
+        "SH_SAGE_Shell_printed",
+        "SH_SAGE_Shell_timber",
+        "SH_SAGE_Shell_trim",
+        "SH_SAGE_Solar_solar",
+        "SH_SAGE_Solar_trim",
+        "SH_SAGE_Trim_trim"
+      ],
+      "problems": [],
+      "mesh_counts": [
+        {
+          "name": "SH_CLAY_Cladding_clad",
+          "triangles": 2258,
+          "material": "M_SH_FibreCementPaintedFace"
+        },
+        {
+          "name": "SH_CLAY_Doors_glass",
+          "triangles": 2,
+          "material": "M_SH_GlassDark"
+        },
+        {
+          "name": "SH_CLAY_Doors_metal",
+          "triangles": 70,
+          "material": "M_SH_Metal"
+        },
+        {
+          "name": "SH_CLAY_Doors_paint",
+          "triangles": 70,
+          "material": "M_SH_Paint"
+        },
+        {
+          "name": "SH_CLAY_Doors_trim",
+          "triangles": 10,
+          "material": "M_SH_TrimSheet"
+        },
+        {
+          "name": "SH_CLAY_Interior_concrete",
+          "triangles": 28,
+          "material": "M_SH_Concrete"
+        },
+        {
+          "name": "SH_CLAY_Interior_fabric",
+          "triangles": 184,
+          "material": "M_SH_Fabric"
+        },
+        {
+          "name": "SH_CLAY_Interior_lamp",
+          "triangles": 60,
+          "material": "M_SH_LampWarm"
+        },
+        {
+          "name": "SH_CLAY_Interior_oak",
+          "triangles": 184,
+          "material": "M_SH_OakBoards"
+        },
+        {
+          "name": "SH_CLAY_Interior_paint",
+          "triangles": 556,
+          "material": "M_SH_Paint"
+        },
+        {
+          "name": "SH_CLAY_Interior_plaster",
+          "triangles": 130,
+          "material": "M_SH_Plaster"
+        },
+        {
+          "name": "SH_CLAY_Interior_trim",
+          "triangles": 408,
+          "material": "M_SH_TrimSheet"
+        },
+        {
+          "name": "SH_CLAY_Props_fabric",
+          "triangles": 80,
+          "material": "M_SH_Fabric"
+        },
+        {
+          "name": "SH_CLAY_Props_glass",
+          "triangles": 22,
+          "material": "M_SH_GlassDark"
+        },
+        {
+          "name": "SH_CLAY_Props_lamp",
+          "triangles": 44,
+          "material": "M_SH_LampWarm"
+        },
+        {
+          "name": "SH_CLAY_Props_metal",
+          "triangles": 130,
+          "material": "M_SH_Metal"
+        },
+        {
+          "name": "SH_CLAY_Props_oak",
+          "triangles": 64,
+          "material": "M_SH_OakBoards"
+        },
+        {
+          "name": "SH_CLAY_Props_paint",
+          "triangles": 724,
+          "material": "M_SH_Paint"
+        },
+        {
+          "name": "SH_CLAY_Props_trim",
+          "triangles": 26,
+          "material": "M_SH_TrimSheet"
+        },
+        {
+          "name": "SH_CLAY_Roof_clad",
+          "triangles": 10,
+          "material": "M_SH_FibreCementPaintedFace"
+        },
+        {
+          "name": "SH_CLAY_Roof_roof",
+          "triangles": 5912,
+          "material": "M_SH_RoofShingle"
+        },
+        {
+          "name": "SH_CLAY_Roof_roof_edge",
+          "triangles": 480,
+          "material": "M_SH_RidgeVerge"
+        },
+        {
+          "name": "SH_CLAY_Shell_clad",
+          "triangles": 84,
+          "material": "M_SH_FibreCementPaintedFace"
+        },
+        {
+          "name": "SH_CLAY_Shell_deck",
+          "triangles": 4,
+          "material": "M_SH_Decking"
+        },
+        {
+          "name": "SH_CLAY_Shell_frost",
+          "triangles": 8,
+          "material": "M_SH_GlassFrost"
+        },
+        {
+          "name": "SH_CLAY_Shell_printed",
+          "triangles": 25102,
+          "material": "M_SH_PrintedConcrete"
+        },
+        {
+          "name": "SH_CLAY_Shell_timber",
+          "triangles": 1536,
+          "material": "M_SH_TimberBoards"
+        },
+        {
+          "name": "SH_CLAY_Shell_trim",
+          "triangles": 208,
+          "material": "M_SH_TrimSheet"
+        },
+        {
+          "name": "SH_CLAY_Solar_solar",
+          "triangles": 108,
+          "material": "M_SH_SolarPanel"
+        },
+        {
+          "name": "SH_CLAY_Solar_trim",
+          "triangles": 1080,
+          "material": "M_SH_TrimSheet"
+        },
+        {
+          "name": "SH_CLAY_Trim_trim",
+          "triangles": 2072,
+          "material": "M_SH_TrimSheet"
+        },
+        {
+          "name": "SH_SAGE_Cladding_clad",
+          "triangles": 2258,
+          "material": "M_SH_FibreCementPaintedFace"
+        },
+        {
+          "name": "SH_SAGE_Doors_glass",
+          "triangles": 2,
+          "material": "M_SH_GlassDark"
+        },
+        {
+          "name": "SH_SAGE_Doors_metal",
+          "triangles": 70,
+          "material": "M_SH_Metal"
+        },
+        {
+          "name": "SH_SAGE_Doors_paint",
+          "triangles": 70,
+          "material": "M_SH_Paint"
+        },
+        {
+          "name": "SH_SAGE_Doors_trim",
+          "triangles": 10,
+          "material": "M_SH_TrimSheet"
+        },
+        {
+          "name": "SH_SAGE_Interior_concrete",
+          "triangles": 28,
+          "material": "M_SH_Concrete"
+        },
+        {
+          "name": "SH_SAGE_Interior_fabric",
+          "triangles": 184,
+          "material": "M_SH_Fabric"
+        },
+        {
+          "name": "SH_SAGE_Interior_lamp",
+          "triangles": 60,
+          "material": "M_SH_LampWarm"
+        },
+        {
+          "name": "SH_SAGE_Interior_oak",
+          "triangles": 184,
+          "material": "M_SH_OakBoards"
+        },
+        {
+          "name": "SH_SAGE_Interior_paint",
+          "triangles": 556,
+          "material": "M_SH_Paint"
+        },
+        {
+          "name": "SH_SAGE_Interior_plaster",
+          "triangles": 130,
+          "material": "M_SH_Plaster"
+        },
+        {
+          "name": "SH_SAGE_Interior_trim",
+          "triangles": 408,
+          "material": "M_SH_TrimSheet"
+        },
+        {
+          "name": "SH_SAGE_Props_fabric",
+          "triangles": 80,
+          "material": "M_SH_Fabric"
+        },
+        {
+          "name": "SH_SAGE_Props_glass",
+          "triangles": 22,
+          "material": "M_SH_GlassDark"
+        },
+        {
+          "name": "SH_SAGE_Props_lamp",
+          "triangles": 44,
+          "material": "M_SH_LampWarm"
+        },
+        {
+          "name": "SH_SAGE_Props_metal",
+          "triangles": 130,
+          "material": "M_SH_Metal"
+        },
+        {
+          "name": "SH_SAGE_Props_oak",
+          "triangles": 64,
+          "material": "M_SH_OakBoards"
+        },
+        {
+          "name": "SH_SAGE_Props_paint",
+          "triangles": 724,
+          "material": "M_SH_Paint"
+        },
+        {
+          "name": "SH_SAGE_Props_trim",
+          "triangles": 26,
+          "material": "M_SH_TrimSheet"
+        },
+        {
+          "name": "SH_SAGE_Roof_clad",
+          "triangles": 10,
+          "material": "M_SH_FibreCementPaintedFace"
+        },
+        {
+          "name": "SH_SAGE_Roof_roof",
+          "triangles": 5912,
+          "material": "M_SH_RoofShingle"
+        },
+        {
+          "name": "SH_SAGE_Roof_roof_edge",
+          "triangles": 480,
+          "material": "M_SH_RidgeVerge"
+        },
+        {
+          "name": "SH_SAGE_Shell_clad",
+          "triangles": 84,
+          "material": "M_SH_FibreCementPaintedFace"
+        },
+        {
+          "name": "SH_SAGE_Shell_deck",
+          "triangles": 4,
+          "material": "M_SH_Decking"
+        },
+        {
+          "name": "SH_SAGE_Shell_frost",
+          "triangles": 8,
+          "material": "M_SH_GlassFrost"
+        },
+        {
+          "name": "SH_SAGE_Shell_printed",
+          "triangles": 25102,
+          "material": "M_SH_PrintedConcrete"
+        },
+        {
+          "name": "SH_SAGE_Shell_timber",
+          "triangles": 1536,
+          "material": "M_SH_TimberBoards"
+        },
+        {
+          "name": "SH_SAGE_Shell_trim",
+          "triangles": 208,
+          "material": "M_SH_TrimSheet"
+        },
+        {
+          "name": "SH_SAGE_Solar_solar",
+          "triangles": 108,
+          "material": "M_SH_SolarPanel"
+        },
+        {
+          "name": "SH_SAGE_Solar_trim",
+          "triangles": 1080,
+          "material": "M_SH_TrimSheet"
+        },
+        {
+          "name": "SH_SAGE_Trim_trim",
+          "triangles": 2072,
+          "material": "M_SH_TrimSheet"
+        }
+      ]
+    },
+    {
+      "path": "kit\\ground.glb",
+      "status": "PASS",
+      "sha256": "d1dee9a337753e2cc75add5ec13f0c69ec5fd6c83be24e505b36fb6017b6c1d5",
+      "bytes": 31424508,
+      "meshes": 137,
+      "materials": 69,
+      "images": 70,
+      "unique_triangles": 370702,
+      "instanced_triangles": 370702,
+      "roots": [
+        "GND_AcousticFence_N_Root",
+        "GND_BoundaryWall_S_Root",
+        "GND_FarPlane_Root",
+        "GND_GardenWalls_Root",
+        "GND_Ground_Root",
+        "GND_LawnPlanters_Root",
+        "GND_Overlays_Root",
+        "GND_Skirt_Root",
+        "GND_VegBeds_Root",
+        "PROP_Arbour__E_ARBOUR_Root",
+        "PROP_Arbour__W_ARBOUR_Root",
+        "PROP_Fence_Run_N__E_FENCE_FN_Root",
+        "PROP_Fence_Run_N__W_FENCE_FN_Root",
+        "PROP_Fence_Run_S__E_FENCE_FS_Root",
+        "PROP_Fence_Run_S__W_FENCE_FS_Root",
+        "PROP_Hedge_Boundary__E_HEDGE_Root",
+        "PROP_Hedge_Boundary__W_HEDGE_Root",
+        "PROP_Hedge_Lawn__E_HEDGE_LAWN_Root",
+        "PROP_Hedge_Lawn__W_HEDGE_LAWN_Root",
+        "PROP_KerbPod__E_KERBPOD_Root",
+        "PROP_KerbPod__W_KERBPOD_Root",
+        "PROP_MoverTruck__C_MOVER_BOX_Root",
+        "PROP_Pylon__E_PYLON_MAST_Root",
+        "PROP_Pylon__W_PYLON_MAST_Root",
+        "PROP_Zipline_Cable__ZIPLINE_Root"
+      ],
+      "problems": [],
+      "mesh_counts": [
+        {
+          "name": "GND_AcousticFence_N_Root__M_GND_Plinth",
+          "triangles": 108,
+          "material": "M_GND_Plinth"
+        },
+        {
+          "name": "GND_AcousticFence_N_Root__M_GND_TimberDark",
+          "triangles": 3456,
+          "material": "M_GND_TimberDark"
+        },
+        {
+          "name": "GND_AcousticFence_N_Root__M_WoodStained",
+          "triangles": 3240,
+          "material": "M_WoodStained"
+        },
+        {
+          "name": "GND_BoundaryWall_S_Root__M_GND_CladClay",
+          "triangles": 648,
+          "material": "M_GND_CladClay"
+        },
+        {
+          "name": "GND_BoundaryWall_S_Root__M_GND_CladSage",
+          "triangles": 648,
+          "material": "M_GND_CladSage"
+        },
+        {
+          "name": "GND_BoundaryWall_S_Root__M_GND_Coping",
+          "triangles": 108,
+          "material": "M_GND_Coping"
+        },
+        {
+          "name": "GND_BoundaryWall_S_Root__M_GND_Pilaster",
+          "triangles": 1404,
+          "material": "M_GND_Pilaster"
+        },
+        {
+          "name": "GND_BoundaryWall_S_Root__M_GND_Plinth",
+          "triangles": 108,
+          "material": "M_GND_Plinth"
+        },
+        {
+          "name": "GND_BoundaryWall_S_Root__M_GND_WallPrinted",
+          "triangles": 1296,
+          "material": "M_GND_WallPrinted"
+        },
+        {
+          "name": "GND_FarPlane_Root__M_GND_GrassFar",
+          "triangles": 8,
+          "material": "M_GND_GrassFar"
+        },
+        {
+          "name": "GND_GardenWalls_Root__M_GND_CladClay",
+          "triangles": 432,
+          "material": "M_GND_CladClay"
+        },
+        {
+          "name": "GND_GardenWalls_Root__M_GND_CladSage",
+          "triangles": 432,
+          "material": "M_GND_CladSage"
+        },
+        {
+          "name": "GND_GardenWalls_Root__M_GND_Coping",
+          "triangles": 1080,
+          "material": "M_GND_Coping"
+        },
+        {
+          "name": "GND_GardenWalls_Root__M_GND_Plinth",
+          "triangles": 1080,
+          "material": "M_GND_Plinth"
+        },
+        {
+          "name": "GND_GardenWalls_Root__M_GND_WallPrinted",
+          "triangles": 1080,
+          "material": "M_GND_WallPrinted"
+        },
+        {
+          "name": "GND_Ground_Root__M_GND_Asphalt",
+          "triangles": 14300,
+          "material": "M_GND_Asphalt"
+        },
+        {
+          "name": "GND_Ground_Root__M_GND_AsphaltOld",
+          "triangles": 11368,
+          "material": "M_GND_AsphaltOld"
+        },
+        {
+          "name": "GND_Ground_Root__M_GND_Concrete",
+          "triangles": 4420,
+          "material": "M_GND_Concrete"
+        },
+        {
+          "name": "GND_Ground_Root__M_GND_Edging",
+          "triangles": 2788,
+          "material": "M_GND_Edging"
+        },
+        {
+          "name": "GND_Ground_Root__M_GND_Grass",
+          "triangles": 19108,
+          "material": "M_GND_Grass"
+        },
+        {
+          "name": "GND_Ground_Root__M_GND_Gravel",
+          "triangles": 9788,
+          "material": "M_GND_Gravel"
+        },
+        {
+          "name": "GND_Ground_Root__M_GND_Kerb",
+          "triangles": 3044,
+          "material": "M_GND_Kerb"
+        },
+        {
+          "name": "GND_Ground_Root__M_GND_Mulch",
+          "triangles": 4836,
+          "material": "M_GND_Mulch"
+        },
+        {
+          "name": "GND_Ground_Root__M_GND_PaintClay",
+          "triangles": 848,
+          "material": "M_GND_PaintClay"
+        },
+        {
+          "name": "GND_Ground_Root__M_GND_PaintSage",
+          "triangles": 848,
+          "material": "M_GND_PaintSage"
+        },
+        {
+          "name": "GND_Ground_Root__M_GND_Paving",
+          "triangles": 18260,
+          "material": "M_GND_Paving"
+        },
+        {
+          "name": "GND_Ground_Root__M_GND_PavingClay",
+          "triangles": 7622,
+          "material": "M_GND_PavingClay"
+        },
+        {
+          "name": "GND_Ground_Root__M_GND_PavingSage",
+          "triangles": 7622,
+          "material": "M_GND_PavingSage"
+        },
+        {
+          "name": "GND_Ground_Root__M_GND_Soil",
+          "triangles": 1456,
+          "material": "M_GND_Soil"
+        },
+        {
+          "name": "GND_Ground_Root__M_GND_SteelEdging",
+          "triangles": 860,
+          "material": "M_GND_SteelEdging"
+        },
+        {
+          "name": "GND_LawnPlanters_Root__M_GND_Coping",
+          "triangles": 432,
+          "material": "M_GND_Coping"
+        },
+        {
+          "name": "GND_LawnPlanters_Root__M_GND_WallPrinted",
+          "triangles": 432,
+          "material": "M_GND_WallPrinted"
+        },
+        {
+          "name": "GND_LawnPlanters_Root__M_Hedge",
+          "triangles": 3520,
+          "material": "M_Hedge"
+        },
+        {
+          "name": "GND_Overlays_Root__M_GND_Gully",
+          "triangles": 28,
+          "material": "M_GND_Gully"
+        },
+        {
+          "name": "GND_Overlays_Root__M_GND_Inspection",
+          "triangles": 20,
+          "material": "M_GND_Inspection"
+        },
+        {
+          "name": "GND_Overlays_Root__M_GND_Kerb",
+          "triangles": 7040,
+          "material": "M_GND_Kerb"
+        },
+        {
+          "name": "GND_Overlays_Root__M_GND_LineWhite",
+          "triangles": 280,
+          "material": "M_GND_LineWhite"
+        },
+        {
+          "name": "GND_Overlays_Root__M_GND_LineYellow",
+          "triangles": 16,
+          "material": "M_GND_LineYellow"
+        },
+        {
+          "name": "GND_Overlays_Root__M_GND_Manhole",
+          "triangles": 288,
+          "material": "M_GND_Manhole"
+        },
+        {
+          "name": "GND_Overlays_Root__M_GND_Paving",
+          "triangles": 296,
+          "material": "M_GND_Paving"
+        },
+        {
+          "name": "GND_Overlays_Root__M_GND_Soil",
+          "triangles": 80,
+          "material": "M_GND_Soil"
+        },
+        {
+          "name": "GND_Skirt_Root__M_GND_Asphalt",
+          "triangles": 4124,
+          "material": "M_GND_Asphalt"
+        },
+        {
+          "name": "GND_Skirt_Root__M_GND_AsphaltOld",
+          "triangles": 960,
+          "material": "M_GND_AsphaltOld"
+        },
+        {
+          "name": "GND_Skirt_Root__M_GND_Concrete",
+          "triangles": 6784,
+          "material": "M_GND_Concrete"
+        },
+        {
+          "name": "GND_Skirt_Root__M_GND_Edging",
+          "triangles": 12086,
+          "material": "M_GND_Edging"
+        },
+        {
+          "name": "GND_Skirt_Root__M_GND_Grass",
+          "triangles": 39464,
+          "material": "M_GND_Grass"
+        },
+        {
+          "name": "GND_Skirt_Root__M_GND_Gravel",
+          "triangles": 608,
+          "material": "M_GND_Gravel"
+        },
+        {
+          "name": "GND_Skirt_Root__M_GND_Kerb",
+          "triangles": 28268,
+          "material": "M_GND_Kerb"
+        },
+        {
+          "name": "GND_Skirt_Root__M_GND_Paving",
+          "triangles": 37708,
+          "material": "M_GND_Paving"
+        },
+        {
+          "name": "GND_Skirt_Root__M_GND_Sand",
+          "triangles": 9192,
+          "material": "M_GND_Sand"
+        },
+        {
+          "name": "GND_Skirt_Root__M_GND_SoilFar",
+          "triangles": 392,
+          "material": "M_GND_SoilFar"
+        },
+        {
+          "name": "GND_Skirt_Root__M_GND_SteelEdging",
+          "triangles": 36,
+          "material": "M_GND_SteelEdging"
+        },
+        {
+          "name": "GND_VegBeds_Root__M_Crop",
+          "triangles": 720,
+          "material": "M_Crop"
+        },
+        {
+          "name": "GND_VegBeds_Root__M_CropDark",
+          "triangles": 640,
+          "material": "M_CropDark"
+        },
+        {
+          "name": "GND_VegBeds_Root__M_GND_TimberDark",
+          "triangles": 3456,
+          "material": "M_GND_TimberDark"
+        },
+        {
+          "name": "GND_VegBeds_Root__M_Soil",
+          "triangles": 48,
+          "material": "M_Soil"
+        },
+        {
+          "name": "GND_VegBeds_Root__M_WoodStainedH",
+          "triangles": 1728,
+          "material": "M_WoodStainedH"
+        },
+        {
+          "name": "PROP_Arbour__E_ARBOUR_Root__M_Flower",
+          "triangles": 620,
+          "material": "M_Flower"
+        },
+        {
+          "name": "PROP_Arbour__E_ARBOUR_Root__M_FlowerWhite",
+          "triangles": 580,
+          "material": "M_FlowerWhite"
+        },
+        {
+          "name": "PROP_Arbour__E_ARBOUR_Root__M_Timber",
+          "triangles": 2052,
+          "material": "M_Timber"
+        },
+        {
+          "name": "PROP_Arbour__E_ARBOUR_Root__M_Vine",
+          "triangles": 2416,
+          "material": "M_Vine"
+        },
+        {
+          "name": "PROP_Arbour__W_ARBOUR_Root__M_Flower",
+          "triangles": 620,
+          "material": "M_Flower"
+        },
+        {
+          "name": "PROP_Arbour__W_ARBOUR_Root__M_FlowerWhite",
+          "triangles": 580,
+          "material": "M_FlowerWhite"
+        },
+        {
+          "name": "PROP_Arbour__W_ARBOUR_Root__M_Timber",
+          "triangles": 2052,
+          "material": "M_Timber"
+        },
+        {
+          "name": "PROP_Arbour__W_ARBOUR_Root__M_Vine",
+          "triangles": 2416,
+          "material": "M_Vine"
+        },
+        {
+          "name": "PROP_Fence_Run_N__E_FENCE_FN_Root__M_Picket",
+          "triangles": 4464,
+          "material": "M_Picket"
+        },
+        {
+          "name": "PROP_Fence_Run_N__E_FENCE_FN_Root__M_PicketBack",
+          "triangles": 180,
+          "material": "M_PicketBack"
+        },
+        {
+          "name": "PROP_Fence_Run_N__W_FENCE_FN_Root__M_Picket",
+          "triangles": 4464,
+          "material": "M_Picket"
+        },
+        {
+          "name": "PROP_Fence_Run_N__W_FENCE_FN_Root__M_PicketBack",
+          "triangles": 180,
+          "material": "M_PicketBack"
+        },
+        {
+          "name": "PROP_Fence_Run_S__E_FENCE_FS_Root__M_Picket",
+          "triangles": 9492,
+          "material": "M_Picket"
+        },
+        {
+          "name": "PROP_Fence_Run_S__E_FENCE_FS_Root__M_PicketBack",
+          "triangles": 252,
+          "material": "M_PicketBack"
+        },
+        {
+          "name": "PROP_Fence_Run_S__W_FENCE_FS_Root__M_Picket",
+          "triangles": 9492,
+          "material": "M_Picket"
+        },
+        {
+          "name": "PROP_Fence_Run_S__W_FENCE_FS_Root__M_PicketBack",
+          "triangles": 252,
+          "material": "M_PicketBack"
+        },
+        {
+          "name": "PROP_Hedge_Boundary__E_HEDGE_Root__M_Hedge",
+          "triangles": 8540,
+          "material": "M_Hedge"
+        },
+        {
+          "name": "PROP_Hedge_Boundary__W_HEDGE_Root__M_Hedge",
+          "triangles": 8540,
+          "material": "M_Hedge"
+        },
+        {
+          "name": "PROP_Hedge_Lawn__E_HEDGE_LAWN_Root__M_Hedge",
+          "triangles": 1300,
+          "material": "M_Hedge"
+        },
+        {
+          "name": "PROP_Hedge_Lawn__W_HEDGE_LAWN_Root__M_Hedge",
+          "triangles": 1300,
+          "material": "M_Hedge"
+        },
+        {
+          "name": "PROP_KerbPod__E_KERBPOD_Root__M_ArchLiner",
+          "triangles": 256,
+          "material": "M_ArchLiner"
+        },
+        {
+          "name": "PROP_KerbPod__E_KERBPOD_Root__M_Bumper",
+          "triangles": 948,
+          "material": "M_Bumper"
+        },
+        {
+          "name": "PROP_KerbPod__E_KERBPOD_Root__M_CabinetWhite",
+          "triangles": 1296,
+          "material": "M_CabinetWhite"
+        },
+        {
+          "name": "PROP_KerbPod__E_KERBPOD_Root__M_Chassis",
+          "triangles": 320,
+          "material": "M_Chassis"
+        },
+        {
+          "name": "PROP_KerbPod__E_KERBPOD_Root__M_DecalAccent",
+          "triangles": 24,
+          "material": "M_DecalAccent"
+        },
+        {
+          "name": "PROP_KerbPod__E_KERBPOD_Root__M_GlassDark",
+          "triangles": 660,
+          "material": "M_GlassDark"
+        },
+        {
+          "name": "PROP_KerbPod__E_KERBPOD_Root__M_LedIce",
+          "triangles": 120,
+          "material": "M_LedIce"
+        },
+        {
+          "name": "PROP_KerbPod__E_KERBPOD_Root__M_Rim",
+          "triangles": 944,
+          "material": "M_Rim"
+        },
+        {
+          "name": "PROP_KerbPod__E_KERBPOD_Root__M_TailLight",
+          "triangles": 108,
+          "material": "M_TailLight"
+        },
+        {
+          "name": "PROP_KerbPod__E_KERBPOD_Root__M_TruckWhite",
+          "triangles": 300,
+          "material": "M_TruckWhite"
+        },
+        {
+          "name": "PROP_KerbPod__E_KERBPOD_Root__M_Tyre",
+          "triangles": 1776,
+          "material": "M_Tyre"
+        },
+        {
+          "name": "PROP_KerbPod__W_KERBPOD_Root__M_ArchLiner",
+          "triangles": 256,
+          "material": "M_ArchLiner"
+        },
+        {
+          "name": "PROP_KerbPod__W_KERBPOD_Root__M_Bumper",
+          "triangles": 948,
+          "material": "M_Bumper"
+        },
+        {
+          "name": "PROP_KerbPod__W_KERBPOD_Root__M_CabinetWhite",
+          "triangles": 1296,
+          "material": "M_CabinetWhite"
+        },
+        {
+          "name": "PROP_KerbPod__W_KERBPOD_Root__M_Chassis",
+          "triangles": 320,
+          "material": "M_Chassis"
+        },
+        {
+          "name": "PROP_KerbPod__W_KERBPOD_Root__M_DecalAccent",
+          "triangles": 24,
+          "material": "M_DecalAccent"
+        },
+        {
+          "name": "PROP_KerbPod__W_KERBPOD_Root__M_GlassDark",
+          "triangles": 660,
+          "material": "M_GlassDark"
+        },
+        {
+          "name": "PROP_KerbPod__W_KERBPOD_Root__M_LedIce",
+          "triangles": 120,
+          "material": "M_LedIce"
+        },
+        {
+          "name": "PROP_KerbPod__W_KERBPOD_Root__M_Rim",
+          "triangles": 944,
+          "material": "M_Rim"
+        },
+        {
+          "name": "PROP_KerbPod__W_KERBPOD_Root__M_TailLight",
+          "triangles": 108,
+          "material": "M_TailLight"
+        },
+        {
+          "name": "PROP_KerbPod__W_KERBPOD_Root__M_TruckWhite",
+          "triangles": 300,
+          "material": "M_TruckWhite"
+        },
+        {
+          "name": "PROP_KerbPod__W_KERBPOD_Root__M_Tyre",
+          "triangles": 1776,
+          "material": "M_Tyre"
+        },
+        {
+          "name": "PROP_MoverTruck__C_MOVER_BOX_Root__M_AluTrim",
+          "triangles": 736,
+          "material": "M_AluTrim"
+        },
+        {
+          "name": "PROP_MoverTruck__C_MOVER_BOX_Root__M_Amber",
+          "triangles": 312,
+          "material": "M_Amber"
+        },
+        {
+          "name": "PROP_MoverTruck__C_MOVER_BOX_Root__M_ArchLiner",
+          "triangles": 256,
+          "material": "M_ArchLiner"
+        },
+        {
+          "name": "PROP_MoverTruck__C_MOVER_BOX_Root__M_BoxDark",
+          "triangles": 12,
+          "material": "M_BoxDark"
+        },
+        {
+          "name": "PROP_MoverTruck__C_MOVER_BOX_Root__M_BoxFace",
+          "triangles": 648,
+          "material": "M_BoxFace"
+        },
+        {
+          "name": "PROP_MoverTruck__C_MOVER_BOX_Root__M_Bumper",
+          "triangles": 576,
+          "material": "M_Bumper"
+        },
+        {
+          "name": "PROP_MoverTruck__C_MOVER_BOX_Root__M_CabinetWhite",
+          "triangles": 432,
+          "material": "M_CabinetWhite"
+        },
+        {
+          "name": "PROP_MoverTruck__C_MOVER_BOX_Root__M_Chassis",
+          "triangles": 1460,
+          "material": "M_Chassis"
+        },
+        {
+          "name": "PROP_MoverTruck__C_MOVER_BOX_Root__M_DecalAccent",
+          "triangles": 308,
+          "material": "M_DecalAccent"
+        },
+        {
+          "name": "PROP_MoverTruck__C_MOVER_BOX_Root__M_DecalDark",
+          "triangles": 24,
+          "material": "M_DecalDark"
+        },
+        {
+          "name": "PROP_MoverTruck__C_MOVER_BOX_Root__M_GlassDark",
+          "triangles": 648,
+          "material": "M_GlassDark"
+        },
+        {
+          "name": "PROP_MoverTruck__C_MOVER_BOX_Root__M_HeadLight",
+          "triangles": 432,
+          "material": "M_HeadLight"
+        },
+        {
+          "name": "PROP_MoverTruck__C_MOVER_BOX_Root__M_LedIce",
+          "triangles": 12,
+          "material": "M_LedIce"
+        },
+        {
+          "name": "PROP_MoverTruck__C_MOVER_BOX_Root__M_Plate",
+          "triangles": 108,
+          "material": "M_Plate"
+        },
+        {
+          "name": "PROP_MoverTruck__C_MOVER_BOX_Root__M_Rim",
+          "triangles": 944,
+          "material": "M_Rim"
+        },
+        {
+          "name": "PROP_MoverTruck__C_MOVER_BOX_Root__M_Rubber",
+          "triangles": 672,
+          "material": "M_Rubber"
+        },
+        {
+          "name": "PROP_MoverTruck__C_MOVER_BOX_Root__M_TailLight",
+          "triangles": 48,
+          "material": "M_TailLight"
+        },
+        {
+          "name": "PROP_MoverTruck__C_MOVER_BOX_Root__M_TruckWhite",
+          "triangles": 1384,
+          "material": "M_TruckWhite"
+        },
+        {
+          "name": "PROP_MoverTruck__C_MOVER_BOX_Root__M_Tyre",
+          "triangles": 2664,
+          "material": "M_Tyre"
+        },
+        {
+          "name": "PROP_Pylon__E_PYLON_MAST_Root__M_CabinetWhite",
+          "triangles": 108,
+          "material": "M_CabinetWhite"
+        },
+        {
+          "name": "PROP_Pylon__E_PYLON_MAST_Root__M_Cable",
+          "triangles": 32,
+          "material": "M_Cable"
+        },
+        {
+          "name": "PROP_Pylon__E_PYLON_MAST_Root__M_Concrete",
+          "triangles": 108,
+          "material": "M_Concrete"
+        },
+        {
+          "name": "PROP_Pylon__E_PYLON_MAST_Root__M_Grating",
+          "triangles": 108,
+          "material": "M_Grating"
+        },
+        {
+          "name": "PROP_Pylon__E_PYLON_MAST_Root__M_Insulator",
+          "triangles": 280,
+          "material": "M_Insulator"
+        },
+        {
+          "name": "PROP_Pylon__E_PYLON_MAST_Root__M_PoleConcrete",
+          "triangles": 108,
+          "material": "M_PoleConcrete"
+        },
+        {
+          "name": "PROP_Pylon__E_PYLON_MAST_Root__M_SafetyYellow",
+          "triangles": 540,
+          "material": "M_SafetyYellow"
+        },
+        {
+          "name": "PROP_Pylon__E_PYLON_MAST_Root__M_SteelDark",
+          "triangles": 276,
+          "material": "M_SteelDark"
+        },
+        {
+          "name": "PROP_Pylon__E_PYLON_MAST_Root__M_SteelGalv",
+          "triangles": 444,
+          "material": "M_SteelGalv"
+        },
+        {
+          "name": "PROP_Pylon__W_PYLON_MAST_Root__M_CabinetWhite",
+          "triangles": 108,
+          "material": "M_CabinetWhite"
+        },
+        {
+          "name": "PROP_Pylon__W_PYLON_MAST_Root__M_Cable",
+          "triangles": 32,
+          "material": "M_Cable"
+        },
+        {
+          "name": "PROP_Pylon__W_PYLON_MAST_Root__M_Concrete",
+          "triangles": 108,
+          "material": "M_Concrete"
+        },
+        {
+          "name": "PROP_Pylon__W_PYLON_MAST_Root__M_Grating",
+          "triangles": 108,
+          "material": "M_Grating"
+        },
+        {
+          "name": "PROP_Pylon__W_PYLON_MAST_Root__M_Insulator",
+          "triangles": 280,
+          "material": "M_Insulator"
+        },
+        {
+          "name": "PROP_Pylon__W_PYLON_MAST_Root__M_PoleConcrete",
+          "triangles": 108,
+          "material": "M_PoleConcrete"
+        },
+        {
+          "name": "PROP_Pylon__W_PYLON_MAST_Root__M_SafetyYellow",
+          "triangles": 540,
+          "material": "M_SafetyYellow"
+        },
+        {
+          "name": "PROP_Pylon__W_PYLON_MAST_Root__M_SteelDark",
+          "triangles": 276,
+          "material": "M_SteelDark"
+        },
+        {
+          "name": "PROP_Pylon__W_PYLON_MAST_Root__M_SteelGalv",
+          "triangles": 444,
+          "material": "M_SteelGalv"
+        },
+        {
+          "name": "PROP_Zipline_Cable__ZIPLINE_Root__M_Cable",
+          "triangles": 780,
+          "material": "M_Cable"
+        }
+      ]
+    },
+    {
+      "path": "kit\\props.glb",
+      "status": "PASS",
+      "sha256": "0c87c6c6a574759821d9b996060833fbc4b485d4894265492627530ae8587085",
+      "bytes": 16823404,
+      "meshes": 232,
+      "materials": 78,
+      "images": 45,
+      "unique_triangles": 175896,
+      "instanced_triangles": 175896,
+      "roots": [
+        "PROP_Arbour_Root",
+        "PROP_Armchair_Root",
+        "PROP_BinStore_Root",
+        "PROP_Box_L_Root",
+        "PROP_Box_M_Open_Root",
+        "PROP_Box_M_Root",
+        "PROP_Box_S_Root",
+        "PROP_BoxStack_1m_Root",
+        "PROP_CementBag_Root",
+        "PROP_CementBagPallet_Root",
+        "PROP_ChargerIsland_Root",
+        "PROP_Crate_Wood_1m_Root",
+        "PROP_DirtMound_Root",
+        "PROP_Dresser_Root",
+        "PROP_Fence_Gate_1m_Root",
+        "PROP_Fence_Picket_1m_Root",
+        "PROP_Fence_Picket_2m_Root",
+        "PROP_Fence_Post_Root",
+        "PROP_Fence_Run_N_Root",
+        "PROP_Fence_Run_S_Root",
+        "PROP_GarageCar_Root",
+        "PROP_Greenhouse_Clay_Root",
+        "PROP_Greenhouse_Sage_Root",
+        "PROP_HeatPump_Root",
+        "PROP_Hedge_Block_2m_Root",
+        "PROP_Hedge_Block_4m_Tall_Root",
+        "PROP_Hedge_Boundary_Root",
+        "PROP_Hedge_Lawn_Root",
+        "PROP_HotTub_Root",
+        "PROP_KerbPod_Root",
+        "PROP_KitchenIsland_Root",
+        "PROP_ModelTable_Root",
+        "PROP_MoverTruck_Root",
+        "PROP_OutdoorKitchen_Root",
+        "PROP_Pallet_Root",
+        "PROP_ParcelHub_Root",
+        "PROP_ParcelLockers_Root",
+        "PROP_PebbleCluster_Root",
+        "PROP_PlasticBarrier_Root",
+        "PROP_PrintedBlockStack_Root",
+        "PROP_Pylon_Root",
+        "PROP_RainTank_Root",
+        "PROP_RebarBundle_Root",
+        "PROP_Rock_Low_Root",
+        "PROP_Rock_Tall_Root",
+        "PROP_SalesOffice_Root",
+        "PROP_SandMound_Root",
+        "PROP_Shed_Clay_Root",
+        "PROP_Shed_Sage_Root",
+        "PROP_Shelving_Root",
+        "PROP_ShuttleStop_Root",
+        "PROP_Sofa_Root",
+        "PROP_Studio_Clay_Root",
+        "PROP_Studio_Sage_Root",
+        "PROP_TrafficCone_Root",
+        "PROP_Wire_Span_20m_Root",
+        "PROP_Workbench_Root",
+        "PROP_Zipline_Cable_Root"
+      ],
+      "problems": [],
+      "mesh_counts": [
+        {
+          "name": "PROP_Arbour_Root__M_Flower",
+          "triangles": 620,
+          "material": "M_Flower"
+        },
+        {
+          "name": "PROP_Arbour_Root__M_FlowerWhite",
+          "triangles": 580,
+          "material": "M_FlowerWhite"
+        },
+        {
+          "name": "PROP_Arbour_Root__M_Timber",
+          "triangles": 2052,
+          "material": "M_Timber"
+        },
+        {
+          "name": "PROP_Arbour_Root__M_Vine",
+          "triangles": 2416,
+          "material": "M_Vine"
+        },
+        {
+          "name": "PROP_Armchair_Root__M_BoxFace",
+          "triangles": 108,
+          "material": "M_BoxFace"
+        },
+        {
+          "name": "PROP_Armchair_Root__M_Cardboard",
+          "triangles": 44,
+          "material": "M_Cardboard"
+        },
+        {
+          "name": "PROP_Armchair_Root__M_FabricOrange",
+          "triangles": 432,
+          "material": "M_FabricOrange"
+        },
+        {
+          "name": "PROP_Armchair_Root__M_FabricOrangeDark",
+          "triangles": 152,
+          "material": "M_FabricOrangeDark"
+        },
+        {
+          "name": "PROP_Armchair_Root__M_PackingTape",
+          "triangles": 36,
+          "material": "M_PackingTape"
+        },
+        {
+          "name": "PROP_Armchair_Root__M_WoodLeg",
+          "triangles": 108,
+          "material": "M_WoodLeg"
+        },
+        {
+          "name": "PROP_BinStore_Root__M_BinGrey",
+          "triangles": 132,
+          "material": "M_BinGrey"
+        },
+        {
+          "name": "PROP_BinStore_Root__M_BinLidBlue",
+          "triangles": 44,
+          "material": "M_BinLidBlue"
+        },
+        {
+          "name": "PROP_BinStore_Root__M_BinLidBrown",
+          "triangles": 44,
+          "material": "M_BinLidBrown"
+        },
+        {
+          "name": "PROP_BinStore_Root__M_BinLidGreen",
+          "triangles": 44,
+          "material": "M_BinLidGreen"
+        },
+        {
+          "name": "PROP_BinStore_Root__M_SteelDark",
+          "triangles": 36,
+          "material": "M_SteelDark"
+        },
+        {
+          "name": "PROP_BinStore_Root__M_TimberH",
+          "triangles": 44,
+          "material": "M_TimberH"
+        },
+        {
+          "name": "PROP_BinStore_Root__M_WoodStained",
+          "triangles": 44,
+          "material": "M_WoodStained"
+        },
+        {
+          "name": "PROP_Box_L_Root__M_BoxFace",
+          "triangles": 108,
+          "material": "M_BoxFace"
+        },
+        {
+          "name": "PROP_Box_L_Root__M_PackingTape",
+          "triangles": 36,
+          "material": "M_PackingTape"
+        },
+        {
+          "name": "PROP_Box_M_Open_Root__M_BoxDark",
+          "triangles": 12,
+          "material": "M_BoxDark"
+        },
+        {
+          "name": "PROP_Box_M_Open_Root__M_Cardboard",
+          "triangles": 76,
+          "material": "M_Cardboard"
+        },
+        {
+          "name": "PROP_Box_M_Root__M_BoxFace",
+          "triangles": 108,
+          "material": "M_BoxFace"
+        },
+        {
+          "name": "PROP_Box_M_Root__M_PackingTape",
+          "triangles": 36,
+          "material": "M_PackingTape"
+        },
+        {
+          "name": "PROP_Box_S_Root__M_BoxFace",
+          "triangles": 108,
+          "material": "M_BoxFace"
+        },
+        {
+          "name": "PROP_Box_S_Root__M_PackingTape",
+          "triangles": 36,
+          "material": "M_PackingTape"
+        },
+        {
+          "name": "PROP_BoxStack_1m_Root__M_BoxFace",
+          "triangles": 324,
+          "material": "M_BoxFace"
+        },
+        {
+          "name": "PROP_BoxStack_1m_Root__M_Cardboard",
+          "triangles": 44,
+          "material": "M_Cardboard"
+        },
+        {
+          "name": "PROP_BoxStack_1m_Root__M_PackingTape",
+          "triangles": 108,
+          "material": "M_PackingTape"
+        },
+        {
+          "name": "PROP_CementBag_Root__M_BagStripe",
+          "triangles": 88,
+          "material": "M_BagStripe"
+        },
+        {
+          "name": "PROP_CementBag_Root__M_CementBag",
+          "triangles": 196,
+          "material": "M_CementBag"
+        },
+        {
+          "name": "PROP_CementBagPallet_Root__M_BagStripe",
+          "triangles": 1408,
+          "material": "M_BagStripe"
+        },
+        {
+          "name": "PROP_CementBagPallet_Root__M_CementBag",
+          "triangles": 3136,
+          "material": "M_CementBag"
+        },
+        {
+          "name": "PROP_CementBagPallet_Root__M_TimberH",
+          "triangles": 352,
+          "material": "M_TimberH"
+        },
+        {
+          "name": "PROP_ChargerIsland_Root__M_Anthracite",
+          "triangles": 432,
+          "material": "M_Anthracite"
+        },
+        {
+          "name": "PROP_ChargerIsland_Root__M_CabinetWhite",
+          "triangles": 108,
+          "material": "M_CabinetWhite"
+        },
+        {
+          "name": "PROP_ChargerIsland_Root__M_Cable",
+          "triangles": 176,
+          "material": "M_Cable"
+        },
+        {
+          "name": "PROP_ChargerIsland_Root__M_Concrete",
+          "triangles": 44,
+          "material": "M_Concrete"
+        },
+        {
+          "name": "PROP_ChargerIsland_Root__M_GlassDark",
+          "triangles": 432,
+          "material": "M_GlassDark"
+        },
+        {
+          "name": "PROP_Crate_Wood_1m_Root__M_Batten",
+          "triangles": 1992,
+          "material": "M_Batten"
+        },
+        {
+          "name": "PROP_Crate_Wood_1m_Root__M_Plywood",
+          "triangles": 108,
+          "material": "M_Plywood"
+        },
+        {
+          "name": "PROP_Crate_Wood_1m_Root__M_Stencil",
+          "triangles": 48,
+          "material": "M_Stencil"
+        },
+        {
+          "name": "PROP_DirtMound_Root__M_SiteDirt",
+          "triangles": 80,
+          "material": "M_SiteDirt"
+        },
+        {
+          "name": "PROP_Dresser_Root__M_SteelDark",
+          "triangles": 432,
+          "material": "M_SteelDark"
+        },
+        {
+          "name": "PROP_Dresser_Root__M_TimberH",
+          "triangles": 176,
+          "material": "M_TimberH"
+        },
+        {
+          "name": "PROP_Dresser_Root__M_WoodStained",
+          "triangles": 44,
+          "material": "M_WoodStained"
+        },
+        {
+          "name": "PROP_Fence_Gate_1m_Root__M_Picket",
+          "triangles": 448,
+          "material": "M_Picket"
+        },
+        {
+          "name": "PROP_Fence_Gate_1m_Root__M_PicketBack",
+          "triangles": 228,
+          "material": "M_PicketBack"
+        },
+        {
+          "name": "PROP_Fence_Gate_1m_Root__M_SteelDark",
+          "triangles": 12,
+          "material": "M_SteelDark"
+        },
+        {
+          "name": "PROP_Fence_Picket_1m_Root__M_Picket",
+          "triangles": 888,
+          "material": "M_Picket"
+        },
+        {
+          "name": "PROP_Fence_Picket_1m_Root__M_PicketBack",
+          "triangles": 132,
+          "material": "M_PicketBack"
+        },
+        {
+          "name": "PROP_Fence_Picket_2m_Root__M_Picket",
+          "triangles": 1784,
+          "material": "M_Picket"
+        },
+        {
+          "name": "PROP_Fence_Picket_2m_Root__M_PicketBack",
+          "triangles": 132,
+          "material": "M_PicketBack"
+        },
+        {
+          "name": "PROP_Fence_Post_Root__M_Picket",
+          "triangles": 152,
+          "material": "M_Picket"
+        },
+        {
+          "name": "PROP_Fence_Run_N_Root__M_Picket",
+          "triangles": 4464,
+          "material": "M_Picket"
+        },
+        {
+          "name": "PROP_Fence_Run_N_Root__M_PicketBack",
+          "triangles": 180,
+          "material": "M_PicketBack"
+        },
+        {
+          "name": "PROP_Fence_Run_S_Root__M_Picket",
+          "triangles": 9492,
+          "material": "M_Picket"
+        },
+        {
+          "name": "PROP_Fence_Run_S_Root__M_PicketBack",
+          "triangles": 252,
+          "material": "M_PicketBack"
+        },
+        {
+          "name": "PROP_GarageCar_Root__M_CarSilver",
+          "triangles": 288,
+          "material": "M_CarSilver"
+        },
+        {
+          "name": "PROP_GarageCar_Root__M_GlassDark",
+          "triangles": 108,
+          "material": "M_GlassDark"
+        },
+        {
+          "name": "PROP_GarageCar_Root__M_HeadLight",
+          "triangles": 216,
+          "material": "M_HeadLight"
+        },
+        {
+          "name": "PROP_GarageCar_Root__M_Rim",
+          "triangles": 176,
+          "material": "M_Rim"
+        },
+        {
+          "name": "PROP_GarageCar_Root__M_Tyre",
+          "triangles": 240,
+          "material": "M_Tyre"
+        },
+        {
+          "name": "PROP_Greenhouse_Clay_Root__M_Concrete",
+          "triangles": 12,
+          "material": "M_Concrete"
+        },
+        {
+          "name": "PROP_Greenhouse_Clay_Root__M_GH_Frame",
+          "triangles": 240,
+          "material": "M_GH_Frame"
+        },
+        {
+          "name": "PROP_Greenhouse_Clay_Root__M_GH_Panel",
+          "triangles": 440,
+          "material": "M_GH_Panel"
+        },
+        {
+          "name": "PROP_Greenhouse_Clay_Root__M_GH_Roof",
+          "triangles": 44,
+          "material": "M_GH_Roof"
+        },
+        {
+          "name": "PROP_Greenhouse_Clay_Root__M_KickClay",
+          "triangles": 308,
+          "material": "M_KickClay"
+        },
+        {
+          "name": "PROP_Greenhouse_Clay_Root__M_SteelDark",
+          "triangles": 108,
+          "material": "M_SteelDark"
+        },
+        {
+          "name": "PROP_Greenhouse_Clay_Root__M_SteelGalv",
+          "triangles": 48,
+          "material": "M_SteelGalv"
+        },
+        {
+          "name": "PROP_Greenhouse_Clay_Root__M_TrimCream",
+          "triangles": 616,
+          "material": "M_TrimCream"
+        },
+        {
+          "name": "PROP_Greenhouse_Clay_Root__M_TrimDark",
+          "triangles": 24,
+          "material": "M_TrimDark"
+        },
+        {
+          "name": "PROP_Greenhouse_Sage_Root__M_Concrete",
+          "triangles": 12,
+          "material": "M_Concrete"
+        },
+        {
+          "name": "PROP_Greenhouse_Sage_Root__M_GH_Frame",
+          "triangles": 240,
+          "material": "M_GH_Frame"
+        },
+        {
+          "name": "PROP_Greenhouse_Sage_Root__M_GH_Panel",
+          "triangles": 440,
+          "material": "M_GH_Panel"
+        },
+        {
+          "name": "PROP_Greenhouse_Sage_Root__M_GH_Roof",
+          "triangles": 44,
+          "material": "M_GH_Roof"
+        },
+        {
+          "name": "PROP_Greenhouse_Sage_Root__M_KickSage",
+          "triangles": 308,
+          "material": "M_KickSage"
+        },
+        {
+          "name": "PROP_Greenhouse_Sage_Root__M_SteelDark",
+          "triangles": 108,
+          "material": "M_SteelDark"
+        },
+        {
+          "name": "PROP_Greenhouse_Sage_Root__M_SteelGalv",
+          "triangles": 48,
+          "material": "M_SteelGalv"
+        },
+        {
+          "name": "PROP_Greenhouse_Sage_Root__M_TrimCream",
+          "triangles": 616,
+          "material": "M_TrimCream"
+        },
+        {
+          "name": "PROP_Greenhouse_Sage_Root__M_TrimDark",
+          "triangles": 24,
+          "material": "M_TrimDark"
+        },
+        {
+          "name": "PROP_HeatPump_Root__M_CabinetWhite",
+          "triangles": 108,
+          "material": "M_CabinetWhite"
+        },
+        {
+          "name": "PROP_HeatPump_Root__M_SteelDark",
+          "triangles": 92,
+          "material": "M_SteelDark"
+        },
+        {
+          "name": "PROP_HeatPump_Root__M_SteelGalv",
+          "triangles": 180,
+          "material": "M_SteelGalv"
+        },
+        {
+          "name": "PROP_HeatPump_Root__M_TrimDark",
+          "triangles": 572,
+          "material": "M_TrimDark"
+        },
+        {
+          "name": "PROP_Hedge_Block_2m_Root__M_Hedge",
+          "triangles": 620,
+          "material": "M_Hedge"
+        },
+        {
+          "name": "PROP_Hedge_Block_4m_Tall_Root__M_Hedge",
+          "triangles": 1200,
+          "material": "M_Hedge"
+        },
+        {
+          "name": "PROP_Hedge_Boundary_Root__M_Hedge",
+          "triangles": 8540,
+          "material": "M_Hedge"
+        },
+        {
+          "name": "PROP_Hedge_Lawn_Root__M_Hedge",
+          "triangles": 1300,
+          "material": "M_Hedge"
+        },
+        {
+          "name": "PROP_HotTub_Root__M_TrimCream",
+          "triangles": 108,
+          "material": "M_TrimCream"
+        },
+        {
+          "name": "PROP_HotTub_Root__M_TrimDark",
+          "triangles": 24,
+          "material": "M_TrimDark"
+        },
+        {
+          "name": "PROP_HotTub_Root__M_WaterCover",
+          "triangles": 108,
+          "material": "M_WaterCover"
+        },
+        {
+          "name": "PROP_HotTub_Root__M_WoodStainedH",
+          "triangles": 44,
+          "material": "M_WoodStainedH"
+        },
+        {
+          "name": "PROP_KerbPod_Root__M_ArchLiner",
+          "triangles": 256,
+          "material": "M_ArchLiner"
+        },
+        {
+          "name": "PROP_KerbPod_Root__M_Bumper",
+          "triangles": 948,
+          "material": "M_Bumper"
+        },
+        {
+          "name": "PROP_KerbPod_Root__M_CabinetWhite",
+          "triangles": 1296,
+          "material": "M_CabinetWhite"
+        },
+        {
+          "name": "PROP_KerbPod_Root__M_Chassis",
+          "triangles": 320,
+          "material": "M_Chassis"
+        },
+        {
+          "name": "PROP_KerbPod_Root__M_DecalAccent",
+          "triangles": 24,
+          "material": "M_DecalAccent"
+        },
+        {
+          "name": "PROP_KerbPod_Root__M_GlassDark",
+          "triangles": 660,
+          "material": "M_GlassDark"
+        },
+        {
+          "name": "PROP_KerbPod_Root__M_LedIce",
+          "triangles": 120,
+          "material": "M_LedIce"
+        },
+        {
+          "name": "PROP_KerbPod_Root__M_Rim",
+          "triangles": 944,
+          "material": "M_Rim"
+        },
+        {
+          "name": "PROP_KerbPod_Root__M_TailLight",
+          "triangles": 108,
+          "material": "M_TailLight"
+        },
+        {
+          "name": "PROP_KerbPod_Root__M_TruckWhite",
+          "triangles": 300,
+          "material": "M_TruckWhite"
+        },
+        {
+          "name": "PROP_KerbPod_Root__M_Tyre",
+          "triangles": 1776,
+          "material": "M_Tyre"
+        },
+        {
+          "name": "PROP_KitchenIsland_Root__M_CabinetWhite",
+          "triangles": 220,
+          "material": "M_CabinetWhite"
+        },
+        {
+          "name": "PROP_KitchenIsland_Root__M_SteelDark",
+          "triangles": 48,
+          "material": "M_SteelDark"
+        },
+        {
+          "name": "PROP_KitchenIsland_Root__M_TrimDark",
+          "triangles": 12,
+          "material": "M_TrimDark"
+        },
+        {
+          "name": "PROP_KitchenIsland_Root__M_Worktop",
+          "triangles": 44,
+          "material": "M_Worktop"
+        },
+        {
+          "name": "PROP_ModelTable_Root__M_ModelGreen",
+          "triangles": 44,
+          "material": "M_ModelGreen"
+        },
+        {
+          "name": "PROP_ModelTable_Root__M_ModelWhite",
+          "triangles": 216,
+          "material": "M_ModelWhite"
+        },
+        {
+          "name": "PROP_ModelTable_Root__M_TrimCream",
+          "triangles": 44,
+          "material": "M_TrimCream"
+        },
+        {
+          "name": "PROP_ModelTable_Root__M_TrimDark",
+          "triangles": 12,
+          "material": "M_TrimDark"
+        },
+        {
+          "name": "PROP_MoverTruck_Root__M_AluTrim",
+          "triangles": 736,
+          "material": "M_AluTrim"
+        },
+        {
+          "name": "PROP_MoverTruck_Root__M_Amber",
+          "triangles": 312,
+          "material": "M_Amber"
+        },
+        {
+          "name": "PROP_MoverTruck_Root__M_ArchLiner",
+          "triangles": 256,
+          "material": "M_ArchLiner"
+        },
+        {
+          "name": "PROP_MoverTruck_Root__M_BoxDark",
+          "triangles": 12,
+          "material": "M_BoxDark"
+        },
+        {
+          "name": "PROP_MoverTruck_Root__M_BoxFace",
+          "triangles": 648,
+          "material": "M_BoxFace"
+        },
+        {
+          "name": "PROP_MoverTruck_Root__M_Bumper",
+          "triangles": 576,
+          "material": "M_Bumper"
+        },
+        {
+          "name": "PROP_MoverTruck_Root__M_CabinetWhite",
+          "triangles": 432,
+          "material": "M_CabinetWhite"
+        },
+        {
+          "name": "PROP_MoverTruck_Root__M_Chassis",
+          "triangles": 1460,
+          "material": "M_Chassis"
+        },
+        {
+          "name": "PROP_MoverTruck_Root__M_DecalAccent",
+          "triangles": 308,
+          "material": "M_DecalAccent"
+        },
+        {
+          "name": "PROP_MoverTruck_Root__M_DecalDark",
+          "triangles": 24,
+          "material": "M_DecalDark"
+        },
+        {
+          "name": "PROP_MoverTruck_Root__M_GlassDark",
+          "triangles": 648,
+          "material": "M_GlassDark"
+        },
+        {
+          "name": "PROP_MoverTruck_Root__M_HeadLight",
+          "triangles": 432,
+          "material": "M_HeadLight"
+        },
+        {
+          "name": "PROP_MoverTruck_Root__M_LedIce",
+          "triangles": 12,
+          "material": "M_LedIce"
+        },
+        {
+          "name": "PROP_MoverTruck_Root__M_Plate",
+          "triangles": 108,
+          "material": "M_Plate"
+        },
+        {
+          "name": "PROP_MoverTruck_Root__M_Rim",
+          "triangles": 944,
+          "material": "M_Rim"
+        },
+        {
+          "name": "PROP_MoverTruck_Root__M_Rubber",
+          "triangles": 672,
+          "material": "M_Rubber"
+        },
+        {
+          "name": "PROP_MoverTruck_Root__M_TailLight",
+          "triangles": 48,
+          "material": "M_TailLight"
+        },
+        {
+          "name": "PROP_MoverTruck_Root__M_TruckWhite",
+          "triangles": 1384,
+          "material": "M_TruckWhite"
+        },
+        {
+          "name": "PROP_MoverTruck_Root__M_Tyre",
+          "triangles": 2664,
+          "material": "M_Tyre"
+        },
+        {
+          "name": "PROP_OutdoorKitchen_Root__M_Anthracite",
+          "triangles": 108,
+          "material": "M_Anthracite"
+        },
+        {
+          "name": "PROP_OutdoorKitchen_Root__M_Printed",
+          "triangles": 220,
+          "material": "M_Printed"
+        },
+        {
+          "name": "PROP_OutdoorKitchen_Root__M_SteelDark",
+          "triangles": 48,
+          "material": "M_SteelDark"
+        },
+        {
+          "name": "PROP_OutdoorKitchen_Root__M_SteelGalv",
+          "triangles": 540,
+          "material": "M_SteelGalv"
+        },
+        {
+          "name": "PROP_OutdoorKitchen_Root__M_TrimCream",
+          "triangles": 44,
+          "material": "M_TrimCream"
+        },
+        {
+          "name": "PROP_OutdoorKitchen_Root__M_TrimDark",
+          "triangles": 12,
+          "material": "M_TrimDark"
+        },
+        {
+          "name": "PROP_Pallet_Root__M_TimberH",
+          "triangles": 352,
+          "material": "M_TimberH"
+        },
+        {
+          "name": "PROP_ParcelHub_Root__M_Concrete",
+          "triangles": 12,
+          "material": "M_Concrete"
+        },
+        {
+          "name": "PROP_ParcelHub_Root__M_Printed",
+          "triangles": 3080,
+          "material": "M_Printed"
+        },
+        {
+          "name": "PROP_ParcelHub_Root__M_RoofMembrane",
+          "triangles": 44,
+          "material": "M_RoofMembrane"
+        },
+        {
+          "name": "PROP_ParcelHub_Root__M_SteelDark",
+          "triangles": 108,
+          "material": "M_SteelDark"
+        },
+        {
+          "name": "PROP_ParcelHub_Root__M_SteelGalv",
+          "triangles": 48,
+          "material": "M_SteelGalv"
+        },
+        {
+          "name": "PROP_ParcelHub_Root__M_TrimCream",
+          "triangles": 220,
+          "material": "M_TrimCream"
+        },
+        {
+          "name": "PROP_ParcelHub_Root__M_TrimDark",
+          "triangles": 24,
+          "material": "M_TrimDark"
+        },
+        {
+          "name": "PROP_ParcelLockers_Root__M_Anthracite",
+          "triangles": 2592,
+          "material": "M_Anthracite"
+        },
+        {
+          "name": "PROP_ParcelLockers_Root__M_GlassDark",
+          "triangles": 108,
+          "material": "M_GlassDark"
+        },
+        {
+          "name": "PROP_ParcelLockers_Root__M_LockerBody",
+          "triangles": 44,
+          "material": "M_LockerBody"
+        },
+        {
+          "name": "PROP_ParcelLockers_Root__M_LockerDoor",
+          "triangles": 1056,
+          "material": "M_LockerDoor"
+        },
+        {
+          "name": "PROP_ParcelLockers_Root__M_TrimDark",
+          "triangles": 12,
+          "material": "M_TrimDark"
+        },
+        {
+          "name": "PROP_PebbleCluster_Root__M_Pebble",
+          "triangles": 180,
+          "material": "M_Pebble"
+        },
+        {
+          "name": "PROP_PlasticBarrier_Root__M_SiteOrange",
+          "triangles": 180,
+          "material": "M_SiteOrange"
+        },
+        {
+          "name": "PROP_PlasticBarrier_Root__M_TrimCream",
+          "triangles": 12,
+          "material": "M_TrimCream"
+        },
+        {
+          "name": "PROP_PlasticBarrier_Root__M_TrimDark",
+          "triangles": 352,
+          "material": "M_TrimDark"
+        },
+        {
+          "name": "PROP_PrintedBlockStack_Root__M_Printed",
+          "triangles": 3168,
+          "material": "M_Printed"
+        },
+        {
+          "name": "PROP_PrintedBlockStack_Root__M_SteelDark",
+          "triangles": 72,
+          "material": "M_SteelDark"
+        },
+        {
+          "name": "PROP_PrintedBlockStack_Root__M_TimberH",
+          "triangles": 352,
+          "material": "M_TimberH"
+        },
+        {
+          "name": "PROP_Pylon_Root__M_CabinetWhite",
+          "triangles": 108,
+          "material": "M_CabinetWhite"
+        },
+        {
+          "name": "PROP_Pylon_Root__M_Cable",
+          "triangles": 32,
+          "material": "M_Cable"
+        },
+        {
+          "name": "PROP_Pylon_Root__M_Concrete",
+          "triangles": 108,
+          "material": "M_Concrete"
+        },
+        {
+          "name": "PROP_Pylon_Root__M_Grating",
+          "triangles": 108,
+          "material": "M_Grating"
+        },
+        {
+          "name": "PROP_Pylon_Root__M_Insulator",
+          "triangles": 280,
+          "material": "M_Insulator"
+        },
+        {
+          "name": "PROP_Pylon_Root__M_PoleConcrete",
+          "triangles": 108,
+          "material": "M_PoleConcrete"
+        },
+        {
+          "name": "PROP_Pylon_Root__M_SafetyYellow",
+          "triangles": 540,
+          "material": "M_SafetyYellow"
+        },
+        {
+          "name": "PROP_Pylon_Root__M_SteelDark",
+          "triangles": 276,
+          "material": "M_SteelDark"
+        },
+        {
+          "name": "PROP_Pylon_Root__M_SteelGalv",
+          "triangles": 444,
+          "material": "M_SteelGalv"
+        },
+        {
+          "name": "PROP_RainTank_Root__M_SteelDark",
+          "triangles": 108,
+          "material": "M_SteelDark"
+        },
+        {
+          "name": "PROP_RainTank_Root__M_TankPaint",
+          "triangles": 592,
+          "material": "M_TankPaint"
+        },
+        {
+          "name": "PROP_RainTank_Root__M_TrimDark",
+          "triangles": 108,
+          "material": "M_TrimDark"
+        },
+        {
+          "name": "PROP_RebarBundle_Root__M_SiteSteel",
+          "triangles": 504,
+          "material": "M_SiteSteel"
+        },
+        {
+          "name": "PROP_RebarBundle_Root__M_SteelDark",
+          "triangles": 72,
+          "material": "M_SteelDark"
+        },
+        {
+          "name": "PROP_RebarBundle_Root__M_TimberH",
+          "triangles": 88,
+          "material": "M_TimberH"
+        },
+        {
+          "name": "PROP_Rock_Low_Root__M_Rock",
+          "triangles": 20,
+          "material": "M_Rock"
+        },
+        {
+          "name": "PROP_Rock_Tall_Root__M_Rock",
+          "triangles": 20,
+          "material": "M_Rock"
+        },
+        {
+          "name": "PROP_SalesOffice_Root__M_Concrete",
+          "triangles": 12,
+          "material": "M_Concrete"
+        },
+        {
+          "name": "PROP_SalesOffice_Root__M_Printed",
+          "triangles": 32032,
+          "material": "M_Printed"
+        },
+        {
+          "name": "PROP_SalesOffice_Root__M_RoofMembrane",
+          "triangles": 44,
+          "material": "M_RoofMembrane"
+        },
+        {
+          "name": "PROP_SalesOffice_Root__M_SteelDark",
+          "triangles": 108,
+          "material": "M_SteelDark"
+        },
+        {
+          "name": "PROP_SalesOffice_Root__M_SteelGalv",
+          "triangles": 48,
+          "material": "M_SteelGalv"
+        },
+        {
+          "name": "PROP_SalesOffice_Root__M_TrimCream",
+          "triangles": 836,
+          "material": "M_TrimCream"
+        },
+        {
+          "name": "PROP_SalesOffice_Root__M_TrimDark",
+          "triangles": 24,
+          "material": "M_TrimDark"
+        },
+        {
+          "name": "PROP_SandMound_Root__M_SiteSand",
+          "triangles": 80,
+          "material": "M_SiteSand"
+        },
+        {
+          "name": "PROP_Shed_Clay_Root__M_Concrete",
+          "triangles": 12,
+          "material": "M_Concrete"
+        },
+        {
+          "name": "PROP_Shed_Clay_Root__M_RoofMembrane",
+          "triangles": 44,
+          "material": "M_RoofMembrane"
+        },
+        {
+          "name": "PROP_Shed_Clay_Root__M_ShedClay",
+          "triangles": 44,
+          "material": "M_ShedClay"
+        },
+        {
+          "name": "PROP_Shed_Clay_Root__M_SteelDark",
+          "triangles": 108,
+          "material": "M_SteelDark"
+        },
+        {
+          "name": "PROP_Shed_Clay_Root__M_SteelGalv",
+          "triangles": 48,
+          "material": "M_SteelGalv"
+        },
+        {
+          "name": "PROP_Shed_Clay_Root__M_TrimCream",
+          "triangles": 220,
+          "material": "M_TrimCream"
+        },
+        {
+          "name": "PROP_Shed_Clay_Root__M_TrimDark",
+          "triangles": 24,
+          "material": "M_TrimDark"
+        },
+        {
+          "name": "PROP_Shed_Sage_Root__M_Concrete",
+          "triangles": 12,
+          "material": "M_Concrete"
+        },
+        {
+          "name": "PROP_Shed_Sage_Root__M_RoofMembrane",
+          "triangles": 44,
+          "material": "M_RoofMembrane"
+        },
+        {
+          "name": "PROP_Shed_Sage_Root__M_SteelDark",
+          "triangles": 108,
+          "material": "M_SteelDark"
+        },
+        {
+          "name": "PROP_Shed_Sage_Root__M_SteelGalv",
+          "triangles": 48,
+          "material": "M_SteelGalv"
+        },
+        {
+          "name": "PROP_Shed_Sage_Root__M_TrimCream",
+          "triangles": 220,
+          "material": "M_TrimCream"
+        },
+        {
+          "name": "PROP_Shed_Sage_Root__M_TrimDark",
+          "triangles": 24,
+          "material": "M_TrimDark"
+        },
+        {
+          "name": "PROP_Shed_Sage_Root__M_WoodStained",
+          "triangles": 44,
+          "material": "M_WoodStained"
+        },
+        {
+          "name": "PROP_Shelving_Root__M_Anthracite",
+          "triangles": 44,
+          "material": "M_Anthracite"
+        },
+        {
+          "name": "PROP_Shelving_Root__M_Cardboard",
+          "triangles": 2592,
+          "material": "M_Cardboard"
+        },
+        {
+          "name": "PROP_Shelving_Root__M_SteelGalv",
+          "triangles": 108,
+          "material": "M_SteelGalv"
+        },
+        {
+          "name": "PROP_ShuttleStop_Root__M_CabinetWhite",
+          "triangles": 44,
+          "material": "M_CabinetWhite"
+        },
+        {
+          "name": "PROP_ShuttleStop_Root__M_GH_Frame",
+          "triangles": 36,
+          "material": "M_GH_Frame"
+        },
+        {
+          "name": "PROP_ShuttleStop_Root__M_GH_Panel",
+          "triangles": 44,
+          "material": "M_GH_Panel"
+        },
+        {
+          "name": "PROP_ShuttleStop_Root__M_TrimDark",
+          "triangles": 44,
+          "material": "M_TrimDark"
+        },
+        {
+          "name": "PROP_ShuttleStop_Root__M_WoodStainedH",
+          "triangles": 108,
+          "material": "M_WoodStainedH"
+        },
+        {
+          "name": "PROP_Sofa_Root__M_BoxFace",
+          "triangles": 216,
+          "material": "M_BoxFace"
+        },
+        {
+          "name": "PROP_Sofa_Root__M_Cardboard",
+          "triangles": 44,
+          "material": "M_Cardboard"
+        },
+        {
+          "name": "PROP_Sofa_Root__M_FabricBlue",
+          "triangles": 432,
+          "material": "M_FabricBlue"
+        },
+        {
+          "name": "PROP_Sofa_Root__M_FabricBlueDark",
+          "triangles": 152,
+          "material": "M_FabricBlueDark"
+        },
+        {
+          "name": "PROP_Sofa_Root__M_PackingTape",
+          "triangles": 72,
+          "material": "M_PackingTape"
+        },
+        {
+          "name": "PROP_Sofa_Root__M_WoodLeg",
+          "triangles": 108,
+          "material": "M_WoodLeg"
+        },
+        {
+          "name": "PROP_Studio_Clay_Root__M_Concrete",
+          "triangles": 12,
+          "material": "M_Concrete"
+        },
+        {
+          "name": "PROP_Studio_Clay_Root__M_Printed",
+          "triangles": 22748,
+          "material": "M_Printed"
+        },
+        {
+          "name": "PROP_Studio_Clay_Root__M_RoofMembrane",
+          "triangles": 44,
+          "material": "M_RoofMembrane"
+        },
+        {
+          "name": "PROP_Studio_Clay_Root__M_SteelDark",
+          "triangles": 108,
+          "material": "M_SteelDark"
+        },
+        {
+          "name": "PROP_Studio_Clay_Root__M_SteelGalv",
+          "triangles": 48,
+          "material": "M_SteelGalv"
+        },
+        {
+          "name": "PROP_Studio_Clay_Root__M_TrimCream",
+          "triangles": 660,
+          "material": "M_TrimCream"
+        },
+        {
+          "name": "PROP_Studio_Clay_Root__M_TrimDark",
+          "triangles": 24,
+          "material": "M_TrimDark"
+        },
+        {
+          "name": "PROP_Studio_Sage_Root__M_Concrete",
+          "triangles": 12,
+          "material": "M_Concrete"
+        },
+        {
+          "name": "PROP_Studio_Sage_Root__M_Printed",
+          "triangles": 22748,
+          "material": "M_Printed"
+        },
+        {
+          "name": "PROP_Studio_Sage_Root__M_RoofMembrane",
+          "triangles": 44,
+          "material": "M_RoofMembrane"
+        },
+        {
+          "name": "PROP_Studio_Sage_Root__M_SteelDark",
+          "triangles": 108,
+          "material": "M_SteelDark"
+        },
+        {
+          "name": "PROP_Studio_Sage_Root__M_SteelGalv",
+          "triangles": 48,
+          "material": "M_SteelGalv"
+        },
+        {
+          "name": "PROP_Studio_Sage_Root__M_TrimCream",
+          "triangles": 660,
+          "material": "M_TrimCream"
+        },
+        {
+          "name": "PROP_Studio_Sage_Root__M_TrimDark",
+          "triangles": 24,
+          "material": "M_TrimDark"
+        },
+        {
+          "name": "PROP_TrafficCone_Root__M_Rubber",
+          "triangles": 44,
+          "material": "M_Rubber"
+        },
+        {
+          "name": "PROP_TrafficCone_Root__M_SiteOrange",
+          "triangles": 132,
+          "material": "M_SiteOrange"
+        },
+        {
+          "name": "PROP_TrafficCone_Root__M_TrimCream",
+          "triangles": 88,
+          "material": "M_TrimCream"
+        },
+        {
+          "name": "PROP_Wire_Span_20m_Root__M_Cable",
+          "triangles": 488,
+          "material": "M_Cable"
+        },
+        {
+          "name": "PROP_Workbench_Root__M_Anthracite",
+          "triangles": 220,
+          "material": "M_Anthracite"
+        },
+        {
+          "name": "PROP_Workbench_Root__M_SteelDark",
+          "triangles": 48,
+          "material": "M_SteelDark"
+        },
+        {
+          "name": "PROP_Workbench_Root__M_TimberH",
+          "triangles": 44,
+          "material": "M_TimberH"
+        },
+        {
+          "name": "PROP_Workbench_Root__M_TrimDark",
+          "triangles": 12,
+          "material": "M_TrimDark"
+        },
+        {
+          "name": "PROP_Zipline_Cable_Root__M_Cable",
+          "triangles": 780,
+          "material": "M_Cable"
+        }
+      ]
+    },
+    {
+      "path": "kit\\props_placed.glb",
+      "status": "PASS",
+      "sha256": "ae1d1a1ed83042fb7ccc8827d40b0491e8f610850e5e1e4c47ebc5baa3607d48",
+      "bytes": 9734700,
+      "meshes": 145,
+      "materials": 39,
+      "images": 26,
+      "unique_triangles": 107780,
+      "instanced_triangles": 107780,
+      "roots": [
+        "PROP_Armchair__E_ARMCHAIR",
+        "PROP_Armchair__W_ARMCHAIR",
+        "PROP_BinStore__E_BINS",
+        "PROP_BinStore__W_BINS",
+        "PROP_BoxStack_1m__E_CRATE",
+        "PROP_BoxStack_1m__W_CRATE",
+        "PROP_ChargerIsland__C_CHARGER",
+        "PROP_Crate_Wood_1m__C_CRATE_T",
+        "PROP_Greenhouse_Clay__E_GH_WALL_S",
+        "PROP_Greenhouse_Sage__W_GH_WALL_S",
+        "PROP_HotTub__E_HOTTUB",
+        "PROP_HotTub__W_HOTTUB",
+        "PROP_ModelTable__C_MODEL",
+        "PROP_OutdoorKitchen__E_BBQ",
+        "PROP_OutdoorKitchen__W_BBQ",
+        "PROP_ParcelHub__C_HUB",
+        "PROP_ParcelLockers__E_LOCKERS",
+        "PROP_ParcelLockers__W_LOCKERS",
+        "PROP_RainTank__E_TANK",
+        "PROP_RainTank__W_TANK",
+        "PROP_SalesOffice__C_OF_WALL_S",
+        "PROP_Shed_Clay__E_SHED",
+        "PROP_Shed_Sage__W_SHED",
+        "PROP_ShuttleStop__C_SHUTTLE",
+        "PROP_Studio_Clay__E_ST_WALL_S",
+        "PROP_Studio_Sage__W_ST_WALL_S"
+      ],
+      "problems": [],
+      "mesh_counts": [
+        {
+          "name": "PROP_Armchair__E_ARMCHAIR__M_BoxFace",
+          "triangles": 108,
+          "material": "M_BoxFace"
+        },
+        {
+          "name": "PROP_Armchair__E_ARMCHAIR__M_Cardboard",
+          "triangles": 44,
+          "material": "M_Cardboard"
+        },
+        {
+          "name": "PROP_Armchair__E_ARMCHAIR__M_FabricOrange",
+          "triangles": 432,
+          "material": "M_FabricOrange"
+        },
+        {
+          "name": "PROP_Armchair__E_ARMCHAIR__M_FabricOrangeDark",
+          "triangles": 152,
+          "material": "M_FabricOrangeDark"
+        },
+        {
+          "name": "PROP_Armchair__E_ARMCHAIR__M_PackingTape",
+          "triangles": 36,
+          "material": "M_PackingTape"
+        },
+        {
+          "name": "PROP_Armchair__E_ARMCHAIR__M_WoodLeg",
+          "triangles": 108,
+          "material": "M_WoodLeg"
+        },
+        {
+          "name": "PROP_Armchair__W_ARMCHAIR__M_BoxFace",
+          "triangles": 108,
+          "material": "M_BoxFace"
+        },
+        {
+          "name": "PROP_Armchair__W_ARMCHAIR__M_Cardboard",
+          "triangles": 44,
+          "material": "M_Cardboard"
+        },
+        {
+          "name": "PROP_Armchair__W_ARMCHAIR__M_FabricOrange",
+          "triangles": 432,
+          "material": "M_FabricOrange"
+        },
+        {
+          "name": "PROP_Armchair__W_ARMCHAIR__M_FabricOrangeDark",
+          "triangles": 152,
+          "material": "M_FabricOrangeDark"
+        },
+        {
+          "name": "PROP_Armchair__W_ARMCHAIR__M_PackingTape",
+          "triangles": 36,
+          "material": "M_PackingTape"
+        },
+        {
+          "name": "PROP_Armchair__W_ARMCHAIR__M_WoodLeg",
+          "triangles": 108,
+          "material": "M_WoodLeg"
+        },
+        {
+          "name": "PROP_BinStore__E_BINS__M_BinGrey",
+          "triangles": 132,
+          "material": "M_BinGrey"
+        },
+        {
+          "name": "PROP_BinStore__E_BINS__M_BinLidBlue",
+          "triangles": 44,
+          "material": "M_BinLidBlue"
+        },
+        {
+          "name": "PROP_BinStore__E_BINS__M_BinLidBrown",
+          "triangles": 44,
+          "material": "M_BinLidBrown"
+        },
+        {
+          "name": "PROP_BinStore__E_BINS__M_BinLidGreen",
+          "triangles": 44,
+          "material": "M_BinLidGreen"
+        },
+        {
+          "name": "PROP_BinStore__E_BINS__M_SteelDark",
+          "triangles": 36,
+          "material": "M_SteelDark"
+        },
+        {
+          "name": "PROP_BinStore__E_BINS__M_TimberH",
+          "triangles": 44,
+          "material": "M_TimberH"
+        },
+        {
+          "name": "PROP_BinStore__E_BINS__M_WoodStained",
+          "triangles": 44,
+          "material": "M_WoodStained"
+        },
+        {
+          "name": "PROP_BinStore__W_BINS__M_BinGrey",
+          "triangles": 132,
+          "material": "M_BinGrey"
+        },
+        {
+          "name": "PROP_BinStore__W_BINS__M_BinLidBlue",
+          "triangles": 44,
+          "material": "M_BinLidBlue"
+        },
+        {
+          "name": "PROP_BinStore__W_BINS__M_BinLidBrown",
+          "triangles": 44,
+          "material": "M_BinLidBrown"
+        },
+        {
+          "name": "PROP_BinStore__W_BINS__M_BinLidGreen",
+          "triangles": 44,
+          "material": "M_BinLidGreen"
+        },
+        {
+          "name": "PROP_BinStore__W_BINS__M_SteelDark",
+          "triangles": 36,
+          "material": "M_SteelDark"
+        },
+        {
+          "name": "PROP_BinStore__W_BINS__M_TimberH",
+          "triangles": 44,
+          "material": "M_TimberH"
+        },
+        {
+          "name": "PROP_BinStore__W_BINS__M_WoodStained",
+          "triangles": 44,
+          "material": "M_WoodStained"
+        },
+        {
+          "name": "PROP_BoxStack_1m__E_CRATE__M_BoxFace",
+          "triangles": 324,
+          "material": "M_BoxFace"
+        },
+        {
+          "name": "PROP_BoxStack_1m__E_CRATE__M_Cardboard",
+          "triangles": 44,
+          "material": "M_Cardboard"
+        },
+        {
+          "name": "PROP_BoxStack_1m__E_CRATE__M_PackingTape",
+          "triangles": 108,
+          "material": "M_PackingTape"
+        },
+        {
+          "name": "PROP_BoxStack_1m__W_CRATE__M_BoxFace",
+          "triangles": 324,
+          "material": "M_BoxFace"
+        },
+        {
+          "name": "PROP_BoxStack_1m__W_CRATE__M_Cardboard",
+          "triangles": 44,
+          "material": "M_Cardboard"
+        },
+        {
+          "name": "PROP_BoxStack_1m__W_CRATE__M_PackingTape",
+          "triangles": 108,
+          "material": "M_PackingTape"
+        },
+        {
+          "name": "PROP_ChargerIsland__C_CHARGER__M_Anthracite",
+          "triangles": 432,
+          "material": "M_Anthracite"
+        },
+        {
+          "name": "PROP_ChargerIsland__C_CHARGER__M_CabinetWhite",
+          "triangles": 108,
+          "material": "M_CabinetWhite"
+        },
+        {
+          "name": "PROP_ChargerIsland__C_CHARGER__M_Cable",
+          "triangles": 176,
+          "material": "M_Cable"
+        },
+        {
+          "name": "PROP_ChargerIsland__C_CHARGER__M_Concrete",
+          "triangles": 44,
+          "material": "M_Concrete"
+        },
+        {
+          "name": "PROP_ChargerIsland__C_CHARGER__M_GlassDark",
+          "triangles": 432,
+          "material": "M_GlassDark"
+        },
+        {
+          "name": "PROP_Crate_Wood_1m__C_CRATE_T__M_Batten",
+          "triangles": 1992,
+          "material": "M_Batten"
+        },
+        {
+          "name": "PROP_Crate_Wood_1m__C_CRATE_T__M_Plywood",
+          "triangles": 108,
+          "material": "M_Plywood"
+        },
+        {
+          "name": "PROP_Crate_Wood_1m__C_CRATE_T__M_Stencil",
+          "triangles": 48,
+          "material": "M_Stencil"
+        },
+        {
+          "name": "PROP_Greenhouse_Clay__E_GH_WALL_S__M_Concrete",
+          "triangles": 12,
+          "material": "M_Concrete"
+        },
+        {
+          "name": "PROP_Greenhouse_Clay__E_GH_WALL_S__M_GH_Frame",
+          "triangles": 240,
+          "material": "M_GH_Frame"
+        },
+        {
+          "name": "PROP_Greenhouse_Clay__E_GH_WALL_S__M_GH_Panel",
+          "triangles": 440,
+          "material": "M_GH_Panel"
+        },
+        {
+          "name": "PROP_Greenhouse_Clay__E_GH_WALL_S__M_GH_Roof",
+          "triangles": 44,
+          "material": "M_GH_Roof"
+        },
+        {
+          "name": "PROP_Greenhouse_Clay__E_GH_WALL_S__M_KickClay",
+          "triangles": 308,
+          "material": "M_KickClay"
+        },
+        {
+          "name": "PROP_Greenhouse_Clay__E_GH_WALL_S__M_SteelDark",
+          "triangles": 108,
+          "material": "M_SteelDark"
+        },
+        {
+          "name": "PROP_Greenhouse_Clay__E_GH_WALL_S__M_SteelGalv",
+          "triangles": 48,
+          "material": "M_SteelGalv"
+        },
+        {
+          "name": "PROP_Greenhouse_Clay__E_GH_WALL_S__M_TrimCream",
+          "triangles": 616,
+          "material": "M_TrimCream"
+        },
+        {
+          "name": "PROP_Greenhouse_Clay__E_GH_WALL_S__M_TrimDark",
+          "triangles": 24,
+          "material": "M_TrimDark"
+        },
+        {
+          "name": "PROP_Greenhouse_Sage__W_GH_WALL_S__M_Concrete",
+          "triangles": 12,
+          "material": "M_Concrete"
+        },
+        {
+          "name": "PROP_Greenhouse_Sage__W_GH_WALL_S__M_GH_Frame",
+          "triangles": 240,
+          "material": "M_GH_Frame"
+        },
+        {
+          "name": "PROP_Greenhouse_Sage__W_GH_WALL_S__M_GH_Panel",
+          "triangles": 440,
+          "material": "M_GH_Panel"
+        },
+        {
+          "name": "PROP_Greenhouse_Sage__W_GH_WALL_S__M_GH_Roof",
+          "triangles": 44,
+          "material": "M_GH_Roof"
+        },
+        {
+          "name": "PROP_Greenhouse_Sage__W_GH_WALL_S__M_KickSage",
+          "triangles": 308,
+          "material": "M_KickSage"
+        },
+        {
+          "name": "PROP_Greenhouse_Sage__W_GH_WALL_S__M_SteelDark",
+          "triangles": 108,
+          "material": "M_SteelDark"
+        },
+        {
+          "name": "PROP_Greenhouse_Sage__W_GH_WALL_S__M_SteelGalv",
+          "triangles": 48,
+          "material": "M_SteelGalv"
+        },
+        {
+          "name": "PROP_Greenhouse_Sage__W_GH_WALL_S__M_TrimCream",
+          "triangles": 616,
+          "material": "M_TrimCream"
+        },
+        {
+          "name": "PROP_Greenhouse_Sage__W_GH_WALL_S__M_TrimDark",
+          "triangles": 24,
+          "material": "M_TrimDark"
+        },
+        {
+          "name": "PROP_HotTub__E_HOTTUB__M_TrimCream",
+          "triangles": 108,
+          "material": "M_TrimCream"
+        },
+        {
+          "name": "PROP_HotTub__E_HOTTUB__M_TrimDark",
+          "triangles": 24,
+          "material": "M_TrimDark"
+        },
+        {
+          "name": "PROP_HotTub__E_HOTTUB__M_WaterCover",
+          "triangles": 108,
+          "material": "M_WaterCover"
+        },
+        {
+          "name": "PROP_HotTub__E_HOTTUB__M_WoodStainedH",
+          "triangles": 44,
+          "material": "M_WoodStainedH"
+        },
+        {
+          "name": "PROP_HotTub__W_HOTTUB__M_TrimCream",
+          "triangles": 108,
+          "material": "M_TrimCream"
+        },
+        {
+          "name": "PROP_HotTub__W_HOTTUB__M_TrimDark",
+          "triangles": 24,
+          "material": "M_TrimDark"
+        },
+        {
+          "name": "PROP_HotTub__W_HOTTUB__M_WaterCover",
+          "triangles": 108,
+          "material": "M_WaterCover"
+        },
+        {
+          "name": "PROP_HotTub__W_HOTTUB__M_WoodStainedH",
+          "triangles": 44,
+          "material": "M_WoodStainedH"
+        },
+        {
+          "name": "PROP_ModelTable__C_MODEL__M_ModelGreen",
+          "triangles": 44,
+          "material": "M_ModelGreen"
+        },
+        {
+          "name": "PROP_ModelTable__C_MODEL__M_ModelWhite",
+          "triangles": 216,
+          "material": "M_ModelWhite"
+        },
+        {
+          "name": "PROP_ModelTable__C_MODEL__M_TrimCream",
+          "triangles": 44,
+          "material": "M_TrimCream"
+        },
+        {
+          "name": "PROP_ModelTable__C_MODEL__M_TrimDark",
+          "triangles": 12,
+          "material": "M_TrimDark"
+        },
+        {
+          "name": "PROP_OutdoorKitchen__E_BBQ__M_Anthracite",
+          "triangles": 108,
+          "material": "M_Anthracite"
+        },
+        {
+          "name": "PROP_OutdoorKitchen__E_BBQ__M_Printed",
+          "triangles": 220,
+          "material": "M_Printed"
+        },
+        {
+          "name": "PROP_OutdoorKitchen__E_BBQ__M_SteelDark",
+          "triangles": 48,
+          "material": "M_SteelDark"
+        },
+        {
+          "name": "PROP_OutdoorKitchen__E_BBQ__M_SteelGalv",
+          "triangles": 540,
+          "material": "M_SteelGalv"
+        },
+        {
+          "name": "PROP_OutdoorKitchen__E_BBQ__M_TrimCream",
+          "triangles": 44,
+          "material": "M_TrimCream"
+        },
+        {
+          "name": "PROP_OutdoorKitchen__E_BBQ__M_TrimDark",
+          "triangles": 12,
+          "material": "M_TrimDark"
+        },
+        {
+          "name": "PROP_OutdoorKitchen__W_BBQ__M_Anthracite",
+          "triangles": 108,
+          "material": "M_Anthracite"
+        },
+        {
+          "name": "PROP_OutdoorKitchen__W_BBQ__M_Printed",
+          "triangles": 220,
+          "material": "M_Printed"
+        },
+        {
+          "name": "PROP_OutdoorKitchen__W_BBQ__M_SteelDark",
+          "triangles": 48,
+          "material": "M_SteelDark"
+        },
+        {
+          "name": "PROP_OutdoorKitchen__W_BBQ__M_SteelGalv",
+          "triangles": 540,
+          "material": "M_SteelGalv"
+        },
+        {
+          "name": "PROP_OutdoorKitchen__W_BBQ__M_TrimCream",
+          "triangles": 44,
+          "material": "M_TrimCream"
+        },
+        {
+          "name": "PROP_OutdoorKitchen__W_BBQ__M_TrimDark",
+          "triangles": 12,
+          "material": "M_TrimDark"
+        },
+        {
+          "name": "PROP_ParcelHub__C_HUB__M_Concrete",
+          "triangles": 12,
+          "material": "M_Concrete"
+        },
+        {
+          "name": "PROP_ParcelHub__C_HUB__M_Printed",
+          "triangles": 3080,
+          "material": "M_Printed"
+        },
+        {
+          "name": "PROP_ParcelHub__C_HUB__M_RoofMembrane",
+          "triangles": 44,
+          "material": "M_RoofMembrane"
+        },
+        {
+          "name": "PROP_ParcelHub__C_HUB__M_SteelDark",
+          "triangles": 108,
+          "material": "M_SteelDark"
+        },
+        {
+          "name": "PROP_ParcelHub__C_HUB__M_SteelGalv",
+          "triangles": 48,
+          "material": "M_SteelGalv"
+        },
+        {
+          "name": "PROP_ParcelHub__C_HUB__M_TrimCream",
+          "triangles": 220,
+          "material": "M_TrimCream"
+        },
+        {
+          "name": "PROP_ParcelHub__C_HUB__M_TrimDark",
+          "triangles": 24,
+          "material": "M_TrimDark"
+        },
+        {
+          "name": "PROP_ParcelLockers__E_LOCKERS__M_Anthracite",
+          "triangles": 2592,
+          "material": "M_Anthracite"
+        },
+        {
+          "name": "PROP_ParcelLockers__E_LOCKERS__M_GlassDark",
+          "triangles": 108,
+          "material": "M_GlassDark"
+        },
+        {
+          "name": "PROP_ParcelLockers__E_LOCKERS__M_LockerBody",
+          "triangles": 44,
+          "material": "M_LockerBody"
+        },
+        {
+          "name": "PROP_ParcelLockers__E_LOCKERS__M_LockerDoor",
+          "triangles": 1056,
+          "material": "M_LockerDoor"
+        },
+        {
+          "name": "PROP_ParcelLockers__E_LOCKERS__M_TrimDark",
+          "triangles": 12,
+          "material": "M_TrimDark"
+        },
+        {
+          "name": "PROP_ParcelLockers__W_LOCKERS__M_Anthracite",
+          "triangles": 2592,
+          "material": "M_Anthracite"
+        },
+        {
+          "name": "PROP_ParcelLockers__W_LOCKERS__M_GlassDark",
+          "triangles": 108,
+          "material": "M_GlassDark"
+        },
+        {
+          "name": "PROP_ParcelLockers__W_LOCKERS__M_LockerBody",
+          "triangles": 44,
+          "material": "M_LockerBody"
+        },
+        {
+          "name": "PROP_ParcelLockers__W_LOCKERS__M_LockerDoor",
+          "triangles": 1056,
+          "material": "M_LockerDoor"
+        },
+        {
+          "name": "PROP_ParcelLockers__W_LOCKERS__M_TrimDark",
+          "triangles": 12,
+          "material": "M_TrimDark"
+        },
+        {
+          "name": "PROP_RainTank__E_TANK__M_SteelDark",
+          "triangles": 108,
+          "material": "M_SteelDark"
+        },
+        {
+          "name": "PROP_RainTank__E_TANK__M_TankPaint",
+          "triangles": 592,
+          "material": "M_TankPaint"
+        },
+        {
+          "name": "PROP_RainTank__E_TANK__M_TrimDark",
+          "triangles": 108,
+          "material": "M_TrimDark"
+        },
+        {
+          "name": "PROP_RainTank__W_TANK__M_SteelDark",
+          "triangles": 108,
+          "material": "M_SteelDark"
+        },
+        {
+          "name": "PROP_RainTank__W_TANK__M_TankPaint",
+          "triangles": 592,
+          "material": "M_TankPaint"
+        },
+        {
+          "name": "PROP_RainTank__W_TANK__M_TrimDark",
+          "triangles": 108,
+          "material": "M_TrimDark"
+        },
+        {
+          "name": "PROP_SalesOffice__C_OF_WALL_S__M_Concrete",
+          "triangles": 12,
+          "material": "M_Concrete"
+        },
+        {
+          "name": "PROP_SalesOffice__C_OF_WALL_S__M_Printed",
+          "triangles": 32032,
+          "material": "M_Printed"
+        },
+        {
+          "name": "PROP_SalesOffice__C_OF_WALL_S__M_RoofMembrane",
+          "triangles": 44,
+          "material": "M_RoofMembrane"
+        },
+        {
+          "name": "PROP_SalesOffice__C_OF_WALL_S__M_SteelDark",
+          "triangles": 108,
+          "material": "M_SteelDark"
+        },
+        {
+          "name": "PROP_SalesOffice__C_OF_WALL_S__M_SteelGalv",
+          "triangles": 48,
+          "material": "M_SteelGalv"
+        },
+        {
+          "name": "PROP_SalesOffice__C_OF_WALL_S__M_TrimCream",
+          "triangles": 836,
+          "material": "M_TrimCream"
+        },
+        {
+          "name": "PROP_SalesOffice__C_OF_WALL_S__M_TrimDark",
+          "triangles": 24,
+          "material": "M_TrimDark"
+        },
+        {
+          "name": "PROP_Shed_Clay__E_SHED__M_Concrete",
+          "triangles": 12,
+          "material": "M_Concrete"
+        },
+        {
+          "name": "PROP_Shed_Clay__E_SHED__M_RoofMembrane",
+          "triangles": 44,
+          "material": "M_RoofMembrane"
+        },
+        {
+          "name": "PROP_Shed_Clay__E_SHED__M_ShedClay",
+          "triangles": 44,
+          "material": "M_ShedClay"
+        },
+        {
+          "name": "PROP_Shed_Clay__E_SHED__M_SteelDark",
+          "triangles": 108,
+          "material": "M_SteelDark"
+        },
+        {
+          "name": "PROP_Shed_Clay__E_SHED__M_SteelGalv",
+          "triangles": 48,
+          "material": "M_SteelGalv"
+        },
+        {
+          "name": "PROP_Shed_Clay__E_SHED__M_TrimCream",
+          "triangles": 220,
+          "material": "M_TrimCream"
+        },
+        {
+          "name": "PROP_Shed_Clay__E_SHED__M_TrimDark",
+          "triangles": 24,
+          "material": "M_TrimDark"
+        },
+        {
+          "name": "PROP_Shed_Sage__W_SHED__M_Concrete",
+          "triangles": 12,
+          "material": "M_Concrete"
+        },
+        {
+          "name": "PROP_Shed_Sage__W_SHED__M_RoofMembrane",
+          "triangles": 44,
+          "material": "M_RoofMembrane"
+        },
+        {
+          "name": "PROP_Shed_Sage__W_SHED__M_SteelDark",
+          "triangles": 108,
+          "material": "M_SteelDark"
+        },
+        {
+          "name": "PROP_Shed_Sage__W_SHED__M_SteelGalv",
+          "triangles": 48,
+          "material": "M_SteelGalv"
+        },
+        {
+          "name": "PROP_Shed_Sage__W_SHED__M_TrimCream",
+          "triangles": 220,
+          "material": "M_TrimCream"
+        },
+        {
+          "name": "PROP_Shed_Sage__W_SHED__M_TrimDark",
+          "triangles": 24,
+          "material": "M_TrimDark"
+        },
+        {
+          "name": "PROP_Shed_Sage__W_SHED__M_WoodStained",
+          "triangles": 44,
+          "material": "M_WoodStained"
+        },
+        {
+          "name": "PROP_ShuttleStop__C_SHUTTLE__M_CabinetWhite",
+          "triangles": 44,
+          "material": "M_CabinetWhite"
+        },
+        {
+          "name": "PROP_ShuttleStop__C_SHUTTLE__M_GH_Frame",
+          "triangles": 36,
+          "material": "M_GH_Frame"
+        },
+        {
+          "name": "PROP_ShuttleStop__C_SHUTTLE__M_GH_Panel",
+          "triangles": 44,
+          "material": "M_GH_Panel"
+        },
+        {
+          "name": "PROP_ShuttleStop__C_SHUTTLE__M_TrimDark",
+          "triangles": 44,
+          "material": "M_TrimDark"
+        },
+        {
+          "name": "PROP_ShuttleStop__C_SHUTTLE__M_WoodStainedH",
+          "triangles": 108,
+          "material": "M_WoodStainedH"
+        },
+        {
+          "name": "PROP_Studio_Clay__E_ST_WALL_S__M_Concrete",
+          "triangles": 12,
+          "material": "M_Concrete"
+        },
+        {
+          "name": "PROP_Studio_Clay__E_ST_WALL_S__M_Printed",
+          "triangles": 22748,
+          "material": "M_Printed"
+        },
+        {
+          "name": "PROP_Studio_Clay__E_ST_WALL_S__M_RoofMembrane",
+          "triangles": 44,
+          "material": "M_RoofMembrane"
+        },
+        {
+          "name": "PROP_Studio_Clay__E_ST_WALL_S__M_SteelDark",
+          "triangles": 108,
+          "material": "M_SteelDark"
+        },
+        {
+          "name": "PROP_Studio_Clay__E_ST_WALL_S__M_SteelGalv",
+          "triangles": 48,
+          "material": "M_SteelGalv"
+        },
+        {
+          "name": "PROP_Studio_Clay__E_ST_WALL_S__M_TrimCream",
+          "triangles": 660,
+          "material": "M_TrimCream"
+        },
+        {
+          "name": "PROP_Studio_Clay__E_ST_WALL_S__M_TrimDark",
+          "triangles": 24,
+          "material": "M_TrimDark"
+        },
+        {
+          "name": "PROP_Studio_Sage__W_ST_WALL_S__M_Concrete",
+          "triangles": 12,
+          "material": "M_Concrete"
+        },
+        {
+          "name": "PROP_Studio_Sage__W_ST_WALL_S__M_Printed",
+          "triangles": 22748,
+          "material": "M_Printed"
+        },
+        {
+          "name": "PROP_Studio_Sage__W_ST_WALL_S__M_RoofMembrane",
+          "triangles": 44,
+          "material": "M_RoofMembrane"
+        },
+        {
+          "name": "PROP_Studio_Sage__W_ST_WALL_S__M_SteelDark",
+          "triangles": 108,
+          "material": "M_SteelDark"
+        },
+        {
+          "name": "PROP_Studio_Sage__W_ST_WALL_S__M_SteelGalv",
+          "triangles": 48,
+          "material": "M_SteelGalv"
+        },
+        {
+          "name": "PROP_Studio_Sage__W_ST_WALL_S__M_TrimCream",
+          "triangles": 660,
+          "material": "M_TrimCream"
+        },
+        {
+          "name": "PROP_Studio_Sage__W_ST_WALL_S__M_TrimDark",
+          "triangles": 24,
+          "material": "M_TrimDark"
+        }
+      ]
+    },
+    {
+      "path": "backdrop\\backdrop.glb",
+      "status": "PASS",
+      "sha256": "14922ea3f836f0e3375d8061a20900e33b67353871121d13cf87b8ecbd2bd02b",
+      "bytes": 20146000,
+      "meshes": 20,
+      "materials": 10,
+      "images": 28,
+      "unique_triangles": 107502,
+      "instanced_triangles": 107502,
+      "roots": [
+        "SHB_Far",
+        "SHB_Mid",
+        "SHB_Near"
+      ],
+      "problems": [],
+      "mesh_counts": [
+        {
+          "name": "SHB_Far_TreelineHillsTown_clad",
+          "triangles": 960,
+          "material": "M_SHB_Clad"
+        },
+        {
+          "name": "SHB_Far_TreelineHillsTown_earth",
+          "triangles": 4480,
+          "material": "M_SHB_Earth"
+        },
+        {
+          "name": "SHB_Far_TreelineHillsTown_foliage",
+          "triangles": 3600,
+          "material": "M_SHB_Foliage"
+        },
+        {
+          "name": "SHB_Far_TreelineHillsTown_roof",
+          "triangles": 320,
+          "material": "M_SHB_Roof"
+        },
+        {
+          "name": "SHB_Far_TreelineHillsTown_timber",
+          "triangles": 2880,
+          "material": "M_SHB_Timber"
+        },
+        {
+          "name": "SHB_Mid_SuburbCraneRoad_asphalt",
+          "triangles": 24,
+          "material": "M_SHB_Asphalt"
+        },
+        {
+          "name": "SHB_Mid_SuburbCraneRoad_clad",
+          "triangles": 12296,
+          "material": "M_SHB_Clad"
+        },
+        {
+          "name": "SHB_Mid_SuburbCraneRoad_foliage",
+          "triangles": 3840,
+          "material": "M_SHB_Foliage"
+        },
+        {
+          "name": "SHB_Mid_SuburbCraneRoad_metal",
+          "triangles": 3584,
+          "material": "M_SHB_Metal"
+        },
+        {
+          "name": "SHB_Mid_SuburbCraneRoad_pave",
+          "triangles": 96,
+          "material": "M_SHB_Pave"
+        },
+        {
+          "name": "SHB_Mid_SuburbCraneRoad_printed",
+          "triangles": 2088,
+          "material": "M_SHB_Printed"
+        },
+        {
+          "name": "SHB_Mid_SuburbCraneRoad_roof",
+          "triangles": 1624,
+          "material": "M_SHB_Roof"
+        },
+        {
+          "name": "SHB_Mid_SuburbCraneRoad_solar",
+          "triangles": 448,
+          "material": "M_SHB_Solar"
+        },
+        {
+          "name": "SHB_Mid_SuburbCraneRoad_timber",
+          "triangles": 1488,
+          "material": "M_SHB_Timber"
+        },
+        {
+          "name": "SHB_Near_PlotsShellsTreesUtilities_clad",
+          "triangles": 15024,
+          "material": "M_SHB_Clad"
+        },
+        {
+          "name": "SHB_Near_PlotsShellsTreesUtilities_earth",
+          "triangles": 480,
+          "material": "M_SHB_Earth"
+        },
+        {
+          "name": "SHB_Near_PlotsShellsTreesUtilities_foliage",
+          "triangles": 25680,
+          "material": "M_SHB_Foliage"
+        },
+        {
+          "name": "SHB_Near_PlotsShellsTreesUtilities_metal",
+          "triangles": 6450,
+          "material": "M_SHB_Metal"
+        },
+        {
+          "name": "SHB_Near_PlotsShellsTreesUtilities_printed",
+          "triangles": 16676,
+          "material": "M_SHB_Printed"
+        },
+        {
+          "name": "SHB_Near_PlotsShellsTreesUtilities_timber",
+          "triangles": 5464,
+          "material": "M_SHB_Timber"
+        }
+      ]
+    }
+  ]
+}

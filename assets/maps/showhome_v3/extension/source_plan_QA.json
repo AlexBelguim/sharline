@@ -1,0 +1,115 @@
+{
+  "passed": true,
+  "scope": "pure source geometry and placement data only; generated GLB/render/runtime still pending",
+  "failures": [],
+  "tracked_lanes": [
+    {
+      "name": "west_receiving_lane",
+      "polygons": 294,
+      "triangles": 588,
+      "max_rgba": [
+        0.27540498265073476,
+        0.06,
+        0.37647800668907355,
+        0.048971385354779295
+      ]
+    },
+    {
+      "name": "west_rear_haul_lane",
+      "polygons": 276,
+      "triangles": 552,
+      "max_rgba": [
+        0.16648199687968346,
+        0.06,
+        0.31416514180605565,
+        0.026783369734750335
+      ]
+    },
+    {
+      "name": "east_delivery_lane",
+      "polygons": 372,
+      "triangles": 744,
+      "max_rgba": [
+        0.25413043478260644,
+        0.06,
+        0.38302983916517797,
+        0.04463768115941984
+      ]
+    },
+    {
+      "name": "east_frame_supply_lane",
+      "polygons": 276,
+      "triangles": 552,
+      "max_rgba": [
+        0.035,
+        0.06,
+        0.2934544247909286,
+        0
+      ]
+    },
+    {
+      "name": "west_frame_turnout",
+      "polygons": 144,
+      "triangles": 288,
+      "max_rgba": [
+        0.035,
+        0.06,
+        0.25190270288369937,
+        0
+      ]
+    },
+    {
+      "name": "material_worker_scuff",
+      "polygons": 62,
+      "triangles": 124,
+      "max_rgba": [
+        0.035,
+        0.06,
+        0.18,
+        0
+      ]
+    }
+  ],
+  "track_polygons": 1424,
+  "track_triangles": 2848,
+  "existing_material_clusters": 6,
+  "additional_existing_instances": 23,
+  "reusable_ids": [
+    "gang_box",
+    "printed_blocks_pallet",
+    "rebar_bundle",
+    "timber_pallet",
+    "toolbox"
+  ],
+  "new_mesh_requests": 3,
+  "critical_route_footprints_clear": true,
+  "catalog_writes": false,
+  "gpu_jobs": false,
+  "inputs_sha256": {
+    "assets\\maps\\showhome_v3\\extension\\build_extension.py": "f4eab60e2006935d7e4a758d1453a3cf0e5dfbde9f48b83feaa03015932bcd8b",
+    "assets\\maps\\showhome_v3\\extension\\site_tracks.py": "f42223ec25b1910d68a5d2d8b98b20e8c70f4db2ddf459b7faa271fd46bd32b9",
+    "assets\\maps\\showhome_v3\\extension\\site_material_clusters.py": "557d222fa721b213fff4fc5d9e4bd432ac8dd35cdf7ef814eb1f21c6f7221390",
+    "assets\\maps\\showhome_v3\\extension\\site_access.py": "eeb497bc2ec8f4ffe126f16cffdcef518c4b1b73033d3c817d72b985a78d2039",
+    "assets\\maps\\showhome_v3\\extension\\loose_material_requests.json": "a07de1aa88679fae4c2d9ff8222adc6876a66e39502e7a96eb9e990ec26b261f"
+  },
+  "deferred_asset_requests": [
+    {
+      "id": "loose_construction_pipes",
+      "catalog_ready": false,
+      "instance_ids": [],
+      "status": "explicit_mesh_request_pending"
+    },
+    {
+      "id": "loose_timber_boards",
+      "catalog_ready": false,
+      "instance_ids": [],
+      "status": "explicit_mesh_request_pending"
+    },
+    {
+      "id": "printed_block_offcuts",
+      "catalog_ready": false,
+      "instance_ids": [],
+      "status": "explicit_mesh_request_pending"
+    }
+  ]
+}

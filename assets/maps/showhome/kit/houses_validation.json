@@ -1,0 +1,35 @@
+{
+  "export": "houses.glb",
+  "bytes": 11566312,
+  "triangles": {
+    "SAGE": 41654,
+    "CLAY": 41654
+  },
+  "meshes": 62,
+  "materials": 17,
+  "all_meshes_single_material": true,
+  "all_meshes_uv_and_color_0": true,
+  "identity_nodes_y_up_design_frame": true,
+  "house_alignment_mismatches": 0,
+  "alignment_rays": 133860,
+  "flags": [],
+  "material_names": [
+    "M_SH_FibreCementPaintedFace",
+    "M_SH_GlassDark",
+    "M_SH_Metal",
+    "M_SH_Paint",
+    "M_SH_TrimSheet",
+    "M_SH_Concrete",
+    "M_SH_Fabric",
+    "M_SH_LampWarm",
+    "M_SH_OakBoards",
+    "M_SH_Plaster",
+    "M_SH_RoofShingle",
+    "M_SH_RidgeVerge",
+    "M_SH_Decking",
+    "M_SH_GlassFrost",
+    "M_SH_PrintedConcrete",
+    "M_SH_TimberBoards",
+    "M_SH_SolarPanel"
+  ]
+}

@@ -1,0 +1,99 @@
+{
+ "name": "movement/zipline",
+ "params": {
+  "stereo": false,
+  "loop_len": 2.0,
+  "xfade": 0.25,
+  "join": 1,
+  "kind": "loop_mono"
+ },
+ "prompt": "summary: Close-up of a metal pulley trolley rolling fast along a steel zipline cable.\n\ndetailed_description:\n[Shot 1] Close-up of a metal pulley trolley rolling fast along a steel zipline cable. The camera is static and locked-off.\n\noverall_soundscape: A steady fast metallic whirr of a pulley running along a steel cable, with a constant buzzing hum of the wire. Nothing else is heard: no music, no speech, no voices.\n\nnon_diegetic_music: N/A",
+ "settings": {
+  "w": 128,
+  "h": 128,
+  "frames": 107,
+  "steps": 6,
+  "lora": "turbo4",
+  "shift_video": 12.0,
+  "shift_audio": 3.0,
+  "sampler": "res_multistep",
+  "scheduler": "simple",
+  "style": "structured"
+ },
+ "gen": [
+  {
+   "seed": 1,
+   "exec_s": 10.588,
+   "wall_s": 10.9,
+   "peak_vram_gib": 15.21
+  },
+  {
+   "seed": 2,
+   "exec_s": 3.731,
+   "wall_s": 4.2,
+   "peak_vram_gib": 15.25
+  },
+  {
+   "seed": 3,
+   "exec_s": 3.574,
+   "wall_s": 3.6,
+   "peak_vram_gib": 15.59
+  }
+ ],
+ "outputs": [
+  {
+   "src": "0b0ce8e6_s1.flac",
+   "dur_s": 2.0,
+   "floor_db": -46.3,
+   "peak_db": -17.8,
+   "level_p90_p10_db": 25.0,
+   "clip_samples": 0,
+   "tonal_run_s": 0.0,
+   "tonal_run_hz": 0,
+   "flatness": 1.0,
+   "voiced": 0.0,
+   "voiced_frames": 0,
+   "seam_jump": 0.0232,
+   "out": "movement/zipline_1.ogg",
+   "out_peak_dbfs": -1.0,
+   "out_loudness_db": -25.1,
+   "out_dur_s": 2.0
+  },
+  {
+   "src": "0b0ce8e6_s2.flac",
+   "dur_s": 2.0,
+   "floor_db": -33.7,
+   "peak_db": -25.8,
+   "level_p90_p10_db": 4.5,
+   "clip_samples": 0,
+   "tonal_run_s": 0.0,
+   "tonal_run_hz": 0,
+   "flatness": 1.0,
+   "voiced": 0.0,
+   "voiced_frames": 0,
+   "seam_jump": 0.0774,
+   "out": "movement/zipline_2.ogg",
+   "out_peak_dbfs": -7.88,
+   "out_loudness_db": -23.1,
+   "out_dur_s": 2.0
+  },
+  {
+   "src": "0b0ce8e6_s3.flac",
+   "dur_s": 2.0,
+   "floor_db": -43.0,
+   "peak_db": -20.8,
+   "level_p90_p10_db": 16.4,
+   "clip_samples": 0,
+   "tonal_run_s": 0.0,
+   "tonal_run_hz": 0,
+   "flatness": 1.0,
+   "voiced": 0.0,
+   "voiced_frames": 0,
+   "seam_jump": 0.0882,
+   "out": "movement/zipline_3.ogg",
+   "out_peak_dbfs": -1.0,
+   "out_loudness_db": -23.8,
+   "out_dur_s": 2.0
+  }
+ ]
+}

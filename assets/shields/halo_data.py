@@ -24,12 +24,13 @@ TIERS = {
 }
 
 # Art-side weight-class visuals.  cells must equal the game's weight_effects cells (checked below).
-# orbit_z puts the power cells above the ring top so the true count shows at eye level
-# (qa/qa_cell_visibility.py: >= 90 % of the orbit at -2 and -5 deg).
+# orbit_z (halo-local, x scale) puts the power cells above the ring top so the true count shows at eye level;
+# it rises with the weight (review r2 #6) so the far-side cells of the bigger, banded halos clear the front
+# band at close range too (qa/qa_blender.py cell_view: >= 90 % of the orbit at -2 and -5 deg, -10 deg reported).
 WEIGHT_VISUALS = {
     "Light": dict(scale=0.85, band=None, cells=1, orbit_r=0.215, orbit_z=0.058, orbit_period_s=2.6),
-    "Medium": dict(scale=1.00, band="Medium", cells=2, orbit_r=0.245, orbit_z=0.058, orbit_period_s=3.4),
-    "Heavy": dict(scale=1.20, band="Heavy", cells=3, orbit_r=0.275, orbit_z=0.058, orbit_period_s=4.6),
+    "Medium": dict(scale=1.00, band="Medium", cells=2, orbit_r=0.245, orbit_z=0.065, orbit_period_s=3.4),
+    "Heavy": dict(scale=1.20, band="Heavy", cells=3, orbit_r=0.275, orbit_z=0.080, orbit_period_s=4.6),
 }
 
 

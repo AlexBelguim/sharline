@@ -1,0 +1,1172 @@
+{
+ "doc": "Placements of the brush-matched Showhome props. design_loc: metres, x east, y north, z up (Blender/layout frame). bevy_translation = (x, z, -y); bevy rotation = Quat::from_rotation_y(bevy_yaw_rad). props.glb node = 'prop'.",
+ "placements": [
+  {
+   "prop": "PROP_MoverTruck",
+   "anchor": "C_MOVER_BOX",
+   "brushes": [
+    "C_MOVER_BOX",
+    "C_MOVER_CAB"
+   ],
+   "design_loc": [
+    36.0,
+    23.0,
+    0.0
+   ],
+   "yaw_deg": 0,
+   "bevy_translation": [
+    36.0,
+    0.0,
+    -23.0
+   ],
+   "bevy_yaw_rad": 0.0,
+   "owner": "ground.glb"
+  },
+  {
+   "prop": "PROP_KerbPod",
+   "anchor": "W_KERBPOD",
+   "brushes": [
+    "W_KERBPOD"
+   ],
+   "design_loc": [
+    30.8,
+    32.3,
+    0.0
+   ],
+   "yaw_deg": 0,
+   "bevy_translation": [
+    30.8,
+    0.0,
+    -32.3
+   ],
+   "bevy_yaw_rad": 0.0,
+   "owner": "ground.glb"
+  },
+  {
+   "prop": "PROP_KerbPod",
+   "anchor": "E_KERBPOD",
+   "brushes": [
+    "E_KERBPOD"
+   ],
+   "design_loc": [
+    41.2,
+    32.3,
+    0.0
+   ],
+   "yaw_deg": 180,
+   "bevy_translation": [
+    41.2,
+    0.0,
+    -32.3
+   ],
+   "bevy_yaw_rad": 3.141593,
+   "owner": "ground.glb"
+  },
+  {
+   "prop": "PROP_BoxStack_1m",
+   "anchor": "W_CRATE",
+   "brushes": [
+    "W_CRATE"
+   ],
+   "design_loc": [
+    33.5,
+    20.7,
+    0.0
+   ],
+   "yaw_deg": 0,
+   "bevy_translation": [
+    33.5,
+    0.0,
+    -20.7
+   ],
+   "bevy_yaw_rad": 0.0,
+   "owner": "props_placed.glb"
+  },
+  {
+   "prop": "PROP_BoxStack_1m",
+   "anchor": "E_CRATE",
+   "brushes": [
+    "E_CRATE"
+   ],
+   "design_loc": [
+    38.5,
+    20.7,
+    0.0
+   ],
+   "yaw_deg": 180,
+   "bevy_translation": [
+    38.5,
+    0.0,
+    -20.7
+   ],
+   "bevy_yaw_rad": 3.141593,
+   "owner": "props_placed.glb"
+  },
+  {
+   "prop": "PROP_Crate_Wood_1m",
+   "anchor": "C_CRATE_T",
+   "brushes": [
+    "C_CRATE_T"
+   ],
+   "design_loc": [
+    36.0,
+    17.1,
+    0.0
+   ],
+   "yaw_deg": 0,
+   "bevy_translation": [
+    36.0,
+    0.0,
+    -17.1
+   ],
+   "bevy_yaw_rad": 0.0,
+   "owner": "props_placed.glb"
+  },
+  {
+   "prop": "PROP_Armchair",
+   "anchor": "W_ARMCHAIR",
+   "brushes": [
+    "W_ARMCHAIR"
+   ],
+   "design_loc": [
+    33.8,
+    22.6,
+    0.0
+   ],
+   "yaw_deg": 0,
+   "bevy_translation": [
+    33.8,
+    0.0,
+    -22.6
+   ],
+   "bevy_yaw_rad": 0.0,
+   "owner": "props_placed.glb"
+  },
+  {
+   "prop": "PROP_Armchair",
+   "anchor": "E_ARMCHAIR",
+   "brushes": [
+    "E_ARMCHAIR"
+   ],
+   "design_loc": [
+    38.2,
+    22.6,
+    0.0
+   ],
+   "yaw_deg": 180,
+   "bevy_translation": [
+    38.2,
+    0.0,
+    -22.6
+   ],
+   "bevy_yaw_rad": 3.141593,
+   "owner": "props_placed.glb"
+  },
+  {
+   "prop": "PROP_Sofa",
+   "anchor": "W_SOFA",
+   "brushes": [
+    "W_SOFA"
+   ],
+   "design_loc": [
+    17.75,
+    29.05,
+    0.0
+   ],
+   "yaw_deg": 0,
+   "bevy_translation": [
+    17.75,
+    0.0,
+    -29.05
+   ],
+   "bevy_yaw_rad": 0.0,
+   "owner": "houses.glb"
+  },
+  {
+   "prop": "PROP_Sofa",
+   "anchor": "E_SOFA",
+   "brushes": [
+    "E_SOFA"
+   ],
+   "design_loc": [
+    54.25,
+    29.05,
+    0.0
+   ],
+   "yaw_deg": 0,
+   "bevy_translation": [
+    54.25,
+    0.0,
+    -29.05
+   ],
+   "bevy_yaw_rad": 0.0,
+   "owner": "houses.glb"
+  },
+  {
+   "prop": "PROP_Fence_Run_S",
+   "anchor": "W_FENCE_FS",
+   "brushes": [
+    "W_FENCE_FS"
+   ],
+   "design_loc": [
+    27.5,
+    19.7,
+    0.0
+   ],
+   "yaw_deg": 0,
+   "bevy_translation": [
+    27.5,
+    0.0,
+    -19.7
+   ],
+   "bevy_yaw_rad": 0.0,
+   "owner": "ground.glb"
+  },
+  {
+   "prop": "PROP_Fence_Run_S",
+   "anchor": "E_FENCE_FS",
+   "brushes": [
+    "E_FENCE_FS"
+   ],
+   "design_loc": [
+    44.5,
+    19.7,
+    0.0
+   ],
+   "yaw_deg": 0,
+   "bevy_translation": [
+    44.5,
+    0.0,
+    -19.7
+   ],
+   "bevy_yaw_rad": 0.0,
+   "owner": "ground.glb"
+  },
+  {
+   "prop": "PROP_Fence_Run_N",
+   "anchor": "W_FENCE_FN",
+   "brushes": [
+    "W_FENCE_FN"
+   ],
+   "design_loc": [
+    27.5,
+    29.5,
+    0.0
+   ],
+   "yaw_deg": 0,
+   "bevy_translation": [
+    27.5,
+    0.0,
+    -29.5
+   ],
+   "bevy_yaw_rad": 0.0,
+   "owner": "ground.glb"
+  },
+  {
+   "prop": "PROP_Fence_Run_N",
+   "anchor": "E_FENCE_FN",
+   "brushes": [
+    "E_FENCE_FN"
+   ],
+   "design_loc": [
+    44.5,
+    29.5,
+    0.0
+   ],
+   "yaw_deg": 0,
+   "bevy_translation": [
+    44.5,
+    0.0,
+    -29.5
+   ],
+   "bevy_yaw_rad": 0.0,
+   "owner": "ground.glb"
+  },
+  {
+   "prop": "PROP_Hedge_Boundary",
+   "anchor": "W_HEDGE",
+   "brushes": [
+    "W_HEDGE"
+   ],
+   "design_loc": [
+    0.5,
+    24.0,
+    0.0
+   ],
+   "yaw_deg": 0,
+   "bevy_translation": [
+    0.5,
+    0.0,
+    -24.0
+   ],
+   "bevy_yaw_rad": 0.0,
+   "owner": "ground.glb"
+  },
+  {
+   "prop": "PROP_Hedge_Boundary",
+   "anchor": "E_HEDGE",
+   "brushes": [
+    "E_HEDGE"
+   ],
+   "design_loc": [
+    71.5,
+    24.0,
+    0.0
+   ],
+   "yaw_deg": 0,
+   "bevy_translation": [
+    71.5,
+    0.0,
+    -24.0
+   ],
+   "bevy_yaw_rad": 0.0,
+   "owner": "ground.glb"
+  },
+  {
+   "prop": "PROP_Hedge_Lawn",
+   "anchor": "W_HEDGE_LAWN",
+   "brushes": [
+    "W_HEDGE_LAWN"
+   ],
+   "design_loc": [
+    25.6,
+    14.0,
+    0.0
+   ],
+   "yaw_deg": 0,
+   "bevy_translation": [
+    25.6,
+    0.0,
+    -14.0
+   ],
+   "bevy_yaw_rad": 0.0,
+   "owner": "ground.glb"
+  },
+  {
+   "prop": "PROP_Hedge_Lawn",
+   "anchor": "E_HEDGE_LAWN",
+   "brushes": [
+    "E_HEDGE_LAWN"
+   ],
+   "design_loc": [
+    46.4,
+    14.0,
+    0.0
+   ],
+   "yaw_deg": 0,
+   "bevy_translation": [
+    46.4,
+    0.0,
+    -14.0
+   ],
+   "bevy_yaw_rad": 0.0,
+   "owner": "ground.glb"
+  },
+  {
+   "prop": "PROP_Arbour",
+   "anchor": "W_ARBOUR",
+   "brushes": [
+    "W_ARBOUR"
+   ],
+   "design_loc": [
+    9.5,
+    42.0,
+    0.0
+   ],
+   "yaw_deg": 0,
+   "bevy_translation": [
+    9.5,
+    0.0,
+    -42.0
+   ],
+   "bevy_yaw_rad": 0.0,
+   "owner": "ground.glb"
+  },
+  {
+   "prop": "PROP_Arbour",
+   "anchor": "E_ARBOUR",
+   "brushes": [
+    "E_ARBOUR"
+   ],
+   "design_loc": [
+    62.5,
+    42.0,
+    0.0
+   ],
+   "yaw_deg": 0,
+   "bevy_translation": [
+    62.5,
+    0.0,
+    -42.0
+   ],
+   "bevy_yaw_rad": 0.0,
+   "owner": "ground.glb"
+  },
+  {
+   "prop": "PROP_Pylon",
+   "anchor": "W_PYLON_MAST",
+   "brushes": [
+    "W_PYLON_MAST",
+    "W_PYLON_PAD"
+   ],
+   "design_loc": [
+    25.0,
+    45.5,
+    0.0
+   ],
+   "yaw_deg": 0,
+   "bevy_translation": [
+    25.0,
+    0.0,
+    -45.5
+   ],
+   "bevy_yaw_rad": 0.0,
+   "owner": "ground.glb"
+  },
+  {
+   "prop": "PROP_Pylon",
+   "anchor": "E_PYLON_MAST",
+   "brushes": [
+    "E_PYLON_MAST",
+    "E_PYLON_PAD"
+   ],
+   "design_loc": [
+    47.0,
+    45.5,
+    0.0
+   ],
+   "yaw_deg": 180,
+   "bevy_translation": [
+    47.0,
+    0.0,
+    -45.5
+   ],
+   "bevy_yaw_rad": 3.141593,
+   "owner": "ground.glb"
+  },
+  {
+   "prop": "PROP_Zipline_Cable",
+   "anchor": "ZIPLINE",
+   "brushes": [],
+   "design_loc": [
+    25.0,
+    45.5,
+    6.3
+   ],
+   "yaw_deg": 0,
+   "bevy_translation": [
+    25.0,
+    6.3,
+    -45.5
+   ],
+   "bevy_yaw_rad": 0.0,
+   "owner": "ground.glb"
+  },
+  {
+   "prop": "PROP_HotTub",
+   "anchor": "W_HOTTUB",
+   "brushes": [
+    "W_HOTTUB"
+   ],
+   "design_loc": [
+    4.25,
+    29.25,
+    0.0
+   ],
+   "yaw_deg": 0,
+   "bevy_translation": [
+    4.25,
+    0.0,
+    -29.25
+   ],
+   "bevy_yaw_rad": 0.0,
+   "owner": "props_placed.glb"
+  },
+  {
+   "prop": "PROP_HotTub",
+   "anchor": "E_HOTTUB",
+   "brushes": [
+    "E_HOTTUB"
+   ],
+   "design_loc": [
+    67.75,
+    29.25,
+    0.0
+   ],
+   "yaw_deg": 0,
+   "bevy_translation": [
+    67.75,
+    0.0,
+    -29.25
+   ],
+   "bevy_yaw_rad": 0.0,
+   "owner": "props_placed.glb"
+  },
+  {
+   "prop": "PROP_OutdoorKitchen",
+   "anchor": "W_BBQ",
+   "brushes": [
+    "W_BBQ"
+   ],
+   "design_loc": [
+    2.5,
+    23.5,
+    0.0
+   ],
+   "yaw_deg": 0,
+   "bevy_translation": [
+    2.5,
+    0.0,
+    -23.5
+   ],
+   "bevy_yaw_rad": 0.0,
+   "owner": "props_placed.glb"
+  },
+  {
+   "prop": "PROP_OutdoorKitchen",
+   "anchor": "E_BBQ",
+   "brushes": [
+    "E_BBQ"
+   ],
+   "design_loc": [
+    69.5,
+    23.5,
+    0.0
+   ],
+   "yaw_deg": 180,
+   "bevy_translation": [
+    69.5,
+    0.0,
+    -23.5
+   ],
+   "bevy_yaw_rad": 3.141593,
+   "owner": "props_placed.glb"
+  },
+  {
+   "prop": "PROP_KitchenIsland",
+   "anchor": "W_ISLAND",
+   "brushes": [
+    "W_ISLAND"
+   ],
+   "design_loc": [
+    11.0,
+    25.25,
+    0.0
+   ],
+   "yaw_deg": 0,
+   "bevy_translation": [
+    11.0,
+    0.0,
+    -25.25
+   ],
+   "bevy_yaw_rad": 0.0,
+   "owner": "houses.glb"
+  },
+  {
+   "prop": "PROP_KitchenIsland",
+   "anchor": "E_ISLAND",
+   "brushes": [
+    "E_ISLAND"
+   ],
+   "design_loc": [
+    61.0,
+    25.25,
+    0.0
+   ],
+   "yaw_deg": 0,
+   "bevy_translation": [
+    61.0,
+    0.0,
+    -25.25
+   ],
+   "bevy_yaw_rad": 0.0,
+   "owner": "houses.glb"
+  },
+  {
+   "prop": "PROP_Workbench",
+   "anchor": "W_WORKBENCH",
+   "brushes": [
+    "W_WORKBENCH"
+   ],
+   "design_loc": [
+    9.65,
+    19.0,
+    0.0
+   ],
+   "yaw_deg": 0,
+   "bevy_translation": [
+    9.65,
+    0.0,
+    -19.0
+   ],
+   "bevy_yaw_rad": 0.0,
+   "owner": "houses.glb"
+  },
+  {
+   "prop": "PROP_Workbench",
+   "anchor": "E_WORKBENCH",
+   "brushes": [
+    "E_WORKBENCH"
+   ],
+   "design_loc": [
+    62.35,
+    19.0,
+    0.0
+   ],
+   "yaw_deg": 180,
+   "bevy_translation": [
+    62.35,
+    0.0,
+    -19.0
+   ],
+   "bevy_yaw_rad": 3.141593,
+   "owner": "houses.glb"
+  },
+  {
+   "prop": "PROP_Dresser",
+   "anchor": "W_DRESSER",
+   "brushes": [
+    "W_DRESSER"
+   ],
+   "design_loc": [
+    15.5,
+    27.0,
+    3.2
+   ],
+   "yaw_deg": 0,
+   "bevy_translation": [
+    15.5,
+    3.2,
+    -27.0
+   ],
+   "bevy_yaw_rad": 0.0,
+   "owner": "houses.glb"
+  },
+  {
+   "prop": "PROP_Dresser",
+   "anchor": "E_DRESSER",
+   "brushes": [
+    "E_DRESSER"
+   ],
+   "design_loc": [
+    56.5,
+    27.0,
+    3.2
+   ],
+   "yaw_deg": 180,
+   "bevy_translation": [
+    56.5,
+    3.2,
+    -27.0
+   ],
+   "bevy_yaw_rad": 3.141593,
+   "owner": "houses.glb"
+  },
+  {
+   "prop": "PROP_Shelving",
+   "anchor": "W_SHELF",
+   "brushes": [
+    "W_SHELF"
+   ],
+   "design_loc": [
+    18.0,
+    21.575,
+    0.0
+   ],
+   "yaw_deg": 0,
+   "bevy_translation": [
+    18.0,
+    0.0,
+    -21.575
+   ],
+   "bevy_yaw_rad": 0.0,
+   "owner": "houses.glb"
+  },
+  {
+   "prop": "PROP_Shelving",
+   "anchor": "E_SHELF",
+   "brushes": [
+    "E_SHELF"
+   ],
+   "design_loc": [
+    54.0,
+    21.575,
+    0.0
+   ],
+   "yaw_deg": 0,
+   "bevy_translation": [
+    54.0,
+    0.0,
+    -21.575
+   ],
+   "bevy_yaw_rad": 0.0,
+   "owner": "houses.glb"
+  },
+  {
+   "prop": "PROP_HeatPump",
+   "anchor": "W_HEATPUMP",
+   "brushes": [
+    "W_HEATPUMP"
+   ],
+   "design_loc": [
+    19.5,
+    21.2,
+    3.2
+   ],
+   "yaw_deg": 0,
+   "bevy_translation": [
+    19.5,
+    3.2,
+    -21.2
+   ],
+   "bevy_yaw_rad": 0.0,
+   "owner": "houses.glb"
+  },
+  {
+   "prop": "PROP_HeatPump",
+   "anchor": "E_HEATPUMP",
+   "brushes": [
+    "E_HEATPUMP"
+   ],
+   "design_loc": [
+    52.5,
+    21.2,
+    3.2
+   ],
+   "yaw_deg": 0,
+   "bevy_translation": [
+    52.5,
+    3.2,
+    -21.2
+   ],
+   "bevy_yaw_rad": 0.0,
+   "owner": "houses.glb"
+  },
+  {
+   "prop": "PROP_GarageCar",
+   "anchor": "W_GARAGE_CAR",
+   "brushes": [
+    "W_GARAGE_CAR"
+   ],
+   "design_loc": [
+    13.55,
+    18.8,
+    0.0
+   ],
+   "yaw_deg": 0,
+   "bevy_translation": [
+    13.55,
+    0.0,
+    -18.8
+   ],
+   "bevy_yaw_rad": 0.0,
+   "owner": "houses.glb"
+  },
+  {
+   "prop": "PROP_GarageCar",
+   "anchor": "E_GARAGE_CAR",
+   "brushes": [
+    "E_GARAGE_CAR"
+   ],
+   "design_loc": [
+    58.45,
+    18.8,
+    0.0
+   ],
+   "yaw_deg": 0,
+   "bevy_translation": [
+    58.45,
+    0.0,
+    -18.8
+   ],
+   "bevy_yaw_rad": 0.0,
+   "owner": "houses.glb"
+  },
+  {
+   "prop": "PROP_RainTank",
+   "anchor": "W_TANK",
+   "brushes": [
+    "W_TANK"
+   ],
+   "design_loc": [
+    13.5,
+    37.5,
+    0.0
+   ],
+   "yaw_deg": 0,
+   "bevy_translation": [
+    13.5,
+    0.0,
+    -37.5
+   ],
+   "bevy_yaw_rad": 0.0,
+   "owner": "props_placed.glb"
+  },
+  {
+   "prop": "PROP_RainTank",
+   "anchor": "E_TANK",
+   "brushes": [
+    "E_TANK"
+   ],
+   "design_loc": [
+    58.5,
+    37.5,
+    0.0
+   ],
+   "yaw_deg": 0,
+   "bevy_translation": [
+    58.5,
+    0.0,
+    -37.5
+   ],
+   "bevy_yaw_rad": 0.0,
+   "owner": "props_placed.glb"
+  },
+  {
+   "prop": "PROP_BinStore",
+   "anchor": "W_BINS",
+   "brushes": [
+    "W_BINS"
+   ],
+   "design_loc": [
+    13.5,
+    7.0,
+    0.0
+   ],
+   "yaw_deg": 0,
+   "bevy_translation": [
+    13.5,
+    0.0,
+    -7.0
+   ],
+   "bevy_yaw_rad": 0.0,
+   "owner": "props_placed.glb"
+  },
+  {
+   "prop": "PROP_BinStore",
+   "anchor": "E_BINS",
+   "brushes": [
+    "E_BINS"
+   ],
+   "design_loc": [
+    58.5,
+    7.0,
+    0.0
+   ],
+   "yaw_deg": 180,
+   "bevy_translation": [
+    58.5,
+    0.0,
+    -7.0
+   ],
+   "bevy_yaw_rad": 3.141593,
+   "owner": "props_placed.glb"
+  },
+  {
+   "prop": "PROP_ParcelLockers",
+   "anchor": "W_LOCKERS",
+   "brushes": [
+    "W_LOCKERS"
+   ],
+   "design_loc": [
+    29.2,
+    14.0,
+    0.0
+   ],
+   "yaw_deg": 0,
+   "bevy_translation": [
+    29.2,
+    0.0,
+    -14.0
+   ],
+   "bevy_yaw_rad": 0.0,
+   "owner": "props_placed.glb"
+  },
+  {
+   "prop": "PROP_ParcelLockers",
+   "anchor": "E_LOCKERS",
+   "brushes": [
+    "E_LOCKERS"
+   ],
+   "design_loc": [
+    42.8,
+    14.0,
+    0.0
+   ],
+   "yaw_deg": 180,
+   "bevy_translation": [
+    42.8,
+    0.0,
+    -14.0
+   ],
+   "bevy_yaw_rad": 3.141593,
+   "owner": "props_placed.glb"
+  },
+  {
+   "prop": "PROP_ChargerIsland",
+   "anchor": "C_CHARGER",
+   "brushes": [
+    "C_CHARGER"
+   ],
+   "design_loc": [
+    36.0,
+    33.0,
+    0.0
+   ],
+   "yaw_deg": 0,
+   "bevy_translation": [
+    36.0,
+    0.0,
+    -33.0
+   ],
+   "bevy_yaw_rad": 0.0,
+   "owner": "props_placed.glb"
+  },
+  {
+   "prop": "PROP_ModelTable",
+   "anchor": "C_MODEL",
+   "brushes": [
+    "C_MODEL"
+   ],
+   "design_loc": [
+    36.0,
+    4.0,
+    0.0
+   ],
+   "yaw_deg": 0,
+   "bevy_translation": [
+    36.0,
+    0.0,
+    -4.0
+   ],
+   "bevy_yaw_rad": 0.0,
+   "owner": "props_placed.glb"
+  },
+  {
+   "prop": "PROP_ShuttleStop",
+   "anchor": "C_SHUTTLE",
+   "brushes": [
+    "C_SHUTTLE"
+   ],
+   "design_loc": [
+    36.0,
+    9.0,
+    0.0
+   ],
+   "yaw_deg": 0,
+   "bevy_translation": [
+    36.0,
+    0.0,
+    -9.0
+   ],
+   "bevy_yaw_rad": 0.0,
+   "owner": "props_placed.glb"
+  },
+  {
+   "prop": "PROP_Greenhouse_Sage",
+   "anchor": "W_GH_WALL_S",
+   "brushes": [
+    "W_GH_WALL_E",
+    "W_GH_WALL_N",
+    "W_GH_WALL_S",
+    "W_GH_WALL_W",
+    "W_GREENHOUSE"
+   ],
+   "design_loc": [
+    22.75,
+    32.0,
+    0.0
+   ],
+   "yaw_deg": 0,
+   "bevy_translation": [
+    22.75,
+    0.0,
+    -32.0
+   ],
+   "bevy_yaw_rad": 0.0,
+   "owner": "props_placed.glb"
+  },
+  {
+   "prop": "PROP_Greenhouse_Clay",
+   "anchor": "E_GH_WALL_S",
+   "brushes": [
+    "E_GH_WALL_E",
+    "E_GH_WALL_N",
+    "E_GH_WALL_S",
+    "E_GH_WALL_W",
+    "E_GREENHOUSE"
+   ],
+   "design_loc": [
+    45.8,
+    32.0,
+    0.0
+   ],
+   "yaw_deg": 0,
+   "bevy_translation": [
+    45.8,
+    0.0,
+    -32.0
+   ],
+   "bevy_yaw_rad": 0.0,
+   "owner": "props_placed.glb"
+  },
+  {
+   "prop": "PROP_Studio_Sage",
+   "anchor": "W_ST_WALL_S",
+   "brushes": [
+    "W_STUDIO",
+    "W_ST_WALL_E",
+    "W_ST_WALL_N",
+    "W_ST_WALL_S",
+    "W_ST_WALL_W"
+   ],
+   "design_loc": [
+    23.0,
+    1.0,
+    0.0
+   ],
+   "yaw_deg": 0,
+   "bevy_translation": [
+    23.0,
+    0.0,
+    -1.0
+   ],
+   "bevy_yaw_rad": 0.0,
+   "owner": "props_placed.glb"
+  },
+  {
+   "prop": "PROP_Studio_Clay",
+   "anchor": "E_ST_WALL_S",
+   "brushes": [
+    "E_STUDIO",
+    "E_ST_WALL_E",
+    "E_ST_WALL_N",
+    "E_ST_WALL_S",
+    "E_ST_WALL_W"
+   ],
+   "design_loc": [
+    49.0,
+    1.0,
+    0.0
+   ],
+   "yaw_deg": 0,
+   "bevy_translation": [
+    49.0,
+    0.0,
+    -1.0
+   ],
+   "bevy_yaw_rad": 0.0,
+   "owner": "props_placed.glb"
+  },
+  {
+   "prop": "PROP_Shed_Sage",
+   "anchor": "W_SHED",
+   "brushes": [
+    "W_SHED"
+   ],
+   "design_loc": [
+    19.0,
+    45.0,
+    0.0
+   ],
+   "yaw_deg": 0,
+   "bevy_translation": [
+    19.0,
+    0.0,
+    -45.0
+   ],
+   "bevy_yaw_rad": 0.0,
+   "owner": "props_placed.glb"
+  },
+  {
+   "prop": "PROP_Shed_Clay",
+   "anchor": "E_SHED",
+   "brushes": [
+    "E_SHED"
+   ],
+   "design_loc": [
+    53.0,
+    45.0,
+    0.0
+   ],
+   "yaw_deg": 0,
+   "bevy_translation": [
+    53.0,
+    0.0,
+    -45.0
+   ],
+   "bevy_yaw_rad": 0.0,
+   "owner": "props_placed.glb"
+  },
+  {
+   "prop": "PROP_SalesOffice",
+   "anchor": "C_OF_WALL_S",
+   "brushes": [
+    "C_OFFICE",
+    "C_OF_WALL_E",
+    "C_OF_WALL_N",
+    "C_OF_WALL_S",
+    "C_OF_WALL_W"
+   ],
+   "design_loc": [
+    36.0,
+    1.0,
+    0.0
+   ],
+   "yaw_deg": 0,
+   "bevy_translation": [
+    36.0,
+    0.0,
+    -1.0
+   ],
+   "bevy_yaw_rad": 0.0,
+   "owner": "props_placed.glb"
+  },
+  {
+   "prop": "PROP_ParcelHub",
+   "anchor": "C_HUB",
+   "brushes": [
+    "C_HUB"
+   ],
+   "design_loc": [
+    36.0,
+    41.5,
+    0.0
+   ],
+   "yaw_deg": 0,
+   "bevy_translation": [
+    36.0,
+    0.0,
+    -41.5
+   ],
+   "bevy_yaw_rad": 0.0,
+   "owner": "props_placed.glb"
+  }
+ ],
+ "library_only": [
+  "PROP_Box_S",
+  "PROP_Box_M",
+  "PROP_Box_L",
+  "PROP_Box_M_Open",
+  "PROP_Fence_Picket_2m",
+  "PROP_Fence_Picket_1m",
+  "PROP_Fence_Gate_1m",
+  "PROP_Fence_Post",
+  "PROP_Hedge_Block_2m",
+  "PROP_Hedge_Block_4m_Tall",
+  "PROP_Wire_Span_20m",
+  "PROP_Pallet",
+  "PROP_PrintedBlockStack",
+  "PROP_RebarBundle",
+  "PROP_CementBag",
+  "PROP_CementBagPallet",
+  "PROP_TrafficCone",
+  "PROP_PlasticBarrier",
+  "PROP_Rock_Low",
+  "PROP_Rock_Tall",
+  "PROP_PebbleCluster",
+  "PROP_DirtMound",
+  "PROP_SandMound"
+ ],
+ "game_load": "Load houses.glb + ground.glb + props_placed.glb at identity. props.glb is a reusable library of local-origin props and must not be loaded as a map scene. owner gives the sole GLB that draws each placement."
+}

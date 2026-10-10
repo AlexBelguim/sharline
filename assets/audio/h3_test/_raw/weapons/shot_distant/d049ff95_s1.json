@@ -1,0 +1,21 @@
+{
+ "name": "weapons/shot_distant",
+ "seed": 1,
+ "prompt": "summary: A wide static shot of empty suburban rooftops on a quiet afternoon.\n\ndetailed_description:\n[Shot 1] A wide static shot of empty suburban rooftops on a quiet afternoon. Far away, out of sight, someone fires one rifle shot. The camera is static and locked-off.\n\noverall_soundscape: One single gunshot heard from very far away: a muffled distant crack with no close detail, followed by a long echo bouncing off the houses, then quiet. Nothing else is heard: no music, no speech, no voices.\n\nnon_diegetic_music: N/A",
+ "settings": {
+  "w": 128,
+  "h": 128,
+  "frames": 107,
+  "steps": 6,
+  "lora": "turbo4",
+  "shift_video": 12.0,
+  "shift_audio": 3.0,
+  "sampler": "res_multistep",
+  "scheduler": "simple",
+  "style": "structured"
+ },
+ "exec_s": 13.256,
+ "wall_s": 13.6,
+ "peak_vram_gib": 15.12,
+ "audio_s": 4.46
+}

@@ -1,0 +1,101 @@
+{
+ "name": "ui/back",
+ "params": {
+  "preroll": 0.01,
+  "tail_db": 40,
+  "hold": 0.06,
+  "max_len": 0.4,
+  "min_gap": 0.3,
+  "per_clip": 1,
+  "stereo": false,
+  "attack_max": 0.15,
+  "kind": "oneshot"
+ },
+ "prompt": "summary: A futuristic game menu panel slides closed, once.\n\ndetailed_description:\n[Shot 1] A futuristic game menu panel slides closed, once. The camera is static and locked-off.\n\noverall_soundscape: A single soft low falling electronic blip, then silence. Nothing else is heard: no music, no speech, no voices.\n\nnon_diegetic_music: N/A",
+ "settings": {
+  "w": 128,
+  "h": 128,
+  "frames": 73,
+  "steps": 6,
+  "lora": "turbo4",
+  "shift_video": 12.0,
+  "shift_audio": 3.0,
+  "sampler": "res_multistep",
+  "scheduler": "simple",
+  "style": "structured"
+ },
+ "gen": [
+  {
+   "seed": 1,
+   "exec_s": 8.675,
+   "wall_s": 9.0,
+   "peak_vram_gib": 15.0
+  },
+  {
+   "seed": 2,
+   "exec_s": 3.102,
+   "wall_s": 3.2,
+   "peak_vram_gib": 14.95
+  },
+  {
+   "seed": 3,
+   "exec_s": 5.117,
+   "wall_s": 5.3,
+   "peak_vram_gib": 15.59
+  }
+ ],
+ "outputs": [
+  {
+   "src": "8ea1ff2c_s2.flac",
+   "start_s": 160,
+   "end_s": 14240,
+   "onset_s": 0.015,
+   "peak_db": -19.4,
+   "floor_db": -101.0,
+   "snr_db": 81.5,
+   "pre_quiet_db": 33.5,
+   "attack_ms": 9.0,
+   "dur_s": 0.44,
+   "hit_max_len": true,
+   "clip_samples": 0,
+   "n_events_in_clip": 1,
+   "tonal_run_s": 0.024,
+   "tonal_run_hz": 1969,
+   "flatness": 0.009,
+   "voiced": 0.0,
+   "voiced_frames": 64,
+   "score": 75.0,
+   "stereo_corr": 0.582,
+   "out": "ui/back_1.ogg",
+   "out_peak_dbfs": -2.5,
+   "out_loudness_db": -19.7,
+   "out_dur_s": 0.44
+  },
+  {
+   "src": "8ea1ff2c_s1.flac",
+   "start_s": 65824,
+   "end_s": 71232,
+   "onset_s": 2.067,
+   "peak_db": -13.3,
+   "floor_db": -100.7,
+   "snr_db": 87.3,
+   "pre_quiet_db": 85.7,
+   "attack_ms": 55.0,
+   "dur_s": 0.169,
+   "hit_max_len": false,
+   "clip_samples": 0,
+   "n_events_in_clip": 1,
+   "tonal_run_s": 0.0,
+   "tonal_run_hz": 0,
+   "flatness": 0.33,
+   "voiced": 0.0,
+   "voiced_frames": 10,
+   "score": 63.0,
+   "stereo_corr": 0.946,
+   "out": "ui/back_2.ogg",
+   "out_peak_dbfs": -1.0,
+   "out_loudness_db": -21.7,
+   "out_dur_s": 0.169
+  }
+ ]
+}

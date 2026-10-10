@@ -1,0 +1,90 @@
+{
+ "what": "alpha-weighted mean display luminance per halo, daylight, idle, 20 m view (camera 0.9 deg below the halo); white_px_pct = share of halo pixels with luma > 0.85 (white bloom risk)",
+ "worst_abs_pct": 14.0,
+ "pairs": {
+  "Bulwark_Light": {
+   "near": 0.153,
+   "white_px_pct_near": 6.55,
+   "far": 0.1316,
+   "white_px_pct_far": 4.31,
+   "far_vs_near_pct": -14.0
+  },
+  "Mender_Light": {
+   "near": 0.3204,
+   "white_px_pct_near": 5.2,
+   "far": 0.3448,
+   "white_px_pct_far": 10.77,
+   "far_vs_near_pct": 7.6
+  },
+  "Volt_Light": {
+   "near": 0.1759,
+   "white_px_pct_near": 1.63,
+   "far": 0.1561,
+   "white_px_pct_far": 1.65,
+   "far_vs_near_pct": -11.3
+  },
+  "Phase_Light": {
+   "near": 0.2159,
+   "white_px_pct_near": 10.29,
+   "far": 0.2092,
+   "white_px_pct_far": 16.95,
+   "far_vs_near_pct": -3.1
+  },
+  "Bulwark_Medium": {
+   "near": 0.2671,
+   "white_px_pct_near": 0.0,
+   "far": 0.2514,
+   "white_px_pct_far": 0.0,
+   "far_vs_near_pct": -5.9
+  },
+  "Mender_Medium": {
+   "near": 0.3136,
+   "white_px_pct_near": 0.0,
+   "far": 0.3086,
+   "white_px_pct_far": 0.0,
+   "far_vs_near_pct": -1.6
+  },
+  "Volt_Medium": {
+   "near": 0.2697,
+   "white_px_pct_near": 0.0,
+   "far": 0.267,
+   "white_px_pct_far": 0.0,
+   "far_vs_near_pct": -1.0
+  },
+  "Phase_Medium": {
+   "near": 0.319,
+   "white_px_pct_near": 0.36,
+   "far": 0.3293,
+   "white_px_pct_far": 0.41,
+   "far_vs_near_pct": 3.2
+  },
+  "Bulwark_Heavy": {
+   "near": 0.1497,
+   "white_px_pct_near": 0.0,
+   "far": 0.1536,
+   "white_px_pct_far": 0.0,
+   "far_vs_near_pct": 2.6
+  },
+  "Mender_Heavy": {
+   "near": 0.1952,
+   "white_px_pct_near": 0.0,
+   "far": 0.1984,
+   "white_px_pct_far": 0.0,
+   "far_vs_near_pct": 1.6
+  },
+  "Volt_Heavy": {
+   "near": 0.1487,
+   "white_px_pct_near": 0.0,
+   "far": 0.1526,
+   "white_px_pct_far": 0.0,
+   "far_vs_near_pct": 2.6
+  },
+  "Phase_Heavy": {
+   "near": 0.1816,
+   "white_px_pct_near": 0.0,
+   "far": 0.1937,
+   "white_px_pct_far": 0.34,
+   "far_vs_near_pct": 6.7
+  }
+ }
+}

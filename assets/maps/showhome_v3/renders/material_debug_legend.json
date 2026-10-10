@@ -1,0 +1,111 @@
+{
+  "palette_linear_RGB": {
+    "glass": [
+      0.22,
+      0.82,
+      0.9
+    ],
+    "wood_thin": [
+      0.74,
+      0.44,
+      0.18
+    ],
+    "wood_thick": [
+      0.36,
+      0.18,
+      0.055
+    ],
+    "sheet_metal": [
+      0.75,
+      0.8,
+      0.87
+    ],
+    "metal_heavy": [
+      0.16,
+      0.22,
+      0.29
+    ],
+    "drywall": [
+      0.96,
+      0.72,
+      0.42
+    ],
+    "concrete": [
+      0.5,
+      0.53,
+      0.56
+    ],
+    "brick": [
+      0.67,
+      0.18,
+      0.12
+    ],
+    "cladding": [
+      0.43,
+      0.29,
+      0.7
+    ],
+    "foliage_thin": [
+      0.4,
+      0.8,
+      0.24
+    ],
+    "foliage_dense": [
+      0.09,
+      0.36,
+      0.12
+    ],
+    "fabric": [
+      0.83,
+      0.21,
+      0.63
+    ],
+    "plastic": [
+      0.97,
+      0.76,
+      0.13
+    ],
+    "soil": [
+      0.32,
+      0.23,
+      0.14
+    ],
+    "grass": [
+      0.19,
+      0.48,
+      0.13
+    ],
+    "gravel": [
+      0.62,
+      0.56,
+      0.41
+    ],
+    "sand": [
+      0.91,
+      0.77,
+      0.47
+    ],
+    "asphalt": [
+      0.1,
+      0.11,
+      0.13
+    ],
+    "paving": [
+      0.73,
+      0.71,
+      0.65
+    ],
+    "water": [
+      0.1,
+      0.42,
+      0.83
+    ]
+  },
+  "collision_counts": {},
+  "renders": [
+    "F:\\git\\val etf\\assets\\maps\\showhome_v3\\renders\\material_debug_aerial.png",
+    "F:\\git\\val etf\\assets\\maps\\showhome_v3\\renders\\material_debug_street_south.png",
+    "F:\\git\\val etf\\assets\\maps\\showhome_v3\\renders\\material_debug_street_north.png"
+  ],
+  "source_scene_unchanged": true
+}

@@ -1,0 +1,21 @@
+{
+ "name": "combat/shield_hit",
+ "seed": 1,
+ "prompt": "summary: A glowing transparent blue energy shield hovers in a dark room.\n\ndetailed_description:\n[Shot 1] A glowing transparent blue energy shield hovers in a dark room. A bullet strikes it once and a ripple of light spreads across it. The camera is static and locked-off.\n\noverall_soundscape: Foley recording, close microphone, isolated sound: one single glassy crystal tink with a short shimmering electric ring, then silence. Nothing else is heard: no music, no speech, no voices.\n\nnon_diegetic_music: N/A",
+ "settings": {
+  "w": 128,
+  "h": 128,
+  "frames": 73,
+  "steps": 6,
+  "lora": "turbo4",
+  "shift_video": 12.0,
+  "shift_audio": 3.0,
+  "sampler": "res_multistep",
+  "scheduler": "simple",
+  "style": "structured"
+ },
+ "exec_s": 9.279,
+ "wall_s": 9.6,
+ "peak_vram_gib": 15.19,
+ "audio_s": 3.04
+}

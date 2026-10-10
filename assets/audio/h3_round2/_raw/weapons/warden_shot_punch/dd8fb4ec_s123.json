@@ -1,0 +1,21 @@
+{
+ "name": "weapons/warden_shot_punch",
+ "seed": 123,
+ "prompt": "summary: A static close-up of the muzzle brake of a long black sniper rifle at an outdoor range.\n\ndetailed_description:\n[Shot 1] A static close-up of the muzzle brake of a long black sniper rifle at an outdoor range. It fires exactly one round: a big flash and a puff of dust, then it is still. The camera is static and locked-off.\n\noverall_soundscape: Foley recording, close microphone: one single very loud punchy sniper rifle shot, a hard explosive bang with a tight low boom and a bright crack, then a short echo that dies away within one and a half seconds, then silence. Nothing else is heard: no music, no speech, no voices.\n\nnon_diegetic_music: N/A",
+ "settings": {
+  "w": 128,
+  "h": 128,
+  "frames": 107,
+  "steps": 6,
+  "lora": "turbo4",
+  "shift_video": 12.0,
+  "shift_audio": 3.0,
+  "sampler": "res_multistep",
+  "scheduler": "simple",
+  "style": "structured"
+ },
+ "exec_s": 3.862,
+ "wall_s": 4.1,
+ "peak_vram_gib": 15.53,
+ "audio_s": 4.46
+}

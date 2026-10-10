@@ -1,0 +1,22 @@
+[
+  {
+    "render": "F:/git/val etf/assets/maps/showhome\\kit\\renders\\props\\tile_Armchair.png",
+    "concept": "F:\\git\\val etf\\design/maps/tdm/concepts/_candidates\\A_showhome_ground_s11.png",
+    "crop_normalized": [
+      0.52,
+      0.57,
+      0.68,
+      0.76
+    ]
+  },
+  {
+    "render": "F:/git/val etf/assets/maps/showhome\\kit\\renders\\props\\tile_Sofa.png",
+    "concept": "F:\\git\\val etf\\design/maps/tdm/concepts/_candidates\\A_showhome_ground_s11.png",
+    "crop_normalized": [
+      0.52,
+      0.57,
+      0.68,
+      0.76
+    ]
+  }
+]

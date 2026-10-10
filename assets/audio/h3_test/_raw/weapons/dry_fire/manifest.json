@@ -1,0 +1,32 @@
+{
+ "files": [
+  "fd5ff3b9_s1.flac",
+  "fd5ff3b9_s2.flac",
+  "fd5ff3b9_s3.flac"
+ ],
+ "tag": "fd5ff3b9",
+ "prompt": "summary: Extreme close-up of a finger squeezing the trigger of an empty black rifle on a workbench.\n\ndetailed_description:\n[Shot 1] Extreme close-up of a finger squeezing the trigger of an empty black rifle on a workbench. Nothing fires. The camera is static and locked-off.\n\noverall_soundscape: Foley recording, close microphone, isolated sound: one single small dry metallic trigger click, then silence. Nothing else is heard: no music, no speech, no voices.\n\nnon_diegetic_music: N/A",
+ "settings": {
+  "w": 128,
+  "h": 128,
+  "frames": 73,
+  "steps": 6,
+  "lora": "turbo4",
+  "shift_video": 12.0,
+  "shift_audio": 3.0,
+  "sampler": "res_multistep",
+  "scheduler": "simple",
+  "style": "structured"
+ },
+ "params": {
+  "preroll": 0.01,
+  "tail_db": 40,
+  "hold": 0.06,
+  "max_len": 0.3,
+  "min_gap": 0.3,
+  "per_clip": 1,
+  "stereo": false,
+  "attack_max": 0.15,
+  "kind": "oneshot"
+ }
+}

@@ -30,6 +30,7 @@ EDGE_STRENGTH = 0.30
 BROKEN_DESAT = 0.5             # broken arc: tier colour 50 % desaturated ...
 BROKEN_STRENGTH = 1.0          # ... crack map 0.18 (dim body) .. 1.0 (glowing fracture lines) x this
 TILE = 0.05                    # metres per UV unit
+FAR_GRAPHITE_ROUGH = 0.85           # roughness of M_HALO_Graphite_Far (far LOD frames)
 
 # Weight classes (art-side visuals; gameplay numbers are read from the game data in halo_data.py)
 WEIGHT = WEIGHT_VISUALS
@@ -271,6 +272,7 @@ class MB:
         bmesh.ops.remove_doubles(bm, verts=bm.verts, dist=1e-6)
         if recalc:
             bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
+        fix_slivers(bm)
         me = bpy.data.meshes.new(name)
         bm.to_mesh(me)
         bm.free()
@@ -285,6 +287,110 @@ class MB:
             pass
         (col or bpy.context.scene.collection).objects.link(obj)
         return obj
+
+
+def _is_sliver(f, rel=1e-4, absolute=1e-10):
+    """Near-zero-area triangle: three (nearly) collinear vertices (review r2 #2)."""
+    a = f.calc_area()
+    longest = max(e.calc_length() for e in f.edges)
+    return a < absolute or a < rel * longest * longest
+
+
+def fix_slivers(bm):
+    """Triangulate n-gons (sweep end caps) and remove zero-area sliver triangles.
+    A cap n-gon whose profile has collinear points (edge-light stripes on a flat face) triangulates into
+    slivers (a, v, b) with v on the segment ab; rotating the long edge ab turns each sliver into two proper
+    triangles.  Quads are left alone (a planar sweep quad never has three collinear corners)."""
+    ngons = [f for f in bm.faces if len(f.verts) > 4]
+    if ngons:
+        bmesh.ops.triangulate(bm, faces=ngons, quad_method="BEAUTY", ngon_method="BEAUTY")
+    for _ in range(40):
+        bad = [f for f in bm.faces if len(f.verts) == 3 and _is_sliver(f)]
+        if not bad:
+            return 0
+        changed = False
+        for f in bad:
+            if not f.is_valid or not _is_sliver(f):
+                continue
+            e = max(f.edges, key=lambda ed: ed.calc_length())
+            if len(e.link_faces) == 2 and all(len(g.verts) == 3 for g in e.link_faces):
+                changed |= bmesh.utils.edge_rotate(e, True) is not None
+        if not changed:
+            break
+    left = sum(1 for f in bm.faces if len(f.verts) == 3 and _is_sliver(f))
+    if left:
+        bmesh.ops.dissolve_degenerate(bm, edges=bm.edges, dist=1e-6)
+    return left
+
+
+# ------------------------------------------------------------------------------------------ split / merge
+# Arcs are built as ONE closed shell (glass + graphite frame + edge-light stripes share vertices, so the
+# shading across material borders is authored once).  For the engine the shell is split by material:
+# glass -> HALO_<Core>_Arc_<Zone> (the only part that changes per arc), graphite + edge of all four arcs
+# (+ the weight band) -> one HALO_<Core>_Frame_<Weight> mesh (review r2 #9: ~8 draws per halo instead of ~26).
+# The full shell's corner normals are carried over as custom normals, so the split pieces shade exactly
+# like the original shell (no creases at the material borders).
+def _store_corner_normals(me):
+    if "_cn" in me.attributes:
+        me.attributes.remove(me.attributes["_cn"])
+    a = me.attributes.new("_cn", "FLOAT_VECTOR", "CORNER")
+    vals = []
+    for n in me.corner_normals:
+        vals.extend(n.vector)
+    a.data.foreach_set("vector", vals)
+
+
+def _apply_corner_normals(me):
+    a = me.attributes.get("_cn")
+    if a is None:
+        return
+    cn = [tuple(d.vector) for d in a.data]
+    me.normals_split_custom_set(cn)
+    me.attributes.remove(me.attributes["_cn"])
+
+
+def _new_object(name, me, mats, col):
+    # `me` is a fresh mesh without slots (materials.clear() would reset the face material indices)
+    for m in mats:
+        me.materials.append(m)
+    obj = bpy.data.objects.new(name, me)
+    (col or bpy.context.scene.collection).objects.link(obj)
+    return obj
+
+
+def merge_objects(parts, name, mats, col=None, keep=None):
+    """Merge mesh objects into one new object (custom normals kept).  Every part's material slots are mapped by
+    material identity onto `mats` (that order = the glTF primitive order).  keep: optional set of materials;
+    faces using any other material are dropped (used to split a shell by material)."""
+    bm = bmesh.new()
+    for o in parts:
+        me = o.data.copy()
+        _store_corner_normals(me)
+        bm.faces.ensure_lookup_table()
+        n0 = len(bm.faces)
+        bm.from_mesh(me)
+        bm.faces.ensure_lookup_table()
+        src_mats = list(me.materials)
+        drop = []
+        for f in bm.faces[n0:]:
+            m = src_mats[f.material_index]
+            if keep is not None and m not in keep:
+                drop.append(f)
+            else:
+                f.material_index = mats.index(m)
+        if drop:
+            bmesh.ops.delete(bm, geom=drop, context="FACES")
+        bpy.data.meshes.remove(me)
+    me = bpy.data.meshes.new(name)
+    bm.to_mesh(me)
+    bm.free()
+    _apply_corner_normals(me)
+    return _new_object(name, me, mats, col)
+
+
+def split_object(src, keep_mats, name, col=None):
+    """New object with only the faces of `src` that use one of `keep_mats` (in that slot order)."""
+    return merge_objects([src], name, list(keep_mats), col, keep=set(keep_mats))
 
 
 def frame_at(shape, a, d, z=0.0, eps=1e-4):
@@ -338,7 +444,7 @@ def _si(p, names, v):
 
 
 def _mat(name, color, rough=0.5, metal=0.0, emission=None, strength=0.0, alpha=1.0, coat=0.0, spec=0.5,
-         cull=True):
+         cull=True, coat_rough=0.08):
     mat = bpy.data.materials.get(name)
     if mat:
         return mat
@@ -351,7 +457,7 @@ def _mat(name, color, rough=0.5, metal=0.0, emission=None, strength=0.0, alpha=1
     _si(p, ["Specular IOR Level", "Specular"], spec)
     if coat:
         _si(p, ["Coat Weight", "Clearcoat"], coat)
-        _si(p, ["Coat Roughness"], 0.08)
+        _si(p, ["Coat Roughness"], coat_rough)
     if emission is not None:
         _si(p, ["Emission Color", "Emission"], (*emission, 1))
         _si(p, "Emission Strength", strength)
@@ -401,10 +507,17 @@ def _broken_mat(tier, crack_img):
 def make_materials(crack_path=None):
     M = {}
     M["graphite"] = _mat("M_HALO_Graphite", GRAPHITE, rough=0.55, metal=0.15, spec=0.35)
+    # far LOD frame: one continuous chamfered sweep catches broad highlights that bloom to white at 20 m
+    # (review r2 #5); a rougher, slightly less specular graphite keeps it as dark as the segmented near kit
+    M["graphite_far"] = _mat("M_HALO_Graphite_Far", GRAPHITE, rough=FAR_GRAPHITE_ROUGH, metal=0.05, spec=0.15)
     M["gunmetal"] = _mat("M_HALO_Gunmetal", GUNMETAL, rough=0.35, metal=0.85)
     M["bone"] = _mat("M_HALO_Bone", BONE, rough=0.6, metal=0.0)
-    # uncovered arc: opaque, very dark smoked glass with a glossy clearcoat (no alpha sorting in the engine)
-    M["off"] = _mat("M_HALO_Glass_Off", SMOKE, rough=0.08, metal=0.0, coat=1.0, spec=0.8)
+    # uncovered arc (the spec's "unlit" material): opaque, very dark smoked glass (no alpha sorting in the engine).
+    # Review r2 #4: the old glossy coat (rough 0.08, coat 1.0, spec 0.8) threw white highlights that read as T1
+    # glass at range.  The reviewer's satin values (rough 0.32, coat 0.3, spec 0.5) were tried and rejected: at
+    # grazing angles under a big rim light they turned the whole uncovered arc pale blue-white (worse T1 misread,
+    # renders/_iterations/v20).  Rough 0.6, low specular, no coat keeps it a dark smoked grey from every angle.
+    M["off"] = _mat("M_HALO_Glass_Off", SMOKE, rough=0.60, metal=0.0, spec=0.20)
     M["edge"] = _mat("M_HALO_Edge", (0.04, 0.045, 0.05), rough=0.4, emission=EDGE, strength=EDGE_STRENGTH)
     for t, c in TIERS.items():
         base = tuple(0.12 * v for v in c)

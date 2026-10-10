@@ -1,0 +1,73 @@
+{
+ "asset": "HALO shield kit, F:/git/val etf/assets/shields/ (state v18, after the round-1 fixes). Review written to F:/git/val etf/assets/shields/review/review.json. The round-1 review is kept as review/r1_review.json. Scripts, reports and renders are in review/r2/.",
+ "scores": {
+  "silhouette": 7,
+  "style_consistency": 8,
+  "craftsmanship": 7.5,
+  "game_readiness": 7.5,
+  "fidelity_to_brief_and_user_decisions": 8
+ },
+ "issues": [
+  {
+   "severity": "major",
+   "issue": "At real game distance you still cannot tell most cores apart. At true 1080p pixels the cores read at 5 m from the front: Bulwark is a boxy slab, Mender a thin lens, Volt shows teeth, Phase shows the notch of its gap. From the side, Mender and Phase are the same plain bar even at 5 m. At 10 m only Volt's teeth survive. The spec's idle row in 'Readability layers (user decision)' lists the core silhouette at any range.",
+   "evidence": "review/r2/renders/V01_blind_core_read_5m.png and V01_blind_core_read_10m.png (cores unlabelled; front/side/back views, each in daylight, dark scene and silhouette); qa/renders/Q01_distance_read_10_25_50m.png",
+   "fix": "(a) In the far LOD only (beyond 20 m, so the near look is unchanged), make each core's signature about twice as big: Bulwark posts 8.5 to about 18 mm, Volt teeth 30 to about 45 mm, Phase prongs 28 to about 45 mm, Mender ring height offset 14 to about 28 mm. (b) Show the core in the power cells too. They orbit 58 mm above the ring against the sky and are the most visible part at range: ship HALO_PowerCell_<Core> with its own silhouette (Bulwark hex prism, Mender twin capsule, Volt spiked crown, Phase open ring). (c) Add a 'name the core' blind test at 10 m true pixels (front and side) to the standard renders, and iterate until at least 3 of the 4 cores can be named."
+  },
+  {
+   "severity": "minor",
+   "issue": "Every Heavy band has zero-area sliver triangles: three nearly collinear vertices on the outer slab face. The exported glb has 8 on Bulwark, 18 on Mender, 18 on Volt and 17 on Phase. In Blender they make the Wireframe modifier throw vertices out to about 900 m. In other tools they can break tangent generation, outline shells or mesh processing. The kit's own QA does not check for them.",
+   "evidence": "review/r2/r2_glb_report.json (degenerate_tris on the Band_Heavy graphite primitive); review/r2/r2_checks_report.json zero_area_at, e.g. Bulwark (0.2334, 0.0143, -0.0132) and Volt (-0.0585, -0.2039, -0.0147)",
+   "fix": "In halo_parts.band_heavy (the face_d slab profile), remove the nearly collinear profile vertex, or run bmesh.ops.dissolve_degenerate(dist=1e-5) in MB.finish. Add a zero-area triangle check (area < 1e-10) to qa/qa_glb.py."
+  },
+  {
+   "severity": "minor",
+   "issue": "The tier pips are not centred. The engine shows PIP_1 to PIP_n and PIP_1 sits at x = -24 mm, so a T1 halo's single pip is 24 mm left of the front centre and the T2 and T3 groups are off-centre too. When seen slightly from above, the lower half of each Volt pip blends into the lit glass of the same colour behind it, so the pips read as triangles.",
+   "evidence": "review/r2/renders/V03_closeups.png (top row: Bulwark and Volt at T1 and T2, front); renders/04_character_fullbody_idle.png (3 pips left of centre); renders/02c_weight_eyelevel_idle.png",
+   "fix": "Centre the row for each pip count: x_i = (i - (n+1)/2) * 16 mm. Either ship empties per count (HALO_<Core>_PIP_<n>_<i>) or ship one centre empty and document the formula, then update place_halo and NOTES. Add a small graphite backing plate behind the pip row on the Volt, Mender and Phase Head arcs."
+  },
+  {
+   "severity": "minor",
+   "issue": "M_HALO_Glass_Off is almost a mirror (roughness 0.08, clearcoat 1.0, specular 0.8). Uncovered and broken arcs throw white highlights, for example on the Volt teeth and the Bulwark wall. At range those read like T1 white glass, so an uncovered arc can look covered.",
+   "evidence": "review/r2/renders/V03_closeups.png (seam panels: white sheen on the uncovered Arms glass); review/r2/renders/V05_arc_states_ingame.png (at 5 m the uncovered Volt Head arc has 12 near-white pixels; the lit one has 16)",
+   "fix": "Set Glass_Off to roughness 0.3-0.35, clearcoat 0.3 and specular 0.5, keeping it dark. Check it in Bevy under the map's environment light."
+  },
+  {
+   "severity": "minor",
+   "issue": "The far LOD pops brighter at the 20 m switch. Its frame is one smooth chamfered sweep that catches broad specular and blooms to white. Those are the brightest pixels on the Bulwark Medium and Heavy halos, so they risk a T1 misread and make the LOD swap visible. NOTES lists this as a known limitation but understates it.",
+   "evidence": "review/r2/renders/V07_far_lod_switch.png (near and far side by side at 20 m, true pixels); renders/07_far_lod.png (far frames look light silver, near frames dark graphite)",
+   "fix": "Give the far frame a rougher graphite (about 0.8, e.g. a new M_HALO_Graphite_Far) and mark its chamfer edges sharp so highlights stay narrow. Re-check at 20 m against the near kit until mean brightness matches within about 10%."
+  },
+  {
+   "severity": "minor",
+   "issue": "Cells behind the ring still hide at close range. At 10 degrees below (viewer about 1.8 m away), a Heavy halo shows all 3 cells for only 33-47% of the orbit. A Light halo shows no cell at all for 11-23% of the orbit.",
+   "evidence": "review/r2/r2_cell_visibility_report.json (counts occlusion by ring, band and other cells); NOTES.md acknowledges 38-50%",
+   "fix": "Raise the orbit by weight class (Light 0.058, Medium 0.065, Heavy 0.080), or stagger the cells up and down by 10-12 mm out of phase so cells on the far side clear the front band. Low priority: at 2 m the weight already reads from size."
+  },
+  {
+   "severity": "minor",
+   "issue": "Facing gotcha in Bevy. The halo glTF faces +Z (Head arc at +Z, Arms at +X), but the game's player faces -Z: render.rs arc_angle puts Head at -Z and Arms at -X, the player's left. NOTES says the halo needs no extra rotation, which is only true relative to the character file. If the halo copies the gameplay yaw directly, its Head arc points backwards and Arms ends up on the player's right.",
+   "evidence": "game/crates/val_etf/src/render.rs arc_angle(); export/HALO_*.glb Arc_Head bounding box at +Z (review/r2/r2_glb_report.json); NOTES.md 'Axes and attachment'",
+   "fix": "State in NOTES that the halo root needs a 180-degree turn about Y in Bevy (the same fix-up as the character glTF), so the Head arc points along the player's forward (-Z). Add a one-line check: when the player faces the camera, the Head arc faces the camera too."
+  },
+  {
+   "severity": "minor",
+   "issue": "Each per-core glb puts everything at the top level: 17 root nodes. The near arcs, both band weights, the far glass and all 3 far frames overlap at the origin, so spawning HALO_<Core>.glb#Scene0 draws every LOD and both bands at once. NOTES also says a band's primitives are 'graphite, gunmetal, lip glass, edge', but Medium bands have no gunmetal, so their lip glass is primitive 1, not 2.",
+   "evidence": "review/r2/r2_glb_report.json (17 scene roots; Band_Medium primitives are Graphite, Glass_T1, Edge)",
+   "fix": "Group the nodes under empties HALO_<Core>_Near, _Bands and _Far, or export the far set as a separate HALO_<Core>_Far.glb, so the engine can toggle a whole group. Fix the primitive table and require lookup by material name only."
+  },
+  {
+   "severity": "minor",
+   "issue": "Draw calls and triangles per halo are still high. A Heavy halo has about 26 primitives (4 arcs x 3, band x 4, 3 cells x 2, up to 4 pips) and about 7.9k triangles. HALO_PowerCell alone is 488 triangles, mostly in its dense end caps, and every Heavy halo carries 3 of them.",
+   "evidence": "review/r2/r2_glb_report.json; review/r2/renders/V04_wireframes.png (cell caps)",
+   "fix": "Merge the fixed graphite and edge parts of the 4 arcs and the band into one frame mesh per core and weight (2 primitives). Only the 4 arc-glass primitives (plus the band lip) then need swapping, for about 8 draws per halo. Cut the cell end caps to low 8-sided domes (about 150 triangles per cell)."
+  },
+  {
+   "severity": "minor",
+   "issue": "build_halo.py hard-codes HERE = 'F:/git/val etf/assets/shields', and halo_render.py hard-codes the CHAR_GLB path, so the build only runs from this exact checkout. halo_data, make_sprites and make_catalog already find their paths from __file__.",
+   "evidence": "build_halo.py line 27; halo_render.py line 19. My rebuild in a sandbox needed a patched copy of the script.",
+   "fix": "Set HERE = os.path.dirname(os.path.abspath(__file__)) and resolve CHAR_GLB relative to the repo root."
+  }
+ ],
+ "verdict": "Accept the kit as a stylized game-asset prototype; it is ready for engine wiring. I reviewed it from the exported files and changed nothing in the asset. The round-1 major issues are fixed or reduced to edge cases. The cores now have shapes that read edge-on, uncovered arcs keep an always-on edge line, the cells orbit above the ring, glass shows from below, a broken-arc material ships with an embedded crack texture, and the character renders use a legal Heavy preset.\n\nWhat I checked myself:\n- Rebuild: the build ran from scratch in an isolated sandbox. All 7 export .glb files, halo_kit.glb, the catalog and the sprites came out byte-identical to the shipped files.\n- glTF: valid, all opaque and single-sided, no external files.\n- Meshes: all 64 are closed and face outward.\n- Placement: origins and arc directions are correct, every core's pips sit 0.2-0.3 mm above the arc, and cells never hit the ring or band.\n- Cell count: correct 100% of the time at 2 and 5 degrees below, even counting cells that hide each other.\n- Catalog: matches armor.ron.\n\nWeight class reads instantly from every angle and distance I tested, and tier colour reads to about 25 m.\n\nThe one remaining gap is core identity. It is lost beyond about 8-10 m and from the side, where only Volt still reads. Fix it through the far LOD or a different cell shape per core before the look is locked. Everything else is polish:\n- zero-area slivers in the heavy bands\n- tier pips not centred\n- glints on the dark uncovered glass that can look like T1 white\n- the far LOD flashing white at the 20 m switch\n- a missing 180-degree note for Bevy, flat per-core scene files, and draw-call cost"
+}

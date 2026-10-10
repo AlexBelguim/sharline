@@ -1,0 +1,306 @@
+{
+ "tol": 0.02,
+ "edge": 0.06,
+ "edge_tol": 0.12,
+ "rays": 133860,
+ "mismatches": 11,
+ "ghost": 11,
+ "invisible": 0,
+ "seconds": 2.0,
+ "art_objects": 344,
+ "by_tag": [
+  [
+   "MOVER_TRUCK",
+   "C_MOVER_BOX",
+   "GHOST",
+   6
+  ],
+  [
+   "HUB",
+   "C_HUB",
+   "GHOST",
+   5
+  ]
+ ],
+ "items": [
+  {
+   "kind": "GHOST",
+   "origin": [
+    37.25,
+    21.25,
+    3.5
+   ],
+   "dir": [
+    0,
+    0,
+    -1
+   ],
+   "hit": [
+    37.25,
+    21.25,
+    0.92
+   ],
+   "d_col": null,
+   "d_art": 2.58,
+   "near_edge": true,
+   "brush": 308,
+   "tag": "C_MOVER_BOX",
+   "part": "solid",
+   "structure": "MOVER_TRUCK"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    37.25,
+    22.25,
+    3.5
+   ],
+   "dir": [
+    0,
+    0,
+    -1
+   ],
+   "hit": [
+    37.25,
+    22.25,
+    0.92
+   ],
+   "d_col": null,
+   "d_art": 2.58,
+   "near_edge": true,
+   "brush": 308,
+   "tag": "C_MOVER_BOX",
+   "part": "solid",
+   "structure": "MOVER_TRUCK"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    37.25,
+    23.25,
+    3.5
+   ],
+   "dir": [
+    0,
+    0,
+    -1
+   ],
+   "hit": [
+    37.25,
+    23.25,
+    0.92
+   ],
+   "d_col": null,
+   "d_art": 2.58,
+   "near_edge": true,
+   "brush": 308,
+   "tag": "C_MOVER_BOX",
+   "part": "solid",
+   "structure": "MOVER_TRUCK"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    37.25,
+    24.25,
+    3.5
+   ],
+   "dir": [
+    0,
+    0,
+    -1
+   ],
+   "hit": [
+    37.25,
+    24.25,
+    0.92
+   ],
+   "d_col": null,
+   "d_art": 2.58,
+   "near_edge": true,
+   "brush": 308,
+   "tag": "C_MOVER_BOX",
+   "part": "solid",
+   "structure": "MOVER_TRUCK"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    37.25,
+    25.25,
+    3.5
+   ],
+   "dir": [
+    0,
+    0,
+    -1
+   ],
+   "hit": [
+    37.25,
+    25.25,
+    0.92
+   ],
+   "d_col": null,
+   "d_art": 2.58,
+   "near_edge": true,
+   "brush": 308,
+   "tag": "C_MOVER_BOX",
+   "part": "solid",
+   "structure": "MOVER_TRUCK"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    37.25,
+    26.25,
+    3.5
+   ],
+   "dir": [
+    0,
+    0,
+    -1
+   ],
+   "hit": [
+    37.25,
+    26.25,
+    0.92
+   ],
+   "d_col": null,
+   "d_art": 2.58,
+   "near_edge": true,
+   "brush": 308,
+   "tag": "C_MOVER_BOX",
+   "part": "solid",
+   "structure": "MOVER_TRUCK"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    32.25,
+    43.25,
+    5.6
+   ],
+   "dir": [
+    0,
+    1,
+    0
+   ],
+   "hit": [
+    32.25,
+    45.479,
+    5.6
+   ],
+   "d_col": null,
+   "d_art": 2.2293,
+   "near_edge": false,
+   "brush": 333,
+   "tag": "C_HUB",
+   "part": "roof_cap",
+   "structure": "HUB"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    32.25,
+    44.25,
+    5.6
+   ],
+   "dir": [
+    0,
+    1,
+    0
+   ],
+   "hit": [
+    32.25,
+    45.479,
+    5.6
+   ],
+   "d_col": null,
+   "d_art": 1.2293,
+   "near_edge": false,
+   "brush": 333,
+   "tag": "C_HUB",
+   "part": "roof_cap",
+   "structure": "HUB"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    32.25,
+    45.25,
+    5.6
+   ],
+   "dir": [
+    0,
+    1,
+    0
+   ],
+   "hit": [
+    32.25,
+    45.479,
+    5.6
+   ],
+   "d_col": null,
+   "d_art": 0.2293,
+   "near_edge": false,
+   "brush": 333,
+   "tag": "C_HUB",
+   "part": "roof_cap",
+   "structure": "HUB"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    32.25,
+    46.25,
+    5.6
+   ],
+   "dir": [
+    0,
+    -1,
+    0
+   ],
+   "hit": [
+    32.25,
+    45.521,
+    5.6
+   ],
+   "d_col": null,
+   "d_art": 0.7293,
+   "near_edge": false,
+   "brush": 333,
+   "tag": "C_HUB",
+   "part": "roof_cap",
+   "structure": "HUB"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    32.25,
+    47.25,
+    5.6
+   ],
+   "dir": [
+    0,
+    -1,
+    0
+   ],
+   "hit": [
+    32.25,
+    45.521,
+    5.6
+   ],
+   "d_col": null,
+   "d_art": 1.7293,
+   "near_edge": false,
+   "brush": 333,
+   "tag": "C_HUB",
+   "part": "roof_cap",
+   "structure": "HUB"
+  }
+ ],
+ "deliberate_thin_cable_samples": 11,
+ "verified_tangent_edge_samples": 6,
+ "actionable_items": [],
+ "actionable_mismatches": 0
+}

@@ -16,7 +16,9 @@ import halo_parts as hp
 from halo_lib import D, EDGE, TIERS, WEIGHT, ZONES, _mat, preset_tiers, set_strength, weight_of
 
 SHOW_COL = "_SHOW"
-CHAR_GLB = r"F:/git/val etf/assets/characters/kestrel/trellis/kestrel_trellis_s123.glb"
+HERE = os.path.dirname(os.path.abspath(__file__))
+REPO = os.path.normpath(os.path.join(HERE, "..", ".."))
+CHAR_GLB = os.path.join(REPO, "assets", "characters", "kestrel", "trellis", "kestrel_trellis_s123.glb")
 
 # emission strengths per state (lit arcs, pips, cells, band lip)
 STRENGTH = {"lit": 2.4, "idle": 0.9, "flare": 6.0}
@@ -122,14 +124,25 @@ def arc_tier(t):
     return t[1] if isinstance(t, tuple) else int(t or 0)
 
 
+def slot_of(obj_name, mat_name):
+    """Material slot index of `mat_name` in a kit object (primitives are found by material name, never by index)."""
+    for i, sl in enumerate(bpy.data.objects[obj_name].material_slots):
+        if sl.material and sl.material.name == mat_name:
+            return i
+    return None
+
+
 def place_halo(core, arc_tiers, loc=(0, 0, 0), rot_z=0.0, state="lit", pip_state=None, cell_state=None,
-               cells=True, band=True, pips=True, scale=None, cell_angles=None, tag="h", far=False):
+               cells=True, band=True, pips=True, scale=None, cell_angles=None, tag="h", far=False, cell_mesh=None,
+               cell_phase=15.0):
     """Assemble one halo from the kit, the way the engine does it.
     arc_tiers: {zone: tier} with 0 = uncovered and ("B", tier) = broken (pool at 0, cracked until regen).
-    The weight class (scale, band, cell count, orbit) is derived from the sum of the arc tiers.
-    Pips (count = highest arc tier), cells and the band lip glow in the highest arc tier's colour.
-    `scale`/`band`/`cells`/`pips` overrides are only for part line-ups (not an in-game halo).
-    far=True assembles the far LOD (4 glass arcs + the weight's frame)."""
+    The weight class (scale, frame/band, cell count, orbit) is derived from the sum of the arc tiers.
+    Parts: 4 x HALO_<core>_Arc_<zone> (glass only, one material per arc) + ONE HALO_<core>_Frame_<weight>
+    (graphite + edge of all arcs + the weight band, its lip glass = highest arc tier) + n pips on
+    HALO_<core>_PIP_<n>_<i> (n = highest arc tier, centred row) + 1/2/3 HALO_PowerCell_<core>.
+    `scale`/`band`/`cells`/`pips` overrides are only for part line-ups (band=False shows Frame_Light).
+    far=True assembles the far LOD (4 far glass arcs + Far_Frame_<weight>, no pips)."""
     tiers = {z: arc_tier(arc_tiers.get(z, 0)) for z in ZONES}
     weight = weight_of(tiers)
     w = WEIGHT[weight]
@@ -143,22 +156,23 @@ def place_halo(core, arc_tiers, loc=(0, 0, 0), rot_z=0.0, state="lit", pip_state
         t = arc_tiers.get(z, 0)
         m = glass(t, state) if t else glass(None)
         inst(f"HALO_{core}_Far_Glass_{z}" if far else f"HALO_{core}_Arc_{z}", root, slot_mats={0: m})
-    if far:
-        inst(f"HALO_{core}_Far_Frame_{weight}", root, slot_mats={2: lip} if band and w["band"] else None)
-    elif band and w["band"]:
-        inst(f"HALO_{core}_Band_{w['band']}", root, slot_mats={2: lip})
-    if pips and not far:
-        for p in hp.pip_positions(core)[:top]:   # the engine shows exactly `top` pips (PIP_1..PIP_<top>)
+    fw = weight if band else "Light"
+    frame = f"HALO_{core}_Far_Frame_{fw}" if far else f"HALO_{core}_Frame_{fw}"
+    ls = slot_of(frame, "M_HALO_Glass_T1")
+    inst(frame, root, slot_mats={ls: lip} if ls is not None else None)
+    if pips and not far and top:
+        for p in hp.pip_positions(core, top):   # the engine shows exactly `top` pips, centred (PIP_<top>_<i>)
             inst("HALO_TierPip", root, loc=p, slot_mats={0: glass(top, ps)})
     if cells:
         cs = cell_state or state
         n = w["cells"]
-        angs = cell_angles if cell_angles is not None else [15.0 + k * 360.0 / n for k in range(n)]
+        cname = cell_mesh or f"HALO_PowerCell_{core}"
+        angs = cell_angles if cell_angles is not None else [cell_phase + k * 360.0 / n for k in range(n)]
         for a in angs[:n]:
             r = w["orbit_r"]
             p = (r * math.cos(D(a)), r * math.sin(D(a)), w["orbit_z"])
             # cell travels counter-clockwise: local +X along the tangent
-            inst("HALO_PowerCell", root, loc=p, rot=(0, 0, D(a + 90)), slot_mats={0: glass(top, cs)})
+            inst(cname, root, loc=p, rot=(0, 0, D(a + 90)), slot_mats={0: glass(top, cs)})
     return root
 
 
@@ -414,6 +428,29 @@ def vstack(paths, out, bg=(14, 15, 18)):
     return out
 
 
+def merge_columns(paths, out):
+    """Same-size renders -> one image whose k-th column band (width / n) comes from the k-th render."""
+    ims = [bpy.data.images.load(p, check_existing=False) for p in paths]
+    w, h = ims[0].size
+    n = len(ims)
+    full = np.zeros((h, w, 4), np.float32)
+    for k, im in enumerate(ims):
+        a = np.array(im.pixels[:], dtype=np.float32).reshape(h, w, 4)
+        x0, x1 = round(k * w / n), round((k + 1) * w / n)
+        full[:, x0:x1] = a[:, x0:x1]
+    o = bpy.data.images.new("_cols", w, h)
+    o.pixels = full.ravel()
+    o.filepath_raw = out
+    o.file_format = "PNG"
+    o.save()
+    for im in ims:
+        bpy.data.images.remove(im)
+    bpy.data.images.remove(o)
+    for p in paths:
+        os.remove(p)
+    return out
+
+
 # ------------------------------------------------------------------------------------------ showcases
 def r_cores_grid(out_dir):
     clear_show()
@@ -480,15 +517,16 @@ def r_weight_eyelevel(out_dir, core="Bulwark"):
     """Weight classes as seen in play (eye 5 deg below the halo), idle.  Top row: one core at full coverage
     T1/T2/T3; bottom row: the game presets.  Dark scene + daylight + silhouette."""
     clear_show()
-    xs = {"Light": -0.66, "Medium": 0.0, "Heavy": 0.76}
+    xs = {"Light": -0.72, "Medium": -0.03, "Heavy": 0.72}
     for wname, x in xs.items():
         place_halo(core, uniform(UNIFORM[wname]), loc=(x, 0, 0.13), state="idle", cell_state=1.4, tag="u" + wname)
     for wname, pcore, pid in LINEUP_PRESETS:
         place_halo(pcore, preset_tiers(pid), loc=(xs[wname], 0, -0.13), state="idle", cell_state=1.4,
                    tag="p" + wname)
-    cam_from((0.05, 0, 0.0), -5, 0, 8.0, ortho=2.1)
+    ow = 2.36                                    # wide enough for the Heavy orbit (cells at r 0.33 m)
+    cam_from((0.0, 0, 0.0), -5, 0, 8.0, ortho=ow)
     res = (1800, 860)
-    half = 2.1 / 2
+    half = ow / 2
     paths = []
     for bgname, bg, rig, txt in (("", DARK_BG, "studio", (0.85, 0.87, 0.9)), ("_day", DAY_BG, "day", dark_text())):
         remove_labels()
@@ -498,8 +536,8 @@ def r_weight_eyelevel(out_dir, core="Bulwark"):
             f"top: {core.upper()} full coverage T1/T2/T3   bottom: game presets", -0.97, 0.88, size=0.019, color=txt)
         for wname, pcore, pid in LINEUP_PRESETS:
             at = preset_tiers(pid)
-            hud(wname.upper(), (xs[wname] - 0.05) / half, 0.66, size=0.026, align="CENTER", color=txt)
-            hud(f"{pcore} {tiers_label(at)}", (xs[wname] - 0.05) / half, -0.84, size=0.017, align="CENTER",
+            hud(wname.upper(), xs[wname] / half, 0.66, size=0.026, align="CENTER", color=txt)
+            hud(f"{pcore} {tiers_label(at)}", xs[wname] / half, -0.84, size=0.017, align="CENTER",
                 color=txt)
         paths.append(render(os.path.join(out_dir, f"02c_weight_eyelevel_idle{bgname}.png")))
     paths.append(silhouette_pass(out_dir, "02c_weight_eyelevel_silhouette.png", res))
@@ -547,7 +585,7 @@ def r_coverage(out_dir):
     cov = {"Head": 3, "Torso": 3, "Arms": 0, "Legs": 0}      # 6 -> Medium
     for i, core in enumerate(CORE_ORDER):
         place_halo(core, cov, loc=((i - 1.5) * 0.56, 0, 0), state="flare", pip_state="lit", cell_state="lit",
-                   tag=core)
+                   tag=core, cell_phase=62.0)       # cells front-left / back-right: clear of the neighbours
     cam_from((0, 0.0, 0), 42, 0, 8.0, ortho=2.35)
     hud("COVERAGE  HEAD + TORSO lit (T3)  /  ARMS + LEGS dark (smoked glass + edge line)", -0.96, 0.88, size=0.02)
     hud("front = HEAD arc, toward the camera;  H3 T3 = 6 -> MEDIUM (band, 2 cells)", -0.96, 0.80, size=0.016,
@@ -584,23 +622,28 @@ def r_arc_tiers(out_dir):
         hud(f"{tiers_label(at)}   = {sum(at.values())} -> {weight_of(at).upper()}", x, -0.80, size=0.016,
             align="CENTER", color=(0.6, 0.63, 0.68))
     paths.append(render(os.path.join(out_dir, "_03b_top.png")))
-    # arc states: the same Bulwark Vanguard with an intact, a broken and an uncovered Head arc
-    clear_show()
-    setup_render(res=(2000, 900), bloom=0.5)
-    lights()
+    # arc states: the same Bulwark Vanguard with an intact, a broken and an uncovered Head arc.  Each halo is
+    # rendered on its own with the lights moved along with it (ortho camera), so all three get the SAME light;
+    # in one shared shot the right-hand halo caught a grazing rim light that washed its glass out.
     base = {"Head": 3, "Torso": 4, "Arms": 3, "Legs": 2}            # 12; without the Head arc 9: still Heavy
     states = [("HEAD ARC LIT", "M_HALO_Glass_T3", dict(base)),
               ("HEAD ARC BROKEN (pool 0)", "_Broken_T3: cracked + dim until regen", dict(base, Head=("B", 3))),
-              ("HEAD ARC UNCOVERED", "_Glass_Off: smoked glass + edge line", dict(base, Head=0))]
-    for i, (lbl, sub_lbl, at) in enumerate(states):
-        place_halo("Bulwark", at, loc=((i - 1) * 0.86, 0, 0), state="lit", cell_state="lit", tag=f"st{i}",
+              ("HEAD ARC UNCOVERED", "_Glass_Off (unlit): smoked glass + edge line", dict(base, Head=0))]
+    cols = []
+    for k, (_, _, at) in enumerate(states):
+        clear_show()
+        setup_render(res=(2000, 900), bloom=0.5)
+        lights(offset=((k - 1) * 0.86, 0.0, 0.0))
+        place_halo("Bulwark", at, loc=((k - 1) * 0.86, 0, 0), state="lit", cell_state="lit", tag=f"st{k}",
                    cell_angles=[330.0, 90.0, 210.0])
-    cam_from((0, -0.04, 0), 30, 0, 8.0, ortho=2.75)
-    hud("ARC STATES  (Bulwark, H3 T4 A3 L2, front = HEAD arc)", -0.96, 0.88, size=0.02)
-    for i, (lbl, sub_lbl, at) in enumerate(states):
-        hud(lbl, (i - 1) * 0.86 / (2.75 / 2), -0.74, size=0.019, align="CENTER")
-        hud(sub_lbl, (i - 1) * 0.86 / (2.75 / 2), -0.82, size=0.015, align="CENTER", color=(0.6, 0.63, 0.68))
-    paths.append(render(os.path.join(out_dir, "_03b_states.png")))
+        cam_from((0, -0.04, 0), 30, 0, 8.0, ortho=2.75)
+        hud("ARC STATES  (Bulwark, H3 T4 A3 L2, front = HEAD arc; each halo lit identically)", -0.96, 0.88,
+            size=0.02)
+        for i, (lbl, sub_lbl, _) in enumerate(states):
+            hud(lbl, (i - 1) * 0.86 / (2.75 / 2), -0.74, size=0.019, align="CENTER")
+            hud(sub_lbl, (i - 1) * 0.86 / (2.75 / 2), -0.82, size=0.015, align="CENTER", color=(0.6, 0.63, 0.68))
+        cols.append(render(os.path.join(out_dir, f"_03b_states_{k}.png")))
+    paths.append(merge_columns(cols, os.path.join(out_dir, "_03b_states.png")))
     out = vstack(paths, os.path.join(out_dir, "03b_per_arc_tiers.png"))
     for p in paths:
         os.remove(p)
@@ -819,20 +862,50 @@ def r_turnaround(out_dir, preset="arm_bulwark_jugg"):
 
 
 def r_parts(out_dir):
-    """Close-up of the small parts: pip row, power cell, shards, material states."""
+    """Close-up of the small parts (x1.5): tier pips, the generic cell and the shards on top; below, the four core
+    cells from the side (how they read at range) and from above (each is a miniature of its core's ring)."""
     clear_show()
-    setup_render(res=(1600, 800), bloom=0.45)
+    W, res = 0.84, (2200, 1430)
+    H = W * res[1] / res[0]
+    setup_render(res=res, bloom=0.45)
     lights()
+    sc = 1.5
+    zc, z1, z2, z3 = 0.02, 0.185, 0.040, -0.120
+    k = math.cos(D(18))
+
+    def sx(x):
+        return x / (W / 2)
+
+    def sy(z):
+        return (z - zc) * k / (H / 2)
+
     for i in range(4):
-        inst("HALO_TierPip", None, loc=(-0.215 + i * 0.020, 0, 0.0), scale=1.6, slot_mats={0: glass(i + 1, 2.4)})
-    inst("HALO_PowerCell", None, loc=(-0.005, 0, 0), scale=1.6, slot_mats={0: glass(2, 2.4)})
+        inst("HALO_TierPip", None, loc=(-0.300 + i * 0.022, 0, z1), scale=sc, slot_mats={0: glass(i + 1, 2.4)})
+    inst("HALO_PowerCell", None, loc=(-0.030, 0, z1), rot=(0, 0, D(-20)), scale=sc, slot_mats={0: glass(2, 2.4)})
     for i, nm in enumerate(("A", "B", "C")):
-        inst(f"HALO_Shard_{nm}", None, loc=(0.085 + i * 0.05, 0, 0), rot=(D(60), D(10), D(20 * i)), scale=1.4,
+        inst(f"HALO_Shard_{nm}", None, loc=(0.215 + i * 0.048, 0, z1), rot=(D(60), D(10), D(20 * i)), scale=1.3,
              slot_mats={0: glass(3, 2.4)})
-    cam_from((-0.02, 0, 0.0), 25, 0, 2.0, ortho=0.50)
-    hud("TIER PIPS T1-T4", -0.88, -0.75, size=0.022)
-    hud("POWER CELL  (travels +X, orbit fin behind)", -0.42, -0.75, size=0.022)
-    hud("SHARDS A / B / C", 0.5, -0.75, size=0.022)
+    xs = {"Bulwark": -0.285, "Mender": -0.095, "Volt": 0.095, "Phase": 0.285}
+    for core, x in xs.items():
+        inst(f"HALO_PowerCell_{core}", None, loc=(x, 0, z2), rot=(0, 0, D(-25)), scale=sc,
+             slot_mats={0: glass(2, 2.4)})
+        top = empty(f"_top_{core}", loc=(x, 0, z3), rot=(D(72), 0, 0))     # tilted to face the camera: top view
+        inst(f"HALO_PowerCell_{core}", top, scale=sc, slot_mats={0: glass(2, 2.4)})
+    cam_from((0, 0, zc), 18, 0, 2.0, ortho=W)
+    grey = (0.6, 0.63, 0.68)
+    hud("PARTS  (x1.5)", -0.96, 0.92, size=0.018)
+    hud("TIER PIPS T1-T4", sx(-0.267), sy(z1 - 0.040), size=0.014, align="CENTER")
+    hud("HALO_PowerCell (generic, spec)", sx(-0.030), sy(z1 - 0.040), size=0.014, align="CENTER")
+    hud("travels +X, trail fin behind", sx(-0.030), sy(z1 - 0.054), size=0.012, align="CENTER", color=grey)
+    hud("HALO_Shard_A / B / C", sx(0.263), sy(z1 - 0.040), size=0.014, align="CENTER")
+    sub = {"Bulwark": "wide hex puck", "Mender": "twin stacked rings", "Volt": "crown + energy spike",
+           "Phase": "orb in an open ring"}
+    hud("core cells HALO_PowerCell_<Core>: side view (as they orbit) and from above. One shape per core, the "
+        "same from every side, so the core reads at range", -0.96, sy(z2 + 0.075), size=0.013, color=grey)
+    for core, x in xs.items():
+        hud(f"HALO_PowerCell_{core}", sx(x), sy(z2 - 0.056), size=0.014, align="CENTER")
+        hud(sub[core], sx(x), sy(z2 - 0.070), size=0.012, align="CENTER", color=grey)
+        hud("from above", sx(x), sy(z3 - 0.066), size=0.012, align="CENTER", color=grey)
     return [render(os.path.join(out_dir, "06_parts.png"))]
 
 
@@ -847,14 +920,16 @@ def r_far_lod(out_dir):
     cam_from((0, 0, 0.0), 12, 0, 8.0, ortho=2.9)
     setup_render(res=(2000, 900), bloom=0.35, threshold=0.6)
     lights()
-    hud("FAR LOD (> ~20 m)   top: full kit   bottom: HALO_<Core>_Far_Glass_<Zone> x4 + HALO_<Core>_Far_Frame_Heavy",
-        -0.97, 0.88, size=0.018)
+    hud("FAR LOD (> ~20 m)   top: near kit   bottom: HALO_<Core>_Far_Glass_<Zone> x4 + HALO_<Core>_Far_Frame_Heavy",
+        -0.97, 0.90, size=0.016)
+    hud("far signatures ~2x the near kit: Bulwark posts 18 mm, Mender ring step 28 mm, Volt teeth 45 mm, "
+        "Phase prongs 47 mm", -0.97, 0.82, size=0.014, color=(0.6, 0.63, 0.68))
     tris = {}
     for core in CORE_ORDER:
         def tc(name):
             o = bpy.data.objects[name]
             return sum(len(p.vertices) - 2 for p in o.data.polygons)
-        near = sum(tc(f"HALO_{core}_Arc_{z}") for z in ZONES) + tc(f"HALO_{core}_Band_Heavy")
+        near = sum(tc(f"HALO_{core}_Arc_{z}") for z in ZONES) + tc(f"HALO_{core}_Frame_Heavy")
         far = sum(tc(f"HALO_{core}_Far_Glass_{z}") for z in ZONES) + tc(f"HALO_{core}_Far_Frame_Heavy")
         tris[core] = (near, far)
     half = 2.9 / 2
@@ -864,3 +939,261 @@ def r_far_lod(out_dir):
         hud(f"near {tris[core][0]} tris", x, -0.78, size=0.016, align="CENTER", color=(0.6, 0.63, 0.68))
         hud(f"far {tris[core][1]} tris  (+ cells)", x, -0.86, size=0.016, align="CENTER", color=(0.6, 0.63, 0.68))
     return [render(os.path.join(out_dir, "07_far_lod.png"))]
+
+
+# ------------------------------------------------------------------------------------------ true-pixel checks
+# In-play pixel scale: 1080p, vertical FOV 78 deg -> 1080 / (2 d tan 39) = 667 / d pixels per metre at d metres.
+# Eye 1.60 m, halo ~1.92 m: the halo is seen atan(0.32 / d) above the eye.
+DAY_SKY = (0.32, 0.36, 0.42)
+NIGHT = (0.02, 0.022, 0.026)
+
+
+def compose(spec, out):
+    """Lay out a review sheet with compose_sheet.py (system Python + PIL, like make_sprites.py)."""
+    import json
+    import shutil
+    import subprocess
+    sp = out + ".json"
+    spec["out"] = out
+    json.dump(spec, open(sp, "w", encoding="utf-8"), indent=1)
+    py = shutil.which("python") or shutil.which("py")
+    try:
+        subprocess.run([py, "-B", os.path.join(HERE, "compose_sheet.py"), sp], check=True, timeout=300)
+    finally:
+        os.remove(sp)
+    return out
+
+
+def true_pixel_cam(d, center_z, width_m, height_m, azim=0.0):
+    ppm = 667.0 / d
+    res = (int(round(width_m * ppm)), int(round(height_m * ppm)))
+    elev = -math.degrees(math.atan(0.32 / d))
+    cam_from((0, 0, center_z), elev, azim, 40.0, ortho=width_m)
+    return res
+
+
+def raw_triplet(raw_dir, name, res, center=(0, 0, 0)):
+    """Daylight, dark scene and pure silhouette of the current scene at true pixel size (no labels)."""
+    out = []
+    for bgname, bg, rig in (("day", DAY_SKY, "day"), ("dark", NIGHT, "studio")):
+        setup_render(res=res, bloom=0.3, bg=bg, threshold=0.8, samples=64)
+        lights(rig, offset=center)
+        out.append(render(os.path.join(raw_dir, f"{name}_{bgname}.png")))
+    setup_render(res=res, bloom=0, transparent=True, samples=64)
+    tmp = render(os.path.join(raw_dir, f"{name}_alpha.png"))
+    out.append(to_silhouette(tmp, os.path.join(raw_dir, f"{name}_sil.png")))
+    os.remove(tmp)
+    return out
+
+
+BLIND_ROWS = [("Light T1 torso", PLAY["Light"]), ("Light H2 T2", {"Head": 2, "Torso": 2, "Arms": 0, "Legs": 0}),
+              ("Medium H2 T2 L2", PLAY["Medium"]), ("Heavy H3 T3 A3", PLAY["Heavy"])]
+BLIND_VIEWS = [("10m_front", 10.0, 0.0, False, 5), ("10m_side", 10.0, -90.0, False, 5),
+               ("25m_front", 25.0, 0.0, True, 12), ("25m_side", 25.0, -90.0, True, 12)]
+
+
+def r_core_blind(out_dir):
+    """Name-the-core blind test at TRUE in-play pixel size (review r2 #1c).  Rows = Light T1 / Light H2T2 /
+    Medium / Heavy (game-legal coverage), the four cores shuffled per row (the key is in
+    02e_core_blind_key.json), idle glow.  10 m uses the near kit, 25 m the far LOD.  Front = the wearer faces
+    you, side = the wearer's left (Arms arc) toward you."""
+    import json
+    raw = os.path.join(out_dir, "_raw")
+    os.makedirs(raw, exist_ok=True)
+    key, blocks = {}, []
+    width_m, height_m, dz = 3.8, 1.55, 0.36
+    for vname, d, yaw, far, k in BLIND_VIEWS:
+        rng = random.Random("halo-blind-" + vname)
+        clear_show()
+        key[vname] = []
+        for r, (rname, at) in enumerate(BLIND_ROWS):
+            cores = list(CORE_ORDER)
+            rng.shuffle(cores)
+            key[vname].append({"row": rname, "columns_left_to_right": cores})
+            for i, core in enumerate(cores):
+                place_halo(core, at, loc=((i - 1.5) * 0.9, 0, -r * dz), rot_z=yaw, state="idle", cell_state=1.4,
+                           cell_phase=40.0 + 23.0 * i + 11.0 * r, far=far, tag=f"b{r}{i}")
+        res = true_pixel_cam(d, -1.5 * dz, width_m, height_m)
+        paths = raw_triplet(raw, f"blind_{vname}", res, center=(0, 0, -1.5 * dz))
+        kit = "far LOD" if far else "near kit"
+        view = "FRONT (the wearer faces you)" if yaw == 0 else "SIDE (the wearer's left toward you)"
+        blocks.append({"title": f"{d:g} m, {view}, {kit}  -  true 1080p pixels (vfov 78), shown x{k} nearest",
+                       "subtitle": "rows: " + " / ".join(r for r, _ in BLIND_ROWS) + "   columns: the 4 cores, "
+                                   "SHUFFLED per row (key: 02e_core_blind_key.json)   [daylight | dark | silhouette]",
+                       "panels": [{"img": p, "scale": k} for p in paths]})
+    json.dump(key, open(os.path.join(out_dir, "02e_core_blind_key.json"), "w"), indent=1)
+    out = compose({"blocks": blocks, "notes": [
+        "Name each halo's core before opening the key.  Cues: Bulwark = wide flat hex-puck cells (a dash) + the "
+        "thickest, boxy ring with corner posts;  Mender = twin stacked-disc cells ('=' / 'I') + thin double ring;",
+        "Volt = tall pointed crown cells + crown teeth on the ring;  Phase = round orb cells with thin wings + the "
+        "electrode fork at the back gap."]},
+        os.path.join(out_dir, "02e_core_blind_10m_25m.png"))
+    return [out]
+
+
+def _halo_luma(img_path, boxes):
+    """Alpha-weighted mean display luminance (Rec. 709 luma of the saved sRGB values) per pixel box."""
+    im = bpy.data.images.load(img_path, check_existing=False)
+    w, h = im.size
+    px = np.array(im.pixels[:], dtype=np.float32).reshape(h, w, 4)[::-1]     # top-down rows
+    bpy.data.images.remove(im)
+    out = []
+    for x0, y0, x1, y1 in boxes:
+        p = px[max(0, y0):min(h, y1), max(0, x0):min(w, x1)]
+        a = p[..., 3]
+        luma = 0.2126 * p[..., 0] + 0.7152 * p[..., 1] + 0.0722 * p[..., 2]
+        solid = a > 0.5
+        white = float(((luma > 0.85) & solid).sum() / max(solid.sum(), 1))      # near-white pixel share
+        out.append((float((luma * a).sum() / max(a.sum(), 1e-6)), white))
+    return out
+
+
+def r_far_lod_switch(out_dir):
+    """Near kit vs far LOD at the 20 m switch distance (review r2 #5): true pixels in daylight, plus the mean
+    halo luminance of each near/far pair (alpha-weighted, film-transparent render with the day lighting).
+    Target: the far LOD within ~10 % of the near kit, so the swap does not pop."""
+    import json
+    raw = os.path.join(out_dir, "_raw")
+    os.makedirs(raw, exist_ok=True)
+    clear_show()
+    rows = [("Light", PLAY["Light"]), ("Medium", PLAY["Medium"]), ("Heavy", PLAY["Heavy"])]
+    dz, sx = 0.40, 0.9
+    for far in (False, True):
+        for r, (wname, at) in enumerate(rows):
+            for i, core in enumerate(CORE_ORDER):
+                z = -r * dz - (1.4 if far else 0.0)
+                place_halo(core, at, loc=((i - 1.5) * sx, 0, z), state="idle", cell_state=1.4, cell_phase=40.0,
+                           far=far, tag=f"l{int(far)}{r}{i}")
+    cz, width_m, height_m = -1.2, 3.9, 2.8
+    d = 20.0
+    res = true_pixel_cam(d, cz, width_m, height_m)
+    setup_render(res=res, bloom=0.3, bg=DAY_SKY, threshold=0.8, samples=64)
+    lights("day")
+    true_px = render(os.path.join(raw, "lodswitch_20m_day.png"))
+    # measurement: the same view 4x larger with a transparent film (more pixels, same lighting)
+    big = (res[0] * 4, res[1] * 4)
+    setup_render(res=big, bloom=0, transparent=True, samples=64)
+    lights("day")
+    meas = render(os.path.join(raw, "lodswitch_measure.png"))
+    ppm = big[0] / width_m
+    boxes, labels = [], []
+    for far in (False, True):
+        for r, (wname, at) in enumerate(rows):
+            for i, core in enumerate(CORE_ORDER):
+                x = (i - 1.5) * sx
+                z = -r * dz - (1.4 if far else 0.0)
+                cx = (x + width_m / 2) * ppm
+                cy = (cz + height_m / 2 - z) * ppm
+                boxes.append((int(cx - 0.42 * ppm), int(cy - 0.17 * ppm), int(cx + 0.42 * ppm), int(cy + 0.15 * ppm)))
+                labels.append((far, wname, core))
+    lum = _halo_luma(meas, boxes)
+    os.remove(meas)
+    table, worst = {}, 0.0
+    for (far, wname, core), (v, wf) in zip(labels, lum):
+        rec = table.setdefault(f"{core}_{wname}", {})
+        rec["far" if far else "near"] = round(v, 4)
+        rec["white_px_pct_far" if far else "white_px_pct_near"] = round(100.0 * wf, 2)
+    for k, v in table.items():
+        v["far_vs_near_pct"] = round(100.0 * (v["far"] - v["near"]) / v["near"], 1)
+        worst = max(worst, abs(v["far_vs_near_pct"]))
+    json.dump({"what": "alpha-weighted mean display luminance per halo, daylight, idle, 20 m view (camera 0.9 deg "
+                       "below the halo); white_px_pct = share of halo pixels with luma > 0.85 (white bloom risk)",
+               "worst_abs_pct": worst, "pairs": table},
+              open(os.path.join(out_dir, "07b_far_lod_switch_luma.json"), "w"), indent=1)
+    # large reference of the same scene
+    setup_render(res=(1800, 1300), bloom=0.3, bg=DAY_SKY, threshold=0.8, samples=48)
+    lights("day")
+    cam_from((0, 0, cz), -6, 0, 12.0, ortho=width_m)
+    large = render(os.path.join(raw, "lodswitch_large.png"))
+    lines = ["mean halo luminance, far vs near (target within 10 %):"]
+    for wname, _ in rows:
+        lines.append("  " + wname.upper() + ":  " + "   ".join(
+            f"{c} {table[f'{c}_{wname}']['far_vs_near_pct']:+.1f} %" for c in CORE_ORDER))
+    out = compose({"blocks": [
+        {"title": "LOD SWITCH at 20 m: near kit (top 3 rows) vs far LOD (bottom 3 rows), daylight, idle",
+         "subtitle": "columns: Bulwark / Mender / Volt / Phase   rows: Light / Medium / Heavy game presets   "
+                     "true 1080p pixels x6 nearest  |  the same scene large (6 deg below)",
+         "panels": [{"img": true_px, "scale": 6}, {"img": large, "scale": 0.72}]}], "notes": lines},
+        os.path.join(out_dir, "07b_far_lod_switch_20m.png"))
+    print("LOD SWITCH worst", worst, "%")
+    return [out]
+
+
+STATE_COLS = [("lit", {"Head": 2, "Torso": 2, "Arms": 0, "Legs": 2}),
+              ("broken", {"Head": ("B", 2), "Torso": 2, "Arms": 0, "Legs": 2}),
+              ("uncovered", {"Head": 0, "Torso": 2, "Arms": 2, "Legs": 2})]
+
+
+def r_arc_states_range(out_dir):
+    """The Head arc lit (idle) / broken / uncovered at TRUE in-play pixels, 5 m and 10 m, daylight + dark
+    (review r2 #4: the old mirror-like M_HALO_Glass_Off threw near-white glints that could pass for T1 glass at
+    range).  Measured per halo on the Head-arc pixels only (mask = the render with minus without the Head arc,
+    4x pixels, no bloom, day light): mean display luma and the share of near-white pixels (luma > 0.85)."""
+    import json
+    raw = os.path.join(out_dir, "_raw")
+    os.makedirs(raw, exist_ok=True)
+    cores = CORE_ORDER
+    dz, sx, width_m, height_m = 0.36, 0.9, 2.8, 1.62
+    cz = -1.5 * dz
+    blocks, table = [], {}
+    for d, k in ((5.0, 3), (10.0, 5)):
+        clear_show()
+        heads = {}
+        for r, core in enumerate(cores):
+            for i, (cname, at) in enumerate(STATE_COLS):
+                root = place_halo(core, at, loc=((i - 1) * sx, 0, -r * dz), state="idle", cell_state=1.4,
+                                  cell_phase=40.0, tag=f"s{r}{i}")
+                heads[(core, cname)] = [o for o in root.children if o.name.startswith(f"_s_HALO_{core}_Arc_Head")]
+        res = true_pixel_cam(d, cz, width_m, height_m)
+        paths = []
+        for bgname, bg, rig in (("day", DAY_SKY, "day"), ("dark", NIGHT, "studio")):
+            setup_render(res=res, bloom=0.3, bg=bg, threshold=0.8, samples=64)
+            lights(rig, offset=(0, 0, cz))
+            paths.append(render(os.path.join(raw, f"states_{d:g}m_{bgname}.png")))
+        # measurement: 4x pixels, transparent film, day light; Head arcs hidden for the second pass
+        big = (res[0] * 4, res[1] * 4)
+        setup_render(res=big, bloom=0, transparent=True, samples=64)
+        lights("day")
+        full_p = render(os.path.join(raw, "_states_full.png"))
+        for objs in heads.values():
+            for o in objs:
+                o.hide_render = True
+        noh_p = render(os.path.join(raw, "_states_nohead.png"))
+        px = []
+        for p in (full_p, noh_p):
+            im = bpy.data.images.load(p, check_existing=False)
+            w, h = im.size
+            px.append(np.array(im.pixels[:], dtype=np.float32).reshape(h, w, 4)[::-1])
+            bpy.data.images.remove(im)
+            os.remove(p)
+        full, noh = px
+        diff = np.abs(full - noh).max(axis=2) > 0.03
+        luma = 0.2126 * full[..., 0] + 0.7152 * full[..., 1] + 0.0722 * full[..., 2]
+        ppm = big[0] / width_m
+        for r, core in enumerate(cores):
+            for i, (cname, _) in enumerate(STATE_COLS):
+                cx, cy = (((i - 1) * sx) + width_m / 2) * ppm, (cz + height_m / 2 + r * dz) * ppm
+                box = (slice(int(cy - 0.17 * ppm), int(cy + 0.17 * ppm)), slice(int(cx - 0.42 * ppm),
+                                                                                int(cx + 0.42 * ppm)))
+                m = diff[box] & (full[box][..., 3] > 0.5)
+                n = int(m.sum())
+                lv = luma[box][m]
+                rec = table.setdefault(f"{d:g}m", {}).setdefault(core, {})
+                rec[cname] = {"head_px_4x": n, "mean_luma": round(float(lv.mean()), 3) if n else None,
+                              "near_white_pct": round(100.0 * float((lv > 0.85).mean()), 2) if n else None}
+        blocks.append({"title": f"ARC STATES at {d:g} m, true 1080p pixels (vfov 78) x{k} nearest, idle",
+                       "subtitle": "columns: Head arc LIT (T2, idle) / BROKEN (Broken_T2) / UNCOVERED (Glass_Off)   "
+                                   "rows: " + " / ".join(cores) + "   [daylight | dark]",
+                       "panels": [{"img": p, "scale": k} for p in paths]})
+    json.dump({"what": "Head-arc pixels only (4x true pixels, day light, no bloom): mean display luma and share "
+                       "of near-white pixels (luma > 0.85).  Uncovered must stay far below lit and never near-white.",
+               "states": table}, open(os.path.join(out_dir, "03d_arc_states_range.json"), "w"), indent=1)
+    notes = ["Head-arc pixels (day light, 4x true pixels, no bloom): mean luma  lit / broken / uncovered,  "
+             "near-white share of the uncovered arc"]
+    for dk, recs in table.items():
+        for core, rec in recs.items():
+            notes.append(f"  {dk} {core:<8} " + "  /  ".join(
+                f"{rec[c]['mean_luma']:.2f}" if rec[c]["mean_luma"] is not None else "-" for c, _ in STATE_COLS)
+                + f"     uncovered near-white {rec['uncovered']['near_white_pct']} %")
+    out = compose({"blocks": blocks, "notes": notes}, os.path.join(out_dir, "03d_arc_states_range.png"))
+    return [out]

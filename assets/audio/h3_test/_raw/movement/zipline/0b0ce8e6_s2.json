@@ -1,0 +1,21 @@
+{
+ "name": "movement/zipline",
+ "seed": 2,
+ "prompt": "summary: Close-up of a metal pulley trolley rolling fast along a steel zipline cable.\n\ndetailed_description:\n[Shot 1] Close-up of a metal pulley trolley rolling fast along a steel zipline cable. The camera is static and locked-off.\n\noverall_soundscape: A steady fast metallic whirr of a pulley running along a steel cable, with a constant buzzing hum of the wire. Nothing else is heard: no music, no speech, no voices.\n\nnon_diegetic_music: N/A",
+ "settings": {
+  "w": 128,
+  "h": 128,
+  "frames": 107,
+  "steps": 6,
+  "lora": "turbo4",
+  "shift_video": 12.0,
+  "shift_audio": 3.0,
+  "sampler": "res_multistep",
+  "scheduler": "simple",
+  "style": "structured"
+ },
+ "exec_s": 3.731,
+ "wall_s": 4.2,
+ "peak_vram_gib": 15.25,
+ "audio_s": 4.46
+}

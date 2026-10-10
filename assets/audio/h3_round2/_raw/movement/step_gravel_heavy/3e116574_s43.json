@@ -1,0 +1,21 @@
+{
+ "name": "movement/step_gravel_heavy",
+ "seed": 43,
+ "prompt": "summary: Low static close-up at ground level of heavy boots stepping slowly and firmly onto a deep bed of small pebbles.\n\ndetailed_description:\n[Shot 1] Low static close-up at ground level of heavy boots stepping slowly and firmly onto a deep bed of small pebbles. The camera is static and locked-off.\n\noverall_soundscape: Foley recording, close microphone: separate heavy footsteps in loose pebbles, each step one short sharp crunchy crunch of compressing gravel, with a clear gap of silence between steps. Nothing else is heard: no music, no speech, no voices.\n\nnon_diegetic_music: N/A",
+ "settings": {
+  "w": 128,
+  "h": 128,
+  "frames": 158,
+  "steps": 6,
+  "lora": "turbo4",
+  "shift_video": 12.0,
+  "shift_audio": 3.0,
+  "sampler": "res_multistep",
+  "scheduler": "simple",
+  "style": "structured"
+ },
+ "exec_s": 10.184,
+ "wall_s": 10.6,
+ "peak_vram_gib": 15.38,
+ "audio_s": 6.58
+}

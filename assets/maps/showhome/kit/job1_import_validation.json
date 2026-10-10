@@ -1,0 +1,53 @@
+{
+  "glTF_settings_inputs": [
+    "Occlusion",
+    "Thickness",
+    "Dispersion",
+    "Iridescence Factor",
+    "Iridescence Thickness Minimum"
+  ],
+  "assets": [
+    {
+      "file": "houses.glb",
+      "meshes": 62,
+      "triangles": 83308,
+      "blender_design_bounds": [
+        [
+          8.831,
+          15.832,
+          0.0
+        ],
+        [
+          63.169,
+          32.169,
+          12.83
+        ]
+      ],
+      "materials": 17,
+      "textured_materials": 12,
+      "uv_and_single_material": true,
+      "no_shader_only_procedural_colour": true
+    },
+    {
+      "file": "props_placed.glb",
+      "meshes": 145,
+      "triangles": 107780,
+      "blender_design_bounds": [
+        [
+          1.0,
+          0.875,
+          0.0
+        ],
+        [
+          71.0,
+          47.0,
+          3.0
+        ]
+      ],
+      "materials": 39,
+      "textured_materials": 22,
+      "uv_and_single_material": true,
+      "no_shader_only_procedural_colour": true
+    }
+  ]
+}

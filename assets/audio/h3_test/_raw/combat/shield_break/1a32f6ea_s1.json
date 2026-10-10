@@ -1,0 +1,21 @@
+{
+ "name": "combat/shield_break",
+ "seed": 1,
+ "prompt": "summary: A glowing transparent blue energy shield hovers in a dark room.\n\ndetailed_description:\n[Shot 1] A glowing transparent blue energy shield hovers in a dark room. It cracks and shatters into falling sparks, once. The camera is static and locked-off.\n\noverall_soundscape: Foley recording, close microphone, isolated sound: a bright glassy shattering crash with an electric crackle, the fragments tinkling away, then silence. Nothing else is heard: no music, no speech, no voices.\n\nnon_diegetic_music: N/A",
+ "settings": {
+  "w": 128,
+  "h": 128,
+  "frames": 73,
+  "steps": 6,
+  "lora": "turbo4",
+  "shift_video": 12.0,
+  "shift_audio": 3.0,
+  "sampler": "res_multistep",
+  "scheduler": "simple",
+  "style": "structured"
+ },
+ "exec_s": 8.892,
+ "wall_s": 9.3,
+ "peak_vram_gib": 15.08,
+ "audio_s": 3.04
+}

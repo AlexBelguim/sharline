@@ -1,0 +1,637 @@
+{
+  "version": 3,
+  "phase": 1,
+  "origin": [
+    330,
+    620,
+    0
+  ],
+  "size": [
+    80,
+    65
+  ],
+  "mirror_x": 370,
+  "outer_hedge_height_m": 6,
+  "side_garden_end_y": 671,
+  "outer_boundary": "Continuous6m side/back hedges; six TDM concrete barriers align with the roadside hedge returns. The public street remains open beyond this closure.",
+  "houses": [
+    {
+      "id": "sage_south",
+      "colour": "sage",
+      "old_centre": [
+        15,
+        24,
+        0
+      ],
+      "centre": [
+        352.5,
+        639,
+        0
+      ],
+      "yaw_deg": -90,
+      "party_end": "W",
+      "attached_garage": false
+    },
+    {
+      "id": "sage_north",
+      "colour": "clay",
+      "old_centre": [
+        15,
+        24,
+        0
+      ],
+      "centre": [
+        352.5,
+        651,
+        0
+      ],
+      "yaw_deg": -90,
+      "party_end": "E",
+      "attached_garage": true
+    },
+    {
+      "id": "clay_south",
+      "colour": "clay",
+      "old_centre": [
+        57,
+        24,
+        0
+      ],
+      "centre": [
+        387.5,
+        639,
+        0
+      ],
+      "yaw_deg": 90,
+      "party_end": "W",
+      "attached_garage": false
+    },
+    {
+      "id": "clay_north",
+      "colour": "sage",
+      "old_centre": [
+        57,
+        24,
+        0
+      ],
+      "centre": [
+        387.5,
+        651,
+        0
+      ],
+      "yaw_deg": 90,
+      "party_end": "E",
+      "attached_garage": true
+    }
+  ],
+  "central_street": [
+    366.5,
+    629.7,
+    373.5,
+    673
+  ],
+  "front_street": [
+    290,
+    673,
+    450,
+    681
+  ],
+  "front_pavement": [
+    290,
+    671,
+    450,
+    673
+  ],
+  "rear_gardens": [
+    [
+      332,
+      622,
+      350.35,
+      671
+    ],
+    [
+      389.65,
+      622,
+      408,
+      671
+    ]
+  ],
+  "gates": {
+    "north": [
+      370,
+      685
+    ]
+  },
+  "reserved_extraction_gates": {
+    "west": [
+      330,
+      660
+    ],
+    "east": [
+      410,
+      660
+    ],
+    "south": [
+      370,
+      620
+    ]
+  },
+  "party_wall_y": 645,
+  "garage_assignment": "Attached terrace garages serve the north homes beside the cross-street; separate garage pair remains at south driveway end.",
+  "driveway_reversed": "User correction: rotate driveway arrangement 180 degrees about (370,644); garage pair moves to y626.9 and faces north, leaving the northern road connection clear.",
+  "user_override": "2026-10-09 sketch: four homes in two attached blocks; cross-street between Showhome and worksite. Replaces snapshot south-front-street arrangement; extraction road connection needs this revised handoff.",
+  "future_back_road_y": 717,
+  "future_shells": [
+    341,
+    722,
+    395,
+    748
+  ],
+  "future_crane_1": [
+    433,
+    740
+  ],
+  "future_office": [
+    268,
+    640,
+    316,
+    676
+  ],
+  "future_material_yard": [
+    420,
+    640,
+    485,
+    678
+  ],
+  "roadside_garden_extension_m": 5,
+  "tdm_barrier_runs": [
+    {
+      "id": "four_home_entrance",
+      "axis": "X",
+      "y": 670.35,
+      "x0": 364.15,
+      "x1": 375.85,
+      "stable_id_start": 52
+    }
+  ],
+  "marked_blue_car": {
+    "position": [
+      370.27835,
+      638.81946,
+      0
+    ],
+    "yaw_deg": 20,
+    "color_variant": "blue"
+  },
+  "marked_garden_separators": {
+    "west_framed_hedge": [
+      344.35,
+      632.85,
+      350.35,
+      632.85
+    ],
+    "east_high_fence": [
+      389.65,
+      632.85,
+      397.65,
+      632.85
+    ]
+  },
+  "extension_plan": {
+    "phase": 2,
+    "three_homes": "Three standalone street-front homes recessed4m, each on an equal24x44m plot; visible pebble drive-ups with clear hedge/picket mouths and small front gardens; no attached garages.",
+    "residential_plots": [
+      [
+        332,
+        684,
+        356,
+        728
+      ],
+      [
+        358,
+        684,
+        382,
+        728
+      ],
+      [
+        384,
+        684,
+        408,
+        728
+      ]
+    ],
+    "apartment_shell": {
+      "bounds": [
+        345,
+        750,
+        371,
+        804
+      ],
+      "storeys": 5,
+      "floor_spacing_m": 3.2,
+      "stairs_to_upper_floors": [
+        1,
+        2
+      ],
+      "yaw_deg": 90,
+      "source_rotation_pivot_m": [
+        368,
+        735,
+        0
+      ],
+      "centre_m": [
+        358,
+        777,
+        0
+      ],
+      "nearest_street_edge_extra_clearance_m": 28,
+      "parallel_copy_bounds": [
+        397,
+        750,
+        423,
+        804
+      ]
+    },
+    "keep_tdm_core_separate": true,
+    "site_earthworks": "Three standing frames and one open foundation over shared parking; straight grey gravel approach with local ramp-mouth apron, courtyard playground/greenbeds/benches, five excavations, six spoil heaps, two cranes, five trucks, six cabins and four toilets.",
+    "worksite_bounds": [
+      310,
+      735,
+      480,
+      905
+    ],
+    "campus_buildings": [
+      [
+        345,
+        750,
+        371,
+        804
+      ],
+      [
+        397,
+        750,
+        423,
+        804
+      ],
+      [
+        345,
+        838,
+        371,
+        892
+      ],
+      [
+        397,
+        838,
+        423,
+        892
+      ]
+    ],
+    "standing_buildings": 3,
+    "foundation_building_index": 3,
+    "shared_parking_bounds": [
+      339,
+      744,
+      451,
+      896
+    ],
+    "parking_floor_z": -3.2,
+    "residential_centres": [
+      [
+        344,
+        700,
+        0
+      ],
+      [
+        370,
+        700,
+        0
+      ],
+      [
+        396,
+        700,
+        0
+      ]
+    ],
+    "driveways": [
+      [
+        351.8,
+        681,
+        355,
+        710
+      ],
+      [
+        377.8,
+        681,
+        381,
+        710
+      ],
+      [
+        403.8,
+        681,
+        407,
+        710
+      ]
+    ],
+    "terrain_bounds": [
+      310,
+      685,
+      483,
+      908
+    ],
+    "communal_courtyard_bounds": [
+      342,
+      811,
+      427,
+      833
+    ],
+    "gravel_access_alignment": [
+      [
+        447,
+        681
+      ],
+      [
+        447,
+        847
+      ]
+    ],
+    "gravel_access_width_m": 6,
+    "vehicle_ramp_excavation": [
+      443.85,
+      847,
+      450.15,
+      873
+    ],
+    "vehicle_ramp_clear": [
+      444.15,
+      849,
+      449.85,
+      867
+    ],
+    "source_revision": "2026-10-10_perpendicular_road_straight_ramp_recessed_homes",
+    "build_status": "extension_built_exported_verified",
+    "vehicle_ramp_direction": "straight south grade to north basement, no connector turns",
+    "vehicle_ramp_exit": [
+      447,
+      873,
+      -3.2
+    ],
+    "organic_planter_runs": [
+      [
+        [
+          384,
+          765,
+          0
+        ],
+        [
+          384,
+          777,
+          0
+        ],
+        [
+          384,
+          789,
+          0
+        ]
+      ],
+      [
+        [
+          384,
+          853,
+          0
+        ],
+        [
+          384,
+          865,
+          0
+        ],
+        [
+          384,
+          877,
+          0
+        ]
+      ]
+    ],
+    "organic_planter_yaw_deg": 90,
+    "cabin_stacks": [
+      {
+        "lower": [
+          456,
+          869,
+          0
+        ],
+        "upper_offset": [
+          0,
+          0,
+          2.8
+        ]
+      },
+      {
+        "lower": [
+          444,
+          880,
+          0
+        ],
+        "upper_offset": [
+          0,
+          0,
+          2.8
+        ]
+      },
+      {
+        "lower": [
+          462,
+          889,
+          0
+        ],
+        "upper_offset": [
+          -1.2,
+          0,
+          2.8
+        ],
+        "second_lower": [
+          456,
+          889,
+          0
+        ]
+      }
+    ],
+    "worksite_wear_paths": [
+      {
+        "name": "west_receiving_lane",
+        "controls": [
+          [
+            323,
+            745
+          ],
+          [
+            320.5,
+            770
+          ],
+          [
+            322,
+            792
+          ],
+          [
+            321,
+            802
+          ]
+        ],
+        "width_m": 5.8,
+        "wheel_strength": 0.56
+      },
+      {
+        "name": "west_rear_haul_lane",
+        "controls": [
+          [
+            321,
+            831
+          ],
+          [
+            323,
+            842
+          ],
+          [
+            316.8,
+            862
+          ],
+          [
+            315,
+            883
+          ]
+        ],
+        "width_m": 4.8,
+        "wheel_strength": 0.52
+      },
+      {
+        "name": "east_delivery_lane",
+        "controls": [
+          [
+            466,
+            762
+          ],
+          [
+            465,
+            790
+          ],
+          [
+            465,
+            817
+          ],
+          [
+            469,
+            834
+          ]
+        ],
+        "width_m": 5.6,
+        "wheel_strength": 0.58
+      },
+      {
+        "name": "east_frame_supply_lane",
+        "controls": [
+          [
+            432,
+            748
+          ],
+          [
+            435,
+            775
+          ],
+          [
+            433,
+            802
+          ]
+        ],
+        "width_m": 4.6,
+        "wheel_strength": 0.5
+      },
+      {
+        "name": "west_frame_turnout",
+        "controls": [
+          [
+            333,
+            791
+          ],
+          [
+            335,
+            800
+          ],
+          [
+            341,
+            810
+          ],
+          [
+            346,
+            814
+          ]
+        ],
+        "width_m": 4.2,
+        "wheel_strength": 0.46
+      },
+      {
+        "name": "material_worker_scuff",
+        "controls": [
+          [
+            329,
+            750
+          ],
+          [
+            328,
+            775
+          ],
+          [
+            330,
+            786
+          ]
+        ],
+        "width_m": 1.6,
+        "wheel_strength": 0.18
+      }
+    ],
+    "localized_wet_track_spots": [
+      [
+        321.5,
+        795,
+        3.4
+      ],
+      [
+        465,
+        807,
+        3.0
+      ],
+      [
+        316,
+        860,
+        2.6
+      ]
+    ],
+    "light_track_surface_height_m": 0.014,
+    "tyre_height_source": "worksite_mud_tracks_height.png",
+    "tyre_depth_range_m": 0.032,
+    "tyre_repeat_m": 6,
+    "material_cluster_names": [
+      "receiving_corner",
+      "fabrication_sorting",
+      "west_frame_drop",
+      "east_frame_drop",
+      "northwest_frame_drop",
+      "open_foundation_floor_supplies"
+    ],
+    "additional_material_instances": 23,
+    "pending_loose_material_ids": [
+      "loose_construction_pipes",
+      "loose_timber_boards",
+      "printed_block_offcuts"
+    ]
+  },
+  "roadside_return_endpoints": {
+    "west": 364.15,
+    "east": 375.85
+  },
+  "tdm_clip_north_y": 670.35,
+  "tdm_play_bounds_design": [
+    330,
+    620,
+    410,
+    670.35
+  ]
+}

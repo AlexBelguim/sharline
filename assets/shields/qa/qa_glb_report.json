@@ -1,38 +1,169 @@
 {
  "HALO_Bulwark.glb": {
-  "nodes": 17,
-  "meshes": 13,
+  "nodes": 34,
+  "meshes": 17,
+  "scene_roots": [
+   "HALO_Bulwark_Bands",
+   "HALO_Bulwark_Cells",
+   "HALO_Bulwark_Far",
+   "HALO_Bulwark_Frames",
+   "HALO_Bulwark_Near",
+   "HALO_Bulwark_Pips"
+  ],
   "materials": [
-   "M_HALO_Glass_T1",
    "M_HALO_Graphite",
+   "M_HALO_Gunmetal",
+   "M_HALO_Glass_T1",
    "M_HALO_Edge",
-   "M_HALO_Gunmetal"
+   "M_HALO_Graphite_Far"
   ],
   "images": 0,
-  "bin_bytes": 319328,
+  "bin_bytes": 732192,
   "issues": [],
-  "material_info": {
-   "M_HALO_Glass_T1": {
-    "doubleSided": false,
-    "alphaMode": "OPAQUE",
-    "emissiveFactor": [
-     0.924,
-     0.957,
-     1
+  "mesh_info": {
+   "HALO_Bulwark_Band_Heavy": {
+    "prims": [
+     "M_HALO_Graphite",
+     "M_HALO_Gunmetal",
+     "M_HALO_Glass_T1",
+     "M_HALO_Edge"
     ],
-    "emissive_strength": 2.20800012779236,
-    "emissiveTexture": false,
-    "baseColorFactor": [
-     0.102,
-     0.106,
-     0.11,
-     1
-    ],
-    "clearcoat": true
+    "tris": 1380,
+    "zero_area_tris": 0
    },
+   "HALO_Bulwark_Band_Medium": {
+    "prims": [
+     "M_HALO_Graphite",
+     "M_HALO_Glass_T1",
+     "M_HALO_Edge"
+    ],
+    "tris": 544,
+    "zero_area_tris": 0
+   },
+   "HALO_PowerCell_Bulwark": {
+    "prims": [
+     "M_HALO_Glass_T1",
+     "M_HALO_Graphite"
+    ],
+    "tris": 120,
+    "zero_area_tris": 0
+   },
+   "HALO_Bulwark_Far_Frame_Heavy": {
+    "prims": [
+     "M_HALO_Graphite_Far",
+     "M_HALO_Edge",
+     "M_HALO_Glass_T1"
+    ],
+    "tris": 600,
+    "zero_area_tris": 0
+   },
+   "HALO_Bulwark_Far_Frame_Light": {
+    "prims": [
+     "M_HALO_Graphite_Far",
+     "M_HALO_Edge"
+    ],
+    "tris": 468,
+    "zero_area_tris": 0
+   },
+   "HALO_Bulwark_Far_Frame_Medium": {
+    "prims": [
+     "M_HALO_Graphite_Far",
+     "M_HALO_Edge",
+     "M_HALO_Glass_T1"
+    ],
+    "tris": 576,
+    "zero_area_tris": 0
+   },
+   "HALO_Bulwark_Far_Glass_Arms": {
+    "prims": [
+     "M_HALO_Glass_T1"
+    ],
+    "tris": 44,
+    "zero_area_tris": 0
+   },
+   "HALO_Bulwark_Far_Glass_Head": {
+    "prims": [
+     "M_HALO_Glass_T1"
+    ],
+    "tris": 60,
+    "zero_area_tris": 0
+   },
+   "HALO_Bulwark_Far_Glass_Legs": {
+    "prims": [
+     "M_HALO_Glass_T1"
+    ],
+    "tris": 44,
+    "zero_area_tris": 0
+   },
+   "HALO_Bulwark_Far_Glass_Torso": {
+    "prims": [
+     "M_HALO_Glass_T1"
+    ],
+    "tris": 60,
+    "zero_area_tris": 0
+   },
+   "HALO_Bulwark_Frame_Heavy": {
+    "prims": [
+     "M_HALO_Graphite",
+     "M_HALO_Edge",
+     "M_HALO_Gunmetal",
+     "M_HALO_Glass_T1"
+    ],
+    "tris": 3672,
+    "zero_area_tris": 0
+   },
+   "HALO_Bulwark_Frame_Light": {
+    "prims": [
+     "M_HALO_Graphite",
+     "M_HALO_Edge"
+    ],
+    "tris": 2292,
+    "zero_area_tris": 0
+   },
+   "HALO_Bulwark_Frame_Medium": {
+    "prims": [
+     "M_HALO_Graphite",
+     "M_HALO_Edge",
+     "M_HALO_Glass_T1"
+    ],
+    "tris": 2836,
+    "zero_area_tris": 0
+   },
+   "HALO_Bulwark_Arc_Arms": {
+    "prims": [
+     "M_HALO_Glass_T1"
+    ],
+    "tris": 108,
+    "zero_area_tris": 0
+   },
+   "HALO_Bulwark_Arc_Head": {
+    "prims": [
+     "M_HALO_Glass_T1"
+    ],
+    "tris": 192,
+    "zero_area_tris": 0
+   },
+   "HALO_Bulwark_Arc_Legs": {
+    "prims": [
+     "M_HALO_Glass_T1"
+    ],
+    "tris": 108,
+    "zero_area_tris": 0
+   },
+   "HALO_Bulwark_Arc_Torso": {
+    "prims": [
+     "M_HALO_Glass_T1"
+    ],
+    "tris": 140,
+    "zero_area_tris": 0
+   }
+  },
+  "material_info": {
    "M_HALO_Graphite": {
     "doubleSided": false,
     "alphaMode": "OPAQUE",
+    "roughness": 0.55,
+    "metallic": 0.15,
     "emissiveFactor": [
      0,
      0,
@@ -46,29 +177,13 @@
      0.04,
      1
     ],
-    "clearcoat": false
-   },
-   "M_HALO_Edge": {
-    "doubleSided": false,
-    "alphaMode": "OPAQUE",
-    "emissiveFactor": [
-     0.168,
-     0.198,
-     0.24
-    ],
-    "emissive_strength": null,
-    "emissiveTexture": false,
-    "baseColorFactor": [
-     0.04,
-     0.045,
-     0.05,
-     1
-    ],
-    "clearcoat": false
+    "clearcoat": null
    },
    "M_HALO_Gunmetal": {
     "doubleSided": false,
     "alphaMode": "OPAQUE",
+    "roughness": 0.35,
+    "metallic": 0.85,
     "emissiveFactor": [
      0,
      0,
@@ -82,24 +197,13 @@
      0.12,
      1
     ],
-    "clearcoat": false
-   }
-  }
- },
- "HALO_Common.glb": {
-  "nodes": 9,
-  "meshes": 5,
-  "materials": [
-   "M_HALO_Glass_T1",
-   "M_HALO_Graphite"
-  ],
-  "images": 0,
-  "bin_bytes": 29052,
-  "issues": [],
-  "material_info": {
+    "clearcoat": null
+   },
    "M_HALO_Glass_T1": {
     "doubleSided": false,
     "alphaMode": "OPAQUE",
+    "roughness": 0.25,
+    "metallic": 0,
     "emissiveFactor": [
      0.924,
      0.957,
@@ -113,11 +217,33 @@
      0.11,
      1
     ],
-    "clearcoat": true
+    "clearcoat": 0.4000000059604645
    },
-   "M_HALO_Graphite": {
+   "M_HALO_Edge": {
     "doubleSided": false,
     "alphaMode": "OPAQUE",
+    "roughness": 0.4,
+    "metallic": 0,
+    "emissiveFactor": [
+     0.168,
+     0.198,
+     0.24
+    ],
+    "emissive_strength": null,
+    "emissiveTexture": false,
+    "baseColorFactor": [
+     0.04,
+     0.045,
+     0.05,
+     1
+    ],
+    "clearcoat": null
+   },
+   "M_HALO_Graphite_Far": {
+    "doubleSided": false,
+    "alphaMode": "OPAQUE",
+    "roughness": 0.85,
+    "metallic": 0.05,
     "emissiveFactor": [
      0,
      0,
@@ -131,13 +257,154 @@
      0.04,
      1
     ],
-    "clearcoat": false
+    "clearcoat": null
+   }
+  },
+  "assembled": {
+   "Light": {
+    "near_draws_ring": 6,
+    "near_draws_with_cells": 8,
+    "near_tris_with_cells": 2960,
+    "far_draws_ring": 6,
+    "far_tris_with_cells": 796
+   },
+   "Medium": {
+    "near_draws_ring": 7,
+    "near_draws_with_cells": 11,
+    "near_tris_with_cells": 3624,
+    "far_draws_ring": 7,
+    "far_tris_with_cells": 1024
+   },
+   "Heavy": {
+    "near_draws_ring": 8,
+    "near_draws_with_cells": 14,
+    "near_tris_with_cells": 4580,
+    "far_draws_ring": 7,
+    "far_tris_with_cells": 1168
+   }
+  }
+ },
+ "HALO_Common.glb": {
+  "nodes": 9,
+  "meshes": 5,
+  "scene_roots": [
+   "HALO_PIP_1",
+   "HALO_PIP_2",
+   "HALO_PIP_3",
+   "HALO_PIP_4",
+   "HALO_PowerCell",
+   "HALO_Shard_A",
+   "HALO_Shard_B",
+   "HALO_Shard_C",
+   "HALO_TierPip"
+  ],
+  "materials": [
+   "M_HALO_Glass_T1",
+   "M_HALO_Graphite"
+  ],
+  "images": 0,
+  "bin_bytes": 12252,
+  "issues": [],
+  "mesh_info": {
+   "HALO_PowerCell": {
+    "prims": [
+     "M_HALO_Glass_T1",
+     "M_HALO_Graphite"
+    ],
+    "tris": 120,
+    "zero_area_tris": 0
+   },
+   "HALO_Shard_A": {
+    "prims": [
+     "M_HALO_Glass_T1"
+    ],
+    "tris": 26,
+    "zero_area_tris": 0
+   },
+   "HALO_Shard_B": {
+    "prims": [
+     "M_HALO_Glass_T1"
+    ],
+    "tris": 14,
+    "zero_area_tris": 0
+   },
+   "HALO_Shard_C": {
+    "prims": [
+     "M_HALO_Glass_T1"
+    ],
+    "tris": 18,
+    "zero_area_tris": 0
+   },
+   "HALO_TierPip": {
+    "prims": [
+     "M_HALO_Glass_T1"
+    ],
+    "tris": 8,
+    "zero_area_tris": 0
+   }
+  },
+  "material_info": {
+   "M_HALO_Glass_T1": {
+    "doubleSided": false,
+    "alphaMode": "OPAQUE",
+    "roughness": 0.25,
+    "metallic": 0,
+    "emissiveFactor": [
+     0.924,
+     0.957,
+     1
+    ],
+    "emissive_strength": 2.20800012779236,
+    "emissiveTexture": false,
+    "baseColorFactor": [
+     0.102,
+     0.106,
+     0.11,
+     1
+    ],
+    "clearcoat": 0.4000000059604645
+   },
+   "M_HALO_Graphite": {
+    "doubleSided": false,
+    "alphaMode": "OPAQUE",
+    "roughness": 0.55,
+    "metallic": 0.15,
+    "emissiveFactor": [
+     0,
+     0,
+     0
+    ],
+    "emissive_strength": null,
+    "emissiveTexture": false,
+    "baseColorFactor": [
+     0.03,
+     0.033,
+     0.04,
+     1
+    ],
+    "clearcoat": null
    }
   }
  },
  "HALO_Materials.glb": {
-  "nodes": 13,
-  "meshes": 13,
+  "nodes": 14,
+  "meshes": 14,
+  "scene_roots": [
+   "HALO_Swatch_Bone",
+   "HALO_Swatch_Edge",
+   "HALO_Swatch_Glass_Broken_T1",
+   "HALO_Swatch_Glass_Broken_T2",
+   "HALO_Swatch_Glass_Broken_T3",
+   "HALO_Swatch_Glass_Broken_T4",
+   "HALO_Swatch_Glass_Off",
+   "HALO_Swatch_Glass_T1",
+   "HALO_Swatch_Glass_T2",
+   "HALO_Swatch_Glass_T3",
+   "HALO_Swatch_Glass_T4",
+   "HALO_Swatch_Graphite",
+   "HALO_Swatch_Graphite_Far",
+   "HALO_Swatch_Gunmetal"
+  ],
   "materials": [
    "M_HALO_Bone",
    "M_HALO_Edge",
@@ -151,15 +418,118 @@
    "M_HALO_Glass_T3",
    "M_HALO_Glass_T4",
    "M_HALO_Graphite",
+   "M_HALO_Graphite_Far",
    "M_HALO_Gunmetal"
   ],
   "images": 1,
-  "bin_bytes": 70796,
+  "bin_bytes": 71564,
   "issues": [],
+  "mesh_info": {
+   "HALO_Swatch_Bone": {
+    "prims": [
+     "M_HALO_Bone"
+    ],
+    "tris": 12,
+    "zero_area_tris": 0
+   },
+   "HALO_Swatch_Edge": {
+    "prims": [
+     "M_HALO_Edge"
+    ],
+    "tris": 12,
+    "zero_area_tris": 0
+   },
+   "HALO_Swatch_Glass_Broken_T1": {
+    "prims": [
+     "M_HALO_Glass_Broken_T1"
+    ],
+    "tris": 12,
+    "zero_area_tris": 0
+   },
+   "HALO_Swatch_Glass_Broken_T2": {
+    "prims": [
+     "M_HALO_Glass_Broken_T2"
+    ],
+    "tris": 12,
+    "zero_area_tris": 0
+   },
+   "HALO_Swatch_Glass_Broken_T3": {
+    "prims": [
+     "M_HALO_Glass_Broken_T3"
+    ],
+    "tris": 12,
+    "zero_area_tris": 0
+   },
+   "HALO_Swatch_Glass_Broken_T4": {
+    "prims": [
+     "M_HALO_Glass_Broken_T4"
+    ],
+    "tris": 12,
+    "zero_area_tris": 0
+   },
+   "HALO_Swatch_Glass_Off": {
+    "prims": [
+     "M_HALO_Glass_Off"
+    ],
+    "tris": 12,
+    "zero_area_tris": 0
+   },
+   "HALO_Swatch_Glass_T1": {
+    "prims": [
+     "M_HALO_Glass_T1"
+    ],
+    "tris": 12,
+    "zero_area_tris": 0
+   },
+   "HALO_Swatch_Glass_T2": {
+    "prims": [
+     "M_HALO_Glass_T2"
+    ],
+    "tris": 12,
+    "zero_area_tris": 0
+   },
+   "HALO_Swatch_Glass_T3": {
+    "prims": [
+     "M_HALO_Glass_T3"
+    ],
+    "tris": 12,
+    "zero_area_tris": 0
+   },
+   "HALO_Swatch_Glass_T4": {
+    "prims": [
+     "M_HALO_Glass_T4"
+    ],
+    "tris": 12,
+    "zero_area_tris": 0
+   },
+   "HALO_Swatch_Graphite": {
+    "prims": [
+     "M_HALO_Graphite"
+    ],
+    "tris": 12,
+    "zero_area_tris": 0
+   },
+   "HALO_Swatch_Graphite_Far": {
+    "prims": [
+     "M_HALO_Graphite_Far"
+    ],
+    "tris": 12,
+    "zero_area_tris": 0
+   },
+   "HALO_Swatch_Gunmetal": {
+    "prims": [
+     "M_HALO_Gunmetal"
+    ],
+    "tris": 12,
+    "zero_area_tris": 0
+   }
+  },
   "material_info": {
    "M_HALO_Bone": {
     "doubleSided": false,
     "alphaMode": "OPAQUE",
+    "roughness": 0.6,
+    "metallic": 0,
     "emissiveFactor": [
      0,
      0,
@@ -173,11 +543,13 @@
      0.46,
      1
     ],
-    "clearcoat": false
+    "clearcoat": null
    },
    "M_HALO_Edge": {
     "doubleSided": false,
     "alphaMode": "OPAQUE",
+    "roughness": 0.4,
+    "metallic": 0,
     "emissiveFactor": [
      0.168,
      0.198,
@@ -191,11 +563,13 @@
      0.05,
      1
     ],
-    "clearcoat": false
+    "clearcoat": null
    },
    "M_HALO_Glass_Broken_T1": {
     "doubleSided": false,
     "alphaMode": "OPAQUE",
+    "roughness": 0.35,
+    "metallic": 0,
     "emissiveFactor": [
      0.863,
      0.878,
@@ -209,11 +583,13 @@
      0.09,
      1
     ],
-    "clearcoat": true
+    "clearcoat": 0.4000000059604645
    },
    "M_HALO_Glass_Broken_T2": {
     "doubleSided": false,
     "alphaMode": "OPAQUE",
+    "roughness": 0.35,
+    "metallic": 0,
     "emissiveFactor": [
      0.258,
      0.433,
@@ -227,11 +603,13 @@
      0.071,
      1
     ],
-    "clearcoat": true
+    "clearcoat": 0.4000000059604645
    },
    "M_HALO_Glass_Broken_T3": {
     "doubleSided": false,
     "alphaMode": "OPAQUE",
+    "roughness": 0.35,
+    "metallic": 0,
     "emissiveFactor": [
      0.423,
      0.223,
@@ -245,11 +623,13 @@
      0.065,
      1
     ],
-    "clearcoat": true
+    "clearcoat": 0.4000000059604645
    },
    "M_HALO_Glass_Broken_T4": {
     "doubleSided": false,
     "alphaMode": "OPAQUE",
+    "roughness": 0.35,
+    "metallic": 0,
     "emissiveFactor": [
      0.831,
      0.641,
@@ -263,11 +643,13 @@
      0.037,
      1
     ],
-    "clearcoat": true
+    "clearcoat": 0.4000000059604645
    },
    "M_HALO_Glass_Off": {
     "doubleSided": false,
     "alphaMode": "OPAQUE",
+    "roughness": 0.6,
+    "metallic": 0,
     "emissiveFactor": [
      0,
      0,
@@ -281,11 +663,13 @@
      0.025,
      1
     ],
-    "clearcoat": true
+    "clearcoat": null
    },
    "M_HALO_Glass_T1": {
     "doubleSided": false,
     "alphaMode": "OPAQUE",
+    "roughness": 0.25,
+    "metallic": 0,
     "emissiveFactor": [
      0.924,
      0.957,
@@ -299,11 +683,13 @@
      0.11,
      1
     ],
-    "clearcoat": true
+    "clearcoat": 0.4000000059604645
    },
    "M_HALO_Glass_T2": {
     "doubleSided": false,
     "alphaMode": "OPAQUE",
+    "roughness": 0.25,
+    "metallic": 0,
     "emissiveFactor": [
      0.1,
      0.45,
@@ -317,11 +703,13 @@
      0.12,
      1
     ],
-    "clearcoat": true
+    "clearcoat": 0.4000000059604645
    },
    "M_HALO_Glass_T3": {
     "doubleSided": false,
     "alphaMode": "OPAQUE",
+    "roughness": 0.25,
+    "metallic": 0,
     "emissiveFactor": [
      0.55,
      0.15,
@@ -335,11 +723,13 @@
      0.12,
      1
     ],
-    "clearcoat": true
+    "clearcoat": 0.4000000059604645
    },
    "M_HALO_Glass_T4": {
     "doubleSided": false,
     "alphaMode": "OPAQUE",
+    "roughness": 0.25,
+    "metallic": 0,
     "emissiveFactor": [
      1,
      0.62,
@@ -353,11 +743,13 @@
      0.01,
      1
     ],
-    "clearcoat": true
+    "clearcoat": 0.4000000059604645
    },
    "M_HALO_Graphite": {
     "doubleSided": false,
     "alphaMode": "OPAQUE",
+    "roughness": 0.55,
+    "metallic": 0.15,
     "emissiveFactor": [
      0,
      0,
@@ -371,11 +763,33 @@
      0.04,
      1
     ],
-    "clearcoat": false
+    "clearcoat": null
+   },
+   "M_HALO_Graphite_Far": {
+    "doubleSided": false,
+    "alphaMode": "OPAQUE",
+    "roughness": 0.85,
+    "metallic": 0.05,
+    "emissiveFactor": [
+     0,
+     0,
+     0
+    ],
+    "emissive_strength": null,
+    "emissiveTexture": false,
+    "baseColorFactor": [
+     0.03,
+     0.033,
+     0.04,
+     1
+    ],
+    "clearcoat": null
    },
    "M_HALO_Gunmetal": {
     "doubleSided": false,
     "alphaMode": "OPAQUE",
+    "roughness": 0.35,
+    "metallic": 0.85,
     "emissiveFactor": [
      0,
      0,
@@ -389,44 +803,175 @@
      0.12,
      1
     ],
-    "clearcoat": false
+    "clearcoat": null
    }
   }
  },
  "HALO_Mender.glb": {
-  "nodes": 17,
-  "meshes": 13,
+  "nodes": 34,
+  "meshes": 17,
+  "scene_roots": [
+   "HALO_Mender_Bands",
+   "HALO_Mender_Cells",
+   "HALO_Mender_Far",
+   "HALO_Mender_Frames",
+   "HALO_Mender_Near",
+   "HALO_Mender_Pips"
+  ],
   "materials": [
-   "M_HALO_Glass_T1",
    "M_HALO_Graphite",
+   "M_HALO_Gunmetal",
+   "M_HALO_Glass_T1",
    "M_HALO_Edge",
-   "M_HALO_Gunmetal"
+   "M_HALO_Graphite_Far"
   ],
   "images": 0,
-  "bin_bytes": 383088,
+  "bin_bytes": 644440,
   "issues": [],
-  "material_info": {
-   "M_HALO_Glass_T1": {
-    "doubleSided": false,
-    "alphaMode": "OPAQUE",
-    "emissiveFactor": [
-     0.924,
-     0.957,
-     1
+  "mesh_info": {
+   "HALO_Mender_Band_Heavy": {
+    "prims": [
+     "M_HALO_Graphite",
+     "M_HALO_Gunmetal",
+     "M_HALO_Glass_T1",
+     "M_HALO_Edge"
     ],
-    "emissive_strength": 2.20800012779236,
-    "emissiveTexture": false,
-    "baseColorFactor": [
-     0.102,
-     0.106,
-     0.11,
-     1
-    ],
-    "clearcoat": true
+    "tris": 2116,
+    "zero_area_tris": 0
    },
+   "HALO_Mender_Band_Medium": {
+    "prims": [
+     "M_HALO_Graphite",
+     "M_HALO_Glass_T1",
+     "M_HALO_Edge"
+    ],
+    "tris": 1024,
+    "zero_area_tris": 0
+   },
+   "HALO_PowerCell_Mender": {
+    "prims": [
+     "M_HALO_Glass_T1",
+     "M_HALO_Graphite"
+    ],
+    "tris": 216,
+    "zero_area_tris": 0
+   },
+   "HALO_Mender_Far_Frame_Heavy": {
+    "prims": [
+     "M_HALO_Graphite_Far",
+     "M_HALO_Edge",
+     "M_HALO_Glass_T1"
+    ],
+    "tris": 740,
+    "zero_area_tris": 0
+   },
+   "HALO_Mender_Far_Frame_Light": {
+    "prims": [
+     "M_HALO_Graphite_Far",
+     "M_HALO_Edge"
+    ],
+    "tris": 344,
+    "zero_area_tris": 0
+   },
+   "HALO_Mender_Far_Frame_Medium": {
+    "prims": [
+     "M_HALO_Graphite_Far",
+     "M_HALO_Edge",
+     "M_HALO_Glass_T1"
+    ],
+    "tris": 668,
+    "zero_area_tris": 0
+   },
+   "HALO_Mender_Far_Glass_Arms": {
+    "prims": [
+     "M_HALO_Glass_T1"
+    ],
+    "tris": 88,
+    "zero_area_tris": 0
+   },
+   "HALO_Mender_Far_Glass_Head": {
+    "prims": [
+     "M_HALO_Glass_T1"
+    ],
+    "tris": 88,
+    "zero_area_tris": 0
+   },
+   "HALO_Mender_Far_Glass_Legs": {
+    "prims": [
+     "M_HALO_Glass_T1"
+    ],
+    "tris": 88,
+    "zero_area_tris": 0
+   },
+   "HALO_Mender_Far_Glass_Torso": {
+    "prims": [
+     "M_HALO_Glass_T1"
+    ],
+    "tris": 88,
+    "zero_area_tris": 0
+   },
+   "HALO_Mender_Frame_Heavy": {
+    "prims": [
+     "M_HALO_Graphite",
+     "M_HALO_Edge",
+     "M_HALO_Gunmetal",
+     "M_HALO_Glass_T1"
+    ],
+    "tris": 3036,
+    "zero_area_tris": 0
+   },
+   "HALO_Mender_Frame_Light": {
+    "prims": [
+     "M_HALO_Graphite",
+     "M_HALO_Edge"
+    ],
+    "tris": 920,
+    "zero_area_tris": 0
+   },
+   "HALO_Mender_Frame_Medium": {
+    "prims": [
+     "M_HALO_Graphite",
+     "M_HALO_Edge",
+     "M_HALO_Glass_T1"
+    ],
+    "tris": 1944,
+    "zero_area_tris": 0
+   },
+   "HALO_Mender_Arc_Arms": {
+    "prims": [
+     "M_HALO_Glass_T1"
+    ],
+    "tris": 664,
+    "zero_area_tris": 0
+   },
+   "HALO_Mender_Arc_Head": {
+    "prims": [
+     "M_HALO_Glass_T1"
+    ],
+    "tris": 720,
+    "zero_area_tris": 0
+   },
+   "HALO_Mender_Arc_Legs": {
+    "prims": [
+     "M_HALO_Glass_T1"
+    ],
+    "tris": 664,
+    "zero_area_tris": 0
+   },
+   "HALO_Mender_Arc_Torso": {
+    "prims": [
+     "M_HALO_Glass_T1"
+    ],
+    "tris": 668,
+    "zero_area_tris": 0
+   }
+  },
+  "material_info": {
    "M_HALO_Graphite": {
     "doubleSided": false,
     "alphaMode": "OPAQUE",
+    "roughness": 0.55,
+    "metallic": 0.15,
     "emissiveFactor": [
      0,
      0,
@@ -440,29 +985,13 @@
      0.04,
      1
     ],
-    "clearcoat": false
-   },
-   "M_HALO_Edge": {
-    "doubleSided": false,
-    "alphaMode": "OPAQUE",
-    "emissiveFactor": [
-     0.168,
-     0.198,
-     0.24
-    ],
-    "emissive_strength": null,
-    "emissiveTexture": false,
-    "baseColorFactor": [
-     0.04,
-     0.045,
-     0.05,
-     1
-    ],
-    "clearcoat": false
+    "clearcoat": null
    },
    "M_HALO_Gunmetal": {
     "doubleSided": false,
     "alphaMode": "OPAQUE",
+    "roughness": 0.35,
+    "metallic": 0.85,
     "emissiveFactor": [
      0,
      0,
@@ -476,44 +1005,258 @@
      0.12,
      1
     ],
-    "clearcoat": false
+    "clearcoat": null
+   },
+   "M_HALO_Glass_T1": {
+    "doubleSided": false,
+    "alphaMode": "OPAQUE",
+    "roughness": 0.25,
+    "metallic": 0,
+    "emissiveFactor": [
+     0.924,
+     0.957,
+     1
+    ],
+    "emissive_strength": 2.20800012779236,
+    "emissiveTexture": false,
+    "baseColorFactor": [
+     0.102,
+     0.106,
+     0.11,
+     1
+    ],
+    "clearcoat": 0.4000000059604645
+   },
+   "M_HALO_Edge": {
+    "doubleSided": false,
+    "alphaMode": "OPAQUE",
+    "roughness": 0.4,
+    "metallic": 0,
+    "emissiveFactor": [
+     0.168,
+     0.198,
+     0.24
+    ],
+    "emissive_strength": null,
+    "emissiveTexture": false,
+    "baseColorFactor": [
+     0.04,
+     0.045,
+     0.05,
+     1
+    ],
+    "clearcoat": null
+   },
+   "M_HALO_Graphite_Far": {
+    "doubleSided": false,
+    "alphaMode": "OPAQUE",
+    "roughness": 0.85,
+    "metallic": 0.05,
+    "emissiveFactor": [
+     0,
+     0,
+     0
+    ],
+    "emissive_strength": null,
+    "emissiveTexture": false,
+    "baseColorFactor": [
+     0.03,
+     0.033,
+     0.04,
+     1
+    ],
+    "clearcoat": null
+   }
+  },
+  "assembled": {
+   "Light": {
+    "near_draws_ring": 6,
+    "near_draws_with_cells": 8,
+    "near_tris_with_cells": 3852,
+    "far_draws_ring": 6,
+    "far_tris_with_cells": 912
+   },
+   "Medium": {
+    "near_draws_ring": 7,
+    "near_draws_with_cells": 11,
+    "near_tris_with_cells": 5092,
+    "far_draws_ring": 7,
+    "far_tris_with_cells": 1452
+   },
+   "Heavy": {
+    "near_draws_ring": 8,
+    "near_draws_with_cells": 14,
+    "near_tris_with_cells": 6400,
+    "far_draws_ring": 7,
+    "far_tris_with_cells": 1740
    }
   }
  },
  "HALO_Phase.glb": {
-  "nodes": 17,
-  "meshes": 13,
+  "nodes": 34,
+  "meshes": 17,
+  "scene_roots": [
+   "HALO_Phase_Bands",
+   "HALO_Phase_Cells",
+   "HALO_Phase_Far",
+   "HALO_Phase_Frames",
+   "HALO_Phase_Near",
+   "HALO_Phase_Pips"
+  ],
   "materials": [
-   "M_HALO_Glass_T1",
    "M_HALO_Graphite",
+   "M_HALO_Gunmetal",
+   "M_HALO_Glass_T1",
    "M_HALO_Edge",
-   "M_HALO_Gunmetal"
+   "M_HALO_Graphite_Far"
   ],
   "images": 0,
-  "bin_bytes": 324700,
+  "bin_bytes": 634052,
   "issues": [],
-  "material_info": {
-   "M_HALO_Glass_T1": {
-    "doubleSided": false,
-    "alphaMode": "OPAQUE",
-    "emissiveFactor": [
-     0.924,
-     0.957,
-     1
+  "mesh_info": {
+   "HALO_Phase_Band_Heavy": {
+    "prims": [
+     "M_HALO_Graphite",
+     "M_HALO_Gunmetal",
+     "M_HALO_Glass_T1",
+     "M_HALO_Edge"
     ],
-    "emissive_strength": 2.20800012779236,
-    "emissiveTexture": false,
-    "baseColorFactor": [
-     0.102,
-     0.106,
-     0.11,
-     1
-    ],
-    "clearcoat": true
+    "tris": 1938,
+    "zero_area_tris": 0
    },
+   "HALO_Phase_Band_Medium": {
+    "prims": [
+     "M_HALO_Graphite",
+     "M_HALO_Glass_T1",
+     "M_HALO_Edge"
+    ],
+    "tris": 960,
+    "zero_area_tris": 0
+   },
+   "HALO_PowerCell_Phase": {
+    "prims": [
+     "M_HALO_Glass_T1",
+     "M_HALO_Graphite"
+    ],
+    "tris": 212,
+    "zero_area_tris": 0
+   },
+   "HALO_Phase_Far_Frame_Heavy": {
+    "prims": [
+     "M_HALO_Graphite_Far",
+     "M_HALO_Edge",
+     "M_HALO_Glass_T1"
+    ],
+    "tris": 840,
+    "zero_area_tris": 0
+   },
+   "HALO_Phase_Far_Frame_Light": {
+    "prims": [
+     "M_HALO_Graphite_Far",
+     "M_HALO_Edge"
+    ],
+    "tris": 452,
+    "zero_area_tris": 0
+   },
+   "HALO_Phase_Far_Frame_Medium": {
+    "prims": [
+     "M_HALO_Graphite_Far",
+     "M_HALO_Edge",
+     "M_HALO_Glass_T1"
+    ],
+    "tris": 768,
+    "zero_area_tris": 0
+   },
+   "HALO_Phase_Far_Glass_Arms": {
+    "prims": [
+     "M_HALO_Glass_T1"
+    ],
+    "tris": 68,
+    "zero_area_tris": 0
+   },
+   "HALO_Phase_Far_Glass_Head": {
+    "prims": [
+     "M_HALO_Glass_T1"
+    ],
+    "tris": 68,
+    "zero_area_tris": 0
+   },
+   "HALO_Phase_Far_Glass_Legs": {
+    "prims": [
+     "M_HALO_Glass_T1"
+    ],
+    "tris": 68,
+    "zero_area_tris": 0
+   },
+   "HALO_Phase_Far_Glass_Torso": {
+    "prims": [
+     "M_HALO_Glass_T1"
+    ],
+    "tris": 104,
+    "zero_area_tris": 0
+   },
+   "HALO_Phase_Frame_Heavy": {
+    "prims": [
+     "M_HALO_Graphite",
+     "M_HALO_Edge",
+     "M_HALO_Gunmetal",
+     "M_HALO_Glass_T1"
+    ],
+    "tris": 3384,
+    "zero_area_tris": 0
+   },
+   "HALO_Phase_Frame_Light": {
+    "prims": [
+     "M_HALO_Graphite",
+     "M_HALO_Edge"
+    ],
+    "tris": 1446,
+    "zero_area_tris": 0
+   },
+   "HALO_Phase_Frame_Medium": {
+    "prims": [
+     "M_HALO_Graphite",
+     "M_HALO_Edge",
+     "M_HALO_Glass_T1"
+    ],
+    "tris": 2406,
+    "zero_area_tris": 0
+   },
+   "HALO_Phase_Arc_Arms": {
+    "prims": [
+     "M_HALO_Glass_T1"
+    ],
+    "tris": 414,
+    "zero_area_tris": 0
+   },
+   "HALO_Phase_Arc_Head": {
+    "prims": [
+     "M_HALO_Glass_T1"
+    ],
+    "tris": 470,
+    "zero_area_tris": 0
+   },
+   "HALO_Phase_Arc_Legs": {
+    "prims": [
+     "M_HALO_Glass_T1"
+    ],
+    "tris": 414,
+    "zero_area_tris": 0
+   },
+   "HALO_Phase_Arc_Torso": {
+    "prims": [
+     "M_HALO_Glass_T1"
+    ],
+    "tris": 372,
+    "zero_area_tris": 0
+   }
+  },
+  "material_info": {
    "M_HALO_Graphite": {
     "doubleSided": false,
     "alphaMode": "OPAQUE",
+    "roughness": 0.55,
+    "metallic": 0.15,
     "emissiveFactor": [
      0,
      0,
@@ -527,29 +1270,13 @@
      0.04,
      1
     ],
-    "clearcoat": false
-   },
-   "M_HALO_Edge": {
-    "doubleSided": false,
-    "alphaMode": "OPAQUE",
-    "emissiveFactor": [
-     0.168,
-     0.198,
-     0.24
-    ],
-    "emissive_strength": null,
-    "emissiveTexture": false,
-    "baseColorFactor": [
-     0.04,
-     0.045,
-     0.05,
-     1
-    ],
-    "clearcoat": false
+    "clearcoat": null
    },
    "M_HALO_Gunmetal": {
     "doubleSided": false,
     "alphaMode": "OPAQUE",
+    "roughness": 0.35,
+    "metallic": 0.85,
     "emissiveFactor": [
      0,
      0,
@@ -563,13 +1290,102 @@
      0.12,
      1
     ],
-    "clearcoat": false
+    "clearcoat": null
+   },
+   "M_HALO_Glass_T1": {
+    "doubleSided": false,
+    "alphaMode": "OPAQUE",
+    "roughness": 0.25,
+    "metallic": 0,
+    "emissiveFactor": [
+     0.924,
+     0.957,
+     1
+    ],
+    "emissive_strength": 2.20800012779236,
+    "emissiveTexture": false,
+    "baseColorFactor": [
+     0.102,
+     0.106,
+     0.11,
+     1
+    ],
+    "clearcoat": 0.4000000059604645
+   },
+   "M_HALO_Edge": {
+    "doubleSided": false,
+    "alphaMode": "OPAQUE",
+    "roughness": 0.4,
+    "metallic": 0,
+    "emissiveFactor": [
+     0.168,
+     0.198,
+     0.24
+    ],
+    "emissive_strength": null,
+    "emissiveTexture": false,
+    "baseColorFactor": [
+     0.04,
+     0.045,
+     0.05,
+     1
+    ],
+    "clearcoat": null
+   },
+   "M_HALO_Graphite_Far": {
+    "doubleSided": false,
+    "alphaMode": "OPAQUE",
+    "roughness": 0.85,
+    "metallic": 0.05,
+    "emissiveFactor": [
+     0,
+     0,
+     0
+    ],
+    "emissive_strength": null,
+    "emissiveTexture": false,
+    "baseColorFactor": [
+     0.03,
+     0.033,
+     0.04,
+     1
+    ],
+    "clearcoat": null
+   }
+  },
+  "assembled": {
+   "Light": {
+    "near_draws_ring": 6,
+    "near_draws_with_cells": 8,
+    "near_tris_with_cells": 3328,
+    "far_draws_ring": 6,
+    "far_tris_with_cells": 972
+   },
+   "Medium": {
+    "near_draws_ring": 7,
+    "near_draws_with_cells": 11,
+    "near_tris_with_cells": 4500,
+    "far_draws_ring": 7,
+    "far_tris_with_cells": 1500
+   },
+   "Heavy": {
+    "near_draws_ring": 8,
+    "near_draws_with_cells": 14,
+    "near_tris_with_cells": 5690,
+    "far_draws_ring": 7,
+    "far_tris_with_cells": 1784
    }
   }
  },
  "HALO_Pickups.glb": {
   "nodes": 4,
   "meshes": 4,
+  "scene_roots": [
+   "HALO_Core_Bulwark",
+   "HALO_Core_Mender",
+   "HALO_Core_Phase",
+   "HALO_Core_Volt"
+  ],
   "materials": [
    "M_HALO_Glass_T1",
    "M_HALO_Graphite",
@@ -578,10 +1394,50 @@
   "images": 0,
   "bin_bytes": 176008,
   "issues": [],
+  "mesh_info": {
+   "HALO_Core_Bulwark": {
+    "prims": [
+     "M_HALO_Glass_T1",
+     "M_HALO_Graphite",
+     "M_HALO_Bone"
+    ],
+    "tris": 612,
+    "zero_area_tris": 0
+   },
+   "HALO_Core_Mender": {
+    "prims": [
+     "M_HALO_Glass_T1",
+     "M_HALO_Graphite",
+     "M_HALO_Bone"
+    ],
+    "tris": 944,
+    "zero_area_tris": 0
+   },
+   "HALO_Core_Phase": {
+    "prims": [
+     "M_HALO_Glass_T1",
+     "M_HALO_Graphite",
+     "M_HALO_Bone"
+    ],
+    "tris": 1036,
+    "zero_area_tris": 0
+   },
+   "HALO_Core_Volt": {
+    "prims": [
+     "M_HALO_Glass_T1",
+     "M_HALO_Graphite",
+     "M_HALO_Bone"
+    ],
+    "tris": 972,
+    "zero_area_tris": 0
+   }
+  },
   "material_info": {
    "M_HALO_Glass_T1": {
     "doubleSided": false,
     "alphaMode": "OPAQUE",
+    "roughness": 0.25,
+    "metallic": 0,
     "emissiveFactor": [
      0.924,
      0.957,
@@ -595,11 +1451,13 @@
      0.11,
      1
     ],
-    "clearcoat": true
+    "clearcoat": 0.4000000059604645
    },
    "M_HALO_Graphite": {
     "doubleSided": false,
     "alphaMode": "OPAQUE",
+    "roughness": 0.55,
+    "metallic": 0.15,
     "emissiveFactor": [
      0,
      0,
@@ -613,11 +1471,13 @@
      0.04,
      1
     ],
-    "clearcoat": false
+    "clearcoat": null
    },
    "M_HALO_Bone": {
     "doubleSided": false,
     "alphaMode": "OPAQUE",
+    "roughness": 0.6,
+    "metallic": 0,
     "emissiveFactor": [
      0,
      0,
@@ -631,44 +1491,175 @@
      0.46,
      1
     ],
-    "clearcoat": false
+    "clearcoat": null
    }
   }
  },
  "HALO_Volt.glb": {
-  "nodes": 17,
-  "meshes": 13,
+  "nodes": 34,
+  "meshes": 17,
+  "scene_roots": [
+   "HALO_Volt_Bands",
+   "HALO_Volt_Cells",
+   "HALO_Volt_Far",
+   "HALO_Volt_Frames",
+   "HALO_Volt_Near",
+   "HALO_Volt_Pips"
+  ],
   "materials": [
-   "M_HALO_Glass_T1",
    "M_HALO_Graphite",
+   "M_HALO_Gunmetal",
+   "M_HALO_Glass_T1",
    "M_HALO_Edge",
-   "M_HALO_Gunmetal"
+   "M_HALO_Graphite_Far"
   ],
   "images": 0,
-  "bin_bytes": 422472,
+  "bin_bytes": 965296,
   "issues": [],
-  "material_info": {
-   "M_HALO_Glass_T1": {
-    "doubleSided": false,
-    "alphaMode": "OPAQUE",
-    "emissiveFactor": [
-     0.924,
-     0.957,
-     1
+  "mesh_info": {
+   "HALO_Volt_Band_Heavy": {
+    "prims": [
+     "M_HALO_Graphite",
+     "M_HALO_Gunmetal",
+     "M_HALO_Glass_T1",
+     "M_HALO_Edge"
     ],
-    "emissive_strength": 2.20800012779236,
-    "emissiveTexture": false,
-    "baseColorFactor": [
-     0.102,
-     0.106,
-     0.11,
-     1
-    ],
-    "clearcoat": true
+    "tris": 2116,
+    "zero_area_tris": 0
    },
+   "HALO_Volt_Band_Medium": {
+    "prims": [
+     "M_HALO_Graphite",
+     "M_HALO_Glass_T1",
+     "M_HALO_Edge"
+    ],
+    "tris": 1024,
+    "zero_area_tris": 0
+   },
+   "HALO_PowerCell_Volt": {
+    "prims": [
+     "M_HALO_Glass_T1",
+     "M_HALO_Graphite"
+    ],
+    "tris": 240,
+    "zero_area_tris": 0
+   },
+   "HALO_Volt_Far_Frame_Heavy": {
+    "prims": [
+     "M_HALO_Graphite_Far",
+     "M_HALO_Edge",
+     "M_HALO_Glass_T1"
+    ],
+    "tris": 1064,
+    "zero_area_tris": 0
+   },
+   "HALO_Volt_Far_Frame_Light": {
+    "prims": [
+     "M_HALO_Graphite_Far",
+     "M_HALO_Edge"
+    ],
+    "tris": 668,
+    "zero_area_tris": 0
+   },
+   "HALO_Volt_Far_Frame_Medium": {
+    "prims": [
+     "M_HALO_Graphite_Far",
+     "M_HALO_Edge",
+     "M_HALO_Glass_T1"
+    ],
+    "tris": 992,
+    "zero_area_tris": 0
+   },
+   "HALO_Volt_Far_Glass_Arms": {
+    "prims": [
+     "M_HALO_Glass_T1"
+    ],
+    "tris": 92,
+    "zero_area_tris": 0
+   },
+   "HALO_Volt_Far_Glass_Head": {
+    "prims": [
+     "M_HALO_Glass_T1"
+    ],
+    "tris": 92,
+    "zero_area_tris": 0
+   },
+   "HALO_Volt_Far_Glass_Legs": {
+    "prims": [
+     "M_HALO_Glass_T1"
+    ],
+    "tris": 92,
+    "zero_area_tris": 0
+   },
+   "HALO_Volt_Far_Glass_Torso": {
+    "prims": [
+     "M_HALO_Glass_T1"
+    ],
+    "tris": 92,
+    "zero_area_tris": 0
+   },
+   "HALO_Volt_Frame_Heavy": {
+    "prims": [
+     "M_HALO_Graphite",
+     "M_HALO_Edge",
+     "M_HALO_Gunmetal",
+     "M_HALO_Glass_T1"
+    ],
+    "tris": 5408,
+    "zero_area_tris": 0
+   },
+   "HALO_Volt_Frame_Light": {
+    "prims": [
+     "M_HALO_Graphite",
+     "M_HALO_Edge"
+    ],
+    "tris": 3292,
+    "zero_area_tris": 0
+   },
+   "HALO_Volt_Frame_Medium": {
+    "prims": [
+     "M_HALO_Graphite",
+     "M_HALO_Edge",
+     "M_HALO_Glass_T1"
+    ],
+    "tris": 4316,
+    "zero_area_tris": 0
+   },
+   "HALO_Volt_Arc_Arms": {
+    "prims": [
+     "M_HALO_Glass_T1"
+    ],
+    "tris": 266,
+    "zero_area_tris": 0
+   },
+   "HALO_Volt_Arc_Head": {
+    "prims": [
+     "M_HALO_Glass_T1"
+    ],
+    "tris": 322,
+    "zero_area_tris": 0
+   },
+   "HALO_Volt_Arc_Legs": {
+    "prims": [
+     "M_HALO_Glass_T1"
+    ],
+    "tris": 266,
+    "zero_area_tris": 0
+   },
+   "HALO_Volt_Arc_Torso": {
+    "prims": [
+     "M_HALO_Glass_T1"
+    ],
+    "tris": 270,
+    "zero_area_tris": 0
+   }
+  },
+  "material_info": {
    "M_HALO_Graphite": {
     "doubleSided": false,
     "alphaMode": "OPAQUE",
+    "roughness": 0.55,
+    "metallic": 0.15,
     "emissiveFactor": [
      0,
      0,
@@ -682,29 +1673,13 @@
      0.04,
      1
     ],
-    "clearcoat": false
-   },
-   "M_HALO_Edge": {
-    "doubleSided": false,
-    "alphaMode": "OPAQUE",
-    "emissiveFactor": [
-     0.168,
-     0.198,
-     0.24
-    ],
-    "emissive_strength": null,
-    "emissiveTexture": false,
-    "baseColorFactor": [
-     0.04,
-     0.045,
-     0.05,
-     1
-    ],
-    "clearcoat": false
+    "clearcoat": null
    },
    "M_HALO_Gunmetal": {
     "doubleSided": false,
     "alphaMode": "OPAQUE",
+    "roughness": 0.35,
+    "metallic": 0.85,
     "emissiveFactor": [
      0,
      0,
@@ -718,18 +1693,155 @@
      0.12,
      1
     ],
-    "clearcoat": false
+    "clearcoat": null
+   },
+   "M_HALO_Glass_T1": {
+    "doubleSided": false,
+    "alphaMode": "OPAQUE",
+    "roughness": 0.25,
+    "metallic": 0,
+    "emissiveFactor": [
+     0.924,
+     0.957,
+     1
+    ],
+    "emissive_strength": 2.20800012779236,
+    "emissiveTexture": false,
+    "baseColorFactor": [
+     0.102,
+     0.106,
+     0.11,
+     1
+    ],
+    "clearcoat": 0.4000000059604645
+   },
+   "M_HALO_Edge": {
+    "doubleSided": false,
+    "alphaMode": "OPAQUE",
+    "roughness": 0.4,
+    "metallic": 0,
+    "emissiveFactor": [
+     0.168,
+     0.198,
+     0.24
+    ],
+    "emissive_strength": null,
+    "emissiveTexture": false,
+    "baseColorFactor": [
+     0.04,
+     0.045,
+     0.05,
+     1
+    ],
+    "clearcoat": null
+   },
+   "M_HALO_Graphite_Far": {
+    "doubleSided": false,
+    "alphaMode": "OPAQUE",
+    "roughness": 0.85,
+    "metallic": 0.05,
+    "emissiveFactor": [
+     0,
+     0,
+     0
+    ],
+    "emissive_strength": null,
+    "emissiveTexture": false,
+    "baseColorFactor": [
+     0.03,
+     0.033,
+     0.04,
+     1
+    ],
+    "clearcoat": null
+   }
+  },
+  "assembled": {
+   "Light": {
+    "near_draws_ring": 6,
+    "near_draws_with_cells": 8,
+    "near_tris_with_cells": 4656,
+    "far_draws_ring": 6,
+    "far_tris_with_cells": 1276
+   },
+   "Medium": {
+    "near_draws_ring": 7,
+    "near_draws_with_cells": 11,
+    "near_tris_with_cells": 5920,
+    "far_draws_ring": 7,
+    "far_tris_with_cells": 1840
+   },
+   "Heavy": {
+    "near_draws_ring": 8,
+    "near_draws_with_cells": 14,
+    "near_tris_with_cells": 7252,
+    "far_draws_ring": 7,
+    "far_tris_with_cells": 2152
    }
   }
  },
  "../halo_kit.glb": {
-  "nodes": 94,
-  "meshes": 74,
+  "nodes": 163,
+  "meshes": 91,
+  "scene_roots": [
+   "HALO_Bulwark_Bands",
+   "HALO_Bulwark_Cells",
+   "HALO_Bulwark_Far",
+   "HALO_Bulwark_Frames",
+   "HALO_Bulwark_Near",
+   "HALO_Bulwark_Pips",
+   "HALO_Core_Bulwark",
+   "HALO_Core_Mender",
+   "HALO_Core_Phase",
+   "HALO_Core_Volt",
+   "HALO_Mender_Bands",
+   "HALO_Mender_Cells",
+   "HALO_Mender_Far",
+   "HALO_Mender_Frames",
+   "HALO_Mender_Near",
+   "HALO_Mender_Pips",
+   "HALO_Phase_Bands",
+   "HALO_Phase_Cells",
+   "HALO_Phase_Far",
+   "HALO_Phase_Frames",
+   "HALO_Phase_Near",
+   "HALO_Phase_Pips",
+   "HALO_PIP_1",
+   "HALO_PIP_2",
+   "HALO_PIP_3",
+   "HALO_PIP_4",
+   "HALO_PowerCell",
+   "HALO_Shard_A",
+   "HALO_Shard_B",
+   "HALO_Shard_C",
+   "HALO_Swatch_Bone",
+   "HALO_Swatch_Edge",
+   "HALO_Swatch_Glass_Broken_T1",
+   "HALO_Swatch_Glass_Broken_T2",
+   "HALO_Swatch_Glass_Broken_T3",
+   "HALO_Swatch_Glass_Broken_T4",
+   "HALO_Swatch_Glass_Off",
+   "HALO_Swatch_Glass_T1",
+   "HALO_Swatch_Glass_T2",
+   "HALO_Swatch_Glass_T3",
+   "HALO_Swatch_Glass_T4",
+   "HALO_Swatch_Graphite",
+   "HALO_Swatch_Graphite_Far",
+   "HALO_Swatch_Gunmetal",
+   "HALO_TierPip",
+   "HALO_Volt_Bands",
+   "HALO_Volt_Cells",
+   "HALO_Volt_Far",
+   "HALO_Volt_Frames",
+   "HALO_Volt_Near",
+   "HALO_Volt_Pips"
+  ],
   "materials": [
-   "M_HALO_Glass_T1",
    "M_HALO_Graphite",
-   "M_HALO_Edge",
    "M_HALO_Gunmetal",
+   "M_HALO_Glass_T1",
+   "M_HALO_Edge",
+   "M_HALO_Graphite_Far",
    "M_HALO_Bone",
    "M_HALO_Glass_Broken_T1",
    "M_HALO_Glass_Broken_T2",
@@ -741,30 +1853,730 @@
    "M_HALO_Glass_T4"
   ],
   "images": 1,
-  "bin_bytes": 1715052,
+  "bin_bytes": 3228244,
   "issues": [],
-  "material_info": {
-   "M_HALO_Glass_T1": {
-    "doubleSided": false,
-    "alphaMode": "OPAQUE",
-    "emissiveFactor": [
-     0.924,
-     0.957,
-     1
+  "mesh_info": {
+   "HALO_Bulwark_Band_Heavy": {
+    "prims": [
+     "M_HALO_Graphite",
+     "M_HALO_Gunmetal",
+     "M_HALO_Glass_T1",
+     "M_HALO_Edge"
     ],
-    "emissive_strength": 2.20800012779236,
-    "emissiveTexture": false,
-    "baseColorFactor": [
-     0.102,
-     0.106,
-     0.11,
-     1
-    ],
-    "clearcoat": true
+    "tris": 1380,
+    "zero_area_tris": 0
    },
+   "HALO_Bulwark_Band_Medium": {
+    "prims": [
+     "M_HALO_Graphite",
+     "M_HALO_Glass_T1",
+     "M_HALO_Edge"
+    ],
+    "tris": 544,
+    "zero_area_tris": 0
+   },
+   "HALO_PowerCell_Bulwark": {
+    "prims": [
+     "M_HALO_Glass_T1",
+     "M_HALO_Graphite"
+    ],
+    "tris": 120,
+    "zero_area_tris": 0
+   },
+   "HALO_Bulwark_Far_Frame_Heavy": {
+    "prims": [
+     "M_HALO_Graphite_Far",
+     "M_HALO_Edge",
+     "M_HALO_Glass_T1"
+    ],
+    "tris": 600,
+    "zero_area_tris": 0
+   },
+   "HALO_Bulwark_Far_Frame_Light": {
+    "prims": [
+     "M_HALO_Graphite_Far",
+     "M_HALO_Edge"
+    ],
+    "tris": 468,
+    "zero_area_tris": 0
+   },
+   "HALO_Bulwark_Far_Frame_Medium": {
+    "prims": [
+     "M_HALO_Graphite_Far",
+     "M_HALO_Edge",
+     "M_HALO_Glass_T1"
+    ],
+    "tris": 576,
+    "zero_area_tris": 0
+   },
+   "HALO_Bulwark_Far_Glass_Arms": {
+    "prims": [
+     "M_HALO_Glass_T1"
+    ],
+    "tris": 44,
+    "zero_area_tris": 0
+   },
+   "HALO_Bulwark_Far_Glass_Head": {
+    "prims": [
+     "M_HALO_Glass_T1"
+    ],
+    "tris": 60,
+    "zero_area_tris": 0
+   },
+   "HALO_Bulwark_Far_Glass_Legs": {
+    "prims": [
+     "M_HALO_Glass_T1"
+    ],
+    "tris": 44,
+    "zero_area_tris": 0
+   },
+   "HALO_Bulwark_Far_Glass_Torso": {
+    "prims": [
+     "M_HALO_Glass_T1"
+    ],
+    "tris": 60,
+    "zero_area_tris": 0
+   },
+   "HALO_Bulwark_Frame_Heavy": {
+    "prims": [
+     "M_HALO_Graphite",
+     "M_HALO_Edge",
+     "M_HALO_Gunmetal",
+     "M_HALO_Glass_T1"
+    ],
+    "tris": 3672,
+    "zero_area_tris": 0
+   },
+   "HALO_Bulwark_Frame_Light": {
+    "prims": [
+     "M_HALO_Graphite",
+     "M_HALO_Edge"
+    ],
+    "tris": 2292,
+    "zero_area_tris": 0
+   },
+   "HALO_Bulwark_Frame_Medium": {
+    "prims": [
+     "M_HALO_Graphite",
+     "M_HALO_Edge",
+     "M_HALO_Glass_T1"
+    ],
+    "tris": 2836,
+    "zero_area_tris": 0
+   },
+   "HALO_Bulwark_Arc_Arms": {
+    "prims": [
+     "M_HALO_Glass_T1"
+    ],
+    "tris": 108,
+    "zero_area_tris": 0
+   },
+   "HALO_Bulwark_Arc_Head": {
+    "prims": [
+     "M_HALO_Glass_T1"
+    ],
+    "tris": 192,
+    "zero_area_tris": 0
+   },
+   "HALO_Bulwark_Arc_Legs": {
+    "prims": [
+     "M_HALO_Glass_T1"
+    ],
+    "tris": 108,
+    "zero_area_tris": 0
+   },
+   "HALO_Bulwark_Arc_Torso": {
+    "prims": [
+     "M_HALO_Glass_T1"
+    ],
+    "tris": 140,
+    "zero_area_tris": 0
+   },
+   "HALO_Core_Bulwark": {
+    "prims": [
+     "M_HALO_Glass_T1",
+     "M_HALO_Graphite",
+     "M_HALO_Bone"
+    ],
+    "tris": 612,
+    "zero_area_tris": 0
+   },
+   "HALO_Core_Mender": {
+    "prims": [
+     "M_HALO_Glass_T1",
+     "M_HALO_Graphite",
+     "M_HALO_Bone"
+    ],
+    "tris": 944,
+    "zero_area_tris": 0
+   },
+   "HALO_Core_Phase": {
+    "prims": [
+     "M_HALO_Glass_T1",
+     "M_HALO_Graphite",
+     "M_HALO_Bone"
+    ],
+    "tris": 1036,
+    "zero_area_tris": 0
+   },
+   "HALO_Core_Volt": {
+    "prims": [
+     "M_HALO_Glass_T1",
+     "M_HALO_Graphite",
+     "M_HALO_Bone"
+    ],
+    "tris": 972,
+    "zero_area_tris": 0
+   },
+   "HALO_Mender_Band_Heavy": {
+    "prims": [
+     "M_HALO_Graphite",
+     "M_HALO_Gunmetal",
+     "M_HALO_Glass_T1",
+     "M_HALO_Edge"
+    ],
+    "tris": 2116,
+    "zero_area_tris": 0
+   },
+   "HALO_Mender_Band_Medium": {
+    "prims": [
+     "M_HALO_Graphite",
+     "M_HALO_Glass_T1",
+     "M_HALO_Edge"
+    ],
+    "tris": 1024,
+    "zero_area_tris": 0
+   },
+   "HALO_PowerCell_Mender": {
+    "prims": [
+     "M_HALO_Glass_T1",
+     "M_HALO_Graphite"
+    ],
+    "tris": 216,
+    "zero_area_tris": 0
+   },
+   "HALO_Mender_Far_Frame_Heavy": {
+    "prims": [
+     "M_HALO_Graphite_Far",
+     "M_HALO_Edge",
+     "M_HALO_Glass_T1"
+    ],
+    "tris": 740,
+    "zero_area_tris": 0
+   },
+   "HALO_Mender_Far_Frame_Light": {
+    "prims": [
+     "M_HALO_Graphite_Far",
+     "M_HALO_Edge"
+    ],
+    "tris": 344,
+    "zero_area_tris": 0
+   },
+   "HALO_Mender_Far_Frame_Medium": {
+    "prims": [
+     "M_HALO_Graphite_Far",
+     "M_HALO_Edge",
+     "M_HALO_Glass_T1"
+    ],
+    "tris": 668,
+    "zero_area_tris": 0
+   },
+   "HALO_Mender_Far_Glass_Arms": {
+    "prims": [
+     "M_HALO_Glass_T1"
+    ],
+    "tris": 88,
+    "zero_area_tris": 0
+   },
+   "HALO_Mender_Far_Glass_Head": {
+    "prims": [
+     "M_HALO_Glass_T1"
+    ],
+    "tris": 88,
+    "zero_area_tris": 0
+   },
+   "HALO_Mender_Far_Glass_Legs": {
+    "prims": [
+     "M_HALO_Glass_T1"
+    ],
+    "tris": 88,
+    "zero_area_tris": 0
+   },
+   "HALO_Mender_Far_Glass_Torso": {
+    "prims": [
+     "M_HALO_Glass_T1"
+    ],
+    "tris": 88,
+    "zero_area_tris": 0
+   },
+   "HALO_Mender_Frame_Heavy": {
+    "prims": [
+     "M_HALO_Graphite",
+     "M_HALO_Edge",
+     "M_HALO_Gunmetal",
+     "M_HALO_Glass_T1"
+    ],
+    "tris": 3036,
+    "zero_area_tris": 0
+   },
+   "HALO_Mender_Frame_Light": {
+    "prims": [
+     "M_HALO_Graphite",
+     "M_HALO_Edge"
+    ],
+    "tris": 920,
+    "zero_area_tris": 0
+   },
+   "HALO_Mender_Frame_Medium": {
+    "prims": [
+     "M_HALO_Graphite",
+     "M_HALO_Edge",
+     "M_HALO_Glass_T1"
+    ],
+    "tris": 1944,
+    "zero_area_tris": 0
+   },
+   "HALO_Mender_Arc_Arms": {
+    "prims": [
+     "M_HALO_Glass_T1"
+    ],
+    "tris": 664,
+    "zero_area_tris": 0
+   },
+   "HALO_Mender_Arc_Head": {
+    "prims": [
+     "M_HALO_Glass_T1"
+    ],
+    "tris": 720,
+    "zero_area_tris": 0
+   },
+   "HALO_Mender_Arc_Legs": {
+    "prims": [
+     "M_HALO_Glass_T1"
+    ],
+    "tris": 664,
+    "zero_area_tris": 0
+   },
+   "HALO_Mender_Arc_Torso": {
+    "prims": [
+     "M_HALO_Glass_T1"
+    ],
+    "tris": 668,
+    "zero_area_tris": 0
+   },
+   "HALO_Phase_Band_Heavy": {
+    "prims": [
+     "M_HALO_Graphite",
+     "M_HALO_Gunmetal",
+     "M_HALO_Glass_T1",
+     "M_HALO_Edge"
+    ],
+    "tris": 1938,
+    "zero_area_tris": 0
+   },
+   "HALO_Phase_Band_Medium": {
+    "prims": [
+     "M_HALO_Graphite",
+     "M_HALO_Glass_T1",
+     "M_HALO_Edge"
+    ],
+    "tris": 960,
+    "zero_area_tris": 0
+   },
+   "HALO_PowerCell_Phase": {
+    "prims": [
+     "M_HALO_Glass_T1",
+     "M_HALO_Graphite"
+    ],
+    "tris": 212,
+    "zero_area_tris": 0
+   },
+   "HALO_Phase_Far_Frame_Heavy": {
+    "prims": [
+     "M_HALO_Graphite_Far",
+     "M_HALO_Edge",
+     "M_HALO_Glass_T1"
+    ],
+    "tris": 840,
+    "zero_area_tris": 0
+   },
+   "HALO_Phase_Far_Frame_Light": {
+    "prims": [
+     "M_HALO_Graphite_Far",
+     "M_HALO_Edge"
+    ],
+    "tris": 452,
+    "zero_area_tris": 0
+   },
+   "HALO_Phase_Far_Frame_Medium": {
+    "prims": [
+     "M_HALO_Graphite_Far",
+     "M_HALO_Edge",
+     "M_HALO_Glass_T1"
+    ],
+    "tris": 768,
+    "zero_area_tris": 0
+   },
+   "HALO_Phase_Far_Glass_Arms": {
+    "prims": [
+     "M_HALO_Glass_T1"
+    ],
+    "tris": 68,
+    "zero_area_tris": 0
+   },
+   "HALO_Phase_Far_Glass_Head": {
+    "prims": [
+     "M_HALO_Glass_T1"
+    ],
+    "tris": 68,
+    "zero_area_tris": 0
+   },
+   "HALO_Phase_Far_Glass_Legs": {
+    "prims": [
+     "M_HALO_Glass_T1"
+    ],
+    "tris": 68,
+    "zero_area_tris": 0
+   },
+   "HALO_Phase_Far_Glass_Torso": {
+    "prims": [
+     "M_HALO_Glass_T1"
+    ],
+    "tris": 104,
+    "zero_area_tris": 0
+   },
+   "HALO_Phase_Frame_Heavy": {
+    "prims": [
+     "M_HALO_Graphite",
+     "M_HALO_Edge",
+     "M_HALO_Gunmetal",
+     "M_HALO_Glass_T1"
+    ],
+    "tris": 3384,
+    "zero_area_tris": 0
+   },
+   "HALO_Phase_Frame_Light": {
+    "prims": [
+     "M_HALO_Graphite",
+     "M_HALO_Edge"
+    ],
+    "tris": 1446,
+    "zero_area_tris": 0
+   },
+   "HALO_Phase_Frame_Medium": {
+    "prims": [
+     "M_HALO_Graphite",
+     "M_HALO_Edge",
+     "M_HALO_Glass_T1"
+    ],
+    "tris": 2406,
+    "zero_area_tris": 0
+   },
+   "HALO_Phase_Arc_Arms": {
+    "prims": [
+     "M_HALO_Glass_T1"
+    ],
+    "tris": 414,
+    "zero_area_tris": 0
+   },
+   "HALO_Phase_Arc_Head": {
+    "prims": [
+     "M_HALO_Glass_T1"
+    ],
+    "tris": 470,
+    "zero_area_tris": 0
+   },
+   "HALO_Phase_Arc_Legs": {
+    "prims": [
+     "M_HALO_Glass_T1"
+    ],
+    "tris": 414,
+    "zero_area_tris": 0
+   },
+   "HALO_Phase_Arc_Torso": {
+    "prims": [
+     "M_HALO_Glass_T1"
+    ],
+    "tris": 372,
+    "zero_area_tris": 0
+   },
+   "HALO_PowerCell": {
+    "prims": [
+     "M_HALO_Glass_T1",
+     "M_HALO_Graphite"
+    ],
+    "tris": 120,
+    "zero_area_tris": 0
+   },
+   "HALO_Shard_A": {
+    "prims": [
+     "M_HALO_Glass_T1"
+    ],
+    "tris": 26,
+    "zero_area_tris": 0
+   },
+   "HALO_Shard_B": {
+    "prims": [
+     "M_HALO_Glass_T1"
+    ],
+    "tris": 14,
+    "zero_area_tris": 0
+   },
+   "HALO_Shard_C": {
+    "prims": [
+     "M_HALO_Glass_T1"
+    ],
+    "tris": 18,
+    "zero_area_tris": 0
+   },
+   "HALO_Swatch_Bone": {
+    "prims": [
+     "M_HALO_Bone"
+    ],
+    "tris": 12,
+    "zero_area_tris": 0
+   },
+   "HALO_Swatch_Edge": {
+    "prims": [
+     "M_HALO_Edge"
+    ],
+    "tris": 12,
+    "zero_area_tris": 0
+   },
+   "HALO_Swatch_Glass_Broken_T1": {
+    "prims": [
+     "M_HALO_Glass_Broken_T1"
+    ],
+    "tris": 12,
+    "zero_area_tris": 0
+   },
+   "HALO_Swatch_Glass_Broken_T2": {
+    "prims": [
+     "M_HALO_Glass_Broken_T2"
+    ],
+    "tris": 12,
+    "zero_area_tris": 0
+   },
+   "HALO_Swatch_Glass_Broken_T3": {
+    "prims": [
+     "M_HALO_Glass_Broken_T3"
+    ],
+    "tris": 12,
+    "zero_area_tris": 0
+   },
+   "HALO_Swatch_Glass_Broken_T4": {
+    "prims": [
+     "M_HALO_Glass_Broken_T4"
+    ],
+    "tris": 12,
+    "zero_area_tris": 0
+   },
+   "HALO_Swatch_Glass_Off": {
+    "prims": [
+     "M_HALO_Glass_Off"
+    ],
+    "tris": 12,
+    "zero_area_tris": 0
+   },
+   "HALO_Swatch_Glass_T1": {
+    "prims": [
+     "M_HALO_Glass_T1"
+    ],
+    "tris": 12,
+    "zero_area_tris": 0
+   },
+   "HALO_Swatch_Glass_T2": {
+    "prims": [
+     "M_HALO_Glass_T2"
+    ],
+    "tris": 12,
+    "zero_area_tris": 0
+   },
+   "HALO_Swatch_Glass_T3": {
+    "prims": [
+     "M_HALO_Glass_T3"
+    ],
+    "tris": 12,
+    "zero_area_tris": 0
+   },
+   "HALO_Swatch_Glass_T4": {
+    "prims": [
+     "M_HALO_Glass_T4"
+    ],
+    "tris": 12,
+    "zero_area_tris": 0
+   },
+   "HALO_Swatch_Graphite": {
+    "prims": [
+     "M_HALO_Graphite"
+    ],
+    "tris": 12,
+    "zero_area_tris": 0
+   },
+   "HALO_Swatch_Graphite_Far": {
+    "prims": [
+     "M_HALO_Graphite_Far"
+    ],
+    "tris": 12,
+    "zero_area_tris": 0
+   },
+   "HALO_Swatch_Gunmetal": {
+    "prims": [
+     "M_HALO_Gunmetal"
+    ],
+    "tris": 12,
+    "zero_area_tris": 0
+   },
+   "HALO_TierPip": {
+    "prims": [
+     "M_HALO_Glass_T1"
+    ],
+    "tris": 8,
+    "zero_area_tris": 0
+   },
+   "HALO_Volt_Band_Heavy": {
+    "prims": [
+     "M_HALO_Graphite",
+     "M_HALO_Gunmetal",
+     "M_HALO_Glass_T1",
+     "M_HALO_Edge"
+    ],
+    "tris": 2116,
+    "zero_area_tris": 0
+   },
+   "HALO_Volt_Band_Medium": {
+    "prims": [
+     "M_HALO_Graphite",
+     "M_HALO_Glass_T1",
+     "M_HALO_Edge"
+    ],
+    "tris": 1024,
+    "zero_area_tris": 0
+   },
+   "HALO_PowerCell_Volt": {
+    "prims": [
+     "M_HALO_Glass_T1",
+     "M_HALO_Graphite"
+    ],
+    "tris": 240,
+    "zero_area_tris": 0
+   },
+   "HALO_Volt_Far_Frame_Heavy": {
+    "prims": [
+     "M_HALO_Graphite_Far",
+     "M_HALO_Edge",
+     "M_HALO_Glass_T1"
+    ],
+    "tris": 1064,
+    "zero_area_tris": 0
+   },
+   "HALO_Volt_Far_Frame_Light": {
+    "prims": [
+     "M_HALO_Graphite_Far",
+     "M_HALO_Edge"
+    ],
+    "tris": 668,
+    "zero_area_tris": 0
+   },
+   "HALO_Volt_Far_Frame_Medium": {
+    "prims": [
+     "M_HALO_Graphite_Far",
+     "M_HALO_Edge",
+     "M_HALO_Glass_T1"
+    ],
+    "tris": 992,
+    "zero_area_tris": 0
+   },
+   "HALO_Volt_Far_Glass_Arms": {
+    "prims": [
+     "M_HALO_Glass_T1"
+    ],
+    "tris": 92,
+    "zero_area_tris": 0
+   },
+   "HALO_Volt_Far_Glass_Head": {
+    "prims": [
+     "M_HALO_Glass_T1"
+    ],
+    "tris": 92,
+    "zero_area_tris": 0
+   },
+   "HALO_Volt_Far_Glass_Legs": {
+    "prims": [
+     "M_HALO_Glass_T1"
+    ],
+    "tris": 92,
+    "zero_area_tris": 0
+   },
+   "HALO_Volt_Far_Glass_Torso": {
+    "prims": [
+     "M_HALO_Glass_T1"
+    ],
+    "tris": 92,
+    "zero_area_tris": 0
+   },
+   "HALO_Volt_Frame_Heavy": {
+    "prims": [
+     "M_HALO_Graphite",
+     "M_HALO_Edge",
+     "M_HALO_Gunmetal",
+     "M_HALO_Glass_T1"
+    ],
+    "tris": 5408,
+    "zero_area_tris": 0
+   },
+   "HALO_Volt_Frame_Light": {
+    "prims": [
+     "M_HALO_Graphite",
+     "M_HALO_Edge"
+    ],
+    "tris": 3292,
+    "zero_area_tris": 0
+   },
+   "HALO_Volt_Frame_Medium": {
+    "prims": [
+     "M_HALO_Graphite",
+     "M_HALO_Edge",
+     "M_HALO_Glass_T1"
+    ],
+    "tris": 4316,
+    "zero_area_tris": 0
+   },
+   "HALO_Volt_Arc_Arms": {
+    "prims": [
+     "M_HALO_Glass_T1"
+    ],
+    "tris": 266,
+    "zero_area_tris": 0
+   },
+   "HALO_Volt_Arc_Head": {
+    "prims": [
+     "M_HALO_Glass_T1"
+    ],
+    "tris": 322,
+    "zero_area_tris": 0
+   },
+   "HALO_Volt_Arc_Legs": {
+    "prims": [
+     "M_HALO_Glass_T1"
+    ],
+    "tris": 266,
+    "zero_area_tris": 0
+   },
+   "HALO_Volt_Arc_Torso": {
+    "prims": [
+     "M_HALO_Glass_T1"
+    ],
+    "tris": 270,
+    "zero_area_tris": 0
+   }
+  },
+  "material_info": {
    "M_HALO_Graphite": {
     "doubleSided": false,
     "alphaMode": "OPAQUE",
+    "roughness": 0.55,
+    "metallic": 0.15,
     "emissiveFactor": [
      0,
      0,
@@ -778,29 +2590,13 @@
      0.04,
      1
     ],
-    "clearcoat": false
-   },
-   "M_HALO_Edge": {
-    "doubleSided": false,
-    "alphaMode": "OPAQUE",
-    "emissiveFactor": [
-     0.168,
-     0.198,
-     0.24
-    ],
-    "emissive_strength": null,
-    "emissiveTexture": false,
-    "baseColorFactor": [
-     0.04,
-     0.045,
-     0.05,
-     1
-    ],
-    "clearcoat": false
+    "clearcoat": null
    },
    "M_HALO_Gunmetal": {
     "doubleSided": false,
     "alphaMode": "OPAQUE",
+    "roughness": 0.35,
+    "metallic": 0.85,
     "emissiveFactor": [
      0,
      0,
@@ -814,11 +2610,73 @@
      0.12,
      1
     ],
-    "clearcoat": false
+    "clearcoat": null
+   },
+   "M_HALO_Glass_T1": {
+    "doubleSided": false,
+    "alphaMode": "OPAQUE",
+    "roughness": 0.25,
+    "metallic": 0,
+    "emissiveFactor": [
+     0.924,
+     0.957,
+     1
+    ],
+    "emissive_strength": 2.20800012779236,
+    "emissiveTexture": false,
+    "baseColorFactor": [
+     0.102,
+     0.106,
+     0.11,
+     1
+    ],
+    "clearcoat": 0.4000000059604645
+   },
+   "M_HALO_Edge": {
+    "doubleSided": false,
+    "alphaMode": "OPAQUE",
+    "roughness": 0.4,
+    "metallic": 0,
+    "emissiveFactor": [
+     0.168,
+     0.198,
+     0.24
+    ],
+    "emissive_strength": null,
+    "emissiveTexture": false,
+    "baseColorFactor": [
+     0.04,
+     0.045,
+     0.05,
+     1
+    ],
+    "clearcoat": null
+   },
+   "M_HALO_Graphite_Far": {
+    "doubleSided": false,
+    "alphaMode": "OPAQUE",
+    "roughness": 0.85,
+    "metallic": 0.05,
+    "emissiveFactor": [
+     0,
+     0,
+     0
+    ],
+    "emissive_strength": null,
+    "emissiveTexture": false,
+    "baseColorFactor": [
+     0.03,
+     0.033,
+     0.04,
+     1
+    ],
+    "clearcoat": null
    },
    "M_HALO_Bone": {
     "doubleSided": false,
     "alphaMode": "OPAQUE",
+    "roughness": 0.6,
+    "metallic": 0,
     "emissiveFactor": [
      0,
      0,
@@ -832,11 +2690,13 @@
      0.46,
      1
     ],
-    "clearcoat": false
+    "clearcoat": null
    },
    "M_HALO_Glass_Broken_T1": {
     "doubleSided": false,
     "alphaMode": "OPAQUE",
+    "roughness": 0.35,
+    "metallic": 0,
     "emissiveFactor": [
      0.863,
      0.878,
@@ -850,11 +2710,13 @@
      0.09,
      1
     ],
-    "clearcoat": true
+    "clearcoat": 0.4000000059604645
    },
    "M_HALO_Glass_Broken_T2": {
     "doubleSided": false,
     "alphaMode": "OPAQUE",
+    "roughness": 0.35,
+    "metallic": 0,
     "emissiveFactor": [
      0.258,
      0.433,
@@ -868,11 +2730,13 @@
      0.071,
      1
     ],
-    "clearcoat": true
+    "clearcoat": 0.4000000059604645
    },
    "M_HALO_Glass_Broken_T3": {
     "doubleSided": false,
     "alphaMode": "OPAQUE",
+    "roughness": 0.35,
+    "metallic": 0,
     "emissiveFactor": [
      0.423,
      0.223,
@@ -886,11 +2750,13 @@
      0.065,
      1
     ],
-    "clearcoat": true
+    "clearcoat": 0.4000000059604645
    },
    "M_HALO_Glass_Broken_T4": {
     "doubleSided": false,
     "alphaMode": "OPAQUE",
+    "roughness": 0.35,
+    "metallic": 0,
     "emissiveFactor": [
      0.831,
      0.641,
@@ -904,11 +2770,13 @@
      0.037,
      1
     ],
-    "clearcoat": true
+    "clearcoat": 0.4000000059604645
    },
    "M_HALO_Glass_Off": {
     "doubleSided": false,
     "alphaMode": "OPAQUE",
+    "roughness": 0.6,
+    "metallic": 0,
     "emissiveFactor": [
      0,
      0,
@@ -922,11 +2790,13 @@
      0.025,
      1
     ],
-    "clearcoat": true
+    "clearcoat": null
    },
    "M_HALO_Glass_T2": {
     "doubleSided": false,
     "alphaMode": "OPAQUE",
+    "roughness": 0.25,
+    "metallic": 0,
     "emissiveFactor": [
      0.1,
      0.45,
@@ -940,11 +2810,13 @@
      0.12,
      1
     ],
-    "clearcoat": true
+    "clearcoat": 0.4000000059604645
    },
    "M_HALO_Glass_T3": {
     "doubleSided": false,
     "alphaMode": "OPAQUE",
+    "roughness": 0.25,
+    "metallic": 0,
     "emissiveFactor": [
      0.55,
      0.15,
@@ -958,11 +2830,13 @@
      0.12,
      1
     ],
-    "clearcoat": true
+    "clearcoat": 0.4000000059604645
    },
    "M_HALO_Glass_T4": {
     "doubleSided": false,
     "alphaMode": "OPAQUE",
+    "roughness": 0.25,
+    "metallic": 0,
     "emissiveFactor": [
      1,
      0.62,
@@ -976,7 +2850,7 @@
      0.01,
      1
     ],
-    "clearcoat": true
+    "clearcoat": 0.4000000059604645
    }
   }
  }

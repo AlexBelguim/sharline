@@ -1,0 +1,92 @@
+[
+  {
+    "render": "F:\\git\\val etf\\assets\\maps\\showhome\\kit\\renders\\ground\\v2\\kerb_road.png",
+    "concept": "F:\\git\\val etf\\design\\maps\\tdm\\concepts\\_candidates\\A_showhome_ground_s11.png",
+    "crop_normalized": [
+      0.65,
+      0.67,
+      1.0,
+      0.96
+    ],
+    "crop_pixels": [
+      998,
+      579,
+      1536,
+      829
+    ],
+    "in_game_reference": "F:\\git\\val etf\\art\\briefs\\refs\\ingame_today_box_roof.png",
+    "comparison": "F:\\git\\val etf\\assets\\maps\\showhome\\kit\\renders\\ground\\v2\\kerb_road_compare.png"
+  },
+  {
+    "render": "F:\\git\\val etf\\assets\\maps\\showhome\\kit\\renders\\ground\\v2\\paving_lawn.png",
+    "concept": "F:\\git\\val etf\\design\\maps\\tdm\\concepts\\_candidates\\A_showhome_ground_s12.png",
+    "crop_normalized": [
+      0.0,
+      0.61,
+      0.35,
+      0.87
+    ],
+    "crop_pixels": [
+      0,
+      527,
+      538,
+      752
+    ],
+    "in_game_reference": "F:\\git\\val etf\\art\\briefs\\refs\\ingame_today_box_roof.png",
+    "comparison": "F:\\git\\val etf\\assets\\maps\\showhome\\kit\\renders\\ground\\v2\\paving_lawn_compare.png"
+  },
+  {
+    "render": "F:\\git\\val etf\\assets\\maps\\showhome\\kit\\renders\\ground\\v2\\gravel_lawn.png",
+    "concept": "F:\\git\\val etf\\design\\maps\\tdm\\concepts\\_candidates\\A_showhome_aerial_s12.png",
+    "crop_normalized": [
+      0.67,
+      0.63,
+      0.83,
+      0.89
+    ],
+    "crop_pixels": [
+      1029,
+      544,
+      1275,
+      769
+    ],
+    "in_game_reference": "F:\\git\\val etf\\art\\briefs\\refs\\ingame_today_box_roof.png",
+    "comparison": "F:\\git\\val etf\\assets\\maps\\showhome\\kit\\renders\\ground\\v2\\gravel_lawn_compare.png"
+  },
+  {
+    "render": "F:\\git\\val etf\\assets\\maps\\showhome\\kit\\renders\\ground\\v2\\truck_verge.png",
+    "concept": "F:\\git\\val etf\\design\\maps\\tdm\\concepts\\_candidates\\A_showhome_ground_s11.png",
+    "crop_normalized": [
+      0.33,
+      0.43,
+      0.73,
+      0.86
+    ],
+    "crop_pixels": [
+      507,
+      372,
+      1121,
+      743
+    ],
+    "in_game_reference": "F:\\git\\val etf\\art\\briefs\\refs\\ingame_today_box_roof.png",
+    "comparison": "F:\\git\\val etf\\assets\\maps\\showhome\\kit\\renders\\ground\\v2\\truck_verge_compare.png"
+  },
+  {
+    "render": "F:\\git\\val etf\\assets\\maps\\showhome\\kit\\renders\\ground\\v2\\construction_edge.png",
+    "concept": "F:\\git\\val etf\\design\\maps\\tdm\\concepts\\_candidates\\A_showhome_aerial_s11.png",
+    "crop_normalized": [
+      0.02,
+      0.1,
+      0.29,
+      0.43
+    ],
+    "crop_pixels": [
+      31,
+      86,
+      445,
+      372
+    ],
+    "in_game_reference": "F:\\git\\val etf\\art\\briefs\\refs\\ingame_today_box_roof.png",
+    "comparison": "F:\\git\\val etf\\assets\\maps\\showhome\\kit\\renders\\ground\\v2\\construction_edge_compare.png"
+  }
+]

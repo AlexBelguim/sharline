@@ -1,0 +1,598 @@
+{
+  "frame": "Design metres x=east,y=north,z=up; actual GLBs imported at identity",
+  "eye_height_m": 1.6,
+  "sun": {
+    "azimuth_deg": 188,
+    "elevation_deg": 54,
+    "linear_rgb": [
+      1,
+      0.84,
+      0.66
+    ],
+    "energy": 2.5
+  },
+  "world_strength": 0.65,
+  "fog": {
+    "start_m": 80,
+    "end_m": 420,
+    "colour_srgb": [
+      0.66,
+      0.76,
+      0.86
+    ]
+  },
+  "source_glb_sha256": {
+    "houses.glb": "c24a350e39baec33795fa500fdfd5ecaed9db1f162086957fce75e5b39ca83d4",
+    "ground.glb": "d1dee9a337753e2cc75add5ec13f0c69ec5fd6c83be24e505b36fb6017b6c1d5",
+    "props_placed.glb": "ae1d1a1ed83042fb7ccc8827d40b0491e8f610850e5e1e4c47ebc5baa3607d48"
+  },
+  "masks": [
+    {
+      "mesh": "GND_Ground_Root__M_GND_Asphalt",
+      "layer": "Color",
+      "count": 42900,
+      "minimum": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "maximum": [
+        0.0,
+        0.0,
+        0.0,
+        0.51373
+      ]
+    },
+    {
+      "mesh": "GND_Ground_Root__M_GND_AsphaltOld",
+      "layer": "Color",
+      "count": 34104,
+      "minimum": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "maximum": [
+        0.0,
+        0.95597,
+        0.80695,
+        0.0
+      ]
+    },
+    {
+      "mesh": "GND_Ground_Root__M_GND_Concrete",
+      "layer": "Color",
+      "count": 13260,
+      "minimum": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "maximum": [
+        0.7011,
+        0.93869,
+        0.82279,
+        1.0
+      ]
+    },
+    {
+      "mesh": "GND_Ground_Root__M_GND_Edging",
+      "layer": "Color",
+      "count": 8364,
+      "minimum": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "maximum": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "mesh": "GND_Ground_Root__M_GND_Grass",
+      "layer": "Color",
+      "count": 57324,
+      "minimum": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "maximum": [
+        0.93869,
+        0.7011,
+        0.7011,
+        1.0
+      ]
+    },
+    {
+      "mesh": "GND_Ground_Root__M_GND_Gravel",
+      "layer": "Color",
+      "count": 29364,
+      "minimum": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "maximum": [
+        0.84687,
+        0.7011,
+        0.7011,
+        1.0
+      ]
+    },
+    {
+      "mesh": "GND_Ground_Root__M_GND_Kerb",
+      "layer": "Color",
+      "count": 9132,
+      "minimum": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "maximum": [
+        0.7011,
+        0.7011,
+        0.7011,
+        1.0
+      ]
+    },
+    {
+      "mesh": "GND_Ground_Root__M_GND_Mulch",
+      "layer": "Color",
+      "count": 14508,
+      "minimum": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "maximum": [
+        0.7011,
+        0.7011,
+        0.7011,
+        1.0
+      ]
+    },
+    {
+      "mesh": "GND_Ground_Root__M_GND_PaintClay",
+      "layer": "Color",
+      "count": 2544,
+      "minimum": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "maximum": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "mesh": "GND_Ground_Root__M_GND_PaintSage",
+      "layer": "Color",
+      "count": 2544,
+      "minimum": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "maximum": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "mesh": "GND_Ground_Root__M_GND_Paving",
+      "layer": "Color",
+      "count": 54780,
+      "minimum": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "maximum": [
+        0.7011,
+        0.95597,
+        0.82279,
+        1.0
+      ]
+    },
+    {
+      "mesh": "GND_Ground_Root__M_GND_PavingClay",
+      "layer": "Color",
+      "count": 22866,
+      "minimum": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "maximum": [
+        0.7011,
+        0.95597,
+        0.80695,
+        1.0
+      ]
+    },
+    {
+      "mesh": "GND_Ground_Root__M_GND_PavingSage",
+      "layer": "Color",
+      "count": 22866,
+      "minimum": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "maximum": [
+        0.7011,
+        0.95597,
+        0.80695,
+        1.0
+      ]
+    },
+    {
+      "mesh": "GND_Ground_Root__M_GND_Soil",
+      "layer": "Color",
+      "count": 4368,
+      "minimum": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "maximum": [
+        0.64448,
+        0.0,
+        0.25818,
+        0.0
+      ]
+    },
+    {
+      "mesh": "GND_Ground_Root__M_GND_SteelEdging",
+      "layer": "Color",
+      "count": 2580,
+      "minimum": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "maximum": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "mesh": "GND_Skirt_Root__M_GND_Asphalt",
+      "layer": "Color",
+      "count": 12372,
+      "minimum": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "maximum": [
+        0.0,
+        0.94731,
+        0.7991,
+        0.93333
+      ]
+    },
+    {
+      "mesh": "GND_Skirt_Root__M_GND_AsphaltOld",
+      "layer": "Color",
+      "count": 2880,
+      "minimum": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "maximum": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "mesh": "GND_Skirt_Root__M_GND_Concrete",
+      "layer": "Color",
+      "count": 20352,
+      "minimum": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "maximum": [
+        0.7011,
+        0.7011,
+        0.82279,
+        1.0
+      ]
+    },
+    {
+      "mesh": "GND_Skirt_Root__M_GND_Edging",
+      "layer": "Color",
+      "count": 36258,
+      "minimum": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "maximum": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "mesh": "GND_Skirt_Root__M_GND_Grass",
+      "layer": "Color",
+      "count": 118392,
+      "minimum": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "maximum": [
+        0.93869,
+        0.7011,
+        0.7011,
+        1.0
+      ]
+    },
+    {
+      "mesh": "GND_Skirt_Root__M_GND_Gravel",
+      "layer": "Color",
+      "count": 1824,
+      "minimum": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "maximum": [
+        0.8388,
+        0.7011,
+        0.7011,
+        1.0
+      ]
+    },
+    {
+      "mesh": "GND_Skirt_Root__M_GND_Kerb",
+      "layer": "Color",
+      "count": 84804,
+      "minimum": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "maximum": [
+        0.7011,
+        0.7011,
+        0.7011,
+        1.0
+      ]
+    },
+    {
+      "mesh": "GND_Skirt_Root__M_GND_Paving",
+      "layer": "Color",
+      "count": 113124,
+      "minimum": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "maximum": [
+        0.7011,
+        0.95597,
+        0.82279,
+        1.0
+      ]
+    },
+    {
+      "mesh": "GND_Skirt_Root__M_GND_Sand",
+      "layer": "Color",
+      "count": 27576,
+      "minimum": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "maximum": [
+        0.65141,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "mesh": "GND_Skirt_Root__M_GND_SoilFar",
+      "layer": "Color",
+      "count": 1176,
+      "minimum": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "maximum": [
+        0.64448,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "mesh": "GND_Skirt_Root__M_GND_SteelEdging",
+      "layer": "Color",
+      "count": 108,
+      "minimum": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "maximum": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    }
+  ],
+  "tiles": [
+    {
+      "name": "kerb_road",
+      "path": "F:\\git\\val etf\\assets\\maps\\showhome\\kit\\renders\\ground\\v2\\kerb_road.png",
+      "label": "Kerb / road / pavement",
+      "camera": [
+        32.5,
+        21.0,
+        1.6
+      ],
+      "target": [
+        30.12,
+        24.0,
+        0.08
+      ],
+      "lens": 38,
+      "concept": "A_showhome_ground_s11.png",
+      "crop": [
+        0.65,
+        0.67,
+        1.0,
+        0.96
+      ],
+      "detail": "Chamfered 1 m kerb units, recessed joints, gully, worn road and pavement edge."
+    },
+    {
+      "name": "paving_lawn",
+      "path": "F:\\git\\val etf\\assets\\maps\\showhome\\kit\\renders\\ground\\v2\\paving_lawn.png",
+      "label": "Paving / lawn",
+      "camera": [
+        26.5,
+        26.0,
+        1.6
+      ],
+      "target": [
+        24.5,
+        26.8,
+        0.015
+      ],
+      "lens": 38,
+      "concept": "A_showhome_ground_s12.png",
+      "crop": [
+        0.0,
+        0.61,
+        0.35,
+        0.87
+      ],
+      "detail": "Front-door path: thin grass into dirt, soft moss blend and low edging."
+    },
+    {
+      "name": "gravel_lawn",
+      "path": "F:\\git\\val etf\\assets\\maps\\showhome\\kit\\renders\\ground\\v2\\gravel_lawn.png",
+      "label": "Gravel / lawn and wall drip strip",
+      "camera": [
+        23.5,
+        24.2,
+        1.6
+      ],
+      "target": [
+        21.45,
+        22.0,
+        0.012
+      ],
+      "lens": 38,
+      "concept": "A_showhome_aerial_s12.png",
+      "crop": [
+        0.67,
+        0.63,
+        0.83,
+        0.89
+      ],
+      "detail": "House gravel drip strip with steel edging, gravel spill and worn grass margin."
+    },
+    {
+      "name": "truck_verge",
+      "path": "F:\\git\\val etf\\assets\\maps\\showhome\\kit\\renders\\ground\\v2\\truck_verge.png",
+      "label": "Truck verge",
+      "camera": [
+        32.7,
+        17.0,
+        1.6
+      ],
+      "target": [
+        32.0,
+        24.0,
+        0.15
+      ],
+      "lens": 38,
+      "concept": "A_showhome_ground_s11.png",
+      "crop": [
+        0.33,
+        0.43,
+        0.73,
+        0.86
+      ],
+      "detail": "Tyre wear and soft earth / wet blending beside the removal truck and kerb verge."
+    },
+    {
+      "name": "construction_edge",
+      "path": "F:\\git\\val etf\\assets\\maps\\showhome\\kit\\renders\\ground\\v2\\construction_edge.png",
+      "label": "Construction plot / street",
+      "camera": [
+        7.8,
+        56.9,
+        1.6
+      ],
+      "target": [
+        12.0,
+        60.6,
+        0.08
+      ],
+      "lens": 38,
+      "concept": "A_showhome_aerial_s11.png",
+      "crop": [
+        0.02,
+        0.1,
+        0.29,
+        0.43
+      ],
+      "detail": "Sand and mud washing over the plot edge, pavement and unfinished street kerb."
+    }
+  ],
+  "blend_contract": "assets/maps/showhome/kit/ground_blend_contract.json",
+  "renderer": "CYCLES",
+  "device": "GPU"
+}

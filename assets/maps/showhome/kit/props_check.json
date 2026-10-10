@@ -1,0 +1,1190 @@
+[
+ {
+  "prop": "PROP_MoverTruck",
+  "anchor": "C_MOVER_BOX",
+  "samples": 11092,
+  "fail": 20,
+  "coverage": 0.9982,
+  "worst_dev": 0.4,
+  "ghost_verts": 192,
+  "ghost_bbox": [
+   [
+    34.752,
+    29.18,
+    1.86
+   ],
+   [
+    37.248,
+    29.405,
+    2.14
+   ]
+  ],
+  "examples": [
+   {
+    "p": [
+     34.85,
+     28.798,
+     0.204
+    ],
+    "n": [
+     -1.0,
+     0.0,
+     0.0
+    ],
+    "dev": 0.4
+   },
+   {
+    "p": [
+     34.85,
+     29.196,
+     1.897
+    ],
+    "n": [
+     -1.0,
+     0.0,
+     0.0
+    ],
+    "dev": -0.091
+   },
+   {
+    "p": [
+     34.85,
+     29.196,
+     1.997
+    ],
+    "n": [
+     -1.0,
+     0.0,
+     0.0
+    ],
+    "dev": -0.091
+   },
+   {
+    "p": [
+     34.85,
+     29.196,
+     2.096
+    ],
+    "n": [
+     -1.0,
+     0.0,
+     0.0
+    ],
+    "dev": -0.091
+   },
+   {
+    "p": [
+     34.85,
+     29.296,
+     1.897
+    ],
+    "n": [
+     -1.0,
+     0.0,
+     0.0
+    ],
+    "dev": -0.095
+   },
+   {
+    "p": [
+     34.85,
+     29.296,
+     1.997
+    ],
+    "n": [
+     -1.0,
+     0.0,
+     0.0
+    ],
+    "dev": -0.095
+   },
+   {
+    "p": [
+     34.85,
+     29.296,
+     2.096
+    ],
+    "n": [
+     -1.0,
+     0.0,
+     0.0
+    ],
+    "dev": -0.095
+   },
+   {
+    "p": [
+     34.85,
+     29.395,
+     1.897
+    ],
+    "n": [
+     -1.0,
+     0.0,
+     0.0
+    ],
+    "dev": -0.081
+   },
+   {
+    "p": [
+     34.85,
+     29.395,
+     1.997
+    ],
+    "n": [
+     -1.0,
+     0.0,
+     0.0
+    ],
+    "dev": -0.098
+   },
+   {
+    "p": [
+     34.85,
+     29.395,
+     2.096
+    ],
+    "n": [
+     -1.0,
+     0.0,
+     0.0
+    ],
+    "dev": -0.081
+   },
+   {
+    "p": [
+     37.15,
+     28.798,
+     0.204
+    ],
+    "n": [
+     1.0,
+     0.0,
+     0.0
+    ],
+    "dev": 0.4
+   },
+   {
+    "p": [
+     37.15,
+     29.196,
+     1.897
+    ],
+    "n": [
+     1.0,
+     0.0,
+     0.0
+    ],
+    "dev": -0.091
+   }
+  ]
+ },
+ {
+  "prop": "PROP_KerbPod",
+  "anchor": "W_KERBPOD",
+  "samples": 3378,
+  "fail": 6,
+  "coverage": 0.9982,
+  "worst_dev": 0.034,
+  "ghost_verts": 0,
+  "ghost_bbox": null,
+  "examples": [
+   {
+    "p": [
+     29.8,
+     30.815,
+     0.204
+    ],
+    "n": [
+     -1.0,
+     0.0,
+     0.0
+    ],
+    "dev": 0.023
+   },
+   {
+    "p": [
+     29.8,
+     30.815,
+     0.502
+    ],
+    "n": [
+     -1.0,
+     0.0,
+     0.0
+    ],
+    "dev": 0.034
+   },
+   {
+    "p": [
+     29.8,
+     33.785,
+     0.204
+    ],
+    "n": [
+     -1.0,
+     0.0,
+     0.0
+    ],
+    "dev": 0.023
+   },
+   {
+    "p": [
+     31.8,
+     30.815,
+     0.204
+    ],
+    "n": [
+     1.0,
+     0.0,
+     0.0
+    ],
+    "dev": 0.023
+   },
+   {
+    "p": [
+     31.8,
+     33.785,
+     0.204
+    ],
+    "n": [
+     1.0,
+     0.0,
+     0.0
+    ],
+    "dev": 0.023
+   },
+   {
+    "p": [
+     31.8,
+     33.785,
+     0.502
+    ],
+    "n": [
+     1.0,
+     0.0,
+     0.0
+    ],
+    "dev": 0.034
+   }
+  ]
+ },
+ {
+  "prop": "PROP_KerbPod",
+  "anchor": "E_KERBPOD",
+  "samples": 3378,
+  "fail": 0,
+  "coverage": 1.0,
+  "worst_dev": 0.0,
+  "ghost_verts": 0,
+  "ghost_bbox": null,
+  "examples": []
+ },
+ {
+  "prop": "PROP_BoxStack_1m",
+  "anchor": "W_CRATE",
+  "samples": 605,
+  "fail": 0,
+  "coverage": 1.0,
+  "worst_dev": 0.0,
+  "ghost_verts": 0,
+  "ghost_bbox": null,
+  "examples": []
+ },
+ {
+  "prop": "PROP_BoxStack_1m",
+  "anchor": "E_CRATE",
+  "samples": 605,
+  "fail": 0,
+  "coverage": 1.0,
+  "worst_dev": 0.0,
+  "ghost_verts": 0,
+  "ghost_bbox": null,
+  "examples": []
+ },
+ {
+  "prop": "PROP_Crate_Wood_1m",
+  "anchor": "C_CRATE_T",
+  "samples": 605,
+  "fail": 0,
+  "coverage": 1.0,
+  "worst_dev": 0.0,
+  "ghost_verts": 0,
+  "ghost_bbox": null,
+  "examples": []
+ },
+ {
+  "prop": "PROP_Armchair",
+  "anchor": "W_ARMCHAIR",
+  "samples": 637,
+  "fail": 0,
+  "coverage": 1.0,
+  "worst_dev": 0.0,
+  "ghost_verts": 0,
+  "ghost_bbox": null,
+  "examples": []
+ },
+ {
+  "prop": "PROP_Armchair",
+  "anchor": "E_ARMCHAIR",
+  "samples": 637,
+  "fail": 0,
+  "coverage": 1.0,
+  "worst_dev": 0.0,
+  "ghost_verts": 0,
+  "ghost_bbox": null,
+  "examples": []
+ },
+ {
+  "prop": "PROP_Sofa",
+  "anchor": "W_SOFA",
+  "samples": 864,
+  "fail": 0,
+  "coverage": 1.0,
+  "worst_dev": 0.0,
+  "ghost_verts": 0,
+  "ghost_bbox": null,
+  "examples": []
+ },
+ {
+  "prop": "PROP_Sofa",
+  "anchor": "E_SOFA",
+  "samples": 864,
+  "fail": 0,
+  "coverage": 1.0,
+  "worst_dev": 0.0,
+  "ghost_verts": 0,
+  "ghost_bbox": null,
+  "examples": []
+ },
+ {
+  "prop": "PROP_Fence_Run_S",
+  "anchor": "W_FENCE_FS",
+  "samples": 3142,
+  "fail": 0,
+  "coverage": 1.0,
+  "worst_dev": 0.0,
+  "ghost_verts": 0,
+  "ghost_bbox": null,
+  "examples": []
+ },
+ {
+  "prop": "PROP_Fence_Run_S",
+  "anchor": "E_FENCE_FS",
+  "samples": 3262,
+  "fail": 0,
+  "coverage": 1.0,
+  "worst_dev": 0.0,
+  "ghost_verts": 0,
+  "ghost_bbox": null,
+  "examples": []
+ },
+ {
+  "prop": "PROP_Fence_Run_N",
+  "anchor": "W_FENCE_FN",
+  "samples": 1557,
+  "fail": 0,
+  "coverage": 1.0,
+  "worst_dev": 0.0,
+  "ghost_verts": 0,
+  "ghost_bbox": null,
+  "examples": []
+ },
+ {
+  "prop": "PROP_Fence_Run_N",
+  "anchor": "E_FENCE_FN",
+  "samples": 1634,
+  "fail": 0,
+  "coverage": 1.0,
+  "worst_dev": 0.0,
+  "ghost_verts": 0,
+  "ghost_bbox": null,
+  "examples": []
+ },
+ {
+  "prop": "PROP_Hedge_Boundary",
+  "anchor": "W_HEDGE",
+  "samples": 33532,
+  "fail": 0,
+  "coverage": 1.0,
+  "worst_dev": 0.0,
+  "ghost_verts": 0,
+  "ghost_bbox": null,
+  "examples": []
+ },
+ {
+  "prop": "PROP_Hedge_Boundary",
+  "anchor": "E_HEDGE",
+  "samples": 33532,
+  "fail": 0,
+  "coverage": 1.0,
+  "worst_dev": 0.0,
+  "ghost_verts": 0,
+  "ghost_bbox": null,
+  "examples": []
+ },
+ {
+  "prop": "PROP_Hedge_Lawn",
+  "anchor": "W_HEDGE_LAWN",
+  "samples": 2779,
+  "fail": 0,
+  "coverage": 1.0,
+  "worst_dev": 0.0,
+  "ghost_verts": 0,
+  "ghost_bbox": null,
+  "examples": []
+ },
+ {
+  "prop": "PROP_Hedge_Lawn",
+  "anchor": "E_HEDGE_LAWN",
+  "samples": 2779,
+  "fail": 0,
+  "coverage": 1.0,
+  "worst_dev": 0.0,
+  "ghost_verts": 0,
+  "ghost_bbox": null,
+  "examples": []
+ },
+ {
+  "prop": "PROP_Arbour",
+  "anchor": "W_ARBOUR",
+  "samples": 6491,
+  "fail": 0,
+  "coverage": 1.0,
+  "worst_dev": 0.0,
+  "ghost_verts": 0,
+  "ghost_bbox": null,
+  "examples": []
+ },
+ {
+  "prop": "PROP_Arbour",
+  "anchor": "E_ARBOUR",
+  "samples": 6491,
+  "fail": 0,
+  "coverage": 1.0,
+  "worst_dev": 0.0,
+  "ghost_verts": 0,
+  "ghost_bbox": null,
+  "examples": []
+ },
+ {
+  "prop": "PROP_Pylon",
+  "anchor": "W_PYLON_MAST",
+  "samples": 2656,
+  "fail": 52,
+  "coverage": 0.9804,
+  "worst_dev": 0.396,
+  "ghost_verts": 421,
+  "ghost_bbox": [
+   [
+    24.125,
+    44.625,
+    1.888
+   ],
+   [
+    25.875,
+    46.375,
+    6.42
+   ]
+  ],
+  "examples": [
+   {
+    "p": [
+     25.25,
+     45.45,
+     6.182
+    ],
+    "n": [
+     1.0,
+     0.0,
+     0.0
+    ],
+    "dev": -0.105
+   },
+   {
+    "p": [
+     25.25,
+     45.45,
+     6.283
+    ],
+    "n": [
+     1.0,
+     0.0,
+     0.0
+    ],
+    "dev": -0.12
+   },
+   {
+    "p": [
+     25.25,
+     45.45,
+     6.385
+    ],
+    "n": [
+     1.0,
+     0.0,
+     0.0
+    ],
+    "dev": -0.12
+   },
+   {
+    "p": [
+     25.25,
+     45.55,
+     6.182
+    ],
+    "n": [
+     1.0,
+     0.0,
+     0.0
+    ],
+    "dev": -0.105
+   },
+   {
+    "p": [
+     25.25,
+     45.55,
+     6.283
+    ],
+    "n": [
+     1.0,
+     0.0,
+     0.0
+    ],
+    "dev": -0.12
+   },
+   {
+    "p": [
+     25.25,
+     45.55,
+     6.385
+    ],
+    "n": [
+     1.0,
+     0.0,
+     0.0
+    ],
+    "dev": -0.12
+   },
+   {
+    "p": [
+     24.851,
+     45.75,
+     4.868
+    ],
+    "n": [
+     0.0,
+     1.0,
+     0.0
+    ],
+    "dev": -0.255
+   },
+   {
+    "p": [
+     24.851,
+     45.75,
+     4.969
+    ],
+    "n": [
+     0.0,
+     1.0,
+     0.0
+    ],
+    "dev": -0.265
+   },
+   {
+    "p": [
+     24.851,
+     45.75,
+     5.07
+    ],
+    "n": [
+     0.0,
+     1.0,
+     0.0
+    ],
+    "dev": -0.26
+   },
+   {
+    "p": [
+     24.851,
+     45.75,
+     5.171
+    ],
+    "n": [
+     0.0,
+     1.0,
+     0.0
+    ],
+    "dev": -0.26
+   },
+   {
+    "p": [
+     24.851,
+     45.75,
+     5.272
+    ],
+    "n": [
+     0.0,
+     1.0,
+     0.0
+    ],
+    "dev": -0.26
+   },
+   {
+    "p": [
+     24.851,
+     45.75,
+     5.373
+    ],
+    "n": [
+     0.0,
+     1.0,
+     0.0
+    ],
+    "dev": -0.26
+   }
+  ]
+ },
+ {
+  "prop": "PROP_Pylon",
+  "anchor": "E_PYLON_MAST",
+  "samples": 2656,
+  "fail": 52,
+  "coverage": 0.9804,
+  "worst_dev": 0.396,
+  "ghost_verts": 421,
+  "ghost_bbox": [
+   [
+    46.125,
+    44.625,
+    1.888
+   ],
+   [
+    47.875,
+    46.375,
+    6.42
+   ]
+  ],
+  "examples": [
+   {
+    "p": [
+     46.75,
+     45.45,
+     6.182
+    ],
+    "n": [
+     -1.0,
+     0.0,
+     0.0
+    ],
+    "dev": -0.105
+   },
+   {
+    "p": [
+     46.75,
+     45.45,
+     6.283
+    ],
+    "n": [
+     -1.0,
+     0.0,
+     0.0
+    ],
+    "dev": -0.12
+   },
+   {
+    "p": [
+     46.75,
+     45.45,
+     6.385
+    ],
+    "n": [
+     -1.0,
+     0.0,
+     0.0
+    ],
+    "dev": -0.12
+   },
+   {
+    "p": [
+     46.75,
+     45.55,
+     6.182
+    ],
+    "n": [
+     -1.0,
+     0.0,
+     0.0
+    ],
+    "dev": -0.105
+   },
+   {
+    "p": [
+     46.75,
+     45.55,
+     6.283
+    ],
+    "n": [
+     -1.0,
+     0.0,
+     0.0
+    ],
+    "dev": -0.12
+   },
+   {
+    "p": [
+     46.75,
+     45.55,
+     6.385
+    ],
+    "n": [
+     -1.0,
+     0.0,
+     0.0
+    ],
+    "dev": -0.12
+   },
+   {
+    "p": [
+     46.851,
+     45.25,
+     4.868
+    ],
+    "n": [
+     0.0,
+     -1.0,
+     0.0
+    ],
+    "dev": -0.255
+   },
+   {
+    "p": [
+     46.851,
+     45.25,
+     4.969
+    ],
+    "n": [
+     0.0,
+     -1.0,
+     0.0
+    ],
+    "dev": -0.265
+   },
+   {
+    "p": [
+     46.851,
+     45.25,
+     5.07
+    ],
+    "n": [
+     0.0,
+     -1.0,
+     0.0
+    ],
+    "dev": -0.26
+   },
+   {
+    "p": [
+     46.851,
+     45.25,
+     5.171
+    ],
+    "n": [
+     0.0,
+     -1.0,
+     0.0
+    ],
+    "dev": -0.26
+   },
+   {
+    "p": [
+     46.851,
+     45.25,
+     5.272
+    ],
+    "n": [
+     0.0,
+     -1.0,
+     0.0
+    ],
+    "dev": -0.26
+   },
+   {
+    "p": [
+     46.851,
+     45.25,
+     5.373
+    ],
+    "n": [
+     0.0,
+     -1.0,
+     0.0
+    ],
+    "dev": -0.26
+   }
+  ]
+ },
+ {
+  "prop": "PROP_HotTub",
+  "anchor": "W_HOTTUB",
+  "samples": 1820,
+  "fail": 0,
+  "coverage": 1.0,
+  "worst_dev": 0.0,
+  "ghost_verts": 0,
+  "ghost_bbox": null,
+  "examples": []
+ },
+ {
+  "prop": "PROP_HotTub",
+  "anchor": "E_HOTTUB",
+  "samples": 1820,
+  "fail": 0,
+  "coverage": 1.0,
+  "worst_dev": 0.0,
+  "ghost_verts": 0,
+  "ghost_bbox": null,
+  "examples": []
+ },
+ {
+  "prop": "PROP_OutdoorKitchen",
+  "anchor": "W_BBQ",
+  "samples": 2020,
+  "fail": 0,
+  "coverage": 1.0,
+  "worst_dev": 0.0,
+  "ghost_verts": 0,
+  "ghost_bbox": null,
+  "examples": []
+ },
+ {
+  "prop": "PROP_OutdoorKitchen",
+  "anchor": "E_BBQ",
+  "samples": 2020,
+  "fail": 0,
+  "coverage": 1.0,
+  "worst_dev": 0.0,
+  "ghost_verts": 0,
+  "ghost_bbox": null,
+  "examples": []
+ },
+ {
+  "prop": "PROP_KitchenIsland",
+  "anchor": "W_ISLAND",
+  "samples": 1580,
+  "fail": 0,
+  "coverage": 1.0,
+  "worst_dev": 0.0,
+  "ghost_verts": 0,
+  "ghost_bbox": null,
+  "examples": []
+ },
+ {
+  "prop": "PROP_KitchenIsland",
+  "anchor": "E_ISLAND",
+  "samples": 1580,
+  "fail": 0,
+  "coverage": 1.0,
+  "worst_dev": 0.0,
+  "ghost_verts": 0,
+  "ghost_bbox": null,
+  "examples": []
+ },
+ {
+  "prop": "PROP_Workbench",
+  "anchor": "W_WORKBENCH",
+  "samples": 1343,
+  "fail": 0,
+  "coverage": 1.0,
+  "worst_dev": 0.0,
+  "ghost_verts": 0,
+  "ghost_bbox": null,
+  "examples": []
+ },
+ {
+  "prop": "PROP_Workbench",
+  "anchor": "E_WORKBENCH",
+  "samples": 1406,
+  "fail": 0,
+  "coverage": 1.0,
+  "worst_dev": 0.0,
+  "ghost_verts": 0,
+  "ghost_bbox": null,
+  "examples": []
+ },
+ {
+  "prop": "PROP_Dresser",
+  "anchor": "W_DRESSER",
+  "samples": 875,
+  "fail": 0,
+  "coverage": 1.0,
+  "worst_dev": 0.0,
+  "ghost_verts": 0,
+  "ghost_bbox": null,
+  "examples": []
+ },
+ {
+  "prop": "PROP_Dresser",
+  "anchor": "E_DRESSER",
+  "samples": 828,
+  "fail": 0,
+  "coverage": 1.0,
+  "worst_dev": 0.0,
+  "ghost_verts": 0,
+  "ghost_bbox": null,
+  "examples": []
+ },
+ {
+  "prop": "PROP_Shelving",
+  "anchor": "W_SHELF",
+  "samples": 2408,
+  "fail": 0,
+  "coverage": 1.0,
+  "worst_dev": 0.0,
+  "ghost_verts": 0,
+  "ghost_bbox": null,
+  "examples": []
+ },
+ {
+  "prop": "PROP_Shelving",
+  "anchor": "E_SHELF",
+  "samples": 2408,
+  "fail": 0,
+  "coverage": 1.0,
+  "worst_dev": 0.0,
+  "ghost_verts": 0,
+  "ghost_bbox": null,
+  "examples": []
+ },
+ {
+  "prop": "PROP_HeatPump",
+  "anchor": "W_HEATPUMP",
+  "samples": 1063,
+  "fail": 0,
+  "coverage": 1.0,
+  "worst_dev": 0.0,
+  "ghost_verts": 0,
+  "ghost_bbox": null,
+  "examples": []
+ },
+ {
+  "prop": "PROP_HeatPump",
+  "anchor": "E_HEATPUMP",
+  "samples": 1063,
+  "fail": 0,
+  "coverage": 1.0,
+  "worst_dev": 0.0,
+  "ghost_verts": 0,
+  "ghost_bbox": null,
+  "examples": []
+ },
+ {
+  "prop": "PROP_GarageCar",
+  "anchor": "W_GARAGE_CAR",
+  "samples": 2852,
+  "fail": 0,
+  "coverage": 1.0,
+  "worst_dev": 0.0,
+  "ghost_verts": 0,
+  "ghost_bbox": null,
+  "examples": []
+ },
+ {
+  "prop": "PROP_GarageCar",
+  "anchor": "E_GARAGE_CAR",
+  "samples": 2928,
+  "fail": 0,
+  "coverage": 1.0,
+  "worst_dev": 0.0,
+  "ghost_verts": 0,
+  "ghost_bbox": null,
+  "examples": []
+ },
+ {
+  "prop": "PROP_RainTank",
+  "anchor": "W_TANK",
+  "samples": 4696,
+  "fail": 0,
+  "coverage": 1.0,
+  "worst_dev": 0.0,
+  "ghost_verts": 0,
+  "ghost_bbox": null,
+  "examples": []
+ },
+ {
+  "prop": "PROP_RainTank",
+  "anchor": "E_TANK",
+  "samples": 4608,
+  "fail": 0,
+  "coverage": 1.0,
+  "worst_dev": 0.0,
+  "ghost_verts": 0,
+  "ghost_bbox": null,
+  "examples": []
+ },
+ {
+  "prop": "PROP_BinStore",
+  "anchor": "W_BINS",
+  "samples": 6123,
+  "fail": 0,
+  "coverage": 1.0,
+  "worst_dev": 0.0,
+  "ghost_verts": 0,
+  "ghost_bbox": null,
+  "examples": []
+ },
+ {
+  "prop": "PROP_BinStore",
+  "anchor": "E_BINS",
+  "samples": 6123,
+  "fail": 0,
+  "coverage": 1.0,
+  "worst_dev": 0.0,
+  "ghost_verts": 0,
+  "ghost_bbox": null,
+  "examples": []
+ },
+ {
+  "prop": "PROP_ParcelLockers",
+  "anchor": "W_LOCKERS",
+  "samples": 6204,
+  "fail": 0,
+  "coverage": 1.0,
+  "worst_dev": 0.0,
+  "ghost_verts": 0,
+  "ghost_bbox": null,
+  "examples": []
+ },
+ {
+  "prop": "PROP_ParcelLockers",
+  "anchor": "E_LOCKERS",
+  "samples": 6204,
+  "fail": 0,
+  "coverage": 1.0,
+  "worst_dev": 0.0,
+  "ghost_verts": 0,
+  "ghost_bbox": null,
+  "examples": []
+ },
+ {
+  "prop": "PROP_ChargerIsland",
+  "anchor": "C_CHARGER",
+  "samples": 3961,
+  "fail": 0,
+  "coverage": 1.0,
+  "worst_dev": 0.0,
+  "ghost_verts": 0,
+  "ghost_bbox": null,
+  "examples": []
+ },
+ {
+  "prop": "PROP_ModelTable",
+  "anchor": "C_MODEL",
+  "samples": 2225,
+  "fail": 0,
+  "coverage": 1.0,
+  "worst_dev": 0.0,
+  "ghost_verts": 0,
+  "ghost_bbox": null,
+  "examples": []
+ },
+ {
+  "prop": "PROP_ShuttleStop",
+  "anchor": "C_SHUTTLE",
+  "samples": 2833,
+  "fail": 0,
+  "coverage": 1.0,
+  "worst_dev": 0.0,
+  "ghost_verts": 0,
+  "ghost_bbox": null,
+  "examples": []
+ },
+ {
+  "prop": "PROP_Greenhouse_Sage",
+  "anchor": "W_GH_WALL_S",
+  "samples": 14484,
+  "fail": 0,
+  "coverage": 1.0,
+  "worst_dev": 0.0,
+  "ghost_verts": 0,
+  "ghost_bbox": null,
+  "examples": []
+ },
+ {
+  "prop": "PROP_Greenhouse_Clay",
+  "anchor": "E_GH_WALL_S",
+  "samples": 14257,
+  "fail": 0,
+  "coverage": 1.0,
+  "worst_dev": 0.0,
+  "ghost_verts": 0,
+  "ghost_bbox": null,
+  "examples": []
+ },
+ {
+  "prop": "PROP_Studio_Sage",
+  "anchor": "W_ST_WALL_S",
+  "samples": 16664,
+  "fail": 0,
+  "coverage": 1.0,
+  "worst_dev": 0.0,
+  "ghost_verts": 0,
+  "ghost_bbox": null,
+  "examples": []
+ },
+ {
+  "prop": "PROP_Studio_Clay",
+  "anchor": "E_ST_WALL_S",
+  "samples": 16442,
+  "fail": 0,
+  "coverage": 1.0,
+  "worst_dev": 0.0,
+  "ghost_verts": 0,
+  "ghost_bbox": null,
+  "examples": []
+ },
+ {
+  "prop": "PROP_Shed_Sage",
+  "anchor": "W_SHED",
+  "samples": 5248,
+  "fail": 0,
+  "coverage": 1.0,
+  "worst_dev": 0.0,
+  "ghost_verts": 0,
+  "ghost_bbox": null,
+  "examples": []
+ },
+ {
+  "prop": "PROP_Shed_Clay",
+  "anchor": "E_SHED",
+  "samples": 5248,
+  "fail": 0,
+  "coverage": 1.0,
+  "worst_dev": 0.0,
+  "ghost_verts": 0,
+  "ghost_bbox": null,
+  "examples": []
+ },
+ {
+  "prop": "PROP_SalesOffice",
+  "anchor": "C_OF_WALL_S",
+  "samples": 35076,
+  "fail": 0,
+  "coverage": 1.0,
+  "worst_dev": 0.0,
+  "ghost_verts": 0,
+  "ghost_bbox": null,
+  "examples": []
+ },
+ {
+  "prop": "PROP_ParcelHub",
+  "anchor": "C_HUB",
+  "samples": 7795,
+  "fail": 0,
+  "coverage": 1.0,
+  "worst_dev": 0.0,
+  "ghost_verts": 0,
+  "ghost_bbox": null,
+  "examples": []
+ }
+]

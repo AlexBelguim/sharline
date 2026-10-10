@@ -1,0 +1,21 @@
+{
+ "name": "movement/step_concrete",
+ "seed": 2,
+ "prompt": "summary: Low static close-up of combat boots walking slowly across a concrete pavement on a quiet day.\n\ndetailed_description:\n[Shot 1] Low static close-up of combat boots walking slowly across a concrete pavement on a quiet day. The camera is static and locked-off.\n\noverall_soundscape: Foley recording, close microphone: slow separate footsteps of hard boots on concrete, each step a short gritty scuff and thud with a short gap of silence between steps. Nothing else is heard: no music, no speech, no voices.\n\nnon_diegetic_music: N/A",
+ "settings": {
+  "w": 128,
+  "h": 128,
+  "frames": 124,
+  "steps": 6,
+  "lora": "turbo4",
+  "shift_video": 12.0,
+  "shift_audio": 3.0,
+  "sampler": "res_multistep",
+  "scheduler": "simple",
+  "style": "structured"
+ },
+ "exec_s": 4.665,
+ "wall_s": 4.7,
+ "peak_vram_gib": 15.42,
+ "audio_s": 5.17
+}

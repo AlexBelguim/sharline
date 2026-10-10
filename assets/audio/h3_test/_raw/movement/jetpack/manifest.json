@@ -1,0 +1,28 @@
+{
+ "files": [
+  "0a7a0259_s1.flac",
+  "0a7a0259_s2.flac",
+  "0a7a0259_s3.flac"
+ ],
+ "tag": "0a7a0259",
+ "prompt": "summary: Close-up of a small backpack thruster firing a steady blue flame jet, held in place on a test stand.\n\ndetailed_description:\n[Shot 1] Close-up of a small backpack thruster firing a steady blue flame jet, held in place on a test stand. The camera is static and locked-off.\n\noverall_soundscape: A steady roaring rocket thruster hiss with a rumbling low end, constant and unchanging. Nothing else is heard: no music, no speech, no voices.\n\nnon_diegetic_music: N/A",
+ "settings": {
+  "w": 128,
+  "h": 128,
+  "frames": 107,
+  "steps": 6,
+  "lora": "turbo4",
+  "shift_video": 12.0,
+  "shift_audio": 3.0,
+  "sampler": "res_multistep",
+  "scheduler": "simple",
+  "style": "structured"
+ },
+ "params": {
+  "stereo": false,
+  "loop_len": 1.5,
+  "xfade": 0.25,
+  "join": 1,
+  "kind": "loop_mono"
+ }
+}

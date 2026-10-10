@@ -1,0 +1,32 @@
+{
+ "files": [
+  "59a8ec43_s1.flac",
+  "59a8ec43_s2.flac",
+  "59a8ec43_s3.flac"
+ ],
+ "tag": "59a8ec43",
+ "prompt": "summary: A futuristic heads-up display flashes a small red skull icon once on a dark screen.\n\ndetailed_description:\n[Shot 1] A futuristic heads-up display flashes a small red skull icon once on a dark screen. The camera is static and locked-off.\n\noverall_soundscape: A single short clean electronic confirmation tone, a crisp two-note digital blip, then silence. Nothing else is heard: no music, no speech, no voices.\n\nnon_diegetic_music: N/A",
+ "settings": {
+  "w": 128,
+  "h": 128,
+  "frames": 73,
+  "steps": 6,
+  "lora": "turbo4",
+  "shift_video": 12.0,
+  "shift_audio": 3.0,
+  "sampler": "res_multistep",
+  "scheduler": "simple",
+  "style": "structured"
+ },
+ "params": {
+  "preroll": 0.01,
+  "tail_db": 40,
+  "hold": 0.06,
+  "max_len": 0.6,
+  "min_gap": 0.3,
+  "per_clip": 1,
+  "stereo": false,
+  "attack_max": 0.15,
+  "kind": "oneshot"
+ }
+}

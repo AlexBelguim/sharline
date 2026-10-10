@@ -1,0 +1,21 @@
+{
+ "name": "combat/kill",
+ "seed": 3,
+ "prompt": "summary: A futuristic heads-up display flashes a small red skull icon once on a dark screen.\n\ndetailed_description:\n[Shot 1] A futuristic heads-up display flashes a small red skull icon once on a dark screen. The camera is static and locked-off.\n\noverall_soundscape: A single short clean electronic confirmation tone, a crisp two-note digital blip, then silence. Nothing else is heard: no music, no speech, no voices.\n\nnon_diegetic_music: N/A",
+ "settings": {
+  "w": 128,
+  "h": 128,
+  "frames": 73,
+  "steps": 6,
+  "lora": "turbo4",
+  "shift_video": 12.0,
+  "shift_audio": 3.0,
+  "sampler": "res_multistep",
+  "scheduler": "simple",
+  "style": "structured"
+ },
+ "exec_s": 3.931,
+ "wall_s": 4.1,
+ "peak_vram_gib": 15.59,
+ "audio_s": 3.04
+}

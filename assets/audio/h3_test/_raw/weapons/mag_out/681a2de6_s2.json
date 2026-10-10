@@ -1,0 +1,21 @@
+{
+ "name": "weapons/mag_out",
+ "seed": 2,
+ "prompt": "summary: Close-up of hands on a black rifle on a workbench: the thumb presses the release and the magazine is pulled out of the rifle in one motion.\n\ndetailed_description:\n[Shot 1] Close-up of hands on a black rifle on a workbench: the thumb presses the release and the magazine is pulled out of the rifle in one motion. The camera is static and locked-off.\n\noverall_soundscape: Foley recording, close microphone, isolated sound: a metallic release click and the scrape of a magazine sliding out of the rifle, then silence. Nothing else is heard: no music, no speech, no voices.\n\nnon_diegetic_music: N/A",
+ "settings": {
+  "w": 128,
+  "h": 128,
+  "frames": 73,
+  "steps": 6,
+  "lora": "turbo4",
+  "shift_video": 12.0,
+  "shift_audio": 3.0,
+  "sampler": "res_multistep",
+  "scheduler": "simple",
+  "style": "structured"
+ },
+ "exec_s": 6.645,
+ "wall_s": 6.8,
+ "peak_vram_gib": 15.56,
+ "audio_s": 3.04
+}

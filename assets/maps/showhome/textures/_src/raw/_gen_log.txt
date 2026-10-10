@@ -1,0 +1,64 @@
+GEN printed_concrete 11
+saved F:\git\val etf\assets\maps\showhome\textures\_src\raw\printed_concrete_s11.png (27.9s)
+GEN printed_concrete 12
+saved F:\git\val etf\assets\maps\showhome\textures\_src\raw\printed_concrete_s12.png (21.1s)
+GEN fibercement 11
+saved F:\git\val etf\assets\maps\showhome\textures\_src\raw\fibercement_s11.png (52.6s)
+GEN fibercement 12
+saved F:\git\val etf\assets\maps\showhome\textures\_src\raw\fibercement_s12.png (23.5s)
+GEN roof_slate 11
+saved F:\git\val etf\assets\maps\showhome\textures\_src\raw\roof_slate_s11.png (16.6s)
+GEN roof_slate 12
+saved F:\git\val etf\assets\maps\showhome\textures\_src\raw\roof_slate_s12.png (15.6s)
+GEN asphalt 11
+saved F:\git\val etf\assets\maps\showhome\textures\_src\raw\asphalt_s11.png (25.6s)
+GEN asphalt 12
+saved F:\git\val etf\assets\maps\showhome\textures\_src\raw\asphalt_s12.png (16.6s)
+GEN asphalt_cracked 11
+saved F:\git\val etf\assets\maps\showhome\textures\_src\raw\asphalt_cracked_s11.png (15.2s)
+GEN asphalt_cracked 12
+saved F:\git\val etf\assets\maps\showhome\textures\_src\raw\asphalt_cracked_s12.png (12.1s)
+GEN concrete_smooth 11
+saved F:\git\val etf\assets\maps\showhome\textures\_src\raw\concrete_smooth_s11.png (19.6s)
+GEN concrete_smooth 12
+saved F:\git\val etf\assets\maps\showhome\textures\_src\raw\concrete_smooth_s12.png (45.2s)
+GEN grass 11
+saved F:\git\val etf\assets\maps\showhome\textures\_src\raw\grass_s11.png (22.6s)
+GEN grass 12
+saved F:\git\val etf\assets\maps\showhome\textures\_src\raw\grass_s12.png (52.7s)
+GEN hedge 11
+saved F:\git\val etf\assets\maps\showhome\textures\_src\raw\hedge_s11.png (18.0s)
+GEN hedge 12
+saved F:\git\val etf\assets\maps\showhome\textures\_src\raw\hedge_s12.png (12.1s)
+GEN picket_wood 11
+saved F:\git\val etf\assets\maps\showhome\textures\_src\raw\picket_wood_s11.png (15.1s)
+GEN picket_wood 12
+saved F:\git\val etf\assets\maps\showhome\textures\_src\raw\picket_wood_s12.png (12.3s)
+GEN soil 11
+saved F:\git\val etf\assets\maps\showhome\textures\_src\raw\soil_s11.png (51.3s)
+GEN soil 12
+saved F:\git\val etf\assets\maps\showhome\textures\_src\raw\soil_s12.png (48.2s)
+GEN sand 11
+saved F:\git\val etf\assets\maps\showhome\textures\_src\raw\sand_s11.png (27.1s)
+GEN sand 12
+saved F:\git\val etf\assets\maps\showhome\textures\_src\raw\sand_s12.png (27.1s)
+GEN gravel 11
+saved F:\git\val etf\assets\maps\showhome\textures\_src\raw\gravel_s11.png (61.9s)
+GEN gravel 12
+saved F:\git\val etf\assets\maps\showhome\textures\_src\raw\gravel_s12.png (39.2s)
+GEN cardboard 11
+saved F:\git\val etf\assets\maps\showhome\textures\_src\raw\cardboard_s11.png (19.6s)
+GEN cardboard 12
+saved F:\git\val etf\assets\maps\showhome\textures\_src\raw\cardboard_s12.png (16.6s)
+GEN white_paint 11
+saved F:\git\val etf\assets\maps\showhome\textures\_src\raw\white_paint_s11.png (37.6s)
+GEN white_paint 12
+saved F:\git\val etf\assets\maps\showhome\textures\_src\raw\white_paint_s12.png (15.3s)
+GEN yellow_paint 11
+saved F:\git\val etf\assets\maps\showhome\textures\_src\raw\yellow_paint_s11.png (31.8s)
+GEN yellow_paint 12
+saved F:\git\val etf\assets\maps\showhome\textures\_src\raw\yellow_paint_s12.png (100.0s)
+GEN glass_smudge 11
+saved F:\git\val etf\assets\maps\showhome\textures\_src\raw\glass_smudge_s11.png (45.8s)
+GEN glass_smudge 12
+saved F:\git\val etf\assets\maps\showhome\textures\_src\raw\glass_smudge_s12.png (14.7s)

@@ -1,0 +1,32 @@
+{
+ "files": [
+  "9b8c45f2_s1.flac",
+  "9b8c45f2_s2.flac",
+  "9b8c45f2_s3.flac"
+ ],
+ "tag": "9b8c45f2",
+ "prompt": "summary: A soldier sprints and drops into a fast slide along a concrete floor, then stops.\n\ndetailed_description:\n[Shot 1] A soldier sprints and drops into a fast slide along a concrete floor, then stops. The camera is static and locked-off.\n\noverall_soundscape: Foley recording, close microphone, isolated sound: a one-second rough scraping slide of fabric and boots over concrete that slows down and stops, then silence. Nothing else is heard: no music, no speech, no voices.\n\nnon_diegetic_music: N/A",
+ "settings": {
+  "w": 128,
+  "h": 128,
+  "frames": 73,
+  "steps": 6,
+  "lora": "turbo4",
+  "shift_video": 12.0,
+  "shift_audio": 3.0,
+  "sampler": "res_multistep",
+  "scheduler": "simple",
+  "style": "structured"
+ },
+ "params": {
+  "preroll": 0.01,
+  "tail_db": 35,
+  "hold": 0.06,
+  "max_len": 1.1,
+  "min_gap": 0.3,
+  "per_clip": 1,
+  "stereo": false,
+  "attack_max": 0.25,
+  "kind": "oneshot"
+ }
+}

@@ -1,0 +1,33 @@
+{
+  "old_tilt_deg": 55,
+  "new_max_tilt_deg": 24.22774531795417,
+  "groove_depth_m": 0.009,
+  "half_course_pitch_m": 0.02,
+  "positions_uv_collision_unchanged": true,
+  "records": [
+    {
+      "file": "kit\\houses.blend",
+      "corners": 185844,
+      "meshes": [
+        "SH3_sage_south_Shell_printed",
+        "SH3_sage_north_Shell_printed",
+        "SH3_sage_north_Garage_shell_printed",
+        "SH3_clay_south_Shell_printed",
+        "SH3_clay_north_Shell_printed",
+        "SH3_clay_north_Garage_shell_printed"
+      ]
+    },
+    {
+      "file": "showhome_v3.blend",
+      "corners": 185844,
+      "meshes": [
+        "SH3_sage_south_Shell_printed",
+        "SH3_sage_north_Shell_printed",
+        "SH3_sage_north_Garage_shell_printed",
+        "SH3_clay_south_Shell_printed",
+        "SH3_clay_north_Shell_printed",
+        "SH3_clay_north_Garage_shell_printed"
+      ]
+    }
+  ]
+}

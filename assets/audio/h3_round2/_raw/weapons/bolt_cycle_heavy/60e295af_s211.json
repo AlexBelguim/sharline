@@ -1,0 +1,21 @@
+{
+ "name": "weapons/bolt_cycle_heavy",
+ "seed": 211,
+ "prompt": "summary: Close-up of a gloved hand racking the heavy steel bolt of a sniper rifle once, quickly and firmly, on a shooting bench.\n\ndetailed_description:\n[Shot 1] Close-up of a gloved hand racking the heavy steel bolt of a sniper rifle once, quickly and firmly, on a shooting bench. The camera is static and locked-off.\n\noverall_soundscape: Foley recording, close microphone, isolated sound: a heavy steel rifle bolt cycled once, fast: click, clack-back, clack-forward, and a solid final lock click, all within one second, then silence. Nothing else is heard: no music, no speech, no voices.\n\nnon_diegetic_music: N/A",
+ "settings": {
+  "w": 128,
+  "h": 128,
+  "frames": 73,
+  "steps": 6,
+  "lora": "turbo4",
+  "shift_video": 12.0,
+  "shift_audio": 3.0,
+  "sampler": "res_multistep",
+  "scheduler": "simple",
+  "style": "structured"
+ },
+ "exec_s": 9.09,
+ "wall_s": 9.5,
+ "peak_vram_gib": 15.03,
+ "audio_s": 3.04
+}

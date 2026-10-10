@@ -1,0 +1,154 @@
+{
+ "10m_front": [
+  {
+   "row": "Light T1 torso",
+   "columns_left_to_right": [
+    "Volt",
+    "Bulwark",
+    "Phase",
+    "Mender"
+   ]
+  },
+  {
+   "row": "Light H2 T2",
+   "columns_left_to_right": [
+    "Bulwark",
+    "Mender",
+    "Volt",
+    "Phase"
+   ]
+  },
+  {
+   "row": "Medium H2 T2 L2",
+   "columns_left_to_right": [
+    "Bulwark",
+    "Phase",
+    "Volt",
+    "Mender"
+   ]
+  },
+  {
+   "row": "Heavy H3 T3 A3",
+   "columns_left_to_right": [
+    "Bulwark",
+    "Phase",
+    "Mender",
+    "Volt"
+   ]
+  }
+ ],
+ "10m_side": [
+  {
+   "row": "Light T1 torso",
+   "columns_left_to_right": [
+    "Bulwark",
+    "Phase",
+    "Volt",
+    "Mender"
+   ]
+  },
+  {
+   "row": "Light H2 T2",
+   "columns_left_to_right": [
+    "Phase",
+    "Volt",
+    "Bulwark",
+    "Mender"
+   ]
+  },
+  {
+   "row": "Medium H2 T2 L2",
+   "columns_left_to_right": [
+    "Volt",
+    "Mender",
+    "Phase",
+    "Bulwark"
+   ]
+  },
+  {
+   "row": "Heavy H3 T3 A3",
+   "columns_left_to_right": [
+    "Phase",
+    "Mender",
+    "Volt",
+    "Bulwark"
+   ]
+  }
+ ],
+ "25m_front": [
+  {
+   "row": "Light T1 torso",
+   "columns_left_to_right": [
+    "Bulwark",
+    "Phase",
+    "Volt",
+    "Mender"
+   ]
+  },
+  {
+   "row": "Light H2 T2",
+   "columns_left_to_right": [
+    "Bulwark",
+    "Phase",
+    "Mender",
+    "Volt"
+   ]
+  },
+  {
+   "row": "Medium H2 T2 L2",
+   "columns_left_to_right": [
+    "Bulwark",
+    "Mender",
+    "Volt",
+    "Phase"
+   ]
+  },
+  {
+   "row": "Heavy H3 T3 A3",
+   "columns_left_to_right": [
+    "Mender",
+    "Volt",
+    "Bulwark",
+    "Phase"
+   ]
+  }
+ ],
+ "25m_side": [
+  {
+   "row": "Light T1 torso",
+   "columns_left_to_right": [
+    "Phase",
+    "Mender",
+    "Bulwark",
+    "Volt"
+   ]
+  },
+  {
+   "row": "Light H2 T2",
+   "columns_left_to_right": [
+    "Mender",
+    "Bulwark",
+    "Phase",
+    "Volt"
+   ]
+  },
+  {
+   "row": "Medium H2 T2 L2",
+   "columns_left_to_right": [
+    "Phase",
+    "Bulwark",
+    "Mender",
+    "Volt"
+   ]
+  },
+  {
+   "row": "Heavy H3 T3 A3",
+   "columns_left_to_right": [
+    "Volt",
+    "Phase",
+    "Mender",
+    "Bulwark"
+   ]
+  }
+ ]
+}

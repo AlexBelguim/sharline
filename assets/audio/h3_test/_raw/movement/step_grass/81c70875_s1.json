@@ -1,0 +1,21 @@
+{
+ "name": "movement/step_grass",
+ "seed": 1,
+ "prompt": "summary: Low static close-up of combat boots walking slowly across a short-cut lawn on a quiet day.\n\ndetailed_description:\n[Shot 1] Low static close-up of combat boots walking slowly across a short-cut lawn on a quiet day. The camera is static and locked-off.\n\noverall_soundscape: Foley recording, close microphone: slow separate footsteps on grass, each step a soft swishy crunch with a short gap of silence between steps. Nothing else is heard: no music, no speech, no voices.\n\nnon_diegetic_music: N/A",
+ "settings": {
+  "w": 128,
+  "h": 128,
+  "frames": 124,
+  "steps": 6,
+  "lora": "turbo4",
+  "shift_video": 12.0,
+  "shift_audio": 3.0,
+  "sampler": "res_multistep",
+  "scheduler": "simple",
+  "style": "structured"
+ },
+ "exec_s": 13.232,
+ "wall_s": 13.6,
+ "peak_vram_gib": 15.28,
+ "audio_s": 5.17
+}

@@ -1,0 +1,21 @@
+{
+ "name": "weapons/dry_fire_clack",
+ "seed": 314,
+ "prompt": "summary: Extreme close-up of the trigger and hammer of an empty steel gun; the trigger is pulled hard once and the hammer falls with a snap.\n\ndetailed_description:\n[Shot 1] Extreme close-up of the trigger and hammer of an empty steel gun; the trigger is pulled hard once and the hammer falls with a snap. The camera is static and locked-off.\n\noverall_soundscape: Foley recording, very close microphone, isolated sound: one hard, loud, dry steel clack of a falling hammer, short and crisp, then silence. Nothing else is heard: no music, no speech, no voices.\n\nnon_diegetic_music: N/A",
+ "settings": {
+  "w": 128,
+  "h": 128,
+  "frames": 73,
+  "steps": 6,
+  "lora": "turbo4",
+  "shift_video": 12.0,
+  "shift_audio": 3.0,
+  "sampler": "res_multistep",
+  "scheduler": "simple",
+  "style": "structured"
+ },
+ "exec_s": 3.312,
+ "wall_s": 3.7,
+ "peak_vram_gib": 15.25,
+ "audio_s": 3.04
+}

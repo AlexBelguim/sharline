@@ -1,0 +1,37 @@
+{
+  "native_size": [
+    4096,
+    2048
+  ],
+  "panorama": [
+    4096,
+    2048
+  ],
+  "faces": [
+    1024,
+    1024
+  ],
+  "strip": [
+    1024,
+    6144
+  ],
+  "irradiance_strip": [
+    256,
+    1536
+  ],
+  "face_order": [
+    "px",
+    "nx",
+    "py",
+    "ny",
+    "pz",
+    "nz"
+  ],
+  "horizontal_edge_error": 0,
+  "lower_hemisphere_srgb": [
+    0.66,
+    0.76,
+    0.86
+  ],
+  "seed": 260084
+}

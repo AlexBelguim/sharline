@@ -1,0 +1,21 @@
+{
+ "name": "ambient/showhome_loop",
+ "seed": 3,
+ "prompt": "summary: A wide static shot of an empty sunny suburban street with neat new show homes and trimmed lawns.\n\ndetailed_description:\n[Shot 1] A wide static shot of an empty sunny suburban street with neat new show homes and trimmed lawns. Nobody is around; trees sway a little. The camera is static and locked-off.\n\noverall_soundscape: A calm daytime outdoor ambience: distant birds chirping now and then, a light breeze in the trees, and far-off traffic hum, steady and even. Nothing else is heard: no music, no speech, no voices.\n\nnon_diegetic_music: N/A",
+ "settings": {
+  "w": 128,
+  "h": 128,
+  "frames": 362,
+  "steps": 6,
+  "lora": "turbo4",
+  "shift_video": 12.0,
+  "shift_audio": 3.0,
+  "sampler": "res_multistep",
+  "scheduler": "simple",
+  "style": "structured"
+ },
+ "exec_s": 5.769,
+ "wall_s": 6.1,
+ "peak_vram_gib": 15.57,
+ "audio_s": 15.08
+}

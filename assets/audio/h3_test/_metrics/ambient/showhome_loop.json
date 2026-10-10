@@ -1,0 +1,81 @@
+{
+ "name": "ambient/showhome_loop",
+ "params": {
+  "stereo": true,
+  "loop_len": 24.0,
+  "xfade": 2.0,
+  "join": 2,
+  "kind": "loop"
+ },
+ "prompt": "summary: A wide static shot of an empty sunny suburban street with neat new show homes and trimmed lawns.\n\ndetailed_description:\n[Shot 1] A wide static shot of an empty sunny suburban street with neat new show homes and trimmed lawns. Nobody is around; trees sway a little. The camera is static and locked-off.\n\noverall_soundscape: A calm daytime outdoor ambience: distant birds chirping now and then, a light breeze in the trees, and far-off traffic hum, steady and even. Nothing else is heard: no music, no speech, no voices.\n\nnon_diegetic_music: N/A",
+ "settings": {
+  "w": 128,
+  "h": 128,
+  "frames": 362,
+  "steps": 6,
+  "lora": "turbo4",
+  "shift_video": 12.0,
+  "shift_audio": 3.0,
+  "sampler": "res_multistep",
+  "scheduler": "simple",
+  "style": "structured"
+ },
+ "gen": [
+  {
+   "seed": 1,
+   "exec_s": 10.508,
+   "wall_s": 10.9,
+   "peak_vram_gib": 15.03
+  },
+  {
+   "seed": 2,
+   "exec_s": 6.106,
+   "wall_s": 6.3,
+   "peak_vram_gib": 15.57
+  },
+  {
+   "seed": 3,
+   "exec_s": 5.769,
+   "wall_s": 6.1,
+   "peak_vram_gib": 15.57
+  }
+ ],
+ "outputs": [
+  {
+   "src": "1d9386e3_s1.flac,1d9386e3_s2.flac",
+   "dur_s": 24.0,
+   "floor_db": -41.7,
+   "peak_db": -31.2,
+   "level_p90_p10_db": 6.1,
+   "clip_samples": 0,
+   "tonal_run_s": 0.0,
+   "tonal_run_hz": 0,
+   "flatness": 1.0,
+   "voiced": 0.0,
+   "voiced_frames": 0,
+   "seam_jump": 0.0038,
+   "out": "ambient/showhome_loop_1.ogg",
+   "out_peak_dbfs": -1.0,
+   "out_loudness_db": -15.3,
+   "out_dur_s": 24.0
+  },
+  {
+   "src": "1d9386e3_s3.flac",
+   "dur_s": 12.47,
+   "floor_db": -39.4,
+   "peak_db": -29.6,
+   "level_p90_p10_db": 5.3,
+   "clip_samples": 0,
+   "tonal_run_s": 0.0,
+   "tonal_run_hz": 0,
+   "flatness": 1.0,
+   "voiced": 0.0,
+   "voiced_frames": 0,
+   "seam_jump": 0.0078,
+   "out": "ambient/showhome_loop_2.ogg",
+   "out_peak_dbfs": -1.0,
+   "out_loudness_db": -14.4,
+   "out_dur_s": 12.475
+  }
+ ]
+}

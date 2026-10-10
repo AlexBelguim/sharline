@@ -1,0 +1,37 @@
+{
+  "schema": 1,
+  "map_id": "showhome_v3",
+  "valid": true,
+  "catalog_props": 48,
+  "instances": 371,
+  "player_clips": 5,
+  "spawns": 0,
+  "extracts": 0,
+  "loot_spots": 0,
+  "editable_foliage_volumes": 0,
+  "fixed_collision_volumes": 3592,
+  "prop_collision_volumes": 3515,
+  "foliage_collision_volumes": 0,
+  "pending_proposals": 491,
+  "map_version_sha256": "b98a16562cdcc6e23723ca144bae674b76686fb3cd0efde30f8ba5f924e94f6b",
+  "kit_sha256": "d00740c93406713a00333099ad844b13c082c581b4c89dabb2aed9195532c86d",
+  "placements_sha256": "b7d0d245603c9fd18a5d773a4f7611f99735b7c83053eada2a7d538a7ea5bd23",
+  "warnings": [
+    {
+      "code": "no_spawns",
+      "item_id": null,
+      "message": "User layer has no playable spawn markers yet"
+    },
+    {
+      "code": "pending_proposals",
+      "item_id": null,
+      "message": "491 stable-id proposal changes await user review"
+    }
+  ],
+  "deferred_client_features": [
+    "Client camera/browser/gizmos and play toggle",
+    "Runtime scene/collision loader and penetration integration",
+    "Network join-handshake enforcement",
+    "Autosave scheduler; numerical interval is loaded"
+  ]
+}

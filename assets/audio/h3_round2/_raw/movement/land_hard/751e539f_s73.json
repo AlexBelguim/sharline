@@ -1,0 +1,21 @@
+{
+ "name": "movement/land_hard",
+ "seed": 73,
+ "prompt": "summary: A soldier in full gear jumps down from a low wall and lands hard on both feet on a concrete floor, once.\n\ndetailed_description:\n[Shot 1] A soldier in full gear jumps down from a low wall and lands hard on both feet on a concrete floor, once. The camera is static and locked-off.\n\noverall_soundscape: Foley recording, close microphone, isolated sound: one heavy solid landing thump of two boots hitting concrete at once, a short gritty scuff and a quick rattle of gear and buckles, then silence. No grunt, no voice. Nothing else is heard: no music, no speech, no voices.\n\nnon_diegetic_music: N/A",
+ "settings": {
+  "w": 128,
+  "h": 128,
+  "frames": 73,
+  "steps": 6,
+  "lora": "turbo4",
+  "shift_video": 12.0,
+  "shift_audio": 3.0,
+  "sampler": "res_multistep",
+  "scheduler": "simple",
+  "style": "structured"
+ },
+ "exec_s": 5.222,
+ "wall_s": 5.7,
+ "peak_vram_gib": 15.53,
+ "audio_s": 3.04
+}

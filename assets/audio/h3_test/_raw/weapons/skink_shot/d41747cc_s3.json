@@ -1,0 +1,21 @@
+{
+ "name": "weapons/skink_shot",
+ "seed": 3,
+ "prompt": "summary: A static close-up of a compact black submachine gun on a bench at an indoor shooting range.\n\ndetailed_description:\n[Shot 1] A static close-up of a compact black submachine gun on a bench at an indoor shooting range. It fires exactly one round: one small muzzle flash, then it is still. The camera is static and locked-off.\n\noverall_soundscape: Foley recording, close microphone: one single light snappy submachine gun shot, a fast bright pop with a very short tail, then silence. Nothing else is heard: no music, no speech, no voices.\n\nnon_diegetic_music: N/A",
+ "settings": {
+  "w": 128,
+  "h": 128,
+  "frames": 73,
+  "steps": 6,
+  "lora": "turbo4",
+  "shift_video": 12.0,
+  "shift_audio": 3.0,
+  "sampler": "res_multistep",
+  "scheduler": "simple",
+  "style": "structured"
+ },
+ "exec_s": 3.744,
+ "wall_s": 3.8,
+ "peak_vram_gib": 15.56,
+ "audio_s": 3.04
+}

@@ -1,0 +1,515 @@
+{
+  "triangles": 107502,
+  "rings": {
+    "Near": {
+      "triangles": 69774,
+      "meshes": 6,
+      "bounds": [
+        [
+          -35.07500076293945,
+          -42.512657165527344,
+          -0.36892417073249817
+        ],
+        [
+          108.76367950439453,
+          85.34687042236328,
+          8.420534133911133
+        ]
+      ]
+    },
+    "Mid": {
+      "triangles": 25488,
+      "meshes": 9,
+      "bounds": [
+        [
+          -78.00900268554688,
+          -76.19999694824219,
+          -0.06131792441010475
+        ],
+        [
+          151.8000030517578,
+          125.19999694824219,
+          49.03388214111328
+        ]
+      ]
+    },
+    "Far": {
+      "triangles": 12240,
+      "meshes": 5,
+      "bounds": [
+        [
+          -402.20330810546875,
+          -328.13726806640625,
+          -36.47100830078125
+        ],
+        [
+          471.8795471191406,
+          376.7757568359375,
+          18.694734573364258
+        ]
+      ]
+    }
+  },
+  "materials": [
+    "M_SHB_Printed",
+    "M_SHB_Clad",
+    "M_SHB_Roof",
+    "M_SHB_Solar",
+    "M_SHB_Timber",
+    "M_SHB_Earth",
+    "M_SHB_Foliage",
+    "M_SHB_Metal",
+    "M_SHB_Pave",
+    "M_SHB_Asphalt"
+  ],
+  "material_count": 10,
+  "frame": "design metres X east Y north Z up; glTF=(x,z,-y); roots identity",
+  "violations": [],
+  "all_meshes_uv_and_color_0": true,
+  "all_meshes_single_material": true,
+  "meshes": [
+    {
+      "name": "SHB_Near_PlotsShellsTreesUtilities_clad",
+      "ring": "Near",
+      "triangles": 15024,
+      "material": "M_SHB_Clad",
+      "bounds": [
+        [
+          -35.07500076293945,
+          -33.040000915527344,
+          -0.014999999664723873
+        ],
+        [
+          107.07499694824219,
+          80.04000091552734,
+          7.079999923706055
+        ]
+      ],
+      "min_rect_distance_m": 1.0800018310546875,
+      "uv": true,
+      "color_0": true
+    },
+    {
+      "name": "SHB_Near_PlotsShellsTreesUtilities_earth",
+      "ring": "Near",
+      "triangles": 480,
+      "material": "M_SHB_Earth",
+      "bounds": [
+        [
+          -26.530670166015625,
+          -30.190385818481445,
+          -0.36892417073249817
+        ],
+        [
+          99.19268035888672,
+          73.47205352783203,
+          0.7925127744674683
+        ]
+      ],
+      "min_rect_distance_m": 20.809616088867188,
+      "uv": true,
+      "color_0": true
+    },
+    {
+      "name": "SHB_Near_PlotsShellsTreesUtilities_foliage",
+      "ring": "Near",
+      "triangles": 25680,
+      "material": "M_SHB_Foliage",
+      "bounds": [
+        [
+          -35.03437423706055,
+          -42.512657165527344,
+          -0.011610627174377441
+        ],
+        [
+          108.76367950439453,
+          85.34687042236328,
+          8.420534133911133
+        ]
+      ],
+      "min_rect_distance_m": 14.030726432800293,
+      "uv": true,
+      "color_0": true
+    },
+    {
+      "name": "SHB_Near_PlotsShellsTreesUtilities_metal",
+      "ring": "Near",
+      "triangles": 6450,
+      "material": "M_SHB_Metal",
+      "bounds": [
+        [
+          -28.719999313354492,
+          2.9200000762939453,
+          0.0
+        ],
+        [
+          101.72000122070312,
+          78.08000183105469,
+          6.768845081329346
+        ]
+      ],
+      "min_rect_distance_m": 6.097911834716797,
+      "uv": true,
+      "color_0": true
+    },
+    {
+      "name": "SHB_Near_PlotsShellsTreesUtilities_printed",
+      "ring": "Near",
+      "triangles": 16676,
+      "material": "M_SHB_Printed",
+      "bounds": [
+        [
+          -28.0,
+          -31.610000610351562,
+          0.20000000298023224
+        ],
+        [
+          103.0999984741211,
+          76.0,
+          5.599999904632568
+        ]
+      ],
+      "min_rect_distance_m": 15.899999618530273,
+      "uv": true,
+      "color_0": true
+    },
+    {
+      "name": "SHB_Near_PlotsShellsTreesUtilities_timber",
+      "ring": "Near",
+      "triangles": 5464,
+      "material": "M_SHB_Timber",
+      "bounds": [
+        [
+          -33.539703369140625,
+          -40.633480072021484,
+          0.0
+        ],
+        [
+          107.25685119628906,
+          84.29019165039062,
+          5.599999904632568
+        ]
+      ],
+      "min_rect_distance_m": 15.600170135498047,
+      "uv": true,
+      "color_0": true
+    },
+    {
+      "name": "SHB_Mid_SuburbCraneRoad_asphalt",
+      "ring": "Mid",
+      "triangles": 24,
+      "material": "M_SHB_Asphalt",
+      "bounds": [
+        [
+          -78.0,
+          -74.0,
+          -0.017999999225139618
+        ],
+        [
+          151.0,
+          123.0,
+          0.0
+        ]
+      ],
+      "min_rect_distance_m": 102.17631819555841,
+      "uv": true,
+      "color_0": true
+    },
+    {
+      "name": "SHB_Mid_SuburbCraneRoad_clad",
+      "ring": "Mid",
+      "triangles": 12296,
+      "material": "M_SHB_Clad",
+      "bounds": [
+        [
+          -78.00900268554688,
+          -74.22000122070312,
+          -0.06131792441010475
+        ],
+        [
+          151.8000030517578,
+          123.22000122070312,
+          49.0
+        ]
+      ],
+      "min_rect_distance_m": 38.94343185424805,
+      "uv": true,
+      "color_0": true
+    },
+    {
+      "name": "SHB_Mid_SuburbCraneRoad_foliage",
+      "ring": "Mid",
+      "triangles": 3840,
+      "material": "M_SHB_Foliage",
+      "bounds": [
+        [
+          -58.49213409423828,
+          -60.541717529296875,
+          0.3451364040374756
+        ],
+        [
+          139.1874542236328,
+          114.22281646728516,
+          9.158154487609863
+        ]
+      ],
+      "min_rect_distance_m": 51.85404586791992,
+      "uv": true,
+      "color_0": true
+    },
+    {
+      "name": "SHB_Mid_SuburbCraneRoad_metal",
+      "ring": "Mid",
+      "triangles": 3584,
+      "material": "M_SHB_Metal",
+      "bounds": [
+        [
+          -58.619998931884766,
+          -47.61109161376953,
+          0.37468305230140686
+        ],
+        [
+          143.6199951171875,
+          121.60000610351562,
+          49.03388214111328
+        ]
+      ],
+      "min_rect_distance_m": 39.38890838623047,
+      "uv": true,
+      "color_0": true
+    },
+    {
+      "name": "SHB_Mid_SuburbCraneRoad_pave",
+      "ring": "Mid",
+      "triangles": 96,
+      "material": "M_SHB_Pave",
+      "bounds": [
+        [
+          -78.0,
+          -76.19999694824219,
+          -0.007000000216066837
+        ],
+        [
+          151.0,
+          125.19999694824219,
+          0.11999999731779099
+        ]
+      ],
+      "min_rect_distance_m": 100.76924085577367,
+      "uv": true,
+      "color_0": true
+    },
+    {
+      "name": "SHB_Mid_SuburbCraneRoad_printed",
+      "ring": "Mid",
+      "triangles": 2088,
+      "material": "M_SHB_Printed",
+      "bounds": [
+        [
+          -62.0,
+          -48.0,
+          0.1599999964237213
+        ],
+        [
+          141.0,
+          107.0,
+          4.849999904632568
+        ]
+      ],
+      "min_rect_distance_m": 39.0,
+      "uv": true,
+      "color_0": true
+    },
+    {
+      "name": "SHB_Mid_SuburbCraneRoad_roof",
+      "ring": "Mid",
+      "triangles": 1624,
+      "material": "M_SHB_Roof",
+      "bounds": [
+        [
+          -58.04999923706055,
+          -48.00707244873047,
+          5.457070827484131
+        ],
+        [
+          141.0500030517578,
+          107.00707244873047,
+          10.041999816894531
+        ]
+      ],
+      "min_rect_distance_m": 38.99292755126953,
+      "uv": true,
+      "color_0": true
+    },
+    {
+      "name": "SHB_Mid_SuburbCraneRoad_solar",
+      "ring": "Mid",
+      "triangles": 448,
+      "material": "M_SHB_Solar",
+      "bounds": [
+        [
+          -57.45000076293945,
+          -47.61109161376953,
+          5.980329990386963
+        ],
+        [
+          140.13999938964844,
+          106.61109161376953,
+          7.96022891998291
+        ]
+      ],
+      "min_rect_distance_m": 39.38890838623047,
+      "uv": true,
+      "color_0": true
+    },
+    {
+      "name": "SHB_Mid_SuburbCraneRoad_timber",
+      "ring": "Mid",
+      "triangles": 1488,
+      "material": "M_SHB_Timber",
+      "bounds": [
+        [
+          -62.027889251708984,
+          -59.15999984741211,
+          0.029999971389770508
+        ],
+        [
+          137.66787719726562,
+          112.8012924194336,
+          7.458713531494141
+        ]
+      ],
+      "min_rect_distance_m": 44.95001258054498,
+      "uv": true,
+      "color_0": true
+    },
+    {
+      "name": "SHB_Far_TreelineHillsTown_clad",
+      "ring": "Far",
+      "triangles": 960,
+      "material": "M_SHB_Clad",
+      "bounds": [
+        [
+          -190.0,
+          265.0,
+          0.0
+        ],
+        [
+          327.8999938964844,
+          300.0718688964844,
+          9.5
+        ]
+      ],
+      "min_rect_distance_m": 217.0,
+      "uv": true,
+      "color_0": true
+    },
+    {
+      "name": "SHB_Far_TreelineHillsTown_earth",
+      "ring": "Far",
+      "triangles": 4480,
+      "material": "M_SHB_Earth",
+      "bounds": [
+        [
+          -402.20330810546875,
+          -328.13726806640625,
+          -36.47100830078125
+        ],
+        [
+          471.8795471191406,
+          376.7757568359375,
+          18.694734573364258
+        ]
+      ],
+      "min_rect_distance_m": 187.71850129227923,
+      "uv": true,
+      "color_0": true
+    },
+    {
+      "name": "SHB_Far_TreelineHillsTown_foliage",
+      "ring": "Far",
+      "triangles": 3600,
+      "material": "M_SHB_Foliage",
+      "bounds": [
+        [
+          -260.1555480957031,
+          -212.6227569580078,
+          1.5239038467407227
+        ],
+        [
+          327.4315490722656,
+          260.9915771484375,
+          14.06386947631836
+        ]
+      ],
+      "min_rect_distance_m": 160.64625700761565,
+      "uv": true,
+      "color_0": true
+    },
+    {
+      "name": "SHB_Far_TreelineHillsTown_roof",
+      "ring": "Far",
+      "triangles": 320,
+      "material": "M_SHB_Roof",
+      "bounds": [
+        [
+          -190.0,
+          265.0,
+          4.0
+        ],
+        [
+          327.8999938964844,
+          300.0718688964844,
+          11.5
+        ]
+      ],
+      "min_rect_distance_m": 217.0,
+      "uv": true,
+      "color_0": true
+    },
+    {
+      "name": "SHB_Far_TreelineHillsTown_timber",
+      "ring": "Far",
+      "triangles": 2880,
+      "material": "M_SHB_Timber",
+      "bounds": [
+        [
+          -258.1902160644531,
+          -210.07334899902344,
+          -0.019999980926513672
+        ],
+        [
+          323.765625,
+          258.111572265625,
+          4.716000080108643
+        ]
+      ],
+      "min_rect_distance_m": 162.88009008869713,
+      "uv": true,
+      "color_0": true
+    }
+  ],
+  "utility_endpoints": [
+    [
+      25,
+      54.1,
+      6.3
+    ],
+    [
+      47,
+      54.1,
+      6.3
+    ]
+  ],
+  "existing_skirt_bounds": [
+    [
+      -80,
+      -60
+    ],
+    [
+      152,
+      110
+    ]
+  ],
+  "no_collision": true
+}

@@ -1,0 +1,21 @@
+{
+ "name": "weapons/dry_fire",
+ "seed": 2,
+ "prompt": "summary: Extreme close-up of a finger squeezing the trigger of an empty black rifle on a workbench.\n\ndetailed_description:\n[Shot 1] Extreme close-up of a finger squeezing the trigger of an empty black rifle on a workbench. Nothing fires. The camera is static and locked-off.\n\noverall_soundscape: Foley recording, close microphone, isolated sound: one single small dry metallic trigger click, then silence. Nothing else is heard: no music, no speech, no voices.\n\nnon_diegetic_music: N/A",
+ "settings": {
+  "w": 128,
+  "h": 128,
+  "frames": 73,
+  "steps": 6,
+  "lora": "turbo4",
+  "shift_video": 12.0,
+  "shift_audio": 3.0,
+  "sampler": "res_multistep",
+  "scheduler": "simple",
+  "style": "structured"
+ },
+ "exec_s": 9.827,
+ "wall_s": 10.3,
+ "peak_vram_gib": 15.06,
+ "audio_s": 3.04
+}

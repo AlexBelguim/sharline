@@ -1,0 +1,645 @@
+{
+ "tiles": [
+  {
+   "path": "F:/git/val etf/assets/maps/showhome\\kit\\renders\\props\\tile_MoverTruck.png",
+   "name": "MoverTruck",
+   "cat": "matched",
+   "tris": 11676,
+   "size": [
+    2.51,
+    10.52,
+    3.2
+   ]
+  },
+  {
+   "path": "F:/git/val etf/assets/maps/showhome\\kit\\renders\\props\\tile_KerbPod.png",
+   "name": "KerbPod",
+   "cat": "matched",
+   "tris": 6752,
+   "size": [
+    2.02,
+    3.61,
+    2.2
+   ]
+  },
+  {
+   "path": "F:/git/val etf/assets/maps/showhome\\kit\\renders\\props\\tile_Box_S.png",
+   "name": "Box_S",
+   "cat": "detail",
+   "tris": 144,
+   "size": [
+    0.4,
+    0.3,
+    0.3
+   ]
+  },
+  {
+   "path": "F:/git/val etf/assets/maps/showhome\\kit\\renders\\props\\tile_Box_M.png",
+   "name": "Box_M",
+   "cat": "detail",
+   "tris": 144,
+   "size": [
+    0.6,
+    0.4,
+    0.42
+   ]
+  },
+  {
+   "path": "F:/git/val etf/assets/maps/showhome\\kit\\renders\\props\\tile_Box_L.png",
+   "name": "Box_L",
+   "cat": "detail",
+   "tris": 144,
+   "size": [
+    0.8,
+    0.55,
+    0.55
+   ]
+  },
+  {
+   "path": "F:/git/val etf/assets/maps/showhome\\kit\\renders\\props\\tile_Box_M_Open.png",
+   "name": "Box_M_Open",
+   "cat": "detail",
+   "tris": 88,
+   "size": [
+    0.84,
+    0.74,
+    0.57
+   ]
+  },
+  {
+   "path": "F:/git/val etf/assets/maps/showhome\\kit\\renders\\props\\tile_BoxStack_1m.png",
+   "name": "BoxStack_1m",
+   "cat": "matched",
+   "tris": 476,
+   "size": [
+    1.01,
+    1.0,
+    1.0
+   ]
+  },
+  {
+   "path": "F:/git/val etf/assets/maps/showhome\\kit\\renders\\props\\tile_Crate_Wood_1m.png",
+   "name": "Crate_Wood_1m",
+   "cat": "matched",
+   "tris": 2148,
+   "size": [
+    1.0,
+    1.0,
+    1.0
+   ]
+  },
+  {
+   "path": "F:/git/val etf/assets/maps/showhome\\kit\\renders\\props\\tile_Armchair.png",
+   "name": "Armchair",
+   "cat": "matched",
+   "tris": 880,
+   "size": [
+    1.2,
+    1.2,
+    0.8
+   ]
+  },
+  {
+   "path": "F:/git/val etf/assets/maps/showhome\\kit\\renders\\props\\tile_Sofa.png",
+   "name": "Sofa",
+   "cat": "matched",
+   "tris": 1024,
+   "size": [
+    2.5,
+    0.9,
+    0.8
+   ]
+  },
+  {
+   "path": "F:/git/val etf/assets/maps/showhome\\kit\\renders\\props\\tile_Fence_Run_S.png",
+   "name": "Fence_Run_S",
+   "cat": "matched",
+   "tris": 9744,
+   "size": [
+    0.3,
+    10.6,
+    1.2
+   ]
+  },
+  {
+   "path": "F:/git/val etf/assets/maps/showhome\\kit\\renders\\props\\tile_Fence_Run_N.png",
+   "name": "Fence_Run_N",
+   "cat": "matched",
+   "tris": 4644,
+   "size": [
+    0.3,
+    5.0,
+    1.2
+   ]
+  },
+  {
+   "path": "F:/git/val etf/assets/maps/showhome\\kit\\renders\\props\\tile_Fence_Picket_2m.png",
+   "name": "Fence_Picket_2m",
+   "cat": "free",
+   "tris": 1916,
+   "size": [
+    0.3,
+    2.0,
+    1.2
+   ]
+  },
+  {
+   "path": "F:/git/val etf/assets/maps/showhome\\kit\\renders\\props\\tile_Fence_Picket_1m.png",
+   "name": "Fence_Picket_1m",
+   "cat": "free",
+   "tris": 1020,
+   "size": [
+    0.3,
+    1.0,
+    1.2
+   ]
+  },
+  {
+   "path": "F:/git/val etf/assets/maps/showhome\\kit\\renders\\props\\tile_Fence_Gate_1m.png",
+   "name": "Fence_Gate_1m",
+   "cat": "free",
+   "tris": 688,
+   "size": [
+    0.06,
+    0.95,
+    1.06
+   ]
+  },
+  {
+   "path": "F:/git/val etf/assets/maps/showhome\\kit\\renders\\props\\tile_Fence_Post.png",
+   "name": "Fence_Post",
+   "cat": "free",
+   "tris": 152,
+   "size": [
+    0.3,
+    0.14,
+    1.2
+   ]
+  },
+  {
+   "path": "F:/git/val etf/assets/maps/showhome\\kit\\renders\\props\\tile_Hedge_Boundary.png",
+   "name": "Hedge_Boundary",
+   "cat": "matched",
+   "tris": 8540,
+   "size": [
+    0.99,
+    45.99,
+    2.99
+   ]
+  },
+  {
+   "path": "F:/git/val etf/assets/maps/showhome\\kit\\renders\\props\\tile_Hedge_Lawn.png",
+   "name": "Hedge_Lawn",
+   "cat": "matched",
+   "tris": 1300,
+   "size": [
+    5.19,
+    0.79,
+    1.99
+   ]
+  },
+  {
+   "path": "F:/git/val etf/assets/maps/showhome\\kit\\renders\\props\\tile_Hedge_Block_2m.png",
+   "name": "Hedge_Block_2m",
+   "cat": "free",
+   "tris": 620,
+   "size": [
+    1.99,
+    0.79,
+    1.19
+   ]
+  },
+  {
+   "path": "F:/git/val etf/assets/maps/showhome\\kit\\renders\\props\\tile_Hedge_Block_4m_Tall.png",
+   "name": "Hedge_Block_4m_Tall",
+   "cat": "free",
+   "tris": 1200,
+   "size": [
+    3.99,
+    0.99,
+    2.39
+   ]
+  },
+  {
+   "path": "F:/git/val etf/assets/maps/showhome\\kit\\renders\\props\\tile_Arbour.png",
+   "name": "Arbour",
+   "cat": "matched",
+   "tris": 5668,
+   "size": [
+    3.03,
+    6.02,
+    2.41
+   ]
+  },
+  {
+   "path": "F:/git/val etf/assets/maps/showhome\\kit\\renders\\props\\tile_Pylon.png",
+   "name": "Pylon",
+   "cat": "matched",
+   "tris": 2004,
+   "size": [
+    2.0,
+    2.0,
+    6.6
+   ]
+  },
+  {
+   "path": "F:/git/val etf/assets/maps/showhome\\kit\\renders\\props\\tile_Zipline_Cable.png",
+   "name": "Zipline_Cable",
+   "cat": "matched",
+   "tris": 780,
+   "size": [
+    21.61,
+    0.04,
+    0.84
+   ]
+  },
+  {
+   "path": "F:/git/val etf/assets/maps/showhome\\kit\\renders\\props\\tile_Wire_Span_20m.png",
+   "name": "Wire_Span_20m",
+   "cat": "free",
+   "tris": 488,
+   "size": [
+    20.0,
+    0.03,
+    0.58
+   ]
+  },
+  {
+   "path": "F:/git/val etf/assets/maps/showhome\\kit\\renders\\props\\tile_HotTub.png",
+   "name": "HotTub",
+   "cat": "matched",
+   "tris": 284,
+   "size": [
+    2.5,
+    2.5,
+    1.0
+   ]
+  },
+  {
+   "path": "F:/git/val etf/assets/maps/showhome\\kit\\renders\\props\\tile_OutdoorKitchen.png",
+   "name": "OutdoorKitchen",
+   "cat": "matched",
+   "tris": 972,
+   "size": [
+    3.0,
+    1.02,
+    2.2
+   ]
+  },
+  {
+   "path": "F:/git/val etf/assets/maps/showhome\\kit\\renders\\props\\tile_KitchenIsland.png",
+   "name": "KitchenIsland",
+   "cat": "matched",
+   "tris": 324,
+   "size": [
+    2.01,
+    2.5,
+    1.0
+   ]
+  },
+  {
+   "path": "F:/git/val etf/assets/maps/showhome\\kit\\renders\\props\\tile_Workbench.png",
+   "name": "Workbench",
+   "cat": "matched",
+   "tris": 324,
+   "size": [
+    0.71,
+    4.0,
+    1.0
+   ]
+  },
+  {
+   "path": "F:/git/val etf/assets/maps/showhome\\kit\\renders\\props\\tile_Dresser.png",
+   "name": "Dresser",
+   "cat": "matched",
+   "tris": 652,
+   "size": [
+    0.62,
+    2.0,
+    1.2
+   ]
+  },
+  {
+   "path": "F:/git/val etf/assets/maps/showhome\\kit\\renders\\props\\tile_Shelving.png",
+   "name": "Shelving",
+   "cat": "matched",
+   "tris": 2744,
+   "size": [
+    4.01,
+    0.56,
+    2.2
+   ]
+  },
+  {
+   "path": "F:/git/val etf/assets/maps/showhome\\kit\\renders\\props\\tile_HeatPump.png",
+   "name": "HeatPump",
+   "cat": "matched",
+   "tris": 952,
+   "size": [
+    2.0,
+    1.02,
+    1.2
+   ]
+  },
+  {
+   "path": "F:/git/val etf/assets/maps/showhome\\kit\\renders\\props\\tile_GarageCar.png",
+   "name": "GarageCar",
+   "cat": "matched",
+   "tris": 1028,
+   "size": [
+    1.93,
+    4.41,
+    1.5
+   ]
+  },
+  {
+   "path": "F:/git/val etf/assets/maps/showhome\\kit\\renders\\props\\tile_RainTank.png",
+   "name": "RainTank",
+   "cat": "matched",
+   "tris": 808,
+   "size": [
+    3.21,
+    3.22,
+    2.81
+   ]
+  },
+  {
+   "path": "F:/git/val etf/assets/maps/showhome\\kit\\renders\\props\\tile_BinStore.png",
+   "name": "BinStore",
+   "cat": "matched",
+   "tris": 388,
+   "size": [
+    3.02,
+    6.0,
+    2.2
+   ]
+  },
+  {
+   "path": "F:/git/val etf/assets/maps/showhome\\kit\\renders\\props\\tile_ParcelLockers.png",
+   "name": "ParcelLockers",
+   "cat": "matched",
+   "tris": 3812,
+   "size": [
+    2.02,
+    8.0,
+    2.2
+   ]
+  },
+  {
+   "path": "F:/git/val etf/assets/maps/showhome\\kit\\renders\\props\\tile_ChargerIsland.png",
+   "name": "ChargerIsland",
+   "cat": "matched",
+   "tris": 1192,
+   "size": [
+    2.03,
+    4.0,
+    2.4
+   ]
+  },
+  {
+   "path": "F:/git/val etf/assets/maps/showhome\\kit\\renders\\props\\tile_ModelTable.png",
+   "name": "ModelTable",
+   "cat": "matched",
+   "tris": 316,
+   "size": [
+    4.0,
+    2.0,
+    1.01
+   ]
+  },
+  {
+   "path": "F:/git/val etf/assets/maps/showhome\\kit\\renders\\props\\tile_ShuttleStop.png",
+   "name": "ShuttleStop",
+   "cat": "matched",
+   "tris": 276,
+   "size": [
+    4.0,
+    2.02,
+    2.6
+   ]
+  },
+  {
+   "path": "F:/git/val etf/assets/maps/showhome\\kit\\renders\\props\\tile_Pallet.png",
+   "name": "Pallet",
+   "cat": "free",
+   "tris": 352,
+   "size": [
+    1.2,
+    0.8,
+    0.17
+   ]
+  },
+  {
+   "path": "F:/git/val etf/assets/maps/showhome\\kit\\renders\\props\\tile_PrintedBlockStack.png",
+   "name": "PrintedBlockStack",
+   "cat": "free",
+   "tris": 3592,
+   "size": [
+    1.2,
+    0.8,
+    0.97
+   ]
+  },
+  {
+   "path": "F:/git/val etf/assets/maps/showhome\\kit\\renders\\props\\tile_RebarBundle.png",
+   "name": "RebarBundle",
+   "cat": "free",
+   "tris": 664,
+   "size": [
+    6.0,
+    0.65,
+    0.35
+   ]
+  },
+  {
+   "path": "F:/git/val etf/assets/maps/showhome\\kit\\renders\\props\\tile_CementBag.png",
+   "name": "CementBag",
+   "cat": "free",
+   "tris": 284,
+   "size": [
+    0.62,
+    0.36,
+    0.16
+   ]
+  },
+  {
+   "path": "F:/git/val etf/assets/maps/showhome\\kit\\renders\\props\\tile_CementBagPallet.png",
+   "name": "CementBagPallet",
+   "cat": "free",
+   "tris": 4896,
+   "size": [
+    1.2,
+    0.8,
+    0.78
+   ]
+  },
+  {
+   "path": "F:/git/val etf/assets/maps/showhome\\kit\\renders\\props\\tile_TrafficCone.png",
+   "name": "TrafficCone",
+   "cat": "free",
+   "tris": 264,
+   "size": [
+    0.48,
+    0.48,
+    0.75
+   ]
+  },
+  {
+   "path": "F:/git/val etf/assets/maps/showhome\\kit\\renders\\props\\tile_PlasticBarrier.png",
+   "name": "PlasticBarrier",
+   "cat": "free",
+   "tris": 544,
+   "size": [
+    2.0,
+    0.76,
+    0.98
+   ]
+  },
+  {
+   "path": "F:/git/val etf/assets/maps/showhome\\kit\\renders\\props\\tile_Rock_Low.png",
+   "name": "Rock_Low",
+   "cat": "free",
+   "tris": 20,
+   "size": [
+    1.19,
+    0.88,
+    0.55
+   ]
+  },
+  {
+   "path": "F:/git/val etf/assets/maps/showhome\\kit\\renders\\props\\tile_Rock_Tall.png",
+   "name": "Rock_Tall",
+   "cat": "free",
+   "tris": 20,
+   "size": [
+    0.77,
+    0.84,
+    0.82
+   ]
+  },
+  {
+   "path": "F:/git/val etf/assets/maps/showhome\\kit\\renders\\props\\tile_PebbleCluster.png",
+   "name": "PebbleCluster",
+   "cat": "free",
+   "tris": 180,
+   "size": [
+    0.81,
+    0.46,
+    0.11
+   ]
+  },
+  {
+   "path": "F:/git/val etf/assets/maps/showhome\\kit\\renders\\props\\tile_DirtMound.png",
+   "name": "DirtMound",
+   "cat": "free",
+   "tris": 80,
+   "size": [
+    2.47,
+    1.62,
+    0.5
+   ]
+  },
+  {
+   "path": "F:/git/val etf/assets/maps/showhome\\kit\\renders\\props\\tile_SandMound.png",
+   "name": "SandMound",
+   "cat": "free",
+   "tris": 80,
+   "size": [
+    2.48,
+    2.51,
+    0.65
+   ]
+  },
+  {
+   "path": "F:/git/val etf/assets/maps/showhome\\kit\\renders\\props\\tile_Greenhouse_Sage.png",
+   "name": "Greenhouse_Sage",
+   "cat": "matched",
+   "tris": 1840,
+   "size": [
+    5.71,
+    4.21,
+    2.8
+   ]
+  },
+  {
+   "path": "F:/git/val etf/assets/maps/showhome\\kit\\renders\\props\\tile_Greenhouse_Clay.png",
+   "name": "Greenhouse_Clay",
+   "cat": "matched",
+   "tris": 1840,
+   "size": [
+    5.71,
+    4.21,
+    2.8
+   ]
+  },
+  {
+   "path": "F:/git/val etf/assets/maps/showhome\\kit\\renders\\props\\tile_Studio_Sage.png",
+   "name": "Studio_Sage",
+   "cat": "matched",
+   "tris": 23644,
+   "size": [
+    6.21,
+    5.21,
+    2.8
+   ]
+  },
+  {
+   "path": "F:/git/val etf/assets/maps/showhome\\kit\\renders\\props\\tile_Studio_Clay.png",
+   "name": "Studio_Clay",
+   "cat": "matched",
+   "tris": 23644,
+   "size": [
+    6.21,
+    5.21,
+    2.8
+   ]
+  },
+  {
+   "path": "F:/git/val etf/assets/maps/showhome\\kit\\renders\\props\\tile_Shed_Sage.png",
+   "name": "Shed_Sage",
+   "cat": "matched",
+   "tris": 500,
+   "size": [
+    4.0,
+    4.0,
+    2.6
+   ]
+  },
+  {
+   "path": "F:/git/val etf/assets/maps/showhome\\kit\\renders\\props\\tile_Shed_Clay.png",
+   "name": "Shed_Clay",
+   "cat": "matched",
+   "tris": 500,
+   "size": [
+    4.0,
+    4.0,
+    2.6
+   ]
+  },
+  {
+   "path": "F:/git/val etf/assets/maps/showhome\\kit\\renders\\props\\tile_SalesOffice.png",
+   "name": "SalesOffice",
+   "cat": "matched",
+   "tris": 33104,
+   "size": [
+    12.26,
+    7.26,
+    3.0
+   ]
+  },
+  {
+   "path": "F:/git/val etf/assets/maps/showhome\\kit\\renders\\props\\tile_ParcelHub.png",
+   "name": "ParcelHub",
+   "cat": "matched",
+   "tris": 3536,
+   "size": [
+    4.0,
+    5.0,
+    3.0
+   ]
+  }
+ ],
+ "out": "F:/git/val etf/assets/maps/showhome\\kit\\renders\\props\\props_contact_sheet.png",
+ "cols": 8,
+ "tw": 300
+}

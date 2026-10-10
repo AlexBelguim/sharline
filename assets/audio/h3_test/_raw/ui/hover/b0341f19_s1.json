@@ -1,0 +1,21 @@
+{
+ "name": "ui/hover",
+ "seed": 1,
+ "prompt": "summary: A cursor glides over a button on a sleek futuristic menu screen, once.\n\ndetailed_description:\n[Shot 1] A cursor glides over a button on a sleek futuristic menu screen, once. The camera is static and locked-off.\n\noverall_soundscape: A single very short soft digital tick, then silence. Nothing else is heard: no music, no speech, no voices.\n\nnon_diegetic_music: N/A",
+ "settings": {
+  "w": 128,
+  "h": 128,
+  "frames": 73,
+  "steps": 6,
+  "lora": "turbo4",
+  "shift_video": 12.0,
+  "shift_audio": 3.0,
+  "sampler": "res_multistep",
+  "scheduler": "simple",
+  "style": "structured"
+ },
+ "exec_s": 8.721,
+ "wall_s": 9.1,
+ "peak_vram_gib": 15.08,
+ "audio_s": 3.04
+}

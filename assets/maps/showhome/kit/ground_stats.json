@@ -1,0 +1,178 @@
+{
+  "triangles": 370702,
+  "objects": 25,
+  "meshes": [
+    {
+      "name": "GND_Ground",
+      "triangles": 107168
+    },
+    {
+      "name": "GND_Skirt",
+      "triangles": 139622
+    },
+    {
+      "name": "GND_Overlays",
+      "triangles": 8048
+    },
+    {
+      "name": "GND_FarPlane",
+      "triangles": 8
+    },
+    {
+      "name": "GND_GardenWalls",
+      "triangles": 4104
+    },
+    {
+      "name": "GND_BoundaryWall_S",
+      "triangles": 4212
+    },
+    {
+      "name": "GND_AcousticFence_N",
+      "triangles": 6804
+    },
+    {
+      "name": "GND_LawnPlanters",
+      "triangles": 4384
+    },
+    {
+      "name": "GND_VegBeds",
+      "triangles": 6592
+    },
+    {
+      "name": "PROP_MoverTruck__C_MOVER_BOX",
+      "triangles": 11676
+    },
+    {
+      "name": "PROP_KerbPod__W_KERBPOD",
+      "triangles": 6752
+    },
+    {
+      "name": "PROP_KerbPod__E_KERBPOD",
+      "triangles": 6752
+    },
+    {
+      "name": "PROP_Fence_Run_S__W_FENCE_FS",
+      "triangles": 9744
+    },
+    {
+      "name": "PROP_Fence_Run_S__E_FENCE_FS",
+      "triangles": 9744
+    },
+    {
+      "name": "PROP_Fence_Run_N__W_FENCE_FN",
+      "triangles": 4644
+    },
+    {
+      "name": "PROP_Fence_Run_N__E_FENCE_FN",
+      "triangles": 4644
+    },
+    {
+      "name": "PROP_Hedge_Boundary__W_HEDGE",
+      "triangles": 8540
+    },
+    {
+      "name": "PROP_Hedge_Boundary__E_HEDGE",
+      "triangles": 8540
+    },
+    {
+      "name": "PROP_Hedge_Lawn__W_HEDGE_LAWN",
+      "triangles": 1300
+    },
+    {
+      "name": "PROP_Hedge_Lawn__E_HEDGE_LAWN",
+      "triangles": 1300
+    },
+    {
+      "name": "PROP_Arbour__W_ARBOUR",
+      "triangles": 5668
+    },
+    {
+      "name": "PROP_Arbour__E_ARBOUR",
+      "triangles": 5668
+    },
+    {
+      "name": "PROP_Pylon__W_PYLON_MAST",
+      "triangles": 2004
+    },
+    {
+      "name": "PROP_Pylon__E_PYLON_MAST",
+      "triangles": 2004
+    },
+    {
+      "name": "PROP_Zipline_Cable__ZIPLINE",
+      "triangles": 780
+    }
+  ],
+  "materials": [
+    "M_AluTrim",
+    "M_Amber",
+    "M_ArchLiner",
+    "M_BoxDark",
+    "M_BoxFace",
+    "M_Bumper",
+    "M_CabinetWhite",
+    "M_Cable",
+    "M_Chassis",
+    "M_Concrete",
+    "M_Crop",
+    "M_CropDark",
+    "M_DecalAccent",
+    "M_DecalDark",
+    "M_Flower",
+    "M_FlowerWhite",
+    "M_GND_AsphaltOld__HeightPreview",
+    "M_GND_Asphalt__HeightPreview",
+    "M_GND_CladClay",
+    "M_GND_CladSage",
+    "M_GND_Concrete__HeightPreview",
+    "M_GND_Coping",
+    "M_GND_Edging__HeightPreview",
+    "M_GND_GrassFar__HeightPreview",
+    "M_GND_Grass__HeightPreview",
+    "M_GND_Gravel__HeightPreview",
+    "M_GND_Gully",
+    "M_GND_Inspection",
+    "M_GND_Kerb__HeightPreview",
+    "M_GND_LineWhite",
+    "M_GND_LineYellow",
+    "M_GND_Manhole",
+    "M_GND_Mulch__HeightPreview",
+    "M_GND_PaintClay",
+    "M_GND_PaintSage",
+    "M_GND_PavingClay__HeightPreview",
+    "M_GND_PavingSage__HeightPreview",
+    "M_GND_Paving__HeightPreview",
+    "M_GND_Pilaster",
+    "M_GND_Plinth",
+    "M_GND_Sand__HeightPreview",
+    "M_GND_SoilFar__HeightPreview",
+    "M_GND_Soil__HeightPreview",
+    "M_GND_SteelEdging__HeightPreview",
+    "M_GND_TimberDark",
+    "M_GND_WallPrinted",
+    "M_GlassDark",
+    "M_Grating",
+    "M_HeadLight",
+    "M_Hedge",
+    "M_Insulator",
+    "M_LedIce",
+    "M_Picket",
+    "M_PicketBack",
+    "M_Plate",
+    "M_PoleConcrete",
+    "M_Rim",
+    "M_Rubber",
+    "M_SafetyYellow",
+    "M_Soil",
+    "M_SteelDark",
+    "M_SteelGalv",
+    "M_TailLight",
+    "M_Timber",
+    "M_TruckWhite",
+    "M_Tyre",
+    "M_Vine",
+    "M_WoodStained",
+    "M_WoodStainedH"
+  ],
+  "frame": "design X east Y north Z up; glTF=(x,z,-y); load identity"
+}

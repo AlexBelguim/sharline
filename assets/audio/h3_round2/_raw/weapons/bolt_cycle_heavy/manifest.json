@@ -1,0 +1,35 @@
+{
+ "files": [
+  "60e295af_s211.flac",
+  "60e295af_s212.flac",
+  "60e295af_s213.flac",
+  "60e295af_s214.flac",
+  "60e295af_s215.flac",
+  "60e295af_s216.flac"
+ ],
+ "tag": "60e295af",
+ "prompt": "summary: Close-up of a gloved hand racking the heavy steel bolt of a sniper rifle once, quickly and firmly, on a shooting bench.\n\ndetailed_description:\n[Shot 1] Close-up of a gloved hand racking the heavy steel bolt of a sniper rifle once, quickly and firmly, on a shooting bench. The camera is static and locked-off.\n\noverall_soundscape: Foley recording, close microphone, isolated sound: a heavy steel rifle bolt cycled once, fast: click, clack-back, clack-forward, and a solid final lock click, all within one second, then silence. Nothing else is heard: no music, no speech, no voices.\n\nnon_diegetic_music: N/A",
+ "settings": {
+  "w": 128,
+  "h": 128,
+  "frames": 73,
+  "steps": 6,
+  "lora": "turbo4",
+  "shift_video": 12.0,
+  "shift_audio": 3.0,
+  "sampler": "res_multistep",
+  "scheduler": "simple",
+  "style": "structured"
+ },
+ "params": {
+  "preroll": 0.01,
+  "tail_db": 45.0,
+  "hold": 0.06,
+  "max_len": 1.4,
+  "min_gap": 0.3,
+  "per_clip": 1,
+  "stereo": false,
+  "attack_max": 0.15,
+  "kind": "oneshot"
+ }
+}

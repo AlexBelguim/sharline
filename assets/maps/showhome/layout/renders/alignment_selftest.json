@@ -1,0 +1,9807 @@
+{
+ "tol": 0.02,
+ "edge": 0.06,
+ "edge_tol": 0.12,
+ "rays": 133860,
+ "mismatches": 390,
+ "ghost": 253,
+ "invisible": 137,
+ "seconds": 4.9,
+ "art_objects": 325,
+ "by_tag": [
+  [
+   "MOVER_TRUCK",
+   "C_MOVER_BOX",
+   "GHOST",
+   135
+  ],
+  [
+   "MOVER_TRUCK",
+   "C_MOVER_BOX",
+   "INVISIBLE",
+   89
+  ],
+  [
+   "SAGE_HOUSE",
+   "W_GF_E",
+   "INVISIBLE",
+   48
+  ],
+  [
+   "GROUND",
+   "GROUND",
+   "GHOST",
+   43
+  ],
+  [
+   "SAGE_LAWN",
+   "W_FENCE_FS",
+   "GHOST",
+   41
+  ],
+  [
+   "SAGE_HOUSE",
+   "W_UF_E",
+   "GHOST",
+   24
+  ],
+  [
+   "SAGE_HOUSE",
+   "W_GF_E",
+   "GHOST",
+   10
+  ]
+ ],
+ "items": [
+  {
+   "kind": "INVISIBLE",
+   "origin": [
+    18.25,
+    16.25,
+    0.3
+   ],
+   "dir": [
+    1,
+    0,
+    0
+   ],
+   "hit": [
+    20.85,
+    16.25,
+    0.3
+   ],
+   "d_col": 2.6,
+   "d_art": null,
+   "near_edge": false,
+   "brush": 60,
+   "tag": "W_GF_E",
+   "part": "pier",
+   "structure": "SAGE_HOUSE"
+  },
+  {
+   "kind": "INVISIBLE",
+   "origin": [
+    18.25,
+    17.25,
+    0.3
+   ],
+   "dir": [
+    1,
+    0,
+    0
+   ],
+   "hit": [
+    20.85,
+    17.25,
+    0.3
+   ],
+   "d_col": 2.6,
+   "d_art": null,
+   "near_edge": false,
+   "brush": 60,
+   "tag": "W_GF_E",
+   "part": "pier",
+   "structure": "SAGE_HOUSE"
+  },
+  {
+   "kind": "INVISIBLE",
+   "origin": [
+    19.25,
+    16.25,
+    0.3
+   ],
+   "dir": [
+    1,
+    0,
+    0
+   ],
+   "hit": [
+    20.85,
+    16.25,
+    0.3
+   ],
+   "d_col": 1.6,
+   "d_art": null,
+   "near_edge": false,
+   "brush": 60,
+   "tag": "W_GF_E",
+   "part": "pier",
+   "structure": "SAGE_HOUSE"
+  },
+  {
+   "kind": "INVISIBLE",
+   "origin": [
+    19.25,
+    17.25,
+    0.3
+   ],
+   "dir": [
+    1,
+    0,
+    0
+   ],
+   "hit": [
+    20.85,
+    17.25,
+    0.3
+   ],
+   "d_col": 1.6,
+   "d_art": null,
+   "near_edge": false,
+   "brush": 60,
+   "tag": "W_GF_E",
+   "part": "pier",
+   "structure": "SAGE_HOUSE"
+  },
+  {
+   "kind": "INVISIBLE",
+   "origin": [
+    20.25,
+    16.25,
+    0.3
+   ],
+   "dir": [
+    1,
+    0,
+    0
+   ],
+   "hit": [
+    20.85,
+    16.25,
+    0.3
+   ],
+   "d_col": 0.6,
+   "d_art": null,
+   "near_edge": false,
+   "brush": 60,
+   "tag": "W_GF_E",
+   "part": "pier",
+   "structure": "SAGE_HOUSE"
+  },
+  {
+   "kind": "INVISIBLE",
+   "origin": [
+    20.25,
+    17.25,
+    0.3
+   ],
+   "dir": [
+    1,
+    0,
+    0
+   ],
+   "hit": [
+    20.85,
+    17.25,
+    0.3
+   ],
+   "d_col": 0.6,
+   "d_art": null,
+   "near_edge": false,
+   "brush": 60,
+   "tag": "W_GF_E",
+   "part": "pier",
+   "structure": "SAGE_HOUSE"
+  },
+  {
+   "kind": "INVISIBLE",
+   "origin": [
+    21.25,
+    16.25,
+    0.3
+   ],
+   "dir": [
+    -1,
+    0,
+    0
+   ],
+   "hit": [
+    21.15,
+    16.25,
+    0.3
+   ],
+   "d_col": 0.1,
+   "d_art": null,
+   "near_edge": false,
+   "brush": 60,
+   "tag": "W_GF_E",
+   "part": "pier",
+   "structure": "SAGE_HOUSE"
+  },
+  {
+   "kind": "INVISIBLE",
+   "origin": [
+    21.25,
+    17.25,
+    0.3
+   ],
+   "dir": [
+    -1,
+    0,
+    0
+   ],
+   "hit": [
+    21.15,
+    17.25,
+    0.3
+   ],
+   "d_col": 0.1,
+   "d_art": null,
+   "near_edge": false,
+   "brush": 60,
+   "tag": "W_GF_E",
+   "part": "pier",
+   "structure": "SAGE_HOUSE"
+  },
+  {
+   "kind": "INVISIBLE",
+   "origin": [
+    22.25,
+    16.25,
+    0.3
+   ],
+   "dir": [
+    -1,
+    0,
+    0
+   ],
+   "hit": [
+    21.15,
+    16.25,
+    0.3
+   ],
+   "d_col": 1.1,
+   "d_art": null,
+   "near_edge": false,
+   "brush": 60,
+   "tag": "W_GF_E",
+   "part": "pier",
+   "structure": "SAGE_HOUSE"
+  },
+  {
+   "kind": "INVISIBLE",
+   "origin": [
+    22.25,
+    17.25,
+    0.3
+   ],
+   "dir": [
+    -1,
+    0,
+    0
+   ],
+   "hit": [
+    21.15,
+    17.25,
+    0.3
+   ],
+   "d_col": 1.1,
+   "d_art": null,
+   "near_edge": false,
+   "brush": 60,
+   "tag": "W_GF_E",
+   "part": "pier",
+   "structure": "SAGE_HOUSE"
+  },
+  {
+   "kind": "INVISIBLE",
+   "origin": [
+    23.25,
+    16.25,
+    0.3
+   ],
+   "dir": [
+    -1,
+    0,
+    0
+   ],
+   "hit": [
+    21.15,
+    16.25,
+    0.3
+   ],
+   "d_col": 2.1,
+   "d_art": null,
+   "near_edge": false,
+   "brush": 60,
+   "tag": "W_GF_E",
+   "part": "pier",
+   "structure": "SAGE_HOUSE"
+  },
+  {
+   "kind": "INVISIBLE",
+   "origin": [
+    23.25,
+    17.25,
+    0.3
+   ],
+   "dir": [
+    -1,
+    0,
+    0
+   ],
+   "hit": [
+    21.15,
+    17.25,
+    0.3
+   ],
+   "d_col": 2.1,
+   "d_art": null,
+   "near_edge": false,
+   "brush": 60,
+   "tag": "W_GF_E",
+   "part": "pier",
+   "structure": "SAGE_HOUSE"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    24.25,
+    23.25,
+    0.3
+   ],
+   "dir": [
+    0,
+    0,
+    1
+   ],
+   "hit": [
+    24.25,
+    23.25,
+    1.707
+   ],
+   "d_col": null,
+   "d_art": 1.4068,
+   "near_edge": false,
+   "brush": 7,
+   "tag": "GROUND",
+   "part": "ground",
+   "structure": "GROUND"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    24.25,
+    24.25,
+    0.3
+   ],
+   "dir": [
+    0,
+    0,
+    1
+   ],
+   "hit": [
+    24.25,
+    24.25,
+    1.459
+   ],
+   "d_col": null,
+   "d_art": 1.1593,
+   "near_edge": false,
+   "brush": 7,
+   "tag": "GROUND",
+   "part": "ground",
+   "structure": "GROUND"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    25.25,
+    23.25,
+    0.3
+   ],
+   "dir": [
+    0,
+    0,
+    1
+   ],
+   "hit": [
+    25.25,
+    23.25,
+    2.051
+   ],
+   "d_col": null,
+   "d_art": 1.751,
+   "near_edge": false,
+   "brush": 7,
+   "tag": "GROUND",
+   "part": "ground",
+   "structure": "GROUND"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    25.25,
+    24.25,
+    0.3
+   ],
+   "dir": [
+    0,
+    0,
+    1
+   ],
+   "hit": [
+    25.25,
+    24.25,
+    1.707
+   ],
+   "d_col": null,
+   "d_art": 1.4068,
+   "near_edge": false,
+   "brush": 7,
+   "tag": "GROUND",
+   "part": "ground",
+   "structure": "GROUND"
+  },
+  {
+   "kind": "INVISIBLE",
+   "origin": [
+    32.25,
+    19.25,
+    0.3
+   ],
+   "dir": [
+    1,
+    0,
+    0
+   ],
+   "hit": [
+    34.75,
+    19.25,
+    0.3
+   ],
+   "d_col": 2.5,
+   "d_art": 2.6,
+   "near_edge": false,
+   "brush": 308,
+   "tag": "C_MOVER_BOX",
+   "part": "solid",
+   "structure": "MOVER_TRUCK"
+  },
+  {
+   "kind": "INVISIBLE",
+   "origin": [
+    32.25,
+    21.25,
+    0.3
+   ],
+   "dir": [
+    1,
+    0,
+    0
+   ],
+   "hit": [
+    34.75,
+    21.25,
+    0.3
+   ],
+   "d_col": 2.5,
+   "d_art": 2.6,
+   "near_edge": false,
+   "brush": 308,
+   "tag": "C_MOVER_BOX",
+   "part": "solid",
+   "structure": "MOVER_TRUCK"
+  },
+  {
+   "kind": "INVISIBLE",
+   "origin": [
+    32.25,
+    23.25,
+    0.3
+   ],
+   "dir": [
+    1,
+    0,
+    0
+   ],
+   "hit": [
+    34.75,
+    23.25,
+    0.3
+   ],
+   "d_col": 2.5,
+   "d_art": 2.6,
+   "near_edge": false,
+   "brush": 308,
+   "tag": "C_MOVER_BOX",
+   "part": "solid",
+   "structure": "MOVER_TRUCK"
+  },
+  {
+   "kind": "INVISIBLE",
+   "origin": [
+    32.25,
+    24.25,
+    0.3
+   ],
+   "dir": [
+    1,
+    0,
+    0
+   ],
+   "hit": [
+    34.75,
+    24.25,
+    0.3
+   ],
+   "d_col": 2.5,
+   "d_art": 2.6,
+   "near_edge": false,
+   "brush": 308,
+   "tag": "C_MOVER_BOX",
+   "part": "solid",
+   "structure": "MOVER_TRUCK"
+  },
+  {
+   "kind": "INVISIBLE",
+   "origin": [
+    32.25,
+    25.25,
+    0.3
+   ],
+   "dir": [
+    1,
+    0,
+    0
+   ],
+   "hit": [
+    34.75,
+    25.25,
+    0.3
+   ],
+   "d_col": 2.5,
+   "d_art": 2.6,
+   "near_edge": false,
+   "brush": 308,
+   "tag": "C_MOVER_BOX",
+   "part": "solid",
+   "structure": "MOVER_TRUCK"
+  },
+  {
+   "kind": "INVISIBLE",
+   "origin": [
+    32.25,
+    26.25,
+    0.3
+   ],
+   "dir": [
+    1,
+    0,
+    0
+   ],
+   "hit": [
+    34.75,
+    26.25,
+    0.3
+   ],
+   "d_col": 2.5,
+   "d_art": 2.6,
+   "near_edge": false,
+   "brush": 308,
+   "tag": "C_MOVER_BOX",
+   "part": "solid",
+   "structure": "MOVER_TRUCK"
+  },
+  {
+   "kind": "INVISIBLE",
+   "origin": [
+    33.25,
+    19.25,
+    0.3
+   ],
+   "dir": [
+    1,
+    0,
+    0
+   ],
+   "hit": [
+    34.75,
+    19.25,
+    0.3
+   ],
+   "d_col": 1.5,
+   "d_art": 1.6,
+   "near_edge": false,
+   "brush": 308,
+   "tag": "C_MOVER_BOX",
+   "part": "solid",
+   "structure": "MOVER_TRUCK"
+  },
+  {
+   "kind": "INVISIBLE",
+   "origin": [
+    33.25,
+    21.25,
+    0.3
+   ],
+   "dir": [
+    1,
+    0,
+    0
+   ],
+   "hit": [
+    34.75,
+    21.25,
+    0.3
+   ],
+   "d_col": 1.5,
+   "d_art": 1.6,
+   "near_edge": false,
+   "brush": 308,
+   "tag": "C_MOVER_BOX",
+   "part": "solid",
+   "structure": "MOVER_TRUCK"
+  },
+  {
+   "kind": "INVISIBLE",
+   "origin": [
+    33.25,
+    23.25,
+    0.3
+   ],
+   "dir": [
+    1,
+    0,
+    0
+   ],
+   "hit": [
+    34.75,
+    23.25,
+    0.3
+   ],
+   "d_col": 1.5,
+   "d_art": 1.6,
+   "near_edge": false,
+   "brush": 308,
+   "tag": "C_MOVER_BOX",
+   "part": "solid",
+   "structure": "MOVER_TRUCK"
+  },
+  {
+   "kind": "INVISIBLE",
+   "origin": [
+    33.25,
+    24.25,
+    0.3
+   ],
+   "dir": [
+    1,
+    0,
+    0
+   ],
+   "hit": [
+    34.75,
+    24.25,
+    0.3
+   ],
+   "d_col": 1.5,
+   "d_art": 1.6,
+   "near_edge": false,
+   "brush": 308,
+   "tag": "C_MOVER_BOX",
+   "part": "solid",
+   "structure": "MOVER_TRUCK"
+  },
+  {
+   "kind": "INVISIBLE",
+   "origin": [
+    33.25,
+    25.25,
+    0.3
+   ],
+   "dir": [
+    1,
+    0,
+    0
+   ],
+   "hit": [
+    34.75,
+    25.25,
+    0.3
+   ],
+   "d_col": 1.5,
+   "d_art": 1.6,
+   "near_edge": false,
+   "brush": 308,
+   "tag": "C_MOVER_BOX",
+   "part": "solid",
+   "structure": "MOVER_TRUCK"
+  },
+  {
+   "kind": "INVISIBLE",
+   "origin": [
+    33.25,
+    26.25,
+    0.3
+   ],
+   "dir": [
+    1,
+    0,
+    0
+   ],
+   "hit": [
+    34.75,
+    26.25,
+    0.3
+   ],
+   "d_col": 1.5,
+   "d_art": 1.6,
+   "near_edge": false,
+   "brush": 308,
+   "tag": "C_MOVER_BOX",
+   "part": "solid",
+   "structure": "MOVER_TRUCK"
+  },
+  {
+   "kind": "INVISIBLE",
+   "origin": [
+    34.25,
+    19.25,
+    0.3
+   ],
+   "dir": [
+    1,
+    0,
+    0
+   ],
+   "hit": [
+    34.75,
+    19.25,
+    0.3
+   ],
+   "d_col": 0.5,
+   "d_art": 0.6,
+   "near_edge": false,
+   "brush": 308,
+   "tag": "C_MOVER_BOX",
+   "part": "solid",
+   "structure": "MOVER_TRUCK"
+  },
+  {
+   "kind": "INVISIBLE",
+   "origin": [
+    34.25,
+    20.25,
+    0.3
+   ],
+   "dir": [
+    1,
+    0,
+    0
+   ],
+   "hit": [
+    34.75,
+    20.25,
+    0.3
+   ],
+   "d_col": 0.5,
+   "d_art": 0.6,
+   "near_edge": false,
+   "brush": 308,
+   "tag": "C_MOVER_BOX",
+   "part": "solid",
+   "structure": "MOVER_TRUCK"
+  },
+  {
+   "kind": "INVISIBLE",
+   "origin": [
+    34.25,
+    21.25,
+    0.3
+   ],
+   "dir": [
+    1,
+    0,
+    0
+   ],
+   "hit": [
+    34.75,
+    21.25,
+    0.3
+   ],
+   "d_col": 0.5,
+   "d_art": 0.6,
+   "near_edge": false,
+   "brush": 308,
+   "tag": "C_MOVER_BOX",
+   "part": "solid",
+   "structure": "MOVER_TRUCK"
+  },
+  {
+   "kind": "INVISIBLE",
+   "origin": [
+    34.25,
+    23.25,
+    0.3
+   ],
+   "dir": [
+    1,
+    0,
+    0
+   ],
+   "hit": [
+    34.75,
+    23.25,
+    0.3
+   ],
+   "d_col": 0.5,
+   "d_art": 0.6,
+   "near_edge": false,
+   "brush": 308,
+   "tag": "C_MOVER_BOX",
+   "part": "solid",
+   "structure": "MOVER_TRUCK"
+  },
+  {
+   "kind": "INVISIBLE",
+   "origin": [
+    34.25,
+    24.25,
+    0.3
+   ],
+   "dir": [
+    1,
+    0,
+    0
+   ],
+   "hit": [
+    34.75,
+    24.25,
+    0.3
+   ],
+   "d_col": 0.5,
+   "d_art": 0.6,
+   "near_edge": false,
+   "brush": 308,
+   "tag": "C_MOVER_BOX",
+   "part": "solid",
+   "structure": "MOVER_TRUCK"
+  },
+  {
+   "kind": "INVISIBLE",
+   "origin": [
+    34.25,
+    25.25,
+    0.3
+   ],
+   "dir": [
+    1,
+    0,
+    0
+   ],
+   "hit": [
+    34.75,
+    25.25,
+    0.3
+   ],
+   "d_col": 0.5,
+   "d_art": 0.6,
+   "near_edge": false,
+   "brush": 308,
+   "tag": "C_MOVER_BOX",
+   "part": "solid",
+   "structure": "MOVER_TRUCK"
+  },
+  {
+   "kind": "INVISIBLE",
+   "origin": [
+    34.25,
+    26.25,
+    0.3
+   ],
+   "dir": [
+    1,
+    0,
+    0
+   ],
+   "hit": [
+    34.75,
+    26.25,
+    0.3
+   ],
+   "d_col": 0.5,
+   "d_art": 0.6,
+   "near_edge": false,
+   "brush": 308,
+   "tag": "C_MOVER_BOX",
+   "part": "solid",
+   "structure": "MOVER_TRUCK"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    37.25,
+    16.25,
+    0.3
+   ],
+   "dir": [
+    0,
+    1,
+    0
+   ],
+   "hit": [
+    37.25,
+    19.0,
+    0.3
+   ],
+   "d_col": null,
+   "d_art": 2.75,
+   "near_edge": true,
+   "brush": 308,
+   "tag": "C_MOVER_BOX",
+   "part": "solid",
+   "structure": "MOVER_TRUCK"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    37.25,
+    17.25,
+    0.3
+   ],
+   "dir": [
+    0,
+    1,
+    0
+   ],
+   "hit": [
+    37.25,
+    19.0,
+    0.3
+   ],
+   "d_col": null,
+   "d_art": 1.75,
+   "near_edge": true,
+   "brush": 308,
+   "tag": "C_MOVER_BOX",
+   "part": "solid",
+   "structure": "MOVER_TRUCK"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    37.25,
+    18.25,
+    0.3
+   ],
+   "dir": [
+    0,
+    1,
+    0
+   ],
+   "hit": [
+    37.25,
+    19.0,
+    0.3
+   ],
+   "d_col": null,
+   "d_art": 0.75,
+   "near_edge": true,
+   "brush": 308,
+   "tag": "C_MOVER_BOX",
+   "part": "solid",
+   "structure": "MOVER_TRUCK"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    37.25,
+    27.25,
+    0.3
+   ],
+   "dir": [
+    0,
+    -1,
+    0
+   ],
+   "hit": [
+    37.25,
+    27.0,
+    0.3
+   ],
+   "d_col": null,
+   "d_art": 0.25,
+   "near_edge": true,
+   "brush": 308,
+   "tag": "C_MOVER_BOX",
+   "part": "solid",
+   "structure": "MOVER_TRUCK"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    37.25,
+    28.25,
+    0.3
+   ],
+   "dir": [
+    0,
+    -1,
+    0
+   ],
+   "hit": [
+    37.25,
+    27.0,
+    0.3
+   ],
+   "d_col": null,
+   "d_art": 1.25,
+   "near_edge": true,
+   "brush": 308,
+   "tag": "C_MOVER_BOX",
+   "part": "solid",
+   "structure": "MOVER_TRUCK"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    37.25,
+    29.25,
+    0.3
+   ],
+   "dir": [
+    0,
+    -1,
+    0
+   ],
+   "hit": [
+    37.25,
+    27.0,
+    0.3
+   ],
+   "d_col": null,
+   "d_art": 2.25,
+   "near_edge": true,
+   "brush": 308,
+   "tag": "C_MOVER_BOX",
+   "part": "solid",
+   "structure": "MOVER_TRUCK"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    38.25,
+    19.25,
+    0.3
+   ],
+   "dir": [
+    -1,
+    0,
+    0
+   ],
+   "hit": [
+    37.35,
+    19.25,
+    0.3
+   ],
+   "d_col": 1.0,
+   "d_art": 0.9,
+   "near_edge": false,
+   "brush": 308,
+   "tag": "C_MOVER_BOX",
+   "part": "solid",
+   "structure": "MOVER_TRUCK"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    38.25,
+    21.25,
+    0.3
+   ],
+   "dir": [
+    -1,
+    0,
+    0
+   ],
+   "hit": [
+    37.35,
+    21.25,
+    0.3
+   ],
+   "d_col": 1.0,
+   "d_art": 0.9,
+   "near_edge": false,
+   "brush": 308,
+   "tag": "C_MOVER_BOX",
+   "part": "solid",
+   "structure": "MOVER_TRUCK"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    38.25,
+    23.25,
+    0.3
+   ],
+   "dir": [
+    -1,
+    0,
+    0
+   ],
+   "hit": [
+    37.35,
+    23.25,
+    0.3
+   ],
+   "d_col": 1.0,
+   "d_art": 0.9,
+   "near_edge": false,
+   "brush": 308,
+   "tag": "C_MOVER_BOX",
+   "part": "solid",
+   "structure": "MOVER_TRUCK"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    38.25,
+    24.25,
+    0.3
+   ],
+   "dir": [
+    -1,
+    0,
+    0
+   ],
+   "hit": [
+    37.35,
+    24.25,
+    0.3
+   ],
+   "d_col": 1.0,
+   "d_art": 0.9,
+   "near_edge": false,
+   "brush": 308,
+   "tag": "C_MOVER_BOX",
+   "part": "solid",
+   "structure": "MOVER_TRUCK"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    38.25,
+    25.25,
+    0.3
+   ],
+   "dir": [
+    -1,
+    0,
+    0
+   ],
+   "hit": [
+    37.35,
+    25.25,
+    0.3
+   ],
+   "d_col": 1.0,
+   "d_art": 0.9,
+   "near_edge": false,
+   "brush": 308,
+   "tag": "C_MOVER_BOX",
+   "part": "solid",
+   "structure": "MOVER_TRUCK"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    38.25,
+    26.25,
+    0.3
+   ],
+   "dir": [
+    -1,
+    0,
+    0
+   ],
+   "hit": [
+    37.35,
+    26.25,
+    0.3
+   ],
+   "d_col": 1.0,
+   "d_art": 0.9,
+   "near_edge": false,
+   "brush": 308,
+   "tag": "C_MOVER_BOX",
+   "part": "solid",
+   "structure": "MOVER_TRUCK"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    39.25,
+    19.25,
+    0.3
+   ],
+   "dir": [
+    -1,
+    0,
+    0
+   ],
+   "hit": [
+    37.35,
+    19.25,
+    0.3
+   ],
+   "d_col": 2.0,
+   "d_art": 1.9,
+   "near_edge": false,
+   "brush": 308,
+   "tag": "C_MOVER_BOX",
+   "part": "solid",
+   "structure": "MOVER_TRUCK"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    39.25,
+    21.25,
+    0.3
+   ],
+   "dir": [
+    -1,
+    0,
+    0
+   ],
+   "hit": [
+    37.35,
+    21.25,
+    0.3
+   ],
+   "d_col": 2.0,
+   "d_art": 1.9,
+   "near_edge": false,
+   "brush": 308,
+   "tag": "C_MOVER_BOX",
+   "part": "solid",
+   "structure": "MOVER_TRUCK"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    39.25,
+    23.25,
+    0.3
+   ],
+   "dir": [
+    -1,
+    0,
+    0
+   ],
+   "hit": [
+    37.35,
+    23.25,
+    0.3
+   ],
+   "d_col": 2.0,
+   "d_art": 1.9,
+   "near_edge": false,
+   "brush": 308,
+   "tag": "C_MOVER_BOX",
+   "part": "solid",
+   "structure": "MOVER_TRUCK"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    39.25,
+    24.25,
+    0.3
+   ],
+   "dir": [
+    -1,
+    0,
+    0
+   ],
+   "hit": [
+    37.35,
+    24.25,
+    0.3
+   ],
+   "d_col": 2.0,
+   "d_art": 1.9,
+   "near_edge": false,
+   "brush": 308,
+   "tag": "C_MOVER_BOX",
+   "part": "solid",
+   "structure": "MOVER_TRUCK"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    39.25,
+    25.25,
+    0.3
+   ],
+   "dir": [
+    -1,
+    0,
+    0
+   ],
+   "hit": [
+    37.35,
+    25.25,
+    0.3
+   ],
+   "d_col": 2.0,
+   "d_art": 1.9,
+   "near_edge": false,
+   "brush": 308,
+   "tag": "C_MOVER_BOX",
+   "part": "solid",
+   "structure": "MOVER_TRUCK"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    39.25,
+    26.25,
+    0.3
+   ],
+   "dir": [
+    -1,
+    0,
+    0
+   ],
+   "hit": [
+    37.35,
+    26.25,
+    0.3
+   ],
+   "d_col": 2.0,
+   "d_art": 1.9,
+   "near_edge": false,
+   "brush": 308,
+   "tag": "C_MOVER_BOX",
+   "part": "solid",
+   "structure": "MOVER_TRUCK"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    40.25,
+    19.25,
+    0.3
+   ],
+   "dir": [
+    -1,
+    0,
+    0
+   ],
+   "hit": [
+    37.35,
+    19.25,
+    0.3
+   ],
+   "d_col": null,
+   "d_art": 2.9,
+   "near_edge": false,
+   "brush": 308,
+   "tag": "C_MOVER_BOX",
+   "part": "solid",
+   "structure": "MOVER_TRUCK"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    40.25,
+    21.25,
+    0.3
+   ],
+   "dir": [
+    -1,
+    0,
+    0
+   ],
+   "hit": [
+    37.35,
+    21.25,
+    0.3
+   ],
+   "d_col": null,
+   "d_art": 2.9,
+   "near_edge": false,
+   "brush": 308,
+   "tag": "C_MOVER_BOX",
+   "part": "solid",
+   "structure": "MOVER_TRUCK"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    40.25,
+    23.25,
+    0.3
+   ],
+   "dir": [
+    -1,
+    0,
+    0
+   ],
+   "hit": [
+    37.35,
+    23.25,
+    0.3
+   ],
+   "d_col": null,
+   "d_art": 2.9,
+   "near_edge": false,
+   "brush": 308,
+   "tag": "C_MOVER_BOX",
+   "part": "solid",
+   "structure": "MOVER_TRUCK"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    40.25,
+    24.25,
+    0.3
+   ],
+   "dir": [
+    -1,
+    0,
+    0
+   ],
+   "hit": [
+    37.35,
+    24.25,
+    0.3
+   ],
+   "d_col": null,
+   "d_art": 2.9,
+   "near_edge": false,
+   "brush": 308,
+   "tag": "C_MOVER_BOX",
+   "part": "solid",
+   "structure": "MOVER_TRUCK"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    40.25,
+    25.25,
+    0.3
+   ],
+   "dir": [
+    -1,
+    0,
+    0
+   ],
+   "hit": [
+    37.35,
+    25.25,
+    0.3
+   ],
+   "d_col": null,
+   "d_art": 2.9,
+   "near_edge": false,
+   "brush": 308,
+   "tag": "C_MOVER_BOX",
+   "part": "solid",
+   "structure": "MOVER_TRUCK"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    40.25,
+    26.25,
+    0.3
+   ],
+   "dir": [
+    -1,
+    0,
+    0
+   ],
+   "hit": [
+    37.35,
+    26.25,
+    0.3
+   ],
+   "d_col": null,
+   "d_art": 2.9,
+   "near_edge": false,
+   "brush": 308,
+   "tag": "C_MOVER_BOX",
+   "part": "solid",
+   "structure": "MOVER_TRUCK"
+  },
+  {
+   "kind": "INVISIBLE",
+   "origin": [
+    18.25,
+    16.25,
+    1.0
+   ],
+   "dir": [
+    1,
+    0,
+    0
+   ],
+   "hit": [
+    20.85,
+    16.25,
+    1.0
+   ],
+   "d_col": 2.6,
+   "d_art": null,
+   "near_edge": false,
+   "brush": 60,
+   "tag": "W_GF_E",
+   "part": "pier",
+   "structure": "SAGE_HOUSE"
+  },
+  {
+   "kind": "INVISIBLE",
+   "origin": [
+    18.25,
+    17.25,
+    1.0
+   ],
+   "dir": [
+    1,
+    0,
+    0
+   ],
+   "hit": [
+    20.85,
+    17.25,
+    1.0
+   ],
+   "d_col": 2.6,
+   "d_art": null,
+   "near_edge": false,
+   "brush": 60,
+   "tag": "W_GF_E",
+   "part": "pier",
+   "structure": "SAGE_HOUSE"
+  },
+  {
+   "kind": "INVISIBLE",
+   "origin": [
+    19.25,
+    16.25,
+    1.0
+   ],
+   "dir": [
+    1,
+    0,
+    0
+   ],
+   "hit": [
+    20.85,
+    16.25,
+    1.0
+   ],
+   "d_col": 1.6,
+   "d_art": null,
+   "near_edge": false,
+   "brush": 60,
+   "tag": "W_GF_E",
+   "part": "pier",
+   "structure": "SAGE_HOUSE"
+  },
+  {
+   "kind": "INVISIBLE",
+   "origin": [
+    19.25,
+    17.25,
+    1.0
+   ],
+   "dir": [
+    1,
+    0,
+    0
+   ],
+   "hit": [
+    20.85,
+    17.25,
+    1.0
+   ],
+   "d_col": 1.6,
+   "d_art": null,
+   "near_edge": false,
+   "brush": 60,
+   "tag": "W_GF_E",
+   "part": "pier",
+   "structure": "SAGE_HOUSE"
+  },
+  {
+   "kind": "INVISIBLE",
+   "origin": [
+    20.25,
+    16.25,
+    1.0
+   ],
+   "dir": [
+    1,
+    0,
+    0
+   ],
+   "hit": [
+    20.85,
+    16.25,
+    1.0
+   ],
+   "d_col": 0.6,
+   "d_art": null,
+   "near_edge": false,
+   "brush": 60,
+   "tag": "W_GF_E",
+   "part": "pier",
+   "structure": "SAGE_HOUSE"
+  },
+  {
+   "kind": "INVISIBLE",
+   "origin": [
+    20.25,
+    17.25,
+    1.0
+   ],
+   "dir": [
+    1,
+    0,
+    0
+   ],
+   "hit": [
+    20.85,
+    17.25,
+    1.0
+   ],
+   "d_col": 0.6,
+   "d_art": null,
+   "near_edge": false,
+   "brush": 60,
+   "tag": "W_GF_E",
+   "part": "pier",
+   "structure": "SAGE_HOUSE"
+  },
+  {
+   "kind": "INVISIBLE",
+   "origin": [
+    21.25,
+    16.25,
+    1.0
+   ],
+   "dir": [
+    -1,
+    0,
+    0
+   ],
+   "hit": [
+    21.15,
+    16.25,
+    1.0
+   ],
+   "d_col": 0.1,
+   "d_art": null,
+   "near_edge": false,
+   "brush": 60,
+   "tag": "W_GF_E",
+   "part": "pier",
+   "structure": "SAGE_HOUSE"
+  },
+  {
+   "kind": "INVISIBLE",
+   "origin": [
+    21.25,
+    17.25,
+    1.0
+   ],
+   "dir": [
+    -1,
+    0,
+    0
+   ],
+   "hit": [
+    21.15,
+    17.25,
+    1.0
+   ],
+   "d_col": 0.1,
+   "d_art": null,
+   "near_edge": false,
+   "brush": 60,
+   "tag": "W_GF_E",
+   "part": "pier",
+   "structure": "SAGE_HOUSE"
+  },
+  {
+   "kind": "INVISIBLE",
+   "origin": [
+    22.25,
+    16.25,
+    1.0
+   ],
+   "dir": [
+    -1,
+    0,
+    0
+   ],
+   "hit": [
+    21.15,
+    16.25,
+    1.0
+   ],
+   "d_col": 1.1,
+   "d_art": null,
+   "near_edge": false,
+   "brush": 60,
+   "tag": "W_GF_E",
+   "part": "pier",
+   "structure": "SAGE_HOUSE"
+  },
+  {
+   "kind": "INVISIBLE",
+   "origin": [
+    22.25,
+    17.25,
+    1.0
+   ],
+   "dir": [
+    -1,
+    0,
+    0
+   ],
+   "hit": [
+    21.15,
+    17.25,
+    1.0
+   ],
+   "d_col": 1.1,
+   "d_art": null,
+   "near_edge": false,
+   "brush": 60,
+   "tag": "W_GF_E",
+   "part": "pier",
+   "structure": "SAGE_HOUSE"
+  },
+  {
+   "kind": "INVISIBLE",
+   "origin": [
+    23.25,
+    16.25,
+    1.0
+   ],
+   "dir": [
+    -1,
+    0,
+    0
+   ],
+   "hit": [
+    21.15,
+    16.25,
+    1.0
+   ],
+   "d_col": 2.1,
+   "d_art": null,
+   "near_edge": false,
+   "brush": 60,
+   "tag": "W_GF_E",
+   "part": "pier",
+   "structure": "SAGE_HOUSE"
+  },
+  {
+   "kind": "INVISIBLE",
+   "origin": [
+    23.25,
+    17.25,
+    1.0
+   ],
+   "dir": [
+    -1,
+    0,
+    0
+   ],
+   "hit": [
+    21.15,
+    17.25,
+    1.0
+   ],
+   "d_col": 2.1,
+   "d_art": null,
+   "near_edge": false,
+   "brush": 60,
+   "tag": "W_GF_E",
+   "part": "pier",
+   "structure": "SAGE_HOUSE"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    24.25,
+    23.25,
+    1.0
+   ],
+   "dir": [
+    0,
+    0,
+    1
+   ],
+   "hit": [
+    24.25,
+    23.25,
+    1.707
+   ],
+   "d_col": null,
+   "d_art": 0.7068,
+   "near_edge": false,
+   "brush": 7,
+   "tag": "GROUND",
+   "part": "ground",
+   "structure": "GROUND"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    24.25,
+    24.25,
+    1.0
+   ],
+   "dir": [
+    0,
+    0,
+    1
+   ],
+   "hit": [
+    24.25,
+    24.25,
+    1.459
+   ],
+   "d_col": null,
+   "d_art": 0.4593,
+   "near_edge": false,
+   "brush": 7,
+   "tag": "GROUND",
+   "part": "ground",
+   "structure": "GROUND"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    25.25,
+    23.25,
+    1.0
+   ],
+   "dir": [
+    0,
+    0,
+    1
+   ],
+   "hit": [
+    25.25,
+    23.25,
+    2.051
+   ],
+   "d_col": null,
+   "d_art": 1.051,
+   "near_edge": false,
+   "brush": 7,
+   "tag": "GROUND",
+   "part": "ground",
+   "structure": "GROUND"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    25.25,
+    24.25,
+    1.0
+   ],
+   "dir": [
+    0,
+    0,
+    1
+   ],
+   "hit": [
+    25.25,
+    24.25,
+    1.707
+   ],
+   "d_col": null,
+   "d_art": 0.7068,
+   "near_edge": false,
+   "brush": 7,
+   "tag": "GROUND",
+   "part": "ground",
+   "structure": "GROUND"
+  },
+  {
+   "kind": "INVISIBLE",
+   "origin": [
+    32.25,
+    19.25,
+    1.0
+   ],
+   "dir": [
+    1,
+    0,
+    0
+   ],
+   "hit": [
+    34.75,
+    19.25,
+    1.0
+   ],
+   "d_col": 2.5,
+   "d_art": 2.6,
+   "near_edge": false,
+   "brush": 308,
+   "tag": "C_MOVER_BOX",
+   "part": "solid",
+   "structure": "MOVER_TRUCK"
+  },
+  {
+   "kind": "INVISIBLE",
+   "origin": [
+    32.25,
+    21.25,
+    1.0
+   ],
+   "dir": [
+    1,
+    0,
+    0
+   ],
+   "hit": [
+    34.75,
+    21.25,
+    1.0
+   ],
+   "d_col": 2.5,
+   "d_art": 2.6,
+   "near_edge": false,
+   "brush": 308,
+   "tag": "C_MOVER_BOX",
+   "part": "solid",
+   "structure": "MOVER_TRUCK"
+  },
+  {
+   "kind": "INVISIBLE",
+   "origin": [
+    32.25,
+    22.25,
+    1.0
+   ],
+   "dir": [
+    1,
+    0,
+    0
+   ],
+   "hit": [
+    34.75,
+    22.25,
+    1.0
+   ],
+   "d_col": 2.5,
+   "d_art": 2.6,
+   "near_edge": false,
+   "brush": 308,
+   "tag": "C_MOVER_BOX",
+   "part": "solid",
+   "structure": "MOVER_TRUCK"
+  },
+  {
+   "kind": "INVISIBLE",
+   "origin": [
+    32.25,
+    23.25,
+    1.0
+   ],
+   "dir": [
+    1,
+    0,
+    0
+   ],
+   "hit": [
+    34.75,
+    23.25,
+    1.0
+   ],
+   "d_col": 2.5,
+   "d_art": 2.6,
+   "near_edge": false,
+   "brush": 308,
+   "tag": "C_MOVER_BOX",
+   "part": "solid",
+   "structure": "MOVER_TRUCK"
+  },
+  {
+   "kind": "INVISIBLE",
+   "origin": [
+    32.25,
+    24.25,
+    1.0
+   ],
+   "dir": [
+    1,
+    0,
+    0
+   ],
+   "hit": [
+    34.75,
+    24.25,
+    1.0
+   ],
+   "d_col": 2.5,
+   "d_art": 2.6,
+   "near_edge": false,
+   "brush": 308,
+   "tag": "C_MOVER_BOX",
+   "part": "solid",
+   "structure": "MOVER_TRUCK"
+  },
+  {
+   "kind": "INVISIBLE",
+   "origin": [
+    32.25,
+    25.25,
+    1.0
+   ],
+   "dir": [
+    1,
+    0,
+    0
+   ],
+   "hit": [
+    34.75,
+    25.25,
+    1.0
+   ],
+   "d_col": 2.5,
+   "d_art": 2.6,
+   "near_edge": false,
+   "brush": 308,
+   "tag": "C_MOVER_BOX",
+   "part": "solid",
+   "structure": "MOVER_TRUCK"
+  },
+  {
+   "kind": "INVISIBLE",
+   "origin": [
+    32.25,
+    26.25,
+    1.0
+   ],
+   "dir": [
+    1,
+    0,
+    0
+   ],
+   "hit": [
+    34.75,
+    26.25,
+    1.0
+   ],
+   "d_col": 2.5,
+   "d_art": 2.6,
+   "near_edge": false,
+   "brush": 308,
+   "tag": "C_MOVER_BOX",
+   "part": "solid",
+   "structure": "MOVER_TRUCK"
+  },
+  {
+   "kind": "INVISIBLE",
+   "origin": [
+    33.25,
+    19.25,
+    1.0
+   ],
+   "dir": [
+    1,
+    0,
+    0
+   ],
+   "hit": [
+    34.75,
+    19.25,
+    1.0
+   ],
+   "d_col": 1.5,
+   "d_art": 1.6,
+   "near_edge": false,
+   "brush": 308,
+   "tag": "C_MOVER_BOX",
+   "part": "solid",
+   "structure": "MOVER_TRUCK"
+  },
+  {
+   "kind": "INVISIBLE",
+   "origin": [
+    33.25,
+    21.25,
+    1.0
+   ],
+   "dir": [
+    1,
+    0,
+    0
+   ],
+   "hit": [
+    34.75,
+    21.25,
+    1.0
+   ],
+   "d_col": 1.5,
+   "d_art": 1.6,
+   "near_edge": false,
+   "brush": 308,
+   "tag": "C_MOVER_BOX",
+   "part": "solid",
+   "structure": "MOVER_TRUCK"
+  },
+  {
+   "kind": "INVISIBLE",
+   "origin": [
+    33.25,
+    22.25,
+    1.0
+   ],
+   "dir": [
+    1,
+    0,
+    0
+   ],
+   "hit": [
+    34.75,
+    22.25,
+    1.0
+   ],
+   "d_col": 1.5,
+   "d_art": 1.6,
+   "near_edge": false,
+   "brush": 308,
+   "tag": "C_MOVER_BOX",
+   "part": "solid",
+   "structure": "MOVER_TRUCK"
+  },
+  {
+   "kind": "INVISIBLE",
+   "origin": [
+    33.25,
+    23.25,
+    1.0
+   ],
+   "dir": [
+    1,
+    0,
+    0
+   ],
+   "hit": [
+    34.75,
+    23.25,
+    1.0
+   ],
+   "d_col": 1.5,
+   "d_art": 1.6,
+   "near_edge": false,
+   "brush": 308,
+   "tag": "C_MOVER_BOX",
+   "part": "solid",
+   "structure": "MOVER_TRUCK"
+  },
+  {
+   "kind": "INVISIBLE",
+   "origin": [
+    33.25,
+    24.25,
+    1.0
+   ],
+   "dir": [
+    1,
+    0,
+    0
+   ],
+   "hit": [
+    34.75,
+    24.25,
+    1.0
+   ],
+   "d_col": 1.5,
+   "d_art": 1.6,
+   "near_edge": false,
+   "brush": 308,
+   "tag": "C_MOVER_BOX",
+   "part": "solid",
+   "structure": "MOVER_TRUCK"
+  },
+  {
+   "kind": "INVISIBLE",
+   "origin": [
+    33.25,
+    25.25,
+    1.0
+   ],
+   "dir": [
+    1,
+    0,
+    0
+   ],
+   "hit": [
+    34.75,
+    25.25,
+    1.0
+   ],
+   "d_col": 1.5,
+   "d_art": 1.6,
+   "near_edge": false,
+   "brush": 308,
+   "tag": "C_MOVER_BOX",
+   "part": "solid",
+   "structure": "MOVER_TRUCK"
+  },
+  {
+   "kind": "INVISIBLE",
+   "origin": [
+    33.25,
+    26.25,
+    1.0
+   ],
+   "dir": [
+    1,
+    0,
+    0
+   ],
+   "hit": [
+    34.75,
+    26.25,
+    1.0
+   ],
+   "d_col": 1.5,
+   "d_art": 1.6,
+   "near_edge": false,
+   "brush": 308,
+   "tag": "C_MOVER_BOX",
+   "part": "solid",
+   "structure": "MOVER_TRUCK"
+  },
+  {
+   "kind": "INVISIBLE",
+   "origin": [
+    34.25,
+    19.25,
+    1.0
+   ],
+   "dir": [
+    1,
+    0,
+    0
+   ],
+   "hit": [
+    34.75,
+    19.25,
+    1.0
+   ],
+   "d_col": 0.5,
+   "d_art": 0.6,
+   "near_edge": false,
+   "brush": 308,
+   "tag": "C_MOVER_BOX",
+   "part": "solid",
+   "structure": "MOVER_TRUCK"
+  },
+  {
+   "kind": "INVISIBLE",
+   "origin": [
+    34.25,
+    20.25,
+    1.0
+   ],
+   "dir": [
+    1,
+    0,
+    0
+   ],
+   "hit": [
+    34.75,
+    20.25,
+    1.0
+   ],
+   "d_col": 0.5,
+   "d_art": 0.6,
+   "near_edge": false,
+   "brush": 308,
+   "tag": "C_MOVER_BOX",
+   "part": "solid",
+   "structure": "MOVER_TRUCK"
+  },
+  {
+   "kind": "INVISIBLE",
+   "origin": [
+    34.25,
+    21.25,
+    1.0
+   ],
+   "dir": [
+    1,
+    0,
+    0
+   ],
+   "hit": [
+    34.75,
+    21.25,
+    1.0
+   ],
+   "d_col": 0.5,
+   "d_art": 0.6,
+   "near_edge": false,
+   "brush": 308,
+   "tag": "C_MOVER_BOX",
+   "part": "solid",
+   "structure": "MOVER_TRUCK"
+  },
+  {
+   "kind": "INVISIBLE",
+   "origin": [
+    34.25,
+    22.25,
+    1.0
+   ],
+   "dir": [
+    1,
+    0,
+    0
+   ],
+   "hit": [
+    34.75,
+    22.25,
+    1.0
+   ],
+   "d_col": 0.5,
+   "d_art": 0.6,
+   "near_edge": false,
+   "brush": 308,
+   "tag": "C_MOVER_BOX",
+   "part": "solid",
+   "structure": "MOVER_TRUCK"
+  },
+  {
+   "kind": "INVISIBLE",
+   "origin": [
+    34.25,
+    23.25,
+    1.0
+   ],
+   "dir": [
+    1,
+    0,
+    0
+   ],
+   "hit": [
+    34.75,
+    23.25,
+    1.0
+   ],
+   "d_col": 0.5,
+   "d_art": 0.6,
+   "near_edge": false,
+   "brush": 308,
+   "tag": "C_MOVER_BOX",
+   "part": "solid",
+   "structure": "MOVER_TRUCK"
+  },
+  {
+   "kind": "INVISIBLE",
+   "origin": [
+    34.25,
+    24.25,
+    1.0
+   ],
+   "dir": [
+    1,
+    0,
+    0
+   ],
+   "hit": [
+    34.75,
+    24.25,
+    1.0
+   ],
+   "d_col": 0.5,
+   "d_art": 0.6,
+   "near_edge": false,
+   "brush": 308,
+   "tag": "C_MOVER_BOX",
+   "part": "solid",
+   "structure": "MOVER_TRUCK"
+  },
+  {
+   "kind": "INVISIBLE",
+   "origin": [
+    34.25,
+    25.25,
+    1.0
+   ],
+   "dir": [
+    1,
+    0,
+    0
+   ],
+   "hit": [
+    34.75,
+    25.25,
+    1.0
+   ],
+   "d_col": 0.5,
+   "d_art": 0.6,
+   "near_edge": false,
+   "brush": 308,
+   "tag": "C_MOVER_BOX",
+   "part": "solid",
+   "structure": "MOVER_TRUCK"
+  },
+  {
+   "kind": "INVISIBLE",
+   "origin": [
+    34.25,
+    26.25,
+    1.0
+   ],
+   "dir": [
+    1,
+    0,
+    0
+   ],
+   "hit": [
+    34.75,
+    26.25,
+    1.0
+   ],
+   "d_col": 0.5,
+   "d_art": 0.6,
+   "near_edge": false,
+   "brush": 308,
+   "tag": "C_MOVER_BOX",
+   "part": "solid",
+   "structure": "MOVER_TRUCK"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    37.25,
+    16.25,
+    1.0
+   ],
+   "dir": [
+    0,
+    1,
+    0
+   ],
+   "hit": [
+    37.25,
+    19.0,
+    1.0
+   ],
+   "d_col": null,
+   "d_art": 2.75,
+   "near_edge": true,
+   "brush": 308,
+   "tag": "C_MOVER_BOX",
+   "part": "solid",
+   "structure": "MOVER_TRUCK"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    37.25,
+    17.25,
+    1.0
+   ],
+   "dir": [
+    0,
+    1,
+    0
+   ],
+   "hit": [
+    37.25,
+    19.0,
+    1.0
+   ],
+   "d_col": null,
+   "d_art": 1.75,
+   "near_edge": true,
+   "brush": 308,
+   "tag": "C_MOVER_BOX",
+   "part": "solid",
+   "structure": "MOVER_TRUCK"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    37.25,
+    18.25,
+    1.0
+   ],
+   "dir": [
+    0,
+    1,
+    0
+   ],
+   "hit": [
+    37.25,
+    19.0,
+    1.0
+   ],
+   "d_col": null,
+   "d_art": 0.75,
+   "near_edge": true,
+   "brush": 308,
+   "tag": "C_MOVER_BOX",
+   "part": "solid",
+   "structure": "MOVER_TRUCK"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    37.25,
+    27.25,
+    1.0
+   ],
+   "dir": [
+    0,
+    -1,
+    0
+   ],
+   "hit": [
+    37.25,
+    27.0,
+    1.0
+   ],
+   "d_col": null,
+   "d_art": 0.25,
+   "near_edge": true,
+   "brush": 308,
+   "tag": "C_MOVER_BOX",
+   "part": "solid",
+   "structure": "MOVER_TRUCK"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    37.25,
+    28.25,
+    1.0
+   ],
+   "dir": [
+    0,
+    -1,
+    0
+   ],
+   "hit": [
+    37.25,
+    27.0,
+    1.0
+   ],
+   "d_col": null,
+   "d_art": 1.25,
+   "near_edge": true,
+   "brush": 308,
+   "tag": "C_MOVER_BOX",
+   "part": "solid",
+   "structure": "MOVER_TRUCK"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    37.25,
+    29.25,
+    1.0
+   ],
+   "dir": [
+    0,
+    -1,
+    0
+   ],
+   "hit": [
+    37.25,
+    27.0,
+    1.0
+   ],
+   "d_col": null,
+   "d_art": 2.25,
+   "near_edge": true,
+   "brush": 308,
+   "tag": "C_MOVER_BOX",
+   "part": "solid",
+   "structure": "MOVER_TRUCK"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    38.25,
+    19.25,
+    1.0
+   ],
+   "dir": [
+    -1,
+    0,
+    0
+   ],
+   "hit": [
+    37.35,
+    19.25,
+    1.0
+   ],
+   "d_col": 1.0,
+   "d_art": 0.9,
+   "near_edge": false,
+   "brush": 308,
+   "tag": "C_MOVER_BOX",
+   "part": "solid",
+   "structure": "MOVER_TRUCK"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    38.25,
+    21.25,
+    1.0
+   ],
+   "dir": [
+    -1,
+    0,
+    0
+   ],
+   "hit": [
+    37.35,
+    21.25,
+    1.0
+   ],
+   "d_col": 1.0,
+   "d_art": 0.9,
+   "near_edge": false,
+   "brush": 308,
+   "tag": "C_MOVER_BOX",
+   "part": "solid",
+   "structure": "MOVER_TRUCK"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    38.25,
+    22.25,
+    1.0
+   ],
+   "dir": [
+    -1,
+    0,
+    0
+   ],
+   "hit": [
+    37.35,
+    22.25,
+    1.0
+   ],
+   "d_col": 1.0,
+   "d_art": 0.9,
+   "near_edge": false,
+   "brush": 308,
+   "tag": "C_MOVER_BOX",
+   "part": "solid",
+   "structure": "MOVER_TRUCK"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    38.25,
+    23.25,
+    1.0
+   ],
+   "dir": [
+    -1,
+    0,
+    0
+   ],
+   "hit": [
+    37.35,
+    23.25,
+    1.0
+   ],
+   "d_col": 1.0,
+   "d_art": 0.9,
+   "near_edge": false,
+   "brush": 308,
+   "tag": "C_MOVER_BOX",
+   "part": "solid",
+   "structure": "MOVER_TRUCK"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    38.25,
+    24.25,
+    1.0
+   ],
+   "dir": [
+    -1,
+    0,
+    0
+   ],
+   "hit": [
+    37.35,
+    24.25,
+    1.0
+   ],
+   "d_col": 1.0,
+   "d_art": 0.9,
+   "near_edge": false,
+   "brush": 308,
+   "tag": "C_MOVER_BOX",
+   "part": "solid",
+   "structure": "MOVER_TRUCK"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    38.25,
+    25.25,
+    1.0
+   ],
+   "dir": [
+    -1,
+    0,
+    0
+   ],
+   "hit": [
+    37.35,
+    25.25,
+    1.0
+   ],
+   "d_col": 1.0,
+   "d_art": 0.9,
+   "near_edge": false,
+   "brush": 308,
+   "tag": "C_MOVER_BOX",
+   "part": "solid",
+   "structure": "MOVER_TRUCK"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    38.25,
+    26.25,
+    1.0
+   ],
+   "dir": [
+    -1,
+    0,
+    0
+   ],
+   "hit": [
+    37.35,
+    26.25,
+    1.0
+   ],
+   "d_col": 1.0,
+   "d_art": 0.9,
+   "near_edge": false,
+   "brush": 308,
+   "tag": "C_MOVER_BOX",
+   "part": "solid",
+   "structure": "MOVER_TRUCK"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    39.25,
+    19.25,
+    1.0
+   ],
+   "dir": [
+    -1,
+    0,
+    0
+   ],
+   "hit": [
+    37.35,
+    19.25,
+    1.0
+   ],
+   "d_col": 2.0,
+   "d_art": 1.9,
+   "near_edge": false,
+   "brush": 308,
+   "tag": "C_MOVER_BOX",
+   "part": "solid",
+   "structure": "MOVER_TRUCK"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    39.25,
+    21.25,
+    1.0
+   ],
+   "dir": [
+    -1,
+    0,
+    0
+   ],
+   "hit": [
+    37.35,
+    21.25,
+    1.0
+   ],
+   "d_col": 2.0,
+   "d_art": 1.9,
+   "near_edge": false,
+   "brush": 308,
+   "tag": "C_MOVER_BOX",
+   "part": "solid",
+   "structure": "MOVER_TRUCK"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    39.25,
+    22.25,
+    1.0
+   ],
+   "dir": [
+    -1,
+    0,
+    0
+   ],
+   "hit": [
+    37.35,
+    22.25,
+    1.0
+   ],
+   "d_col": 2.0,
+   "d_art": 1.9,
+   "near_edge": false,
+   "brush": 308,
+   "tag": "C_MOVER_BOX",
+   "part": "solid",
+   "structure": "MOVER_TRUCK"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    39.25,
+    23.25,
+    1.0
+   ],
+   "dir": [
+    -1,
+    0,
+    0
+   ],
+   "hit": [
+    37.35,
+    23.25,
+    1.0
+   ],
+   "d_col": 2.0,
+   "d_art": 1.9,
+   "near_edge": false,
+   "brush": 308,
+   "tag": "C_MOVER_BOX",
+   "part": "solid",
+   "structure": "MOVER_TRUCK"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    39.25,
+    24.25,
+    1.0
+   ],
+   "dir": [
+    -1,
+    0,
+    0
+   ],
+   "hit": [
+    37.35,
+    24.25,
+    1.0
+   ],
+   "d_col": 2.0,
+   "d_art": 1.9,
+   "near_edge": false,
+   "brush": 308,
+   "tag": "C_MOVER_BOX",
+   "part": "solid",
+   "structure": "MOVER_TRUCK"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    39.25,
+    25.25,
+    1.0
+   ],
+   "dir": [
+    -1,
+    0,
+    0
+   ],
+   "hit": [
+    37.35,
+    25.25,
+    1.0
+   ],
+   "d_col": 2.0,
+   "d_art": 1.9,
+   "near_edge": false,
+   "brush": 308,
+   "tag": "C_MOVER_BOX",
+   "part": "solid",
+   "structure": "MOVER_TRUCK"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    39.25,
+    26.25,
+    1.0
+   ],
+   "dir": [
+    -1,
+    0,
+    0
+   ],
+   "hit": [
+    37.35,
+    26.25,
+    1.0
+   ],
+   "d_col": 2.0,
+   "d_art": 1.9,
+   "near_edge": false,
+   "brush": 308,
+   "tag": "C_MOVER_BOX",
+   "part": "solid",
+   "structure": "MOVER_TRUCK"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    40.25,
+    19.25,
+    1.0
+   ],
+   "dir": [
+    -1,
+    0,
+    0
+   ],
+   "hit": [
+    37.35,
+    19.25,
+    1.0
+   ],
+   "d_col": null,
+   "d_art": 2.9,
+   "near_edge": false,
+   "brush": 308,
+   "tag": "C_MOVER_BOX",
+   "part": "solid",
+   "structure": "MOVER_TRUCK"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    40.25,
+    21.25,
+    1.0
+   ],
+   "dir": [
+    -1,
+    0,
+    0
+   ],
+   "hit": [
+    37.35,
+    21.25,
+    1.0
+   ],
+   "d_col": null,
+   "d_art": 2.9,
+   "near_edge": false,
+   "brush": 308,
+   "tag": "C_MOVER_BOX",
+   "part": "solid",
+   "structure": "MOVER_TRUCK"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    40.25,
+    22.25,
+    1.0
+   ],
+   "dir": [
+    -1,
+    0,
+    0
+   ],
+   "hit": [
+    37.35,
+    22.25,
+    1.0
+   ],
+   "d_col": null,
+   "d_art": 2.9,
+   "near_edge": false,
+   "brush": 308,
+   "tag": "C_MOVER_BOX",
+   "part": "solid",
+   "structure": "MOVER_TRUCK"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    40.25,
+    23.25,
+    1.0
+   ],
+   "dir": [
+    -1,
+    0,
+    0
+   ],
+   "hit": [
+    37.35,
+    23.25,
+    1.0
+   ],
+   "d_col": null,
+   "d_art": 2.9,
+   "near_edge": false,
+   "brush": 308,
+   "tag": "C_MOVER_BOX",
+   "part": "solid",
+   "structure": "MOVER_TRUCK"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    40.25,
+    24.25,
+    1.0
+   ],
+   "dir": [
+    -1,
+    0,
+    0
+   ],
+   "hit": [
+    37.35,
+    24.25,
+    1.0
+   ],
+   "d_col": null,
+   "d_art": 2.9,
+   "near_edge": false,
+   "brush": 308,
+   "tag": "C_MOVER_BOX",
+   "part": "solid",
+   "structure": "MOVER_TRUCK"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    40.25,
+    25.25,
+    1.0
+   ],
+   "dir": [
+    -1,
+    0,
+    0
+   ],
+   "hit": [
+    37.35,
+    25.25,
+    1.0
+   ],
+   "d_col": null,
+   "d_art": 2.9,
+   "near_edge": false,
+   "brush": 308,
+   "tag": "C_MOVER_BOX",
+   "part": "solid",
+   "structure": "MOVER_TRUCK"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    40.25,
+    26.25,
+    1.0
+   ],
+   "dir": [
+    -1,
+    0,
+    0
+   ],
+   "hit": [
+    37.35,
+    26.25,
+    1.0
+   ],
+   "d_col": null,
+   "d_art": 2.9,
+   "near_edge": false,
+   "brush": 308,
+   "tag": "C_MOVER_BOX",
+   "part": "solid",
+   "structure": "MOVER_TRUCK"
+  },
+  {
+   "kind": "INVISIBLE",
+   "origin": [
+    18.25,
+    16.25,
+    1.6
+   ],
+   "dir": [
+    1,
+    0,
+    0
+   ],
+   "hit": [
+    20.85,
+    16.25,
+    1.6
+   ],
+   "d_col": 2.6,
+   "d_art": null,
+   "near_edge": false,
+   "brush": 60,
+   "tag": "W_GF_E",
+   "part": "pier",
+   "structure": "SAGE_HOUSE"
+  },
+  {
+   "kind": "INVISIBLE",
+   "origin": [
+    18.25,
+    17.25,
+    1.6
+   ],
+   "dir": [
+    1,
+    0,
+    0
+   ],
+   "hit": [
+    20.85,
+    17.25,
+    1.6
+   ],
+   "d_col": 2.6,
+   "d_art": null,
+   "near_edge": false,
+   "brush": 60,
+   "tag": "W_GF_E",
+   "part": "pier",
+   "structure": "SAGE_HOUSE"
+  },
+  {
+   "kind": "INVISIBLE",
+   "origin": [
+    19.25,
+    16.25,
+    1.6
+   ],
+   "dir": [
+    1,
+    0,
+    0
+   ],
+   "hit": [
+    20.85,
+    16.25,
+    1.6
+   ],
+   "d_col": 1.6,
+   "d_art": null,
+   "near_edge": false,
+   "brush": 60,
+   "tag": "W_GF_E",
+   "part": "pier",
+   "structure": "SAGE_HOUSE"
+  },
+  {
+   "kind": "INVISIBLE",
+   "origin": [
+    19.25,
+    17.25,
+    1.6
+   ],
+   "dir": [
+    1,
+    0,
+    0
+   ],
+   "hit": [
+    20.85,
+    17.25,
+    1.6
+   ],
+   "d_col": 1.6,
+   "d_art": null,
+   "near_edge": false,
+   "brush": 60,
+   "tag": "W_GF_E",
+   "part": "pier",
+   "structure": "SAGE_HOUSE"
+  },
+  {
+   "kind": "INVISIBLE",
+   "origin": [
+    20.25,
+    16.25,
+    1.6
+   ],
+   "dir": [
+    1,
+    0,
+    0
+   ],
+   "hit": [
+    20.85,
+    16.25,
+    1.6
+   ],
+   "d_col": 0.6,
+   "d_art": null,
+   "near_edge": false,
+   "brush": 60,
+   "tag": "W_GF_E",
+   "part": "pier",
+   "structure": "SAGE_HOUSE"
+  },
+  {
+   "kind": "INVISIBLE",
+   "origin": [
+    20.25,
+    17.25,
+    1.6
+   ],
+   "dir": [
+    1,
+    0,
+    0
+   ],
+   "hit": [
+    20.85,
+    17.25,
+    1.6
+   ],
+   "d_col": 0.6,
+   "d_art": null,
+   "near_edge": false,
+   "brush": 60,
+   "tag": "W_GF_E",
+   "part": "pier",
+   "structure": "SAGE_HOUSE"
+  },
+  {
+   "kind": "INVISIBLE",
+   "origin": [
+    21.25,
+    16.25,
+    1.6
+   ],
+   "dir": [
+    -1,
+    0,
+    0
+   ],
+   "hit": [
+    21.15,
+    16.25,
+    1.6
+   ],
+   "d_col": 0.1,
+   "d_art": null,
+   "near_edge": false,
+   "brush": 60,
+   "tag": "W_GF_E",
+   "part": "pier",
+   "structure": "SAGE_HOUSE"
+  },
+  {
+   "kind": "INVISIBLE",
+   "origin": [
+    21.25,
+    17.25,
+    1.6
+   ],
+   "dir": [
+    -1,
+    0,
+    0
+   ],
+   "hit": [
+    21.15,
+    17.25,
+    1.6
+   ],
+   "d_col": 0.1,
+   "d_art": null,
+   "near_edge": false,
+   "brush": 60,
+   "tag": "W_GF_E",
+   "part": "pier",
+   "structure": "SAGE_HOUSE"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    21.25,
+    24.25,
+    1.6
+   ],
+   "dir": [
+    1,
+    0,
+    0
+   ],
+   "hit": [
+    23.887,
+    24.25,
+    1.6
+   ],
+   "d_col": null,
+   "d_art": 2.6369,
+   "near_edge": false,
+   "brush": 7,
+   "tag": "GROUND",
+   "part": "ground",
+   "structure": "GROUND"
+  },
+  {
+   "kind": "INVISIBLE",
+   "origin": [
+    22.25,
+    16.25,
+    1.6
+   ],
+   "dir": [
+    -1,
+    0,
+    0
+   ],
+   "hit": [
+    21.15,
+    16.25,
+    1.6
+   ],
+   "d_col": 1.1,
+   "d_art": null,
+   "near_edge": false,
+   "brush": 60,
+   "tag": "W_GF_E",
+   "part": "pier",
+   "structure": "SAGE_HOUSE"
+  },
+  {
+   "kind": "INVISIBLE",
+   "origin": [
+    22.25,
+    17.25,
+    1.6
+   ],
+   "dir": [
+    -1,
+    0,
+    0
+   ],
+   "hit": [
+    21.15,
+    17.25,
+    1.6
+   ],
+   "d_col": 1.1,
+   "d_art": null,
+   "near_edge": false,
+   "brush": 60,
+   "tag": "W_GF_E",
+   "part": "pier",
+   "structure": "SAGE_HOUSE"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    22.25,
+    24.25,
+    1.6
+   ],
+   "dir": [
+    1,
+    0,
+    0
+   ],
+   "hit": [
+    23.887,
+    24.25,
+    1.6
+   ],
+   "d_col": null,
+   "d_art": 1.6369,
+   "near_edge": false,
+   "brush": 7,
+   "tag": "GROUND",
+   "part": "ground",
+   "structure": "GROUND"
+  },
+  {
+   "kind": "INVISIBLE",
+   "origin": [
+    23.25,
+    16.25,
+    1.6
+   ],
+   "dir": [
+    -1,
+    0,
+    0
+   ],
+   "hit": [
+    21.15,
+    16.25,
+    1.6
+   ],
+   "d_col": 2.1,
+   "d_art": null,
+   "near_edge": false,
+   "brush": 60,
+   "tag": "W_GF_E",
+   "part": "pier",
+   "structure": "SAGE_HOUSE"
+  },
+  {
+   "kind": "INVISIBLE",
+   "origin": [
+    23.25,
+    17.25,
+    1.6
+   ],
+   "dir": [
+    -1,
+    0,
+    0
+   ],
+   "hit": [
+    21.15,
+    17.25,
+    1.6
+   ],
+   "d_col": 2.1,
+   "d_art": null,
+   "near_edge": false,
+   "brush": 60,
+   "tag": "W_GF_E",
+   "part": "pier",
+   "structure": "SAGE_HOUSE"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    23.25,
+    24.25,
+    1.6
+   ],
+   "dir": [
+    1,
+    0,
+    0
+   ],
+   "hit": [
+    23.887,
+    24.25,
+    1.6
+   ],
+   "d_col": null,
+   "d_art": 0.6369,
+   "near_edge": false,
+   "brush": 7,
+   "tag": "GROUND",
+   "part": "ground",
+   "structure": "GROUND"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    24.25,
+    21.25,
+    1.6
+   ],
+   "dir": [
+    0,
+    1,
+    0
+   ],
+   "hit": [
+    24.25,
+    23.387,
+    1.6
+   ],
+   "d_col": null,
+   "d_art": 2.1369,
+   "near_edge": false,
+   "brush": 7,
+   "tag": "GROUND",
+   "part": "ground",
+   "structure": "GROUND"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    24.25,
+    22.25,
+    1.6
+   ],
+   "dir": [
+    0,
+    1,
+    0
+   ],
+   "hit": [
+    24.25,
+    23.387,
+    1.6
+   ],
+   "d_col": null,
+   "d_art": 1.1369,
+   "near_edge": false,
+   "brush": 7,
+   "tag": "GROUND",
+   "part": "ground",
+   "structure": "GROUND"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    24.25,
+    23.25,
+    1.6
+   ],
+   "dir": [
+    0,
+    1,
+    0
+   ],
+   "hit": [
+    24.25,
+    23.387,
+    1.6
+   ],
+   "d_col": null,
+   "d_art": 0.1369,
+   "near_edge": false,
+   "brush": 7,
+   "tag": "GROUND",
+   "part": "ground",
+   "structure": "GROUND"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    24.25,
+    23.25,
+    1.6
+   ],
+   "dir": [
+    0,
+    0,
+    1
+   ],
+   "hit": [
+    24.25,
+    23.25,
+    1.707
+   ],
+   "d_col": null,
+   "d_art": 0.1068,
+   "near_edge": false,
+   "brush": 7,
+   "tag": "GROUND",
+   "part": "ground",
+   "structure": "GROUND"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    24.25,
+    24.25,
+    1.6
+   ],
+   "dir": [
+    1,
+    0,
+    0
+   ],
+   "hit": [
+    25.113,
+    24.25,
+    1.6
+   ],
+   "d_col": null,
+   "d_art": 0.8631,
+   "near_edge": false,
+   "brush": 7,
+   "tag": "GROUND",
+   "part": "ground",
+   "structure": "GROUND"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    24.25,
+    24.25,
+    1.6
+   ],
+   "dir": [
+    -1,
+    0,
+    0
+   ],
+   "hit": [
+    23.887,
+    24.25,
+    1.6
+   ],
+   "d_col": null,
+   "d_art": 0.3631,
+   "near_edge": false,
+   "brush": 7,
+   "tag": "GROUND",
+   "part": "ground",
+   "structure": "GROUND"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    24.25,
+    24.25,
+    1.6
+   ],
+   "dir": [
+    0,
+    1,
+    0
+   ],
+   "hit": [
+    24.25,
+    24.613,
+    1.6
+   ],
+   "d_col": null,
+   "d_art": 0.3631,
+   "near_edge": false,
+   "brush": 7,
+   "tag": "GROUND",
+   "part": "ground",
+   "structure": "GROUND"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    24.25,
+    24.25,
+    1.6
+   ],
+   "dir": [
+    0,
+    -1,
+    0
+   ],
+   "hit": [
+    24.25,
+    23.387,
+    1.6
+   ],
+   "d_col": null,
+   "d_art": 0.8631,
+   "near_edge": false,
+   "brush": 7,
+   "tag": "GROUND",
+   "part": "ground",
+   "structure": "GROUND"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    24.25,
+    24.25,
+    1.6
+   ],
+   "dir": [
+    0,
+    0,
+    -1
+   ],
+   "hit": [
+    24.25,
+    24.25,
+    1.459
+   ],
+   "d_col": 1.6,
+   "d_art": 0.1407,
+   "near_edge": false,
+   "brush": 7,
+   "tag": "GROUND",
+   "part": "ground",
+   "structure": "GROUND"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    24.25,
+    24.25,
+    1.6
+   ],
+   "dir": [
+    0,
+    0,
+    1
+   ],
+   "hit": [
+    24.25,
+    24.25,
+    3.741
+   ],
+   "d_col": null,
+   "d_art": 2.1407,
+   "near_edge": false,
+   "brush": 88,
+   "tag": "W_UF_E",
+   "part": "sill",
+   "structure": "SAGE_HOUSE"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    24.25,
+    25.25,
+    1.6
+   ],
+   "dir": [
+    0,
+    -1,
+    0
+   ],
+   "hit": [
+    24.25,
+    24.613,
+    1.6
+   ],
+   "d_col": null,
+   "d_art": 0.6369,
+   "near_edge": false,
+   "brush": 7,
+   "tag": "GROUND",
+   "part": "ground",
+   "structure": "GROUND"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    24.25,
+    26.25,
+    1.6
+   ],
+   "dir": [
+    0,
+    -1,
+    0
+   ],
+   "hit": [
+    24.25,
+    24.613,
+    1.6
+   ],
+   "d_col": null,
+   "d_art": 1.6369,
+   "near_edge": false,
+   "brush": 7,
+   "tag": "GROUND",
+   "part": "ground",
+   "structure": "GROUND"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    24.25,
+    27.25,
+    1.6
+   ],
+   "dir": [
+    0,
+    -1,
+    0
+   ],
+   "hit": [
+    24.25,
+    24.613,
+    1.6
+   ],
+   "d_col": null,
+   "d_art": 2.6369,
+   "near_edge": false,
+   "brush": 7,
+   "tag": "GROUND",
+   "part": "ground",
+   "structure": "GROUND"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    25.25,
+    23.25,
+    1.6
+   ],
+   "dir": [
+    0,
+    0,
+    1
+   ],
+   "hit": [
+    25.25,
+    23.25,
+    2.051
+   ],
+   "d_col": null,
+   "d_art": 0.451,
+   "near_edge": false,
+   "brush": 7,
+   "tag": "GROUND",
+   "part": "ground",
+   "structure": "GROUND"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    25.25,
+    24.25,
+    1.6
+   ],
+   "dir": [
+    -1,
+    0,
+    0
+   ],
+   "hit": [
+    25.113,
+    24.25,
+    1.6
+   ],
+   "d_col": null,
+   "d_art": 0.1369,
+   "near_edge": false,
+   "brush": 7,
+   "tag": "GROUND",
+   "part": "ground",
+   "structure": "GROUND"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    25.25,
+    24.25,
+    1.6
+   ],
+   "dir": [
+    0,
+    0,
+    1
+   ],
+   "hit": [
+    25.25,
+    24.25,
+    1.707
+   ],
+   "d_col": null,
+   "d_art": 0.1068,
+   "near_edge": false,
+   "brush": 7,
+   "tag": "GROUND",
+   "part": "ground",
+   "structure": "GROUND"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    26.25,
+    24.25,
+    1.6
+   ],
+   "dir": [
+    -1,
+    0,
+    0
+   ],
+   "hit": [
+    25.113,
+    24.25,
+    1.6
+   ],
+   "d_col": null,
+   "d_art": 1.1369,
+   "near_edge": false,
+   "brush": 7,
+   "tag": "GROUND",
+   "part": "ground",
+   "structure": "GROUND"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    27.25,
+    24.25,
+    1.6
+   ],
+   "dir": [
+    -1,
+    0,
+    0
+   ],
+   "hit": [
+    25.113,
+    24.25,
+    1.6
+   ],
+   "d_col": null,
+   "d_art": 2.1369,
+   "near_edge": false,
+   "brush": 7,
+   "tag": "GROUND",
+   "part": "ground",
+   "structure": "GROUND"
+  },
+  {
+   "kind": "INVISIBLE",
+   "origin": [
+    32.25,
+    19.25,
+    1.6
+   ],
+   "dir": [
+    1,
+    0,
+    0
+   ],
+   "hit": [
+    34.75,
+    19.25,
+    1.6
+   ],
+   "d_col": 2.5,
+   "d_art": 2.6,
+   "near_edge": false,
+   "brush": 308,
+   "tag": "C_MOVER_BOX",
+   "part": "solid",
+   "structure": "MOVER_TRUCK"
+  },
+  {
+   "kind": "INVISIBLE",
+   "origin": [
+    32.25,
+    20.25,
+    1.6
+   ],
+   "dir": [
+    1,
+    0,
+    0
+   ],
+   "hit": [
+    34.75,
+    20.25,
+    1.6
+   ],
+   "d_col": 2.5,
+   "d_art": 2.6,
+   "near_edge": false,
+   "brush": 308,
+   "tag": "C_MOVER_BOX",
+   "part": "solid",
+   "structure": "MOVER_TRUCK"
+  },
+  {
+   "kind": "INVISIBLE",
+   "origin": [
+    32.25,
+    21.25,
+    1.6
+   ],
+   "dir": [
+    1,
+    0,
+    0
+   ],
+   "hit": [
+    34.75,
+    21.25,
+    1.6
+   ],
+   "d_col": 2.5,
+   "d_art": 2.6,
+   "near_edge": false,
+   "brush": 308,
+   "tag": "C_MOVER_BOX",
+   "part": "solid",
+   "structure": "MOVER_TRUCK"
+  },
+  {
+   "kind": "INVISIBLE",
+   "origin": [
+    32.25,
+    22.25,
+    1.6
+   ],
+   "dir": [
+    1,
+    0,
+    0
+   ],
+   "hit": [
+    34.75,
+    22.25,
+    1.6
+   ],
+   "d_col": 2.5,
+   "d_art": 2.6,
+   "near_edge": false,
+   "brush": 308,
+   "tag": "C_MOVER_BOX",
+   "part": "solid",
+   "structure": "MOVER_TRUCK"
+  },
+  {
+   "kind": "INVISIBLE",
+   "origin": [
+    32.25,
+    23.25,
+    1.6
+   ],
+   "dir": [
+    1,
+    0,
+    0
+   ],
+   "hit": [
+    34.75,
+    23.25,
+    1.6
+   ],
+   "d_col": 2.5,
+   "d_art": 2.6,
+   "near_edge": false,
+   "brush": 308,
+   "tag": "C_MOVER_BOX",
+   "part": "solid",
+   "structure": "MOVER_TRUCK"
+  },
+  {
+   "kind": "INVISIBLE",
+   "origin": [
+    32.25,
+    24.25,
+    1.6
+   ],
+   "dir": [
+    1,
+    0,
+    0
+   ],
+   "hit": [
+    34.75,
+    24.25,
+    1.6
+   ],
+   "d_col": 2.5,
+   "d_art": 2.6,
+   "near_edge": false,
+   "brush": 308,
+   "tag": "C_MOVER_BOX",
+   "part": "solid",
+   "structure": "MOVER_TRUCK"
+  },
+  {
+   "kind": "INVISIBLE",
+   "origin": [
+    32.25,
+    25.25,
+    1.6
+   ],
+   "dir": [
+    1,
+    0,
+    0
+   ],
+   "hit": [
+    34.75,
+    25.25,
+    1.6
+   ],
+   "d_col": 2.5,
+   "d_art": 2.6,
+   "near_edge": false,
+   "brush": 308,
+   "tag": "C_MOVER_BOX",
+   "part": "solid",
+   "structure": "MOVER_TRUCK"
+  },
+  {
+   "kind": "INVISIBLE",
+   "origin": [
+    32.25,
+    26.25,
+    1.6
+   ],
+   "dir": [
+    1,
+    0,
+    0
+   ],
+   "hit": [
+    34.75,
+    26.25,
+    1.6
+   ],
+   "d_col": 2.5,
+   "d_art": 2.6,
+   "near_edge": false,
+   "brush": 308,
+   "tag": "C_MOVER_BOX",
+   "part": "solid",
+   "structure": "MOVER_TRUCK"
+  },
+  {
+   "kind": "INVISIBLE",
+   "origin": [
+    33.25,
+    19.25,
+    1.6
+   ],
+   "dir": [
+    1,
+    0,
+    0
+   ],
+   "hit": [
+    34.75,
+    19.25,
+    1.6
+   ],
+   "d_col": 1.5,
+   "d_art": 1.6,
+   "near_edge": false,
+   "brush": 308,
+   "tag": "C_MOVER_BOX",
+   "part": "solid",
+   "structure": "MOVER_TRUCK"
+  },
+  {
+   "kind": "INVISIBLE",
+   "origin": [
+    33.25,
+    20.25,
+    1.6
+   ],
+   "dir": [
+    1,
+    0,
+    0
+   ],
+   "hit": [
+    34.75,
+    20.25,
+    1.6
+   ],
+   "d_col": 1.5,
+   "d_art": 1.6,
+   "near_edge": false,
+   "brush": 308,
+   "tag": "C_MOVER_BOX",
+   "part": "solid",
+   "structure": "MOVER_TRUCK"
+  },
+  {
+   "kind": "INVISIBLE",
+   "origin": [
+    33.25,
+    21.25,
+    1.6
+   ],
+   "dir": [
+    1,
+    0,
+    0
+   ],
+   "hit": [
+    34.75,
+    21.25,
+    1.6
+   ],
+   "d_col": 1.5,
+   "d_art": 1.6,
+   "near_edge": false,
+   "brush": 308,
+   "tag": "C_MOVER_BOX",
+   "part": "solid",
+   "structure": "MOVER_TRUCK"
+  },
+  {
+   "kind": "INVISIBLE",
+   "origin": [
+    33.25,
+    22.25,
+    1.6
+   ],
+   "dir": [
+    1,
+    0,
+    0
+   ],
+   "hit": [
+    34.75,
+    22.25,
+    1.6
+   ],
+   "d_col": 1.5,
+   "d_art": 1.6,
+   "near_edge": false,
+   "brush": 308,
+   "tag": "C_MOVER_BOX",
+   "part": "solid",
+   "structure": "MOVER_TRUCK"
+  },
+  {
+   "kind": "INVISIBLE",
+   "origin": [
+    33.25,
+    23.25,
+    1.6
+   ],
+   "dir": [
+    1,
+    0,
+    0
+   ],
+   "hit": [
+    34.75,
+    23.25,
+    1.6
+   ],
+   "d_col": 1.5,
+   "d_art": 1.6,
+   "near_edge": false,
+   "brush": 308,
+   "tag": "C_MOVER_BOX",
+   "part": "solid",
+   "structure": "MOVER_TRUCK"
+  },
+  {
+   "kind": "INVISIBLE",
+   "origin": [
+    33.25,
+    24.25,
+    1.6
+   ],
+   "dir": [
+    1,
+    0,
+    0
+   ],
+   "hit": [
+    34.75,
+    24.25,
+    1.6
+   ],
+   "d_col": 1.5,
+   "d_art": 1.6,
+   "near_edge": false,
+   "brush": 308,
+   "tag": "C_MOVER_BOX",
+   "part": "solid",
+   "structure": "MOVER_TRUCK"
+  },
+  {
+   "kind": "INVISIBLE",
+   "origin": [
+    33.25,
+    25.25,
+    1.6
+   ],
+   "dir": [
+    1,
+    0,
+    0
+   ],
+   "hit": [
+    34.75,
+    25.25,
+    1.6
+   ],
+   "d_col": 1.5,
+   "d_art": 1.6,
+   "near_edge": false,
+   "brush": 308,
+   "tag": "C_MOVER_BOX",
+   "part": "solid",
+   "structure": "MOVER_TRUCK"
+  },
+  {
+   "kind": "INVISIBLE",
+   "origin": [
+    33.25,
+    26.25,
+    1.6
+   ],
+   "dir": [
+    1,
+    0,
+    0
+   ],
+   "hit": [
+    34.75,
+    26.25,
+    1.6
+   ],
+   "d_col": 1.5,
+   "d_art": 1.6,
+   "near_edge": false,
+   "brush": 308,
+   "tag": "C_MOVER_BOX",
+   "part": "solid",
+   "structure": "MOVER_TRUCK"
+  },
+  {
+   "kind": "INVISIBLE",
+   "origin": [
+    34.25,
+    19.25,
+    1.6
+   ],
+   "dir": [
+    1,
+    0,
+    0
+   ],
+   "hit": [
+    34.75,
+    19.25,
+    1.6
+   ],
+   "d_col": 0.5,
+   "d_art": 0.6,
+   "near_edge": false,
+   "brush": 308,
+   "tag": "C_MOVER_BOX",
+   "part": "solid",
+   "structure": "MOVER_TRUCK"
+  },
+  {
+   "kind": "INVISIBLE",
+   "origin": [
+    34.25,
+    20.25,
+    1.6
+   ],
+   "dir": [
+    1,
+    0,
+    0
+   ],
+   "hit": [
+    34.75,
+    20.25,
+    1.6
+   ],
+   "d_col": 0.5,
+   "d_art": 0.6,
+   "near_edge": false,
+   "brush": 308,
+   "tag": "C_MOVER_BOX",
+   "part": "solid",
+   "structure": "MOVER_TRUCK"
+  },
+  {
+   "kind": "INVISIBLE",
+   "origin": [
+    34.25,
+    21.25,
+    1.6
+   ],
+   "dir": [
+    1,
+    0,
+    0
+   ],
+   "hit": [
+    34.75,
+    21.25,
+    1.6
+   ],
+   "d_col": 0.5,
+   "d_art": 0.6,
+   "near_edge": false,
+   "brush": 308,
+   "tag": "C_MOVER_BOX",
+   "part": "solid",
+   "structure": "MOVER_TRUCK"
+  },
+  {
+   "kind": "INVISIBLE",
+   "origin": [
+    34.25,
+    22.25,
+    1.6
+   ],
+   "dir": [
+    1,
+    0,
+    0
+   ],
+   "hit": [
+    34.75,
+    22.25,
+    1.6
+   ],
+   "d_col": 0.5,
+   "d_art": 0.6,
+   "near_edge": false,
+   "brush": 308,
+   "tag": "C_MOVER_BOX",
+   "part": "solid",
+   "structure": "MOVER_TRUCK"
+  },
+  {
+   "kind": "INVISIBLE",
+   "origin": [
+    34.25,
+    23.25,
+    1.6
+   ],
+   "dir": [
+    1,
+    0,
+    0
+   ],
+   "hit": [
+    34.75,
+    23.25,
+    1.6
+   ],
+   "d_col": 0.5,
+   "d_art": 0.6,
+   "near_edge": false,
+   "brush": 308,
+   "tag": "C_MOVER_BOX",
+   "part": "solid",
+   "structure": "MOVER_TRUCK"
+  },
+  {
+   "kind": "INVISIBLE",
+   "origin": [
+    34.25,
+    24.25,
+    1.6
+   ],
+   "dir": [
+    1,
+    0,
+    0
+   ],
+   "hit": [
+    34.75,
+    24.25,
+    1.6
+   ],
+   "d_col": 0.5,
+   "d_art": 0.6,
+   "near_edge": false,
+   "brush": 308,
+   "tag": "C_MOVER_BOX",
+   "part": "solid",
+   "structure": "MOVER_TRUCK"
+  },
+  {
+   "kind": "INVISIBLE",
+   "origin": [
+    34.25,
+    25.25,
+    1.6
+   ],
+   "dir": [
+    1,
+    0,
+    0
+   ],
+   "hit": [
+    34.75,
+    25.25,
+    1.6
+   ],
+   "d_col": 0.5,
+   "d_art": 0.6,
+   "near_edge": false,
+   "brush": 308,
+   "tag": "C_MOVER_BOX",
+   "part": "solid",
+   "structure": "MOVER_TRUCK"
+  },
+  {
+   "kind": "INVISIBLE",
+   "origin": [
+    34.25,
+    26.25,
+    1.6
+   ],
+   "dir": [
+    1,
+    0,
+    0
+   ],
+   "hit": [
+    34.75,
+    26.25,
+    1.6
+   ],
+   "d_col": 0.5,
+   "d_art": 0.6,
+   "near_edge": false,
+   "brush": 308,
+   "tag": "C_MOVER_BOX",
+   "part": "solid",
+   "structure": "MOVER_TRUCK"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    37.25,
+    16.25,
+    1.6
+   ],
+   "dir": [
+    0,
+    1,
+    0
+   ],
+   "hit": [
+    37.25,
+    19.0,
+    1.6
+   ],
+   "d_col": null,
+   "d_art": 2.75,
+   "near_edge": true,
+   "brush": 308,
+   "tag": "C_MOVER_BOX",
+   "part": "solid",
+   "structure": "MOVER_TRUCK"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    37.25,
+    17.25,
+    1.6
+   ],
+   "dir": [
+    0,
+    1,
+    0
+   ],
+   "hit": [
+    37.25,
+    19.0,
+    1.6
+   ],
+   "d_col": null,
+   "d_art": 1.75,
+   "near_edge": true,
+   "brush": 308,
+   "tag": "C_MOVER_BOX",
+   "part": "solid",
+   "structure": "MOVER_TRUCK"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    37.25,
+    18.25,
+    1.6
+   ],
+   "dir": [
+    0,
+    1,
+    0
+   ],
+   "hit": [
+    37.25,
+    19.0,
+    1.6
+   ],
+   "d_col": null,
+   "d_art": 0.75,
+   "near_edge": true,
+   "brush": 308,
+   "tag": "C_MOVER_BOX",
+   "part": "solid",
+   "structure": "MOVER_TRUCK"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    37.25,
+    27.25,
+    1.6
+   ],
+   "dir": [
+    0,
+    -1,
+    0
+   ],
+   "hit": [
+    37.25,
+    27.0,
+    1.6
+   ],
+   "d_col": null,
+   "d_art": 0.25,
+   "near_edge": true,
+   "brush": 308,
+   "tag": "C_MOVER_BOX",
+   "part": "solid",
+   "structure": "MOVER_TRUCK"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    37.25,
+    28.25,
+    1.6
+   ],
+   "dir": [
+    0,
+    -1,
+    0
+   ],
+   "hit": [
+    37.25,
+    27.0,
+    1.6
+   ],
+   "d_col": null,
+   "d_art": 1.25,
+   "near_edge": true,
+   "brush": 308,
+   "tag": "C_MOVER_BOX",
+   "part": "solid",
+   "structure": "MOVER_TRUCK"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    37.25,
+    29.25,
+    1.6
+   ],
+   "dir": [
+    0,
+    -1,
+    0
+   ],
+   "hit": [
+    37.25,
+    27.0,
+    1.6
+   ],
+   "d_col": null,
+   "d_art": 2.25,
+   "near_edge": true,
+   "brush": 308,
+   "tag": "C_MOVER_BOX",
+   "part": "solid",
+   "structure": "MOVER_TRUCK"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    38.25,
+    19.25,
+    1.6
+   ],
+   "dir": [
+    -1,
+    0,
+    0
+   ],
+   "hit": [
+    37.35,
+    19.25,
+    1.6
+   ],
+   "d_col": 1.0,
+   "d_art": 0.9,
+   "near_edge": false,
+   "brush": 308,
+   "tag": "C_MOVER_BOX",
+   "part": "solid",
+   "structure": "MOVER_TRUCK"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    38.25,
+    20.25,
+    1.6
+   ],
+   "dir": [
+    -1,
+    0,
+    0
+   ],
+   "hit": [
+    37.35,
+    20.25,
+    1.6
+   ],
+   "d_col": 1.0,
+   "d_art": 0.9,
+   "near_edge": false,
+   "brush": 308,
+   "tag": "C_MOVER_BOX",
+   "part": "solid",
+   "structure": "MOVER_TRUCK"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    38.25,
+    21.25,
+    1.6
+   ],
+   "dir": [
+    -1,
+    0,
+    0
+   ],
+   "hit": [
+    37.35,
+    21.25,
+    1.6
+   ],
+   "d_col": 1.0,
+   "d_art": 0.9,
+   "near_edge": false,
+   "brush": 308,
+   "tag": "C_MOVER_BOX",
+   "part": "solid",
+   "structure": "MOVER_TRUCK"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    38.25,
+    22.25,
+    1.6
+   ],
+   "dir": [
+    -1,
+    0,
+    0
+   ],
+   "hit": [
+    37.35,
+    22.25,
+    1.6
+   ],
+   "d_col": 1.0,
+   "d_art": 0.9,
+   "near_edge": false,
+   "brush": 308,
+   "tag": "C_MOVER_BOX",
+   "part": "solid",
+   "structure": "MOVER_TRUCK"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    38.25,
+    23.25,
+    1.6
+   ],
+   "dir": [
+    -1,
+    0,
+    0
+   ],
+   "hit": [
+    37.35,
+    23.25,
+    1.6
+   ],
+   "d_col": 1.0,
+   "d_art": 0.9,
+   "near_edge": false,
+   "brush": 308,
+   "tag": "C_MOVER_BOX",
+   "part": "solid",
+   "structure": "MOVER_TRUCK"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    38.25,
+    24.25,
+    1.6
+   ],
+   "dir": [
+    -1,
+    0,
+    0
+   ],
+   "hit": [
+    37.35,
+    24.25,
+    1.6
+   ],
+   "d_col": 1.0,
+   "d_art": 0.9,
+   "near_edge": false,
+   "brush": 308,
+   "tag": "C_MOVER_BOX",
+   "part": "solid",
+   "structure": "MOVER_TRUCK"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    38.25,
+    25.25,
+    1.6
+   ],
+   "dir": [
+    -1,
+    0,
+    0
+   ],
+   "hit": [
+    37.35,
+    25.25,
+    1.6
+   ],
+   "d_col": 1.0,
+   "d_art": 0.9,
+   "near_edge": false,
+   "brush": 308,
+   "tag": "C_MOVER_BOX",
+   "part": "solid",
+   "structure": "MOVER_TRUCK"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    38.25,
+    26.25,
+    1.6
+   ],
+   "dir": [
+    -1,
+    0,
+    0
+   ],
+   "hit": [
+    37.35,
+    26.25,
+    1.6
+   ],
+   "d_col": 1.0,
+   "d_art": 0.9,
+   "near_edge": false,
+   "brush": 308,
+   "tag": "C_MOVER_BOX",
+   "part": "solid",
+   "structure": "MOVER_TRUCK"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    39.25,
+    19.25,
+    1.6
+   ],
+   "dir": [
+    -1,
+    0,
+    0
+   ],
+   "hit": [
+    37.35,
+    19.25,
+    1.6
+   ],
+   "d_col": 2.0,
+   "d_art": 1.9,
+   "near_edge": false,
+   "brush": 308,
+   "tag": "C_MOVER_BOX",
+   "part": "solid",
+   "structure": "MOVER_TRUCK"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    39.25,
+    20.25,
+    1.6
+   ],
+   "dir": [
+    -1,
+    0,
+    0
+   ],
+   "hit": [
+    37.35,
+    20.25,
+    1.6
+   ],
+   "d_col": 2.0,
+   "d_art": 1.9,
+   "near_edge": false,
+   "brush": 308,
+   "tag": "C_MOVER_BOX",
+   "part": "solid",
+   "structure": "MOVER_TRUCK"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    39.25,
+    21.25,
+    1.6
+   ],
+   "dir": [
+    -1,
+    0,
+    0
+   ],
+   "hit": [
+    37.35,
+    21.25,
+    1.6
+   ],
+   "d_col": 2.0,
+   "d_art": 1.9,
+   "near_edge": false,
+   "brush": 308,
+   "tag": "C_MOVER_BOX",
+   "part": "solid",
+   "structure": "MOVER_TRUCK"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    39.25,
+    22.25,
+    1.6
+   ],
+   "dir": [
+    -1,
+    0,
+    0
+   ],
+   "hit": [
+    37.35,
+    22.25,
+    1.6
+   ],
+   "d_col": 2.0,
+   "d_art": 1.9,
+   "near_edge": false,
+   "brush": 308,
+   "tag": "C_MOVER_BOX",
+   "part": "solid",
+   "structure": "MOVER_TRUCK"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    39.25,
+    23.25,
+    1.6
+   ],
+   "dir": [
+    -1,
+    0,
+    0
+   ],
+   "hit": [
+    37.35,
+    23.25,
+    1.6
+   ],
+   "d_col": 2.0,
+   "d_art": 1.9,
+   "near_edge": false,
+   "brush": 308,
+   "tag": "C_MOVER_BOX",
+   "part": "solid",
+   "structure": "MOVER_TRUCK"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    39.25,
+    24.25,
+    1.6
+   ],
+   "dir": [
+    -1,
+    0,
+    0
+   ],
+   "hit": [
+    37.35,
+    24.25,
+    1.6
+   ],
+   "d_col": 2.0,
+   "d_art": 1.9,
+   "near_edge": false,
+   "brush": 308,
+   "tag": "C_MOVER_BOX",
+   "part": "solid",
+   "structure": "MOVER_TRUCK"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    39.25,
+    25.25,
+    1.6
+   ],
+   "dir": [
+    -1,
+    0,
+    0
+   ],
+   "hit": [
+    37.35,
+    25.25,
+    1.6
+   ],
+   "d_col": 2.0,
+   "d_art": 1.9,
+   "near_edge": false,
+   "brush": 308,
+   "tag": "C_MOVER_BOX",
+   "part": "solid",
+   "structure": "MOVER_TRUCK"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    39.25,
+    26.25,
+    1.6
+   ],
+   "dir": [
+    -1,
+    0,
+    0
+   ],
+   "hit": [
+    37.35,
+    26.25,
+    1.6
+   ],
+   "d_col": 2.0,
+   "d_art": 1.9,
+   "near_edge": false,
+   "brush": 308,
+   "tag": "C_MOVER_BOX",
+   "part": "solid",
+   "structure": "MOVER_TRUCK"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    40.25,
+    19.25,
+    1.6
+   ],
+   "dir": [
+    -1,
+    0,
+    0
+   ],
+   "hit": [
+    37.35,
+    19.25,
+    1.6
+   ],
+   "d_col": null,
+   "d_art": 2.9,
+   "near_edge": false,
+   "brush": 308,
+   "tag": "C_MOVER_BOX",
+   "part": "solid",
+   "structure": "MOVER_TRUCK"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    40.25,
+    20.25,
+    1.6
+   ],
+   "dir": [
+    -1,
+    0,
+    0
+   ],
+   "hit": [
+    37.35,
+    20.25,
+    1.6
+   ],
+   "d_col": null,
+   "d_art": 2.9,
+   "near_edge": false,
+   "brush": 308,
+   "tag": "C_MOVER_BOX",
+   "part": "solid",
+   "structure": "MOVER_TRUCK"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    40.25,
+    21.25,
+    1.6
+   ],
+   "dir": [
+    -1,
+    0,
+    0
+   ],
+   "hit": [
+    37.35,
+    21.25,
+    1.6
+   ],
+   "d_col": null,
+   "d_art": 2.9,
+   "near_edge": false,
+   "brush": 308,
+   "tag": "C_MOVER_BOX",
+   "part": "solid",
+   "structure": "MOVER_TRUCK"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    40.25,
+    22.25,
+    1.6
+   ],
+   "dir": [
+    -1,
+    0,
+    0
+   ],
+   "hit": [
+    37.35,
+    22.25,
+    1.6
+   ],
+   "d_col": null,
+   "d_art": 2.9,
+   "near_edge": false,
+   "brush": 308,
+   "tag": "C_MOVER_BOX",
+   "part": "solid",
+   "structure": "MOVER_TRUCK"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    40.25,
+    23.25,
+    1.6
+   ],
+   "dir": [
+    -1,
+    0,
+    0
+   ],
+   "hit": [
+    37.35,
+    23.25,
+    1.6
+   ],
+   "d_col": null,
+   "d_art": 2.9,
+   "near_edge": false,
+   "brush": 308,
+   "tag": "C_MOVER_BOX",
+   "part": "solid",
+   "structure": "MOVER_TRUCK"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    40.25,
+    24.25,
+    1.6
+   ],
+   "dir": [
+    -1,
+    0,
+    0
+   ],
+   "hit": [
+    37.35,
+    24.25,
+    1.6
+   ],
+   "d_col": null,
+   "d_art": 2.9,
+   "near_edge": false,
+   "brush": 308,
+   "tag": "C_MOVER_BOX",
+   "part": "solid",
+   "structure": "MOVER_TRUCK"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    40.25,
+    25.25,
+    1.6
+   ],
+   "dir": [
+    -1,
+    0,
+    0
+   ],
+   "hit": [
+    37.35,
+    25.25,
+    1.6
+   ],
+   "d_col": null,
+   "d_art": 2.9,
+   "near_edge": false,
+   "brush": 308,
+   "tag": "C_MOVER_BOX",
+   "part": "solid",
+   "structure": "MOVER_TRUCK"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    40.25,
+    26.25,
+    1.6
+   ],
+   "dir": [
+    -1,
+    0,
+    0
+   ],
+   "hit": [
+    37.35,
+    26.25,
+    1.6
+   ],
+   "d_col": null,
+   "d_art": 2.9,
+   "near_edge": false,
+   "brush": 308,
+   "tag": "C_MOVER_BOX",
+   "part": "solid",
+   "structure": "MOVER_TRUCK"
+  },
+  {
+   "kind": "INVISIBLE",
+   "origin": [
+    18.25,
+    16.25,
+    2.5
+   ],
+   "dir": [
+    1,
+    0,
+    0
+   ],
+   "hit": [
+    20.85,
+    16.25,
+    2.5
+   ],
+   "d_col": 2.6,
+   "d_art": null,
+   "near_edge": false,
+   "brush": 60,
+   "tag": "W_GF_E",
+   "part": "pier",
+   "structure": "SAGE_HOUSE"
+  },
+  {
+   "kind": "INVISIBLE",
+   "origin": [
+    18.25,
+    17.25,
+    2.5
+   ],
+   "dir": [
+    1,
+    0,
+    0
+   ],
+   "hit": [
+    20.85,
+    17.25,
+    2.5
+   ],
+   "d_col": 2.6,
+   "d_art": null,
+   "near_edge": false,
+   "brush": 60,
+   "tag": "W_GF_E",
+   "part": "pier",
+   "structure": "SAGE_HOUSE"
+  },
+  {
+   "kind": "INVISIBLE",
+   "origin": [
+    19.25,
+    16.25,
+    2.5
+   ],
+   "dir": [
+    1,
+    0,
+    0
+   ],
+   "hit": [
+    20.85,
+    16.25,
+    2.5
+   ],
+   "d_col": 1.6,
+   "d_art": null,
+   "near_edge": false,
+   "brush": 60,
+   "tag": "W_GF_E",
+   "part": "pier",
+   "structure": "SAGE_HOUSE"
+  },
+  {
+   "kind": "INVISIBLE",
+   "origin": [
+    19.25,
+    17.25,
+    2.5
+   ],
+   "dir": [
+    1,
+    0,
+    0
+   ],
+   "hit": [
+    20.85,
+    17.25,
+    2.5
+   ],
+   "d_col": 1.6,
+   "d_art": null,
+   "near_edge": false,
+   "brush": 60,
+   "tag": "W_GF_E",
+   "part": "pier",
+   "structure": "SAGE_HOUSE"
+  },
+  {
+   "kind": "INVISIBLE",
+   "origin": [
+    20.25,
+    16.25,
+    2.5
+   ],
+   "dir": [
+    1,
+    0,
+    0
+   ],
+   "hit": [
+    20.85,
+    16.25,
+    2.5
+   ],
+   "d_col": 0.6,
+   "d_art": null,
+   "near_edge": false,
+   "brush": 60,
+   "tag": "W_GF_E",
+   "part": "pier",
+   "structure": "SAGE_HOUSE"
+  },
+  {
+   "kind": "INVISIBLE",
+   "origin": [
+    20.25,
+    17.25,
+    2.5
+   ],
+   "dir": [
+    1,
+    0,
+    0
+   ],
+   "hit": [
+    20.85,
+    17.25,
+    2.5
+   ],
+   "d_col": 0.6,
+   "d_art": null,
+   "near_edge": false,
+   "brush": 60,
+   "tag": "W_GF_E",
+   "part": "pier",
+   "structure": "SAGE_HOUSE"
+  },
+  {
+   "kind": "INVISIBLE",
+   "origin": [
+    21.25,
+    16.25,
+    2.5
+   ],
+   "dir": [
+    -1,
+    0,
+    0
+   ],
+   "hit": [
+    21.15,
+    16.25,
+    2.5
+   ],
+   "d_col": 0.1,
+   "d_art": null,
+   "near_edge": false,
+   "brush": 60,
+   "tag": "W_GF_E",
+   "part": "pier",
+   "structure": "SAGE_HOUSE"
+  },
+  {
+   "kind": "INVISIBLE",
+   "origin": [
+    21.25,
+    17.25,
+    2.5
+   ],
+   "dir": [
+    -1,
+    0,
+    0
+   ],
+   "hit": [
+    21.15,
+    17.25,
+    2.5
+   ],
+   "d_col": 0.1,
+   "d_art": null,
+   "near_edge": false,
+   "brush": 60,
+   "tag": "W_GF_E",
+   "part": "pier",
+   "structure": "SAGE_HOUSE"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    21.25,
+    23.25,
+    2.5
+   ],
+   "dir": [
+    1,
+    0,
+    0
+   ],
+   "hit": [
+    23.583,
+    23.25,
+    2.5
+   ],
+   "d_col": null,
+   "d_art": 2.3333,
+   "near_edge": false,
+   "brush": 63,
+   "tag": "W_GF_E",
+   "part": "pier",
+   "structure": "SAGE_HOUSE"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    21.25,
+    24.25,
+    2.5
+   ],
+   "dir": [
+    1,
+    0,
+    0
+   ],
+   "hit": [
+    23.338,
+    24.25,
+    2.5
+   ],
+   "d_col": null,
+   "d_art": 2.0881,
+   "near_edge": false,
+   "brush": 63,
+   "tag": "W_GF_E",
+   "part": "pier",
+   "structure": "SAGE_HOUSE"
+  },
+  {
+   "kind": "INVISIBLE",
+   "origin": [
+    22.25,
+    16.25,
+    2.5
+   ],
+   "dir": [
+    -1,
+    0,
+    0
+   ],
+   "hit": [
+    21.15,
+    16.25,
+    2.5
+   ],
+   "d_col": 1.1,
+   "d_art": null,
+   "near_edge": false,
+   "brush": 60,
+   "tag": "W_GF_E",
+   "part": "pier",
+   "structure": "SAGE_HOUSE"
+  },
+  {
+   "kind": "INVISIBLE",
+   "origin": [
+    22.25,
+    17.25,
+    2.5
+   ],
+   "dir": [
+    -1,
+    0,
+    0
+   ],
+   "hit": [
+    21.15,
+    17.25,
+    2.5
+   ],
+   "d_col": 1.1,
+   "d_art": null,
+   "near_edge": false,
+   "brush": 60,
+   "tag": "W_GF_E",
+   "part": "pier",
+   "structure": "SAGE_HOUSE"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    22.25,
+    23.25,
+    2.5
+   ],
+   "dir": [
+    1,
+    0,
+    0
+   ],
+   "hit": [
+    23.583,
+    23.25,
+    2.5
+   ],
+   "d_col": null,
+   "d_art": 1.3333,
+   "near_edge": false,
+   "brush": 63,
+   "tag": "W_GF_E",
+   "part": "pier",
+   "structure": "SAGE_HOUSE"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    22.25,
+    24.25,
+    2.5
+   ],
+   "dir": [
+    1,
+    0,
+    0
+   ],
+   "hit": [
+    23.338,
+    24.25,
+    2.5
+   ],
+   "d_col": null,
+   "d_art": 1.0881,
+   "near_edge": false,
+   "brush": 63,
+   "tag": "W_GF_E",
+   "part": "pier",
+   "structure": "SAGE_HOUSE"
+  },
+  {
+   "kind": "INVISIBLE",
+   "origin": [
+    23.25,
+    16.25,
+    2.5
+   ],
+   "dir": [
+    -1,
+    0,
+    0
+   ],
+   "hit": [
+    21.15,
+    16.25,
+    2.5
+   ],
+   "d_col": 2.1,
+   "d_art": null,
+   "near_edge": false,
+   "brush": 60,
+   "tag": "W_GF_E",
+   "part": "pier",
+   "structure": "SAGE_HOUSE"
+  },
+  {
+   "kind": "INVISIBLE",
+   "origin": [
+    23.25,
+    17.25,
+    2.5
+   ],
+   "dir": [
+    -1,
+    0,
+    0
+   ],
+   "hit": [
+    21.15,
+    17.25,
+    2.5
+   ],
+   "d_col": 2.1,
+   "d_art": null,
+   "near_edge": false,
+   "brush": 60,
+   "tag": "W_GF_E",
+   "part": "pier",
+   "structure": "SAGE_HOUSE"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    23.25,
+    23.25,
+    2.5
+   ],
+   "dir": [
+    1,
+    0,
+    0
+   ],
+   "hit": [
+    23.583,
+    23.25,
+    2.5
+   ],
+   "d_col": null,
+   "d_art": 0.3333,
+   "near_edge": false,
+   "brush": 63,
+   "tag": "W_GF_E",
+   "part": "pier",
+   "structure": "SAGE_HOUSE"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    23.25,
+    24.25,
+    2.5
+   ],
+   "dir": [
+    1,
+    0,
+    0
+   ],
+   "hit": [
+    23.338,
+    24.25,
+    2.5
+   ],
+   "d_col": null,
+   "d_art": 0.0881,
+   "near_edge": false,
+   "brush": 63,
+   "tag": "W_GF_E",
+   "part": "pier",
+   "structure": "SAGE_HOUSE"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    24.25,
+    20.25,
+    2.5
+   ],
+   "dir": [
+    0,
+    1,
+    0
+   ],
+   "hit": [
+    24.25,
+    22.838,
+    2.5
+   ],
+   "d_col": null,
+   "d_art": 2.5881,
+   "near_edge": false,
+   "brush": 7,
+   "tag": "GROUND",
+   "part": "ground",
+   "structure": "GROUND"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    24.25,
+    21.25,
+    2.5
+   ],
+   "dir": [
+    0,
+    1,
+    0
+   ],
+   "hit": [
+    24.25,
+    22.838,
+    2.5
+   ],
+   "d_col": null,
+   "d_art": 1.5881,
+   "near_edge": false,
+   "brush": 7,
+   "tag": "GROUND",
+   "part": "ground",
+   "structure": "GROUND"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    24.25,
+    22.25,
+    2.5
+   ],
+   "dir": [
+    0,
+    1,
+    0
+   ],
+   "hit": [
+    24.25,
+    22.838,
+    2.5
+   ],
+   "d_col": null,
+   "d_art": 0.5881,
+   "near_edge": false,
+   "brush": 7,
+   "tag": "GROUND",
+   "part": "ground",
+   "structure": "GROUND"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    24.25,
+    23.25,
+    2.5
+   ],
+   "dir": [
+    1,
+    0,
+    0
+   ],
+   "hit": [
+    25.417,
+    23.25,
+    2.5
+   ],
+   "d_col": null,
+   "d_art": 1.1667,
+   "near_edge": false,
+   "brush": 39,
+   "tag": "W_FENCE_FS",
+   "part": "solid",
+   "structure": "SAGE_LAWN"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    24.25,
+    23.25,
+    2.5
+   ],
+   "dir": [
+    -1,
+    0,
+    0
+   ],
+   "hit": [
+    23.583,
+    23.25,
+    2.5
+   ],
+   "d_col": null,
+   "d_art": 0.6667,
+   "near_edge": false,
+   "brush": 63,
+   "tag": "W_GF_E",
+   "part": "pier",
+   "structure": "SAGE_HOUSE"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    24.25,
+    23.25,
+    2.5
+   ],
+   "dir": [
+    0,
+    1,
+    0
+   ],
+   "hit": [
+    24.25,
+    25.162,
+    2.5
+   ],
+   "d_col": null,
+   "d_art": 1.9119,
+   "near_edge": false,
+   "brush": 7,
+   "tag": "GROUND",
+   "part": "ground",
+   "structure": "GROUND"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    24.25,
+    23.25,
+    2.5
+   ],
+   "dir": [
+    0,
+    -1,
+    0
+   ],
+   "hit": [
+    24.25,
+    22.838,
+    2.5
+   ],
+   "d_col": null,
+   "d_art": 0.4119,
+   "near_edge": false,
+   "brush": 7,
+   "tag": "GROUND",
+   "part": "ground",
+   "structure": "GROUND"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    24.25,
+    23.25,
+    2.5
+   ],
+   "dir": [
+    0,
+    0,
+    -1
+   ],
+   "hit": [
+    24.25,
+    23.25,
+    1.707
+   ],
+   "d_col": 2.5,
+   "d_art": 0.7932,
+   "near_edge": false,
+   "brush": 7,
+   "tag": "GROUND",
+   "part": "ground",
+   "structure": "GROUND"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    24.25,
+    23.25,
+    2.5
+   ],
+   "dir": [
+    0,
+    0,
+    1
+   ],
+   "hit": [
+    24.25,
+    23.25,
+    3.493
+   ],
+   "d_col": null,
+   "d_art": 0.9932,
+   "near_edge": false,
+   "brush": 87,
+   "tag": "W_UF_E",
+   "part": "pier",
+   "structure": "SAGE_HOUSE"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    24.25,
+    24.25,
+    2.5
+   ],
+   "dir": [
+    1,
+    0,
+    0
+   ],
+   "hit": [
+    25.662,
+    24.25,
+    2.5
+   ],
+   "d_col": null,
+   "d_art": 1.4119,
+   "near_edge": false,
+   "brush": 39,
+   "tag": "W_FENCE_FS",
+   "part": "solid",
+   "structure": "SAGE_LAWN"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    24.25,
+    24.25,
+    2.5
+   ],
+   "dir": [
+    -1,
+    0,
+    0
+   ],
+   "hit": [
+    23.338,
+    24.25,
+    2.5
+   ],
+   "d_col": null,
+   "d_art": 0.9119,
+   "near_edge": false,
+   "brush": 63,
+   "tag": "W_GF_E",
+   "part": "pier",
+   "structure": "SAGE_HOUSE"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    24.25,
+    24.25,
+    2.5
+   ],
+   "dir": [
+    0,
+    1,
+    0
+   ],
+   "hit": [
+    24.25,
+    25.162,
+    2.5
+   ],
+   "d_col": null,
+   "d_art": 0.9119,
+   "near_edge": false,
+   "brush": 7,
+   "tag": "GROUND",
+   "part": "ground",
+   "structure": "GROUND"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    24.25,
+    24.25,
+    2.5
+   ],
+   "dir": [
+    0,
+    -1,
+    0
+   ],
+   "hit": [
+    24.25,
+    22.838,
+    2.5
+   ],
+   "d_col": null,
+   "d_art": 1.4119,
+   "near_edge": false,
+   "brush": 7,
+   "tag": "GROUND",
+   "part": "ground",
+   "structure": "GROUND"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    24.25,
+    24.25,
+    2.5
+   ],
+   "dir": [
+    0,
+    0,
+    -1
+   ],
+   "hit": [
+    24.25,
+    24.25,
+    1.459
+   ],
+   "d_col": 2.5,
+   "d_art": 1.0407,
+   "near_edge": false,
+   "brush": 7,
+   "tag": "GROUND",
+   "part": "ground",
+   "structure": "GROUND"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    24.25,
+    24.25,
+    2.5
+   ],
+   "dir": [
+    0,
+    0,
+    1
+   ],
+   "hit": [
+    24.25,
+    24.25,
+    3.741
+   ],
+   "d_col": null,
+   "d_art": 1.2407,
+   "near_edge": false,
+   "brush": 88,
+   "tag": "W_UF_E",
+   "part": "sill",
+   "structure": "SAGE_HOUSE"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    24.25,
+    25.25,
+    2.5
+   ],
+   "dir": [
+    0,
+    -1,
+    0
+   ],
+   "hit": [
+    24.25,
+    25.162,
+    2.5
+   ],
+   "d_col": null,
+   "d_art": 0.0881,
+   "near_edge": false,
+   "brush": 7,
+   "tag": "GROUND",
+   "part": "ground",
+   "structure": "GROUND"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    24.25,
+    26.25,
+    2.5
+   ],
+   "dir": [
+    0,
+    -1,
+    0
+   ],
+   "hit": [
+    24.25,
+    25.162,
+    2.5
+   ],
+   "d_col": null,
+   "d_art": 1.0881,
+   "near_edge": false,
+   "brush": 7,
+   "tag": "GROUND",
+   "part": "ground",
+   "structure": "GROUND"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    24.25,
+    27.25,
+    2.5
+   ],
+   "dir": [
+    0,
+    -1,
+    0
+   ],
+   "hit": [
+    24.25,
+    25.162,
+    2.5
+   ],
+   "d_col": null,
+   "d_art": 2.0881,
+   "near_edge": false,
+   "brush": 7,
+   "tag": "GROUND",
+   "part": "ground",
+   "structure": "GROUND"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    25.25,
+    20.25,
+    2.5
+   ],
+   "dir": [
+    0,
+    1,
+    0
+   ],
+   "hit": [
+    25.25,
+    23.083,
+    2.5
+   ],
+   "d_col": null,
+   "d_art": 2.8333,
+   "near_edge": false,
+   "brush": 39,
+   "tag": "W_FENCE_FS",
+   "part": "solid",
+   "structure": "SAGE_LAWN"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    25.25,
+    21.25,
+    2.5
+   ],
+   "dir": [
+    0,
+    1,
+    0
+   ],
+   "hit": [
+    25.25,
+    23.083,
+    2.5
+   ],
+   "d_col": null,
+   "d_art": 1.8333,
+   "near_edge": false,
+   "brush": 39,
+   "tag": "W_FENCE_FS",
+   "part": "solid",
+   "structure": "SAGE_LAWN"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    25.25,
+    22.25,
+    2.5
+   ],
+   "dir": [
+    0,
+    1,
+    0
+   ],
+   "hit": [
+    25.25,
+    23.083,
+    2.5
+   ],
+   "d_col": null,
+   "d_art": 0.8333,
+   "near_edge": false,
+   "brush": 39,
+   "tag": "W_FENCE_FS",
+   "part": "solid",
+   "structure": "SAGE_LAWN"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    25.25,
+    23.25,
+    2.5
+   ],
+   "dir": [
+    1,
+    0,
+    0
+   ],
+   "hit": [
+    25.417,
+    23.25,
+    2.5
+   ],
+   "d_col": null,
+   "d_art": 0.1667,
+   "near_edge": false,
+   "brush": 39,
+   "tag": "W_FENCE_FS",
+   "part": "solid",
+   "structure": "SAGE_LAWN"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    25.25,
+    23.25,
+    2.5
+   ],
+   "dir": [
+    -1,
+    0,
+    0
+   ],
+   "hit": [
+    23.583,
+    23.25,
+    2.5
+   ],
+   "d_col": null,
+   "d_art": 1.6667,
+   "near_edge": false,
+   "brush": 63,
+   "tag": "W_GF_E",
+   "part": "pier",
+   "structure": "SAGE_HOUSE"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    25.25,
+    23.25,
+    2.5
+   ],
+   "dir": [
+    0,
+    1,
+    0
+   ],
+   "hit": [
+    25.25,
+    24.917,
+    2.5
+   ],
+   "d_col": null,
+   "d_art": 1.6667,
+   "near_edge": false,
+   "brush": 39,
+   "tag": "W_FENCE_FS",
+   "part": "solid",
+   "structure": "SAGE_LAWN"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    25.25,
+    23.25,
+    2.5
+   ],
+   "dir": [
+    0,
+    -1,
+    0
+   ],
+   "hit": [
+    25.25,
+    23.083,
+    2.5
+   ],
+   "d_col": null,
+   "d_art": 0.1667,
+   "near_edge": false,
+   "brush": 39,
+   "tag": "W_FENCE_FS",
+   "part": "solid",
+   "structure": "SAGE_LAWN"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    25.25,
+    23.25,
+    2.5
+   ],
+   "dir": [
+    0,
+    0,
+    -1
+   ],
+   "hit": [
+    25.25,
+    23.25,
+    2.051
+   ],
+   "d_col": 2.5,
+   "d_art": 0.449,
+   "near_edge": false,
+   "brush": 7,
+   "tag": "GROUND",
+   "part": "ground",
+   "structure": "GROUND"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    25.25,
+    23.25,
+    2.5
+   ],
+   "dir": [
+    0,
+    0,
+    1
+   ],
+   "hit": [
+    25.25,
+    23.25,
+    3.149
+   ],
+   "d_col": null,
+   "d_art": 0.649,
+   "near_edge": false,
+   "brush": 39,
+   "tag": "W_FENCE_FS",
+   "part": "solid",
+   "structure": "SAGE_LAWN"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    25.25,
+    24.25,
+    2.5
+   ],
+   "dir": [
+    1,
+    0,
+    0
+   ],
+   "hit": [
+    25.662,
+    24.25,
+    2.5
+   ],
+   "d_col": null,
+   "d_art": 0.4119,
+   "near_edge": false,
+   "brush": 39,
+   "tag": "W_FENCE_FS",
+   "part": "solid",
+   "structure": "SAGE_LAWN"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    25.25,
+    24.25,
+    2.5
+   ],
+   "dir": [
+    -1,
+    0,
+    0
+   ],
+   "hit": [
+    23.338,
+    24.25,
+    2.5
+   ],
+   "d_col": null,
+   "d_art": 1.9119,
+   "near_edge": false,
+   "brush": 63,
+   "tag": "W_GF_E",
+   "part": "pier",
+   "structure": "SAGE_HOUSE"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    25.25,
+    24.25,
+    2.5
+   ],
+   "dir": [
+    0,
+    1,
+    0
+   ],
+   "hit": [
+    25.25,
+    24.917,
+    2.5
+   ],
+   "d_col": null,
+   "d_art": 0.6667,
+   "near_edge": false,
+   "brush": 39,
+   "tag": "W_FENCE_FS",
+   "part": "solid",
+   "structure": "SAGE_LAWN"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    25.25,
+    24.25,
+    2.5
+   ],
+   "dir": [
+    0,
+    -1,
+    0
+   ],
+   "hit": [
+    25.25,
+    23.083,
+    2.5
+   ],
+   "d_col": null,
+   "d_art": 1.1667,
+   "near_edge": false,
+   "brush": 39,
+   "tag": "W_FENCE_FS",
+   "part": "solid",
+   "structure": "SAGE_LAWN"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    25.25,
+    24.25,
+    2.5
+   ],
+   "dir": [
+    0,
+    0,
+    -1
+   ],
+   "hit": [
+    25.25,
+    24.25,
+    1.707
+   ],
+   "d_col": 2.5,
+   "d_art": 0.7932,
+   "near_edge": false,
+   "brush": 7,
+   "tag": "GROUND",
+   "part": "ground",
+   "structure": "GROUND"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    25.25,
+    24.25,
+    2.5
+   ],
+   "dir": [
+    0,
+    0,
+    1
+   ],
+   "hit": [
+    25.25,
+    24.25,
+    3.493
+   ],
+   "d_col": null,
+   "d_art": 0.9932,
+   "near_edge": false,
+   "brush": 39,
+   "tag": "W_FENCE_FS",
+   "part": "solid",
+   "structure": "SAGE_LAWN"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    25.25,
+    25.25,
+    2.5
+   ],
+   "dir": [
+    0,
+    -1,
+    0
+   ],
+   "hit": [
+    25.25,
+    24.917,
+    2.5
+   ],
+   "d_col": null,
+   "d_art": 0.3333,
+   "near_edge": false,
+   "brush": 39,
+   "tag": "W_FENCE_FS",
+   "part": "solid",
+   "structure": "SAGE_LAWN"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    25.25,
+    26.25,
+    2.5
+   ],
+   "dir": [
+    0,
+    -1,
+    0
+   ],
+   "hit": [
+    25.25,
+    24.917,
+    2.5
+   ],
+   "d_col": null,
+   "d_art": 1.3333,
+   "near_edge": false,
+   "brush": 39,
+   "tag": "W_FENCE_FS",
+   "part": "solid",
+   "structure": "SAGE_LAWN"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    25.25,
+    27.25,
+    2.5
+   ],
+   "dir": [
+    0,
+    -1,
+    0
+   ],
+   "hit": [
+    25.25,
+    24.917,
+    2.5
+   ],
+   "d_col": null,
+   "d_art": 2.3333,
+   "near_edge": false,
+   "brush": 39,
+   "tag": "W_FENCE_FS",
+   "part": "solid",
+   "structure": "SAGE_LAWN"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    26.25,
+    23.25,
+    2.5
+   ],
+   "dir": [
+    -1,
+    0,
+    0
+   ],
+   "hit": [
+    25.417,
+    23.25,
+    2.5
+   ],
+   "d_col": null,
+   "d_art": 0.8333,
+   "near_edge": false,
+   "brush": 39,
+   "tag": "W_FENCE_FS",
+   "part": "solid",
+   "structure": "SAGE_LAWN"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    26.25,
+    24.25,
+    2.5
+   ],
+   "dir": [
+    -1,
+    0,
+    0
+   ],
+   "hit": [
+    25.662,
+    24.25,
+    2.5
+   ],
+   "d_col": null,
+   "d_art": 0.5881,
+   "near_edge": false,
+   "brush": 39,
+   "tag": "W_FENCE_FS",
+   "part": "solid",
+   "structure": "SAGE_LAWN"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    27.25,
+    23.25,
+    2.5
+   ],
+   "dir": [
+    -1,
+    0,
+    0
+   ],
+   "hit": [
+    25.417,
+    23.25,
+    2.5
+   ],
+   "d_col": null,
+   "d_art": 1.8333,
+   "near_edge": false,
+   "brush": 39,
+   "tag": "W_FENCE_FS",
+   "part": "solid",
+   "structure": "SAGE_LAWN"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    27.25,
+    24.25,
+    2.5
+   ],
+   "dir": [
+    -1,
+    0,
+    0
+   ],
+   "hit": [
+    25.662,
+    24.25,
+    2.5
+   ],
+   "d_col": null,
+   "d_art": 1.5881,
+   "near_edge": false,
+   "brush": 39,
+   "tag": "W_FENCE_FS",
+   "part": "solid",
+   "structure": "SAGE_LAWN"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    28.25,
+    23.25,
+    2.5
+   ],
+   "dir": [
+    -1,
+    0,
+    0
+   ],
+   "hit": [
+    25.417,
+    23.25,
+    2.5
+   ],
+   "d_col": null,
+   "d_art": 2.8333,
+   "near_edge": false,
+   "brush": 39,
+   "tag": "W_FENCE_FS",
+   "part": "solid",
+   "structure": "SAGE_LAWN"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    28.25,
+    24.25,
+    2.5
+   ],
+   "dir": [
+    -1,
+    0,
+    0
+   ],
+   "hit": [
+    25.662,
+    24.25,
+    2.5
+   ],
+   "d_col": null,
+   "d_art": 2.5881,
+   "near_edge": false,
+   "brush": 39,
+   "tag": "W_FENCE_FS",
+   "part": "solid",
+   "structure": "SAGE_LAWN"
+  },
+  {
+   "kind": "INVISIBLE",
+   "origin": [
+    32.25,
+    19.25,
+    2.5
+   ],
+   "dir": [
+    1,
+    0,
+    0
+   ],
+   "hit": [
+    34.75,
+    19.25,
+    2.5
+   ],
+   "d_col": 2.5,
+   "d_art": 2.6,
+   "near_edge": false,
+   "brush": 308,
+   "tag": "C_MOVER_BOX",
+   "part": "solid",
+   "structure": "MOVER_TRUCK"
+  },
+  {
+   "kind": "INVISIBLE",
+   "origin": [
+    32.25,
+    20.25,
+    2.5
+   ],
+   "dir": [
+    1,
+    0,
+    0
+   ],
+   "hit": [
+    34.75,
+    20.25,
+    2.5
+   ],
+   "d_col": 2.5,
+   "d_art": 2.6,
+   "near_edge": false,
+   "brush": 308,
+   "tag": "C_MOVER_BOX",
+   "part": "solid",
+   "structure": "MOVER_TRUCK"
+  },
+  {
+   "kind": "INVISIBLE",
+   "origin": [
+    32.25,
+    21.25,
+    2.5
+   ],
+   "dir": [
+    1,
+    0,
+    0
+   ],
+   "hit": [
+    34.75,
+    21.25,
+    2.5
+   ],
+   "d_col": 2.5,
+   "d_art": 2.6,
+   "near_edge": false,
+   "brush": 308,
+   "tag": "C_MOVER_BOX",
+   "part": "solid",
+   "structure": "MOVER_TRUCK"
+  },
+  {
+   "kind": "INVISIBLE",
+   "origin": [
+    32.25,
+    22.25,
+    2.5
+   ],
+   "dir": [
+    1,
+    0,
+    0
+   ],
+   "hit": [
+    34.75,
+    22.25,
+    2.5
+   ],
+   "d_col": 2.5,
+   "d_art": 2.6,
+   "near_edge": false,
+   "brush": 308,
+   "tag": "C_MOVER_BOX",
+   "part": "solid",
+   "structure": "MOVER_TRUCK"
+  },
+  {
+   "kind": "INVISIBLE",
+   "origin": [
+    32.25,
+    23.25,
+    2.5
+   ],
+   "dir": [
+    1,
+    0,
+    0
+   ],
+   "hit": [
+    34.75,
+    23.25,
+    2.5
+   ],
+   "d_col": 2.5,
+   "d_art": 2.6,
+   "near_edge": false,
+   "brush": 308,
+   "tag": "C_MOVER_BOX",
+   "part": "solid",
+   "structure": "MOVER_TRUCK"
+  },
+  {
+   "kind": "INVISIBLE",
+   "origin": [
+    32.25,
+    24.25,
+    2.5
+   ],
+   "dir": [
+    1,
+    0,
+    0
+   ],
+   "hit": [
+    34.75,
+    24.25,
+    2.5
+   ],
+   "d_col": 2.5,
+   "d_art": 2.6,
+   "near_edge": false,
+   "brush": 308,
+   "tag": "C_MOVER_BOX",
+   "part": "solid",
+   "structure": "MOVER_TRUCK"
+  },
+  {
+   "kind": "INVISIBLE",
+   "origin": [
+    32.25,
+    25.25,
+    2.5
+   ],
+   "dir": [
+    1,
+    0,
+    0
+   ],
+   "hit": [
+    34.75,
+    25.25,
+    2.5
+   ],
+   "d_col": 2.5,
+   "d_art": 2.6,
+   "near_edge": false,
+   "brush": 308,
+   "tag": "C_MOVER_BOX",
+   "part": "solid",
+   "structure": "MOVER_TRUCK"
+  },
+  {
+   "kind": "INVISIBLE",
+   "origin": [
+    32.25,
+    26.25,
+    2.5
+   ],
+   "dir": [
+    1,
+    0,
+    0
+   ],
+   "hit": [
+    34.75,
+    26.25,
+    2.5
+   ],
+   "d_col": 2.5,
+   "d_art": 2.6,
+   "near_edge": false,
+   "brush": 308,
+   "tag": "C_MOVER_BOX",
+   "part": "solid",
+   "structure": "MOVER_TRUCK"
+  },
+  {
+   "kind": "INVISIBLE",
+   "origin": [
+    33.25,
+    19.25,
+    2.5
+   ],
+   "dir": [
+    1,
+    0,
+    0
+   ],
+   "hit": [
+    34.75,
+    19.25,
+    2.5
+   ],
+   "d_col": 1.5,
+   "d_art": 1.6,
+   "near_edge": false,
+   "brush": 308,
+   "tag": "C_MOVER_BOX",
+   "part": "solid",
+   "structure": "MOVER_TRUCK"
+  },
+  {
+   "kind": "INVISIBLE",
+   "origin": [
+    33.25,
+    20.25,
+    2.5
+   ],
+   "dir": [
+    1,
+    0,
+    0
+   ],
+   "hit": [
+    34.75,
+    20.25,
+    2.5
+   ],
+   "d_col": 1.5,
+   "d_art": 1.6,
+   "near_edge": false,
+   "brush": 308,
+   "tag": "C_MOVER_BOX",
+   "part": "solid",
+   "structure": "MOVER_TRUCK"
+  },
+  {
+   "kind": "INVISIBLE",
+   "origin": [
+    33.25,
+    21.25,
+    2.5
+   ],
+   "dir": [
+    1,
+    0,
+    0
+   ],
+   "hit": [
+    34.75,
+    21.25,
+    2.5
+   ],
+   "d_col": 1.5,
+   "d_art": 1.6,
+   "near_edge": false,
+   "brush": 308,
+   "tag": "C_MOVER_BOX",
+   "part": "solid",
+   "structure": "MOVER_TRUCK"
+  },
+  {
+   "kind": "INVISIBLE",
+   "origin": [
+    33.25,
+    22.25,
+    2.5
+   ],
+   "dir": [
+    1,
+    0,
+    0
+   ],
+   "hit": [
+    34.75,
+    22.25,
+    2.5
+   ],
+   "d_col": 1.5,
+   "d_art": 1.6,
+   "near_edge": false,
+   "brush": 308,
+   "tag": "C_MOVER_BOX",
+   "part": "solid",
+   "structure": "MOVER_TRUCK"
+  },
+  {
+   "kind": "INVISIBLE",
+   "origin": [
+    33.25,
+    23.25,
+    2.5
+   ],
+   "dir": [
+    1,
+    0,
+    0
+   ],
+   "hit": [
+    34.75,
+    23.25,
+    2.5
+   ],
+   "d_col": 1.5,
+   "d_art": 1.6,
+   "near_edge": false,
+   "brush": 308,
+   "tag": "C_MOVER_BOX",
+   "part": "solid",
+   "structure": "MOVER_TRUCK"
+  },
+  {
+   "kind": "INVISIBLE",
+   "origin": [
+    33.25,
+    24.25,
+    2.5
+   ],
+   "dir": [
+    1,
+    0,
+    0
+   ],
+   "hit": [
+    34.75,
+    24.25,
+    2.5
+   ],
+   "d_col": 1.5,
+   "d_art": 1.6,
+   "near_edge": false,
+   "brush": 308,
+   "tag": "C_MOVER_BOX",
+   "part": "solid",
+   "structure": "MOVER_TRUCK"
+  },
+  {
+   "kind": "INVISIBLE",
+   "origin": [
+    33.25,
+    25.25,
+    2.5
+   ],
+   "dir": [
+    1,
+    0,
+    0
+   ],
+   "hit": [
+    34.75,
+    25.25,
+    2.5
+   ],
+   "d_col": 1.5,
+   "d_art": 1.6,
+   "near_edge": false,
+   "brush": 308,
+   "tag": "C_MOVER_BOX",
+   "part": "solid",
+   "structure": "MOVER_TRUCK"
+  },
+  {
+   "kind": "INVISIBLE",
+   "origin": [
+    33.25,
+    26.25,
+    2.5
+   ],
+   "dir": [
+    1,
+    0,
+    0
+   ],
+   "hit": [
+    34.75,
+    26.25,
+    2.5
+   ],
+   "d_col": 1.5,
+   "d_art": 1.6,
+   "near_edge": false,
+   "brush": 308,
+   "tag": "C_MOVER_BOX",
+   "part": "solid",
+   "structure": "MOVER_TRUCK"
+  },
+  {
+   "kind": "INVISIBLE",
+   "origin": [
+    34.25,
+    19.25,
+    2.5
+   ],
+   "dir": [
+    1,
+    0,
+    0
+   ],
+   "hit": [
+    34.75,
+    19.25,
+    2.5
+   ],
+   "d_col": 0.5,
+   "d_art": 0.6,
+   "near_edge": false,
+   "brush": 308,
+   "tag": "C_MOVER_BOX",
+   "part": "solid",
+   "structure": "MOVER_TRUCK"
+  },
+  {
+   "kind": "INVISIBLE",
+   "origin": [
+    34.25,
+    20.25,
+    2.5
+   ],
+   "dir": [
+    1,
+    0,
+    0
+   ],
+   "hit": [
+    34.75,
+    20.25,
+    2.5
+   ],
+   "d_col": 0.5,
+   "d_art": 0.6,
+   "near_edge": false,
+   "brush": 308,
+   "tag": "C_MOVER_BOX",
+   "part": "solid",
+   "structure": "MOVER_TRUCK"
+  },
+  {
+   "kind": "INVISIBLE",
+   "origin": [
+    34.25,
+    21.25,
+    2.5
+   ],
+   "dir": [
+    1,
+    0,
+    0
+   ],
+   "hit": [
+    34.75,
+    21.25,
+    2.5
+   ],
+   "d_col": 0.5,
+   "d_art": 0.6,
+   "near_edge": false,
+   "brush": 308,
+   "tag": "C_MOVER_BOX",
+   "part": "solid",
+   "structure": "MOVER_TRUCK"
+  },
+  {
+   "kind": "INVISIBLE",
+   "origin": [
+    34.25,
+    22.25,
+    2.5
+   ],
+   "dir": [
+    1,
+    0,
+    0
+   ],
+   "hit": [
+    34.75,
+    22.25,
+    2.5
+   ],
+   "d_col": 0.5,
+   "d_art": 0.6,
+   "near_edge": false,
+   "brush": 308,
+   "tag": "C_MOVER_BOX",
+   "part": "solid",
+   "structure": "MOVER_TRUCK"
+  },
+  {
+   "kind": "INVISIBLE",
+   "origin": [
+    34.25,
+    23.25,
+    2.5
+   ],
+   "dir": [
+    1,
+    0,
+    0
+   ],
+   "hit": [
+    34.75,
+    23.25,
+    2.5
+   ],
+   "d_col": 0.5,
+   "d_art": 0.6,
+   "near_edge": false,
+   "brush": 308,
+   "tag": "C_MOVER_BOX",
+   "part": "solid",
+   "structure": "MOVER_TRUCK"
+  },
+  {
+   "kind": "INVISIBLE",
+   "origin": [
+    34.25,
+    24.25,
+    2.5
+   ],
+   "dir": [
+    1,
+    0,
+    0
+   ],
+   "hit": [
+    34.75,
+    24.25,
+    2.5
+   ],
+   "d_col": 0.5,
+   "d_art": 0.6,
+   "near_edge": false,
+   "brush": 308,
+   "tag": "C_MOVER_BOX",
+   "part": "solid",
+   "structure": "MOVER_TRUCK"
+  },
+  {
+   "kind": "INVISIBLE",
+   "origin": [
+    34.25,
+    25.25,
+    2.5
+   ],
+   "dir": [
+    1,
+    0,
+    0
+   ],
+   "hit": [
+    34.75,
+    25.25,
+    2.5
+   ],
+   "d_col": 0.5,
+   "d_art": 0.6,
+   "near_edge": false,
+   "brush": 308,
+   "tag": "C_MOVER_BOX",
+   "part": "solid",
+   "structure": "MOVER_TRUCK"
+  },
+  {
+   "kind": "INVISIBLE",
+   "origin": [
+    34.25,
+    26.25,
+    2.5
+   ],
+   "dir": [
+    1,
+    0,
+    0
+   ],
+   "hit": [
+    34.75,
+    26.25,
+    2.5
+   ],
+   "d_col": 0.5,
+   "d_art": 0.6,
+   "near_edge": false,
+   "brush": 308,
+   "tag": "C_MOVER_BOX",
+   "part": "solid",
+   "structure": "MOVER_TRUCK"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    37.25,
+    16.25,
+    2.5
+   ],
+   "dir": [
+    0,
+    1,
+    0
+   ],
+   "hit": [
+    37.25,
+    19.0,
+    2.5
+   ],
+   "d_col": null,
+   "d_art": 2.75,
+   "near_edge": true,
+   "brush": 308,
+   "tag": "C_MOVER_BOX",
+   "part": "solid",
+   "structure": "MOVER_TRUCK"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    37.25,
+    17.25,
+    2.5
+   ],
+   "dir": [
+    0,
+    1,
+    0
+   ],
+   "hit": [
+    37.25,
+    19.0,
+    2.5
+   ],
+   "d_col": null,
+   "d_art": 1.75,
+   "near_edge": true,
+   "brush": 308,
+   "tag": "C_MOVER_BOX",
+   "part": "solid",
+   "structure": "MOVER_TRUCK"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    37.25,
+    18.25,
+    2.5
+   ],
+   "dir": [
+    0,
+    1,
+    0
+   ],
+   "hit": [
+    37.25,
+    19.0,
+    2.5
+   ],
+   "d_col": null,
+   "d_art": 0.75,
+   "near_edge": true,
+   "brush": 308,
+   "tag": "C_MOVER_BOX",
+   "part": "solid",
+   "structure": "MOVER_TRUCK"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    37.25,
+    27.25,
+    2.5
+   ],
+   "dir": [
+    0,
+    -1,
+    0
+   ],
+   "hit": [
+    37.25,
+    27.0,
+    2.5
+   ],
+   "d_col": null,
+   "d_art": 0.25,
+   "near_edge": true,
+   "brush": 308,
+   "tag": "C_MOVER_BOX",
+   "part": "solid",
+   "structure": "MOVER_TRUCK"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    37.25,
+    28.25,
+    2.5
+   ],
+   "dir": [
+    0,
+    -1,
+    0
+   ],
+   "hit": [
+    37.25,
+    27.0,
+    2.5
+   ],
+   "d_col": null,
+   "d_art": 1.25,
+   "near_edge": true,
+   "brush": 308,
+   "tag": "C_MOVER_BOX",
+   "part": "solid",
+   "structure": "MOVER_TRUCK"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    37.25,
+    29.25,
+    2.5
+   ],
+   "dir": [
+    0,
+    -1,
+    0
+   ],
+   "hit": [
+    37.25,
+    27.0,
+    2.5
+   ],
+   "d_col": null,
+   "d_art": 2.25,
+   "near_edge": true,
+   "brush": 308,
+   "tag": "C_MOVER_BOX",
+   "part": "solid",
+   "structure": "MOVER_TRUCK"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    38.25,
+    19.25,
+    2.5
+   ],
+   "dir": [
+    -1,
+    0,
+    0
+   ],
+   "hit": [
+    37.35,
+    19.25,
+    2.5
+   ],
+   "d_col": 1.0,
+   "d_art": 0.9,
+   "near_edge": false,
+   "brush": 308,
+   "tag": "C_MOVER_BOX",
+   "part": "solid",
+   "structure": "MOVER_TRUCK"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    38.25,
+    20.25,
+    2.5
+   ],
+   "dir": [
+    -1,
+    0,
+    0
+   ],
+   "hit": [
+    37.35,
+    20.25,
+    2.5
+   ],
+   "d_col": 1.0,
+   "d_art": 0.9,
+   "near_edge": false,
+   "brush": 308,
+   "tag": "C_MOVER_BOX",
+   "part": "solid",
+   "structure": "MOVER_TRUCK"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    38.25,
+    21.25,
+    2.5
+   ],
+   "dir": [
+    -1,
+    0,
+    0
+   ],
+   "hit": [
+    37.35,
+    21.25,
+    2.5
+   ],
+   "d_col": 1.0,
+   "d_art": 0.9,
+   "near_edge": false,
+   "brush": 308,
+   "tag": "C_MOVER_BOX",
+   "part": "solid",
+   "structure": "MOVER_TRUCK"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    38.25,
+    22.25,
+    2.5
+   ],
+   "dir": [
+    -1,
+    0,
+    0
+   ],
+   "hit": [
+    37.35,
+    22.25,
+    2.5
+   ],
+   "d_col": 1.0,
+   "d_art": 0.9,
+   "near_edge": false,
+   "brush": 308,
+   "tag": "C_MOVER_BOX",
+   "part": "solid",
+   "structure": "MOVER_TRUCK"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    38.25,
+    23.25,
+    2.5
+   ],
+   "dir": [
+    -1,
+    0,
+    0
+   ],
+   "hit": [
+    37.35,
+    23.25,
+    2.5
+   ],
+   "d_col": 1.0,
+   "d_art": 0.9,
+   "near_edge": false,
+   "brush": 308,
+   "tag": "C_MOVER_BOX",
+   "part": "solid",
+   "structure": "MOVER_TRUCK"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    38.25,
+    24.25,
+    2.5
+   ],
+   "dir": [
+    -1,
+    0,
+    0
+   ],
+   "hit": [
+    37.35,
+    24.25,
+    2.5
+   ],
+   "d_col": 1.0,
+   "d_art": 0.9,
+   "near_edge": false,
+   "brush": 308,
+   "tag": "C_MOVER_BOX",
+   "part": "solid",
+   "structure": "MOVER_TRUCK"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    38.25,
+    25.25,
+    2.5
+   ],
+   "dir": [
+    -1,
+    0,
+    0
+   ],
+   "hit": [
+    37.35,
+    25.25,
+    2.5
+   ],
+   "d_col": 1.0,
+   "d_art": 0.9,
+   "near_edge": false,
+   "brush": 308,
+   "tag": "C_MOVER_BOX",
+   "part": "solid",
+   "structure": "MOVER_TRUCK"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    38.25,
+    26.25,
+    2.5
+   ],
+   "dir": [
+    -1,
+    0,
+    0
+   ],
+   "hit": [
+    37.35,
+    26.25,
+    2.5
+   ],
+   "d_col": 1.0,
+   "d_art": 0.9,
+   "near_edge": false,
+   "brush": 308,
+   "tag": "C_MOVER_BOX",
+   "part": "solid",
+   "structure": "MOVER_TRUCK"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    39.25,
+    19.25,
+    2.5
+   ],
+   "dir": [
+    -1,
+    0,
+    0
+   ],
+   "hit": [
+    37.35,
+    19.25,
+    2.5
+   ],
+   "d_col": 2.0,
+   "d_art": 1.9,
+   "near_edge": false,
+   "brush": 308,
+   "tag": "C_MOVER_BOX",
+   "part": "solid",
+   "structure": "MOVER_TRUCK"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    39.25,
+    20.25,
+    2.5
+   ],
+   "dir": [
+    -1,
+    0,
+    0
+   ],
+   "hit": [
+    37.35,
+    20.25,
+    2.5
+   ],
+   "d_col": 2.0,
+   "d_art": 1.9,
+   "near_edge": false,
+   "brush": 308,
+   "tag": "C_MOVER_BOX",
+   "part": "solid",
+   "structure": "MOVER_TRUCK"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    39.25,
+    21.25,
+    2.5
+   ],
+   "dir": [
+    -1,
+    0,
+    0
+   ],
+   "hit": [
+    37.35,
+    21.25,
+    2.5
+   ],
+   "d_col": 2.0,
+   "d_art": 1.9,
+   "near_edge": false,
+   "brush": 308,
+   "tag": "C_MOVER_BOX",
+   "part": "solid",
+   "structure": "MOVER_TRUCK"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    39.25,
+    22.25,
+    2.5
+   ],
+   "dir": [
+    -1,
+    0,
+    0
+   ],
+   "hit": [
+    37.35,
+    22.25,
+    2.5
+   ],
+   "d_col": 2.0,
+   "d_art": 1.9,
+   "near_edge": false,
+   "brush": 308,
+   "tag": "C_MOVER_BOX",
+   "part": "solid",
+   "structure": "MOVER_TRUCK"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    39.25,
+    23.25,
+    2.5
+   ],
+   "dir": [
+    -1,
+    0,
+    0
+   ],
+   "hit": [
+    37.35,
+    23.25,
+    2.5
+   ],
+   "d_col": 2.0,
+   "d_art": 1.9,
+   "near_edge": false,
+   "brush": 308,
+   "tag": "C_MOVER_BOX",
+   "part": "solid",
+   "structure": "MOVER_TRUCK"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    39.25,
+    24.25,
+    2.5
+   ],
+   "dir": [
+    -1,
+    0,
+    0
+   ],
+   "hit": [
+    37.35,
+    24.25,
+    2.5
+   ],
+   "d_col": 2.0,
+   "d_art": 1.9,
+   "near_edge": false,
+   "brush": 308,
+   "tag": "C_MOVER_BOX",
+   "part": "solid",
+   "structure": "MOVER_TRUCK"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    39.25,
+    25.25,
+    2.5
+   ],
+   "dir": [
+    -1,
+    0,
+    0
+   ],
+   "hit": [
+    37.35,
+    25.25,
+    2.5
+   ],
+   "d_col": 2.0,
+   "d_art": 1.9,
+   "near_edge": false,
+   "brush": 308,
+   "tag": "C_MOVER_BOX",
+   "part": "solid",
+   "structure": "MOVER_TRUCK"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    39.25,
+    26.25,
+    2.5
+   ],
+   "dir": [
+    -1,
+    0,
+    0
+   ],
+   "hit": [
+    37.35,
+    26.25,
+    2.5
+   ],
+   "d_col": 2.0,
+   "d_art": 1.9,
+   "near_edge": false,
+   "brush": 308,
+   "tag": "C_MOVER_BOX",
+   "part": "solid",
+   "structure": "MOVER_TRUCK"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    40.25,
+    19.25,
+    2.5
+   ],
+   "dir": [
+    -1,
+    0,
+    0
+   ],
+   "hit": [
+    37.35,
+    19.25,
+    2.5
+   ],
+   "d_col": null,
+   "d_art": 2.9,
+   "near_edge": false,
+   "brush": 308,
+   "tag": "C_MOVER_BOX",
+   "part": "solid",
+   "structure": "MOVER_TRUCK"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    40.25,
+    20.25,
+    2.5
+   ],
+   "dir": [
+    -1,
+    0,
+    0
+   ],
+   "hit": [
+    37.35,
+    20.25,
+    2.5
+   ],
+   "d_col": null,
+   "d_art": 2.9,
+   "near_edge": false,
+   "brush": 308,
+   "tag": "C_MOVER_BOX",
+   "part": "solid",
+   "structure": "MOVER_TRUCK"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    40.25,
+    21.25,
+    2.5
+   ],
+   "dir": [
+    -1,
+    0,
+    0
+   ],
+   "hit": [
+    37.35,
+    21.25,
+    2.5
+   ],
+   "d_col": null,
+   "d_art": 2.9,
+   "near_edge": false,
+   "brush": 308,
+   "tag": "C_MOVER_BOX",
+   "part": "solid",
+   "structure": "MOVER_TRUCK"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    40.25,
+    22.25,
+    2.5
+   ],
+   "dir": [
+    -1,
+    0,
+    0
+   ],
+   "hit": [
+    37.35,
+    22.25,
+    2.5
+   ],
+   "d_col": null,
+   "d_art": 2.9,
+   "near_edge": false,
+   "brush": 308,
+   "tag": "C_MOVER_BOX",
+   "part": "solid",
+   "structure": "MOVER_TRUCK"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    40.25,
+    23.25,
+    2.5
+   ],
+   "dir": [
+    -1,
+    0,
+    0
+   ],
+   "hit": [
+    37.35,
+    23.25,
+    2.5
+   ],
+   "d_col": null,
+   "d_art": 2.9,
+   "near_edge": false,
+   "brush": 308,
+   "tag": "C_MOVER_BOX",
+   "part": "solid",
+   "structure": "MOVER_TRUCK"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    40.25,
+    24.25,
+    2.5
+   ],
+   "dir": [
+    -1,
+    0,
+    0
+   ],
+   "hit": [
+    37.35,
+    24.25,
+    2.5
+   ],
+   "d_col": null,
+   "d_art": 2.9,
+   "near_edge": false,
+   "brush": 308,
+   "tag": "C_MOVER_BOX",
+   "part": "solid",
+   "structure": "MOVER_TRUCK"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    40.25,
+    25.25,
+    2.5
+   ],
+   "dir": [
+    -1,
+    0,
+    0
+   ],
+   "hit": [
+    37.35,
+    25.25,
+    2.5
+   ],
+   "d_col": null,
+   "d_art": 2.9,
+   "near_edge": false,
+   "brush": 308,
+   "tag": "C_MOVER_BOX",
+   "part": "solid",
+   "structure": "MOVER_TRUCK"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    40.25,
+    26.25,
+    2.5
+   ],
+   "dir": [
+    -1,
+    0,
+    0
+   ],
+   "hit": [
+    37.35,
+    26.25,
+    2.5
+   ],
+   "d_col": null,
+   "d_art": 2.9,
+   "near_edge": false,
+   "brush": 308,
+   "tag": "C_MOVER_BOX",
+   "part": "solid",
+   "structure": "MOVER_TRUCK"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    21.25,
+    24.25,
+    3.5
+   ],
+   "dir": [
+    1,
+    0,
+    0
+   ],
+   "hit": [
+    23.759,
+    24.25,
+    3.5
+   ],
+   "d_col": null,
+   "d_art": 2.5086,
+   "near_edge": false,
+   "brush": 88,
+   "tag": "W_UF_E",
+   "part": "sill",
+   "structure": "SAGE_HOUSE"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    22.25,
+    23.25,
+    3.5
+   ],
+   "dir": [
+    1,
+    0,
+    0
+   ],
+   "hit": [
+    24.278,
+    23.25,
+    3.5
+   ],
+   "d_col": null,
+   "d_art": 2.0284,
+   "near_edge": false,
+   "brush": 87,
+   "tag": "W_UF_E",
+   "part": "pier",
+   "structure": "SAGE_HOUSE"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    22.25,
+    24.25,
+    3.5
+   ],
+   "dir": [
+    1,
+    0,
+    0
+   ],
+   "hit": [
+    23.759,
+    24.25,
+    3.5
+   ],
+   "d_col": null,
+   "d_art": 1.5086,
+   "near_edge": false,
+   "brush": 88,
+   "tag": "W_UF_E",
+   "part": "sill",
+   "structure": "SAGE_HOUSE"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    23.25,
+    23.25,
+    3.5
+   ],
+   "dir": [
+    1,
+    0,
+    0
+   ],
+   "hit": [
+    24.278,
+    23.25,
+    3.5
+   ],
+   "d_col": null,
+   "d_art": 1.0284,
+   "near_edge": false,
+   "brush": 87,
+   "tag": "W_UF_E",
+   "part": "pier",
+   "structure": "SAGE_HOUSE"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    23.25,
+    24.25,
+    3.5
+   ],
+   "dir": [
+    1,
+    0,
+    0
+   ],
+   "hit": [
+    23.759,
+    24.25,
+    3.5
+   ],
+   "d_col": null,
+   "d_art": 0.5086,
+   "near_edge": false,
+   "brush": 88,
+   "tag": "W_UF_E",
+   "part": "sill",
+   "structure": "SAGE_HOUSE"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    24.25,
+    21.25,
+    3.5
+   ],
+   "dir": [
+    0,
+    1,
+    0
+   ],
+   "hit": [
+    24.25,
+    23.259,
+    3.5
+   ],
+   "d_col": null,
+   "d_art": 2.0086,
+   "near_edge": false,
+   "brush": 87,
+   "tag": "W_UF_E",
+   "part": "pier",
+   "structure": "SAGE_HOUSE"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    24.25,
+    22.25,
+    3.5
+   ],
+   "dir": [
+    0,
+    1,
+    0
+   ],
+   "hit": [
+    24.25,
+    23.259,
+    3.5
+   ],
+   "d_col": null,
+   "d_art": 1.0086,
+   "near_edge": false,
+   "brush": 87,
+   "tag": "W_UF_E",
+   "part": "pier",
+   "structure": "SAGE_HOUSE"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    24.25,
+    23.25,
+    3.5
+   ],
+   "dir": [
+    1,
+    0,
+    0
+   ],
+   "hit": [
+    24.278,
+    23.25,
+    3.5
+   ],
+   "d_col": null,
+   "d_art": 0.0284,
+   "near_edge": false,
+   "brush": 87,
+   "tag": "W_UF_E",
+   "part": "pier",
+   "structure": "SAGE_HOUSE"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    24.25,
+    23.25,
+    3.5
+   ],
+   "dir": [
+    0,
+    1,
+    0
+   ],
+   "hit": [
+    24.25,
+    23.259,
+    3.5
+   ],
+   "d_col": null,
+   "d_art": 0.0086,
+   "near_edge": false,
+   "brush": 87,
+   "tag": "W_UF_E",
+   "part": "pier",
+   "structure": "SAGE_HOUSE"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    24.25,
+    23.25,
+    3.5
+   ],
+   "dir": [
+    0,
+    0,
+    -1
+   ],
+   "hit": [
+    24.25,
+    23.25,
+    3.493
+   ],
+   "d_col": null,
+   "d_art": 0.0068,
+   "near_edge": false,
+   "brush": 87,
+   "tag": "W_UF_E",
+   "part": "pier",
+   "structure": "SAGE_HOUSE"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    24.25,
+    24.25,
+    3.5
+   ],
+   "dir": [
+    1,
+    0,
+    0
+   ],
+   "hit": [
+    25.241,
+    24.25,
+    3.5
+   ],
+   "d_col": null,
+   "d_art": 0.9914,
+   "near_edge": false,
+   "brush": 39,
+   "tag": "W_FENCE_FS",
+   "part": "solid",
+   "structure": "SAGE_LAWN"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    24.25,
+    24.25,
+    3.5
+   ],
+   "dir": [
+    -1,
+    0,
+    0
+   ],
+   "hit": [
+    23.759,
+    24.25,
+    3.5
+   ],
+   "d_col": null,
+   "d_art": 0.4914,
+   "near_edge": false,
+   "brush": 88,
+   "tag": "W_UF_E",
+   "part": "sill",
+   "structure": "SAGE_HOUSE"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    24.25,
+    24.25,
+    3.5
+   ],
+   "dir": [
+    0,
+    1,
+    0
+   ],
+   "hit": [
+    24.25,
+    24.741,
+    3.5
+   ],
+   "d_col": null,
+   "d_art": 0.4914,
+   "near_edge": false,
+   "brush": 88,
+   "tag": "W_UF_E",
+   "part": "sill",
+   "structure": "SAGE_HOUSE"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    24.25,
+    24.25,
+    3.5
+   ],
+   "dir": [
+    0,
+    -1,
+    0
+   ],
+   "hit": [
+    24.25,
+    23.259,
+    3.5
+   ],
+   "d_col": null,
+   "d_art": 0.9914,
+   "near_edge": false,
+   "brush": 87,
+   "tag": "W_UF_E",
+   "part": "pier",
+   "structure": "SAGE_HOUSE"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    24.25,
+    24.25,
+    3.5
+   ],
+   "dir": [
+    0,
+    0,
+    -1
+   ],
+   "hit": [
+    24.25,
+    24.25,
+    1.459
+   ],
+   "d_col": null,
+   "d_art": 2.0407,
+   "near_edge": false,
+   "brush": 7,
+   "tag": "GROUND",
+   "part": "ground",
+   "structure": "GROUND"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    24.25,
+    24.25,
+    3.5
+   ],
+   "dir": [
+    0,
+    0,
+    1
+   ],
+   "hit": [
+    24.25,
+    24.25,
+    3.741
+   ],
+   "d_col": null,
+   "d_art": 0.2407,
+   "near_edge": false,
+   "brush": 88,
+   "tag": "W_UF_E",
+   "part": "sill",
+   "structure": "SAGE_HOUSE"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    24.25,
+    25.25,
+    3.5
+   ],
+   "dir": [
+    0,
+    -1,
+    0
+   ],
+   "hit": [
+    24.25,
+    24.741,
+    3.5
+   ],
+   "d_col": null,
+   "d_art": 0.5086,
+   "near_edge": false,
+   "brush": 88,
+   "tag": "W_UF_E",
+   "part": "sill",
+   "structure": "SAGE_HOUSE"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    24.25,
+    26.25,
+    3.5
+   ],
+   "dir": [
+    0,
+    -1,
+    0
+   ],
+   "hit": [
+    24.25,
+    24.741,
+    3.5
+   ],
+   "d_col": null,
+   "d_art": 1.5086,
+   "near_edge": false,
+   "brush": 88,
+   "tag": "W_UF_E",
+   "part": "sill",
+   "structure": "SAGE_HOUSE"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    24.25,
+    27.25,
+    3.5
+   ],
+   "dir": [
+    0,
+    -1,
+    0
+   ],
+   "hit": [
+    24.25,
+    24.741,
+    3.5
+   ],
+   "d_col": null,
+   "d_art": 2.5086,
+   "near_edge": false,
+   "brush": 88,
+   "tag": "W_UF_E",
+   "part": "sill",
+   "structure": "SAGE_HOUSE"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    25.25,
+    21.25,
+    3.5
+   ],
+   "dir": [
+    0,
+    1,
+    0
+   ],
+   "hit": [
+    25.25,
+    23.778,
+    3.5
+   ],
+   "d_col": null,
+   "d_art": 2.5284,
+   "near_edge": false,
+   "brush": 39,
+   "tag": "W_FENCE_FS",
+   "part": "solid",
+   "structure": "SAGE_LAWN"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    25.25,
+    22.25,
+    3.5
+   ],
+   "dir": [
+    0,
+    1,
+    0
+   ],
+   "hit": [
+    25.25,
+    23.778,
+    3.5
+   ],
+   "d_col": null,
+   "d_art": 1.5284,
+   "near_edge": false,
+   "brush": 39,
+   "tag": "W_FENCE_FS",
+   "part": "solid",
+   "structure": "SAGE_LAWN"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    25.25,
+    23.25,
+    3.5
+   ],
+   "dir": [
+    -1,
+    0,
+    0
+   ],
+   "hit": [
+    24.722,
+    23.25,
+    3.5
+   ],
+   "d_col": null,
+   "d_art": 0.5284,
+   "near_edge": false,
+   "brush": 39,
+   "tag": "W_FENCE_FS",
+   "part": "solid",
+   "structure": "SAGE_LAWN"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    25.25,
+    23.25,
+    3.5
+   ],
+   "dir": [
+    0,
+    1,
+    0
+   ],
+   "hit": [
+    25.25,
+    23.778,
+    3.5
+   ],
+   "d_col": null,
+   "d_art": 0.5284,
+   "near_edge": false,
+   "brush": 39,
+   "tag": "W_FENCE_FS",
+   "part": "solid",
+   "structure": "SAGE_LAWN"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    25.25,
+    23.25,
+    3.5
+   ],
+   "dir": [
+    0,
+    0,
+    -1
+   ],
+   "hit": [
+    25.25,
+    23.25,
+    3.149
+   ],
+   "d_col": null,
+   "d_art": 0.351,
+   "near_edge": false,
+   "brush": 39,
+   "tag": "W_FENCE_FS",
+   "part": "solid",
+   "structure": "SAGE_LAWN"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    25.25,
+    24.25,
+    3.5
+   ],
+   "dir": [
+    -1,
+    0,
+    0
+   ],
+   "hit": [
+    25.241,
+    24.25,
+    3.5
+   ],
+   "d_col": null,
+   "d_art": 0.0086,
+   "near_edge": false,
+   "brush": 39,
+   "tag": "W_FENCE_FS",
+   "part": "solid",
+   "structure": "SAGE_LAWN"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    25.25,
+    24.25,
+    3.5
+   ],
+   "dir": [
+    0,
+    -1,
+    0
+   ],
+   "hit": [
+    25.25,
+    24.222,
+    3.5
+   ],
+   "d_col": null,
+   "d_art": 0.0284,
+   "near_edge": false,
+   "brush": 39,
+   "tag": "W_FENCE_FS",
+   "part": "solid",
+   "structure": "SAGE_LAWN"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    25.25,
+    24.25,
+    3.5
+   ],
+   "dir": [
+    0,
+    0,
+    -1
+   ],
+   "hit": [
+    25.25,
+    24.25,
+    3.493
+   ],
+   "d_col": null,
+   "d_art": 0.0068,
+   "near_edge": false,
+   "brush": 39,
+   "tag": "W_FENCE_FS",
+   "part": "solid",
+   "structure": "SAGE_LAWN"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    25.25,
+    25.25,
+    3.5
+   ],
+   "dir": [
+    0,
+    -1,
+    0
+   ],
+   "hit": [
+    25.25,
+    24.222,
+    3.5
+   ],
+   "d_col": null,
+   "d_art": 1.0284,
+   "near_edge": false,
+   "brush": 39,
+   "tag": "W_FENCE_FS",
+   "part": "solid",
+   "structure": "SAGE_LAWN"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    25.25,
+    26.25,
+    3.5
+   ],
+   "dir": [
+    0,
+    -1,
+    0
+   ],
+   "hit": [
+    25.25,
+    24.222,
+    3.5
+   ],
+   "d_col": null,
+   "d_art": 2.0284,
+   "near_edge": false,
+   "brush": 39,
+   "tag": "W_FENCE_FS",
+   "part": "solid",
+   "structure": "SAGE_LAWN"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    26.25,
+    23.25,
+    3.5
+   ],
+   "dir": [
+    -1,
+    0,
+    0
+   ],
+   "hit": [
+    24.722,
+    23.25,
+    3.5
+   ],
+   "d_col": null,
+   "d_art": 1.5284,
+   "near_edge": false,
+   "brush": 39,
+   "tag": "W_FENCE_FS",
+   "part": "solid",
+   "structure": "SAGE_LAWN"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    26.25,
+    24.25,
+    3.5
+   ],
+   "dir": [
+    -1,
+    0,
+    0
+   ],
+   "hit": [
+    25.241,
+    24.25,
+    3.5
+   ],
+   "d_col": null,
+   "d_art": 1.0086,
+   "near_edge": false,
+   "brush": 39,
+   "tag": "W_FENCE_FS",
+   "part": "solid",
+   "structure": "SAGE_LAWN"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    27.25,
+    23.25,
+    3.5
+   ],
+   "dir": [
+    -1,
+    0,
+    0
+   ],
+   "hit": [
+    24.722,
+    23.25,
+    3.5
+   ],
+   "d_col": null,
+   "d_art": 2.5284,
+   "near_edge": false,
+   "brush": 39,
+   "tag": "W_FENCE_FS",
+   "part": "solid",
+   "structure": "SAGE_LAWN"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    27.25,
+    24.25,
+    3.5
+   ],
+   "dir": [
+    -1,
+    0,
+    0
+   ],
+   "hit": [
+    25.241,
+    24.25,
+    3.5
+   ],
+   "d_col": null,
+   "d_art": 2.0086,
+   "near_edge": false,
+   "brush": 39,
+   "tag": "W_FENCE_FS",
+   "part": "solid",
+   "structure": "SAGE_LAWN"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    37.25,
+    19.25,
+    3.5
+   ],
+   "dir": [
+    0,
+    0,
+    -1
+   ],
+   "hit": [
+    37.25,
+    19.25,
+    3.2
+   ],
+   "d_col": null,
+   "d_art": 0.3,
+   "near_edge": true,
+   "brush": 308,
+   "tag": "C_MOVER_BOX",
+   "part": "solid",
+   "structure": "MOVER_TRUCK"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    37.25,
+    20.25,
+    3.5
+   ],
+   "dir": [
+    0,
+    0,
+    -1
+   ],
+   "hit": [
+    37.25,
+    20.25,
+    3.2
+   ],
+   "d_col": null,
+   "d_art": 0.3,
+   "near_edge": true,
+   "brush": 308,
+   "tag": "C_MOVER_BOX",
+   "part": "solid",
+   "structure": "MOVER_TRUCK"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    37.25,
+    21.25,
+    3.5
+   ],
+   "dir": [
+    0,
+    0,
+    -1
+   ],
+   "hit": [
+    37.25,
+    21.25,
+    3.2
+   ],
+   "d_col": null,
+   "d_art": 0.3,
+   "near_edge": true,
+   "brush": 308,
+   "tag": "C_MOVER_BOX",
+   "part": "solid",
+   "structure": "MOVER_TRUCK"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    37.25,
+    22.25,
+    3.5
+   ],
+   "dir": [
+    0,
+    0,
+    -1
+   ],
+   "hit": [
+    37.25,
+    22.25,
+    3.2
+   ],
+   "d_col": null,
+   "d_art": 0.3,
+   "near_edge": true,
+   "brush": 308,
+   "tag": "C_MOVER_BOX",
+   "part": "solid",
+   "structure": "MOVER_TRUCK"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    37.25,
+    23.25,
+    3.5
+   ],
+   "dir": [
+    0,
+    0,
+    -1
+   ],
+   "hit": [
+    37.25,
+    23.25,
+    3.2
+   ],
+   "d_col": null,
+   "d_art": 0.3,
+   "near_edge": true,
+   "brush": 308,
+   "tag": "C_MOVER_BOX",
+   "part": "solid",
+   "structure": "MOVER_TRUCK"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    37.25,
+    24.25,
+    3.5
+   ],
+   "dir": [
+    0,
+    0,
+    -1
+   ],
+   "hit": [
+    37.25,
+    24.25,
+    3.2
+   ],
+   "d_col": null,
+   "d_art": 0.3,
+   "near_edge": true,
+   "brush": 308,
+   "tag": "C_MOVER_BOX",
+   "part": "solid",
+   "structure": "MOVER_TRUCK"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    37.25,
+    25.25,
+    3.5
+   ],
+   "dir": [
+    0,
+    0,
+    -1
+   ],
+   "hit": [
+    37.25,
+    25.25,
+    3.2
+   ],
+   "d_col": null,
+   "d_art": 0.3,
+   "near_edge": true,
+   "brush": 308,
+   "tag": "C_MOVER_BOX",
+   "part": "solid",
+   "structure": "MOVER_TRUCK"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    37.25,
+    26.25,
+    3.5
+   ],
+   "dir": [
+    0,
+    0,
+    -1
+   ],
+   "hit": [
+    37.25,
+    26.25,
+    3.2
+   ],
+   "d_col": null,
+   "d_art": 0.3,
+   "near_edge": true,
+   "brush": 308,
+   "tag": "C_MOVER_BOX",
+   "part": "solid",
+   "structure": "MOVER_TRUCK"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    24.25,
+    23.25,
+    4.8
+   ],
+   "dir": [
+    0,
+    0,
+    -1
+   ],
+   "hit": [
+    24.25,
+    23.25,
+    3.493
+   ],
+   "d_col": null,
+   "d_art": 1.3068,
+   "near_edge": false,
+   "brush": 87,
+   "tag": "W_UF_E",
+   "part": "pier",
+   "structure": "SAGE_HOUSE"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    24.25,
+    24.25,
+    4.8
+   ],
+   "dir": [
+    0,
+    0,
+    -1
+   ],
+   "hit": [
+    24.25,
+    24.25,
+    3.741
+   ],
+   "d_col": null,
+   "d_art": 1.0593,
+   "near_edge": false,
+   "brush": 88,
+   "tag": "W_UF_E",
+   "part": "sill",
+   "structure": "SAGE_HOUSE"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    25.25,
+    23.25,
+    4.8
+   ],
+   "dir": [
+    0,
+    0,
+    -1
+   ],
+   "hit": [
+    25.25,
+    23.25,
+    3.149
+   ],
+   "d_col": null,
+   "d_art": 1.651,
+   "near_edge": false,
+   "brush": 39,
+   "tag": "W_FENCE_FS",
+   "part": "solid",
+   "structure": "SAGE_LAWN"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    25.25,
+    24.25,
+    4.8
+   ],
+   "dir": [
+    0,
+    0,
+    -1
+   ],
+   "hit": [
+    25.25,
+    24.25,
+    3.493
+   ],
+   "d_col": null,
+   "d_art": 1.3068,
+   "near_edge": false,
+   "brush": 39,
+   "tag": "W_FENCE_FS",
+   "part": "solid",
+   "structure": "SAGE_LAWN"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    37.25,
+    19.25,
+    4.8
+   ],
+   "dir": [
+    0,
+    0,
+    -1
+   ],
+   "hit": [
+    37.25,
+    19.25,
+    3.2
+   ],
+   "d_col": null,
+   "d_art": 1.6,
+   "near_edge": true,
+   "brush": 308,
+   "tag": "C_MOVER_BOX",
+   "part": "solid",
+   "structure": "MOVER_TRUCK"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    37.25,
+    20.25,
+    4.8
+   ],
+   "dir": [
+    0,
+    0,
+    -1
+   ],
+   "hit": [
+    37.25,
+    20.25,
+    3.2
+   ],
+   "d_col": null,
+   "d_art": 1.6,
+   "near_edge": true,
+   "brush": 308,
+   "tag": "C_MOVER_BOX",
+   "part": "solid",
+   "structure": "MOVER_TRUCK"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    37.25,
+    21.25,
+    4.8
+   ],
+   "dir": [
+    0,
+    0,
+    -1
+   ],
+   "hit": [
+    37.25,
+    21.25,
+    3.2
+   ],
+   "d_col": null,
+   "d_art": 1.6,
+   "near_edge": true,
+   "brush": 308,
+   "tag": "C_MOVER_BOX",
+   "part": "solid",
+   "structure": "MOVER_TRUCK"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    37.25,
+    22.25,
+    4.8
+   ],
+   "dir": [
+    0,
+    0,
+    -1
+   ],
+   "hit": [
+    37.25,
+    22.25,
+    3.2
+   ],
+   "d_col": null,
+   "d_art": 1.6,
+   "near_edge": true,
+   "brush": 308,
+   "tag": "C_MOVER_BOX",
+   "part": "solid",
+   "structure": "MOVER_TRUCK"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    37.25,
+    23.25,
+    4.8
+   ],
+   "dir": [
+    0,
+    0,
+    -1
+   ],
+   "hit": [
+    37.25,
+    23.25,
+    3.2
+   ],
+   "d_col": null,
+   "d_art": 1.6,
+   "near_edge": true,
+   "brush": 308,
+   "tag": "C_MOVER_BOX",
+   "part": "solid",
+   "structure": "MOVER_TRUCK"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    37.25,
+    24.25,
+    4.8
+   ],
+   "dir": [
+    0,
+    0,
+    -1
+   ],
+   "hit": [
+    37.25,
+    24.25,
+    3.2
+   ],
+   "d_col": null,
+   "d_art": 1.6,
+   "near_edge": true,
+   "brush": 308,
+   "tag": "C_MOVER_BOX",
+   "part": "solid",
+   "structure": "MOVER_TRUCK"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    37.25,
+    25.25,
+    4.8
+   ],
+   "dir": [
+    0,
+    0,
+    -1
+   ],
+   "hit": [
+    37.25,
+    25.25,
+    3.2
+   ],
+   "d_col": null,
+   "d_art": 1.6,
+   "near_edge": true,
+   "brush": 308,
+   "tag": "C_MOVER_BOX",
+   "part": "solid",
+   "structure": "MOVER_TRUCK"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    37.25,
+    26.25,
+    4.8
+   ],
+   "dir": [
+    0,
+    0,
+    -1
+   ],
+   "hit": [
+    37.25,
+    26.25,
+    3.2
+   ],
+   "d_col": null,
+   "d_art": 1.6,
+   "near_edge": true,
+   "brush": 308,
+   "tag": "C_MOVER_BOX",
+   "part": "solid",
+   "structure": "MOVER_TRUCK"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    24.25,
+    23.25,
+    5.6
+   ],
+   "dir": [
+    0,
+    0,
+    -1
+   ],
+   "hit": [
+    24.25,
+    23.25,
+    3.493
+   ],
+   "d_col": null,
+   "d_art": 2.1068,
+   "near_edge": false,
+   "brush": 87,
+   "tag": "W_UF_E",
+   "part": "pier",
+   "structure": "SAGE_HOUSE"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    24.25,
+    24.25,
+    5.6
+   ],
+   "dir": [
+    0,
+    0,
+    -1
+   ],
+   "hit": [
+    24.25,
+    24.25,
+    3.741
+   ],
+   "d_col": null,
+   "d_art": 1.8593,
+   "near_edge": false,
+   "brush": 88,
+   "tag": "W_UF_E",
+   "part": "sill",
+   "structure": "SAGE_HOUSE"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    25.25,
+    23.25,
+    5.6
+   ],
+   "dir": [
+    0,
+    0,
+    -1
+   ],
+   "hit": [
+    25.25,
+    23.25,
+    3.149
+   ],
+   "d_col": null,
+   "d_art": 2.451,
+   "near_edge": false,
+   "brush": 39,
+   "tag": "W_FENCE_FS",
+   "part": "solid",
+   "structure": "SAGE_LAWN"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    25.25,
+    24.25,
+    5.6
+   ],
+   "dir": [
+    0,
+    0,
+    -1
+   ],
+   "hit": [
+    25.25,
+    24.25,
+    3.493
+   ],
+   "d_col": null,
+   "d_art": 2.1068,
+   "near_edge": false,
+   "brush": 39,
+   "tag": "W_FENCE_FS",
+   "part": "solid",
+   "structure": "SAGE_LAWN"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    37.25,
+    19.25,
+    5.6
+   ],
+   "dir": [
+    0,
+    0,
+    -1
+   ],
+   "hit": [
+    37.25,
+    19.25,
+    3.2
+   ],
+   "d_col": null,
+   "d_art": 2.4,
+   "near_edge": true,
+   "brush": 308,
+   "tag": "C_MOVER_BOX",
+   "part": "solid",
+   "structure": "MOVER_TRUCK"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    37.25,
+    20.25,
+    5.6
+   ],
+   "dir": [
+    0,
+    0,
+    -1
+   ],
+   "hit": [
+    37.25,
+    20.25,
+    3.2
+   ],
+   "d_col": null,
+   "d_art": 2.4,
+   "near_edge": true,
+   "brush": 308,
+   "tag": "C_MOVER_BOX",
+   "part": "solid",
+   "structure": "MOVER_TRUCK"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    37.25,
+    21.25,
+    5.6
+   ],
+   "dir": [
+    0,
+    0,
+    -1
+   ],
+   "hit": [
+    37.25,
+    21.25,
+    3.2
+   ],
+   "d_col": null,
+   "d_art": 2.4,
+   "near_edge": true,
+   "brush": 308,
+   "tag": "C_MOVER_BOX",
+   "part": "solid",
+   "structure": "MOVER_TRUCK"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    37.25,
+    22.25,
+    5.6
+   ],
+   "dir": [
+    0,
+    0,
+    -1
+   ],
+   "hit": [
+    37.25,
+    22.25,
+    3.2
+   ],
+   "d_col": null,
+   "d_art": 2.4,
+   "near_edge": true,
+   "brush": 308,
+   "tag": "C_MOVER_BOX",
+   "part": "solid",
+   "structure": "MOVER_TRUCK"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    37.25,
+    23.25,
+    5.6
+   ],
+   "dir": [
+    0,
+    0,
+    -1
+   ],
+   "hit": [
+    37.25,
+    23.25,
+    3.2
+   ],
+   "d_col": null,
+   "d_art": 2.4,
+   "near_edge": true,
+   "brush": 308,
+   "tag": "C_MOVER_BOX",
+   "part": "solid",
+   "structure": "MOVER_TRUCK"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    37.25,
+    24.25,
+    5.6
+   ],
+   "dir": [
+    0,
+    0,
+    -1
+   ],
+   "hit": [
+    37.25,
+    24.25,
+    3.2
+   ],
+   "d_col": null,
+   "d_art": 2.4,
+   "near_edge": true,
+   "brush": 308,
+   "tag": "C_MOVER_BOX",
+   "part": "solid",
+   "structure": "MOVER_TRUCK"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    37.25,
+    25.25,
+    5.6
+   ],
+   "dir": [
+    0,
+    0,
+    -1
+   ],
+   "hit": [
+    37.25,
+    25.25,
+    3.2
+   ],
+   "d_col": null,
+   "d_art": 2.4,
+   "near_edge": true,
+   "brush": 308,
+   "tag": "C_MOVER_BOX",
+   "part": "solid",
+   "structure": "MOVER_TRUCK"
+  },
+  {
+   "kind": "GHOST",
+   "origin": [
+    37.25,
+    26.25,
+    5.6
+   ],
+   "dir": [
+    0,
+    0,
+    -1
+   ],
+   "hit": [
+    37.25,
+    26.25,
+    3.2
+   ],
+   "d_col": null,
+   "d_art": 2.4,
+   "near_edge": true,
+   "brush": 308,
+   "tag": "C_MOVER_BOX",
+   "part": "solid",
+   "structure": "MOVER_TRUCK"
+  }
+ ]
+}

@@ -1,0 +1,21 @@
+{
+ "name": "movement/slide",
+ "seed": 3,
+ "prompt": "summary: A soldier sprints and drops into a fast slide along a concrete floor, then stops.\n\ndetailed_description:\n[Shot 1] A soldier sprints and drops into a fast slide along a concrete floor, then stops. The camera is static and locked-off.\n\noverall_soundscape: Foley recording, close microphone, isolated sound: a one-second rough scraping slide of fabric and boots over concrete that slows down and stops, then silence. Nothing else is heard: no music, no speech, no voices.\n\nnon_diegetic_music: N/A",
+ "settings": {
+  "w": 128,
+  "h": 128,
+  "frames": 73,
+  "steps": 6,
+  "lora": "turbo4",
+  "shift_video": 12.0,
+  "shift_audio": 3.0,
+  "sampler": "res_multistep",
+  "scheduler": "simple",
+  "style": "structured"
+ },
+ "exec_s": 5.346,
+ "wall_s": 5.8,
+ "peak_vram_gib": 15.56,
+ "audio_s": 3.04
+}

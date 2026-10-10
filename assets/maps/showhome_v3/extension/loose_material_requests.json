@@ -1,0 +1,162 @@
+{
+  "schema": 1,
+  "status": "explicit_requests_only_no_generation_started",
+  "blocked_until": "TDM test build is ready and asset creation is resumed",
+  "catalog_written": false,
+  "gpu_jobs_started": false,
+  "reference_folder": "art/briefs/showhome_v3_handoff/user_revisions/2026-10-10_tdm_and_campus",
+  "assets": [
+    {
+      "requested_id": "loose_construction_pipes",
+      "category": "worksite",
+      "description": "Five or six uneven galvanized steel pipes in a loose low stack, individual open ends, a few separated pipes beside the stack.",
+      "suggested_size_m": [
+        3.4,
+        1.2,
+        0.45
+      ],
+      "pivot": "base bounding-box centre atZ0; long axisX",
+      "physical_materials": [
+        "metal_heavy"
+      ],
+      "painted_texture_families": [
+        "metal_scaffold_tube"
+      ],
+      "requirements": [
+        "UVs",
+        "shared existing PBR maps",
+        "LOD1",
+        "closed convex segments preserving open tube voids",
+        "reusable catalog instance"
+      ],
+      "planned_positions": [
+        {
+          "position": [
+            336,
+            792.3,
+            0
+          ],
+          "yaw_deg": 90
+        },
+        {
+          "position": [
+            429,
+            779,
+            0
+          ],
+          "yaw_deg": 90
+        },
+        {
+          "position": [
+            332.7,
+            889,
+            0
+          ],
+          "yaw_deg": 12
+        }
+      ]
+    },
+    {
+      "requested_id": "loose_timber_boards",
+      "category": "worksite",
+      "description": "Uneven three-metre timber boards and short offcuts, broad dark faces and visible end grain, loose rather than pallet-shaped.",
+      "suggested_size_m": [
+        3.2,
+        1.3,
+        0.32
+      ],
+      "pivot": "base bounding-box centre atZ0; long axisX",
+      "physical_materials": [
+        "wood_thin",
+        "wood_thick"
+      ],
+      "painted_texture_families": [
+        "timber_pallets",
+        "wood_boards_stained"
+      ],
+      "requirements": [
+        "UVs",
+        "shared existing PBR maps",
+        "LOD1",
+        "separate true-thickness convex boards",
+        "reusable catalog instance"
+      ],
+      "planned_positions": [
+        {
+          "position": [
+            317.7,
+            763.2,
+            0
+          ],
+          "yaw_deg": 12
+        },
+        {
+          "position": [
+            334.4,
+            793.4,
+            0
+          ],
+          "yaw_deg": 82
+        },
+        {
+          "position": [
+            428,
+            790.4,
+            0
+          ],
+          "yaw_deg": 87
+        }
+      ]
+    },
+    {
+      "requested_id": "printed_block_offcuts",
+      "category": "worksite",
+      "description": "Six to eight loose printed-concrete blocks, cut corners and half-blocks with actual printed course relief, an irregular small ground pile.",
+      "suggested_size_m": [
+        1.6,
+        1.3,
+        0.65
+      ],
+      "pivot": "base bounding-box centre atZ0",
+      "physical_materials": [
+        "concrete"
+      ],
+      "painted_texture_families": [
+        "printed_concrete_layers"
+      ],
+      "requirements": [
+        "UVs",
+        "shared existing PBR maps",
+        "LOD1",
+        "separate closed convex pieces",
+        "reusable catalog instance"
+      ],
+      "planned_positions": [
+        {
+          "position": [
+            334.5,
+            790.7,
+            0
+          ],
+          "yaw_deg": 28
+        },
+        {
+          "position": [
+            425.7,
+            787.5,
+            0
+          ],
+          "yaw_deg": -17
+        },
+        {
+          "position": [
+            401.5,
+            859,
+            -3.2
+          ],
+          "yaw_deg": 13
+        }
+      ]
+    }
+  ]
+}

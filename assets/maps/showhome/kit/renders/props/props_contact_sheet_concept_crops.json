@@ -1,0 +1,582 @@
+[
+  {
+    "render": "F:/git/val etf/assets/maps/showhome\\kit\\renders\\props\\tile_MoverTruck.png",
+    "concept": "F:\\git\\val etf\\design/maps/tdm/concepts/_candidates\\A_showhome_ground_s11.png",
+    "crop_normalized": [
+      0.38,
+      0.43,
+      0.6,
+      0.73
+    ]
+  },
+  {
+    "render": "F:/git/val etf/assets/maps/showhome\\kit\\renders\\props\\tile_KerbPod.png",
+    "concept": "F:\\git\\val etf\\design/maps/tdm/concepts/_candidates\\A_showhome_ground_s11.png",
+    "crop_normalized": [
+      0.38,
+      0.43,
+      0.6,
+      0.73
+    ]
+  },
+  {
+    "render": "F:/git/val etf/assets/maps/showhome\\kit\\renders\\props\\tile_Box_S.png",
+    "concept": "F:\\git\\val etf\\design/maps/tdm/concepts/_candidates\\A_showhome_ground_s11.png",
+    "crop_normalized": [
+      0.52,
+      0.57,
+      0.68,
+      0.76
+    ]
+  },
+  {
+    "render": "F:/git/val etf/assets/maps/showhome\\kit\\renders\\props\\tile_Box_M.png",
+    "concept": "F:\\git\\val etf\\design/maps/tdm/concepts/_candidates\\A_showhome_ground_s11.png",
+    "crop_normalized": [
+      0.52,
+      0.57,
+      0.68,
+      0.76
+    ]
+  },
+  {
+    "render": "F:/git/val etf/assets/maps/showhome\\kit\\renders\\props\\tile_Box_L.png",
+    "concept": "F:\\git\\val etf\\design/maps/tdm/concepts/_candidates\\A_showhome_ground_s11.png",
+    "crop_normalized": [
+      0.52,
+      0.57,
+      0.68,
+      0.76
+    ]
+  },
+  {
+    "render": "F:/git/val etf/assets/maps/showhome\\kit\\renders\\props\\tile_Box_M_Open.png",
+    "concept": "F:\\git\\val etf\\design/maps/tdm/concepts/_candidates\\A_showhome_ground_s11.png",
+    "crop_normalized": [
+      0.52,
+      0.57,
+      0.68,
+      0.76
+    ]
+  },
+  {
+    "render": "F:/git/val etf/assets/maps/showhome\\kit\\renders\\props\\tile_BoxStack_1m.png",
+    "concept": "F:\\git\\val etf\\design/maps/tdm/concepts/_candidates\\A_showhome_ground_s11.png",
+    "crop_normalized": [
+      0.52,
+      0.57,
+      0.68,
+      0.76
+    ]
+  },
+  {
+    "render": "F:/git/val etf/assets/maps/showhome\\kit\\renders\\props\\tile_Crate_Wood_1m.png",
+    "concept": "F:\\git\\val etf\\design/maps/tdm/concepts/_candidates\\A_showhome_ground_s11.png",
+    "crop_normalized": [
+      0.52,
+      0.57,
+      0.68,
+      0.76
+    ]
+  },
+  {
+    "render": "F:/git/val etf/assets/maps/showhome\\kit\\renders\\props\\tile_Armchair.png",
+    "concept": "F:\\git\\val etf\\design/maps/tdm/concepts/_candidates\\A_showhome_ground_s11.png",
+    "crop_normalized": [
+      0.52,
+      0.57,
+      0.68,
+      0.76
+    ]
+  },
+  {
+    "render": "F:/git/val etf/assets/maps/showhome\\kit\\renders\\props\\tile_Sofa.png",
+    "concept": "F:\\git\\val etf\\design/maps/tdm/concepts/_candidates\\A_showhome_ground_s11.png",
+    "crop_normalized": [
+      0.52,
+      0.57,
+      0.68,
+      0.76
+    ]
+  },
+  {
+    "render": "F:/git/val etf/assets/maps/showhome\\kit\\renders\\props\\tile_Fence_Run_S.png",
+    "concept": "F:\\git\\val etf\\design/maps/tdm/concepts/_candidates\\A_showhome_ground_s11.png",
+    "crop_normalized": [
+      0.03,
+      0.58,
+      0.26,
+      0.76
+    ]
+  },
+  {
+    "render": "F:/git/val etf/assets/maps/showhome\\kit\\renders\\props\\tile_Fence_Run_N.png",
+    "concept": "F:\\git\\val etf\\design/maps/tdm/concepts/_candidates\\A_showhome_ground_s11.png",
+    "crop_normalized": [
+      0.03,
+      0.58,
+      0.26,
+      0.76
+    ]
+  },
+  {
+    "render": "F:/git/val etf/assets/maps/showhome\\kit\\renders\\props\\tile_Fence_Picket_2m.png",
+    "concept": "F:\\git\\val etf\\design/maps/tdm/concepts/_candidates\\A_showhome_ground_s11.png",
+    "crop_normalized": [
+      0.03,
+      0.58,
+      0.26,
+      0.76
+    ]
+  },
+  {
+    "render": "F:/git/val etf/assets/maps/showhome\\kit\\renders\\props\\tile_Fence_Picket_1m.png",
+    "concept": "F:\\git\\val etf\\design/maps/tdm/concepts/_candidates\\A_showhome_ground_s11.png",
+    "crop_normalized": [
+      0.03,
+      0.58,
+      0.26,
+      0.76
+    ]
+  },
+  {
+    "render": "F:/git/val etf/assets/maps/showhome\\kit\\renders\\props\\tile_Fence_Gate_1m.png",
+    "concept": "F:\\git\\val etf\\design/maps/tdm/concepts/_candidates\\A_showhome_ground_s11.png",
+    "crop_normalized": [
+      0.03,
+      0.58,
+      0.26,
+      0.76
+    ]
+  },
+  {
+    "render": "F:/git/val etf/assets/maps/showhome\\kit\\renders\\props\\tile_Fence_Post.png",
+    "concept": "F:\\git\\val etf\\design/maps/tdm/concepts/_candidates\\A_showhome_ground_s11.png",
+    "crop_normalized": [
+      0.03,
+      0.58,
+      0.26,
+      0.76
+    ]
+  },
+  {
+    "render": "F:/git/val etf/assets/maps/showhome\\kit\\renders\\props\\tile_Hedge_Boundary.png",
+    "concept": "F:\\git\\val etf\\design/maps/tdm/concepts/_candidates\\A_showhome_aerial_s12.png",
+    "crop_normalized": [
+      0.06,
+      0.37,
+      0.23,
+      0.7
+    ]
+  },
+  {
+    "render": "F:/git/val etf/assets/maps/showhome\\kit\\renders\\props\\tile_Hedge_Lawn.png",
+    "concept": "F:\\git\\val etf\\design/maps/tdm/concepts/_candidates\\A_showhome_aerial_s12.png",
+    "crop_normalized": [
+      0.06,
+      0.37,
+      0.23,
+      0.7
+    ]
+  },
+  {
+    "render": "F:/git/val etf/assets/maps/showhome\\kit\\renders\\props\\tile_Hedge_Block_2m.png",
+    "concept": "F:\\git\\val etf\\design/maps/tdm/concepts/_candidates\\A_showhome_aerial_s12.png",
+    "crop_normalized": [
+      0.06,
+      0.37,
+      0.23,
+      0.7
+    ]
+  },
+  {
+    "render": "F:/git/val etf/assets/maps/showhome\\kit\\renders\\props\\tile_Hedge_Block_4m_Tall.png",
+    "concept": "F:\\git\\val etf\\design/maps/tdm/concepts/_candidates\\A_showhome_aerial_s12.png",
+    "crop_normalized": [
+      0.06,
+      0.37,
+      0.23,
+      0.7
+    ]
+  },
+  {
+    "render": "F:/git/val etf/assets/maps/showhome\\kit\\renders\\props\\tile_Arbour.png",
+    "concept": "F:\\git\\val etf\\design/maps/tdm/concepts/_candidates\\A_showhome_aerial_s12.png",
+    "crop_normalized": [
+      0.06,
+      0.37,
+      0.23,
+      0.7
+    ]
+  },
+  {
+    "render": "F:/git/val etf/assets/maps/showhome\\kit\\renders\\props\\tile_Pylon.png",
+    "concept": "F:\\git\\val etf\\design/maps/tdm/concepts/_candidates\\A_showhome_ground_s11.png",
+    "crop_normalized": [
+      0.3,
+      0.05,
+      0.43,
+      0.72
+    ]
+  },
+  {
+    "render": "F:/git/val etf/assets/maps/showhome\\kit\\renders\\props\\tile_Zipline_Cable.png",
+    "concept": "F:\\git\\val etf\\design/maps/tdm/concepts/_candidates\\A_showhome_ground_s11.png",
+    "crop_normalized": [
+      0.3,
+      0.05,
+      0.43,
+      0.72
+    ]
+  },
+  {
+    "render": "F:/git/val etf/assets/maps/showhome\\kit\\renders\\props\\tile_Wire_Span_20m.png",
+    "concept": "F:\\git\\val etf\\design/maps/tdm/concepts/_candidates\\A_showhome_ground_s11.png",
+    "crop_normalized": [
+      0.3,
+      0.05,
+      0.43,
+      0.72
+    ]
+  },
+  {
+    "render": "F:/git/val etf/assets/maps/showhome\\kit\\renders\\props\\tile_HotTub.png",
+    "concept": "F:\\git\\val etf\\design/maps/tdm/concepts/_candidates\\A_showhome_ground_s11.png",
+    "crop_normalized": [
+      0.0,
+      0.26,
+      0.27,
+      0.58
+    ]
+  },
+  {
+    "render": "F:/git/val etf/assets/maps/showhome\\kit\\renders\\props\\tile_OutdoorKitchen.png",
+    "concept": "F:\\git\\val etf\\design/maps/tdm/concepts/_candidates\\A_showhome_ground_s11.png",
+    "crop_normalized": [
+      0.0,
+      0.26,
+      0.27,
+      0.58
+    ]
+  },
+  {
+    "render": "F:/git/val etf/assets/maps/showhome\\kit\\renders\\props\\tile_KitchenIsland.png",
+    "concept": "F:\\git\\val etf\\design/maps/tdm/concepts/_candidates\\A_showhome_ground_s11.png",
+    "crop_normalized": [
+      0.0,
+      0.26,
+      0.27,
+      0.58
+    ]
+  },
+  {
+    "render": "F:/git/val etf/assets/maps/showhome\\kit\\renders\\props\\tile_Workbench.png",
+    "concept": "F:\\git\\val etf\\design/maps/tdm/concepts/_candidates\\A_showhome_ground_s11.png",
+    "crop_normalized": [
+      0.0,
+      0.26,
+      0.27,
+      0.58
+    ]
+  },
+  {
+    "render": "F:/git/val etf/assets/maps/showhome\\kit\\renders\\props\\tile_Dresser.png",
+    "concept": "F:\\git\\val etf\\design/maps/tdm/concepts/_candidates\\A_showhome_ground_s11.png",
+    "crop_normalized": [
+      0.0,
+      0.26,
+      0.27,
+      0.58
+    ]
+  },
+  {
+    "render": "F:/git/val etf/assets/maps/showhome\\kit\\renders\\props\\tile_Shelving.png",
+    "concept": "F:\\git\\val etf\\design/maps/tdm/concepts/_candidates\\A_showhome_ground_s11.png",
+    "crop_normalized": [
+      0.0,
+      0.26,
+      0.27,
+      0.58
+    ]
+  },
+  {
+    "render": "F:/git/val etf/assets/maps/showhome\\kit\\renders\\props\\tile_HeatPump.png",
+    "concept": "F:\\git\\val etf\\design/maps/tdm/concepts/_candidates\\A_showhome_ground_s11.png",
+    "crop_normalized": [
+      0.0,
+      0.26,
+      0.27,
+      0.58
+    ]
+  },
+  {
+    "render": "F:/git/val etf/assets/maps/showhome\\kit\\renders\\props\\tile_GarageCar.png",
+    "concept": "F:\\git\\val etf\\design/maps/tdm/concepts/_candidates\\A_showhome_ground_s11.png",
+    "crop_normalized": [
+      0.38,
+      0.43,
+      0.6,
+      0.73
+    ]
+  },
+  {
+    "render": "F:/git/val etf/assets/maps/showhome\\kit\\renders\\props\\tile_RainTank.png",
+    "concept": "F:\\git\\val etf\\design/maps/tdm/concepts/_candidates\\A_showhome_ground_s11.png",
+    "crop_normalized": [
+      0.0,
+      0.26,
+      0.27,
+      0.58
+    ]
+  },
+  {
+    "render": "F:/git/val etf/assets/maps/showhome\\kit\\renders\\props\\tile_BinStore.png",
+    "concept": "F:\\git\\val etf\\design/maps/tdm/concepts/_candidates\\A_showhome_aerial_s12.png",
+    "crop_normalized": [
+      0.06,
+      0.39,
+      0.19,
+      0.64
+    ]
+  },
+  {
+    "render": "F:/git/val etf/assets/maps/showhome\\kit\\renders\\props\\tile_ParcelLockers.png",
+    "concept": "F:\\git\\val etf\\design/maps/tdm/concepts/_candidates\\A_showhome_ground_s11.png",
+    "crop_normalized": [
+      0.0,
+      0.26,
+      0.27,
+      0.58
+    ]
+  },
+  {
+    "render": "F:/git/val etf/assets/maps/showhome\\kit\\renders\\props\\tile_ChargerIsland.png",
+    "concept": "F:\\git\\val etf\\design/maps/tdm/concepts/_candidates\\A_showhome_ground_s11.png",
+    "crop_normalized": [
+      0.0,
+      0.26,
+      0.27,
+      0.58
+    ]
+  },
+  {
+    "render": "F:/git/val etf/assets/maps/showhome\\kit\\renders\\props\\tile_ModelTable.png",
+    "concept": "F:\\git\\val etf\\design/maps/tdm/concepts/_candidates\\A_showhome_ground_s11.png",
+    "crop_normalized": [
+      0.0,
+      0.26,
+      0.27,
+      0.58
+    ]
+  },
+  {
+    "render": "F:/git/val etf/assets/maps/showhome\\kit\\renders\\props\\tile_ShuttleStop.png",
+    "concept": "F:\\git\\val etf\\design/maps/tdm/concepts/_candidates\\A_showhome_ground_s11.png",
+    "crop_normalized": [
+      0.0,
+      0.26,
+      0.27,
+      0.58
+    ]
+  },
+  {
+    "render": "F:/git/val etf/assets/maps/showhome\\kit\\renders\\props\\tile_Pallet.png",
+    "concept": "F:\\git\\val etf\\design/maps/tdm/concepts/_candidates\\A_showhome_aerial_s12.png",
+    "crop_normalized": [
+      0.66,
+      0.0,
+      1.0,
+      0.24
+    ]
+  },
+  {
+    "render": "F:/git/val etf/assets/maps/showhome\\kit\\renders\\props\\tile_PrintedBlockStack.png",
+    "concept": "F:\\git\\val etf\\design/maps/tdm/concepts/_candidates\\A_showhome_aerial_s12.png",
+    "crop_normalized": [
+      0.66,
+      0.0,
+      1.0,
+      0.24
+    ]
+  },
+  {
+    "render": "F:/git/val etf/assets/maps/showhome\\kit\\renders\\props\\tile_RebarBundle.png",
+    "concept": "F:\\git\\val etf\\design/maps/tdm/concepts/_candidates\\A_showhome_aerial_s12.png",
+    "crop_normalized": [
+      0.66,
+      0.0,
+      1.0,
+      0.24
+    ]
+  },
+  {
+    "render": "F:/git/val etf/assets/maps/showhome\\kit\\renders\\props\\tile_CementBag.png",
+    "concept": "F:\\git\\val etf\\design/maps/tdm/concepts/_candidates\\A_showhome_aerial_s12.png",
+    "crop_normalized": [
+      0.66,
+      0.0,
+      1.0,
+      0.24
+    ]
+  },
+  {
+    "render": "F:/git/val etf/assets/maps/showhome\\kit\\renders\\props\\tile_CementBagPallet.png",
+    "concept": "F:\\git\\val etf\\design/maps/tdm/concepts/_candidates\\A_showhome_aerial_s12.png",
+    "crop_normalized": [
+      0.66,
+      0.0,
+      1.0,
+      0.24
+    ]
+  },
+  {
+    "render": "F:/git/val etf/assets/maps/showhome\\kit\\renders\\props\\tile_TrafficCone.png",
+    "concept": "F:\\git\\val etf\\design/maps/tdm/concepts/_candidates\\A_showhome_aerial_s12.png",
+    "crop_normalized": [
+      0.66,
+      0.0,
+      1.0,
+      0.24
+    ]
+  },
+  {
+    "render": "F:/git/val etf/assets/maps/showhome\\kit\\renders\\props\\tile_PlasticBarrier.png",
+    "concept": "F:\\git\\val etf\\design/maps/tdm/concepts/_candidates\\A_showhome_aerial_s12.png",
+    "crop_normalized": [
+      0.66,
+      0.0,
+      1.0,
+      0.24
+    ]
+  },
+  {
+    "render": "F:/git/val etf/assets/maps/showhome\\kit\\renders\\props\\tile_Rock_Low.png",
+    "concept": "F:\\git\\val etf\\design/maps/tdm/concepts/_candidates\\A_showhome_aerial_s12.png",
+    "crop_normalized": [
+      0.66,
+      0.0,
+      1.0,
+      0.24
+    ]
+  },
+  {
+    "render": "F:/git/val etf/assets/maps/showhome\\kit\\renders\\props\\tile_Rock_Tall.png",
+    "concept": "F:\\git\\val etf\\design/maps/tdm/concepts/_candidates\\A_showhome_aerial_s12.png",
+    "crop_normalized": [
+      0.66,
+      0.0,
+      1.0,
+      0.24
+    ]
+  },
+  {
+    "render": "F:/git/val etf/assets/maps/showhome\\kit\\renders\\props\\tile_PebbleCluster.png",
+    "concept": "F:\\git\\val etf\\design/maps/tdm/concepts/_candidates\\A_showhome_aerial_s12.png",
+    "crop_normalized": [
+      0.66,
+      0.0,
+      1.0,
+      0.24
+    ]
+  },
+  {
+    "render": "F:/git/val etf/assets/maps/showhome\\kit\\renders\\props\\tile_DirtMound.png",
+    "concept": "F:\\git\\val etf\\design/maps/tdm/concepts/_candidates\\A_showhome_aerial_s12.png",
+    "crop_normalized": [
+      0.66,
+      0.0,
+      1.0,
+      0.24
+    ]
+  },
+  {
+    "render": "F:/git/val etf/assets/maps/showhome\\kit\\renders\\props\\tile_SandMound.png",
+    "concept": "F:\\git\\val etf\\design/maps/tdm/concepts/_candidates\\A_showhome_aerial_s12.png",
+    "crop_normalized": [
+      0.66,
+      0.0,
+      1.0,
+      0.24
+    ]
+  },
+  {
+    "render": "F:/git/val etf/assets/maps/showhome\\kit\\renders\\props\\tile_Greenhouse_Sage.png",
+    "concept": "F:\\git\\val etf\\design/maps/tdm/concepts/_candidates\\A_showhome_aerial_s12.png",
+    "crop_normalized": [
+      0.72,
+      0.63,
+      0.85,
+      0.88
+    ]
+  },
+  {
+    "render": "F:/git/val etf/assets/maps/showhome\\kit\\renders\\props\\tile_Greenhouse_Clay.png",
+    "concept": "F:\\git\\val etf\\design/maps/tdm/concepts/_candidates\\A_showhome_aerial_s12.png",
+    "crop_normalized": [
+      0.72,
+      0.63,
+      0.85,
+      0.88
+    ]
+  },
+  {
+    "render": "F:/git/val etf/assets/maps/showhome\\kit\\renders\\props\\tile_Studio_Sage.png",
+    "concept": "F:\\git\\val etf\\design/maps/tdm/concepts/_candidates\\A_showhome_aerial_s12.png",
+    "crop_normalized": [
+      0.49,
+      0.24,
+      0.71,
+      0.46
+    ]
+  },
+  {
+    "render": "F:/git/val etf/assets/maps/showhome\\kit\\renders\\props\\tile_Studio_Clay.png",
+    "concept": "F:\\git\\val etf\\design/maps/tdm/concepts/_candidates\\A_showhome_aerial_s12.png",
+    "crop_normalized": [
+      0.49,
+      0.24,
+      0.71,
+      0.46
+    ]
+  },
+  {
+    "render": "F:/git/val etf/assets/maps/showhome\\kit\\renders\\props\\tile_Shed_Sage.png",
+    "concept": "F:\\git\\val etf\\design/maps/tdm/concepts/_candidates\\A_showhome_aerial_s12.png",
+    "crop_normalized": [
+      0.06,
+      0.39,
+      0.19,
+      0.64
+    ]
+  },
+  {
+    "render": "F:/git/val etf/assets/maps/showhome\\kit\\renders\\props\\tile_Shed_Clay.png",
+    "concept": "F:\\git\\val etf\\design/maps/tdm/concepts/_candidates\\A_showhome_aerial_s12.png",
+    "crop_normalized": [
+      0.06,
+      0.39,
+      0.19,
+      0.64
+    ]
+  },
+  {
+    "render": "F:/git/val etf/assets/maps/showhome\\kit\\renders\\props\\tile_SalesOffice.png",
+    "concept": "F:\\git\\val etf\\design/maps/tdm/concepts/_candidates\\A_showhome_aerial_s12.png",
+    "crop_normalized": [
+      0.49,
+      0.24,
+      0.71,
+      0.46
+    ]
+  },
+  {
+    "render": "F:/git/val etf/assets/maps/showhome\\kit\\renders\\props\\tile_ParcelHub.png",
+    "concept": "F:\\git\\val etf\\design/maps/tdm/concepts/_candidates\\A_showhome_aerial_s12.png",
+    "crop_normalized": [
+      0.49,
+      0.24,
+      0.71,
+      0.46
+    ]
+  }
+]

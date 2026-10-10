@@ -1,0 +1,145 @@
+{
+ "what": "Head-arc pixels only (4x true pixels, day light, no bloom): mean display luma and share of near-white pixels (luma > 0.85).  Uncovered must stay far below lit and never near-white.",
+ "states": {
+  "5m": {
+   "Bulwark": {
+    "lit": {
+     "head_px_4x": 1376,
+     "mean_luma": 0.499,
+     "near_white_pct": 0.0
+    },
+    "broken": {
+     "head_px_4x": 1271,
+     "mean_luma": 0.257,
+     "near_white_pct": 0.0
+    },
+    "uncovered": {
+     "head_px_4x": 927,
+     "mean_luma": 0.029,
+     "near_white_pct": 0.0
+    }
+   },
+   "Mender": {
+    "lit": {
+     "head_px_4x": 1179,
+     "mean_luma": 0.483,
+     "near_white_pct": 0.0
+    },
+    "broken": {
+     "head_px_4x": 1277,
+     "mean_luma": 0.279,
+     "near_white_pct": 0.0
+    },
+    "uncovered": {
+     "head_px_4x": 1085,
+     "mean_luma": 0.14,
+     "near_white_pct": 0.0
+    }
+   },
+   "Volt": {
+    "lit": {
+     "head_px_4x": 1223,
+     "mean_luma": 0.496,
+     "near_white_pct": 0.0
+    },
+    "broken": {
+     "head_px_4x": 1233,
+     "mean_luma": 0.253,
+     "near_white_pct": 0.0
+    },
+    "uncovered": {
+     "head_px_4x": 1059,
+     "mean_luma": 0.033,
+     "near_white_pct": 0.0
+    }
+   },
+   "Phase": {
+    "lit": {
+     "head_px_4x": 986,
+     "mean_luma": 0.523,
+     "near_white_pct": 0.91
+    },
+    "broken": {
+     "head_px_4x": 989,
+     "mean_luma": 0.309,
+     "near_white_pct": 0.71
+    },
+    "uncovered": {
+     "head_px_4x": 914,
+     "mean_luma": 0.118,
+     "near_white_pct": 0.0
+    }
+   }
+  },
+  "10m": {
+   "Bulwark": {
+    "lit": {
+     "head_px_4x": 429,
+     "mean_luma": 0.447,
+     "near_white_pct": 0.0
+    },
+    "broken": {
+     "head_px_4x": 387,
+     "mean_luma": 0.232,
+     "near_white_pct": 0.0
+    },
+    "uncovered": {
+     "head_px_4x": 217,
+     "mean_luma": 0.032,
+     "near_white_pct": 0.0
+    }
+   },
+   "Mender": {
+    "lit": {
+     "head_px_4x": 393,
+     "mean_luma": 0.445,
+     "near_white_pct": 0.0
+    },
+    "broken": {
+     "head_px_4x": 375,
+     "mean_luma": 0.27,
+     "near_white_pct": 0.0
+    },
+    "uncovered": {
+     "head_px_4x": 333,
+     "mean_luma": 0.167,
+     "near_white_pct": 0.0
+    }
+   },
+   "Volt": {
+    "lit": {
+     "head_px_4x": 403,
+     "mean_luma": 0.451,
+     "near_white_pct": 0.0
+    },
+    "broken": {
+     "head_px_4x": 402,
+     "mean_luma": 0.221,
+     "near_white_pct": 0.0
+    },
+    "uncovered": {
+     "head_px_4x": 287,
+     "mean_luma": 0.029,
+     "near_white_pct": 0.0
+    }
+   },
+   "Phase": {
+    "lit": {
+     "head_px_4x": 269,
+     "mean_luma": 0.511,
+     "near_white_pct": 1.12
+    },
+    "broken": {
+     "head_px_4x": 298,
+     "mean_luma": 0.289,
+     "near_white_pct": 0.67
+    },
+    "uncovered": {
+     "head_px_4x": 276,
+     "mean_luma": 0.114,
+     "near_white_pct": 0.0
+    }
+   }
+  }
+ }
+}

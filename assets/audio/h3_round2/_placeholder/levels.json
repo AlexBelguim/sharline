@@ -1,0 +1,182 @@
+{
+ "movement/land.ogg": {
+  "dur_s": 0.497,
+  "peak_dbfs": -10.6,
+  "loud_db": -23.1,
+  "attack_ms": 15.0,
+  "decay_ms": 80.0,
+  "centroid_hz": 89,
+  "low_frac": 0.97,
+  "high_frac": 0.002
+ },
+ "movement/step_concrete_1.ogg": {
+  "dur_s": 0.217,
+  "peak_dbfs": -15.0,
+  "loud_db": -35.5,
+  "attack_ms": 7.5,
+  "decay_ms": 81.5,
+  "centroid_hz": 800,
+  "low_frac": 0.112,
+  "high_frac": 0.009
+ },
+ "movement/step_concrete_2.ogg": {
+  "dur_s": 0.217,
+  "peak_dbfs": -13.5,
+  "loud_db": -33.0,
+  "attack_ms": 11.5,
+  "decay_ms": 57.0,
+  "centroid_hz": 729,
+  "low_frac": 0.152,
+  "high_frac": 0.003
+ },
+ "movement/step_concrete_3.ogg": {
+  "dur_s": 0.217,
+  "peak_dbfs": -14.4,
+  "loud_db": -34.8,
+  "attack_ms": 1.0,
+  "decay_ms": 56.5,
+  "centroid_hz": 702,
+  "low_frac": 0.124,
+  "high_frac": 0.003
+ },
+ "movement/step_grass_1.ogg": {
+  "dur_s": 0.217,
+  "peak_dbfs": -13.7,
+  "loud_db": -33.4,
+  "attack_ms": 19.0,
+  "decay_ms": 131.0,
+  "centroid_hz": 3768,
+  "low_frac": 0.088,
+  "high_frac": 0.585
+ },
+ "movement/step_grass_2.ogg": {
+  "dur_s": 0.217,
+  "peak_dbfs": -13.4,
+  "loud_db": -34.5,
+  "attack_ms": 15.0,
+  "decay_ms": 142.0,
+  "centroid_hz": 3770,
+  "low_frac": 0.081,
+  "high_frac": 0.573
+ },
+ "movement/step_grass_3.ogg": {
+  "dur_s": 0.217,
+  "peak_dbfs": -13.9,
+  "loud_db": -33.4,
+  "attack_ms": 23.0,
+  "decay_ms": 135.5,
+  "centroid_hz": 3866,
+  "low_frac": 0.063,
+  "high_frac": 0.599
+ },
+ "movement/step_gravel_1.ogg": {
+  "dur_s": 0.217,
+  "peak_dbfs": -14.3,
+  "loud_db": -40.1,
+  "attack_ms": 10.5,
+  "decay_ms": 88.5,
+  "centroid_hz": 4320,
+  "low_frac": 0.045,
+  "high_frac": 0.646
+ },
+ "movement/step_gravel_2.ogg": {
+  "dur_s": 0.217,
+  "peak_dbfs": -14.6,
+  "loud_db": -39.0,
+  "attack_ms": 4.0,
+  "decay_ms": 25.0,
+  "centroid_hz": 4785,
+  "low_frac": 0.023,
+  "high_frac": 0.735
+ },
+ "movement/step_gravel_3.ogg": {
+  "dur_s": 0.217,
+  "peak_dbfs": -16.2,
+  "loud_db": -41.2,
+  "attack_ms": 9.0,
+  "decay_ms": 87.0,
+  "centroid_hz": 3998,
+  "low_frac": 0.057,
+  "high_frac": 0.603
+ },
+ "movement/step_wood_1.ogg": {
+  "dur_s": 0.217,
+  "peak_dbfs": -14.3,
+  "loud_db": -32.2,
+  "attack_ms": 4.0,
+  "decay_ms": 117.5,
+  "centroid_hz": 193,
+  "low_frac": 0.958,
+  "high_frac": 0.0
+ },
+ "movement/step_wood_2.ogg": {
+  "dur_s": 0.217,
+  "peak_dbfs": -13.9,
+  "loud_db": -30.1,
+  "attack_ms": 4.5,
+  "decay_ms": 105.0,
+  "centroid_hz": 164,
+  "low_frac": 0.956,
+  "high_frac": 0.0
+ },
+ "movement/step_wood_3.ogg": {
+  "dur_s": 0.217,
+  "peak_dbfs": -13.4,
+  "loud_db": -29.7,
+  "attack_ms": 4.5,
+  "decay_ms": 111.0,
+  "centroid_hz": 164,
+  "low_frac": 0.957,
+  "high_frac": 0.0
+ },
+ "weapons/bolt_cycle.ogg": {
+  "dur_s": 0.847,
+  "peak_dbfs": -11.6,
+  "loud_db": -30.9,
+  "attack_ms": 2.0,
+  "decay_ms": 43.5,
+  "centroid_hz": 2383,
+  "low_frac": 0.0,
+  "high_frac": 0.266
+ },
+ "weapons/dry_fire.ogg": {
+  "dur_s": 0.117,
+  "peak_dbfs": -15.8,
+  "loud_db": -35.5,
+  "attack_ms": 2.0,
+  "decay_ms": 11.0,
+  "centroid_hz": 2582,
+  "low_frac": 0.0,
+  "high_frac": 0.199
+ },
+ "weapons/warden_shot_1.ogg": {
+  "dur_s": 1.6,
+  "peak_dbfs": -4.9,
+  "loud_db": -20.3,
+  "attack_ms": 9.5,
+  "decay_ms": 258.5,
+  "centroid_hz": 234,
+  "low_frac": 0.772,
+  "high_frac": 0.001
+ },
+ "weapons/warden_shot_2.ogg": {
+  "dur_s": 1.6,
+  "peak_dbfs": -5.5,
+  "loud_db": -21.0,
+  "attack_ms": 9.5,
+  "decay_ms": 271.5,
+  "centroid_hz": 260,
+  "low_frac": 0.744,
+  "high_frac": 0.002
+ },
+ "weapons/warden_shot_3.ogg": {
+  "dur_s": 1.6,
+  "peak_dbfs": -5.4,
+  "loud_db": -21.5,
+  "attack_ms": 9.5,
+  "decay_ms": 264.5,
+  "centroid_hz": 274,
+  "low_frac": 0.74,
+  "high_frac": 0.002
+ }
+}

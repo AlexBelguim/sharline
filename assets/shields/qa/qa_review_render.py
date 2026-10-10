@@ -18,10 +18,10 @@ import sys
 import bpy
 from mathutils import Matrix, Vector
 
-ROOT = r"F:/git/val etf/assets/shields"
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 EXP = os.path.join(ROOT, "export")
 RAW = os.path.join(ROOT, "qa", "renders", "_raw")
-CHAR = r"F:/git/val etf/assets/characters/kestrel/trellis/kestrel_trellis_s123.glb"
+CHAR = os.path.join(ROOT, "..", "characters", "kestrel", "trellis", "kestrel_trellis_s123.glb")
 os.makedirs(RAW, exist_ok=True)
 JOB = sys.argv[sys.argv.index("--") + 1] if "--" in sys.argv else "eyelevel"
 
@@ -57,7 +57,9 @@ for o in KIT.values():
     for c in list(o.users_collection):
         c.objects.unlink(o)
 bpy.context.view_layer.update()
-PIPS = {c: [KIT[f"HALO_{c}_PIP_{i}"].matrix_world.translation.copy() for i in range(1, 5)] for c in CORES}
+# centred pip rows: PIPS[core][n] = positions of the n-pip row (HALO_<Core>_PIP_<n>_<i>, review r2 #3)
+PIPS = {c: {n: [KIT[f"HALO_{c}_PIP_{n}_{i}"].matrix_world.translation.copy() for i in range(1, n + 1)]
+            for n in range(1, 5)} for c in CORES}
 BASE_MATS = {n: bpy.data.materials[n] for n in ("M_HALO_Glass_T1", "M_HALO_Glass_T2", "M_HALO_Glass_T3",
                                                 "M_HALO_Glass_T4", "M_HALO_Glass_Off")}
 _MC = {}
@@ -82,9 +84,10 @@ def glass(tier, strength):
     return _MC[key]
 
 
-def glass_slot(o):
+def glass_slot(o, name=None):
+    """Slot of the (first) glass material, or of the material called `name` (primitives by material name)."""
     for i, s in enumerate(o.material_slots):
-        if s.material and s.material.name.startswith("M_HALO_Glass"):
+        if s.material and (s.material.name == name if name else s.material.name.startswith("M_HALO_Glass")):
             return i
     return None
 
@@ -100,8 +103,9 @@ def inst(name, parent, loc=(0, 0, 0), rot_z=0.0, scale=1.0, mat=None):
     o.scale = (scale,) * 3
     if mat is not None:
         gs = glass_slot(o)
-        o.material_slots[gs].link = "OBJECT"
-        o.material_slots[gs].material = mat
+        if gs is not None:
+            o.material_slots[gs].link = "OBJECT"
+            o.material_slots[gs].material = mat
     return o
 
 
@@ -117,21 +121,21 @@ def halo(core, weight, arc_tiers, loc=(0, 0, 0), s=IDLE, rot_z=0.0, cell_angles=
     top = max(arc_tiers.values())
     for z in ZONES:
         inst(f"HALO_{core}_Far_Glass_{z}" if far else f"HALO_{core}_Arc_{z}", root, mat=glass(arc_tiers.get(z, 0), s))
+    # one frame per weight (graphite + edge of all arcs + the band); its lip glass = highest arc tier
+    fw = weight if (band or far) else "Light"
+    fr = f"HALO_{core}_Far_Frame_{fw}" if far else f"HALO_{core}_Frame_{fw}"
+    inst(fr, root, mat=glass(top or 1, s))
     if far:
-        fr = f"HALO_{core}_Far_Frame_{weight}"
-        inst(fr, root, mat=glass(top or 1, s) if glass_slot(KIT[fr]) is not None else None)
         pips = False
-    elif band and b:
-        inst(f"HALO_{core}_Band_{b}", root, mat=glass(top or 1, s))
     if pips and top:
-        for p in PIPS[core][:top]:
+        for p in PIPS[core][top]:
             inst("HALO_TierPip", root, loc=p, mat=glass(top, s))
     if cells:
         angs = cell_angles if cell_angles is not None else [15.0 + k * 360.0 / n for k in range(n)]
         for a in angs:
             r = math.radians(a)
-            inst("HALO_PowerCell", root, loc=(orb * math.cos(r), orb * math.sin(r), ORBIT_Z[weight]), rot_z=r + math.pi / 2,
-                 mat=glass(top or 1, cell_s))
+            inst(f"HALO_PowerCell_{core}", root, loc=(orb * math.cos(r), orb * math.sin(r), ORBIT_Z[weight]),
+                 rot_z=r + math.pi / 2, mat=glass(top or 1, cell_s))
     return root
 
 
@@ -359,16 +363,28 @@ def job_underside():
 
 def job_closeups():
     shots = []
-    # 1. pips over each core's Head arc (front, 10 deg above), T4 = 4 pips
+    # 1. centred pip rows over each core's Head arc (front, 10 deg above): T1 = 1 pip, T3 = 3 pips (review r2 #3)
     for core in CORES:
+        for t in (1, 3):
+            clear()
+            halo(core, "Light", {"Head": t, "Torso": t, "Arms": t, "Legs": t}, s=LIT, cells=False, band=False)
+            o = bpy.data.objects["_root"]
+            o.scale = (1, 1, 1)
+            lights(center=(0, -0.15, 0))
+            cam_dir((0, -0.155, 0.012), 10, 0, 1.0, ortho=0.11)
+            setup((900, 500), bloom=0.25, threshold=1.0)
+            shots.append(render(f"close_pips_{core}_{t}"))
+    # 1b. uncovered (Glass_Off) arc next to a lit one: the Off glass must stay dark, no white sheen (review r2 #4)
+    for core in ("Volt", "Bulwark"):
         clear()
-        halo(core, "Light", {"Head": 4, "Torso": 4, "Arms": 4, "Legs": 4}, s=LIT, cells=False, band=False)
-        o = bpy.data.objects["_root"]
-        o.scale = (1, 1, 1)
-        lights(center=(0, -0.15, 0))
-        cam_dir((0, -0.155, 0.012), 10, 0, 1.0, ortho=0.11)
-        setup((900, 500), bloom=0.25, threshold=1.0)
-        shots.append(render(f"close_pips_{core}"))
+        halo(core, "Medium", {"Head": 3, "Torso": 2, "Arms": 0, "Legs": 2}, s=IDLE, cells=False)
+        bpy.data.objects["_root"].scale = (1, 1, 1)
+        a = math.radians(315)
+        c = Vector((0.16 * math.cos(a), 0.16 * math.sin(a), 0.0))
+        lights(center=c)
+        cam_dir(c, 12, -45, 1.0, ortho=0.26)
+        setup((900, 600), bloom=0.25)
+        render(f"close_off_{core}")
     # 2. Phase gap electrodes (back, from above-behind)
     clear()
     halo("Phase", "Medium", {"Head": 2, "Torso": 2, "Arms": 2, "Legs": 2}, s=LIT, cells=False)
@@ -410,7 +426,7 @@ def job_closeups():
     halo("Bulwark", "Heavy", {"Head": 4, "Torso": 4, "Arms": 4, "Legs": 4}, s=LIT, cell_angles=[300.0], cell_s=LIT)
     bpy.data.objects["_root"].scale = (1, 1, 1)
     a = math.radians(300)
-    c = Vector((0.275 * math.cos(a), 0.275 * math.sin(a), 0.0))
+    c = Vector((0.275 * math.cos(a), 0.275 * math.sin(a), ORBIT_Z["Heavy"] - 0.035))   # cell + band in frame
     lights(center=c)
     cam_dir(c, 8, 0, 1.0, ortho=0.20)
     setup((900, 600), bloom=0.25)
@@ -447,7 +463,11 @@ def job_wire():
             ("HALO_Mender_Arc_Head", (0, -0.16, 0.0), 35, 0, 0.30, 0.00022),
             ("HALO_Bulwark_Band_Heavy", (0, 0, -0.03), 25, 20, 0.55, 0.0004),
             ("HALO_Core_Phase", (0, 0, 0.026), 30, 15, 0.11, 0.00012),
-            ("HALO_PowerCell", (-0.01, 0, 0), 25, 30, 0.10, 0.0001)):
+            ("HALO_PowerCell", (-0.01, 0, 0), 25, 30, 0.10, 0.0001),
+            ("HALO_Volt_Frame_Heavy", (0, 0, -0.01), 25, 20, 0.62, 0.0004),
+            ("HALO_PowerCell_Mender", (-0.005, 0, 0), 20, 30, 0.08, 0.0001),
+            ("HALO_PowerCell_Volt", (-0.005, 0, 0.012), 20, 30, 0.10, 0.0001),
+            ("HALO_Phase_Far_Frame_Heavy", (0, 0, -0.01), 25, 200, 0.62, 0.0004)):
         clear()
         o = inst(name, None, mat=glass(2, 0.6) if glass_slot(KIT[name]) is not None else None)
         wire_overlay(o, thick)

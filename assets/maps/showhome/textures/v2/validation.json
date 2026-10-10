@@ -1,0 +1,1796 @@
+{
+  "fibercement_panel": {
+    "size": [
+      1024,
+      1024
+    ],
+    "height_dtype": "uint16",
+    "mean_linear": [
+      0.7000048026017112,
+      0.7000048026017112,
+      0.7000048026017112
+    ],
+    "target_linear": [
+      0.7,
+      0.7,
+      0.7
+    ],
+    "mean_max_error": 4.802601711206833e-06,
+    "seam_ratio": [
+      0.3626946806907654,
+      0.17551308870315552
+    ],
+    "height_min": 0.3942931258106355,
+    "height_max": 0.6184939345387961,
+    "normal_length_max_error": 1.537799835205078e-05,
+    "maps_complete": true,
+    "map_sizes": {
+      "albedo": [
+        1024,
+        1024
+      ],
+      "normal": [
+        1024,
+        1024
+      ],
+      "orm": [
+        1024,
+        1024
+      ],
+      "height": [
+        1024,
+        1024
+      ]
+    },
+    "palette_mean_applies": true,
+    "wrap_v_applies": true
+  },
+  "fibercement_sage": {
+    "size": [
+      1024,
+      1024
+    ],
+    "height_dtype": "uint16",
+    "mean_linear": [
+      0.28329616550452386,
+      0.31789909117586035,
+      0.1689063532407573
+    ],
+    "target_linear": [
+      0.2833,
+      0.3179,
+      0.1689
+    ],
+    "mean_max_error": 6.353240757317469e-06,
+    "seam_ratio": [
+      0.11968185752630234,
+      0.10016123205423355
+    ],
+    "height_min": 0.0,
+    "height_max": 1.0,
+    "normal_length_max_error": 0.001585245132446289,
+    "maps_complete": true,
+    "map_sizes": {
+      "albedo": [
+        1024,
+        1024
+      ],
+      "normal": [
+        1024,
+        1024
+      ],
+      "orm": [
+        1024,
+        1024
+      ],
+      "height": [
+        1024,
+        1024
+      ]
+    },
+    "palette_mean_applies": true,
+    "wrap_v_applies": true
+  },
+  "fibercement_clay": {
+    "size": [
+      1024,
+      1024
+    ],
+    "height_dtype": "uint16",
+    "mean_linear": [
+      0.6245057085793633,
+      0.23830219352980464,
+      0.1158082474051092
+    ],
+    "target_linear": [
+      0.6245,
+      0.2383,
+      0.1158
+    ],
+    "mean_max_error": 8.24740510919908e-06,
+    "seam_ratio": [
+      0.1897156536579132,
+      0.28196340799331665
+    ],
+    "height_min": 0.0,
+    "height_max": 1.0,
+    "normal_length_max_error": 0.001585245132446289,
+    "maps_complete": true,
+    "map_sizes": {
+      "albedo": [
+        1024,
+        1024
+      ],
+      "normal": [
+        1024,
+        1024
+      ],
+      "orm": [
+        1024,
+        1024
+      ],
+      "height": [
+        1024,
+        1024
+      ]
+    },
+    "palette_mean_applies": true,
+    "wrap_v_applies": true
+  },
+  "roof_shingle_dark": {
+    "size": [
+      1024,
+      1024
+    ],
+    "height_dtype": "uint16",
+    "mean_linear": [
+      0.09313609414554946,
+      0.0782446953515219,
+      0.08026021142806883
+    ],
+    "target_linear": [
+      0.0931,
+      0.0782,
+      0.0802
+    ],
+    "mean_max_error": 6.021142806883484e-05,
+    "seam_ratio": [
+      0.023750120773911476,
+      0.0
+    ],
+    "height_min": 0.0,
+    "height_max": 0.972503242542153,
+    "normal_length_max_error": 0.0053528547286987305,
+    "maps_complete": true,
+    "map_sizes": {
+      "albedo": [
+        1024,
+        1024
+      ],
+      "normal": [
+        1024,
+        1024
+      ],
+      "orm": [
+        1024,
+        1024
+      ],
+      "height": [
+        1024,
+        1024
+      ]
+    },
+    "palette_mean_applies": true,
+    "wrap_v_applies": true
+  },
+  "roof_ridge_verge": {
+    "size": [
+      1024,
+      1024
+    ],
+    "height_dtype": "uint16",
+    "mean_linear": [
+      0.09309467535860705,
+      0.07819699814202252,
+      0.08019859121107231
+    ],
+    "target_linear": [
+      0.0931,
+      0.0782,
+      0.0802
+    ],
+    "mean_max_error": 5.324641392953633e-06,
+    "seam_ratio": [
+      0.029656406491994858,
+      0.12108702212572098
+    ],
+    "height_min": 0.0,
+    "height_max": 1.0,
+    "normal_length_max_error": 0.0052269697189331055,
+    "maps_complete": true,
+    "map_sizes": {
+      "albedo": [
+        1024,
+        1024
+      ],
+      "normal": [
+        1024,
+        1024
+      ],
+      "orm": [
+        1024,
+        1024
+      ],
+      "height": [
+        1024,
+        1024
+      ]
+    },
+    "palette_mean_applies": true,
+    "wrap_v_applies": true
+  },
+  "printed_concrete_layers": {
+    "size": [
+      1024,
+      1024
+    ],
+    "height_dtype": "uint16",
+    "mean_linear": [
+      0.672396974371793,
+      0.5776012875754475,
+      0.4342013836808576
+    ],
+    "target_linear": [
+      0.6724,
+      0.5776,
+      0.4342
+    ],
+    "mean_max_error": 3.025628206976272e-06,
+    "seam_ratio": [
+      0.22790244221687317,
+      0.045306283980607986
+    ],
+    "height_min": 0.0,
+    "height_max": 1.0,
+    "normal_length_max_error": 0.004917919635772705,
+    "maps_complete": true,
+    "map_sizes": {
+      "albedo": [
+        1024,
+        1024
+      ],
+      "normal": [
+        1024,
+        1024
+      ],
+      "orm": [
+        1024,
+        1024
+      ],
+      "height": [
+        1024,
+        1024
+      ]
+    },
+    "palette_mean_applies": true,
+    "wrap_v_applies": true
+  },
+  "trim_sheet_house": {
+    "size": [
+      1024,
+      1024
+    ],
+    "height_dtype": "uint16",
+    "mean_linear": [
+      0.3534879119417198,
+      0.3197925106955175,
+      0.2702993032165768
+    ],
+    "target_linear": [
+      0.7231,
+      0.6514,
+      0.521
+    ],
+    "mean_max_error": 0.36961208805828016,
+    "seam_ratio": [
+      0.0,
+      1.2696621417999268
+    ],
+    "height_min": 0.0,
+    "height_max": 1.0,
+    "normal_length_max_error": 0.00480198860168457,
+    "maps_complete": true,
+    "map_sizes": {
+      "albedo": [
+        1024,
+        1024
+      ],
+      "normal": [
+        1024,
+        1024
+      ],
+      "orm": [
+        1024,
+        1024
+      ],
+      "height": [
+        1024,
+        1024
+      ]
+    },
+    "palette_mean_applies": false,
+    "wrap_v_applies": false
+  },
+  "fibercement_sage_weathered": {
+    "size": [
+      1024,
+      1024
+    ],
+    "height_dtype": "uint16",
+    "mean_linear": [
+      0.2832897908396177,
+      0.3179032118948868,
+      0.16890130828080174
+    ],
+    "target_linear": [
+      0.2833,
+      0.3179,
+      0.1689
+    ],
+    "mean_max_error": 1.0209160382301796e-05,
+    "seam_ratio": [
+      0.18402421474456787,
+      0.24365468323230743
+    ],
+    "height_min": 0.0,
+    "height_max": 1.0,
+    "normal_length_max_error": 0.001585245132446289,
+    "maps_complete": true,
+    "map_sizes": {
+      "albedo": [
+        1024,
+        1024
+      ],
+      "normal": [
+        1024,
+        1024
+      ],
+      "orm": [
+        1024,
+        1024
+      ],
+      "height": [
+        1024,
+        1024
+      ]
+    },
+    "palette_mean_applies": true,
+    "wrap_v_applies": true
+  },
+  "fibercement_clay_weathered": {
+    "size": [
+      1024,
+      1024
+    ],
+    "height_dtype": "uint16",
+    "mean_linear": [
+      0.6244983417130641,
+      0.2383051220110204,
+      0.11580374264471871
+    ],
+    "target_linear": [
+      0.6245,
+      0.2383,
+      0.1158
+    ],
+    "mean_max_error": 5.12201102037535e-06,
+    "seam_ratio": [
+      0.08737976849079132,
+      0.30713018774986267
+    ],
+    "height_min": 0.0,
+    "height_max": 1.0,
+    "normal_length_max_error": 0.001585245132446289,
+    "maps_complete": true,
+    "map_sizes": {
+      "albedo": [
+        1024,
+        1024
+      ],
+      "normal": [
+        1024,
+        1024
+      ],
+      "orm": [
+        1024,
+        1024
+      ],
+      "height": [
+        1024,
+        1024
+      ]
+    },
+    "palette_mean_applies": true,
+    "wrap_v_applies": true
+  },
+  "printed_concrete_layers_dusty": {
+    "size": [
+      1024,
+      1024
+    ],
+    "height_dtype": "uint16",
+    "mean_linear": [
+      0.6724031316532546,
+      0.5776048444800779,
+      0.4341997831421338
+    ],
+    "target_linear": [
+      0.6724,
+      0.5776,
+      0.4342
+    ],
+    "mean_max_error": 4.844480077870195e-06,
+    "seam_ratio": [
+      0.2837192118167877,
+      0.08470827341079712
+    ],
+    "height_min": 0.0,
+    "height_max": 1.0,
+    "normal_length_max_error": 0.004917919635772705,
+    "maps_complete": true,
+    "map_sizes": {
+      "albedo": [
+        1024,
+        1024
+      ],
+      "normal": [
+        1024,
+        1024
+      ],
+      "orm": [
+        1024,
+        1024
+      ],
+      "height": [
+        1024,
+        1024
+      ]
+    },
+    "palette_mean_applies": true,
+    "wrap_v_applies": true
+  },
+  "roof_shingle_dark_lichen": {
+    "size": [
+      1024,
+      1024
+    ],
+    "height_dtype": "uint16",
+    "mean_linear": [
+      0.09306650658688653,
+      0.07819266019518167,
+      0.08019760125781517
+    ],
+    "target_linear": [
+      0.0931,
+      0.0782,
+      0.0802
+    ],
+    "mean_max_error": 3.349341311346954e-05,
+    "seam_ratio": [
+      0.007529526948928833,
+      0.01259495597332716
+    ],
+    "height_min": 0.0,
+    "height_max": 0.972503242542153,
+    "normal_length_max_error": 0.0053528547286987305,
+    "maps_complete": true,
+    "map_sizes": {
+      "albedo": [
+        1024,
+        1024
+      ],
+      "normal": [
+        1024,
+        1024
+      ],
+      "orm": [
+        1024,
+        1024
+      ],
+      "height": [
+        1024,
+        1024
+      ]
+    },
+    "palette_mean_applies": true,
+    "wrap_v_applies": true
+  },
+  "paving_slabs": {
+    "size": [
+      1024,
+      1024
+    ],
+    "height_dtype": "uint16",
+    "mean_linear": [
+      0.42959144223269163,
+      0.3599292728546857,
+      0.3250877113429169
+    ],
+    "target_linear": [
+      0.4296,
+      0.3599,
+      0.3251
+    ],
+    "mean_max_error": 2.9272854685680194e-05,
+    "seam_ratio": [
+      0.051038939505815506,
+      0.05518987402319908
+    ],
+    "height_min": 0.0,
+    "height_max": 1.0,
+    "normal_length_max_error": 0.0016748905181884766,
+    "maps_complete": true,
+    "map_sizes": {
+      "albedo": [
+        1024,
+        1024
+      ],
+      "normal": [
+        1024,
+        1024
+      ],
+      "orm": [
+        1024,
+        1024
+      ],
+      "height": [
+        1024,
+        1024
+      ]
+    },
+    "palette_mean_applies": true,
+    "wrap_v_applies": true
+  },
+  "paving_slabs_moss": {
+    "size": [
+      1024,
+      1024
+    ],
+    "height_dtype": "uint16",
+    "mean_linear": [
+      0.4296157938774172,
+      0.35990022218956597,
+      0.32508948327959786
+    ],
+    "target_linear": [
+      0.4296,
+      0.3599,
+      0.3251
+    ],
+    "mean_max_error": 1.5793877417236146e-05,
+    "seam_ratio": [
+      0.14782759547233582,
+      0.17549274861812592
+    ],
+    "height_min": 0.0,
+    "height_max": 1.0,
+    "normal_length_max_error": 0.0016748905181884766,
+    "maps_complete": true,
+    "map_sizes": {
+      "albedo": [
+        1024,
+        1024
+      ],
+      "normal": [
+        1024,
+        1024
+      ],
+      "orm": [
+        1024,
+        1024
+      ],
+      "height": [
+        1024,
+        1024
+      ]
+    },
+    "palette_mean_applies": true,
+    "wrap_v_applies": true
+  },
+  "kerb_concrete": {
+    "size": [
+      1024,
+      1024
+    ],
+    "height_dtype": "uint16",
+    "mean_linear": [
+      0.3459758427602537,
+      0.29000771179651963,
+      0.2673032960537256
+    ],
+    "target_linear": [
+      0.346,
+      0.29,
+      0.2673
+    ],
+    "mean_max_error": 2.4157239746247505e-05,
+    "seam_ratio": [
+      0.052456002682447433,
+      0.13364288210868835
+    ],
+    "height_min": 0.0,
+    "height_max": 1.0,
+    "normal_length_max_error": 0.0047324299812316895,
+    "maps_complete": true,
+    "map_sizes": {
+      "albedo": [
+        1024,
+        1024
+      ],
+      "normal": [
+        1024,
+        1024
+      ],
+      "orm": [
+        1024,
+        1024
+      ],
+      "height": [
+        1024,
+        1024
+      ]
+    },
+    "palette_mean_applies": true,
+    "wrap_v_applies": true
+  },
+  "edging_strip": {
+    "size": [
+      1024,
+      1024
+    ],
+    "height_dtype": "uint16",
+    "mean_linear": [
+      0.3460002932213513,
+      0.2900358799578271,
+      0.2672712555662571
+    ],
+    "target_linear": [
+      0.346,
+      0.29,
+      0.2673
+    ],
+    "mean_max_error": 3.587995782711184e-05,
+    "seam_ratio": [
+      0.03931833803653717,
+      0.199642151594162
+    ],
+    "height_min": 0.0,
+    "height_max": 1.0,
+    "normal_length_max_error": 0.0025715231895446777,
+    "maps_complete": true,
+    "map_sizes": {
+      "albedo": [
+        1024,
+        1024
+      ],
+      "normal": [
+        1024,
+        1024
+      ],
+      "orm": [
+        1024,
+        1024
+      ],
+      "height": [
+        1024,
+        1024
+      ]
+    },
+    "palette_mean_applies": true,
+    "wrap_v_applies": true
+  },
+  "asphalt": {
+    "size": [
+      1024,
+      1024
+    ],
+    "height_dtype": "uint16",
+    "mean_linear": [
+      0.16200122433703257,
+      0.14130399251714465,
+      0.14410396394760028
+    ],
+    "target_linear": [
+      0.162,
+      0.1413,
+      0.1441
+    ],
+    "mean_max_error": 3.992517144640884e-06,
+    "seam_ratio": [
+      0.8301573395729065,
+      0.9544249773025513
+    ],
+    "height_min": 0.2217288471808957,
+    "height_max": 0.8130769817654688,
+    "normal_length_max_error": 0.0005688667297363281,
+    "maps_complete": true,
+    "map_sizes": {
+      "albedo": [
+        1024,
+        1024
+      ],
+      "normal": [
+        1024,
+        1024
+      ],
+      "orm": [
+        1024,
+        1024
+      ],
+      "height": [
+        1024,
+        1024
+      ]
+    },
+    "palette_mean_applies": true,
+    "wrap_v_applies": true
+  },
+  "asphalt_patched": {
+    "size": [
+      1024,
+      1024
+    ],
+    "height_dtype": "uint16",
+    "mean_linear": [
+      0.16200131841799248,
+      0.1412987814169,
+      0.14409939595660148
+    ],
+    "target_linear": [
+      0.162,
+      0.1413,
+      0.1441
+    ],
+    "mean_max_error": 1.318417992474119e-06,
+    "seam_ratio": [
+      0.70941162109375,
+      1.1019519567489624
+    ],
+    "height_min": 0.22702372777904936,
+    "height_max": 0.9498435950255588,
+    "normal_length_max_error": 0.004250884056091309,
+    "maps_complete": true,
+    "map_sizes": {
+      "albedo": [
+        1024,
+        1024
+      ],
+      "normal": [
+        1024,
+        1024
+      ],
+      "orm": [
+        1024,
+        1024
+      ],
+      "height": [
+        1024,
+        1024
+      ]
+    },
+    "palette_mean_applies": true,
+    "wrap_v_applies": true
+  },
+  "asphalt_cracked": {
+    "size": [
+      1024,
+      1024
+    ],
+    "height_dtype": "uint16",
+    "mean_linear": [
+      0.16200266455020085,
+      0.14130200329514508,
+      0.14410212088099428
+    ],
+    "target_linear": [
+      0.162,
+      0.1413,
+      0.1441
+    ],
+    "mean_max_error": 2.6645502008426636e-06,
+    "seam_ratio": [
+      2.427762985229492,
+      1.3634473085403442
+    ],
+    "height_min": 0.010772869459067674,
+    "height_max": 0.8178988326848249,
+    "normal_length_max_error": 0.00431215763092041,
+    "maps_complete": true,
+    "map_sizes": {
+      "albedo": [
+        1024,
+        1024
+      ],
+      "normal": [
+        1024,
+        1024
+      ],
+      "orm": [
+        1024,
+        1024
+      ],
+      "height": [
+        1024,
+        1024
+      ]
+    },
+    "palette_mean_applies": true,
+    "wrap_v_applies": true
+  },
+  "grass_lawn": {
+    "size": [
+      1024,
+      1024
+    ],
+    "height_dtype": "uint16",
+    "mean_linear": [
+      0.2086004509391728,
+      0.2623046963662574,
+      0.042301355339386504
+    ],
+    "target_linear": [
+      0.2086,
+      0.2623,
+      0.0423
+    ],
+    "mean_max_error": 4.6963662574395215e-06,
+    "seam_ratio": [
+      0.8710028529167175,
+      0.9005351662635803
+    ],
+    "height_min": 0.0,
+    "height_max": 1.0,
+    "normal_length_max_error": 0.006278812885284424,
+    "maps_complete": true,
+    "map_sizes": {
+      "albedo": [
+        1024,
+        1024
+      ],
+      "normal": [
+        1024,
+        1024
+      ],
+      "orm": [
+        1024,
+        1024
+      ],
+      "height": [
+        1024,
+        1024
+      ]
+    },
+    "palette_mean_applies": true,
+    "wrap_v_applies": true
+  },
+  "grass_lawn_dry": {
+    "size": [
+      1024,
+      1024
+    ],
+    "height_dtype": "uint16",
+    "mean_linear": [
+      0.20860143255866603,
+      0.2623019079305209,
+      0.04230191184209886
+    ],
+    "target_linear": [
+      0.2086,
+      0.2623,
+      0.0423
+    ],
+    "mean_max_error": 1.911842098863137e-06,
+    "seam_ratio": [
+      0.853441059589386,
+      0.9695355892181396
+    ],
+    "height_min": 0.0,
+    "height_max": 1.0,
+    "normal_length_max_error": 0.005969345569610596,
+    "maps_complete": true,
+    "map_sizes": {
+      "albedo": [
+        1024,
+        1024
+      ],
+      "normal": [
+        1024,
+        1024
+      ],
+      "orm": [
+        1024,
+        1024
+      ],
+      "height": [
+        1024,
+        1024
+      ]
+    },
+    "palette_mean_applies": true,
+    "wrap_v_applies": true
+  },
+  "grass_verge_weeds": {
+    "size": [
+      1024,
+      1024
+    ],
+    "height_dtype": "uint16",
+    "mean_linear": [
+      0.20860253301040643,
+      0.2623051332811741,
+      0.042300834365683215
+    ],
+    "target_linear": [
+      0.2086,
+      0.2623,
+      0.0423
+    ],
+    "mean_max_error": 5.133281174130033e-06,
+    "seam_ratio": [
+      0.8264963030815125,
+      0.9475687742233276
+    ],
+    "height_min": 0.0,
+    "height_max": 1.0,
+    "normal_length_max_error": 0.00640261173248291,
+    "maps_complete": true,
+    "map_sizes": {
+      "albedo": [
+        1024,
+        1024
+      ],
+      "normal": [
+        1024,
+        1024
+      ],
+      "orm": [
+        1024,
+        1024
+      ],
+      "height": [
+        1024,
+        1024
+      ]
+    },
+    "palette_mean_applies": true,
+    "wrap_v_applies": true
+  },
+  "garden_soil": {
+    "size": [
+      1024,
+      1024
+    ],
+    "height_dtype": "uint16",
+    "mean_linear": [
+      0.1170055861632946,
+      0.06849746175575433,
+      0.03950063361642364
+    ],
+    "target_linear": [
+      0.117,
+      0.0685,
+      0.0395
+    ],
+    "mean_max_error": 5.5861632945880535e-06,
+    "seam_ratio": [
+      0.8128304481506348,
+      1.3118526935577393
+    ],
+    "height_min": 0.0,
+    "height_max": 1.0,
+    "normal_length_max_error": 0.005165219306945801,
+    "maps_complete": true,
+    "map_sizes": {
+      "albedo": [
+        1024,
+        1024
+      ],
+      "normal": [
+        1024,
+        1024
+      ],
+      "orm": [
+        1024,
+        1024
+      ],
+      "height": [
+        1024,
+        1024
+      ]
+    },
+    "palette_mean_applies": true,
+    "wrap_v_applies": true
+  },
+  "worn_dirt": {
+    "size": [
+      1024,
+      1024
+    ],
+    "height_dtype": "uint16",
+    "mean_linear": [
+      0.11700021466383248,
+      0.06850039180078937,
+      0.03950517457932179
+    ],
+    "target_linear": [
+      0.117,
+      0.0685,
+      0.0395
+    ],
+    "mean_max_error": 5.174579321788608e-06,
+    "seam_ratio": [
+      0.8799066543579102,
+      0.8484538793563843
+    ],
+    "height_min": 0.15675593194476234,
+    "height_max": 0.776577401388571,
+    "normal_length_max_error": 0.004373431205749512,
+    "maps_complete": true,
+    "map_sizes": {
+      "albedo": [
+        1024,
+        1024
+      ],
+      "normal": [
+        1024,
+        1024
+      ],
+      "orm": [
+        1024,
+        1024
+      ],
+      "height": [
+        1024,
+        1024
+      ]
+    },
+    "palette_mean_applies": true,
+    "wrap_v_applies": true
+  },
+  "bark_mulch": {
+    "size": [
+      1024,
+      1024
+    ],
+    "height_dtype": "uint16",
+    "mean_linear": [
+      0.11699443082890326,
+      0.06853168308854762,
+      0.03949803568154309
+    ],
+    "target_linear": [
+      0.117,
+      0.0685,
+      0.0395
+    ],
+    "mean_max_error": 3.1683088547618254e-05,
+    "seam_ratio": [
+      0.5483815670013428,
+      1.501465082168579
+    ],
+    "height_min": 0.0,
+    "height_max": 0.9726710917830167,
+    "normal_length_max_error": 0.005659997463226318,
+    "maps_complete": true,
+    "map_sizes": {
+      "albedo": [
+        1024,
+        1024
+      ],
+      "normal": [
+        1024,
+        1024
+      ],
+      "orm": [
+        1024,
+        1024
+      ],
+      "height": [
+        1024,
+        1024
+      ]
+    },
+    "palette_mean_applies": true,
+    "wrap_v_applies": true
+  },
+  "gravel": {
+    "size": [
+      1024,
+      1024
+    ],
+    "height_dtype": "uint16",
+    "mean_linear": [
+      0.420399593448991,
+      0.31911075950318946,
+      0.2511088651929754
+    ],
+    "target_linear": [
+      0.4204,
+      0.3191,
+      0.2511
+    ],
+    "mean_max_error": 1.0759503189461395e-05,
+    "seam_ratio": [
+      0.6780270338058472,
+      0.771966814994812
+    ],
+    "height_min": 0.0,
+    "height_max": 0.9738307774471656,
+    "normal_length_max_error": 0.005597591400146484,
+    "maps_complete": true,
+    "map_sizes": {
+      "albedo": [
+        1024,
+        1024
+      ],
+      "normal": [
+        1024,
+        1024
+      ],
+      "orm": [
+        1024,
+        1024
+      ],
+      "height": [
+        1024,
+        1024
+      ]
+    },
+    "palette_mean_applies": true,
+    "wrap_v_applies": true
+  },
+  "gravel_compacted": {
+    "size": [
+      1024,
+      1024
+    ],
+    "height_dtype": "uint16",
+    "mean_linear": [
+      0.42042654099421384,
+      0.3191045163887054,
+      0.25109086603671926
+    ],
+    "target_linear": [
+      0.4204,
+      0.3191,
+      0.2511
+    ],
+    "mean_max_error": 2.6540994213841707e-05,
+    "seam_ratio": [
+      1.5208450555801392,
+      1.6384068727493286
+    ],
+    "height_min": 0.29999237048905164,
+    "height_max": 0.8376440070191501,
+    "normal_length_max_error": 0.00436168909072876,
+    "maps_complete": true,
+    "map_sizes": {
+      "albedo": [
+        1024,
+        1024
+      ],
+      "normal": [
+        1024,
+        1024
+      ],
+      "orm": [
+        1024,
+        1024
+      ],
+      "height": [
+        1024,
+        1024
+      ]
+    },
+    "palette_mean_applies": true,
+    "wrap_v_applies": true
+  },
+  "worksite_packed_dirt": {
+    "size": [
+      1024,
+      1024
+    ],
+    "height_dtype": "uint16",
+    "mean_linear": [
+      0.5596029224891197,
+      0.3909038969623566,
+      0.26580015421694725
+    ],
+    "target_linear": [
+      0.5596,
+      0.3909,
+      0.2658
+    ],
+    "mean_max_error": 3.896962356586542e-06,
+    "seam_ratio": [
+      0.6408723592758179,
+      0.9910762906074524
+    ],
+    "height_min": 0.22233920805676355,
+    "height_max": 0.8152132448310063,
+    "normal_length_max_error": 0.0022274255752563477,
+    "maps_complete": true,
+    "map_sizes": {
+      "albedo": [
+        1024,
+        1024
+      ],
+      "normal": [
+        1024,
+        1024
+      ],
+      "orm": [
+        1024,
+        1024
+      ],
+      "height": [
+        1024,
+        1024
+      ]
+    },
+    "palette_mean_applies": true,
+    "wrap_v_applies": true
+  },
+  "worksite_mud_tracks": {
+    "size": [
+      1024,
+      1024
+    ],
+    "height_dtype": "uint16",
+    "mean_linear": [
+      0.5596029935521472,
+      0.3908866040713974,
+      0.2658019314515201
+    ],
+    "target_linear": [
+      0.5596,
+      0.3909,
+      0.2658
+    ],
+    "mean_max_error": 1.3395928602610851e-05,
+    "seam_ratio": [
+      0.10380134731531143,
+      0.9067922830581665
+    ],
+    "height_min": 0.0,
+    "height_max": 0.9937590600442512,
+    "normal_length_max_error": 0.005041539669036865,
+    "maps_complete": true,
+    "map_sizes": {
+      "albedo": [
+        1024,
+        1024
+      ],
+      "normal": [
+        1024,
+        1024
+      ],
+      "orm": [
+        1024,
+        1024
+      ],
+      "height": [
+        1024,
+        1024
+      ]
+    },
+    "palette_mean_applies": true,
+    "wrap_v_applies": true
+  },
+  "construction_sand": {
+    "size": [
+      1024,
+      1024
+    ],
+    "height_dtype": "uint16",
+    "mean_linear": [
+      0.5595967719427506,
+      0.3909066620024362,
+      0.2657984320138098
+    ],
+    "target_linear": [
+      0.5596,
+      0.3909,
+      0.2658
+    ],
+    "mean_max_error": 6.662002436153003e-06,
+    "seam_ratio": [
+      0.30083632469177246,
+      0.9252887964248657
+    ],
+    "height_min": 0.0,
+    "height_max": 1.0,
+    "normal_length_max_error": 0.004250884056091309,
+    "maps_complete": true,
+    "map_sizes": {
+      "albedo": [
+        1024,
+        1024
+      ],
+      "normal": [
+        1024,
+        1024
+      ],
+      "orm": [
+        1024,
+        1024
+      ],
+      "height": [
+        1024,
+        1024
+      ]
+    },
+    "palette_mean_applies": true,
+    "wrap_v_applies": true
+  },
+  "foundation_slab": {
+    "size": [
+      1024,
+      1024
+    ],
+    "height_dtype": "uint16",
+    "mean_linear": [
+      0.6724132376269267,
+      0.5776290773097799,
+      0.43422095335367317
+    ],
+    "target_linear": [
+      0.6724,
+      0.5776,
+      0.4342
+    ],
+    "mean_max_error": 2.9077309779856897e-05,
+    "seam_ratio": [
+      0.0063778008334338665,
+      0.06862328946590424
+    ],
+    "height_min": 0.0,
+    "height_max": 1.0,
+    "normal_length_max_error": 0.00351560115814209,
+    "maps_complete": true,
+    "map_sizes": {
+      "albedo": [
+        1024,
+        1024
+      ],
+      "normal": [
+        1024,
+        1024
+      ],
+      "orm": [
+        1024,
+        1024
+      ],
+      "height": [
+        1024,
+        1024
+      ]
+    },
+    "palette_mean_applies": true,
+    "wrap_v_applies": true
+  },
+  "timber_pallets": {
+    "size": [
+      1024,
+      1024
+    ],
+    "height_dtype": "uint16",
+    "mean_linear": [
+      0.08729962417817916,
+      0.06509891589137595,
+      0.05430442893297993
+    ],
+    "target_linear": [
+      0.0873,
+      0.0651,
+      0.0543
+    ],
+    "mean_max_error": 4.428932979930189e-06,
+    "seam_ratio": [
+      0.39567187428474426,
+      0.2323288768529892
+    ],
+    "height_min": 0.0,
+    "height_max": 1.0,
+    "normal_length_max_error": 0.00429987907409668,
+    "maps_complete": true,
+    "map_sizes": {
+      "albedo": [
+        1024,
+        1024
+      ],
+      "normal": [
+        1024,
+        1024
+      ],
+      "orm": [
+        1024,
+        1024
+      ],
+      "height": [
+        1024,
+        1024
+      ]
+    },
+    "palette_mean_applies": true,
+    "wrap_v_applies": true
+  },
+  "wood_boards_stained": {
+    "size": [
+      1024,
+      1024
+    ],
+    "height_dtype": "uint16",
+    "mean_linear": [
+      0.08729960982699936,
+      0.06509532890055425,
+      0.054305079706793435
+    ],
+    "target_linear": [
+      0.0873,
+      0.0651,
+      0.0543
+    ],
+    "mean_max_error": 5.079706793434391e-06,
+    "seam_ratio": [
+      0.4441584348678589,
+      0.11068632453680038
+    ],
+    "height_min": 0.0,
+    "height_max": 1.0,
+    "normal_length_max_error": 0.005230545997619629,
+    "maps_complete": true,
+    "map_sizes": {
+      "albedo": [
+        1024,
+        1024
+      ],
+      "normal": [
+        1024,
+        1024
+      ],
+      "orm": [
+        1024,
+        1024
+      ],
+      "height": [
+        1024,
+        1024
+      ]
+    },
+    "palette_mean_applies": true,
+    "wrap_v_applies": true
+  },
+  "metal_corrugated_site": {
+    "size": [
+      1024,
+      1024
+    ],
+    "height_dtype": "uint16",
+    "mean_linear": [
+      0.7231090184752134,
+      0.6514022594212179,
+      0.5210016031848568
+    ],
+    "target_linear": [
+      0.7231,
+      0.6514,
+      0.521
+    ],
+    "mean_max_error": 9.018475213395938e-06,
+    "seam_ratio": [
+      0.36079585552215576,
+      0.23422247171401978
+    ],
+    "height_min": 0.0,
+    "height_max": 1.0,
+    "normal_length_max_error": 0.004250884056091309,
+    "maps_complete": true,
+    "map_sizes": {
+      "albedo": [
+        1024,
+        1024
+      ],
+      "normal": [
+        1024,
+        1024
+      ],
+      "orm": [
+        1024,
+        1024
+      ],
+      "height": [
+        1024,
+        1024
+      ]
+    },
+    "palette_mean_applies": true,
+    "wrap_v_applies": true
+  },
+  "metal_scaffold_tube": {
+    "size": [
+      1024,
+      1024
+    ],
+    "height_dtype": "uint16",
+    "mean_linear": [
+      0.12299078818941211,
+      0.10359444456445033,
+      0.11151413053521253
+    ],
+    "target_linear": [
+      0.123,
+      0.1036,
+      0.1115
+    ],
+    "mean_max_error": 1.4130535212528161e-05,
+    "seam_ratio": [
+      0.5497776865959167,
+      0.2507328987121582
+    ],
+    "height_min": 0.4022583352407111,
+    "height_max": 0.5691309987029831,
+    "normal_length_max_error": 1.537799835205078e-05,
+    "maps_complete": true,
+    "map_sizes": {
+      "albedo": [
+        1024,
+        1024
+      ],
+      "normal": [
+        1024,
+        1024
+      ],
+      "orm": [
+        1024,
+        1024
+      ],
+      "height": [
+        1024,
+        1024
+      ]
+    },
+    "palette_mean_applies": true,
+    "wrap_v_applies": true
+  },
+  "concrete_smooth": {
+    "size": [
+      1024,
+      1024
+    ],
+    "height_dtype": "uint16",
+    "mean_linear": [
+      0.44728921444513503,
+      0.378299292467176,
+      0.3430869233864655
+    ],
+    "target_linear": [
+      0.4473,
+      0.3783,
+      0.3431
+    ],
+    "mean_max_error": 1.3076613534501735e-05,
+    "seam_ratio": [
+      0.4411686360836029,
+      0.15495188534259796
+    ],
+    "height_min": 0.4022583352407111,
+    "height_max": 0.5691309987029831,
+    "normal_length_max_error": 7.68899917602539e-05,
+    "maps_complete": true,
+    "map_sizes": {
+      "albedo": [
+        1024,
+        1024
+      ],
+      "normal": [
+        1024,
+        1024
+      ],
+      "orm": [
+        1024,
+        1024
+      ],
+      "height": [
+        1024,
+        1024
+      ]
+    },
+    "palette_mean_applies": true,
+    "wrap_v_applies": true
+  },
+  "picket_wood_white": {
+    "size": [
+      1024,
+      1024
+    ],
+    "height_dtype": "uint16",
+    "mean_linear": [
+      0.7604965505277619,
+      0.7083945750331964,
+      0.610496913493705
+    ],
+    "target_linear": [
+      0.7605,
+      0.7084,
+      0.6105
+    ],
+    "mean_max_error": 5.424966803668774e-06,
+    "seam_ratio": [
+      0.49500787258148193,
+      0.17832046747207642
+    ],
+    "height_min": 0.41600671396963457,
+    "height_max": 0.5687953002212558,
+    "normal_length_max_error": 0.00038433074951171875,
+    "maps_complete": true,
+    "map_sizes": {
+      "albedo": [
+        1024,
+        1024
+      ],
+      "normal": [
+        1024,
+        1024
+      ],
+      "orm": [
+        1024,
+        1024
+      ],
+      "height": [
+        1024,
+        1024
+      ]
+    },
+    "palette_mean_applies": true,
+    "wrap_v_applies": true
+  },
+  "metal_painted_yellow": {
+    "size": [
+      1024,
+      1024
+    ],
+    "height_dtype": "uint16",
+    "mean_linear": [
+      0.6172116700223,
+      0.2961035771406273,
+      0.048208077019662454
+    ],
+    "target_linear": [
+      0.6172,
+      0.2961,
+      0.0482
+    ],
+    "mean_max_error": 1.167002230006986e-05,
+    "seam_ratio": [
+      0.691390335559845,
+      0.3382970094680786
+    ],
+    "height_min": 0.4022583352407111,
+    "height_max": 0.5691309987029831,
+    "normal_length_max_error": 1.537799835205078e-05,
+    "maps_complete": true,
+    "map_sizes": {
+      "albedo": [
+        1024,
+        1024
+      ],
+      "normal": [
+        1024,
+        1024
+      ],
+      "orm": [
+        1024,
+        1024
+      ],
+      "height": [
+        1024,
+        1024
+      ]
+    },
+    "palette_mean_applies": true,
+    "wrap_v_applies": true
+  },
+  "truck_paint_white": {
+    "size": [
+      1024,
+      1024
+    ],
+    "height_dtype": "uint16",
+    "mean_linear": [
+      0.8000365729125747,
+      0.7378321520498048,
+      0.7005125246948865
+    ],
+    "target_linear": [
+      0.8,
+      0.7378,
+      0.7005
+    ],
+    "mean_max_error": 3.657291257463946e-05,
+    "seam_ratio": [
+      0.7972602248191833,
+      0.2318030744791031
+    ],
+    "height_min": 0.4022583352407111,
+    "height_max": 0.5691309987029831,
+    "normal_length_max_error": 1.537799835205078e-05,
+    "maps_complete": true,
+    "map_sizes": {
+      "albedo": [
+        1024,
+        1024
+      ],
+      "normal": [
+        1024,
+        1024
+      ],
+      "orm": [
+        1024,
+        1024
+      ],
+      "height": [
+        1024,
+        1024
+      ]
+    },
+    "palette_mean_applies": true,
+    "wrap_v_applies": true
+  },
+  "cardboard": {
+    "size": [
+      1024,
+      1024
+    ],
+    "height_dtype": "uint16",
+    "mean_linear": [
+      0.6322118018027254,
+      0.37320133633895125,
+      0.17999682519975124
+    ],
+    "target_linear": [
+      0.6322,
+      0.3732,
+      0.18
+    ],
+    "mean_max_error": 1.1801802725419641e-05,
+    "seam_ratio": [
+      0.7281022071838379,
+      0.550268828868866
+    ],
+    "height_min": 0.41600671396963457,
+    "height_max": 0.5687953002212558,
+    "normal_length_max_error": 7.68899917602539e-05,
+    "maps_complete": true,
+    "map_sizes": {
+      "albedo": [
+        1024,
+        1024
+      ],
+      "normal": [
+        1024,
+        1024
+      ],
+      "orm": [
+        1024,
+        1024
+      ],
+      "height": [
+        1024,
+        1024
+      ]
+    },
+    "palette_mean_applies": true,
+    "wrap_v_applies": true
+  }
+}

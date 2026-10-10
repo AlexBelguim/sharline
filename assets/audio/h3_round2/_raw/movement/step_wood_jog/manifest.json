@@ -1,0 +1,33 @@
+{
+ "files": [
+  "29eb1a0a_s51.flac",
+  "29eb1a0a_s52.flac",
+  "29eb1a0a_s53.flac",
+  "29eb1a0a_s54.flac"
+ ],
+ "tag": "29eb1a0a",
+ "prompt": "summary: Low static close-up at ground level of combat boots jogging across a hollow wooden porch deck.\n\ndetailed_description:\n[Shot 1] Low static close-up at ground level of combat boots jogging across a hollow wooden porch deck. The camera is static and locked-off.\n\noverall_soundscape: Foley recording, close microphone: steady separate running footsteps on a hollow wooden deck, each footfall a solid hollow wooden thump with a faint board creak, about three steps per second with a clear moment of silence between steps. Nothing else is heard: no music, no speech, no voices.\n\nnon_diegetic_music: N/A",
+ "settings": {
+  "w": 128,
+  "h": 128,
+  "frames": 158,
+  "steps": 6,
+  "lora": "turbo4",
+  "shift_video": 12.0,
+  "shift_audio": 3.0,
+  "sampler": "res_multistep",
+  "scheduler": "simple",
+  "style": "structured"
+ },
+ "params": {
+  "preroll": 0.01,
+  "tail_db": 40,
+  "hold": 0.04,
+  "max_len": 0.45,
+  "min_gap": 0.22,
+  "per_clip": 6,
+  "stereo": false,
+  "attack_max": 0.08,
+  "kind": "multi"
+ }
+}

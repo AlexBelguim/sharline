@@ -1,0 +1,12 @@
+{
+  "passed": true,
+  "focused_tests": 17,
+  "full_sim_unit_tests": 241,
+  "full_sim_integration_tests": 25,
+  "read_only_inspection_passed": true,
+  "editor_ui_implemented": false,
+  "runtime_v3_loader_implemented": false,
+  "user_placements_sha256": "4890533cf7d1e0029e50dab80a9c35d575d16cdf87e629594cbe7e6fb03fc5df",
+  "editable_foliage_implemented": true,
+  "independent_foliage_resize_implemented": true
+}

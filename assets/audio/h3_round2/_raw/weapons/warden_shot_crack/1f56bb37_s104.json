@@ -1,0 +1,21 @@
+{
+ "name": "weapons/warden_shot_crack",
+ "seed": 104,
+ "prompt": "summary: A static side view of a long heavy bolt-action sniper rifle on a bipod at an outdoor range, open hills behind it.\n\ndetailed_description:\n[Shot 1] A static side view of a long heavy bolt-action sniper rifle on a bipod at an outdoor range, open hills behind it. It fires exactly one round: a big muzzle flash and recoil, then it is still. The camera is static and locked-off.\n\noverall_soundscape: Foley recording, close microphone: one single enormous high-calibre sniper rifle gunshot, an instant ear-splitting supersonic crack together with a deep chest-thumping boom, then a long rolling echo across the open hills fading out over two seconds, then silence. Nothing else is heard: no music, no speech, no voices.\n\nnon_diegetic_music: N/A",
+ "settings": {
+  "w": 128,
+  "h": 128,
+  "frames": 107,
+  "steps": 6,
+  "lora": "turbo4",
+  "shift_video": 12.0,
+  "shift_audio": 3.0,
+  "sampler": "res_multistep",
+  "scheduler": "simple",
+  "style": "structured"
+ },
+ "exec_s": 4.194,
+ "wall_s": 4.7,
+ "peak_vram_gib": 15.53,
+ "audio_s": 4.46
+}

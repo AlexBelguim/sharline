@@ -1,0 +1,570 @@
+{
+ "_doc": "Showhome albedo palette sampled from the concept art (see _src/sample_palette.py). 'sampled_srgb' = sun-lit colour in the concept (0-255); 'albedo_srgb' / 'albedo_linear' = the value the textures are matched to (warm cast mostly removed, truck white = 0.80 linear). Linear values go straight into a Blender / Bevy base colour.",
+ "sun_cast_linear": [
+  1.0,
+  0.8506,
+  0.7668
+ ],
+ "neutralise": 0.5,
+ "exposure": 0.9268,
+ "materials": {
+  "reference_white": {
+   "sampled_srgb": [
+    239,
+    222,
+    212
+   ],
+   "albedo_srgb": [
+    231,
+    223,
+    218
+   ],
+   "albedo_linear": [
+    0.8,
+    0.7378,
+    0.7005
+   ]
+  },
+  "printed_concrete": {
+   "sampled_srgb": [
+    227,
+    206,
+    167
+   ],
+   "formula_srgb": [
+    220,
+    206,
+    172
+   ],
+   "override": "the sun-lit printed walls clip near white in the concept; the shade side is lavender sky-light. Cream greige kept just below the truck white",
+   "albedo_srgb": [
+    214,
+    200,
+    176
+   ],
+   "albedo_linear": [
+    0.6724,
+    0.5776,
+    0.4342
+   ]
+  },
+  "fibercement_sage": {
+   "sampled_srgb": [
+    151,
+    152,
+    116
+   ],
+   "chroma": 1.15,
+   "albedo_srgb": [
+    145,
+    153,
+    114
+   ],
+   "albedo_linear": [
+    0.2833,
+    0.3179,
+    0.1689
+   ]
+  },
+  "fibercement_clay": {
+   "sampled_srgb": [
+    209,
+    136,
+    101
+   ],
+   "chroma": 1.12,
+   "albedo_srgb": [
+    207,
+    134,
+    96
+   ],
+   "albedo_linear": [
+    0.6245,
+    0.2383,
+    0.1158
+   ]
+  },
+  "roof_dark": {
+   "sampled_srgb": [
+    109,
+    89,
+    83
+   ],
+   "chroma": 0.7,
+   "formula_srgb": [
+    102,
+    90,
+    88
+   ],
+   "override": "the sampled sun-lit roof includes bright ridge / edge highlights; the concept roofs read as a dark warm charcoal (the first pass rendered as light taupe)",
+   "albedo_srgb": [
+    86,
+    79,
+    80
+   ],
+   "albedo_linear": [
+    0.0931,
+    0.0782,
+    0.0802
+   ]
+  },
+  "solar_cell": {
+   "sampled_srgb": [
+    102,
+    94,
+    114
+   ],
+   "formula_srgb": [
+    99,
+    94,
+    117
+   ],
+   "override": "cells read as dark blue-violet in the concept; lit samples include the light frame lines and sky reflection, so the cell body is set darker and bluer",
+   "albedo_srgb": [
+    42,
+    47,
+    72
+   ],
+   "albedo_linear": [
+    0.0232,
+    0.0284,
+    0.0648
+   ]
+  },
+  "asphalt": {
+   "sampled_srgb": [
+    139,
+    113,
+    103
+   ],
+   "chroma": 0.6,
+   "formula_srgb": [
+    128,
+    115,
+    111
+   ],
+   "override": "lit samples carry the sun's warmth; the concept road reads as a mid-dark, slightly violet grey, clearly darker than the pavement (the first pass read as brown dirt from the aerial view)",
+   "albedo_srgb": [
+    112,
+    105,
+    106
+   ],
+   "albedo_linear": [
+    0.162,
+    0.1413,
+    0.1441
+   ]
+  },
+  "paving": {
+   "sampled_srgb": [
+    187,
+    160,
+    145
+   ],
+   "chroma": 0.65,
+   "albedo_srgb": [
+    175,
+    162,
+    154
+   ],
+   "albedo_linear": [
+    0.4296,
+    0.3599,
+    0.3251
+   ]
+  },
+  "kerb": {
+   "sampled_srgb": [
+    170,
+    145,
+    133
+   ],
+   "chroma": 0.65,
+   "albedo_srgb": [
+    159,
+    147,
+    141
+   ],
+   "albedo_linear": [
+    0.346,
+    0.29,
+    0.2673
+   ]
+  },
+  "grass": {
+   "sampled_srgb": [
+    147,
+    137,
+    51
+   ],
+   "formula_srgb": [
+    142,
+    137,
+    52
+   ],
+   "override": "sampled hue is ~55 deg (olive): the concept lawns only read green next to its lavender shade, and a warm in-engine sun pushed the sampled albedo to mustard. Same luminance, hue moved to ~70 deg",
+   "albedo_srgb": [
+    126,
+    140,
+    58
+   ],
+   "albedo_linear": [
+    0.2086,
+    0.2623,
+    0.0423
+   ]
+  },
+  "hedge": {
+   "sampled_srgb": [
+    120,
+    114,
+    52
+   ],
+   "formula_srgb": [
+    116,
+    115,
+    54
+   ],
+   "override": "as grass: sampled ~59 deg read khaki under the warm sun; same luminance, hue ~74 deg, a touch deeper than the lawn like the concept's hedges",
+   "albedo_srgb": [
+    98,
+    112,
+    52
+   ],
+   "albedo_linear": [
+    0.1221,
+    0.162,
+    0.0343
+   ]
+  },
+  "picket_white": {
+   "sampled_srgb": [
+    213,
+    188,
+    168
+   ],
+   "formula_srgb": [
+    206,
+    189,
+    173
+   ],
+   "override": "painted white pickets; the ground-view samples are partly in shade and read pinkish, the sun-lit aerial pickets are a clean warm white",
+   "albedo_srgb": [
+    226,
+    219,
+    205
+   ],
+   "albedo_linear": [
+    0.7605,
+    0.7084,
+    0.6105
+   ]
+  },
+  "garden_soil": {
+   "sampled_srgb": [
+    103,
+    109,
+    74
+   ],
+   "formula_srgb": [
+    99,
+    109,
+    76
+   ],
+   "override": "barely visible in the concept (under plants / behind glass): dark warm brown",
+   "albedo_srgb": [
+    96,
+    74,
+    56
+   ],
+   "albedo_linear": [
+    0.117,
+    0.0685,
+    0.0395
+   ]
+  },
+  "construction_sand": {
+   "sampled_srgb": [
+    204,
+    168,
+    137
+   ],
+   "albedo_srgb": [
+    197,
+    168,
+    141
+   ],
+   "albedo_linear": [
+    0.5596,
+    0.3909,
+    0.2658
+   ]
+  },
+  "cardboard": {
+   "sampled_srgb": [
+    215,
+    164,
+    115
+   ],
+   "albedo_srgb": [
+    208,
+    164,
+    118
+   ],
+   "albedo_linear": [
+    0.6322,
+    0.3732,
+    0.18
+   ]
+  },
+  "truck_white": {
+   "sampled_srgb": [
+    239,
+    222,
+    212
+   ],
+   "albedo_srgb": [
+    231,
+    223,
+    218
+   ],
+   "albedo_linear": [
+    0.8,
+    0.7378,
+    0.7005
+   ]
+  },
+  "crane_yellow": {
+   "sampled_srgb": [
+    129,
+    79,
+    52
+   ],
+   "formula_srgb": [
+    125,
+    79,
+    53
+   ],
+   "override": "the concept crane is a weathered ochre / orange-yellow; lifted a little toward yellow so it reads as construction-site yellow from the playable area",
+   "albedo_srgb": [
+    206,
+    148,
+    62
+   ],
+   "albedo_linear": [
+    0.6172,
+    0.2961,
+    0.0482
+   ]
+  },
+  "glass": {
+   "sampled_srgb": [
+    216,
+    200,
+    186
+   ],
+   "formula_srgb": [
+    209,
+    201,
+    190
+   ],
+   "override": "glass is mostly transparent; a pale cool grey-green tint (alpha does the work)",
+   "albedo_srgb": [
+    214,
+    226,
+    222
+   ],
+   "albedo_linear": [
+    0.6724,
+    0.7605,
+    0.7305
+   ]
+  },
+  "trim_cream": {
+   "sampled_srgb": [
+    196,
+    172,
+    160
+   ],
+   "formula_srgb": [
+    189,
+    172,
+    164
+   ],
+   "override": "window surrounds / sills read as a warm off-white in the concept",
+   "albedo_srgb": [
+    221,
+    211,
+    191
+   ],
+   "albedo_linear": [
+    0.7231,
+    0.6514,
+    0.521
+   ]
+  },
+  "frame_dark": {
+   "sampled_srgb": [
+    56,
+    49,
+    53
+   ],
+   "albedo_srgb": [
+    54,
+    49,
+    54
+   ],
+   "albedo_linear": [
+    0.0364,
+    0.0309,
+    0.0372
+   ]
+  },
+  "door_sage": {
+   "sampled_srgb": [
+    69,
+    73,
+    68
+   ],
+   "albedo_srgb": [
+    66,
+    73,
+    70
+   ],
+   "albedo_linear": [
+    0.0552,
+    0.067,
+    0.0612
+   ]
+  },
+  "door_clay": {
+   "sampled_srgb": [
+    88,
+    52,
+    51
+   ],
+   "albedo_srgb": [
+    84,
+    52,
+    53
+   ],
+   "albedo_linear": [
+    0.0894,
+    0.0345,
+    0.035
+   ]
+  },
+  "pole_concrete": {
+   "sampled_srgb": [
+    189,
+    164,
+    150
+   ],
+   "chroma": 0.7,
+   "albedo_srgb": [
+    178,
+    165,
+    158
+   ],
+   "albedo_linear": [
+    0.4473,
+    0.3783,
+    0.3431
+   ]
+  },
+  "chimney_clay": {
+   "sampled_srgb": [
+    195,
+    120,
+    94
+   ],
+   "albedo_srgb": [
+    188,
+    120,
+    97
+   ],
+   "albedo_linear": [
+    0.5058,
+    0.1888,
+    0.1185
+   ]
+  },
+  "chimney_sage": {
+   "sampled_srgb": [
+    137,
+    147,
+    120
+   ],
+   "albedo_srgb": [
+    132,
+    147,
+    123
+   ],
+   "albedo_linear": [
+    0.2319,
+    0.2932,
+    0.1988
+   ]
+  },
+  "shed_wood": {
+   "sampled_srgb": [
+    86,
+    72,
+    64
+   ],
+   "albedo_srgb": [
+    83,
+    72,
+    66
+   ],
+   "albedo_linear": [
+    0.0873,
+    0.0651,
+    0.0543
+   ]
+  },
+  "tree_canopy": {
+   "sampled_srgb": [
+    93,
+    89,
+    36
+   ],
+   "albedo_srgb": [
+    89,
+    89,
+    37
+   ],
+   "albedo_linear": [
+    0.1003,
+    0.1004,
+    0.0187
+   ]
+  },
+  "gravel": {
+   "derived": "pale grey-beige between the paving and the site sand, a little darker (pebble shadows)",
+   "albedo_srgb": [
+    173,
+    153,
+    137
+   ],
+   "albedo_linear": [
+    0.4204,
+    0.3191,
+    0.2511
+   ]
+  },
+  "metal_chip": {
+   "derived": "grey primer / bare metal showing through chipped crane paint",
+   "albedo_srgb": [
+    98,
+    91,
+    94
+   ],
+   "albedo_linear": [
+    0.123,
+    0.1036,
+    0.1115
+   ]
+  }
+ }
+}

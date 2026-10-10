@@ -1,0 +1,43 @@
+printed_concrete_layers          seam x0.63 y0.36  mean_lin [0.672 0.578 0.434]  sRGB-lum std 0.049
+printed_concrete_layers_normal   seam x0.77 y0.36
+fibercement_panel                seam x1.23 y1.05  mean_lin [0.7 0.7 0.7]  sRGB-lum std 0.030
+fibercement_panel_joints         seam x0.69 y0.82  mean_lin [0.66 0.66 0.66]  sRGB-lum std 0.062
+fibercement_panel_joints_normal  seam x0.00 y0.00
+fibercement_sage                 seam x0.69 y0.83  mean_lin [0.283 0.318 0.169]  sRGB-lum std 0.044
+fibercement_clay                 seam x0.69 y0.83  mean_lin [0.624 0.238 0.116]  sRGB-lum std 0.043
+roof_shingle_dark                seam x0.55 y0.58  mean_lin [0.093 0.078 0.08 ]  sRGB-lum std 0.034
+roof_shingle_dark_normal         seam x0.43 y0.28
+solar_panel                      seam x0.01 y0.01
+asphalt                          seam x0.79 y0.97  mean_lin [0.162 0.141 0.144]  sRGB-lum std 0.036
+asphalt_cracked                  seam x0.74 y0.81  mean_lin [0.16  0.139 0.142]  sRGB-lum std 0.041
+paving_slabs                     seam x0.97 y0.86  mean_lin [0.43  0.36  0.325]  sRGB-lum std 0.053
+paving_slabs_normal              seam x0.64 y0.33
+kerb_concrete                    seam x0.91 y1.10  mean_lin [0.346 0.29  0.267]  sRGB-lum std 0.030
+grass_lawn                       seam x0.74 y0.95  mean_lin [0.209 0.262 0.042]  sRGB-lum std 0.055
+hedge_leaves                     seam x0.83 y1.11  mean_lin [0.122 0.162 0.034]  sRGB-lum std 0.061
+picket_wood_white                seam x0.79 y1.02  mean_lin [0.76  0.708 0.611]  sRGB-lum std 0.021
+garden_soil                      seam x0.78 y0.85  mean_lin [0.117 0.068 0.04 ]  sRGB-lum std 0.036
+construction_sand                seam x0.91 y0.99  mean_lin [0.56  0.391 0.266]  sRGB-lum std 0.025
+gravel                           seam x0.85 y1.03  mean_lin [0.42  0.319 0.251]  sRGB-lum std 0.060
+cardboard                        seam x0.94 y1.09  mean_lin [0.632 0.373 0.18 ]  sRGB-lum std 0.030
+cardboard_box_face               seam x0.84 y1.05  mean_lin [0.622 0.361 0.167]  sRGB-lum std 0.034
+truck_paint_white                seam x1.04 y1.01  mean_lin [0.8   0.738 0.701]  sRGB-lum std 0.013
+metal_painted_yellow             seam x1.11 y1.25  mean_lin [0.617 0.296 0.048]  sRGB-lum std 0.032
+glass_frost                      seam x1.31 y1.31  mean_lin [0.672 0.76  0.73 ]  sRGB-lum std 0.015
+concrete_smooth                  seam x0.93 y1.05  mean_lin [0.447 0.378 0.343]  sRGB-lum std 0.020
+wood_boards_stained              seam x0.62 y0.97  mean_lin [0.087 0.065 0.054]  sRGB-lum std 0.049
+window_frame_dark      px y    0-  64  uv_gltf v 0.0000-0.0625
+window_frame_cream     px y   64- 128  uv_gltf v 0.0625-0.1250
+window_surround_cream  px y  128- 256  uv_gltf v 0.1250-0.2500
+door_frame_cream       px y  256- 320  uv_gltf v 0.2500-0.3125
+sill_cream             px y  320- 384  uv_gltf v 0.3125-0.3750
+coping_cream           px y  384- 480  uv_gltf v 0.3750-0.4688
+gutter_dark            px y  480- 544  uv_gltf v 0.4688-0.5312
+fascia_dark            px y  544- 640  uv_gltf v 0.5312-0.6250
+railing_cap_steel      px y  640- 672  uv_gltf v 0.6250-0.6562
+vent_louvre            px y  672- 800  uv_gltf v 0.6562-0.7812
+garage_door_slats      px y  800- 928  uv_gltf v 0.7812-0.9062
+solar_frame            px y  928- 960  uv_gltf v 0.9062-0.9375
+flashing_dark          px y  960- 992  uv_gltf v 0.9375-0.9688
+seal_rubber            px y  992-1008  uv_gltf v 0.9688-0.9844
+plain_dark             px y 1008-1024  uv_gltf v 0.9844-1.0000

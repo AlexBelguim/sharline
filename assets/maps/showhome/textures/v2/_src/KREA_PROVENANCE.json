@@ -1,0 +1,35 @@
+[
+  {
+    "name": "painted_panels",
+    "seed": 260081,
+    "prompt": "Use the reference only for its soft hand-painted brush style. Make a uniform flat close-up of terracotta fibre cement colour, with broad gentle vertical brush strokes and large slightly angular painted patches. Calm low contrast soft mottling, no grooves, no joints, no shadows, no directional light, no dirt, no grain, no photographic detail, no objects, no borders. The whole image is one matte painted surface.",
+    "reference": "art\\briefs\\refs\\painted_cladding_ref.png",
+    "workflow": "Krea2 reference edit via tools/comfy_gen.py; --tileable mirror quilt",
+    "model": "krea2_turbo_fp8_scaled.safetensors",
+    "reference_adapter": "krea2_identity_edit_v1_2",
+    "loras_for_text_to_image": [],
+    "output": "raw/painted_panels.png"
+  },
+  {
+    "name": "painted_ground",
+    "seed": 260082,
+    "prompt": "Use the reference brush language for a uniform flat close-up of muted warm grey beige painted concrete colour. Broad soft hand-painted patches with simple angular edges, subtle low contrast painterly colour variation, evenly lit, no slabs, no seams, no grooves, no shadows, no perspective, no objects, no dirt, no grain, no photographic detail, no borders. The whole image is one matte painted surface.",
+    "reference": "art\\briefs\\refs\\painted_cladding_ref.png",
+    "workflow": "Krea2 reference edit via tools/comfy_gen.py; --tileable mirror quilt",
+    "model": "krea2_turbo_fp8_scaled.safetensors",
+    "reference_adapter": "krea2_identity_edit_v1_2",
+    "loras_for_text_to_image": [],
+    "output": "raw/painted_ground.png"
+  },
+  {
+    "name": "painted_timber",
+    "seed": 260083,
+    "prompt": "Use the reference brush language for a uniform flat close-up of muted warm brown timber colour. Broad soft vertical hand-painted strokes and gentle angular painted patches. Very low contrast, evenly lit, no boards, no seams, no knots, no grooves, no shadows, no perspective, no objects, no dirt, no grain, no photographic detail, no borders. The whole image is one matte painted surface.",
+    "reference": "art\\briefs\\refs\\painted_cladding_ref.png",
+    "workflow": "Krea2 reference edit via tools/comfy_gen.py; --tileable mirror quilt",
+    "model": "krea2_turbo_fp8_scaled.safetensors",
+    "reference_adapter": "krea2_identity_edit_v1_2",
+    "loras_for_text_to_image": [],
+    "output": "raw/painted_timber.png"
+  }
+]

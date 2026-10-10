@@ -7,7 +7,7 @@ import sys
 import numpy as np
 from PIL import Image, ImageDraw, ImageFont
 
-R = r"F:/git/val etf/assets/shields/qa/renders"
+R = os.path.join(os.path.dirname(os.path.abspath(__file__)), "renders")
 RAW = os.path.join(R, "_raw")
 try:
     FONT = ImageFont.truetype("C:/Windows/Fonts/segoeui.ttf", 22)
@@ -98,24 +98,28 @@ def sheet_eyelevel():
 
 
 def sheet_closeups():
-    names = ["close_pips_Bulwark", "close_pips_Mender", "close_pips_Volt", "close_pips_Phase"]
-    ims = [label(raw(n).convert("RGB").resize((600, 333)), n.replace("close_pips_", "pips over ")) for n in names]
-    top = hstack(ims[:2])
-    mid = hstack(ims[2:])
-    others = [("close_phase_gap", "Phase gap electrodes (back)"), ("close_volt_tooth", "Volt tooth + collar"),
+    names = [f"close_pips_{c}_{t}" for c in ("Bulwark", "Mender", "Volt", "Phase") for t in (1, 3)]
+    ims = [label(raw(n).convert("RGB").resize((600, 333)),
+                 f"{n.split('_')[2]}: T{n.split('_')[3]} = {n.split('_')[3]} centred pip(s)") for n in names]
+    top = vstack([hstack(ims[0:2]), hstack(ims[2:4])], 12)
+    mid = vstack([hstack(ims[4:6]), hstack(ims[6:8])], 12)
+    others = [("close_off_Volt", "Volt: uncovered Arms (Glass_Off), lit Head"),
+              ("close_off_Bulwark", "Bulwark: uncovered Arms, lit Head"),
+              ("close_phase_gap", "Phase gap electrodes (back)"), ("close_volt_tooth", "Volt tooth + collar"),
               ("close_bulwark_seam", "Bulwark arc seam + heavy band corner"),
               ("close_mender_joint", "Mender arc joint + medium band finger"),
               ("close_cell_side", "power cell, side, Heavy orbit"), ("close_cell_top", "power cell from above")]
     oi = [label(raw(n).convert("RGB").resize((600, 400)), t) for n, t in others]
-    out = vstack([top, mid, hstack(oi[:2]), hstack(oi[2:4]), hstack(oi[4:6])], 12)
+    out = vstack([top, mid] + [hstack(oi[i:i + 2]) for i in range(0, len(oi), 2)], 12)
     p = os.path.join(R, "Q04_closeups.png")
     out.save(p)
     print(p)
 
 
 def sheet_wire():
-    ns = ["wire_Volt_Arc_Head", "wire_Mender_Arc_Head", "wire_Bulwark_Band_Heavy", "wire_Core_Phase",
-          "wire_PowerCell"]
+    ns = ["wire_Volt_Arc_Head", "wire_Mender_Arc_Head", "wire_Bulwark_Band_Heavy", "wire_Volt_Frame_Heavy",
+          "wire_Core_Phase", "wire_Phase_Far_Frame_Heavy", "wire_PowerCell", "wire_PowerCell_Mender",
+          "wire_PowerCell_Volt"]
     ims = [label(raw(n).convert("RGB").resize((700, 455)), n.replace("wire_", "")) for n in ns if
            os.path.exists(os.path.join(RAW, n + ".png"))]
     rows = [hstack(ims[i:i + 2]) for i in range(0, len(ims), 2)]

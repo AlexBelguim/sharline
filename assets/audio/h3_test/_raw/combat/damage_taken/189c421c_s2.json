@@ -1,0 +1,21 @@
+{
+ "name": "combat/damage_taken",
+ "seed": 2,
+ "prompt": "summary: Close-up of a heavy fist punching a padded tactical vest on a mannequin, once.\n\ndetailed_description:\n[Shot 1] Close-up of a heavy fist punching a padded tactical vest on a mannequin, once. The camera is static and locked-off.\n\noverall_soundscape: Foley recording, close microphone, isolated sound: one heavy dull body-impact thump with a little fabric snap, then silence. Nothing else is heard: no music, no speech, no voices.\n\nnon_diegetic_music: N/A",
+ "settings": {
+  "w": 128,
+  "h": 128,
+  "frames": 73,
+  "steps": 6,
+  "lora": "turbo4",
+  "shift_video": 12.0,
+  "shift_audio": 3.0,
+  "sampler": "res_multistep",
+  "scheduler": "simple",
+  "style": "structured"
+ },
+ "exec_s": 3.248,
+ "wall_s": 3.7,
+ "peak_vram_gib": 14.61,
+ "audio_s": 3.04
+}

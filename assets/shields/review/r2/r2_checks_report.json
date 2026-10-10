@@ -1,0 +1,2310 @@
+{
+ "imported": 81,
+ "weight_class_visuals": {
+  "Light": {
+   "halo_scale": 0.85,
+   "band_mesh": null,
+   "power_cells": 1,
+   "orbit_radius_local": 0.215,
+   "orbit_height_local": 0.058,
+   "orbit_period_s": 2.6
+  },
+  "Medium": {
+   "halo_scale": 1.0,
+   "band_mesh": "Medium",
+   "power_cells": 2,
+   "orbit_radius_local": 0.245,
+   "orbit_height_local": 0.058,
+   "orbit_period_s": 3.4
+  },
+  "Heavy": {
+   "halo_scale": 1.2,
+   "band_mesh": "Heavy",
+   "power_cells": 3,
+   "orbit_radius_local": 0.275,
+   "orbit_height_local": 0.058,
+   "orbit_period_s": 4.6
+  }
+ },
+ "meshes": {
+  "HALO_Bulwark_Arc_Arms": {
+   "tris": 634,
+   "uv_layers": 1,
+   "mats": [
+    "M_HALO_Glass_T1",
+    "M_HALO_Graphite",
+    "M_HALO_Edge"
+   ],
+   "non_manifold": 0,
+   "boundary": 0,
+   "loose": 0,
+   "zero_area_faces": 0,
+   "zero_area_at": [],
+   "islands": 20,
+   "closed": 20,
+   "inverted": 0,
+   "intersecting_island_pairs": 20,
+   "bbox_min": [
+    0.0963,
+    -0.1236,
+    -0.016
+   ],
+   "bbox_max": [
+    0.1995,
+    0.1236,
+    0.0246
+   ]
+  },
+  "HALO_Bulwark_Arc_Head": {
+   "tris": 798,
+   "uv_layers": 1,
+   "mats": [
+    "M_HALO_Glass_T1",
+    "M_HALO_Graphite",
+    "M_HALO_Edge"
+   ],
+   "non_manifold": 0,
+   "boundary": 0,
+   "loose": 0,
+   "zero_area_faces": 0,
+   "zero_area_at": [],
+   "islands": 17,
+   "closed": 17,
+   "inverted": 0,
+   "intersecting_island_pairs": 16,
+   "bbox_min": [
+    -0.1244,
+    -0.1728,
+    -0.016
+   ],
+   "bbox_max": [
+    0.1244,
+    -0.0969,
+    0.0246
+   ]
+  },
+  "HALO_Bulwark_Arc_Legs": {
+   "tris": 634,
+   "uv_layers": 1,
+   "mats": [
+    "M_HALO_Glass_T1",
+    "M_HALO_Graphite",
+    "M_HALO_Edge"
+   ],
+   "non_manifold": 0,
+   "boundary": 0,
+   "loose": 0,
+   "zero_area_faces": 0,
+   "zero_area_at": [],
+   "islands": 19,
+   "closed": 19,
+   "inverted": 0,
+   "intersecting_island_pairs": 19,
+   "bbox_min": [
+    -0.1995,
+    -0.1236,
+    -0.016
+   ],
+   "bbox_max": [
+    -0.0963,
+    0.1236,
+    0.0246
+   ]
+  },
+  "HALO_Bulwark_Arc_Torso": {
+   "tris": 730,
+   "uv_layers": 1,
+   "mats": [
+    "M_HALO_Glass_T1",
+    "M_HALO_Graphite",
+    "M_HALO_Edge"
+   ],
+   "non_manifold": 0,
+   "boundary": 0,
+   "loose": 0,
+   "zero_area_faces": 0,
+   "zero_area_at": [],
+   "islands": 17,
+   "closed": 17,
+   "inverted": 0,
+   "intersecting_island_pairs": 16,
+   "bbox_min": [
+    -0.1244,
+    0.0969,
+    -0.016
+   ],
+   "bbox_max": [
+    0.1244,
+    0.1728,
+    0.0246
+   ]
+  },
+  "HALO_Bulwark_Band_Heavy": {
+   "tris": 1380,
+   "uv_layers": 1,
+   "mats": [
+    "M_HALO_Graphite",
+    "M_HALO_Gunmetal",
+    "M_HALO_Glass_T1",
+    "M_HALO_Edge"
+   ],
+   "non_manifold": 0,
+   "boundary": 0,
+   "loose": 0,
+   "zero_area_faces": 8,
+   "zero_area_at": [
+    [
+     0.2334,
+     0.0143,
+     -0.0132
+    ],
+    [
+     0.1043,
+     0.2093,
+     -0.0132
+    ],
+    [
+     -0.1291,
+     0.195,
+     -0.0132
+    ],
+    [
+     -0.2338,
+     0.0143,
+     -0.0198
+    ]
+   ],
+   "islands": 31,
+   "closed": 31,
+   "inverted": 0,
+   "intersecting_island_pairs": 30,
+   "bbox_min": [
+    -0.2496,
+    -0.2172,
+    -0.0442
+   ],
+   "bbox_max": [
+    0.2496,
+    0.2172,
+    0.0025
+   ]
+  },
+  "HALO_Bulwark_Band_Medium": {
+   "tris": 544,
+   "uv_layers": 1,
+   "mats": [
+    "M_HALO_Graphite",
+    "M_HALO_Glass_T1",
+    "M_HALO_Edge"
+   ],
+   "non_manifold": 0,
+   "boundary": 0,
+   "loose": 0,
+   "zero_area_faces": 0,
+   "zero_area_at": [],
+   "islands": 5,
+   "closed": 5,
+   "inverted": 0,
+   "intersecting_island_pairs": 4,
+   "bbox_min": [
+    -0.2162,
+    -0.1872,
+    -0.0252
+   ],
+   "bbox_max": [
+    0.2162,
+    0.1872,
+    0.003
+   ]
+  },
+  "HALO_Bulwark_Far_Frame_Heavy": {
+   "tris": 348,
+   "uv_layers": 1,
+   "mats": [
+    "M_HALO_Graphite",
+    "M_HALO_Edge",
+    "M_HALO_Glass_T1"
+   ],
+   "non_manifold": 0,
+   "boundary": 0,
+   "loose": 0,
+   "zero_area_faces": 0,
+   "zero_area_at": [],
+   "islands": 11,
+   "closed": 11,
+   "inverted": 0,
+   "intersecting_island_pairs": 22,
+   "bbox_min": [
+    -0.2473,
+    -0.2142,
+    -0.0422
+   ],
+   "bbox_max": [
+    0.2473,
+    0.2142,
+    0.0235
+   ]
+  },
+  "HALO_Bulwark_Far_Frame_Light": {
+   "tris": 204,
+   "uv_layers": 1,
+   "mats": [
+    "M_HALO_Graphite",
+    "M_HALO_Edge"
+   ],
+   "non_manifold": 0,
+   "boundary": 0,
+   "loose": 0,
+   "zero_area_faces": 0,
+   "zero_area_at": [],
+   "islands": 8,
+   "closed": 8,
+   "inverted": 0,
+   "intersecting_island_pairs": 13,
+   "bbox_min": [
+    -0.1995,
+    -0.1728,
+    -0.016
+   ],
+   "bbox_max": [
+    0.1995,
+    0.1728,
+    0.0235
+   ]
+  },
+  "HALO_Bulwark_Far_Frame_Medium": {
+   "tris": 324,
+   "uv_layers": 1,
+   "mats": [
+    "M_HALO_Graphite",
+    "M_HALO_Edge",
+    "M_HALO_Glass_T1"
+   ],
+   "non_manifold": 0,
+   "boundary": 0,
+   "loose": 0,
+   "zero_area_faces": 0,
+   "zero_area_at": [],
+   "islands": 11,
+   "closed": 11,
+   "inverted": 0,
+   "intersecting_island_pairs": 22,
+   "bbox_min": [
+    -0.2173,
+    -0.1882,
+    -0.0262
+   ],
+   "bbox_max": [
+    0.2173,
+    0.1882,
+    0.0235
+   ]
+  },
+  "HALO_Bulwark_Far_Glass_Arms": {
+   "tris": 44,
+   "uv_layers": 1,
+   "mats": [
+    "M_HALO_Glass_T1"
+   ],
+   "non_manifold": 0,
+   "boundary": 0,
+   "loose": 0,
+   "zero_area_faces": 0,
+   "zero_area_at": [],
+   "islands": 1,
+   "closed": 1,
+   "inverted": 0,
+   "intersecting_island_pairs": 0,
+   "bbox_min": [
+    0.0979,
+    -0.1218,
+    -0.0135
+   ],
+   "bbox_max": [
+    0.1951,
+    0.1218,
+    0.015
+   ]
+  },
+  "HALO_Bulwark_Far_Glass_Head": {
+   "tris": 60,
+   "uv_layers": 1,
+   "mats": [
+    "M_HALO_Glass_T1"
+   ],
+   "non_manifold": 0,
+   "boundary": 0,
+   "loose": 0,
+   "zero_area_faces": 0,
+   "zero_area_at": [],
+   "islands": 1,
+   "closed": 1,
+   "inverted": 0,
+   "intersecting_island_pairs": 0,
+   "bbox_min": [
+    -0.1226,
+    -0.169,
+    -0.0135
+   ],
+   "bbox_max": [
+    0.1226,
+    -0.0985,
+    0.015
+   ]
+  },
+  "HALO_Bulwark_Far_Glass_Legs": {
+   "tris": 44,
+   "uv_layers": 1,
+   "mats": [
+    "M_HALO_Glass_T1"
+   ],
+   "non_manifold": 0,
+   "boundary": 0,
+   "loose": 0,
+   "zero_area_faces": 0,
+   "zero_area_at": [],
+   "islands": 1,
+   "closed": 1,
+   "inverted": 0,
+   "intersecting_island_pairs": 0,
+   "bbox_min": [
+    -0.1951,
+    -0.1218,
+    -0.0135
+   ],
+   "bbox_max": [
+    -0.0979,
+    0.1218,
+    0.015
+   ]
+  },
+  "HALO_Bulwark_Far_Glass_Torso": {
+   "tris": 60,
+   "uv_layers": 1,
+   "mats": [
+    "M_HALO_Glass_T1"
+   ],
+   "non_manifold": 0,
+   "boundary": 0,
+   "loose": 0,
+   "zero_area_faces": 0,
+   "zero_area_at": [],
+   "islands": 1,
+   "closed": 1,
+   "inverted": 0,
+   "intersecting_island_pairs": 0,
+   "bbox_min": [
+    -0.1226,
+    0.0985,
+    -0.0135
+   ],
+   "bbox_max": [
+    0.1226,
+    0.169,
+    0.015
+   ]
+  },
+  "HALO_Core_Bulwark": {
+   "tris": 612,
+   "uv_layers": 1,
+   "mats": [
+    "M_HALO_Glass_T1.005",
+    "M_HALO_Graphite.005",
+    "M_HALO_Bone"
+   ],
+   "non_manifold": 0,
+   "boundary": 0,
+   "loose": 0,
+   "zero_area_faces": 0,
+   "zero_area_at": [],
+   "islands": 12,
+   "closed": 12,
+   "inverted": 0,
+   "intersecting_island_pairs": 17,
+   "bbox_min": [
+    -0.0537,
+    -0.0465,
+    0.0
+   ],
+   "bbox_max": [
+    0.0537,
+    0.0465,
+    0.063
+   ]
+  },
+  "HALO_Core_Mender": {
+   "tris": 944,
+   "uv_layers": 1,
+   "mats": [
+    "M_HALO_Glass_T1.005",
+    "M_HALO_Graphite.005",
+    "M_HALO_Bone"
+   ],
+   "non_manifold": 0,
+   "boundary": 0,
+   "loose": 0,
+   "zero_area_faces": 0,
+   "zero_area_at": [],
+   "islands": 15,
+   "closed": 15,
+   "inverted": 0,
+   "intersecting_island_pairs": 22,
+   "bbox_min": [
+    -0.0425,
+    -0.0445,
+    0.0
+   ],
+   "bbox_max": [
+    0.0425,
+    0.0445,
+    0.057
+   ]
+  },
+  "HALO_Core_Phase": {
+   "tris": 1036,
+   "uv_layers": 1,
+   "mats": [
+    "M_HALO_Glass_T1.005",
+    "M_HALO_Graphite.005",
+    "M_HALO_Bone"
+   ],
+   "non_manifold": 0,
+   "boundary": 0,
+   "loose": 0,
+   "zero_area_faces": 0,
+   "zero_area_at": [],
+   "islands": 9,
+   "closed": 9,
+   "inverted": 0,
+   "intersecting_island_pairs": 14,
+   "bbox_min": [
+    -0.0423,
+    -0.0425,
+    0.0
+   ],
+   "bbox_max": [
+    0.0423,
+    0.041,
+    0.0585
+   ]
+  },
+  "HALO_Core_Volt": {
+   "tris": 972,
+   "uv_layers": 1,
+   "mats": [
+    "M_HALO_Glass_T1.005",
+    "M_HALO_Graphite.005",
+    "M_HALO_Bone"
+   ],
+   "non_manifold": 0,
+   "boundary": 0,
+   "loose": 0,
+   "zero_area_faces": 0,
+   "zero_area_at": [],
+   "islands": 18,
+   "closed": 18,
+   "inverted": 0,
+   "intersecting_island_pairs": 23,
+   "bbox_min": [
+    -0.0405,
+    -0.0425,
+    0.0
+   ],
+   "bbox_max": [
+    0.0405,
+    0.0405,
+    0.059
+   ]
+  },
+  "HALO_Mender_Arc_Arms": {
+   "tris": 864,
+   "uv_layers": 1,
+   "mats": [
+    "M_HALO_Glass_T1.001",
+    "M_HALO_Graphite.001",
+    "M_HALO_Edge.001"
+   ],
+   "non_manifold": 0,
+   "boundary": 0,
+   "loose": 0,
+   "zero_area_faces": 0,
+   "zero_area_at": [],
+   "islands": 9,
+   "closed": 9,
+   "inverted": 0,
+   "intersecting_island_pairs": 12,
+   "bbox_min": [
+    0.0982,
+    -0.1277,
+    -0.0125
+   ],
+   "bbox_max": [
+    0.183,
+    0.1277,
+    0.0156
+   ]
+  },
+  "HALO_Mender_Arc_Head": {
+   "tris": 1012,
+   "uv_layers": 1,
+   "mats": [
+    "M_HALO_Glass_T1.001",
+    "M_HALO_Graphite.001",
+    "M_HALO_Edge.001"
+   ],
+   "non_manifold": 0,
+   "boundary": 0,
+   "loose": 0,
+   "zero_area_faces": 0,
+   "zero_area_at": [],
+   "islands": 9,
+   "closed": 9,
+   "inverted": 0,
+   "intersecting_island_pairs": 13,
+   "bbox_min": [
+    -0.1277,
+    -0.183,
+    -0.0125
+   ],
+   "bbox_max": [
+    0.1277,
+    -0.0982,
+    0.0156
+   ]
+  },
+  "HALO_Mender_Arc_Legs": {
+   "tris": 864,
+   "uv_layers": 1,
+   "mats": [
+    "M_HALO_Glass_T1.001",
+    "M_HALO_Graphite.001",
+    "M_HALO_Edge.001"
+   ],
+   "non_manifold": 0,
+   "boundary": 0,
+   "loose": 0,
+   "zero_area_faces": 0,
+   "zero_area_at": [],
+   "islands": 8,
+   "closed": 8,
+   "inverted": 0,
+   "intersecting_island_pairs": 11,
+   "bbox_min": [
+    -0.183,
+    -0.1277,
+    -0.0125
+   ],
+   "bbox_max": [
+    -0.0982,
+    0.1277,
+    0.0156
+   ]
+  },
+  "HALO_Mender_Arc_Torso": {
+   "tris": 868,
+   "uv_layers": 1,
+   "mats": [
+    "M_HALO_Glass_T1.001",
+    "M_HALO_Graphite.001",
+    "M_HALO_Edge.001"
+   ],
+   "non_manifold": 0,
+   "boundary": 0,
+   "loose": 0,
+   "zero_area_faces": 0,
+   "zero_area_at": [],
+   "islands": 8,
+   "closed": 8,
+   "inverted": 0,
+   "intersecting_island_pairs": 11,
+   "bbox_min": [
+    -0.1277,
+    0.0982,
+    -0.0125
+   ],
+   "bbox_max": [
+    0.1277,
+    0.183,
+    0.0156
+   ]
+  },
+  "HALO_Mender_Band_Heavy": {
+   "tris": 2116,
+   "uv_layers": 1,
+   "mats": [
+    "M_HALO_Graphite.001",
+    "M_HALO_Gunmetal.001",
+    "M_HALO_Glass_T1.001",
+    "M_HALO_Edge.001"
+   ],
+   "non_manifold": 0,
+   "boundary": 0,
+   "loose": 0,
+   "zero_area_faces": 10,
+   "zero_area_at": [
+    [
+     -0.061,
+     -0.2128,
+     -0.0242
+    ],
+    [
+     0.061,
+     -0.2128,
+     -0.0242
+    ],
+    [
+     0.0756,
+     -0.2077,
+     -0.0212
+    ],
+    [
+     0.1835,
+     -0.1238,
+     -0.0242
+    ]
+   ],
+   "islands": 51,
+   "closed": 51,
+   "inverted": 0,
+   "intersecting_island_pairs": 70,
+   "bbox_min": [
+    -0.2217,
+    -0.2286,
+    -0.0385
+   ],
+   "bbox_max": [
+    0.2217,
+    0.2286,
+    0.0005
+   ]
+  },
+  "HALO_Mender_Band_Medium": {
+   "tris": 1024,
+   "uv_layers": 1,
+   "mats": [
+    "M_HALO_Graphite.001",
+    "M_HALO_Glass_T1.001",
+    "M_HALO_Edge.001"
+   ],
+   "non_manifold": 0,
+   "boundary": 0,
+   "loose": 0,
+   "zero_area_faces": 0,
+   "zero_area_at": [],
+   "islands": 5,
+   "closed": 5,
+   "inverted": 0,
+   "intersecting_island_pairs": 4,
+   "bbox_min": [
+    -0.1988,
+    -0.1988,
+    -0.0225
+   ],
+   "bbox_max": [
+    0.1988,
+    0.1988,
+    -0.001
+   ]
+  },
+  "HALO_Mender_Far_Frame_Heavy": {
+   "tris": 696,
+   "uv_layers": 1,
+   "mats": [
+    "M_HALO_Graphite.001",
+    "M_HALO_Edge.001",
+    "M_HALO_Glass_T1.001"
+   ],
+   "non_manifold": 0,
+   "boundary": 0,
+   "loose": 0,
+   "zero_area_faces": 0,
+   "zero_area_at": [],
+   "islands": 9,
+   "closed": 9,
+   "inverted": 0,
+   "intersecting_island_pairs": 14,
+   "bbox_min": [
+    -0.2258,
+    -0.2224,
+    -0.0395
+   ],
+   "bbox_max": [
+    0.2258,
+    0.2224,
+    0.011
+   ]
+  },
+  "HALO_Mender_Far_Frame_Light": {
+   "tris": 264,
+   "uv_layers": 1,
+   "mats": [
+    "M_HALO_Graphite.001",
+    "M_HALO_Edge.001"
+   ],
+   "non_manifold": 0,
+   "boundary": 0,
+   "loose": 0,
+   "zero_area_faces": 0,
+   "zero_area_at": [],
+   "islands": 6,
+   "closed": 6,
+   "inverted": 0,
+   "intersecting_island_pairs": 8,
+   "bbox_min": [
+    -0.1825,
+    -0.1797,
+    -0.012
+   ],
+   "bbox_max": [
+    0.1825,
+    0.1797,
+    0.011
+   ]
+  },
+  "HALO_Mender_Far_Frame_Medium": {
+   "tris": 624,
+   "uv_layers": 1,
+   "mats": [
+    "M_HALO_Graphite.001",
+    "M_HALO_Edge.001",
+    "M_HALO_Glass_T1.001"
+   ],
+   "non_manifold": 0,
+   "boundary": 0,
+   "loose": 0,
+   "zero_area_faces": 0,
+   "zero_area_at": [],
+   "islands": 9,
+   "closed": 9,
+   "inverted": 0,
+   "intersecting_island_pairs": 14,
+   "bbox_min": [
+    -0.1998,
+    -0.1968,
+    -0.0235
+   ],
+   "bbox_max": [
+    0.1998,
+    0.1968,
+    0.011
+   ]
+  },
+  "HALO_Mender_Far_Glass_Arms": {
+   "tris": 88,
+   "uv_layers": 1,
+   "mats": [
+    "M_HALO_Glass_T1.001"
+   ],
+   "non_manifold": 0,
+   "boundary": 0,
+   "loose": 0,
+   "zero_area_faces": 0,
+   "zero_area_at": [],
+   "islands": 2,
+   "closed": 2,
+   "inverted": 0,
+   "intersecting_island_pairs": 0,
+   "bbox_min": [
+    0.0991,
+    -0.1268,
+    -0.0125
+   ],
+   "bbox_max": [
+    0.1793,
+    0.1268,
+    0.0125
+   ]
+  },
+  "HALO_Mender_Far_Glass_Head": {
+   "tris": 88,
+   "uv_layers": 1,
+   "mats": [
+    "M_HALO_Glass_T1.001"
+   ],
+   "non_manifold": 0,
+   "boundary": 0,
+   "loose": 0,
+   "zero_area_faces": 0,
+   "zero_area_at": [],
+   "islands": 2,
+   "closed": 2,
+   "inverted": 0,
+   "intersecting_island_pairs": 0,
+   "bbox_min": [
+    -0.1268,
+    -0.1793,
+    -0.0125
+   ],
+   "bbox_max": [
+    0.1268,
+    -0.0991,
+    0.0125
+   ]
+  },
+  "HALO_Mender_Far_Glass_Legs": {
+   "tris": 88,
+   "uv_layers": 1,
+   "mats": [
+    "M_HALO_Glass_T1.001"
+   ],
+   "non_manifold": 0,
+   "boundary": 0,
+   "loose": 0,
+   "zero_area_faces": 0,
+   "zero_area_at": [],
+   "islands": 2,
+   "closed": 2,
+   "inverted": 0,
+   "intersecting_island_pairs": 0,
+   "bbox_min": [
+    -0.1793,
+    -0.1268,
+    -0.0125
+   ],
+   "bbox_max": [
+    -0.0991,
+    0.1268,
+    0.0125
+   ]
+  },
+  "HALO_Mender_Far_Glass_Torso": {
+   "tris": 88,
+   "uv_layers": 1,
+   "mats": [
+    "M_HALO_Glass_T1.001"
+   ],
+   "non_manifold": 0,
+   "boundary": 0,
+   "loose": 0,
+   "zero_area_faces": 0,
+   "zero_area_at": [],
+   "islands": 2,
+   "closed": 2,
+   "inverted": 0,
+   "intersecting_island_pairs": 0,
+   "bbox_min": [
+    -0.1268,
+    0.0991,
+    -0.0125
+   ],
+   "bbox_max": [
+    0.1268,
+    0.1793,
+    0.0125
+   ]
+  },
+  "HALO_Phase_Arc_Arms": {
+   "tris": 712,
+   "uv_layers": 1,
+   "mats": [
+    "M_HALO_Glass_T1.003",
+    "M_HALO_Graphite.003",
+    "M_HALO_Edge.003"
+   ],
+   "non_manifold": 0,
+   "boundary": 0,
+   "loose": 0,
+   "zero_area_faces": 0,
+   "zero_area_at": [],
+   "islands": 6,
+   "closed": 6,
+   "inverted": 0,
+   "intersecting_island_pairs": 5,
+   "bbox_min": [
+    0.1081,
+    -0.118,
+    -0.0132
+   ],
+   "bbox_max": [
+    0.1672,
+    0.118,
+    0.0134
+   ]
+  },
+  "HALO_Phase_Arc_Head": {
+   "tris": 800,
+   "uv_layers": 1,
+   "mats": [
+    "M_HALO_Glass_T1.003",
+    "M_HALO_Graphite.003",
+    "M_HALO_Edge.003"
+   ],
+   "non_manifold": 0,
+   "boundary": 0,
+   "loose": 0,
+   "zero_area_faces": 0,
+   "zero_area_at": [],
+   "islands": 5,
+   "closed": 5,
+   "inverted": 0,
+   "intersecting_island_pairs": 4,
+   "bbox_min": [
+    -0.118,
+    -0.1675,
+    -0.0132
+   ],
+   "bbox_max": [
+    0.118,
+    -0.1081,
+    0.0134
+   ]
+  },
+  "HALO_Phase_Arc_Legs": {
+   "tris": 712,
+   "uv_layers": 1,
+   "mats": [
+    "M_HALO_Glass_T1.003",
+    "M_HALO_Graphite.003",
+    "M_HALO_Edge.003"
+   ],
+   "non_manifold": 0,
+   "boundary": 0,
+   "loose": 0,
+   "zero_area_faces": 0,
+   "zero_area_at": [],
+   "islands": 5,
+   "closed": 5,
+   "inverted": 0,
+   "intersecting_island_pairs": 4,
+   "bbox_min": [
+    -0.1672,
+    -0.118,
+    -0.0132
+   ],
+   "bbox_max": [
+    -0.1081,
+    0.118,
+    0.0134
+   ]
+  },
+  "HALO_Phase_Arc_Torso": {
+   "tris": 832,
+   "uv_layers": 1,
+   "mats": [
+    "M_HALO_Glass_T1.003",
+    "M_HALO_Graphite.003",
+    "M_HALO_Edge.003"
+   ],
+   "non_manifold": 0,
+   "boundary": 0,
+   "loose": 0,
+   "zero_area_faces": 0,
+   "zero_area_at": [],
+   "islands": 14,
+   "closed": 14,
+   "inverted": 0,
+   "intersecting_island_pairs": 18,
+   "bbox_min": [
+    -0.118,
+    0.1081,
+    -0.0132
+   ],
+   "bbox_max": [
+    0.118,
+    0.1632,
+    0.0398
+   ]
+  },
+  "HALO_Phase_Band_Heavy": {
+   "tris": 1938,
+   "uv_layers": 1,
+   "mats": [
+    "M_HALO_Graphite.003",
+    "M_HALO_Gunmetal.003",
+    "M_HALO_Glass_T1.003",
+    "M_HALO_Edge.003"
+   ],
+   "non_manifold": 0,
+   "boundary": 0,
+   "loose": 0,
+   "zero_area_faces": 17,
+   "zero_area_at": [
+    [
+     -0.0571,
+     -0.1991,
+     -0.0152
+    ],
+    [
+     0.071,
+     -0.1949,
+     -0.0204
+    ],
+    [
+     0.1635,
+     -0.1277,
+     -0.0204
+    ],
+    [
+     0.172,
+     -0.116,
+     -0.0204
+    ]
+   ],
+   "islands": 47,
+   "closed": 47,
+   "inverted": 0,
+   "intersecting_island_pairs": 64,
+   "bbox_min": [
+    -0.2079,
+    -0.2148,
+    -0.039
+   ],
+   "bbox_max": [
+    0.2079,
+    0.1955,
+    0.0065
+   ]
+  },
+  "HALO_Phase_Band_Medium": {
+   "tris": 960,
+   "uv_layers": 1,
+   "mats": [
+    "M_HALO_Graphite.003",
+    "M_HALO_Glass_T1.003",
+    "M_HALO_Edge.003"
+   ],
+   "non_manifold": 0,
+   "boundary": 0,
+   "loose": 0,
+   "zero_area_faces": 0,
+   "zero_area_at": [],
+   "islands": 5,
+   "closed": 5,
+   "inverted": 0,
+   "intersecting_island_pairs": 4,
+   "bbox_min": [
+    -0.185,
+    -0.185,
+    -0.023
+   ],
+   "bbox_max": [
+    0.185,
+    0.1769,
+    0.003
+   ]
+  },
+  "HALO_Phase_Far_Frame_Heavy": {
+   "tris": 668,
+   "uv_layers": 1,
+   "mats": [
+    "M_HALO_Graphite.003",
+    "M_HALO_Edge.003",
+    "M_HALO_Glass_T1.003"
+   ],
+   "non_manifold": 0,
+   "boundary": 0,
+   "loose": 0,
+   "zero_area_faces": 0,
+   "zero_area_at": [],
+   "islands": 7,
+   "closed": 7,
+   "inverted": 0,
+   "intersecting_island_pairs": 8,
+   "bbox_min": [
+    -0.2116,
+    -0.209,
+    -0.04
+   ],
+   "bbox_max": [
+    0.2116,
+    0.2027,
+    0.0098
+   ]
+  },
+  "HALO_Phase_Far_Frame_Light": {
+   "tris": 248,
+   "uv_layers": 1,
+   "mats": [
+    "M_HALO_Graphite.003",
+    "M_HALO_Edge.003"
+   ],
+   "non_manifold": 0,
+   "boundary": 0,
+   "loose": 0,
+   "zero_area_faces": 0,
+   "zero_area_at": [],
+   "islands": 4,
+   "closed": 4,
+   "inverted": 0,
+   "intersecting_island_pairs": 4,
+   "bbox_min": [
+    -0.1683,
+    -0.1661,
+    -0.013
+   ],
+   "bbox_max": [
+    0.1683,
+    0.1632,
+    0.0098
+   ]
+  },
+  "HALO_Phase_Far_Frame_Medium": {
+   "tris": 596,
+   "uv_layers": 1,
+   "mats": [
+    "M_HALO_Graphite.003",
+    "M_HALO_Edge.003",
+    "M_HALO_Glass_T1.003"
+   ],
+   "non_manifold": 0,
+   "boundary": 0,
+   "loose": 0,
+   "zero_area_faces": 0,
+   "zero_area_at": [],
+   "islands": 7,
+   "closed": 7,
+   "inverted": 0,
+   "intersecting_island_pairs": 8,
+   "bbox_min": [
+    -0.1856,
+    -0.1834,
+    -0.024
+   ],
+   "bbox_max": [
+    0.1856,
+    0.1779,
+    0.0098
+   ]
+  },
+  "HALO_Phase_Far_Glass_Arms": {
+   "tris": 68,
+   "uv_layers": 1,
+   "mats": [
+    "M_HALO_Glass_T1.003"
+   ],
+   "non_manifold": 0,
+   "boundary": 0,
+   "loose": 0,
+   "zero_area_faces": 0,
+   "zero_area_at": [],
+   "islands": 1,
+   "closed": 1,
+   "inverted": 0,
+   "intersecting_island_pairs": 0,
+   "bbox_min": [
+    0.1091,
+    -0.117,
+    -0.0087
+   ],
+   "bbox_max": [
+    0.1655,
+    0.117,
+    0.0087
+   ]
+  },
+  "HALO_Phase_Far_Glass_Head": {
+   "tris": 68,
+   "uv_layers": 1,
+   "mats": [
+    "M_HALO_Glass_T1.003"
+   ],
+   "non_manifold": 0,
+   "boundary": 0,
+   "loose": 0,
+   "zero_area_faces": 0,
+   "zero_area_at": [],
+   "islands": 1,
+   "closed": 1,
+   "inverted": 0,
+   "intersecting_island_pairs": 0,
+   "bbox_min": [
+    -0.117,
+    -0.1655,
+    -0.0087
+   ],
+   "bbox_max": [
+    0.117,
+    -0.1091,
+    0.0087
+   ]
+  },
+  "HALO_Phase_Far_Glass_Legs": {
+   "tris": 68,
+   "uv_layers": 1,
+   "mats": [
+    "M_HALO_Glass_T1.003"
+   ],
+   "non_manifold": 0,
+   "boundary": 0,
+   "loose": 0,
+   "zero_area_faces": 0,
+   "zero_area_at": [],
+   "islands": 1,
+   "closed": 1,
+   "inverted": 0,
+   "intersecting_island_pairs": 0,
+   "bbox_min": [
+    -0.1655,
+    -0.117,
+    -0.0087
+   ],
+   "bbox_max": [
+    -0.1091,
+    0.117,
+    0.0087
+   ]
+  },
+  "HALO_Phase_Far_Glass_Torso": {
+   "tris": 104,
+   "uv_layers": 1,
+   "mats": [
+    "M_HALO_Glass_T1.003"
+   ],
+   "non_manifold": 0,
+   "boundary": 0,
+   "loose": 0,
+   "zero_area_faces": 0,
+   "zero_area_at": [],
+   "islands": 4,
+   "closed": 4,
+   "inverted": 0,
+   "intersecting_island_pairs": 2,
+   "bbox_min": [
+    -0.117,
+    0.1091,
+    -0.0087
+   ],
+   "bbox_max": [
+    0.117,
+    0.1618,
+    0.0398
+   ]
+  },
+  "HALO_PowerCell": {
+   "tris": 488,
+   "uv_layers": 1,
+   "mats": [
+    "M_HALO_Glass_T1.004",
+    "M_HALO_Graphite.004"
+   ],
+   "non_manifold": 0,
+   "boundary": 0,
+   "loose": 0,
+   "zero_area_faces": 0,
+   "zero_area_at": [],
+   "islands": 5,
+   "closed": 5,
+   "inverted": 0,
+   "intersecting_island_pairs": 5,
+   "bbox_min": [
+    -0.0555,
+    -0.0126,
+    -0.0126
+   ],
+   "bbox_max": [
+    0.0319,
+    0.0126,
+    0.0126
+   ]
+  },
+  "HALO_Shard_A": {
+   "tris": 26,
+   "uv_layers": 1,
+   "mats": [
+    "M_HALO_Glass_T1.004"
+   ],
+   "non_manifold": 0,
+   "boundary": 0,
+   "loose": 0,
+   "zero_area_faces": 0,
+   "zero_area_at": [],
+   "islands": 1,
+   "closed": 1,
+   "inverted": 0,
+   "intersecting_island_pairs": 0,
+   "bbox_min": [
+    -0.015,
+    -0.013,
+    -0.0021
+   ],
+   "bbox_max": [
+    0.015,
+    0.013,
+    0.0037
+   ]
+  },
+  "HALO_Shard_B": {
+   "tris": 14,
+   "uv_layers": 1,
+   "mats": [
+    "M_HALO_Glass_T1.004"
+   ],
+   "non_manifold": 0,
+   "boundary": 0,
+   "loose": 0,
+   "zero_area_faces": 0,
+   "zero_area_at": [],
+   "islands": 1,
+   "closed": 1,
+   "inverted": 0,
+   "intersecting_island_pairs": 0,
+   "bbox_min": [
+    0.0,
+    -0.001,
+    -0.0025
+   ],
+   "bbox_max": [
+    0.021,
+    0.0185,
+    0.0043
+   ]
+  },
+  "HALO_Shard_C": {
+   "tris": 18,
+   "uv_layers": 1,
+   "mats": [
+    "M_HALO_Glass_T1.004"
+   ],
+   "non_manifold": 0,
+   "boundary": 0,
+   "loose": 0,
+   "zero_area_faces": 0,
+   "zero_area_at": [],
+   "islands": 1,
+   "closed": 1,
+   "inverted": 0,
+   "intersecting_island_pairs": 0,
+   "bbox_min": [
+    -0.017,
+    -0.0055,
+    -0.0016
+   ],
+   "bbox_max": [
+    0.019,
+    0.0052,
+    0.0028
+   ]
+  },
+  "HALO_TierPip": {
+   "tris": 8,
+   "uv_layers": 1,
+   "mats": [
+    "M_HALO_Glass_T1.004"
+   ],
+   "non_manifold": 0,
+   "boundary": 0,
+   "loose": 0,
+   "zero_area_faces": 0,
+   "zero_area_at": [],
+   "islands": 1,
+   "closed": 1,
+   "inverted": 0,
+   "intersecting_island_pairs": 0,
+   "bbox_min": [
+    -0.0056,
+    -0.003,
+    -0.009
+   ],
+   "bbox_max": [
+    0.0056,
+    0.003,
+    0.009
+   ]
+  },
+  "HALO_Volt_Arc_Arms": {
+   "tris": 1072,
+   "uv_layers": 1,
+   "mats": [
+    "M_HALO_Glass_T1.002",
+    "M_HALO_Graphite.002",
+    "M_HALO_Edge.002"
+   ],
+   "non_manifold": 0,
+   "boundary": 0,
+   "loose": 0,
+   "zero_area_faces": 0,
+   "zero_area_at": [],
+   "islands": 16,
+   "closed": 16,
+   "inverted": 0,
+   "intersecting_island_pairs": 17,
+   "bbox_min": [
+    0.1056,
+    -0.1215,
+    -0.0125
+   ],
+   "bbox_max": [
+    0.1723,
+    0.1215,
+    0.0435
+   ]
+  },
+  "HALO_Volt_Arc_Head": {
+   "tris": 1136,
+   "uv_layers": 1,
+   "mats": [
+    "M_HALO_Glass_T1.002",
+    "M_HALO_Graphite.002",
+    "M_HALO_Edge.002"
+   ],
+   "non_manifold": 0,
+   "boundary": 0,
+   "loose": 0,
+   "zero_area_faces": 0,
+   "zero_area_at": [],
+   "islands": 13,
+   "closed": 13,
+   "inverted": 0,
+   "intersecting_island_pairs": 14,
+   "bbox_min": [
+    -0.1215,
+    -0.1723,
+    -0.0125
+   ],
+   "bbox_max": [
+    0.1215,
+    -0.1056,
+    0.0435
+   ]
+  },
+  "HALO_Volt_Arc_Legs": {
+   "tris": 1072,
+   "uv_layers": 1,
+   "mats": [
+    "M_HALO_Glass_T1.002",
+    "M_HALO_Graphite.002",
+    "M_HALO_Edge.002"
+   ],
+   "non_manifold": 0,
+   "boundary": 0,
+   "loose": 0,
+   "zero_area_faces": 0,
+   "zero_area_at": [],
+   "islands": 15,
+   "closed": 15,
+   "inverted": 0,
+   "intersecting_island_pairs": 16,
+   "bbox_min": [
+    -0.1723,
+    -0.1215,
+    -0.0125
+   ],
+   "bbox_max": [
+    -0.1056,
+    0.1215,
+    0.0435
+   ]
+  },
+  "HALO_Volt_Arc_Torso": {
+   "tris": 1076,
+   "uv_layers": 1,
+   "mats": [
+    "M_HALO_Glass_T1.002",
+    "M_HALO_Graphite.002",
+    "M_HALO_Edge.002"
+   ],
+   "non_manifold": 0,
+   "boundary": 0,
+   "loose": 0,
+   "zero_area_faces": 0,
+   "zero_area_at": [],
+   "islands": 15,
+   "closed": 15,
+   "inverted": 0,
+   "intersecting_island_pairs": 16,
+   "bbox_min": [
+    -0.1215,
+    0.1056,
+    -0.0125
+   ],
+   "bbox_max": [
+    0.1215,
+    0.1723,
+    0.0435
+   ]
+  },
+  "HALO_Volt_Band_Heavy": {
+   "tris": 2116,
+   "uv_layers": 1,
+   "mats": [
+    "M_HALO_Graphite.002",
+    "M_HALO_Gunmetal.002",
+    "M_HALO_Glass_T1.002",
+    "M_HALO_Edge.002"
+   ],
+   "non_manifold": 0,
+   "boundary": 0,
+   "loose": 0,
+   "zero_area_faces": 14,
+   "zero_area_at": [
+    [
+     -0.0585,
+     -0.2039,
+     -0.0147
+    ],
+    [
+     0.1674,
+     -0.1308,
+     -0.0199
+    ],
+    [
+     0.1758,
+     -0.1186,
+     -0.0147
+    ],
+    [
+     0.2123,
+     -0.0074,
+     -0.0199
+    ]
+   ],
+   "islands": 51,
+   "closed": 51,
+   "inverted": 0,
+   "intersecting_island_pairs": 70,
+   "bbox_min": [
+    -0.2129,
+    -0.2198,
+    -0.0385
+   ],
+   "bbox_max": [
+    0.2129,
+    0.2198,
+    0.007
+   ]
+  },
+  "HALO_Volt_Band_Medium": {
+   "tris": 1024,
+   "uv_layers": 1,
+   "mats": [
+    "M_HALO_Graphite.002",
+    "M_HALO_Glass_T1.002",
+    "M_HALO_Edge.002"
+   ],
+   "non_manifold": 0,
+   "boundary": 0,
+   "loose": 0,
+   "zero_area_faces": 0,
+   "zero_area_at": [],
+   "islands": 5,
+   "closed": 5,
+   "inverted": 0,
+   "intersecting_island_pairs": 4,
+   "bbox_min": [
+    -0.19,
+    -0.19,
+    -0.0225
+   ],
+   "bbox_max": [
+    0.19,
+    0.19,
+    0.0035
+   ]
+  },
+  "HALO_Volt_Far_Frame_Heavy": {
+   "tris": 684,
+   "uv_layers": 1,
+   "mats": [
+    "M_HALO_Graphite.002",
+    "M_HALO_Edge.002",
+    "M_HALO_Glass_T1.002"
+   ],
+   "non_manifold": 0,
+   "boundary": 0,
+   "loose": 0,
+   "zero_area_faces": 0,
+   "zero_area_at": [],
+   "islands": 5,
+   "closed": 5,
+   "inverted": 0,
+   "intersecting_island_pairs": 4,
+   "bbox_min": [
+    -0.217,
+    -0.2137,
+    -0.0395
+   ],
+   "bbox_max": [
+    0.217,
+    0.2137,
+    -0.002
+   ]
+  },
+  "HALO_Volt_Far_Frame_Light": {
+   "tris": 252,
+   "uv_layers": 1,
+   "mats": [
+    "M_HALO_Graphite.002",
+    "M_HALO_Edge.002"
+   ],
+   "non_manifold": 0,
+   "boundary": 0,
+   "loose": 0,
+   "zero_area_faces": 0,
+   "zero_area_at": [],
+   "islands": 2,
+   "closed": 2,
+   "inverted": 0,
+   "intersecting_island_pairs": 1,
+   "bbox_min": [
+    -0.1735,
+    -0.1709,
+    -0.0118
+   ],
+   "bbox_max": [
+    0.1735,
+    0.1709,
+    -0.0068
+   ]
+  },
+  "HALO_Volt_Far_Frame_Medium": {
+   "tris": 612,
+   "uv_layers": 1,
+   "mats": [
+    "M_HALO_Graphite.002",
+    "M_HALO_Edge.002",
+    "M_HALO_Glass_T1.002"
+   ],
+   "non_manifold": 0,
+   "boundary": 0,
+   "loose": 0,
+   "zero_area_faces": 0,
+   "zero_area_at": [],
+   "islands": 5,
+   "closed": 5,
+   "inverted": 0,
+   "intersecting_island_pairs": 4,
+   "bbox_min": [
+    -0.191,
+    -0.1881,
+    -0.0235
+   ],
+   "bbox_max": [
+    0.191,
+    0.1881,
+    -0.0055
+   ]
+  },
+  "HALO_Volt_Far_Glass_Arms": {
+   "tris": 92,
+   "uv_layers": 1,
+   "mats": [
+    "M_HALO_Glass_T1.002"
+   ],
+   "non_manifold": 0,
+   "boundary": 0,
+   "loose": 0,
+   "zero_area_faces": 0,
+   "zero_area_at": [],
+   "islands": 3,
+   "closed": 3,
+   "inverted": 0,
+   "intersecting_island_pairs": 2,
+   "bbox_min": [
+    0.1074,
+    -0.1194,
+    -0.01
+   ],
+   "bbox_max": [
+    0.169,
+    0.1194,
+    0.041
+   ]
+  },
+  "HALO_Volt_Far_Glass_Head": {
+   "tris": 92,
+   "uv_layers": 1,
+   "mats": [
+    "M_HALO_Glass_T1.002"
+   ],
+   "non_manifold": 0,
+   "boundary": 0,
+   "loose": 0,
+   "zero_area_faces": 0,
+   "zero_area_at": [],
+   "islands": 3,
+   "closed": 3,
+   "inverted": 0,
+   "intersecting_island_pairs": 2,
+   "bbox_min": [
+    -0.1194,
+    -0.169,
+    -0.01
+   ],
+   "bbox_max": [
+    0.1194,
+    -0.1074,
+    0.041
+   ]
+  },
+  "HALO_Volt_Far_Glass_Legs": {
+   "tris": 92,
+   "uv_layers": 1,
+   "mats": [
+    "M_HALO_Glass_T1.002"
+   ],
+   "non_manifold": 0,
+   "boundary": 0,
+   "loose": 0,
+   "zero_area_faces": 0,
+   "zero_area_at": [],
+   "islands": 3,
+   "closed": 3,
+   "inverted": 0,
+   "intersecting_island_pairs": 2,
+   "bbox_min": [
+    -0.169,
+    -0.1194,
+    -0.01
+   ],
+   "bbox_max": [
+    -0.1074,
+    0.1194,
+    0.041
+   ]
+  },
+  "HALO_Volt_Far_Glass_Torso": {
+   "tris": 92,
+   "uv_layers": 1,
+   "mats": [
+    "M_HALO_Glass_T1.002"
+   ],
+   "non_manifold": 0,
+   "boundary": 0,
+   "loose": 0,
+   "zero_area_faces": 0,
+   "zero_area_at": [],
+   "islands": 3,
+   "closed": 3,
+   "inverted": 0,
+   "intersecting_island_pairs": 2,
+   "bbox_min": [
+    -0.1194,
+    0.1074,
+    -0.01
+   ],
+   "bbox_max": [
+    0.1194,
+    0.169,
+    0.041
+   ]
+  }
+ },
+ "origin": {
+  "Bulwark": [
+   [
+    0.0,
+    0.0,
+    0.0
+   ],
+   [
+    0.0,
+    0.0,
+    0.0
+   ],
+   [
+    0.0,
+    0.0,
+    0.0
+   ],
+   [
+    0.0,
+    0.0,
+    0.0
+   ]
+  ],
+  "Mender": [
+   [
+    0.0,
+    0.0,
+    0.0
+   ],
+   [
+    0.0,
+    0.0,
+    0.0
+   ],
+   [
+    0.0,
+    0.0,
+    0.0
+   ],
+   [
+    0.0,
+    0.0,
+    0.0
+   ]
+  ],
+  "Volt": [
+   [
+    0.0,
+    0.0,
+    0.0
+   ],
+   [
+    0.0,
+    0.0,
+    0.0
+   ],
+   [
+    0.0,
+    0.0,
+    0.0
+   ],
+   [
+    0.0,
+    0.0,
+    0.0
+   ]
+  ],
+  "Phase": [
+   [
+    0.0,
+    0.0,
+    0.0
+   ],
+   [
+    0.0,
+    0.0,
+    0.0
+   ],
+   [
+    0.0,
+    0.0,
+    0.0
+   ],
+   [
+    0.0,
+    0.0,
+    0.0
+   ]
+  ]
+ },
+ "zone_azimuth_deg": {
+  "Bulwark_Head": 270.0,
+  "Bulwark_Arms": 360.0,
+  "Bulwark_Torso": 90.0,
+  "Bulwark_Legs": 180.0,
+  "Mender_Head": 270.0,
+  "Mender_Arms": 0.0,
+  "Mender_Torso": 90.0,
+  "Mender_Legs": 180.0,
+  "Volt_Head": 270.0,
+  "Volt_Arms": 360.0,
+  "Volt_Torso": 90.0,
+  "Volt_Legs": 180.0,
+  "Phase_Head": 270.0,
+  "Phase_Arms": 360.0,
+  "Phase_Torso": 90.0,
+  "Phase_Legs": 180.0
+ },
+ "part_overlap_tri_pairs": {
+  "Bulwark_BandMedium_x_Head": 256,
+  "Bulwark_BandMedium_x_Arms": 242,
+  "Bulwark_BandMedium_x_Torso": 255,
+  "Bulwark_BandMedium_x_Legs": 242,
+  "Bulwark_BandHeavy_x_Head": 321,
+  "Bulwark_BandHeavy_x_Arms": 229,
+  "Bulwark_BandHeavy_x_Torso": 320,
+  "Bulwark_BandHeavy_x_Legs": 229,
+  "Mender_BandMedium_x_Head": 223,
+  "Mender_BandMedium_x_Arms": 223,
+  "Mender_BandMedium_x_Torso": 223,
+  "Mender_BandMedium_x_Legs": 223,
+  "Mender_BandHeavy_x_Head": 223,
+  "Mender_BandHeavy_x_Arms": 280,
+  "Mender_BandHeavy_x_Torso": 223,
+  "Mender_BandHeavy_x_Legs": 280,
+  "Volt_BandMedium_x_Head": 272,
+  "Volt_BandMedium_x_Arms": 288,
+  "Volt_BandMedium_x_Torso": 288,
+  "Volt_BandMedium_x_Legs": 288,
+  "Volt_BandHeavy_x_Head": 280,
+  "Volt_BandHeavy_x_Arms": 310,
+  "Volt_BandHeavy_x_Torso": 296,
+  "Volt_BandHeavy_x_Legs": 310,
+  "Phase_BandMedium_x_Head": 229,
+  "Phase_BandMedium_x_Arms": 233,
+  "Phase_BandMedium_x_Torso": 222,
+  "Phase_BandMedium_x_Legs": 233,
+  "Phase_BandHeavy_x_Head": 220,
+  "Phase_BandHeavy_x_Arms": 272,
+  "Phase_BandHeavy_x_Torso": 271,
+  "Phase_BandHeavy_x_Legs": 272
+ },
+ "zfight_pairs": {
+  "Bulwark_Medium": 0,
+  "Bulwark_Heavy": 0,
+  "Mender_Medium": 0,
+  "Mender_Heavy": 0,
+  "Volt_Medium": 0,
+  "Volt_Heavy": 0,
+  "Phase_Medium": 0,
+  "Phase_Heavy": 0
+ },
+ "pips": {
+  "Bulwark": [
+   {
+    "pos": [
+     -0.024,
+     -0.1585,
+     0.026
+    ],
+    "gap_mm": 0.2,
+    "intersects": false
+   },
+   {
+    "pos": [
+     -0.008,
+     -0.1585,
+     0.026
+    ],
+    "gap_mm": 0.2,
+    "intersects": false
+   },
+   {
+    "pos": [
+     0.008,
+     -0.1585,
+     0.026
+    ],
+    "gap_mm": 0.2,
+    "intersects": false
+   },
+   {
+    "pos": [
+     0.024,
+     -0.1585,
+     0.026
+    ],
+    "gap_mm": 0.2,
+    "intersects": false
+   }
+  ],
+  "Mender": [
+   {
+    "pos": [
+     -0.024,
+     -0.1435,
+     0.0232
+    ],
+    "gap_mm": 0.3,
+    "intersects": false
+   },
+   {
+    "pos": [
+     -0.008,
+     -0.1435,
+     0.0232
+    ],
+    "gap_mm": 0.2,
+    "intersects": false
+   },
+   {
+    "pos": [
+     0.008,
+     -0.1435,
+     0.0232
+    ],
+    "gap_mm": 0.2,
+    "intersects": false
+   },
+   {
+    "pos": [
+     0.024,
+     -0.1435,
+     0.0232
+    ],
+    "gap_mm": 0.3,
+    "intersects": false
+   }
+  ],
+  "Volt": [
+   {
+    "pos": [
+     -0.024,
+     -0.1648,
+     0.0198
+    ],
+    "gap_mm": 0.2,
+    "intersects": false
+   },
+   {
+    "pos": [
+     -0.008,
+     -0.1648,
+     0.0198
+    ],
+    "gap_mm": 0.2,
+    "intersects": false
+   },
+   {
+    "pos": [
+     0.008,
+     -0.1648,
+     0.0198
+    ],
+    "gap_mm": 0.2,
+    "intersects": false
+   },
+   {
+    "pos": [
+     0.024,
+     -0.1648,
+     0.0198
+    ],
+    "gap_mm": 0.2,
+    "intersects": false
+   }
+  ],
+  "Phase": [
+   {
+    "pos": [
+     -0.024,
+     -0.1645,
+     0.021
+    ],
+    "gap_mm": 0.2,
+    "intersects": false
+   },
+   {
+    "pos": [
+     -0.008,
+     -0.1645,
+     0.021
+    ],
+    "gap_mm": 0.2,
+    "intersects": false
+   },
+   {
+    "pos": [
+     0.008,
+     -0.1645,
+     0.021
+    ],
+    "gap_mm": 0.2,
+    "intersects": false
+   },
+   {
+    "pos": [
+     0.024,
+     -0.1645,
+     0.021
+    ],
+    "gap_mm": 0.2,
+    "intersects": false
+   }
+  ]
+ },
+ "cells": {
+  "Bulwark_Light": {
+   "colliding_of_72": 0,
+   "min_clearance_mm": 22.6,
+   "parts": [
+    "HALO_Bulwark_Arc_Head",
+    "HALO_Bulwark_Arc_Arms",
+    "HALO_Bulwark_Arc_Torso",
+    "HALO_Bulwark_Arc_Legs"
+   ]
+  },
+  "Bulwark_Medium": {
+   "colliding_of_72": 0,
+   "min_clearance_mm": 46.4,
+   "parts": [
+    "HALO_Bulwark_Arc_Head",
+    "HALO_Bulwark_Arc_Arms",
+    "HALO_Bulwark_Arc_Torso",
+    "HALO_Bulwark_Arc_Legs",
+    "HALO_Bulwark_Band_Medium"
+   ]
+  },
+  "Bulwark_Heavy": {
+   "colliding_of_72": 0,
+   "min_clearance_mm": 60.4,
+   "parts": [
+    "HALO_Bulwark_Arc_Head",
+    "HALO_Bulwark_Arc_Arms",
+    "HALO_Bulwark_Arc_Torso",
+    "HALO_Bulwark_Arc_Legs",
+    "HALO_Bulwark_Band_Heavy"
+   ]
+  },
+  "Mender_Light": {
+   "colliding_of_72": 0,
+   "min_clearance_mm": 36.1,
+   "parts": [
+    "HALO_Mender_Arc_Head",
+    "HALO_Mender_Arc_Arms",
+    "HALO_Mender_Arc_Torso",
+    "HALO_Mender_Arc_Legs"
+   ]
+  },
+  "Mender_Medium": {
+   "colliding_of_72": 0,
+   "min_clearance_mm": 64.4,
+   "parts": [
+    "HALO_Mender_Arc_Head",
+    "HALO_Mender_Arc_Arms",
+    "HALO_Mender_Arc_Torso",
+    "HALO_Mender_Arc_Legs",
+    "HALO_Mender_Band_Medium"
+   ]
+  },
+  "Mender_Heavy": {
+   "colliding_of_72": 0,
+   "min_clearance_mm": 95.3,
+   "parts": [
+    "HALO_Mender_Arc_Head",
+    "HALO_Mender_Arc_Arms",
+    "HALO_Mender_Arc_Torso",
+    "HALO_Mender_Arc_Legs",
+    "HALO_Mender_Band_Heavy"
+   ]
+  },
+  "Volt_Light": {
+   "colliding_of_72": 0,
+   "min_clearance_mm": 33.0,
+   "parts": [
+    "HALO_Volt_Arc_Head",
+    "HALO_Volt_Arc_Arms",
+    "HALO_Volt_Arc_Torso",
+    "HALO_Volt_Arc_Legs"
+   ]
+  },
+  "Volt_Medium": {
+   "colliding_of_72": 0,
+   "min_clearance_mm": 67.6,
+   "parts": [
+    "HALO_Volt_Arc_Head",
+    "HALO_Volt_Arc_Arms",
+    "HALO_Volt_Arc_Torso",
+    "HALO_Volt_Arc_Legs",
+    "HALO_Volt_Band_Medium"
+   ]
+  },
+  "Volt_Heavy": {
+   "colliding_of_72": 0,
+   "min_clearance_mm": 95.1,
+   "parts": [
+    "HALO_Volt_Arc_Head",
+    "HALO_Volt_Arc_Arms",
+    "HALO_Volt_Arc_Torso",
+    "HALO_Volt_Arc_Legs",
+    "HALO_Volt_Band_Heavy"
+   ]
+  },
+  "Phase_Light": {
+   "colliding_of_72": 0,
+   "min_clearance_mm": 37.2,
+   "parts": [
+    "HALO_Phase_Arc_Head",
+    "HALO_Phase_Arc_Arms",
+    "HALO_Phase_Arc_Torso",
+    "HALO_Phase_Arc_Legs"
+   ]
+  },
+  "Phase_Medium": {
+   "colliding_of_72": 0,
+   "min_clearance_mm": 72.3,
+   "parts": [
+    "HALO_Phase_Arc_Head",
+    "HALO_Phase_Arc_Arms",
+    "HALO_Phase_Arc_Torso",
+    "HALO_Phase_Arc_Legs",
+    "HALO_Phase_Band_Medium"
+   ]
+  },
+  "Phase_Heavy": {
+   "colliding_of_72": 0,
+   "min_clearance_mm": 99.5,
+   "parts": [
+    "HALO_Phase_Arc_Head",
+    "HALO_Phase_Arc_Arms",
+    "HALO_Phase_Arc_Torso",
+    "HALO_Phase_Arc_Legs",
+    "HALO_Phase_Band_Heavy"
+   ]
+  }
+ },
+ "envelope": {
+  "Bulwark_Light": {
+   "z_min_mm": -13.6,
+   "z_max_mm": 20.9,
+   "outer_diam_m": 0.339,
+   "inner_diam_m": 0.223,
+   "head_clear_mm": 206.4
+  },
+  "Bulwark_Medium": {
+   "z_min_mm": -25.2,
+   "z_max_mm": 24.6,
+   "outer_diam_m": 0.432,
+   "inner_diam_m": 0.262,
+   "head_clear_mm": 194.8
+  },
+  "Bulwark_Heavy": {
+   "z_min_mm": -53.0,
+   "z_max_mm": 29.5,
+   "outer_diam_m": 0.599,
+   "inner_diam_m": 0.315,
+   "head_clear_mm": 167.0
+  },
+  "Mender_Light": {
+   "z_min_mm": -10.6,
+   "z_max_mm": 13.3,
+   "outer_diam_m": 0.311,
+   "inner_diam_m": 0.233,
+   "head_clear_mm": 209.4
+  },
+  "Mender_Medium": {
+   "z_min_mm": -22.5,
+   "z_max_mm": 15.6,
+   "outer_diam_m": 0.404,
+   "inner_diam_m": 0.274,
+   "head_clear_mm": 197.5
+  },
+  "Mender_Heavy": {
+   "z_min_mm": -46.2,
+   "z_max_mm": 18.7,
+   "outer_diam_m": 0.549,
+   "inner_diam_m": 0.329,
+   "head_clear_mm": 173.8
+  },
+  "Volt_Light": {
+   "z_min_mm": -10.6,
+   "z_max_mm": 37.0,
+   "outer_diam_m": 0.296,
+   "inner_diam_m": 0.251,
+   "head_clear_mm": 209.4
+  },
+  "Volt_Medium": {
+   "z_min_mm": -22.5,
+   "z_max_mm": 43.5,
+   "outer_diam_m": 0.386,
+   "inner_diam_m": 0.295,
+   "head_clear_mm": 197.5
+  },
+  "Volt_Heavy": {
+   "z_min_mm": -46.2,
+   "z_max_mm": 52.2,
+   "outer_diam_m": 0.528,
+   "inner_diam_m": 0.354,
+   "head_clear_mm": 173.8
+  },
+  "Phase_Light": {
+   "z_min_mm": -11.2,
+   "z_max_mm": 33.8,
+   "outer_diam_m": 0.287,
+   "inner_diam_m": 0.257,
+   "head_clear_mm": 208.8
+  },
+  "Phase_Medium": {
+   "z_min_mm": -23.0,
+   "z_max_mm": 39.8,
+   "outer_diam_m": 0.376,
+   "inner_diam_m": 0.302,
+   "head_clear_mm": 197.0
+  },
+  "Phase_Heavy": {
+   "z_min_mm": -46.8,
+   "z_max_mm": 47.8,
+   "outer_diam_m": 0.516,
+   "inner_diam_m": 0.362,
+   "head_clear_mm": 173.2
+  }
+ },
+ "fbx_vs_glb": {
+  "HALO_Bulwark": "ok",
+  "HALO_Volt": "ok",
+  "HALO_Common": "ok",
+  "HALO_Pickups": "ok"
+ }
+}

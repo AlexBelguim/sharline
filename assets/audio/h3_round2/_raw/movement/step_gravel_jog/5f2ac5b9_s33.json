@@ -1,0 +1,21 @@
+{
+ "name": "movement/step_gravel_jog",
+ "seed": 33,
+ "prompt": "summary: Low static close-up at ground level of combat boots jogging along a path of loose coarse gravel.\n\ndetailed_description:\n[Shot 1] Low static close-up at ground level of combat boots jogging along a path of loose coarse gravel. The camera is static and locked-off.\n\noverall_soundscape: Foley recording, close microphone: steady separate running footsteps on loose gravel, each footfall a loud dry crunch of stones grinding under the boot, about three steps per second with a clear moment of silence between steps. Nothing else is heard: no music, no speech, no voices.\n\nnon_diegetic_music: N/A",
+ "settings": {
+  "w": 128,
+  "h": 128,
+  "frames": 158,
+  "steps": 6,
+  "lora": "turbo4",
+  "shift_video": 12.0,
+  "shift_audio": 3.0,
+  "sampler": "res_multistep",
+  "scheduler": "simple",
+  "style": "structured"
+ },
+ "exec_s": 14.851,
+ "wall_s": 15.5,
+ "peak_vram_gib": 15.38,
+ "audio_s": 6.58
+}

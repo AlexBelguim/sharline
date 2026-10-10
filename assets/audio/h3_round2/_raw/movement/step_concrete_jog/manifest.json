@@ -1,0 +1,33 @@
+{
+ "files": [
+  "c3c87e16_s11.flac",
+  "c3c87e16_s12.flac",
+  "c3c87e16_s13.flac",
+  "c3c87e16_s14.flac"
+ ],
+ "tag": "c3c87e16",
+ "prompt": "summary: Low static close-up at ground level of a soldier's combat boots jogging steadily across a dry concrete pavement in an empty parking lot.\n\ndetailed_description:\n[Shot 1] Low static close-up at ground level of a soldier's combat boots jogging steadily across a dry concrete pavement in an empty parking lot. The camera is static and locked-off.\n\noverall_soundscape: Foley recording, close microphone: steady separate running footsteps of hard rubber boot soles on concrete, each footfall a crisp firm heel slap with a short gritty scuff, about three steps per second with a clear moment of silence between steps. Nothing else is heard: no music, no speech, no voices.\n\nnon_diegetic_music: N/A",
+ "settings": {
+  "w": 128,
+  "h": 128,
+  "frames": 158,
+  "steps": 6,
+  "lora": "turbo4",
+  "shift_video": 12.0,
+  "shift_audio": 3.0,
+  "sampler": "res_multistep",
+  "scheduler": "simple",
+  "style": "structured"
+ },
+ "params": {
+  "preroll": 0.01,
+  "tail_db": 40,
+  "hold": 0.04,
+  "max_len": 0.45,
+  "min_gap": 0.22,
+  "per_clip": 6,
+  "stereo": false,
+  "attack_max": 0.08,
+  "kind": "multi"
+ }
+}

@@ -1,12 +1,14 @@
 """Part builders for the HALO kit: core arcs, weight bands, pips, power cell, shards, pickup cores, far LOD.
 
-Every arc/band object has its origin at the halo centre.  Material slots:
+Every arc/band object has its origin at the halo centre.  Material slots at BUILD time (build_halo.py then
+splits each arc shell by material: glass -> HALO_<Core>_Arc_<Zone>, graphite + edge of all 4 arcs (+ the band)
+-> HALO_<Core>_Frame_<Weight>; the engine finds primitives by material NAME, never by index):
   arcs        : 0 = glass (swap per arc: M_HALO_Glass_T<tier> / _Off / _Broken_T<tier>), 1 = graphite,
                 2 = edge (M_HALO_Edge, always-on frame light)
   bands       : 0 = graphite, 1 = gunmetal (bolts), 2 = lip glass (highest arc tier), 3 = edge
   far glass   : 0 = glass (same swap as the arc)
-  far frame   : 0 = graphite, 1 = edge, 2 = lip glass (Medium/Heavy only)
-  cell        : 0 = glass (highest tier / status colour), 1 = graphite
+  far frame   : 0 = graphite (M_HALO_Graphite_Far), 1 = edge, 2 = lip glass (Medium/Heavy only)
+  cells       : 0 = glass (highest tier / status colour), 1 = graphite (generic + one per core)
   pickup      : 0 = window glass (tier), 1 = graphite, 2 = bone
 
 Readability rules baked in (review 2026-10-07, see NOTES.md "Review fixes"):
@@ -58,10 +60,34 @@ PIP_SEAT = {"Bulwark": (0.0168, BUL_A + 0.0085), "Mender": (0.0140, MEN_RI + 0.0
             "Volt": (0.0106, VOLT_R + 0.0048), "Phase": (0.0118, PHASE_R + 0.0045)}
 
 
-def pip_positions(core):
-    """HALO_<Core>_PIP_1..4 (halo-local, unscaled); PIP_1 is on the viewer's left when facing the wearer."""
+PIP_BOARD_H = 0.0120                   # graphite pip board: top this far above the pip rail (covers the lower half)
+PIP_BOARD_HALF = 0.0315                # half width: the 4-pip row (+-29.6 mm) plus 2 mm
+PIP_BOARD_CORES = ("Bulwark", "Mender", "Volt", "Phase")   # every core (Bulwark: hides its Head glyph behind the
+                                                          # centre pip, which read as a drop under the pip)
+
+
+def pip_centre(core):
+    """HALO_<Core>_PIP_Centre: the middle of the pip row (halo-local, unscaled), on the Head arc's front."""
     z, d = PIP_SEAT[core]
-    return [(-1.5 * PIP_SPACING + i * PIP_SPACING, -d, z + PIP_H + 0.0002) for i in range(4)]
+    return (0.0, -d, z + PIP_H + 0.0002)
+
+
+def pip_positions(core, n=4):
+    """Centred row of n tier pips (review r2 #3): x_i = (i - (n + 1) / 2) * PIP_SPACING, i = 1..n
+    (HALO_<Core>_PIP_<n>_<i>).  i = 1 is on the viewer's left when facing the wearer."""
+    cx, cy, cz = pip_centre(core)
+    return [((i - (n + 1) / 2.0) * PIP_SPACING, cy, cz) for i in range(1, n + 1)]
+
+
+def _pip_board(mb, core, c):
+    """Upright graphite board right behind the pip row, so the pips' lower half reads against dark graphite
+    instead of the same-coloured lit glass of the ring behind them (review r2 #3)."""
+    z, d = PIP_SEAT[core]
+    front = d - 0.0030 - 0.0007          # 0.7 mm behind the pip's back face
+    back = front - 0.0025
+    span = math.degrees(PIP_BOARD_HALF / back)
+    prof = rounded_rect(back, front, z - 0.0005, z + PIP_BOARD_H, 0.0008)
+    mb.sweep(SHAPE[core], prof, _angles(core, c - span, c + span, span), mat=K)
 
 
 def strip(d0, d1, z0, z1):
@@ -73,12 +99,12 @@ def _angles(core, a0, a1, step=ARC_STEP):
     return hex_angles(a0, a1) if core == "Bulwark" else arc_angles(a0, a1, step)
 
 
-def _plate_and_glyph(mb, core, zone, a, d0, d1, z0, z1, span=5.0, glyph_d=None):
+def _plate_and_glyph(mb, core, zone, a, d0, d1, z0, z1, span=5.0, glyph_d=None, glyph_s=1.0):
     """Graphite zone plate on top of the arc + the raised glass glyph on it."""
     shape = SHAPE[core]
     prof = rounded_rect(d0, d1, z0, z1, 0.0008, 1)
     mb.sweep(shape, prof, _angles(core, a - span, a + span, min(span, 6.0)), mat=K)
-    add_glyph(mb, shape, D(a), glyph_d if glyph_d is not None else (d0 + d1) / 2, z1, zone, mat=G)
+    add_glyph(mb, shape, D(a), glyph_d if glyph_d is not None else (d0 + d1) / 2, z1, zone, mat=G, s=glyph_s)
 
 
 def _ticks(mb, core, c, offsets, d0, d1, z0, z1, width=0.8):
@@ -141,9 +167,10 @@ def arc_bulwark(mb, zone):
             if a0 + 3 < kk < a1 - 3:
                 mb.sweep(hexs, post, hex_angles(kk - 3.0, kk + 3.0), mat=K)
                 mb.sweep(hexs, lamp, hex_angles(kk - 1.6, kk + 1.6), mat=E)
-    if zone == "Head":   # wide pip rail: glyph on the inner half, tier pips on the outer half
+    if zone == "Head":   # wide pip rail: glyph on the inner half, pip board, tier pips on the outer half
         _plate_and_glyph(mb, "Bulwark", zone, c, A - 0.0125, A + 0.0150, 0.0142, 0.0168, span=span,
                          glyph_d=A - 0.0058)
+        _pip_board(mb, "Bulwark", c)
     else:
         _plate_and_glyph(mb, "Bulwark", zone, c, A - 0.0080, A + 0.0090, 0.0142, 0.0168, span=span)
 
@@ -190,10 +217,14 @@ def arc_mender(mb, zone):
     zb = [(MEN_RO + 0.0060, MEN_ZO - 0.0035), (MEN_RO + 0.0060, top), (MEN_RI - 0.0060, top),
           (MEN_RI - 0.0060, top - 0.0035), (MEN_RO - 0.0050, top - 0.0035), (MEN_RO - 0.0050, MEN_ZO - 0.0035)]
     mb.sweep(circ, zb, arc_angles(c - 4.2, c + 4.2, 4.2), mat=K)
-    add_glyph(mb, circ, D(c), (MEN_RI + MEN_RO) / 2 + 0.001, top, zone, mat=G)
-    if zone == "Head":   # pip rail on the (higher) inner ring, flush with the bridge top
-        mb.sweep(circ, rounded_rect(MEN_RI - 0.0050, MEN_RI + 0.0050, top - 0.0030, top - 0.0001, 0.0008),
-                 arc_angles(c - 12.5, c + 12.5, 5.0), mat=K)
+    # Head: the glyph moves to the bridge's front end, clear of the centred pip row (round 2: it read as a
+    # glowing disc under the centre pip); the other zones keep it in the middle of the bridge
+    add_glyph(mb, circ, D(c), MEN_RO - 0.0005 if zone == "Head" else (MEN_RI + MEN_RO) / 2 + 0.001, top, zone,
+              mat=G)
+    if zone == "Head":   # pip rail on the (higher) inner ring, flush with the bridge top, + the pip board
+        mb.sweep(circ, rounded_rect(MEN_RI - 0.0066, MEN_RI + 0.0050, top - 0.0030, top - 0.0001, 0.0008),
+                 arc_angles(c - 13.6, c + 13.6, 6.8), mat=K)
+        _pip_board(mb, "Mender", c)
 
 
 # ---- Volt: crown ring with short upward sawtooth teeth
@@ -244,9 +275,10 @@ def arc_volt(mb, zone):
         mb.prism(cap, o, t, up, n, -0.0055, 0.0070, mat=K)
         collar = rounded_rect(R - 0.0080, R + 0.0120, 0.0060, 0.0135, 0.0015)
         mb.sweep(circ, collar, arc_angles(c + off - 8.4, c + off + 5.4, 4.6), mat=K)
-    if zone == "Head":
-        _plate_and_glyph(mb, "Volt", zone, c, R - 0.0082, R + 0.0085, 0.0082, 0.0106, span=11.5,
-                         glyph_d=R - 0.0030)
+    if zone == "Head":   # pip rail: glyph on its inner edge, centred pip row + pip board on the outer half
+        _plate_and_glyph(mb, "Volt", zone, c, R - 0.0135, R + 0.0085, 0.0082, 0.0106, span=12.5,
+                         glyph_d=R - 0.0078, glyph_s=0.8)
+        _pip_board(mb, "Volt", c)
     else:
         _plate_and_glyph(mb, "Volt", zone, c, R - 0.0065, R + 0.0075, 0.0082, 0.0106, span=5.0)
 
@@ -299,9 +331,10 @@ def arc_phase(mb, zone):
             _phase_prong(mb, edge, into)
         for pc in (c - 29.5, c + 29.5):
             _plate_and_glyph(mb, "Phase", zone, pc, R - 0.0058, R + 0.0058, 0.0055, 0.0118, span=4.5)
-    elif zone == "Head":
-        _plate_and_glyph(mb, "Phase", zone, c, R - 0.0085, R + 0.0075, 0.0055, 0.0118, span=12.0,
-                         glyph_d=R - 0.0035)
+    elif zone == "Head":   # pip rail: glyph on its inner edge, centred pip row + pip board on the outer half
+        _plate_and_glyph(mb, "Phase", zone, c, R - 0.0135, R + 0.0075, 0.0055, 0.0118, span=12.5,
+                         glyph_d=R - 0.0080, glyph_s=0.8)
+        _pip_board(mb, "Phase", c)
     else:
         _plate_and_glyph(mb, "Phase", zone, c, R - 0.0058, R + 0.0058, 0.0055, 0.0118, span=4.5)
 
@@ -428,6 +461,17 @@ def build_band(core, weight, mats, col):
 # frame mesh per weight class (graphite + edge lines + band).  No ticks, bolts, glyphs or plates; the core
 # signature (posts / offset rings / teeth / prongs), the band mass and the edge outline are kept.
 FAR_STEP = 20.0
+# Far-LOD core signatures, about 2x the near kit (review r2 #1a): beyond 20 m one pixel is >= 3 cm, so the
+# near signatures (posts 8.5 mm, teeth 30 mm, prongs 28 mm, ring step 14 mm) fall below a pixel.
+FAR_BUL_POST_TOP = 0.0330                       # posts 18 mm above the 15 mm ring top (near: 8.5 mm)
+FAR_MEN_ZI = MEN_ZI + 0.0140                   # inner ring raised: ring step 28 mm (near: 14 mm)
+FAR_VOLT_TOOTH = [(-0.0240, 0.004), (0.0130, 0.004), (0.0100, 0.0545), (0.0030, 0.0545)]   # 45 mm above the top
+FAR_PHASE_PRONG = [(-0.0042, 0.0060), (0.0024, 0.0060), (0.0082, 0.0470), (0.0075, 0.0555), (0.0008, 0.0570),
+                   (-0.0042, 0.0350)]          # 47 mm above the ring top (near: 28 mm), leaning into the gap
+FAR_PHASE_SLEEVE = [(-0.0062, 0.0040), (0.0046, 0.0040), (0.0062, 0.0250), (-0.0062, 0.0250)]   # lower prong
+FAR_MEN_HH = 0.0046                    # far Mender ring half height (near 5.5 mm): the raised ring shows more glass
+FAR_MEN_BRIDGE = [(MEN_RI - 0.0058, FAR_MEN_ZI + 0.0040), (MEN_RI - 0.0058, FAR_MEN_ZI - 0.0050),
+                  (MEN_RO + 0.0058, MEN_ZO - 0.0050), (MEN_RO + 0.0058, MEN_ZO + 0.0040)]
 
 
 def _tri(d, z):
@@ -441,22 +485,80 @@ def far_glass(mb, core, zone):
     if core == "Bulwark":
         mb.sweep(hexs, BUL_FAR_GLASS, hex_angles(a0, a1, step=90.0), mat=0)
     elif core == "Mender":
-        for R, zc in ((MEN_RI, MEN_ZI), (MEN_RO, MEN_ZO)):
-            mb.sweep(circ, strip(R - MEN_HW, R + MEN_HW, zc - MEN_HH, zc + MEN_HH), arc_angles(a0, a1, FAR_STEP),
-                     mat=0)
+        for R, zc in ((MEN_RI, FAR_MEN_ZI), (MEN_RO, MEN_ZO)):
+            mb.sweep(circ, strip(R - MEN_HW, R + MEN_HW, zc - FAR_MEN_HH, zc + FAR_MEN_HH),
+                     arc_angles(a0, a1, FAR_STEP), mat=0)
     elif core == "Volt":
         mb.sweep(circ, VOLT_FAR_GLASS, arc_angles(a0, a1, FAR_STEP), mat=0)
         for off in (-22.5, 22.5):
             o, t, n, up = frame_at(circ, D(c + off), VOLT_R, 0.0)
-            mb.prism([VOLT_TOOTH[i] for i in (0, 1, 3, 4)], o, t, up, n, -0.0045, 0.0060, mat=0)
+            mb.prism(FAR_VOLT_TOOTH, o, t, up, n, -0.0050, 0.0065, mat=0)
     else:
         pieces = [(a0, c - PHASE_GAP), (c + PHASE_GAP, a1)] if zone == "Torso" else [(a0, a1)]
         for p0, p1 in pieces:
-            mb.sweep(circ, ellipse(PHASE_R, 0.0, 0.0075, 0.0100, 6), arc_angles(p0, p1, FAR_STEP), mat=0)
+            mb.sweep(circ, ellipse(PHASE_R, -0.0005, 0.0075, 0.0090, 6), arc_angles(p0, p1, FAR_STEP), mat=0)
         if zone == "Torso":
             for edge, into in ((c - PHASE_GAP, 1), (c + PHASE_GAP, -1)):
                 o, t, n, up = frame_at(circ, D(edge - into * 1.2), PHASE_R, 0.0)
-                mb.prism([PHASE_PRONG[i] for i in (0, 1, 3, 4, 5, 7)], o, t * into, up, n, -0.0032, 0.0032, mat=0)
+                mb.prism(FAR_PHASE_PRONG, o, t * into, up, n, -0.0040, 0.0040, mat=0)
+
+
+FAR_SEAMS = (45.0, 135.0, 225.0, 315.0)
+FAR_VOLT_CAP = [(-0.0062, 0.0400), (0.0127, 0.0400), (0.0117, 0.0565), (0.0018, 0.0565)]   # tooth tip, like near
+
+
+def _far_blocks(mb, core):
+    """Graphite seam clamps, zone plates (and Volt tooth caps / collars, Phase prong sleeves) placed like the
+    near kit's.  They break the far glass into the same lit / dark rhythm, so the 20 m switch does not
+    brighten the halo (review r2 #5: the continuous far glass was 17-36 % brighter than the near kit)."""
+    zones = [ZONES[z] for z in ZONES]
+    if core == "Bulwark":
+        A = BUL_A
+        clamp = [(A - 0.0196, -0.0158), (A + 0.0215, -0.0158), (A + 0.0215, 0.0135), (A + 0.0185, 0.0170),
+                 (A - 0.0185, 0.0170), (A - 0.0196, 0.0160)]
+        for a in FAR_SEAMS:
+            mb.sweep(hexs, clamp, hex_angles(a - 1.8, a + 1.8, step=3.6), mat=0)
+        for c in zones:
+            span = 12.0 if c == ZONES["Head"] else 5.5
+            mb.sweep(hexs, strip(A - 0.0125, A + 0.0150, 0.0142, 0.0170), hex_angles(c - span, c + span, step=2 * span),
+                     mat=0)
+    elif core == "Mender":
+        top = FAR_MEN_ZI + FAR_MEN_HH + 0.0015
+        zb = [(MEN_RO + 0.0060, MEN_ZO - 0.0045), (MEN_RO + 0.0060, MEN_ZO + FAR_MEN_HH + 0.0015),
+              (MEN_RI - 0.0060, top), (MEN_RI - 0.0060, top - 0.0050)]
+        for c in zones:
+            span = 8.0 if c == ZONES["Head"] else 4.2
+            mb.sweep(circ, zb, arc_angles(c - span, c + span, span), mat=0)
+    elif core == "Volt":
+        R = VOLT_R
+        clamp = [(R - 0.0125, -0.0125), (R + 0.0140, -0.0125), (R + 0.0140, 0.0050), (R + 0.0090, 0.0108),
+                 (R - 0.0110, 0.0108), (R - 0.0125, 0.0095)]
+        for a in FAR_SEAMS:
+            mb.sweep(circ, clamp, arc_angles(a - 1.8, a + 1.8, 3.6), mat=0)
+        for c in zones:
+            span = 12.5 if c == ZONES["Head"] else 5.0
+            mb.sweep(circ, strip(R - 0.0085, R + 0.0080, 0.0080, 0.0112), arc_angles(c - span, c + span, span), mat=0)
+            for off in (-22.5, 22.5):
+                o, t, n, up = frame_at(circ, D(c + off), R, 0.0)
+                mb.prism(FAR_VOLT_CAP, o, t, up, n, -0.0060, 0.0075, mat=0)
+                mb.sweep(circ, strip(R - 0.0085, R + 0.0128, 0.0060, 0.0190),
+                         arc_angles(c + off - 9.0, c + off + 6.0, 7.5), mat=0)
+    else:
+        R = PHASE_R
+        collar = ellipse(R, -0.0010, 0.0090, 0.0125, 6)
+        for a in FAR_SEAMS:
+            mb.sweep(circ, collar, arc_angles(a - 1.8, a + 1.8, 3.6), mat=0)
+        for c in zones:
+            if c == ZONES["Torso"]:
+                pcs, span = (c - 29.5, c + 29.5), 4.5
+                for edge, into in ((c - PHASE_GAP, 1), (c + PHASE_GAP, -1)):
+                    o, t, n, up = frame_at(circ, D(edge - into * 1.2), R, 0.0)
+                    mb.prism(FAR_PHASE_SLEEVE, o, t * into, up, n, -0.0050, 0.0050, mat=0)
+            else:
+                pcs, span = (c,), (12.5 if c == ZONES["Head"] else 4.5)
+            for pc in pcs:
+                mb.sweep(circ, strip(R - 0.0062, R + 0.0062, 0.0055, 0.0122), arc_angles(pc - span, pc + span, span),
+                         mat=0)
 
 
 def far_frame(mb, core, weight):
@@ -473,14 +575,16 @@ def far_frame(mb, core, weight):
     if core == "Bulwark":
         ring(strip(BUL_A + 0.0145, BUL_A + 0.0205, -0.0152, -0.0092), 0)
         ring(_tri(BUL_A + 0.0205, -0.0121), 1)
-        post = strip(BUL_A - 0.0205, BUL_A + 0.0228, -0.0160, 0.0235)
+        post = strip(BUL_A - 0.0205, BUL_A + 0.0228, -0.0160, FAR_BUL_POST_TOP)
+        lamp = strip(BUL_A - 0.0020, BUL_A + 0.0120, FAR_BUL_POST_TOP - 0.0003, FAR_BUL_POST_TOP + 0.0012)
         for k in HEX_CORNERS:
-            mb.sweep(hexs, post, hex_angles(k - 3.0, k + 3.0, step=6.0), mat=0)
+            mb.sweep(hexs, post, hex_angles(k - 3.5, k + 3.5, step=7.0), mat=0)
+            mb.sweep(hexs, lamp, hex_angles(k - 1.8, k + 1.8, step=3.6), mat=1)
     elif core == "Mender":
-        for R, zc in ((MEN_RI, MEN_ZI), (MEN_RO, MEN_ZO)):
+        for R, zc in ((MEN_RI, FAR_MEN_ZI), (MEN_RO, MEN_ZO)):
             ring(_tri(R + MEN_HW, zc), 1)
         for a in (45, 135, 225, 315):
-            mb.sweep(circ, MEN_BRIDGE, arc_angles(a - 2.0, a + 2.0, 4.0), mat=0)
+            mb.sweep(circ, FAR_MEN_BRIDGE, arc_angles(a - 2.0, a + 2.0, 4.0), mat=0)
     elif core == "Volt":
         ring(strip(VOLT_R + 0.0075, VOLT_R + 0.0125, -0.0118, -0.0068), 0)
         ring(_tri(VOLT_R + 0.0125, -0.0093), 1)
@@ -490,19 +594,24 @@ def far_frame(mb, core, weight):
         for edge, into in ((90 - PHASE_GAP, 1), (90 + PHASE_GAP, -1)):
             mb.sweep(circ, ellipse(PHASE_R, -0.001, 0.0090, 0.0125, 6), arc_angles(edge - into * 3.0, edge, 3.0),
                      mat=0)
+    _far_blocks(mb, core)
     if weight == "Light":
         return
     T, B, din, dout = band_dims(core, weight)
+    # lip glass flush in the band's underside like the near band (round 2: a lip prism hanging 1 mm below the
+    # band showed as a lit line at eye level and made the far Medium/Heavy halos 12-16 % brighter)
+    lip = [(din + 0.0065, B), (din + 0.0015, B), (din, B + 0.0015)]
     if weight == "Medium":
-        prof = [(din, T), (dout, T - 0.003), (dout, B + 0.003), (din, B)]
+        prof = [(din, T), (dout, T - 0.003), (dout, B + 0.003)] + lip
     else:
         prof = [(din, T + 0.001), (dout - 0.012, T - 0.001), (dout + 0.004, T - 0.012), (dout + 0.004, B + 0.008),
-                (dout - 0.008, B), (din, B)]
+                (dout - 0.008, B)] + lip
+    mats = [0] * len(prof)
+    mats[len(prof) - 3] = 2          # the edge (din + 6.5 mm, B) -> (din + 1.5 mm, B) is the lip glass
     spans = list(_band_spans(core))
-    ring(prof, 0, spans)
+    ring(prof, mats, spans)
     ring(_tri(dout + (0.0040 if weight == "Heavy" else 0.0), T - 0.0126 if weight == "Heavy" else (T + B) / 2), 1,
          spans)
-    ring([(din + 0.0015, B - 0.0010), (din + 0.0065, B - 0.0010), (din + 0.0040, B + 0.0010)], 2, spans)
 
 
 def build_far(core, mats_glass, mats_frame, col):
@@ -531,39 +640,126 @@ def build_pip(mats, col):
 
 
 # ------------------------------------------------------------------------------------------------ power cell
+# Cells travel along local +X, the orbit centre is on local +Y, up = +Z, origin = the orbit point.
+# Every cell keeps a short, flat glass trail fin lying in the orbit plane (a streak from above, edge-on and
+# invisible from the side, so it never blurs the side silhouette).
+CELL_GLASS, CELL_FRAME = 0, 1
+
+
+def _cell_fin(mb, x0, z=0.0, half=0.0045, length=0.020, th=0.0011):
+    fin = [(x0 + 0.003, -half), (x0 + 0.003, half), (x0 - length * 0.55, half * 0.78), (x0 - length, half * 0.95),
+           (x0 - length * 0.78, 0.0), (x0 - length, -half * 0.95), (x0 - length * 0.55, -half * 0.78)]
+    mb.prism(fin, (0, 0, z), (1, 0, 0), (0, 1, 0), (0, 0, 1), -th, th, mat=CELL_GLASS)
+
+
+def _new_verts(mb, before):
+    return [v for v in mb.bm.verts if v not in before]
+
+
+def _capsule_x(mb, prof, mats, sides, z=0.0):
+    """Lathe an open (radius, axial) profile around Z, then lay it along +X at height z."""
+    before = set(mb.bm.verts)
+    mb.sweep(circ, prof, [2 * math.pi * (i + 0.5) / sides for i in range(sides)], mat=mats, cap=False, loop=True,
+             open_profile=True)
+    vs = _new_verts(mb, before)
+    bmesh.ops.rotate(mb.bm, verts=vs, cent=(0, 0, 0), matrix=Matrix.Rotation(D(90), 3, "Y"))
+    bmesh.ops.translate(mb.bm, verts=vs, vec=(0, 0, z))
+
+
 def build_cell(mats, col):
-    """Capsule cell travelling along local +X: graphite end caps, hexagonal glass crystal window in the
-    middle and a swept glass 'orbit-trail' fin trailing toward -X."""
+    """Generic HALO_PowerCell (the spec part; fallback when no core-specific cell applies): ~6 cm capsule with
+    graphite end domes, a glass body and the trail fin.  8-sided, low domes (review r2 #9: 488 -> ~120 tris)."""
     mb = MB()
-    zc = circ
-    crystal = [(0.0, -0.0175), (0.0078, -0.011), (0.0078, 0.011), (0.0, 0.0175)]
-    mb.sweep(zc, crystal, [D(30 + 60 * i) for i in range(6)], mat=0, cap=False, loop=True, open_profile=True)
-    front = [(0.0, 0.0255), (0.0042, 0.0245), (0.0080, 0.0205), (0.0098, 0.0150), (0.0098, 0.0095),
-             (0.0060, 0.0080), (0.0, 0.0080)]
-    rear = [(0.0, -0.0080), (0.0060, -0.0080), (0.0098, -0.0095), (0.0098, -0.0150), (0.0080, -0.0190),
-            (0.0050, -0.0215), (0.0, -0.0220)]
-    steps = [2 * math.pi * i / 12 for i in range(12)]
-    mb.sweep(zc, front, steps, mat=1, cap=False, loop=True, open_profile=True)
-    mb.sweep(zc, rear, steps, mat=1, cap=False, loop=True, open_profile=True)
-    mb.sweep(zc, rounded_rect(0.0090, 0.0101, 0.0168, 0.0186, 0.0004), steps, mat=0, loop=True)
-    bm = mb.bm
-    bmesh.ops.rotate(bm, verts=bm.verts, cent=(0, 0, 0), matrix=Matrix.Rotation(D(90), 3, "Y"))
-    fin = [(-0.0150, -0.0070), (-0.0150, 0.0070), (-0.0230, 0.0058), (-0.0340, 0.0040), (-0.0440, 0.0034),
-           (-0.0380, 0.0), (-0.0440, -0.0034), (-0.0340, -0.0040), (-0.0230, -0.0058)]
-    fv = mb.prism(fin, (0, 0, 0), (1, 0, 0), (0, 1, 0), (0, 0, 1), -0.0011, 0.0011, mat=0)
-    R = 0.245 / 1.25
-    for f in fv:
-        for v in f.verts:
-            if v.co.x < -0.0149 and not v.tag:
-                v.tag = True
-                x, y = v.co.x, v.co.y
-                ph = x / R
-                v.co.x = (R - y) * math.sin(ph)
-                v.co.y = R - (R - y) * math.cos(ph)
-    for v in mb.bm.verts:
-        v.tag = False
-    bmesh.ops.scale(mb.bm, vec=(1.25, 1.25, 1.25), verts=mb.bm.verts)   # ~6 cm capsule, readable at range
-    return mb.finish("HALO_PowerCell", mats, smooth_angle=25, col=col)
+    K_, G_ = CELL_FRAME, CELL_GLASS
+    _capsule_x(mb, [(0.0, 0.0315), (0.0090, 0.0272), (0.0122, 0.0185), (0.0110, 0.0128), (0.0110, -0.0128),
+                    (0.0122, -0.0185), (0.0095, -0.0255), (0.0, -0.0285)], [K_, K_, K_, G_, K_, K_, K_], 8)
+    _cell_fin(mb, -0.0262, length=0.022)
+    return mb.finish("HALO_PowerCell", mats, smooth_angle=35, col=col)
+
+
+def _lathe_z(mb, prof, mats, shape=circ, sides=8, z=0.0, cap_axis=True):
+    """Revolve an open (radius, z) profile about the cell's vertical axis (rotationally symmetric: the same
+    silhouette from every yaw, so the shape reads whatever the orbit angle)."""
+    if shape is hexs:
+        angs = [D(a) for a in HEX_CORNERS]
+    else:
+        angs = [2 * math.pi * (i + 0.5) / sides for i in range(sides)]
+    before = set(mb.bm.verts)
+    mb.sweep(shape, prof, angs, mat=mats, cap=False, loop=True, open_profile=True)
+    if z:
+        bmesh.ops.translate(mb.bm, verts=_new_verts(mb, before), vec=(0, 0, z))
+
+
+# Core cells: each is a miniature of its core's ring, sized so the shape survives at ~3-4 px (10 m, 1080p):
+#   Bulwark  wide, low hex puck              2.1 : 1  (a flat dash)
+#   Mender   two stacked discs on a spine    "="      (two bars with a gap row)
+#   Volt     toothed crown + glass spike     1 : 2    (a vertical spike)
+#   Phase    round glass orb in an open ring 1 : 1 core + thin wings (a round dot)
+def _cell_bulwark(mb):
+    """Hex puck lying flat (Bulwark = thick faceted hexagon): wide and low from every side, a glass belt and a
+    glass top window in a graphite shell."""
+    K_, G_ = CELL_FRAME, CELL_GLASS
+    prof = [(0.0, -0.0105), (0.0185, -0.0105), (0.0212, -0.0080), (0.0230, -0.0062), (0.0230, 0.0062),
+            (0.0212, 0.0080), (0.0185, 0.0105), (0.0105, 0.0105), (0.0080, 0.0122), (0.0, 0.0122)]
+    _lathe_z(mb, prof, [K_, K_, G_, G_, G_, K_, K_, G_, G_], shape=hexs)
+    _cell_fin(mb, -0.0230, half=0.0055, length=0.020)
+
+
+def _cell_mender(mb):
+    """Twin rings: two stacked discs on a graphite spine, each with a glowing glass rim and a graphite hub, the
+    lower one wider (like the Mender halo's lower outer ring).  '=' from every side (the 18 mm gap stays a
+    dark pixel row at 10 m), two concentric glass rings from above."""
+    K_, G_ = CELL_FRAME, CELL_GLASS
+    prof = [(0.0, -0.0225), (0.0195, -0.0225), (0.0232, -0.0195), (0.0232, -0.0130), (0.0205, -0.0102),
+            (0.0182, -0.0102), (0.0060, -0.0102),                                          # lower disc, hub
+            (0.0060, 0.0078), (0.0158, 0.0078), (0.0200, 0.0108), (0.0200, 0.0160), (0.0170, 0.0188),
+            (0.0118, 0.0188), (0.0, 0.0188)]                                               # upper disc, hub
+    _lathe_z(mb, prof, [K_, G_, G_, G_, G_, K_, K_, K_, G_, G_, G_, G_, K_], sides=8)
+    _cell_fin(mb, -0.0230, z=-0.0163, half=0.0045, length=0.018)
+
+
+def _cell_volt(mb):
+    """A mini crown (Volt = crown ring with upward teeth): a hex graphite collar with a glass belt, six graphite
+    teeth rising from its rim round a tall glass energy spike.  Tall and pointed from every side (the glowing
+    spike), a toothed ring from above."""
+    K_, G_ = CELL_FRAME, CELL_GLASS
+    prof = [(0.0, -0.0170), (0.0105, -0.0170), (0.0128, -0.0150), (0.0128, -0.0128), (0.0136, -0.0122),
+            (0.0136, -0.0084), (0.0128, -0.0078), (0.0128, -0.0062), (0.0080, -0.0062), (0.0068, -0.0040),
+            (0.0036, 0.0220), (0.0, 0.0420)]
+    _lathe_z(mb, prof, [K_, K_, K_, G_, G_, G_, K_, K_, G_, G_, G_], shape=hexs)
+    tooth = [(0.0074, -0.0066), (0.0134, -0.0066), (0.0134, 0.0030), (0.0100, 0.0160), (0.0074, 0.0110)]
+    for k in range(6):
+        a = D(30.0 + 60.0 * k)
+        out = (math.cos(a), math.sin(a), 0.0)
+        tan = (-math.sin(a), math.cos(a), 0.0)
+        mb.prism(tooth, (0, 0, 0), out, (0, 0, 1), tan, -0.0026, 0.0026, mat=K_)
+    _cell_fin(mb, -0.0125, z=-0.0120, half=0.0040, length=0.020)
+
+
+def _cell_phase(mb):
+    """A round glass orb inside a thin open ring whose gap trails behind (Phase = smooth round ring with a gap
+    at the back); two graphite struts hold the orb, the trail fin leaves through the gap.  At range a solid
+    round dot (the ring is too thin to widen it); from above a mini Phase halo."""
+    K_, G_ = CELL_FRAME, CELL_GLASS
+    _lathe_z(mb, [(0.0, -0.0162), (0.0080, -0.0142), (0.0140, -0.0078), (0.0158, 0.0), (0.0140, 0.0078),
+                  (0.0080, 0.0142), (0.0, 0.0162)], [K_, G_, G_, G_, G_, G_], sides=8)
+    ring = [(0.0200, -0.0021), (0.0242, -0.0021), (0.0242, 0.0021), (0.0200, 0.0021)]
+    mb.sweep(circ, ring, arc_angles(-142.0, 142.0, 28.4), mat=[G_, G_, G_, K_], cap_mat=K_)
+    for sy in (-1.0, 1.0):     # struts orb -> ring (0.5 mm into each so they read as one piece)
+        mb.box((0, sy * 0.0177, 0), (1, 0, 0), (0, 1, 0), (0, 0, 1), 0.0030, 0.0056, 0.0026, mat=K_)
+    _cell_fin(mb, -0.0125, half=0.0040, length=0.024)
+
+
+CELLS = {"Bulwark": _cell_bulwark, "Mender": _cell_mender, "Volt": _cell_volt, "Phase": _cell_phase}
+
+
+def build_core_cell(core, mats, col):
+    """HALO_PowerCell_<Core> (review r2 #1b): the cells orbit above the ring against the sky and are the most
+    visible part at range, so each core's cell carries the core's silhouette, upright and rotationally
+    symmetric (wide hex puck / stacked twin discs / tall spiked crown / round orb in an open ring)."""
+    mb = MB()
+    CELLS[core](mb)
+    return mb.finish(f"HALO_PowerCell_{core}", mats, smooth_angle=30, col=col)
 
 
 # ------------------------------------------------------------------------------------------------ shards

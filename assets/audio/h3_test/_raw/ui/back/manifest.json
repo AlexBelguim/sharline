@@ -1,0 +1,32 @@
+{
+ "files": [
+  "8ea1ff2c_s1.flac",
+  "8ea1ff2c_s2.flac",
+  "8ea1ff2c_s3.flac"
+ ],
+ "tag": "8ea1ff2c",
+ "prompt": "summary: A futuristic game menu panel slides closed, once.\n\ndetailed_description:\n[Shot 1] A futuristic game menu panel slides closed, once. The camera is static and locked-off.\n\noverall_soundscape: A single soft low falling electronic blip, then silence. Nothing else is heard: no music, no speech, no voices.\n\nnon_diegetic_music: N/A",
+ "settings": {
+  "w": 128,
+  "h": 128,
+  "frames": 73,
+  "steps": 6,
+  "lora": "turbo4",
+  "shift_video": 12.0,
+  "shift_audio": 3.0,
+  "sampler": "res_multistep",
+  "scheduler": "simple",
+  "style": "structured"
+ },
+ "params": {
+  "preroll": 0.01,
+  "tail_db": 40,
+  "hold": 0.06,
+  "max_len": 0.4,
+  "min_gap": 0.3,
+  "per_clip": 1,
+  "stereo": false,
+  "attack_max": 0.15,
+  "kind": "oneshot"
+ }
+}

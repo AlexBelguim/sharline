@@ -1,0 +1,62 @@
+{
+  "pass_all": true,
+  "preview_material_count": 16,
+  "opaque_with_alpha_mask_zero": true,
+  "mask_albedo_multiply_removed": true,
+  "canonical_export_swap_count": 16,
+  "restore_preview_swap_count": 16,
+  "exported_RGBA_COLOR_0": true,
+  "exported_material_contract_extras": true,
+  "weight_graph_actual_render_tests": [
+    {
+      "mask": 0,
+      "current_height_m": 0.005,
+      "next_height_m": 0.023,
+      "expected": 0.0,
+      "blender_rendered": 0.0
+    },
+    {
+      "mask": 0.15,
+      "current_height_m": 0.005,
+      "next_height_m": 0.023,
+      "expected": 0.04231475199999993,
+      "blender_rendered": 0.04224352166056633
+    },
+    {
+      "mask": 0.25,
+      "current_height_m": 0.02,
+      "next_height_m": 0.008,
+      "expected": 0,
+      "blender_rendered": 0.0
+    },
+    {
+      "mask": 0.5,
+      "current_height_m": 0.005,
+      "next_height_m": 0.023,
+      "expected": 0.9179755519999998,
+      "blender_rendered": 0.91684889793396
+    },
+    {
+      "mask": 0.5,
+      "current_height_m": 0.025,
+      "next_height_m": 0.002,
+      "expected": 0.020915888000000035,
+      "blender_rendered": 0.020865032449364662
+    },
+    {
+      "mask": 0.75,
+      "current_height_m": 0.005,
+      "next_height_m": 0.023,
+      "expected": 1,
+      "blender_rendered": 0.9989017844200134
+    },
+    {
+      "mask": 1,
+      "current_height_m": 0.025,
+      "next_height_m": 0.002,
+      "expected": 1.0,
+      "blender_rendered": 0.9984634518623352
+    }
+  ],
+  "max_render_weight_error": 0.001536548137664795
+}

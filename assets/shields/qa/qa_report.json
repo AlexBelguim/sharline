@@ -1,43 +1,12 @@
 {
  "topology": {
-  "HALO_Bulwark_Arc_Arms": {
-   "tris": 634,
-   "edges_gt2_faces": 0,
-   "boundary_edges": 0,
-   "inverted_closed_islands": 0,
-   "coincident_face_pairs": 0,
-   "uv_layers": 1
-  },
-  "HALO_Bulwark_Arc_Head": {
-   "tris": 798,
-   "edges_gt2_faces": 0,
-   "boundary_edges": 0,
-   "inverted_closed_islands": 0,
-   "coincident_face_pairs": 0,
-   "uv_layers": 1
-  },
-  "HALO_Bulwark_Arc_Legs": {
-   "tris": 634,
-   "edges_gt2_faces": 0,
-   "boundary_edges": 0,
-   "inverted_closed_islands": 0,
-   "coincident_face_pairs": 0,
-   "uv_layers": 1
-  },
-  "HALO_Bulwark_Arc_Torso": {
-   "tris": 730,
-   "edges_gt2_faces": 0,
-   "boundary_edges": 0,
-   "inverted_closed_islands": 0,
-   "coincident_face_pairs": 0,
-   "uv_layers": 1
-  },
   "HALO_Bulwark_Band_Heavy": {
    "tris": 1380,
    "edges_gt2_faces": 0,
    "boundary_edges": 0,
    "inverted_closed_islands": 0,
    "coincident_face_pairs": 0,
+   "zero_area_faces": 0,
    "uv_layers": 1
   },
   "HALO_Bulwark_Band_Medium": {
@@ -46,30 +15,34 @@
    "boundary_edges": 0,
    "inverted_closed_islands": 0,
    "coincident_face_pairs": 0,
+   "zero_area_faces": 0,
    "uv_layers": 1
   },
   "HALO_Bulwark_Far_Frame_Heavy": {
-   "tris": 348,
+   "tris": 600,
    "edges_gt2_faces": 0,
    "boundary_edges": 0,
    "inverted_closed_islands": 0,
    "coincident_face_pairs": 0,
+   "zero_area_faces": 0,
    "uv_layers": 1
   },
   "HALO_Bulwark_Far_Frame_Light": {
-   "tris": 204,
+   "tris": 468,
    "edges_gt2_faces": 0,
    "boundary_edges": 0,
    "inverted_closed_islands": 0,
    "coincident_face_pairs": 0,
+   "zero_area_faces": 0,
    "uv_layers": 1
   },
   "HALO_Bulwark_Far_Frame_Medium": {
-   "tris": 324,
+   "tris": 576,
    "edges_gt2_faces": 0,
    "boundary_edges": 0,
    "inverted_closed_islands": 0,
    "coincident_face_pairs": 0,
+   "zero_area_faces": 0,
    "uv_layers": 1
   },
   "HALO_Bulwark_Far_Glass_Arms": {
@@ -78,6 +51,7 @@
    "boundary_edges": 0,
    "inverted_closed_islands": 0,
    "coincident_face_pairs": 0,
+   "zero_area_faces": 0,
    "uv_layers": 1
   },
   "HALO_Bulwark_Far_Glass_Head": {
@@ -86,6 +60,7 @@
    "boundary_edges": 0,
    "inverted_closed_islands": 0,
    "coincident_face_pairs": 0,
+   "zero_area_faces": 0,
    "uv_layers": 1
   },
   "HALO_Bulwark_Far_Glass_Legs": {
@@ -94,6 +69,7 @@
    "boundary_edges": 0,
    "inverted_closed_islands": 0,
    "coincident_face_pairs": 0,
+   "zero_area_faces": 0,
    "uv_layers": 1
   },
   "HALO_Bulwark_Far_Glass_Torso": {
@@ -102,6 +78,7 @@
    "boundary_edges": 0,
    "inverted_closed_islands": 0,
    "coincident_face_pairs": 0,
+   "zero_area_faces": 0,
    "uv_layers": 1
   },
   "HALO_Core_Bulwark": {
@@ -110,6 +87,7 @@
    "boundary_edges": 0,
    "inverted_closed_islands": 0,
    "coincident_face_pairs": 0,
+   "zero_area_faces": 0,
    "uv_layers": 1
   },
   "HALO_Core_Mender": {
@@ -118,6 +96,7 @@
    "boundary_edges": 0,
    "inverted_closed_islands": 0,
    "coincident_face_pairs": 0,
+   "zero_area_faces": 0,
    "uv_layers": 1
   },
   "HALO_Core_Phase": {
@@ -126,6 +105,7 @@
    "boundary_edges": 0,
    "inverted_closed_islands": 0,
    "coincident_face_pairs": 0,
+   "zero_area_faces": 0,
    "uv_layers": 1
   },
   "HALO_Core_Volt": {
@@ -134,38 +114,7 @@
    "boundary_edges": 0,
    "inverted_closed_islands": 0,
    "coincident_face_pairs": 0,
-   "uv_layers": 1
-  },
-  "HALO_Mender_Arc_Arms": {
-   "tris": 864,
-   "edges_gt2_faces": 0,
-   "boundary_edges": 0,
-   "inverted_closed_islands": 0,
-   "coincident_face_pairs": 0,
-   "uv_layers": 1
-  },
-  "HALO_Mender_Arc_Head": {
-   "tris": 1012,
-   "edges_gt2_faces": 0,
-   "boundary_edges": 0,
-   "inverted_closed_islands": 0,
-   "coincident_face_pairs": 0,
-   "uv_layers": 1
-  },
-  "HALO_Mender_Arc_Legs": {
-   "tris": 864,
-   "edges_gt2_faces": 0,
-   "boundary_edges": 0,
-   "inverted_closed_islands": 0,
-   "coincident_face_pairs": 0,
-   "uv_layers": 1
-  },
-  "HALO_Mender_Arc_Torso": {
-   "tris": 868,
-   "edges_gt2_faces": 0,
-   "boundary_edges": 0,
-   "inverted_closed_islands": 0,
-   "coincident_face_pairs": 0,
+   "zero_area_faces": 0,
    "uv_layers": 1
   },
   "HALO_Mender_Band_Heavy": {
@@ -174,6 +123,7 @@
    "boundary_edges": 0,
    "inverted_closed_islands": 0,
    "coincident_face_pairs": 0,
+   "zero_area_faces": 0,
    "uv_layers": 1
   },
   "HALO_Mender_Band_Medium": {
@@ -182,30 +132,34 @@
    "boundary_edges": 0,
    "inverted_closed_islands": 0,
    "coincident_face_pairs": 0,
+   "zero_area_faces": 0,
    "uv_layers": 1
   },
   "HALO_Mender_Far_Frame_Heavy": {
-   "tris": 696,
+   "tris": 740,
    "edges_gt2_faces": 0,
    "boundary_edges": 0,
    "inverted_closed_islands": 0,
    "coincident_face_pairs": 0,
+   "zero_area_faces": 0,
    "uv_layers": 1
   },
   "HALO_Mender_Far_Frame_Light": {
-   "tris": 264,
+   "tris": 344,
    "edges_gt2_faces": 0,
    "boundary_edges": 0,
    "inverted_closed_islands": 0,
    "coincident_face_pairs": 0,
+   "zero_area_faces": 0,
    "uv_layers": 1
   },
   "HALO_Mender_Far_Frame_Medium": {
-   "tris": 624,
+   "tris": 668,
    "edges_gt2_faces": 0,
    "boundary_edges": 0,
    "inverted_closed_islands": 0,
    "coincident_face_pairs": 0,
+   "zero_area_faces": 0,
    "uv_layers": 1
   },
   "HALO_Mender_Far_Glass_Arms": {
@@ -214,6 +168,7 @@
    "boundary_edges": 0,
    "inverted_closed_islands": 0,
    "coincident_face_pairs": 0,
+   "zero_area_faces": 0,
    "uv_layers": 1
   },
   "HALO_Mender_Far_Glass_Head": {
@@ -222,6 +177,7 @@
    "boundary_edges": 0,
    "inverted_closed_islands": 0,
    "coincident_face_pairs": 0,
+   "zero_area_faces": 0,
    "uv_layers": 1
   },
   "HALO_Mender_Far_Glass_Legs": {
@@ -230,6 +186,7 @@
    "boundary_edges": 0,
    "inverted_closed_islands": 0,
    "coincident_face_pairs": 0,
+   "zero_area_faces": 0,
    "uv_layers": 1
   },
   "HALO_Mender_Far_Glass_Torso": {
@@ -238,38 +195,7 @@
    "boundary_edges": 0,
    "inverted_closed_islands": 0,
    "coincident_face_pairs": 0,
-   "uv_layers": 1
-  },
-  "HALO_Phase_Arc_Arms": {
-   "tris": 712,
-   "edges_gt2_faces": 0,
-   "boundary_edges": 0,
-   "inverted_closed_islands": 0,
-   "coincident_face_pairs": 0,
-   "uv_layers": 1
-  },
-  "HALO_Phase_Arc_Head": {
-   "tris": 800,
-   "edges_gt2_faces": 0,
-   "boundary_edges": 0,
-   "inverted_closed_islands": 0,
-   "coincident_face_pairs": 0,
-   "uv_layers": 1
-  },
-  "HALO_Phase_Arc_Legs": {
-   "tris": 712,
-   "edges_gt2_faces": 0,
-   "boundary_edges": 0,
-   "inverted_closed_islands": 0,
-   "coincident_face_pairs": 0,
-   "uv_layers": 1
-  },
-  "HALO_Phase_Arc_Torso": {
-   "tris": 832,
-   "edges_gt2_faces": 0,
-   "boundary_edges": 0,
-   "inverted_closed_islands": 0,
-   "coincident_face_pairs": 0,
+   "zero_area_faces": 0,
    "uv_layers": 1
   },
   "HALO_Phase_Band_Heavy": {
@@ -278,6 +204,7 @@
    "boundary_edges": 0,
    "inverted_closed_islands": 0,
    "coincident_face_pairs": 0,
+   "zero_area_faces": 0,
    "uv_layers": 1
   },
   "HALO_Phase_Band_Medium": {
@@ -286,30 +213,34 @@
    "boundary_edges": 0,
    "inverted_closed_islands": 0,
    "coincident_face_pairs": 0,
+   "zero_area_faces": 0,
    "uv_layers": 1
   },
   "HALO_Phase_Far_Frame_Heavy": {
-   "tris": 668,
+   "tris": 840,
    "edges_gt2_faces": 0,
    "boundary_edges": 0,
    "inverted_closed_islands": 0,
    "coincident_face_pairs": 0,
+   "zero_area_faces": 0,
    "uv_layers": 1
   },
   "HALO_Phase_Far_Frame_Light": {
-   "tris": 248,
+   "tris": 452,
    "edges_gt2_faces": 0,
    "boundary_edges": 0,
    "inverted_closed_islands": 0,
    "coincident_face_pairs": 0,
+   "zero_area_faces": 0,
    "uv_layers": 1
   },
   "HALO_Phase_Far_Frame_Medium": {
-   "tris": 596,
+   "tris": 768,
    "edges_gt2_faces": 0,
    "boundary_edges": 0,
    "inverted_closed_islands": 0,
    "coincident_face_pairs": 0,
+   "zero_area_faces": 0,
    "uv_layers": 1
   },
   "HALO_Phase_Far_Glass_Arms": {
@@ -318,6 +249,7 @@
    "boundary_edges": 0,
    "inverted_closed_islands": 0,
    "coincident_face_pairs": 0,
+   "zero_area_faces": 0,
    "uv_layers": 1
   },
   "HALO_Phase_Far_Glass_Head": {
@@ -326,6 +258,7 @@
    "boundary_edges": 0,
    "inverted_closed_islands": 0,
    "coincident_face_pairs": 0,
+   "zero_area_faces": 0,
    "uv_layers": 1
   },
   "HALO_Phase_Far_Glass_Legs": {
@@ -334,6 +267,7 @@
    "boundary_edges": 0,
    "inverted_closed_islands": 0,
    "coincident_face_pairs": 0,
+   "zero_area_faces": 0,
    "uv_layers": 1
   },
   "HALO_Phase_Far_Glass_Torso": {
@@ -342,14 +276,52 @@
    "boundary_edges": 0,
    "inverted_closed_islands": 0,
    "coincident_face_pairs": 0,
+   "zero_area_faces": 0,
    "uv_layers": 1
   },
   "HALO_PowerCell": {
-   "tris": 488,
+   "tris": 120,
    "edges_gt2_faces": 0,
    "boundary_edges": 0,
    "inverted_closed_islands": 0,
    "coincident_face_pairs": 0,
+   "zero_area_faces": 0,
+   "uv_layers": 1
+  },
+  "HALO_PowerCell_Bulwark": {
+   "tris": 120,
+   "edges_gt2_faces": 0,
+   "boundary_edges": 0,
+   "inverted_closed_islands": 0,
+   "coincident_face_pairs": 0,
+   "zero_area_faces": 0,
+   "uv_layers": 1
+  },
+  "HALO_PowerCell_Mender": {
+   "tris": 216,
+   "edges_gt2_faces": 0,
+   "boundary_edges": 0,
+   "inverted_closed_islands": 0,
+   "coincident_face_pairs": 0,
+   "zero_area_faces": 0,
+   "uv_layers": 1
+  },
+  "HALO_PowerCell_Phase": {
+   "tris": 212,
+   "edges_gt2_faces": 0,
+   "boundary_edges": 0,
+   "inverted_closed_islands": 0,
+   "coincident_face_pairs": 0,
+   "zero_area_faces": 0,
+   "uv_layers": 1
+  },
+  "HALO_PowerCell_Volt": {
+   "tris": 240,
+   "edges_gt2_faces": 0,
+   "boundary_edges": 0,
+   "inverted_closed_islands": 0,
+   "coincident_face_pairs": 0,
+   "zero_area_faces": 0,
    "uv_layers": 1
   },
   "HALO_Shard_A": {
@@ -358,6 +330,7 @@
    "boundary_edges": 0,
    "inverted_closed_islands": 0,
    "coincident_face_pairs": 0,
+   "zero_area_faces": 0,
    "uv_layers": 1
   },
   "HALO_Shard_B": {
@@ -366,6 +339,7 @@
    "boundary_edges": 0,
    "inverted_closed_islands": 0,
    "coincident_face_pairs": 0,
+   "zero_area_faces": 0,
    "uv_layers": 1
   },
   "HALO_Shard_C": {
@@ -374,6 +348,7 @@
    "boundary_edges": 0,
    "inverted_closed_islands": 0,
    "coincident_face_pairs": 0,
+   "zero_area_faces": 0,
    "uv_layers": 1
   },
   "HALO_TierPip": {
@@ -382,38 +357,7 @@
    "boundary_edges": 0,
    "inverted_closed_islands": 0,
    "coincident_face_pairs": 0,
-   "uv_layers": 1
-  },
-  "HALO_Volt_Arc_Arms": {
-   "tris": 1072,
-   "edges_gt2_faces": 0,
-   "boundary_edges": 0,
-   "inverted_closed_islands": 0,
-   "coincident_face_pairs": 0,
-   "uv_layers": 1
-  },
-  "HALO_Volt_Arc_Head": {
-   "tris": 1136,
-   "edges_gt2_faces": 0,
-   "boundary_edges": 0,
-   "inverted_closed_islands": 0,
-   "coincident_face_pairs": 0,
-   "uv_layers": 1
-  },
-  "HALO_Volt_Arc_Legs": {
-   "tris": 1072,
-   "edges_gt2_faces": 0,
-   "boundary_edges": 0,
-   "inverted_closed_islands": 0,
-   "coincident_face_pairs": 0,
-   "uv_layers": 1
-  },
-  "HALO_Volt_Arc_Torso": {
-   "tris": 1076,
-   "edges_gt2_faces": 0,
-   "boundary_edges": 0,
-   "inverted_closed_islands": 0,
-   "coincident_face_pairs": 0,
+   "zero_area_faces": 0,
    "uv_layers": 1
   },
   "HALO_Volt_Band_Heavy": {
@@ -422,6 +366,7 @@
    "boundary_edges": 0,
    "inverted_closed_islands": 0,
    "coincident_face_pairs": 0,
+   "zero_area_faces": 0,
    "uv_layers": 1
   },
   "HALO_Volt_Band_Medium": {
@@ -430,30 +375,34 @@
    "boundary_edges": 0,
    "inverted_closed_islands": 0,
    "coincident_face_pairs": 0,
+   "zero_area_faces": 0,
    "uv_layers": 1
   },
   "HALO_Volt_Far_Frame_Heavy": {
-   "tris": 684,
+   "tris": 1064,
    "edges_gt2_faces": 0,
    "boundary_edges": 0,
    "inverted_closed_islands": 0,
    "coincident_face_pairs": 0,
+   "zero_area_faces": 0,
    "uv_layers": 1
   },
   "HALO_Volt_Far_Frame_Light": {
-   "tris": 252,
+   "tris": 668,
    "edges_gt2_faces": 0,
    "boundary_edges": 0,
    "inverted_closed_islands": 0,
    "coincident_face_pairs": 0,
+   "zero_area_faces": 0,
    "uv_layers": 1
   },
   "HALO_Volt_Far_Frame_Medium": {
-   "tris": 612,
+   "tris": 992,
    "edges_gt2_faces": 0,
    "boundary_edges": 0,
    "inverted_closed_islands": 0,
    "coincident_face_pairs": 0,
+   "zero_area_faces": 0,
    "uv_layers": 1
   },
   "HALO_Volt_Far_Glass_Arms": {
@@ -462,6 +411,7 @@
    "boundary_edges": 0,
    "inverted_closed_islands": 0,
    "coincident_face_pairs": 0,
+   "zero_area_faces": 0,
    "uv_layers": 1
   },
   "HALO_Volt_Far_Glass_Head": {
@@ -470,6 +420,7 @@
    "boundary_edges": 0,
    "inverted_closed_islands": 0,
    "coincident_face_pairs": 0,
+   "zero_area_faces": 0,
    "uv_layers": 1
   },
   "HALO_Volt_Far_Glass_Legs": {
@@ -478,6 +429,7 @@
    "boundary_edges": 0,
    "inverted_closed_islands": 0,
    "coincident_face_pairs": 0,
+   "zero_area_faces": 0,
    "uv_layers": 1
   },
   "HALO_Volt_Far_Glass_Torso": {
@@ -486,114 +438,553 @@
    "boundary_edges": 0,
    "inverted_closed_islands": 0,
    "coincident_face_pairs": 0,
+   "zero_area_faces": 0,
    "uv_layers": 1
+  },
+  "assembled Bulwark Light (4 arcs + Frame_Light)": {
+   "tris": 2840,
+   "edges_gt2_faces": 0,
+   "boundary_edges": 0,
+   "inverted_closed_islands": 0,
+   "coincident_face_pairs": 0,
+   "zero_area_faces": 0
+  },
+  "assembled Bulwark Medium (4 arcs + Frame_Medium)": {
+   "tris": 3384,
+   "edges_gt2_faces": 0,
+   "boundary_edges": 0,
+   "inverted_closed_islands": 0,
+   "coincident_face_pairs": 0,
+   "zero_area_faces": 0
+  },
+  "assembled Bulwark Heavy (4 arcs + Frame_Heavy)": {
+   "tris": 4220,
+   "edges_gt2_faces": 0,
+   "boundary_edges": 0,
+   "inverted_closed_islands": 0,
+   "coincident_face_pairs": 0,
+   "zero_area_faces": 0
+  },
+  "assembled Mender Light (4 arcs + Frame_Light)": {
+   "tris": 3636,
+   "edges_gt2_faces": 0,
+   "boundary_edges": 0,
+   "inverted_closed_islands": 0,
+   "coincident_face_pairs": 0,
+   "zero_area_faces": 0
+  },
+  "assembled Mender Medium (4 arcs + Frame_Medium)": {
+   "tris": 4660,
+   "edges_gt2_faces": 0,
+   "boundary_edges": 0,
+   "inverted_closed_islands": 0,
+   "coincident_face_pairs": 0,
+   "zero_area_faces": 0
+  },
+  "assembled Mender Heavy (4 arcs + Frame_Heavy)": {
+   "tris": 5752,
+   "edges_gt2_faces": 0,
+   "boundary_edges": 0,
+   "inverted_closed_islands": 0,
+   "coincident_face_pairs": 0,
+   "zero_area_faces": 0
+  },
+  "assembled Volt Light (4 arcs + Frame_Light)": {
+   "tris": 4416,
+   "edges_gt2_faces": 0,
+   "boundary_edges": 0,
+   "inverted_closed_islands": 0,
+   "coincident_face_pairs": 0,
+   "zero_area_faces": 0
+  },
+  "assembled Volt Medium (4 arcs + Frame_Medium)": {
+   "tris": 5440,
+   "edges_gt2_faces": 0,
+   "boundary_edges": 0,
+   "inverted_closed_islands": 0,
+   "coincident_face_pairs": 0,
+   "zero_area_faces": 0
+  },
+  "assembled Volt Heavy (4 arcs + Frame_Heavy)": {
+   "tris": 6532,
+   "edges_gt2_faces": 0,
+   "boundary_edges": 0,
+   "inverted_closed_islands": 0,
+   "coincident_face_pairs": 0,
+   "zero_area_faces": 0
+  },
+  "assembled Phase Light (4 arcs + Frame_Light)": {
+   "tris": 3116,
+   "edges_gt2_faces": 0,
+   "boundary_edges": 0,
+   "inverted_closed_islands": 0,
+   "coincident_face_pairs": 0,
+   "zero_area_faces": 0
+  },
+  "assembled Phase Medium (4 arcs + Frame_Medium)": {
+   "tris": 4076,
+   "edges_gt2_faces": 0,
+   "boundary_edges": 0,
+   "inverted_closed_islands": 0,
+   "coincident_face_pairs": 0,
+   "zero_area_faces": 0
+  },
+  "assembled Phase Heavy (4 arcs + Frame_Heavy)": {
+   "tris": 5054,
+   "edges_gt2_faces": 0,
+   "boundary_edges": 0,
+   "inverted_closed_islands": 0,
+   "coincident_face_pairs": 0,
+   "zero_area_faces": 0
+  }
+ },
+ "zones": {
+  "Bulwark": {
+   "Head": {
+    "centre_xy": [
+     -0.0,
+     -0.1438
+    ],
+    "ok": true
+   },
+   "Arms": {
+    "centre_xy": [
+     0.1508,
+     0.0
+    ],
+    "ok": true
+   },
+   "Torso": {
+    "centre_xy": [
+     0.0,
+     0.1452
+    ],
+    "ok": true
+   },
+   "Legs": {
+    "centre_xy": [
+     -0.1495,
+     -0.0
+    ],
+    "ok": true
+   }
+  },
+  "Mender": {
+   "Head": {
+    "centre_xy": [
+     0.0,
+     -0.1462
+    ],
+    "ok": true
+   },
+   "Arms": {
+    "centre_xy": [
+     0.1422,
+     0.0
+    ],
+    "ok": true
+   },
+   "Torso": {
+    "centre_xy": [
+     -0.0,
+     0.1422
+    ],
+    "ok": true
+   },
+   "Legs": {
+    "centre_xy": [
+     -0.1419,
+     -0.0
+    ],
+    "ok": true
+   }
+  },
+  "Volt": {
+   "Head": {
+    "centre_xy": [
+     0.0003,
+     -0.1465
+    ],
+    "ok": true
+   },
+   "Arms": {
+    "centre_xy": [
+     0.1465,
+     0.0003
+    ],
+    "ok": true
+   },
+   "Torso": {
+    "centre_xy": [
+     -0.0003,
+     0.1465
+    ],
+    "ok": true
+   },
+   "Legs": {
+    "centre_xy": [
+     -0.146,
+     -0.0003
+    ],
+    "ok": true
+   }
+  },
+  "Phase": {
+   "Head": {
+    "centre_xy": [
+     0.0,
+     -0.1462
+    ],
+    "ok": true
+   },
+   "Arms": {
+    "centre_xy": [
+     0.146,
+     0.0
+    ],
+    "ok": true
+   },
+   "Torso": {
+    "centre_xy": [
+     0.0,
+     0.1416
+    ],
+    "ok": true
+   },
+   "Legs": {
+    "centre_xy": [
+     -0.1455,
+     -0.0
+    ],
+    "ok": true
+   }
   }
  },
  "pips": {
   "Bulwark": {
-   "gap_mm_pip_bottom_to_arc_below": [
-    0.2,
-    0.2,
-    0.2,
-    0.2
-   ],
-   "pip_intersects_arc": [
-    false,
-    false,
-    false,
-    false
-   ]
+   "centre_x_mm": 0.0,
+   "1_pips": {
+    "x_mm": [
+     0.0
+    ],
+    "mean_x_mm": 0.0,
+    "gap_mm_pip_bottom_to_arc_below": [
+     0.2
+    ],
+    "pip_intersects_arc": [
+     false
+    ]
+   },
+   "2_pips": {
+    "x_mm": [
+     -8.0,
+     8.0
+    ],
+    "mean_x_mm": 0.0,
+    "gap_mm_pip_bottom_to_arc_below": [
+     0.2,
+     0.2
+    ],
+    "pip_intersects_arc": [
+     false,
+     false
+    ]
+   },
+   "3_pips": {
+    "x_mm": [
+     -16.0,
+     0.0,
+     16.0
+    ],
+    "mean_x_mm": 0.0,
+    "gap_mm_pip_bottom_to_arc_below": [
+     0.2,
+     0.2,
+     0.2
+    ],
+    "pip_intersects_arc": [
+     false,
+     false,
+     false
+    ]
+   },
+   "4_pips": {
+    "x_mm": [
+     -24.0,
+     -8.0,
+     8.0,
+     24.0
+    ],
+    "mean_x_mm": 0.0,
+    "gap_mm_pip_bottom_to_arc_below": [
+     0.2,
+     0.2,
+     0.2,
+     0.2
+    ],
+    "pip_intersects_arc": [
+     false,
+     false,
+     false,
+     false
+    ]
+   }
   },
   "Mender": {
-   "gap_mm_pip_bottom_to_arc_below": [
-    0.3,
-    0.2,
-    0.2,
-    0.3
-   ],
-   "pip_intersects_arc": [
-    false,
-    false,
-    false,
-    false
-   ]
+   "centre_x_mm": 0.0,
+   "1_pips": {
+    "x_mm": [
+     0.0
+    ],
+    "mean_x_mm": 0.0,
+    "gap_mm_pip_bottom_to_arc_below": [
+     0.2
+    ],
+    "pip_intersects_arc": [
+     false
+    ]
+   },
+   "2_pips": {
+    "x_mm": [
+     -8.0,
+     8.0
+    ],
+    "mean_x_mm": 0.0,
+    "gap_mm_pip_bottom_to_arc_below": [
+     0.2,
+     0.2
+    ],
+    "pip_intersects_arc": [
+     false,
+     false
+    ]
+   },
+   "3_pips": {
+    "x_mm": [
+     -16.0,
+     0.0,
+     16.0
+    ],
+    "mean_x_mm": 0.0,
+    "gap_mm_pip_bottom_to_arc_below": [
+     0.3,
+     0.2,
+     0.3
+    ],
+    "pip_intersects_arc": [
+     false,
+     false,
+     false
+    ]
+   },
+   "4_pips": {
+    "x_mm": [
+     -24.0,
+     -8.0,
+     8.0,
+     24.0
+    ],
+    "mean_x_mm": 0.0,
+    "gap_mm_pip_bottom_to_arc_below": [
+     0.3,
+     0.2,
+     0.2,
+     0.3
+    ],
+    "pip_intersects_arc": [
+     false,
+     false,
+     false,
+     false
+    ]
+   }
   },
   "Volt": {
-   "gap_mm_pip_bottom_to_arc_below": [
-    0.2,
-    0.2,
-    0.2,
-    0.2
-   ],
-   "pip_intersects_arc": [
-    false,
-    false,
-    false,
-    false
-   ]
+   "centre_x_mm": 0.0,
+   "1_pips": {
+    "x_mm": [
+     0.0
+    ],
+    "mean_x_mm": 0.0,
+    "gap_mm_pip_bottom_to_arc_below": [
+     0.2
+    ],
+    "pip_intersects_arc": [
+     false
+    ]
+   },
+   "2_pips": {
+    "x_mm": [
+     -8.0,
+     8.0
+    ],
+    "mean_x_mm": 0.0,
+    "gap_mm_pip_bottom_to_arc_below": [
+     0.2,
+     0.2
+    ],
+    "pip_intersects_arc": [
+     false,
+     false
+    ]
+   },
+   "3_pips": {
+    "x_mm": [
+     -16.0,
+     0.0,
+     16.0
+    ],
+    "mean_x_mm": 0.0,
+    "gap_mm_pip_bottom_to_arc_below": [
+     0.2,
+     0.2,
+     0.2
+    ],
+    "pip_intersects_arc": [
+     false,
+     false,
+     false
+    ]
+   },
+   "4_pips": {
+    "x_mm": [
+     -24.0,
+     -8.0,
+     8.0,
+     24.0
+    ],
+    "mean_x_mm": 0.0,
+    "gap_mm_pip_bottom_to_arc_below": [
+     0.2,
+     0.2,
+     0.2,
+     0.2
+    ],
+    "pip_intersects_arc": [
+     false,
+     false,
+     false,
+     false
+    ]
+   }
   },
   "Phase": {
-   "gap_mm_pip_bottom_to_arc_below": [
-    0.2,
-    0.2,
-    0.2,
-    0.2
-   ],
-   "pip_intersects_arc": [
-    false,
-    false,
-    false,
-    false
-   ]
+   "centre_x_mm": 0.0,
+   "1_pips": {
+    "x_mm": [
+     0.0
+    ],
+    "mean_x_mm": 0.0,
+    "gap_mm_pip_bottom_to_arc_below": [
+     0.2
+    ],
+    "pip_intersects_arc": [
+     false
+    ]
+   },
+   "2_pips": {
+    "x_mm": [
+     -8.0,
+     8.0
+    ],
+    "mean_x_mm": 0.0,
+    "gap_mm_pip_bottom_to_arc_below": [
+     0.2,
+     0.2
+    ],
+    "pip_intersects_arc": [
+     false,
+     false
+    ]
+   },
+   "3_pips": {
+    "x_mm": [
+     -16.0,
+     0.0,
+     16.0
+    ],
+    "mean_x_mm": 0.0,
+    "gap_mm_pip_bottom_to_arc_below": [
+     0.2,
+     0.2,
+     0.2
+    ],
+    "pip_intersects_arc": [
+     false,
+     false,
+     false
+    ]
+   },
+   "4_pips": {
+    "x_mm": [
+     -24.0,
+     -8.0,
+     8.0,
+     24.0
+    ],
+    "mean_x_mm": 0.0,
+    "gap_mm_pip_bottom_to_arc_below": [
+     0.2,
+     0.2,
+     0.2,
+     0.2
+    ],
+    "pip_intersects_arc": [
+     false,
+     false,
+     false,
+     false
+    ]
+   }
   }
  },
  "vertical": {
   "Bulwark_Light": {
    "ring_bottom_mm": -16.0,
-   "ring_top_mm": 24.6,
-   "total_height_mm_at_scale": 34.5,
+   "ring_top_mm": 28.8,
+   "total_height_mm_at_scale": 38.1,
    "outer_diameter_m_at_scale": 0.339
   },
   "Bulwark_Medium": {
    "ring_bottom_mm": -16.0,
-   "ring_top_mm": 24.6,
+   "ring_top_mm": 28.8,
    "band_bottom_mm": -25.2,
    "band_top_mm": 3.0,
    "hang_below_ring_mm": 9.2,
-   "total_height_mm_at_scale": 49.8,
+   "total_height_mm_at_scale": 54.0,
    "outer_diameter_m_at_scale": 0.432
   },
   "Bulwark_Heavy": {
    "ring_bottom_mm": -16.0,
-   "ring_top_mm": 24.6,
+   "ring_top_mm": 28.8,
    "band_bottom_mm": -44.2,
    "band_top_mm": 2.5,
    "hang_below_ring_mm": 28.2,
-   "total_height_mm_at_scale": 82.6,
+   "total_height_mm_at_scale": 87.6,
    "outer_diameter_m_at_scale": 0.599
   },
   "Mender_Light": {
    "ring_bottom_mm": -12.5,
-   "ring_top_mm": 15.6,
-   "total_height_mm_at_scale": 23.9,
+   "ring_top_mm": 26.0,
+   "total_height_mm_at_scale": 32.7,
    "outer_diameter_m_at_scale": 0.311
   },
   "Mender_Medium": {
    "ring_bottom_mm": -12.5,
-   "ring_top_mm": 15.6,
+   "ring_top_mm": 26.0,
    "band_bottom_mm": -22.5,
    "band_top_mm": -1.0,
    "hang_below_ring_mm": 10.0,
-   "total_height_mm_at_scale": 38.1,
+   "total_height_mm_at_scale": 48.5,
    "outer_diameter_m_at_scale": 0.404
   },
   "Mender_Heavy": {
    "ring_bottom_mm": -12.5,
-   "ring_top_mm": 15.6,
+   "ring_top_mm": 26.0,
    "band_bottom_mm": -38.5,
    "band_top_mm": 0.5,
    "hang_below_ring_mm": 26.0,
-   "total_height_mm_at_scale": 64.9,
+   "total_height_mm_at_scale": 77.4,
    "outer_diameter_m_at_scale": 0.549
   },
   "Volt_Light": {
@@ -647,52 +1038,76 @@
  },
  "cells": {
   "Bulwark_Light": {
+   "cell": "HALO_PowerCell_Bulwark",
+   "orbit_z": 0.058,
    "collisions": 0,
-   "min_clearance_mm": 22.7
+   "min_clearance_mm": 20.5
   },
   "Bulwark_Medium": {
+   "cell": "HALO_PowerCell_Bulwark",
+   "orbit_z": 0.065,
    "collisions": 0,
-   "min_clearance_mm": 46.4
+   "min_clearance_mm": 43.2
   },
   "Bulwark_Heavy": {
+   "cell": "HALO_PowerCell_Bulwark",
+   "orbit_z": 0.08,
    "collisions": 0,
-   "min_clearance_mm": 61.0
+   "min_clearance_mm": 82.2
   },
   "Mender_Light": {
+   "cell": "HALO_PowerCell_Mender",
+   "orbit_z": 0.058,
    "collisions": 0,
-   "min_clearance_mm": 36.4
+   "min_clearance_mm": 21.9
   },
   "Mender_Medium": {
+   "cell": "HALO_PowerCell_Mender",
+   "orbit_z": 0.065,
    "collisions": 0,
-   "min_clearance_mm": 64.4
+   "min_clearance_mm": 51.6
   },
   "Mender_Heavy": {
-   "collisions": 0,
-   "min_clearance_mm": 95.6
-  },
-  "Volt_Light": {
-   "collisions": 0,
-   "min_clearance_mm": 33.0
-  },
-  "Volt_Medium": {
-   "collisions": 0,
-   "min_clearance_mm": 67.6
-  },
-  "Volt_Heavy": {
-   "collisions": 0,
-   "min_clearance_mm": 95.4
-  },
-  "Phase_Light": {
-   "collisions": 0,
-   "min_clearance_mm": 37.2
-  },
-  "Phase_Medium": {
-   "collisions": 0,
-   "min_clearance_mm": 72.3
-  },
-  "Phase_Heavy": {
+   "cell": "HALO_PowerCell_Mender",
+   "orbit_z": 0.08,
    "collisions": 0,
    "min_clearance_mm": 99.8
+  },
+  "Volt_Light": {
+   "cell": "HALO_PowerCell_Volt",
+   "orbit_z": 0.058,
+   "collisions": 0,
+   "min_clearance_mm": 29.4
+  },
+  "Volt_Medium": {
+   "cell": "HALO_PowerCell_Volt",
+   "orbit_z": 0.065,
+   "collisions": 0,
+   "min_clearance_mm": 65.2
+  },
+  "Volt_Heavy": {
+   "cell": "HALO_PowerCell_Volt",
+   "orbit_z": 0.08,
+   "collisions": 0,
+   "min_clearance_mm": 108.1
+  },
+  "Phase_Light": {
+   "cell": "HALO_PowerCell_Phase",
+   "orbit_z": 0.058,
+   "collisions": 0,
+   "min_clearance_mm": 30.3
+  },
+  "Phase_Medium": {
+   "cell": "HALO_PowerCell_Phase",
+   "orbit_z": 0.065,
+   "collisions": 0,
+   "min_clearance_mm": 65.8
+  },
+  "Phase_Heavy": {
+   "cell": "HALO_PowerCell_Phase",
+   "orbit_z": 0.08,
+   "collisions": 0,
+   "min_clearance_mm": 115.9
   }
  },
  "cell_view": {
@@ -712,10 +1127,10 @@
   },
   "-10deg_Bulwark_Light": {
    "true_cells": 1,
-   "true_count_fraction": 0.8,
+   "true_count_fraction": 0.808,
    "distribution": {
-    "0": 0.2,
-    "1": 0.8
+    "0": 0.19,
+    "1": 0.81
    }
   },
   "-2deg_Bulwark_Medium": {
@@ -734,10 +1149,10 @@
   },
   "-10deg_Bulwark_Medium": {
    "true_cells": 2,
-   "true_count_fraction": 0.6,
+   "true_count_fraction": 0.683,
    "distribution": {
-    "1": 0.4,
-    "2": 0.6
+    "1": 0.32,
+    "2": 0.68
    }
   },
   "-2deg_Bulwark_Heavy": {
@@ -756,10 +1171,10 @@
   },
   "-10deg_Bulwark_Heavy": {
    "true_cells": 3,
-   "true_count_fraction": 0.375,
+   "true_count_fraction": 0.625,
    "distribution": {
-    "2": 0.62,
-    "3": 0.38
+    "2": 0.38,
+    "3": 0.62
    }
   },
   "-2deg_Mender_Light": {
@@ -799,10 +1214,9 @@
   },
   "-10deg_Mender_Medium": {
    "true_cells": 2,
-   "true_count_fraction": 0.767,
+   "true_count_fraction": 1.0,
    "distribution": {
-    "1": 0.23,
-    "2": 0.77
+    "2": 1.0
    }
   },
   "-2deg_Mender_Heavy": {
@@ -821,10 +1235,10 @@
   },
   "-10deg_Mender_Heavy": {
    "true_cells": 3,
-   "true_count_fraction": 0.5,
+   "true_count_fraction": 0.925,
    "distribution": {
-    "2": 0.5,
-    "3": 0.5
+    "2": 0.07,
+    "3": 0.93
    }
   },
   "-2deg_Volt_Light": {
@@ -836,14 +1250,15 @@
   },
   "-5deg_Volt_Light": {
    "true_cells": 1,
-   "true_count_fraction": 1.0,
+   "true_count_fraction": 0.992,
    "distribution": {
-    "1": 1.0
+    "0": 0.01,
+    "1": 0.99
    }
   },
   "-10deg_Volt_Light": {
    "true_cells": 1,
-   "true_count_fraction": 0.875,
+   "true_count_fraction": 0.883,
    "distribution": {
     "0": 0.12,
     "1": 0.88
@@ -865,10 +1280,10 @@
   },
   "-10deg_Volt_Medium": {
    "true_cells": 2,
-   "true_count_fraction": 0.617,
+   "true_count_fraction": 0.583,
    "distribution": {
-    "1": 0.38,
-    "2": 0.62
+    "1": 0.42,
+    "2": 0.58
    }
   },
   "-2deg_Volt_Heavy": {
@@ -887,10 +1302,10 @@
   },
   "-10deg_Volt_Heavy": {
    "true_cells": 3,
-   "true_count_fraction": 0.45,
+   "true_count_fraction": 0.575,
    "distribution": {
-    "2": 0.55,
-    "3": 0.45
+    "2": 0.42,
+    "3": 0.57
    }
   },
   "-2deg_Phase_Light": {
@@ -909,10 +1324,10 @@
   },
   "-10deg_Phase_Light": {
    "true_cells": 1,
-   "true_count_fraction": 0.867,
+   "true_count_fraction": 0.825,
    "distribution": {
-    "0": 0.13,
-    "1": 0.87
+    "0": 0.17,
+    "1": 0.82
    }
   },
   "-2deg_Phase_Medium": {
@@ -931,10 +1346,10 @@
   },
   "-10deg_Phase_Medium": {
    "true_cells": 2,
-   "true_count_fraction": 0.667,
+   "true_count_fraction": 0.717,
    "distribution": {
-    "1": 0.33,
-    "2": 0.67
+    "1": 0.28,
+    "2": 0.72
    }
   },
   "-2deg_Phase_Heavy": {
@@ -953,10 +1368,10 @@
   },
   "-10deg_Phase_Heavy": {
    "true_cells": 3,
-   "true_count_fraction": 0.5,
+   "true_count_fraction": 0.825,
    "distribution": {
-    "2": 0.5,
-    "3": 0.5
+    "2": 0.17,
+    "3": 0.82
    }
   }
  },

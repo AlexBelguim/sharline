@@ -1,0 +1,21 @@
+{
+ "name": "ui/confirm",
+ "seed": 2,
+ "prompt": "summary: A futuristic game menu shows a large READY button that lights up green, once.\n\ndetailed_description:\n[Shot 1] A futuristic game menu shows a large READY button that lights up green, once. The camera is static and locked-off.\n\noverall_soundscape: A single bright positive rising two-note electronic chime, then silence. Nothing else is heard: no music, no speech, no voices.\n\nnon_diegetic_music: N/A",
+ "settings": {
+  "w": 128,
+  "h": 128,
+  "frames": 73,
+  "steps": 6,
+  "lora": "turbo4",
+  "shift_video": 12.0,
+  "shift_audio": 3.0,
+  "sampler": "res_multistep",
+  "scheduler": "simple",
+  "style": "structured"
+ },
+ "exec_s": 3.032,
+ "wall_s": 3.2,
+ "peak_vram_gib": 15.29,
+ "audio_s": 3.04
+}

@@ -1,0 +1,21 @@
+{
+ "name": "weapons/mag_check",
+ "seed": 1,
+ "prompt": "summary: Close-up of hands on a black rifle: the magazine is tilted out a little, glanced at, and pushed back in.\n\ndetailed_description:\n[Shot 1] Close-up of hands on a black rifle: the magazine is tilted out a little, glanced at, and pushed back in. The camera is static and locked-off.\n\noverall_soundscape: Foley recording, close microphone, isolated sound: a soft metallic click, a short rattle of the magazine, and a firm click as it is pushed back in, then silence. Nothing else is heard: no music, no speech, no voices.\n\nnon_diegetic_music: N/A",
+ "settings": {
+  "w": 128,
+  "h": 128,
+  "frames": 73,
+  "steps": 6,
+  "lora": "turbo4",
+  "shift_video": 12.0,
+  "shift_audio": 3.0,
+  "sampler": "res_multistep",
+  "scheduler": "simple",
+  "style": "structured"
+ },
+ "exec_s": 9.91,
+ "wall_s": 10.3,
+ "peak_vram_gib": 15.15,
+ "audio_s": 3.04
+}
