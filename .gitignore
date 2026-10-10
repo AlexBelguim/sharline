@@ -34,3 +34,6 @@ assets/**/_tests/
 # local-only TRELLIS test props (test_props.ron says it is not committed)
 game/assets/props/_tests/
 game/assets/maps/showhome/test_props.ron
+
+# the playable copy make_dist.cmd builds
+/dist/
