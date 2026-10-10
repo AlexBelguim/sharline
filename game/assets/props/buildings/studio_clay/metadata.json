@@ -1,0 +1,23 @@
+{
+  "id": "studio_clay",
+  "category": "buildings",
+  "tags": [
+    "buildings",
+    "showhome_legacy"
+  ],
+  "glb": "props/buildings/studio_clay/studio_clay.glb",
+  "lod1": "props/buildings/studio_clay/studio_clay_lod1.glb",
+  "collision": "props/buildings/studio_clay/collision.json",
+  "source": "original assets/maps/showhome procedural Studio_Clay",
+  "licence": "project original",
+  "openable_parts": [],
+  "size_m": [
+    6.205998420715332,
+    5.2079997062683105,
+    2.799999952316284
+  ],
+  "triangles": 23644,
+  "collision_volumes": 12,
+  "loot_slots": [],
+  "legacy_root": "PROP_Studio_Clay"
+}

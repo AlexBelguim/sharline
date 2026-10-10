@@ -1,0 +1,22 @@
+{
+  "id": "site_mesh_panel",
+  "category": "fences",
+  "tags": [
+    "fences",
+    "showhome_v3"
+  ],
+  "glb": "props/fences/site_mesh_panel/site_mesh_panel.glb",
+  "lod1": "props/fences/site_mesh_panel/site_mesh_panel_lod1.glb",
+  "collision": "props/fences/site_mesh_panel/collision.json",
+  "source": "original procedural v3",
+  "licence": "project original",
+  "openable_parts": [],
+  "size_m": [
+    2.569999933242798,
+    0.07000000029802322,
+    2.0
+  ],
+  "triangles": 1188,
+  "collision_volumes": 4,
+  "loot_slots": []
+}

@@ -4,6 +4,7 @@
 //! host and on predicting clients. Numbers come from `game/assets/data/*.ron` via [`data::GameData`].
 
 pub mod bot;
+pub mod build_mode;
 pub mod combat;
 pub mod data;
 pub mod gear;

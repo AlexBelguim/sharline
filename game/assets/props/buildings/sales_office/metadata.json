@@ -1,0 +1,23 @@
+{
+  "id": "sales_office",
+  "category": "buildings",
+  "tags": [
+    "buildings",
+    "showhome_legacy"
+  ],
+  "glb": "props/buildings/sales_office/sales_office.glb",
+  "lod1": "props/buildings/sales_office/sales_office_lod1.glb",
+  "collision": "props/buildings/sales_office/collision.json",
+  "source": "original assets/maps/showhome procedural SalesOffice",
+  "licence": "project original",
+  "openable_parts": [],
+  "size_m": [
+    12.26200008392334,
+    7.257999897003174,
+    3.0
+  ],
+  "triangles": 33104,
+  "collision_volumes": 15,
+  "loot_slots": [],
+  "legacy_root": "PROP_SalesOffice"
+}

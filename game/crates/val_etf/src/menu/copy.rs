@@ -196,8 +196,12 @@ pub fn mode_map_label(map: &str, mode: Option<vetf_net::MatchMode>) -> String {
     if map == "range" || mode == Some(MatchMode::Range) {
         return "Gun range".into();
     }
-    let mut c = map.chars();
-    let name: String = c.next().map(|f| f.to_uppercase().chain(c).collect()).unwrap_or_default();
+    let name = if crate::showhome_v3::is_v3(&map) {
+        crate::showhome_v3::map_title(&map).to_owned()
+    } else {
+        let mut c = map.chars();
+        c.next().map(|f| f.to_uppercase().chain(c).collect()).unwrap_or_default()
+    };
     match mode {
         Some(MatchMode::Ffa) => format!("FFA · {name}"),
         Some(_) => format!("TDM · {name}"),

@@ -7,6 +7,9 @@
 // under-rail part with `recoil_v`. Other parts may RAISE recoil (user, item B): the laser adds a little sweep
 // (`recoil_h` 1.05), the thermal optic a little climb (`recoil_v` 1.08). The drum and the UGL stay recoil-neutral: they
 // already pay in reload, aim and move, and every magazine sprays the same pattern (DESIGN_DELTAS.md section 35).
+// Strength (user, 2026-10-10: "stocks and grips have too little impact on the spray"): stocks 0.6-0.85 of the climb,
+// grips 0.55-0.82 of the sweep (were 0.8-0.95 and 0.78-0.94). The visual kick (the camera punch and the shot shake)
+// now follows the same multipliers, so a steadier build also looks steadier.
 // `zoom` and `capacity` are absolute values, not multipliers. `zoom` is a number for a fixed optic, or [min, max] for
 // a variable one: aimed, the wheel (Zoom in / Zoom out binds) zooms smoothly between them, and each player's last
 // zoom per optic is kept in their settings file. `zoom_default` is where a variable optic starts for a player who
@@ -37,12 +40,12 @@
             effects: [(text: "Heat view: bodies glow, the world greys out", not_yet: true)]),
         // stocks
         (id: "mako_stock_standard", cat: stock, fits: ["ar7_mako"], name: "STANDARD", blurb: "Balanced.", default_for: ["ar7_mako"]),
-        (id: "mako_stock_precision", cat: stock, fits: ["ar7_mako"], name: "PRECISION", blurb: "Much less climb and sway. Heavy and slow to aim.", ads_time: Some(1.1), recoil_v: Some(0.8), sway: Some(0.8),
+        (id: "mako_stock_precision", cat: stock, fits: ["ar7_mako"], name: "PRECISION", blurb: "Much less climb and sway. Heavy and slow to aim.", ads_time: Some(1.1), recoil_v: Some(0.6), sway: Some(0.8),
             move: Some(0.98)),
-        (id: "mako_stock_light", cat: stock, fits: ["ar7_mako"], name: "LIGHT", blurb: "A little less climb. Fast out of a sprint, more sway.", ads_time: Some(0.88), recoil_v: Some(0.92), sway: Some(1.15),
+        (id: "mako_stock_light", cat: stock, fits: ["ar7_mako"], name: "LIGHT", blurb: "Less climb. Fast out of a sprint, more sway.", ads_time: Some(0.88), recoil_v: Some(0.78), sway: Some(1.15),
             sprint_to_fire: Some(0.85)),
         (id: "warden_stock_standard", cat: stock, fits: ["vk50_warden"], name: "STANDARD", blurb: "Balanced.", default_for: ["vk50_warden"]),
-        (id: "warden_stock_folding", cat: stock, fits: ["vk50_warden"], name: "FOLDING", blurb: "Quicker to aim and to move. A little less kick, more sway.", ads_time: Some(0.9), sway: Some(1.25), move: Some(1.03), recoil_v: Some(0.95)),
+        (id: "warden_stock_folding", cat: stock, fits: ["vk50_warden"], name: "FOLDING", blurb: "Quicker to aim and to move. A little less kick, more sway.", ads_time: Some(0.9), sway: Some(1.25), move: Some(1.03), recoil_v: Some(0.85)),
         // magazines
         (id: "mag_30", cat: mag, fits: ["ar7_mako"], name: "30-RND STANAG", short: "30-RND", blurb: "Standard capacity.", capacity: Some(30), default_for: ["ar7_mako"]),
         (id: "mag_45", cat: mag, fits: ["ar7_mako"], name: "45-RND", blurb: "More rounds, slower reload.", capacity: Some(45), reload: Some(1.12), ads_time: Some(1.05), move: Some(0.99)),
@@ -53,9 +56,9 @@
         (id: "skink_mag_60", cat: mag, fits: ["sk9_skink"], name: "60-RND", blurb: "More rounds, slower reload.", capacity: Some(60), reload: Some(1.12), ads_time: Some(1.05), move: Some(0.99)),
         // under-rail
         // front grips (under-rail): sideways recoil only. `grip_vertical` keeps its id (the model, saved loadouts).
-        (id: "grip_vertical", cat: under, fits: ["ar7_mako"], name: "BRACE GRIP", short: "BRACE", blurb: "Steadiest side-to-side sweep. A little slower to aim.", recoil_h: Some(0.78), ads_time: Some(1.03), sway: Some(0.95)),
-        (id: "grip_angled", cat: under, fits: ["ar7_mako"], name: "ANGLED GRIP", blurb: "Fast to aim. A steadier sweep.", ads_time: Some(0.92), recoil_h: Some(0.88)),
-        (id: "grip_stub", cat: under, fits: ["ar7_mako"], name: "STUB GRIP", blurb: "Hand stop. Tighter hip fire, a little steadier sweep.", hip_spread: Some(0.88), sprint_to_fire: Some(0.9), recoil_h: Some(0.94)),
+        (id: "grip_vertical", cat: under, fits: ["ar7_mako"], name: "BRACE GRIP", short: "BRACE", blurb: "Steadiest side-to-side sweep. A little slower to aim.", recoil_h: Some(0.55), ads_time: Some(1.03), sway: Some(0.95)),
+        (id: "grip_angled", cat: under, fits: ["ar7_mako"], name: "ANGLED GRIP", blurb: "Fast to aim. A much steadier sweep.", ads_time: Some(0.92), recoil_h: Some(0.7)),
+        (id: "grip_stub", cat: under, fits: ["ar7_mako"], name: "STUB GRIP", blurb: "Hand stop. Tighter hip fire, a little steadier sweep.", hip_spread: Some(0.88), sprint_to_fire: Some(0.9), recoil_h: Some(0.82)),
         (id: "ugl_launcher", cat: under, fits: ["ar7_mako"], name: "UGL-40 LAUNCHER", short: "UGL-40", blurb: "Grenades are not in yet: for now it is only weight.", ads_time: Some(1.15), sway: Some(1.1), move: Some(0.97),
             other: Some("40 mm grenade, see UGL table; not simulated yet (no grenades in the sim)"),
             effects: [(text: "Fires 40 mm grenades", not_yet: true)]),

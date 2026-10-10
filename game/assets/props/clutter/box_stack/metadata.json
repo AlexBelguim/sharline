@@ -1,0 +1,23 @@
+{
+  "id": "box_stack",
+  "category": "clutter",
+  "tags": [
+    "clutter",
+    "showhome_legacy"
+  ],
+  "glb": "props/clutter/box_stack/box_stack.glb",
+  "lod1": "props/clutter/box_stack/box_stack_lod1.glb",
+  "collision": "props/clutter/box_stack/collision.json",
+  "source": "original assets/maps/showhome procedural BoxStack_1m",
+  "licence": "project original",
+  "openable_parts": [],
+  "size_m": [
+    1.0056524276733398,
+    1.0019999742507935,
+    1.000999927520752
+  ],
+  "triangles": 476,
+  "collision_volumes": 1,
+  "loot_slots": [],
+  "legacy_root": "PROP_BoxStack_1m"
+}

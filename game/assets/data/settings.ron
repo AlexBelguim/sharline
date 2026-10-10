@@ -80,6 +80,9 @@
             // The gun range's MAG CHECK: ESTIMATE (the genre rule) or EXACT rounds with a HUD counter. Team
             // deathmatch and free-for-all use the host's match setting instead (user direction 2026-10-09).
             range_mag_check: Estimate,
+            // THROW LINE: with a grenade in hand, the arc it would fly and where it goes off (a testing aid, on by
+            // default while testing; user, 2026-10-10: "can you give a throw line for testing").
+            throw_line: true,
             radial_hold_s: 0.20,
             radial_pick: Release,
         ),

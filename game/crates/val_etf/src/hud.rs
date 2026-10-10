@@ -977,7 +977,13 @@ fn update_throwables(
         if text.0 != want {
             text.0 = want;
         }
-        let c = if left > 0 { kit::TEXT } else { kit::TEXT_LOW };
+        let c = if items.0.throw.selected == Some(slot.0) {
+            kit::TEXT_HI
+        } else if left > 0 {
+            kit::TEXT
+        } else {
+            kit::TEXT_LOW
+        };
         if color.0 != c {
             color.0 = c;
         }
@@ -1013,6 +1019,14 @@ fn update_action(
         let item = data.items.spec(&lo.0.kit[u.slot as usize]);
         let zone = u.zone.map_or(String::new(), |z| format!("  /  {}", z.label()));
         Some((format!("{}{zone}", item.label), Some(progress(u.left, u.total)), kit::HEAL))
+    } else if let Some(hand) = items.map(|i| &i.0.throw).filter(|h| h.selected.is_some() || h.windup.is_some()) {
+        let kind = hand.selected.or(hand.windup.map(|w| w.kind)).unwrap();
+        let label = if hand.windup.is_some() {
+            format!("THROWING {}", kind.label())
+        } else {
+            format!("{}  /  HOLD LMB · RMB SOFT · ESC CANCEL", kind.label())
+        };
+        Some((label, Some(hand.charge_fraction(&data.throwables.throw, hz)), kit::TEXT_HI))
     } else {
         match w.0.action {
             WeaponAction::Reloading { left, kind, slot } if !v.health.dead => {

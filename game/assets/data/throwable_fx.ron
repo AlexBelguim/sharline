@@ -76,6 +76,10 @@
         // A smoke canister and a molotov bottle in flight (a tumbling can and bottle, the molotov's rag lit).
         smoke_color: (0.34, 0.38, 0.31),
         molotov_color: (0.52, 0.30, 0.08),
+        // The same existing meshes held beside the camera while selected/charging.
+        held_scale: 1.35,
+        held_charge_offset: (0.025, 0.03, 0.04),
+        held_tilt_deg: 20.0,
         rag_glow: 6.0,
         tumble_rps: 1.6,
     ),

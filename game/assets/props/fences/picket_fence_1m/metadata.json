@@ -1,0 +1,23 @@
+{
+  "id": "picket_fence_1m",
+  "category": "fences",
+  "tags": [
+    "fences",
+    "showhome_legacy"
+  ],
+  "glb": "props/fences/picket_fence_1m/picket_fence_1m.glb",
+  "lod1": "props/fences/picket_fence_1m/picket_fence_1m_lod1.glb",
+  "collision": "props/fences/picket_fence_1m/collision.json",
+  "source": "original assets/maps/showhome procedural Fence_Picket_1m",
+  "licence": "project original",
+  "openable_parts": [],
+  "size_m": [
+    0.30000001192092896,
+    1.0,
+    1.2000000476837158
+  ],
+  "triangles": 1020,
+  "collision_volumes": 1,
+  "loot_slots": [],
+  "legacy_root": "PROP_Fence_Picket_1m"
+}

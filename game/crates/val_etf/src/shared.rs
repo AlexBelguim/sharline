@@ -59,6 +59,7 @@ fn mark_controlled(trigger: On<Add, Controlled>, players: Query<(), With<PlayerI
 /// `Without<Replicate>` keeps this from running a second time on the host's own entity.)
 #[allow(clippy::type_complexity)]
 fn simulate_predicted(
+    editor: Option<Res<crate::build_editor::EditorActive>>,
     data: Res<Data>,
     level: Option<Res<CurrentLevel>>,
     rollback: Option<Res<Rollback>>,
@@ -77,6 +78,7 @@ fn simulate_predicted(
     mut shots: MessageWriter<LocalShot>,
     mut events: MessageWriter<LocalPlayerEvents>,
 ) {
+    if editor.is_some_and(|e|e.0) {return;}
     let Some(level) = level else { return };
     for (id, input, mut mv, mut weapon, mut items, loadout, vitals) in &mut players {
         if vitals.is_some_and(|v| v.health.dead) {

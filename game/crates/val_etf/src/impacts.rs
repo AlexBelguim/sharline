@@ -819,7 +819,7 @@ fn spawn_marks(
     }
     let impacts = std::mem::take(&mut feedback.impacts);
     let Some(level) = level else { return };
-    let showhome = level.name.eq_ignore_ascii_case("showhome");
+    let showhome = crate::showhome_kit::is_showhome(&level);
     let l = particles_level(&settings);
     let max = data.max_marks[l];
     let skip = impacts.len().saturating_sub(max);
@@ -1207,7 +1207,7 @@ fn demo_shots(
         let Some((d, n)) = level.world.raycast(origin, ahead, 100.0) else { return };
         let centre = origin + ahead * d;
         let face = Frame::grain(n, false, 0.0);
-        let showhome = level.name.eq_ignore_ascii_case("showhome");
+        let showhome = crate::showhome_kit::is_showhome(&level);
         let rows = SurfaceKind::ALL.len() as f32;
         for (row, kind) in SurfaceKind::ALL.into_iter().enumerate() {
             let variants = atlas.kinds.get(&kind).map_or(0, Vec::len);

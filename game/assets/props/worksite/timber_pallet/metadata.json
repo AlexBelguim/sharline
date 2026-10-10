@@ -1,0 +1,22 @@
+{
+  "id": "timber_pallet",
+  "category": "worksite",
+  "tags": [
+    "worksite",
+    "showhome_v3"
+  ],
+  "glb": "props/worksite/timber_pallet/timber_pallet.glb",
+  "lod1": "props/worksite/timber_pallet/timber_pallet_lod1.glb",
+  "collision": "props/worksite/timber_pallet/collision.json",
+  "source": "original procedural phase-2 worksite kit",
+  "licence": "project original",
+  "openable_parts": [],
+  "size_m": [
+    1.25,
+    0.9599999785423279,
+    0.16999998688697815
+  ],
+  "triangles": 96,
+  "collision_volumes": 4,
+  "loot_slots": []
+}

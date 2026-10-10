@@ -34,6 +34,9 @@ mod settings;
 mod shared;
 mod showhome_ground;
 mod showhome_kit;
+mod showhome_v3;
+mod build_editor;
+mod build_editor_ui;
 mod sound;
 mod streaks;
 mod throwables;
@@ -144,6 +147,7 @@ fn main() -> AppExit {
     app.add_plugins(foliage::FoliagePlugin);
     // The art exports are already in Bevy's design frame; the ground interprets their RGBA blend masks.
     app.add_plugins((showhome_kit::ShowhomeKitPlugin, showhome_ground::ShowhomeGroundPlugin));
+    app.add_plugins(build_editor::BuildEditorPlugin);
     // Hub screens over the menu or the match.
     app.add_plugins((
         screens::ScreensPlugin,

@@ -21,8 +21,9 @@
         assist_min_damage: 40.0,
         assist_window_s: 10.0,
         // Every life starts with this many throwables (item 10b; throwables.ron has how they work). Keys: 4 smoke,
-        // 5 molotov (Settings > Keybinds).
-        throwables: (smoke: 1, molotov: 1),
+        // 5 molotov (Settings > Keybinds). 10 of each for testing (user, 2026-10-10: "give in tdm and free for all
+        // multiple nades like 10x each"); was 1 and 1.
+        throwables: (smoke: 10, molotov: 10),
     ),
     // Free-for-all deathmatch on Showhome (user direction 2026-10-08: "i want a free for all deathmatch").
     // Everyone against everyone: no teams, the player with the most kills wins (tie: fewer deaths, then the
@@ -39,7 +40,7 @@
         spawn_slack_m: 6.0,       // spawn at random among the points within 6 m of the farthest from enemies
         assist_min_damage: 40.0,  // like team deathmatch; anyone but the killer and the victim can assist
         assist_window_s: 10.0,
-        throwables: (smoke: 1, molotov: 1),  // like team deathmatch
+        throwables: (smoke: 10, molotov: 10),  // like team deathmatch (10 each for testing)
     ),
     // Kill streaks in team deathmatch and free-for-all (user direction, item 9c2). A streak is a player's kills
     // in a row within one life: every kill that scores (an enemy, in a live match) adds one, dying resets it,

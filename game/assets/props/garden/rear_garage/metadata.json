@@ -1,0 +1,22 @@
+{
+  "id": "rear_garage",
+  "category": "garden",
+  "tags": [
+    "garden",
+    "showhome_v3"
+  ],
+  "glb": "props/garden/rear_garage/rear_garage.glb",
+  "lod1": "props/garden/rear_garage/rear_garage_lod1.glb",
+  "collision": "props/garden/rear_garage/collision.json",
+  "source": "original procedural v3",
+  "licence": "project original",
+  "openable_parts": [],
+  "size_m": [
+    4.739999771118164,
+    5.739999771118164,
+    3.200000047683716
+  ],
+  "triangles": 308,
+  "collision_volumes": 7,
+  "loot_slots": []
+}

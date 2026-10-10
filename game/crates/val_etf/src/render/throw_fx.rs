@@ -36,8 +36,11 @@ use bevy::pbr::{ExtendedMaterial, MaterialExtension, MaterialPlugin};
 use bevy::prelude::*;
 use bevy::render::render_resource::{AsBindGroup, Extent3d, ShaderType, TextureDimension, TextureFormat};
 use bevy::shader::ShaderRef;
+use lightyear::prelude::Controlled;
 use serde::Deserialize;
 use std::f32::consts::{PI, TAU};
+use vetf_net::PlayerId;
+use vetf_sim::level::Team;
 use vetf_sim::rng::SplitMix;
 use vetf_sim::throwable::{MolotovSpec, SmokeSpec, TUNNELS, ThrowId, ThrowKind};
 
@@ -50,7 +53,7 @@ impl Plugin for ThrowFxPlugin {
             .add_systems(Startup, setup_assets)
             .add_systems(
                 Update,
-                (sync_clouds, sync_fires, sync_grenades)
+                (sync_clouds, sync_fires, sync_grenades, sync_held_grenade)
                     .after(crate::throwables::ThrowViewSystems)
                     .run_if(in_state(AppState::InGame)),
             );
@@ -138,6 +141,9 @@ pub struct FireLook {
 pub struct GrenadeLook {
     pub smoke_color: (f32, f32, f32),
     pub molotov_color: (f32, f32, f32),
+    pub held_scale: f32,
+    pub held_charge_offset: (f32, f32, f32),
+    pub held_tilt_deg: f32,
     pub rag_glow: f32,
     pub tumble_rps: f32,
 }
@@ -245,6 +251,24 @@ pub fn smoke_uniform(
     }
     u.fade.w = n as f32;
     u
+}
+
+/// Stable owner-team colours. FFA uses the own accent and neutral colour for other owners.
+pub fn smoke_team_tint(
+    team: Option<Team>,
+    owner: u64,
+    viewer: Option<u64>,
+    settings: Option<&Settings>,
+    neutral: Vec3,
+) -> Vec3 {
+    let (a, b) = settings.map_or((crate::ui_kit::ALLY, crate::ui_kit::ENEMY), Settings::team_colors);
+    let color = match team {
+        Some(Team::A) => a,
+        Some(Team::B) => b,
+        None if viewer == Some(owner) => a,
+        None => return neutral,
+    };
+    Vec3::from_slice(&color.to_linear().to_f32_array()[..3])
 }
 
 /// A fire's uniform: spread (0..1), burn-out alpha, age.
@@ -616,6 +640,7 @@ fn sync_clouds(
     view: Res<ThrowView>,
     level: Option<Res<CurrentLevel>>,
     settings: Option<Res<Settings>>,
+    me: Query<&PlayerId, With<Controlled>>,
     assets: Option<Res<FxAssets>>,
     suns: Query<(&DirectionalLight, &GlobalTransform)>,
     ambient: Option<Res<GlobalAmbientLight>>,
@@ -646,7 +671,16 @@ fn sync_clouds(
             .live(view.now_s, look.tunnel.life_s, look.tunnel.refill_s)
             .map(|(t, open)| (t.a, t.b, open))
             .collect();
-        let params = smoke_uniform(look, s.smoke.growth(sim, dt), s.smoke.density(sim, dt), age_s, &light, &tunnels);
+        let mut params =
+            smoke_uniform(look, s.smoke.growth(sim, dt), s.smoke.density(sim, dt), age_s, &light, &tunnels);
+        params.tint = smoke_team_tint(
+            s.team,
+            s.smoke.id.owner,
+            me.iter().next().map(|id| id.0),
+            settings.as_deref(),
+            rgb(look.tint),
+        )
+        .extend(params.tint.w);
         match clouds.iter_mut().find(|(_, c)| c.id == s.smoke.id) {
             Some((_, mut c)) => {
                 if let Some(mut m) = materials.get_mut(&c.material) {
@@ -785,6 +819,61 @@ fn sync_fires(
     }
 }
 
+#[derive(Component)]
+struct HeldGrenade(ThrowKind);
+
+fn sync_held_grenade(
+    mut commands: Commands,
+    data: Res<Data>,
+    fx: Res<ThrowFxData>,
+    assets: Option<Res<FxAssets>>,
+    me: Query<(&vetf_net::PlayerItems, &vetf_net::Vitals), With<Controlled>>,
+    camera: Query<Entity, With<ViewCamera>>,
+    mut held: Query<(Entity, &HeldGrenade, &mut Transform)>,
+) {
+    let Some(assets) = assets else { return };
+    let hand = me.iter().next().filter(|(_, v)| !v.health.dead).map(|(it, _)| it.0.throw);
+    let kind = hand.and_then(|h| h.selected.or(h.windup.map(|w| w.kind)));
+    let camera = camera.iter().next();
+    for (entity, current, _) in &held {
+        if kind != Some(current.0) || camera.is_none() {
+            commands.entity(entity).despawn();
+        }
+    }
+    let (Some(kind), Some(camera), Some(hand)) = (kind, camera, hand) else { return };
+    let charge = hand.charge_fraction(&data.throwables.throw, data.net.tick_hz);
+    let (r, u, f) = data.throwables.throw.hand;
+    let pose = Transform::from_translation(Vec3::new(r, u, -f) + rgb(fx.grenade.held_charge_offset) * charge)
+        .with_rotation(Quat::from_rotation_z(-fx.grenade.held_tilt_deg.to_radians() * charge))
+        .with_scale(Vec3::splat(fx.grenade.held_scale));
+    if let Some((_, _, mut transform)) = held.iter_mut().find(|(_, h, _)| h.0 == kind) {
+        *transform = pose;
+        return;
+    }
+    let (mesh, material) = match kind {
+        ThrowKind::Smoke => (assets.can.clone(), assets.can_material.clone()),
+        ThrowKind::Molotov => (assets.bottle.clone(), assets.bottle_material.clone()),
+    };
+    let mut entity = commands.spawn((
+        Name::new("Grenade in hand"),
+        HeldGrenade(kind),
+        Mesh3d(mesh),
+        MeshMaterial3d(material),
+        pose,
+        ChildOf(camera),
+        NotShadowCaster,
+        DespawnOnExit(AppState::InGame),
+    ));
+    if kind == ThrowKind::Molotov {
+        entity.with_child((
+            Mesh3d(assets.rag.clone()),
+            MeshMaterial3d(assets.rag_material.clone()),
+            Transform::from_xyz(0., 0.12, 0.),
+            NotShadowCaster,
+        ));
+    }
+}
+
 fn sync_grenades(
     mut commands: Commands,
     data: Res<Data>,
@@ -842,6 +931,21 @@ fn sync_grenades(
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn smoke_keeps_owner_team_colour_for_every_viewer_and_ffa_is_neutral() {
+        let neutral = Vec3::splat(0.5);
+        for palette in crate::settings::TeamColours::ALL {
+            let mut settings = Settings::default();
+            settings.hud.team_colours = *palette;
+            let a = smoke_team_tint(Some(Team::A), 7, Some(7), Some(&settings), neutral);
+            let b = smoke_team_tint(Some(Team::B), 7, Some(8), Some(&settings), neutral);
+            assert_ne!(a, b);
+            assert_eq!(b, smoke_team_tint(Some(Team::B), 7, Some(7), Some(&settings), neutral));
+            assert_eq!(a, smoke_team_tint(None, 7, Some(7), Some(&settings), neutral));
+            assert_eq!(neutral, smoke_team_tint(None, 7, Some(8), Some(&settings), neutral));
+        }
+    }
     use vetf_sim::GameData;
 
     fn data() -> (ThrowFxData, GameData) {

@@ -66,6 +66,11 @@ pub fn load_game_data() -> GameData {
 }
 
 pub fn level_by_name(name: &str) -> Level {
+    if crate::showhome_v3::is_v3(name) {
+        return vetf_sim::maps::showhome_v3::load_with_placements(assets_root(), name, None)
+            .expect("Showhome v3 authored preview is available")
+            .level;
+    }
     vetf_sim::maps::by_name(name).unwrap_or_else(|| {
         warn!("unknown map {name}; using Showhome");
         vetf_sim::maps::showhome()
@@ -77,6 +82,8 @@ pub fn level_by_name(name: &str) -> Level {
 pub struct Cli {
     /// Host straight away on this map.
     pub host: Option<String>,
+    /// Launch a solo authored map with the in-game editor active.
+    pub build: Option<String>,
     /// `--live`: `--host showhome` skips the lobby and starts the match at once (tests, screenshots).
     pub live: bool,
     /// `--mode tdm|ffa`: the mode HOST GAME (and `--host showhome`) starts: team deathmatch or free-for-all.
@@ -141,6 +148,7 @@ impl Default for Cli {
     fn default() -> Self {
         Cli {
             host: None,
+            build: None,
             live: false,
             mode: None,
             join: None,
@@ -178,6 +186,7 @@ impl Cli {
             let mut val = || args.next().unwrap_or_default();
             match a.as_str() {
                 "--host" => cli.host = Some(val()),
+                "--build" => { let map=val();cli.build=Some(map.clone());cli.host=Some(map);cli.live=true; },
                 "--live" => cli.live = true,
                 "--mode" => {
                     let v = val();
@@ -217,7 +226,7 @@ impl Cli {
                 }
                 "--help" | "-h" => {
                     println!(
-                        "val_etf [--host showhome|range [--live] [--mode tdm|ffa]] [--join CODE|IP[:PORT]] [--name NAME]\n\
+                        "val_etf [--host showhome|showhome_v3|showhome_full|range [--live] [--mode tdm|ffa]] [--join CODE|IP[:PORT]] [--name NAME]\n\
                          \x20       [--port PORT]\n\
                          \x20       [--width W --height H] [--screenshot PATH [--screenshot-after S]] [--exit-after S] [--bot] [--yaw DEG]\n\
                          \x20       [--bots N]\n\
@@ -240,6 +249,7 @@ impl Cli {
                          --esc-at presses Esc at those seconds after start-up (tests of the Esc routing).\n\
                          --host showhome opens the lobby; --live starts the match at once. --mode ffa hosts a\n\
                          \x20 free-for-all deathmatch instead of team deathmatch (also preselects HOST GAME's MODE).\n\
+                         --host showhome_v3 loads the four-home core; showhome_full adds the latest neighbourhood/campus. Both support TDM and FFA.\n\
                          --demo-ui settings-gameplay|-mouse|-keybinds|-video|-audio|-hud opens that Settings tab from the\n\
                          \x20 main menu; esc | esc-stop | esc-restart opens the ESC menu (or its confirm) over a hosted\n\
                          \x20 match; ads holds aim down sights; hud-fx shows the damage flash; overlay keeps the\n\

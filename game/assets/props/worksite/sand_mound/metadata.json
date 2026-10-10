@@ -1,0 +1,23 @@
+{
+  "id": "sand_mound",
+  "category": "worksite",
+  "tags": [
+    "worksite",
+    "showhome_legacy"
+  ],
+  "glb": "props/worksite/sand_mound/sand_mound.glb",
+  "lod1": "props/worksite/sand_mound/sand_mound_lod1.glb",
+  "collision": "props/worksite/sand_mound/collision.json",
+  "source": "original assets/maps/showhome procedural SandMound",
+  "licence": "project original",
+  "openable_parts": [],
+  "size_m": [
+    2.4830808639526367,
+    2.5144028663635254,
+    0.650428295135498
+  ],
+  "triangles": 80,
+  "collision_volumes": 1,
+  "loot_slots": [],
+  "legacy_root": "PROP_SandMound"
+}

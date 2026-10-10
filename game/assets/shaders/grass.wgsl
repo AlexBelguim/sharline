@@ -38,7 +38,7 @@ struct Grass {
     // x: tip sway (m), y: angular frequency (rad/s), z: wave number along the wind (rad/m), w: gust lean
     wind: vec4<f32>,
     // lawn: x layer count, y grass height (m), z the shallowest descent of a view ray (per metre; caps how far a
-    // grazing ray runs through the grass), w unused
+    // grazing ray runs through the grass), w design-origin X offset
     march: vec4<f32>,
     // lawn strands: x cell size (m), y root radius (share of a cell), z shortest strand (share), w tip lean (share)
     shape: vec4<f32>,
@@ -50,7 +50,7 @@ struct Grass {
     tip: vec4<f32>,
     // rgb: the ground material's tint, w: its macro strength
     ground_tint: vec4<f32>,
-    // x: macro repeat (m), y: wind sheen, z: base normal scale, w: unused
+    // x: macro repeat (m), y: wind sheen, z: base normal scale, w: negative design-origin Y offset
     ground: vec4<f32>,
     // lawn patches: rgb the driest and the lushest tint
     dry: vec4<f32>,
@@ -112,7 +112,7 @@ fn value_noise(p: vec2<f32>) -> f32 {
 // The ground's macro variation (showhome_ground.wgsl): 1 + strength * (macro - 0.5), from the PNG16 macro layer.
 fn ground_macro(world: vec3<f32>) -> f32 {
     let size = vec2<i32>(textureDimensions(ground_height, 0));
-    let uv = vec2<f32>(world.x, world.z) / grass.ground.x;
+    let uv = (vec2<f32>(world.x, world.z) + vec2<f32>(grass.march.w, grass.ground.w)) / grass.ground.x;
     let texel = fract(uv) * vec2<f32>(size) - vec2<f32>(0.5);
     let p = vec2<i32>(floor(texel));
     let f = fract(texel);

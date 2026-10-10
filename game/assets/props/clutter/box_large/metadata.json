@@ -1,0 +1,23 @@
+{
+  "id": "box_large",
+  "category": "clutter",
+  "tags": [
+    "clutter",
+    "showhome_legacy"
+  ],
+  "glb": "props/clutter/box_large/box_large.glb",
+  "lod1": "props/clutter/box_large/box_large_lod1.glb",
+  "collision": "props/clutter/box_large/collision.json",
+  "source": "original assets/maps/showhome procedural Box_L",
+  "licence": "project original",
+  "openable_parts": [],
+  "size_m": [
+    0.800000011920929,
+    0.5519999861717224,
+    0.5509999990463257
+  ],
+  "triangles": 144,
+  "collision_volumes": 1,
+  "loot_slots": [],
+  "legacy_root": "PROP_Box_L"
+}

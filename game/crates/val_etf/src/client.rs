@@ -2,7 +2,7 @@
 //! Works the same for the host's own player and for a remote client.
 
 use crate::AppState;
-use crate::config::{Cli, CurrentLevel, Data, level_by_name};
+use crate::config::{Cli, CurrentLevel, Data};
 use crate::net::{NetRequest, Role, Session};
 use crate::radial::{HealMenu, HealOption, REGION_ORDER, Radial, heal_options};
 use crate::render::hit_fx::ClaimedHit;
@@ -200,11 +200,19 @@ fn on_match_state(
     states: Query<&MatchState>,
     level: Option<Res<CurrentLevel>>,
     mut commands: Commands,
+    mut requests: MessageWriter<NetRequest>,
 ) {
     let Ok(m) = states.get(trigger.entity) else { return };
     let have = level.is_some_and(|l| l.name.eq_ignore_ascii_case(&m.map));
     if !have {
-        commands.insert_resource(CurrentLevel(Arc::new(level_by_name(&m.map))));
+        match crate::showhome_v3::load(&m.map, &mut commands) {
+            Ok(level) => {
+                commands.insert_resource(CurrentLevel(Arc::new(level)));
+            }
+            Err(error) => {
+                requests.write(NetRequest::Leave { reason: Some(format!("Cannot load host map: {error}")) });
+            }
+        }
     }
 }
 
@@ -251,7 +259,14 @@ fn block_mouse_on_focus(mut focus: MessageReader<WindowFocused>, mut control: Re
 /// Esc in the match, when no hub screen is open (`screens::EscSystems::Base`): it closes an open ring menu,
 /// else opens the ESC menu (`esc_menu.rs`). The match keeps running; the cursor follows the screen stack
 /// (`screens::apply_cursor`).
-fn esc_in_match(mut esc: ResMut<EscPress>, mut control: ResMut<LocalControl>, mut screens: ResMut<Screens>) {
+fn esc_in_match(
+    mut esc: ResMut<EscPress>,
+    mut control: ResMut<LocalControl>,
+    mut screens: ResMut<Screens>,
+    me: Query<&PlayerItems, With<Controlled>>,
+    editor: Option<Res<crate::build_editor::EditorActive>>,
+) {
+    if editor.is_some_and(|e|e.0) { return; }
     if esc.take() {
         // Esc closes an open ring menu first (and forgets a reload hold, so it does not reopen).
         let heal = control.heal.take().is_some();
@@ -259,6 +274,12 @@ fn esc_in_match(mut esc: ResMut<EscPress>, mut control: ResMut<LocalControl>, mu
         if heal || radial {
             control.reload_held_s = None;
             control.mouse_block = true;
+            return;
+        }
+        if me.iter().any(|it| it.0.throw.selected.is_some()) {
+            control.latched |= Buttons::THROW_CANCEL;
+            control.mouse_block = true;
+            control.toggles.ads = false;
             return;
         }
         screens.push(crate::screens::Screen::Esc);
@@ -378,11 +399,14 @@ fn gather_input(
     settings: Res<Settings>,
     tables: Res<SettingsData>,
     screens: Res<Screens>,
+    editor: Option<Res<crate::build_editor::EditorActive>>,
     me: Query<(&PlayerLoadout, &PlayerItems, Option<&Vitals>, Option<&PlayerWeapon>), With<Controlled>>,
     mut control: ResMut<LocalControl>,
     mut logged: Local<Option<(f32, u32)>>,
+    mut grenade_demo_entered: Local<Option<f32>>,
 ) {
-    if cli.bot {
+    let editing = editor.as_ref().is_some_and(|e| e.0);
+    if cli.bot && !editing {
         return;
     }
     let mut input = devices.read();
@@ -396,9 +420,12 @@ fn gather_input(
         let deg = rad_per_count(m.cm_per_360, m.dpi).to_degrees();
         info!("look: {} cm/360 at {} DPI = {deg:.4} deg per count", m.cm_per_360, m.dpi);
     }
-    if control.paused || !screens.is_empty() {
+    if control.paused || !screens.is_empty() || editing {
         control.movement = Vec2::ZERO;
         control.held = 0;
+        control.latched = Buttons::THROW_CANCEL;
+        control.item_pick = (0, 0);
+        control.reload_pick = 0;
         control.toggles = Toggles::default();
         control.reload_held_s = None;
         control.reload_radial = None;
@@ -409,6 +436,10 @@ fn gather_input(
     }
     let me = me.iter().next();
     let item_in_hand = me.is_some_and(|(_, it, ..)| it.0.using.is_some());
+    let grenade_in_hand = me.is_some_and(|(_, it, ..)| it.0.throw.busy());
+    if grenade_in_hand {
+        control.toggles.ads = false;
+    }
     // No ring menus while dead, and toggles come back off.
     if me.is_some_and(|(_, _, v, _)| v.is_some_and(|v| v.health.dead)) {
         control.heal = None;
@@ -429,7 +460,7 @@ fn gather_input(
     let ring = RingSettings { hold_s: g.radial_hold_s, pick: g.radial_pick, tuning };
     let tap_reload = control.heal.is_none() && reload_input(&mut control, kb, &input, ring_delta, dt, mags, ring);
     let ring_open = control.heal.is_some() || control.reload_radial.is_some();
-    if ring_open {
+    if ring_open || ring_before {
         control.mouse_block = true;
         control.toggles.ads = false;
     } else if !kb.pressed(Action::Fire, &input) && !kb.pressed(Action::Ads, &input) {
@@ -460,7 +491,7 @@ fn gather_input(
     let keys = HoldKeys {
         sprint: (held(Action::Sprint), pressed(Action::Sprint)),
         crouch: (held(Action::Crouch), pressed(Action::Crouch)),
-        ads: (free && held(Action::Ads), free && pressed(Action::Ads)),
+        ads: (!grenade_in_hand && free && held(Action::Ads), !grenade_in_hand && free && pressed(Action::Ads)),
         walk: held(Action::Walk),
         forward: control.movement.y > 0.0,
         item: item_in_hand || control.item_pick.0 != 0,
@@ -469,19 +500,26 @@ fn gather_input(
         hold_buttons(settings.hud.hold_toggle, m.ads_input, g.auto_sprint, &mut control.toggles, keys);
 
     let mut bits = demo_held(&cli);
+    if let Some(demo) = cli.demo_ui.as_deref().filter(|d| d.starts_with("grenade-")) {
+        let entered = grenade_demo_entered.get_or_insert(time.elapsed_secs());
+        bits = grenade_demo_buttons(demo, time.elapsed_secs() - *entered);
+    }
     for (bit, on) in [
         (Buttons::JUMP, held(Action::Jump)),
         (Buttons::CROUCH, crouch),
         (Buttons::SPRINT, sprint),
         (Buttons::WALK, held(Action::Walk)),
         (Buttons::FIRE, free && held(Action::Fire)),
-        (Buttons::ADS, ads),
+        // While holding a grenade RMB is a raw soft-throw press, regardless of ADS toggle settings.
+        (Buttons::ADS, if grenade_in_hand { free && held(Action::Ads) } else { ads }),
         (Buttons::MAG_CHECK, held(Action::MagCheck)),
         (Buttons::FIRE_MODE, held(Action::FireMode)),
         (Buttons::LASER, held(Action::Laser)),
         (Buttons::INTERACT, held(Action::Interact)),
         (Buttons::THROW_SMOKE, !control.throw_block && held(Action::ThrowSmoke)),
         (Buttons::THROW_MOLOTOV, !control.throw_block && held(Action::ThrowMolotov)),
+        // Hiding mouse input for a ring must cancel a charge, not turn the hidden LMB into a release/throw.
+        (Buttons::THROW_CANCEL, grenade_in_hand && (ring_open || ring_before || held(Action::Reload))),
     ] {
         if on {
             bits |= bit;
@@ -504,6 +542,19 @@ fn demo_held(cli: &Cli) -> u16 {
         Some("sprint" | "dry-fire-sprint") => Buttons::SPRINT,
         Some("sprint-ads") => Buttons::SPRINT | Buttons::ADS,
         _ => 0,
+    }
+}
+
+/// Capture hooks use the real equip/throw input path: hold modes show the full bar,
+/// soft modes release a nearby smoke/fire for the existing screenshot clock.
+fn grenade_demo_buttons(demo: &str, elapsed: f32) -> u16 {
+    let select = if demo.contains("molotov") { Buttons::THROW_MOLOTOV } else { Buttons::THROW_SMOKE };
+    if (1.0..1.15).contains(&elapsed) {
+        select
+    } else if elapsed >= 1.25 {
+        if demo.ends_with("-soft") { if elapsed < 1.4 { Buttons::ADS } else { 0 } } else { Buttons::FIRE }
+    } else {
+        0
     }
 }
 
@@ -718,7 +769,8 @@ fn fire_claims(
         control.recoil.on_shot(spec, pitch_deg, s.shot.kick_pitch);
         control.pitch = (control.pitch + s.shot.kick_pitch.to_radians()).clamp(-MAX_PITCH, MAX_PITCH);
         control.yaw -= s.shot.kick_yaw.to_radians();
-        control.punch = vetf_sim::recoil::view_punch(spec);
+        // The punch is a vertical kick: a stock calms it like the climb (attachments.ron `recoil_v`).
+        control.punch = vetf_sim::recoil::view_punch(spec) * loadout.0.weapon.mods.recoil_v;
 
         let dir = shot_direction(s.yaw, s.pitch, s.shot.spread_deg, shot_seed(s.player, s.shot.seq));
         let range = spec.max_range_m;
@@ -1170,6 +1222,50 @@ mod tests {
             .insert_resource(crate::settings::embedded().clone())
             .add_systems(Update, (crate::scope_zoom::update, gather_input).chain());
         app
+    }
+
+    #[test]
+    fn grenade_throw_input_rmb_is_raw_even_with_toggle_ads_and_editor_cancels_inputs() {
+        let mut app = input_app();
+        app.world_mut().resource_mut::<Settings>().mouse.ads_input = HoldToggle::Toggle;
+        let d = vetf_sim::GameData::embedded();
+        let lo = vetf_sim::player::Loadout::default_for(&d, vetf_sim::data::Mode::Tdm);
+        let mut it = vetf_sim::items::ItemState::for_loadout(&lo);
+        it.throw.selected = Some(vetf_sim::throwable::ThrowKind::Smoke);
+        app.world_mut().spawn((PlayerLoadout(lo), PlayerItems(it), Controlled));
+        app.world_mut().resource_mut::<ButtonInput<MouseButton>>().press(MouseButton::Right);
+        app.update();
+        assert!(app.world().resource::<LocalControl>().held & Buttons::ADS != 0);
+        assert!(!app.world().resource::<LocalControl>().toggles.ads);
+        app.world_mut().resource_mut::<ButtonInput<MouseButton>>().release_all();
+        app.update();
+        assert_eq!(app.world().resource::<LocalControl>().held & Buttons::ADS, 0);
+        app.insert_resource(crate::build_editor::EditorActive(true));
+        app.world_mut().resource_mut::<ButtonInput<MouseButton>>().press(MouseButton::Left);
+        let before = app.world().resource::<LocalControl>().yaw;
+        let (bits, movement, yaw, pitch) = frame(&mut app, &[KeyCode::KeyW, KeyCode::Digit4], Vec2::splat(50.0));
+        assert_eq!(bits, 0);
+        assert_eq!(movement, Vec2::ZERO);
+        assert_eq!((yaw, pitch), (before, 0.0));
+        assert_eq!(app.world().resource::<LocalControl>().latched, Buttons::THROW_CANCEL);
+    }
+
+    #[test]
+    fn grenade_throw_ring_masks_cancel_the_charge_instead_of_releasing_it() {
+        let mut app = input_app();
+        let d = vetf_sim::GameData::embedded();
+        let lo = vetf_sim::player::Loadout::default_for(&d, vetf_sim::data::Mode::Tdm);
+        let mut it = vetf_sim::items::ItemState::for_loadout(&lo);
+        it.throw.selected = Some(vetf_sim::throwable::ThrowKind::Smoke);
+        it.throw.charge_ticks = 30;
+        app.world_mut().spawn((PlayerLoadout(lo), PlayerItems(it), Controlled));
+        let tuning = app.world().resource::<SettingsData>().radial;
+        app.world_mut().resource_mut::<LocalControl>().heal = Some(HealMenu::new(1, &tuning));
+        app.world_mut().resource_mut::<ButtonInput<MouseButton>>().press(MouseButton::Left);
+        app.update();
+        let c = app.world().resource::<LocalControl>();
+        assert_eq!(c.held & (Buttons::FIRE | Buttons::ADS), 0);
+        assert_ne!(c.held & Buttons::THROW_CANCEL, 0);
     }
 
     /// One frame with these keys down and this mouse motion: the held buttons, movement, and the yaw and

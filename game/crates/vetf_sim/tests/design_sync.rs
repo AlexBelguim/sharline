@@ -233,3 +233,8 @@ fn attachments_match_design() {
     game["attachments"] = by_design_ids(&design, "attachments", game["attachments"].clone());
     check("attachments_stats.slice.json", game);
 }
+
+#[test]
+fn throwable_charge_matches_design() {
+    check("throwables.slice.json", to_value(&GameData::embedded().throwables));
+}

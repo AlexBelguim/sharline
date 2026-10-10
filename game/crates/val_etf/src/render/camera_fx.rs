@@ -359,7 +359,8 @@ pub(crate) fn step_feel(
         return;
     }
     let spec = loadout.0.weapon.spec(&data);
-    let shot = *feel.shot(&spec.id);
+    let mods = &loadout.0.weapon.mods;
+    let shot = feel.shot(&spec.id).scaled(mods.recoil_v, mods.recoil_h);
     let shots: Vec<(ShotFeel, u32)> = fired.into_iter().map(|seq| (shot, seq)).collect();
     let m = &mv.0;
     let speeds = &data.movement.speed;

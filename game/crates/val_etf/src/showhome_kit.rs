@@ -1,8 +1,9 @@
 //! Showhome art-kit scenes, in their exported design frame, with the painted cube sky.
 //!
-//! Bevy 0.19 calls glTF scene roots `WorldAssetRoot` (formerly `SceneRoot`). The four exports already use
-//! Bevy's `(design.x, design.z, -design.y)` axes, so every scene is loaded at identity. Collision remains
-//! the simulation layout. Material names/extras are retained for the ground and surface-depth systems.
+//! Bevy 0.19 calls glTF scene roots `WorldAssetRoot` (formerly `SceneRoot`). Original Showhome uses its four
+//! exports at identity. V3 loads two fixed exports relative to its design origin and individual catalog props
+//! from the same read-only placement snapshot as exact collision. Material names/extras remain available to
+//! ground, surface-depth, grass and decal systems.
 
 use crate::AppState;
 use crate::config::CurrentLevel;
@@ -29,6 +30,7 @@ pub struct ShowhomeKitPlugin;
 impl Plugin for ShowhomeKitPlugin {
     fn build(&self, app: &mut App) {
         app.init_resource::<ShowhomeKitAssets>()
+            .init_resource::<NormalStrengthState>()
             .init_resource::<KitDepthState>()
             .init_resource::<KitMipState>()
             .add_systems(OnEnter(AppState::InGame), (spawn_kit, spawn_test_props))
@@ -37,6 +39,7 @@ impl Plugin for ShowhomeKitPlugin {
                 (
                     prepare_sky,
                     attach_sky,
+                    apply_normal_strengths,
                     finish_kit_mips,
                     reuse_hedge_materials,
                     apply_kit_depth,
@@ -65,8 +68,18 @@ pub struct ShowhomeKitMesh(pub ShowhomeKitPart);
 #[derive(Component)]
 struct ReusedHedgeMaterial;
 
+#[derive(Component)]
+struct NormalStrengths(std::collections::BTreeMap<String, f32>);
+#[derive(Component)]
+struct ImportedNormalStrength(f32);
+#[derive(Resource, Default)]
+struct NormalStrengthState {
+    processed: HashSet<AssetId<StandardMaterial>>,
+    images: HashMap<(AssetId<Image>, u32), Handle<Image>>,
+}
+
 struct KitScene {
-    path: &'static str,
+    path: String,
     part: ShowhomeKitPart,
     handle: Handle<WorldAsset>,
     failure_reported: bool,
@@ -78,6 +91,7 @@ struct KitScene {
 /// read them).
 #[derive(Resource, Default)]
 struct ShowhomeKitAssets {
+    map: String,
     scenes: Vec<KitScene>,
     sky: Option<Handle<Image>>,
     sky_prepared: bool,
@@ -100,7 +114,72 @@ const SKY_STRIP_RIGHT_HANDED: bool = true;
 const SKY_BRIGHTNESS: f32 = 650.0;
 
 pub fn is_showhome(level: &CurrentLevel) -> bool {
-    level.name.eq_ignore_ascii_case("showhome")
+    level.name.eq_ignore_ascii_case("showhome") || crate::showhome_v3::is_v3(&level.name)
+}
+
+#[derive(Component)]
+struct PreviewProp {
+    instance: vetf_sim::build_mode::PropInstance,
+    descriptor: vetf_sim::build_mode::PropDescriptor,
+}
+
+#[derive(Component, Clone, Debug)]
+pub struct PreviewInstanceId(pub String);
+
+/// Spawn an editable catalog instance with the same pose, tint, depth and
+/// authored normal-strength observers used by normal map loading.
+pub fn spawn_preview_prop(
+    commands: &mut Commands,
+    server: &AssetServer,
+    row: &vetf_sim::build_mode::PropInstance,
+    descriptor: &vetf_sim::build_mode::PropDescriptor,
+    origin: [f64; 3],
+) -> Entity {
+    let scales = crate::showhome_v3::normal_scales_for_path(&descriptor.glb).unwrap_or_default();
+    spawn_preview_prop_with_scales(
+        commands,
+        server.load(GltfAssetLabel::Scene(0).from_asset(descriptor.glb.clone())),
+        row,
+        descriptor,
+        origin,
+        scales,
+    )
+}
+fn spawn_preview_prop_with_scales(
+    commands: &mut Commands,
+    handle: Handle<WorldAsset>,
+    row: &vetf_sim::build_mode::PropInstance,
+    descriptor: &vetf_sim::build_mode::PropDescriptor,
+    origin: [f64; 3],
+    scales: std::collections::BTreeMap<String, f32>,
+) -> Entity {
+    commands
+        .spawn((
+            Name::new(row.id.clone()),
+            PreviewInstanceId(row.id.clone()),
+            ShowhomeKitPart::Props,
+            NormalStrengths(scales),
+            PreviewProp { instance: row.clone(), descriptor: descriptor.clone() },
+            WorldAssetRoot(handle),
+            preview_prop_transform(row, origin),
+            Visibility::Inherited,
+            DespawnOnExit(AppState::InGame),
+        ))
+        .observe(mark_scene_meshes)
+        .observe(apply_preview_prop_pose)
+        .id()
+}
+
+pub fn preview_prop_transform(row: &vetf_sim::build_mode::PropInstance, origin: [f64; 3]) -> Transform {
+    let position = vetf_sim::build_mode::collision::design_to_bevy(row.position, origin);
+    let [x, y] = row.tilt_deg.unwrap_or([0., 0.]);
+    Transform::from_translation(Vec3::from_array(position.map(|v| v as f32)))
+        .with_rotation(
+            Quat::from_rotation_y(row.yaw_deg.to_radians() as f32)
+                * Quat::from_axis_angle(Vec3::NEG_Z, y.to_radians() as f32)
+                * Quat::from_rotation_x(x.to_radians() as f32),
+        )
+        .with_scale(Vec3::splat(row.scale as f32))
 }
 
 /// Sun compass azimuth is clockwise from design north; Bevy north is -Z. Light local -Z points groundward.
@@ -115,15 +194,88 @@ fn spawn_kit(
     level: Res<CurrentLevel>,
     server: Res<AssetServer>,
     mut assets: ResMut<ShowhomeKitAssets>,
+    preview: Option<Res<crate::showhome_v3::CurrentV3Preview>>,
 ) {
     if !is_showhome(&level) {
+        return;
+    }
+    if assets.map != level.name {
+        *assets = ShowhomeKitAssets { map: level.name.clone(), ..default() };
+    }
+    if let Some(preview) = preview {
+        let data = &preview.0;
+        // Refresh paths from this session's snapshot, while retaining GPU handles between matches.
+        let mut paths = data
+            .kit_scenes
+            .iter()
+            .map(|p| {
+                (p.clone(), if p.ends_with("houses.glb") { ShowhomeKitPart::Houses } else { ShowhomeKitPart::Ground })
+            })
+            .collect::<Vec<_>>();
+        for row in &data.placements.instances {
+            if row.mode != "all" && row.mode != data.asset_mode {
+                continue;
+            }
+            let Ok(descriptor) = data.catalog.get(&row.prop_id) else { continue };
+            if !paths.iter().any(|(p, _)| p == &descriptor.glb) {
+                paths.push((descriptor.glb.clone(), ShowhomeKitPart::Props));
+            }
+        }
+        assets.scenes.retain(|s| paths.iter().any(|(p, _)| p == &s.path));
+        for (path, part) in paths {
+            if !assets.scenes.iter().any(|s| s.path == path) {
+                assets.scenes.push(KitScene {
+                    handle: server.load(GltfAssetLabel::Scene(0).from_asset(path.clone())),
+                    path,
+                    part,
+                    failure_reported: false,
+                });
+            }
+        }
+        if assets.sky.is_none() {
+            assets.sky = Some(
+                server
+                    .load_builder()
+                    .with_settings(|s: &mut ImageLoaderSettings| s.is_srgb = true)
+                    .load("maps/showhome_v3/sky/sky_cube_strip.png"),
+            );
+        }
+        let [x, y, z] = data.origin;
+        for scene in assets.scenes.iter().filter(|s| s.part != ShowhomeKitPart::Props) {
+            commands
+                .spawn((
+                    Name::new(format!("Showhome v3 {:?}", scene.part)),
+                    scene.part,
+                    NormalStrengths(preview.1.get(&scene.path).cloned().unwrap_or_default()),
+                    WorldAssetRoot(scene.handle.clone()),
+                    Transform::from_xyz(-x as f32, -z as f32, y as f32),
+                    Visibility::Inherited,
+                    DespawnOnExit(AppState::InGame),
+                ))
+                .observe(mark_scene_meshes);
+        }
+        for row in &data.placements.instances {
+            if row.mode != "all" && row.mode != data.asset_mode {
+                continue;
+            }
+            let Ok(descriptor) = data.catalog.get(&row.prop_id) else { continue };
+            let Some(scene) = assets.scenes.iter().find(|s| s.path == descriptor.glb) else { continue };
+            spawn_preview_prop_with_scales(
+                &mut commands,
+                scene.handle.clone(),
+                row,
+                descriptor,
+                data.origin,
+                preview.1.get(&scene.path).cloned().unwrap_or_default(),
+            );
+        }
         return;
     }
     if assets.scenes.is_empty() {
         assets.scenes = SCENES
             .into_iter()
             .map(|(path, part)| KitScene {
-                path,
+                path: path.into(),
                 part,
                 handle: server.load(GltfAssetLabel::Scene(0).from_asset(path)),
                 failure_reported: false,
@@ -162,7 +314,7 @@ struct TestProp {
 }
 
 fn spawn_test_props(mut commands: Commands, level: Res<CurrentLevel>, server: Res<AssetServer>) {
-    if !is_showhome(&level) {
+    if !level.name.eq_ignore_ascii_case("showhome") {
         return;
     }
     let root = crate::config::assets_root();
@@ -196,12 +348,12 @@ fn spawn_test_props(mut commands: Commands, level: Res<CurrentLevel>, server: Re
 fn mark_scene_meshes(
     ready: On<WorldInstanceReady>,
     mut commands: Commands,
-    roots: Query<&ShowhomeKitPart>,
+    roots: Query<(&ShowhomeKitPart, Option<&NormalStrengths>)>,
     tree: Query<&Children>,
     meshes: Query<(), With<Mesh3d>>,
-    names: Query<(&Name, Option<&GltfMeshName>)>,
+    names: Query<(&Name, Option<&GltfMeshName>, Option<&GltfMaterialName>)>,
 ) {
-    let Ok(&part) = roots.get(ready.entity) else { return };
+    let Ok((&part, strengths)) = roots.get(ready.entity) else { return };
     let mut count = 0;
     for entity in tree.iter_descendants(ready.entity) {
         if !meshes.contains(entity) {
@@ -209,15 +361,132 @@ fn mark_scene_meshes(
         }
         count += 1;
         commands.entity(entity).insert(ShowhomeKitMesh(part));
+        if let Some(strengths) = strengths
+            && let Ok((_, _, Some(material))) = names.get(entity)
+            && let Some(scale) = strengths.0.get(&material.0)
+        {
+            commands.entity(entity).insert(ImportedNormalStrength(*scale));
+        }
         if part == ShowhomeKitPart::Backdrop
-            && names.get(entity).is_ok_and(|(name, mesh)| {
+            && names.get(entity).is_ok_and(|(name, mesh, _)| {
                 name.as_str().starts_with("SHB_Far") || mesh.is_some_and(|n| n.0.starts_with("SHB_Far"))
             })
         {
             commands.entity(entity).insert(NotShadowCaster);
         }
     }
-    info!("Showhome {part:?} scene ready: {count} meshes at identity");
+    debug!("Showhome {part:?} scene ready: {count} meshes");
+}
+
+/// Bevy 0.19's glTF loader ignores normalTexture.scale. Apply its specified XY scale to a private image,
+/// preserving shared source images and the legacy map. The existing mip builder then processes this image.
+fn scale_normal_image(source: &Image, scale: f32) -> Option<Image> {
+    if !matches!(source.texture_descriptor.format, TextureFormat::Rgba8Unorm | TextureFormat::Rgba8UnormSrgb) {
+        return None;
+    }
+    let mut result = source.clone();
+    for pixel in result.data.as_mut()?.chunks_exact_mut(4) {
+        let n = Vec3::new(
+            (pixel[0] as f32 / 255. * 2. - 1.) * scale,
+            (pixel[1] as f32 / 255. * 2. - 1.) * scale,
+            pixel[2] as f32 / 255. * 2. - 1.,
+        )
+        .normalize_or_zero();
+        let n = if n == Vec3::ZERO { Vec3::Z } else { n };
+        for (i, component) in n.to_array().iter().enumerate() {
+            pixel[i] = ((component * 0.5 + 0.5) * 255.).round().clamp(0., 255.) as u8;
+        }
+    }
+    result.asset_usage = RenderAssetUsages::MAIN_WORLD | RenderAssetUsages::RENDER_WORLD;
+    Some(result)
+}
+
+fn apply_normal_strengths(
+    meshes: Query<(&ImportedNormalStrength, &MeshMaterial3d<StandardMaterial>)>,
+    mut state: ResMut<NormalStrengthState>,
+    mut images: ResMut<Assets<Image>>,
+    mut materials: ResMut<Assets<StandardMaterial>>,
+    mut summary: Local<(usize, usize, usize, u8)>,
+) {
+    for (strength, material) in &meshes {
+        if state.processed.contains(&material.0.id()) {
+            continue;
+        }
+        let Some(source) = materials.get(&material.0).and_then(|m| m.normal_map_texture.clone()) else { continue };
+        let key = (source.id(), strength.0.to_bits());
+        let handle = if let Some(handle) = state.images.get(&key) {
+            handle.clone()
+        } else {
+            let Some(image) = images.get(&source) else { continue };
+            let Some(scaled) = scale_normal_image(image, strength.0) else { continue };
+            let handle = images.add(scaled);
+            state.images.insert(key, handle.clone());
+            handle
+        };
+        if let Some(mut material) = materials.get_mut(&material.0) {
+            material.normal_map_texture = Some(handle);
+        }
+        state.processed.insert(material.0.id());
+    }
+    let count = meshes.iter().count();
+    if count == 0 {
+        return;
+    }
+    let counts = (state.processed.len(), state.images.len(), count);
+    if counts != (summary.0, summary.1, summary.2) {
+        *summary = (counts.0, counts.1, counts.2, 0);
+    } else if summary.3 < 60 {
+        summary.3 += 1;
+        if summary.3 == 60 {
+            info!(
+                "Showhome v3 supplied glTF normal strengths applied: {} materials, {} private images, {} tagged standard-mesh primitives",
+                counts.0, counts.1, counts.2
+            );
+        }
+    }
+}
+
+/// Match the authored preview's closed decorative containers. OPEN pivots remain at their actual glTF
+/// node translations; only the authored hinge rotation or drawer translation is reset.
+fn apply_preview_prop_pose(
+    ready: On<WorldInstanceReady>,
+    mut commands: Commands,
+    roots: Query<&PreviewProp>,
+    tree: Query<&Children>,
+    mut nodes: Query<(&Name, &mut Transform)>,
+    meshes: Query<(&GltfMaterialName, &MeshMaterial3d<StandardMaterial>)>,
+    mut materials: ResMut<Assets<StandardMaterial>>,
+) {
+    let Ok(prop) = roots.get(ready.entity) else { return };
+    let close = prop.descriptor.category == "containers" && !prop.instance.lootable;
+    let blue = prop.instance.prop_id == "city_car" && prop.instance.color_variant.as_deref() == Some("blue");
+    let mut blue_materials = HashMap::new();
+    for entity in tree.iter_descendants(ready.entity) {
+        if close
+            && let Ok((name, mut transform)) = nodes.get_mut(entity)
+            && let Some(part) = prop.descriptor.openable_parts.iter().find(|p| p.name == name.as_str())
+        {
+            if part.properties.axis == "DRAWER" {
+                if let Some(position) = part.properties.closed_location {
+                    let p = vetf_sim::build_mode::collision::design_to_bevy(position, [0.; 3]);
+                    transform.translation = Vec3::from_array(p.map(|v| v as f32));
+                }
+            } else {
+                transform.rotation = Quat::IDENTITY;
+            }
+        }
+        if blue
+            && let Ok((name, source)) = meshes.get(entity)
+            && name.0 == "M_CarSilver"
+        {
+            let handle = blue_materials.entry(source.0.id()).or_insert_with(|| {
+                let mut material = materials.get(&source.0).cloned().unwrap_or_default();
+                material.base_color = Color::linear_rgb(0.045, 0.19, 0.34);
+                materials.add(material)
+            });
+            commands.entity(entity).insert(MeshMaterial3d(handle.clone()));
+        }
+    }
 }
 
 /// Kit ground meshes at most this tall (the lawn, paving, asphalt, edging, painted lines: a few millimetres of
@@ -359,8 +628,11 @@ fn reuse_hedge_materials(
     for (entity, mesh, material) in &meshes {
         // The existing foliage plugin hides the plain hedge by this handle and keeps it visible on LOW.
         // Planter shrubs and backdrop trees have different ownership, so they remain ordinary kit materials.
-        if (mesh.0.starts_with("PROP_Hedge") || mesh.0.starts_with("PROP_Arbour"))
-            && matches!(material.0.as_str(), "M_Hedge" | "M_Vine")
+        if ((mesh.0.starts_with("PROP_Hedge") || mesh.0.starts_with("PROP_Arbour"))
+            && matches!(material.0.as_str(), "M_Hedge" | "M_Vine"))
+            || (mesh.0.starts_with("FOL_") && material.0.starts_with("M_V3_FoliageProxy"))
+            || (crate::showhome_v3::is_v3(&level.name)
+                && matches!(material.0.as_str(), "M_V3_ExtensionHedge" | "M_V3_ExtensionTreeCanopy"))
         {
             // Reinsert the component so the foliage plugin's Added filter notices async scene arrivals.
             commands
@@ -684,9 +956,13 @@ fn material_depth_allowed(name: &str, material: &StandardMaterial) -> bool {
 
 fn kit_height_spec(name: &str, extras: &str, families: &HashMap<String, HeightMetrics>) -> Option<KitHeight> {
     let extras: serde_json::Value = serde_json::from_str(extras).ok()?;
-    let file = extras.get("height_map")?.as_str()?.rsplit(['/', '\\']).next()?;
+    let source = extras.get("height_source").or_else(|| extras.get("height_map"))?.as_str()?;
+    let file = source.rsplit(['/', '\\']).next()?;
     let family = file.strip_suffix("_height.png")?;
-    let metrics = *families.get(family)?;
+    let mut metrics = *families.get(family)?;
+    if let Some(repeat) = extras.get("repeat_m").and_then(|v| v.as_f64()) {
+        metrics.repeat_m = repeat as f32;
+    }
     if metrics.repeat_m <= 0.0 || metrics.height_range_m <= 0.0 || metrics.metalness > 0.1 {
         return None;
     }
@@ -695,7 +971,12 @@ fn kit_height_spec(name: &str, extras: &str, families: &HashMap<String, HeightMe
     // Printed beads and roof butts already have geometric relief. Retain modest POM on their faces.
     // The neutral cladding face has only 0.35 mm paint relief; its 9 mm joints are separate geometry.
     let geometry_scale = if real_geometry && family != "fibercement_panel" { 0.35 } else { 1.0 };
-    Some(KitHeight { path: format!("maps/showhome/textures/v2/{file}"), metrics, real_geometry, geometry_scale })
+    let path = if source.starts_with("maps/") || source.starts_with("props/") {
+        source.into()
+    } else {
+        format!("maps/showhome/textures/v2/{file}")
+    };
+    Some(KitHeight { path, metrics, real_geometry, geometry_scale })
 }
 
 /// v2 white is HIGH; Bevy native POM expects white to be DEEP. Reuse the existing R16->F16 conversion.
@@ -831,6 +1112,81 @@ fn apply_kit_depth(
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn v3_normal_strength_preserves_source_and_reuses_private_images() {
+        let mut app = App::new();
+        app.init_resource::<Assets<Image>>();
+        app.init_resource::<Assets<StandardMaterial>>();
+        app.init_resource::<NormalStrengthState>();
+        app.add_systems(Update, apply_normal_strengths);
+        let source = app.world_mut().resource_mut::<Assets<Image>>().add(Image::new_fill(
+            bevy::render::render_resource::Extent3d { width: 1, height: 1, depth_or_array_layers: 1 },
+            bevy::render::render_resource::TextureDimension::D2,
+            &[204, 128, 230, 77],
+            TextureFormat::Rgba8Unorm,
+            RenderAssetUsages::MAIN_WORLD | RenderAssetUsages::RENDER_WORLD,
+        ));
+        let add = |app: &mut App| {
+            app.world_mut()
+                .resource_mut::<Assets<StandardMaterial>>()
+                .add(StandardMaterial { normal_map_texture: Some(source.clone()), ..default() })
+        };
+        let legacy = add(&mut app);
+        let first = add(&mut app);
+        let second = add(&mut app);
+        app.world_mut().spawn((ImportedNormalStrength(0.25), MeshMaterial3d(first.clone())));
+        app.world_mut().spawn((ImportedNormalStrength(0.25), MeshMaterial3d(second.clone())));
+        app.update();
+        let materials = app.world().resource::<Assets<StandardMaterial>>();
+        assert_eq!(materials.get(&legacy).unwrap().normal_map_texture.as_ref().unwrap(), &source);
+        let scaled = materials.get(&first).unwrap().normal_map_texture.as_ref().unwrap();
+        assert_ne!(scaled, &source);
+        assert_eq!(materials.get(&second).unwrap().normal_map_texture.as_ref().unwrap(), scaled);
+        let images = app.world().resource::<Assets<Image>>();
+        assert_eq!(images.get(&source).unwrap().data.as_deref(), Some(&[204, 128, 230, 77][..]));
+        let pixel = images.get(scaled).unwrap().data.as_ref().unwrap();
+        assert_eq!(pixel[3], 77);
+        assert!(pixel[0] < 160 && pixel[2] > 245, "XY scale reduces tangent-space slope");
+        app.update();
+        assert_eq!(app.world().resource::<NormalStrengthState>().images.len(), 1, "not repeatedly rescaled");
+    }
+
+    #[test]
+    fn preview_prop_render_transform_matches_exact_collision_adapter() {
+        use vetf_sim::build_mode::collision::{design_basis, design_to_bevy_matrix, instance_design_matrix};
+        let preview = vetf_sim::maps::showhome_v3::load(crate::config::assets_root()).unwrap();
+        for row in &preview.placements.instances {
+            let render = preview_prop_transform(row, preview.origin).to_matrix();
+            let collision =
+                design_to_bevy_matrix(preview.origin) * instance_design_matrix(row) * design_basis().inverse();
+            for point in [Vec3::ZERO, Vec3::ONE, Vec3::new(-0.37, 2.5, 0.83)] {
+                let actual = render.transform_point3(point);
+                let expected =
+                    collision.transform_point3(bevy::math::DVec3::new(point.x as f64, point.y as f64, point.z as f64));
+                assert!(
+                    actual.abs_diff_eq(Vec3::new(expected.x as f32, expected.y as f32, expected.z as f32), 0.0001),
+                    "{}",
+                    row.id
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn v3_material_height_paths_retain_shared_staged_family_and_repeat() {
+        let mut families = HashMap::new();
+        families
+            .insert("wood_boards_stained".into(), HeightMetrics { repeat_m: 2., height_range_m: 0.008, metalness: 0. });
+        let spec = kit_height_spec(
+            "M_V3_Posts",
+            r#"{"height_source":"maps/showhome_v3/height/wood_boards_stained_height.png","repeat_m":1.5}"#,
+            &families,
+        )
+        .unwrap();
+        assert_eq!(spec.path, "maps/showhome_v3/height/wood_boards_stained_height.png");
+        assert_eq!(spec.metrics.repeat_m, 1.5);
+    }
 
     /// Flat ground stops casting, anything with height keeps casting, through the mesh's transform.
     #[test]

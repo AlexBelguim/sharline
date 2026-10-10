@@ -1,0 +1,23 @@
+{
+  "id": "wood_crate",
+  "category": "clutter",
+  "tags": [
+    "clutter",
+    "showhome_legacy"
+  ],
+  "glb": "props/clutter/wood_crate/wood_crate.glb",
+  "lod1": "props/clutter/wood_crate/wood_crate_lod1.glb",
+  "collision": "props/clutter/wood_crate/collision.json",
+  "source": "original assets/maps/showhome procedural Crate_Wood_1m",
+  "licence": "project original",
+  "openable_parts": [],
+  "size_m": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "triangles": 2148,
+  "collision_volumes": 1,
+  "loot_slots": [],
+  "legacy_root": "PROP_Crate_Wood_1m"
+}

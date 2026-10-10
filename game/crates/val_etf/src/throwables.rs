@@ -66,6 +66,8 @@ pub struct ThrowLaunched {
 #[derive(Resource, Default)]
 pub struct HostThrows {
     pub world: ThrowWorld,
+    /// Team captured by the host at launch, retained even if the thrower disconnects.
+    teams: HashMap<ThrowId, Option<Team>>,
     burn: HashMap<Entity, f32>,
     /// The level and match phase the world belongs to: a new map or phase (the lobby, a match starting or
     /// ending) clears it.
@@ -82,6 +84,7 @@ impl HostThrows {
 /// One host tick of throwables, after the shot claims and before the deaths are handled.
 #[allow(clippy::type_complexity)]
 pub(crate) fn host_step(
+    editor: Option<Res<crate::build_editor::EditorActive>>,
     data: Res<Data>,
     level: Option<Res<CurrentLevel>>,
     time: Res<Time>,
@@ -93,6 +96,7 @@ pub(crate) fn host_step(
     mut damage: Query<&mut MessageSender<DamageTaken>>,
     mut deaths: MessageWriter<PlayerDied>,
 ) {
+    if editor.is_some_and(|e|e.0) {launched.clear();return;}
     let Some(level) = level else {
         launched.clear();
         return;
@@ -104,20 +108,30 @@ pub(crate) fn host_step(
             send_to_every_client(&mut news, ThrowNews::Clear);
         }
         host.world.clear();
+        host.teams.clear();
         host.burn.clear();
         host.key = Some(key);
     }
     let t = &data.throwables;
     let dt = data.tick_dt();
     for l in launched.read() {
-        let id = host.world.throw(l.owner, &l.launch);
-        send_to_every_client(&mut news, ThrowNews::Thrown { id, launch: l.launch });
+        // This internal event came from the authoritative player tick, which captured its team.
+        let launch = l.launch;
+        let id = host.world.throw(l.owner, &launch);
+        host.teams.insert(id, launch.team);
+        send_to_every_client(&mut news, ThrowNews::Thrown { id, launch });
     }
     for e in host.world.step(t, &level, dt) {
         match e {
-            WorldEvent::Burst { id, kind, at } => send_to_every_client(&mut news, ThrowNews::Burst { id, kind, at }),
+            WorldEvent::Burst { id, kind, at } => {
+                let team = host.teams.remove(&id).flatten();
+                send_to_every_client(&mut news, ThrowNews::Burst { id, kind, at, team });
+            }
             WorldEvent::Doused { id, .. } => send_to_every_client(&mut news, ThrowNews::Doused { id }),
-            WorldEvent::Bounced { .. } | WorldEvent::Lost { .. } => {}
+            WorldEvent::Lost { id } => {
+                host.teams.remove(&id);
+            }
+            WorldEvent::Bounced { .. } => {}
         }
     }
 
@@ -208,6 +222,7 @@ pub struct Flying {
 pub struct SmokeView {
     pub smoke: Smoke,
     pub tunnels: Tunnels,
+    pub team: Option<Team>,
 }
 
 /// A fire, and its sound.
@@ -285,18 +300,23 @@ impl ThrowView {
                     // Our prediction left from elsewhere or otherwise (a correction): fly the host's throw to the
                     // same age.
                     let off = launch.origin.distance(f.launch.origin) + launch.vel.distance(f.launch.vel);
-                    if off > CORRECT_M && !f.landed {
+                    if off > CORRECT_M || launch.charge != f.launch.charge || launch.style != f.launch.style {
                         let age = f.p.age;
                         let mut p = Projectile::new(id, &launch);
+                        let mut landed = false;
                         for _ in 0..age {
                             if !matches!(p.step(data, level, dt), Flight::Flying | Flight::Bounced { .. }) {
+                                landed = true;
                                 break;
                             }
                         }
                         f.p = p;
                         f.prev = p.pos;
                         f.launch = launch;
+                        f.landed = landed;
+                        f.waited = 0;
                     }
+                    f.launch.team = launch.team;
                 } else {
                     let p = Projectile::new(id, &launch);
                     self.flying.push(Flying {
@@ -310,12 +330,16 @@ impl ThrowView {
                     });
                 }
             }
-            ThrowNews::Burst { id, kind, at } => {
+            ThrowNews::Burst { id, kind, at, team } => {
                 self.flying.retain(|f| f.p.id != id);
                 match kind {
                     ThrowKind::Smoke => {
                         if !self.smokes.iter().any(|s| s.smoke.id == id) {
-                            self.smokes.push(SmokeView { smoke: Smoke::new(id, at), tunnels: Tunnels::default() });
+                            self.smokes.push(SmokeView {
+                                smoke: Smoke::new(id, at),
+                                tunnels: Tunnels::default(),
+                                team,
+                            });
                         }
                     }
                     ThrowKind::Molotov => {
@@ -426,9 +450,15 @@ fn reset_view(mut view: ResMut<ThrowView>, mut sfx: Sfx) {
 }
 
 /// Our own grenades fly the moment they leave the hand (the simulation's tick events, outside rollback).
-fn own_throws(mut events: MessageReader<LocalPlayerEvents>, mut view: ResMut<ThrowView>, mut sfx: Sfx) {
+fn own_throws(
+    mut events: MessageReader<LocalPlayerEvents>,
+    mut view: ResMut<ThrowView>,
+    mut sfx: Sfx,
+    me: Query<(&PlayerId, &PlayerInfo), With<Controlled>>,
+) {
     for e in events.read() {
-        if let Some(l) = e.events.throw.launched {
+        if let Some(mut l) = e.events.throw.launched {
+            l.team = me.iter().find(|(id, _)| id.0 == e.player).and_then(|(_, info)| info.team);
             view.own_launch(e.player, &l);
             sfx.play(Play::new(cue::THROW));
         }
@@ -525,7 +555,43 @@ mod tests {
     }
 
     fn lob(seq: u16) -> Launch {
-        Launch { kind: ThrowKind::Smoke, seq, origin: Vec3::new(0.0, 1.5, 0.0), vel: Vec3::new(0.0, 4.0, -8.0) }
+        Launch {
+            kind: ThrowKind::Smoke,
+            seq,
+            origin: Vec3::new(0.0, 1.5, 0.0),
+            vel: Vec3::new(0.0, 4.0, -8.0),
+            ..Default::default()
+        }
+    }
+
+    #[test]
+    fn authoritative_style_charge_and_team_replace_prediction_and_survive_missing_owner() {
+        let d = GameData::embedded();
+        let level = yard();
+        let mut view = ThrowView::default();
+        let id = ThrowId { owner: 9, seq: 1 };
+        view.own_launch(9, &Launch { charge: u16::MAX, ..lob(1) });
+        view.advance(&d.throwables, &level, DT, 0.5, DT * 10.0);
+        let host =
+            Launch { style: vetf_sim::throwable::ThrowStyle::Underhand, charge: 0, team: Some(Team::B), ..lob(1) };
+        view.apply(ThrowNews::Thrown { id, launch: host }, &d.throwables, &level, DT);
+        assert_eq!(view.flying[0].launch, host);
+        assert_eq!(view.flying[0].p.charge, 0);
+        view.apply(
+            ThrowNews::Burst { id, kind: ThrowKind::Smoke, at: Vec3::ZERO, team: Some(Team::B) },
+            &d.throwables,
+            &level,
+            DT,
+        );
+        assert_eq!(view.smokes[0].team, Some(Team::B));
+        let absent = ThrowId { owner: 999, seq: 1 };
+        view.apply(
+            ThrowNews::Burst { id: absent, kind: ThrowKind::Smoke, at: Vec3::X, team: Some(Team::A) },
+            &d.throwables,
+            &level,
+            DT,
+        );
+        assert_eq!(view.smokes[1].team, Some(Team::A));
     }
 
     /// Our own throw flies at once and keeps flying when the host confirms it (no jump); a throw the host never
@@ -570,11 +636,16 @@ mod tests {
         let mut v = ThrowView::default();
         let id = ThrowId { owner: 4, seq: 1 };
         v.apply(ThrowNews::Thrown { id, launch: lob(1) }, t, &level, DT);
-        v.apply(ThrowNews::Burst { id, kind: ThrowKind::Smoke, at: Vec3::ZERO }, t, &level, DT);
+        v.apply(ThrowNews::Burst { id, kind: ThrowKind::Smoke, at: Vec3::ZERO, team: None }, t, &level, DT);
         assert!(v.flying.is_empty() && v.smokes.len() == 1);
         assert!(matches!(v.sounds.last(), Some(ThrowSound::Burst(_, ThrowKind::Smoke, _))));
         let fire = ThrowId { owner: 4, seq: 2 };
-        v.apply(ThrowNews::Burst { id: fire, kind: ThrowKind::Molotov, at: Vec3::new(9.0, 0.0, 0.0) }, t, &level, DT);
+        v.apply(
+            ThrowNews::Burst { id: fire, kind: ThrowKind::Molotov, at: Vec3::new(9.0, 0.0, 0.0), team: None },
+            t,
+            &level,
+            DT,
+        );
         v.fires[0].voice = Some(Entity::from_raw_u32(77).unwrap());
         v.apply(ThrowNews::Doused { id: fire }, t, &level, DT);
         assert_eq!(v.stop.len(), 1, "the fire loop stops");
@@ -587,7 +658,7 @@ mod tests {
             v.advance(t, &level, DT, 0.5, 0.1);
         }
         assert!(v.smokes.is_empty(), "the cloud thinned out");
-        v.apply(ThrowNews::Burst { id, kind: ThrowKind::Smoke, at: Vec3::ZERO }, t, &level, DT);
+        v.apply(ThrowNews::Burst { id, kind: ThrowKind::Smoke, at: Vec3::ZERO, team: None }, t, &level, DT);
         v.apply(ThrowNews::Clear, t, &level, DT);
         assert!(v.smokes.is_empty() && v.flying.is_empty());
     }
@@ -602,8 +673,8 @@ mod tests {
         let mut v = ThrowView::default();
         let grown = Smoke { id: ThrowId { owner: 1, seq: 1 }, at: Vec3::new(0.0, 0.0, -10.0), age: 200 };
         let far = Smoke { id: ThrowId { owner: 1, seq: 2 }, at: Vec3::new(40.0, 0.0, 0.0), age: 200 };
-        v.smokes.push(SmokeView { smoke: grown, tunnels: Tunnels::default() });
-        v.smokes.push(SmokeView { smoke: far, tunnels: Tunnels::default() });
+        v.smokes.push(SmokeView { smoke: grown, tunnels: Tunnels::default(), team: None });
+        v.smokes.push(SmokeView { smoke: far, tunnels: Tunnels::default(), team: None });
         let eye = Vec3::new(0.0, 1.6, 0.0);
         assert!(v.veiled(t, DT, eye, Vec3::new(0.0, 1.6, -20.0)));
         assert!(!v.veiled(t, DT, eye, Vec3::new(-20.0, 1.6, 0.0)));

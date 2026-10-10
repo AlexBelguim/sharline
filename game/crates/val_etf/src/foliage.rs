@@ -691,6 +691,21 @@ pub fn axis_samples(lo: f32, hi: f32, r_lo: f32, r_hi: f32, step: f32) -> Vec<f3
 
 /// The playable area (x/z): the spawn points' bounds grown by `margin`.
 pub fn play_area(level: &Level, margin: f32) -> Rect {
+    // V3's temporary team spawns intentionally sit in safe south-side regions. Its full playable area is
+    // enclosed by four tall, thin player clips; using only the spawn strip would cull upper-garden foliage.
+    if crate::showhome_v3::is_v3(&level.name) {
+        let walls = level.world.brushes.iter().filter(|b| b.kind == BrushKind::PlayerClip && b.max.y - b.min.y >= 6.);
+        let mut xs = walls.clone().filter(|b| b.max.x - b.min.x <= 0.5 && b.max.z - b.min.z >= 10.).collect::<Vec<_>>();
+        let mut zs = walls.filter(|b| b.max.z - b.min.z <= 0.5 && b.max.x - b.min.x >= 10.).collect::<Vec<_>>();
+        xs.sort_by(|a, b| a.min.x.total_cmp(&b.min.x));
+        zs.sort_by(|a, b| a.min.z.total_cmp(&b.min.z));
+        if xs.len() >= 2 && zs.len() >= 2 {
+            return Rect {
+                min: Vec2::new(xs[0].max.x, zs[0].max.z) - Vec2::splat(margin),
+                max: Vec2::new(xs.last().unwrap().min.x, zs.last().unwrap().min.z) + Vec2::splat(margin),
+            };
+        }
+    }
     let mut r = Rect { min: Vec2::splat(f32::MAX), max: Vec2::splat(f32::MIN) };
     for s in &level.spawns {
         let p = Vec2::new(s.pos.x, s.pos.z);
@@ -739,11 +754,16 @@ fn build_foliage(
     mut meshes: ResMut<Assets<Mesh>>,
     mut std_materials: ResMut<Assets<StandardMaterial>>,
     mut materials: ResMut<Assets<FoliageMaterial>>,
+    preview: Option<Res<crate::showhome_v3::CurrentV3Preview>>,
 ) {
     let (Some(level), Some(assets)) = (level, assets) else { return };
     let preset = settings.map_or(Preset::High, |s| s.video.preset);
     let q = quality(preset, foliage_env());
-    if !roots.is_empty() && state.built.as_ref().is_some_and(|(name, bq)| *name == level.name && *bq == q) {
+    if !roots.is_empty()
+        && !level.is_changed()
+        && !preview.as_ref().is_some_and(|p| p.is_changed())
+        && state.built.as_ref().is_some_and(|(name, bq)| *name == level.name && *bq == q)
+    {
         return;
     }
     let want = (level.name.clone(), q);
@@ -761,7 +781,11 @@ fn build_foliage(
         .id();
     state.built = Some(want);
     state.hedges = false;
-    let Some(q) = q.filter(|_| level.name.eq_ignore_ascii_case("showhome")) else { return };
+    if !crate::showhome_kit::is_showhome(&level) {
+        return;
+    }
+    let promoted = preview.as_ref().is_some_and(|p| p.0.placements.replaced_fixed_foliage);
+    let Some(q) = q.or(if promoted { Some(0) } else { None }) else { return };
     let t0 = std::time::Instant::now();
     if let Some(mut m) = materials.get_mut(&assets.hedge) {
         m.extension.params = hedge_uniform(&data);
@@ -771,7 +795,11 @@ fn build_foliage(
         .world
         .brushes
         .iter()
-        .filter(|b| b.kind == BrushKind::Solid && b.look != Look::Invisible && b.ramp.is_none())
+        .filter(|b| {
+            matches!(b.kind, BrushKind::Solid | BrushKind::SolidNonWalkable)
+                && b.look != Look::Invisible
+                && b.ramp.is_none()
+        })
         .collect();
 
     // Hedges.
@@ -780,7 +808,7 @@ fn build_foliage(
     let mut cards = 0;
     let mut tris = 0;
     let mut draws = 0;
-    if density > 0.0 {
+    if density > 0.0 || promoted {
         let core_material =
             lib.as_ref().and_then(|l| l.get(Look::Hedge)).and_then(|m| std_materials.get(&m).cloned()).unwrap_or_else(
                 || StandardMaterial { base_color: crate::render::look_color(Look::Hedge).0, ..default() },
@@ -790,34 +818,66 @@ fn build_foliage(
             perceptual_roughness: 0.95,
             ..core_material
         });
-        for (k, hedge) in
-            level.world.brushes.iter().enumerate().filter(|(_, b)| b.look == Look::Hedge && b.ramp.is_none())
-        {
-            let centre = (hedge.min + hedge.max) * 0.5;
-            let others: Vec<&&Brush> = solids.iter().filter(|b| !std::ptr::eq(**b, hedge)).collect();
+        let envelopes = if let Some(preview) = preview.as_ref() {
+            preview
+                .0
+                .foliage
+                .iter()
+                .map(|v| {
+                    (
+                        Vec3::from_array(v.local_bounds_bevy.min.map(|x| x as f32)),
+                        Vec3::from_array(v.local_bounds_bevy.max.map(|x| x as f32)),
+                        Mat4::from_cols_array(&v.transform_bevy.map(|x| x as f32)),
+                        v.density as f32,
+                        v.tint.clone(),
+                    )
+                })
+                .collect::<Vec<_>>()
+        } else {
+            level
+                .world
+                .brushes
+                .iter()
+                .filter(|b| b.look == Look::Hedge && b.ramp.is_none())
+                .map(|b| (b.min, b.max, Mat4::IDENTITY, 1., String::new()))
+                .collect()
+        };
+        let tree_material = std_materials.add(StandardMaterial {
+            base_color: Color::linear_rgb(0.18, 0.24, 0.095),
+            perceptual_roughness: 0.95,
+            ..default()
+        });
+        let max_eye = if level.name == vetf_sim::maps::showhome_v3::FULL_MAP_ID { 42. } else { MAX_EYE };
+        for (k, (min, max, matrix, multiplier, tint)) in envelopes.into_iter().enumerate() {
+            if multiplier < 0. {
+                continue;
+            }
+            let centre = (min + max) * 0.5;
             let visible = |p: Vec3, n: Vec3| {
+                let p = matrix.transform_point3(p);
+                let n = matrix.transform_vector3(n).normalize_or_zero();
                 let probe = p + n * 0.15;
-                faces_play_area(p, n, play, MAX_EYE)
-                    && !others.iter().any(|b| probe.cmpgt(b.min).all() && probe.cmplt(b.max).all())
+                faces_play_area(p, n, play, max_eye)
+                    && !solids.iter().any(|b| probe.cmpgt(b.min).all() && probe.cmplt(b.max).all())
             };
-            let shell = hedge_shell(hedge.min, hedge.max, centre, h, density, k as u64, visible);
+            let shell = hedge_shell(min, max, centre, h, density * multiplier, k as u64, visible);
             cards += shell.cards();
             tris += shell.indices.len() / 3;
-            let core = hedge_core(hedge.min, hedge.max, centre, h);
+            let core = hedge_core(min, max, centre, h);
             tris += core.indices().map_or(0, |i| i.len() / 3);
             draws += 2;
             commands.spawn((
                 Name::new("Hedge core"),
                 Mesh3d(meshes.add(core)),
-                MeshMaterial3d(core_material.clone()),
-                Transform::from_translation(centre),
+                MeshMaterial3d(if tint.contains("tree") { tree_material.clone() } else { core_material.clone() }),
+                Transform::from_matrix(matrix).mul_transform(Transform::from_translation(centre)),
                 ChildOf(root),
             ));
             commands.spawn((
                 Name::new("Hedge leaves"),
                 Mesh3d(meshes.add(shell.into_mesh())),
                 MeshMaterial3d(assets.hedge.clone()),
-                Transform::from_translation(centre),
+                Transform::from_matrix(matrix).mul_transform(Transform::from_translation(centre)),
                 NotShadowCaster,
                 ChildOf(root),
             ));
@@ -872,6 +932,15 @@ fn log_gpu_passes(store: Res<bevy::diagnostic::DiagnosticsStore>, time: Res<Time
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn v3_foliage_culling_uses_player_boundaries_beyond_temporary_spawn_strip() {
+        let p = vetf_sim::maps::showhome_v3::load(crate::config::assets_root()).unwrap();
+        let area = play_area(&p.level, 0.);
+        assert!(area.contains(Vec2::new(40., -48.)), "upper gardens remain in playable foliage coverage");
+        assert!(!area.contains(Vec2::new(40., -55.)), "extension remains outside core coverage");
+        assert!(faces_play_area(Vec3::new(15., 2., -44.), Vec3::NEG_Z, area, MAX_EYE));
+    }
 
     #[test]
     fn the_data_file_parses_and_low_is_off() {

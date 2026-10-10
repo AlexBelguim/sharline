@@ -1,0 +1,26 @@
+{
+  "id": "playground_set",
+  "category": "garden",
+  "tags": [
+    "garden",
+    "showhome_v3"
+  ],
+  "glb": "props/garden/playground_set/playground_set.glb",
+  "lod1": "props/garden/playground_set/playground_set_lod1.glb",
+  "collision": "props/garden/playground_set/collision.json",
+  "source": "original procedural communal kit; extension/build_communal_props.py",
+  "licence": "project original",
+  "openable_parts": [],
+  "size_m": [
+    8.0,
+    6.0,
+    2.700000047683716
+  ],
+  "triangles": 5664,
+  "collision_volumes": 76,
+  "loot_slots": [],
+  "pivot": "base-centre at Z=0",
+  "front": "design -Y",
+  "original_geometry": true,
+  "source_builder": "maps/showhome_v3/extension/build_communal_props.py"
+}

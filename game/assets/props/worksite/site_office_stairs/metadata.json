@@ -1,0 +1,69 @@
+{
+  "id": "site_office_stairs",
+  "category": "worksite",
+  "tags": [
+    "worksite",
+    "showhome_v3"
+  ],
+  "glb": "props/worksite/site_office_stairs/site_office_stairs.glb",
+  "lod1": "props/worksite/site_office_stairs/site_office_stairs_lod1.glb",
+  "collision": "props/worksite/site_office_stairs/collision.json",
+  "source": "original procedural office stair attachment; extension/build_office_stairs.py",
+  "licence": "project original",
+  "openable_parts": [],
+  "size_m": [
+    5.100000381469727,
+    6.150000095367432,
+    3.903120756149292
+  ],
+  "triangles": 5592,
+  "collision_volumes": 78,
+  "loot_slots": [],
+  "mount": "site_office",
+  "pivot": "lower office ground-centre mounting datum",
+  "pivot_exception": "attachment origin, not base-bbox centre",
+  "placement_offset_m": [
+    0,
+    0,
+    0
+  ],
+  "upper_office_offset_m": [
+    0,
+    0,
+    2.8
+  ],
+  "flight_entry_offset_m": [
+    -3.65,
+    -7,
+    0
+  ],
+  "flight_top_offset_m": [
+    -3.65,
+    -2.2,
+    2.8
+  ],
+  "upper_door_offset_m": [
+    0,
+    -1.4,
+    2.8
+  ],
+  "finished_floor_m": 2.9,
+  "landing_top_m": 2.8,
+  "clear_width_m": 1.2,
+  "rail_height_m": 1.05,
+  "landing_sheet_thickness_m": 0.008,
+  "original_geometry": true,
+  "source_builder": "maps/showhome_v3/extension/build_office_stairs.py",
+  "landing_notch_bounds_m": [
+    -4.3,
+    -2.7,
+    -3.05,
+    -2.2
+  ],
+  "turn_pocket_bounds_m": [
+    -4.4,
+    -2.2,
+    -3.05,
+    -0.98
+  ]
+}

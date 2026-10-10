@@ -1,0 +1,23 @@
+{
+  "id": "rock_low",
+  "category": "garden",
+  "tags": [
+    "garden",
+    "showhome_legacy"
+  ],
+  "glb": "props/garden/rock_low/rock_low.glb",
+  "lod1": "props/garden/rock_low/rock_low_lod1.glb",
+  "collision": "props/garden/rock_low/collision.json",
+  "source": "original assets/maps/showhome procedural Rock_Low",
+  "licence": "project original",
+  "openable_parts": [],
+  "size_m": [
+    1.1892423629760742,
+    0.8817976713180542,
+    0.545954704284668
+  ],
+  "triangles": 20,
+  "collision_volumes": 1,
+  "loot_slots": [],
+  "legacy_root": "PROP_Rock_Low"
+}

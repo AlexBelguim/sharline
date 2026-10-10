@@ -177,7 +177,7 @@ fn fragment(vertex_output: VertexOutput, @builtin(front_facing) is_front: bool) 
     let uv_dy = dpdy(base_uv);
     // Design x/y = Bevy x/-z; PNG/glTF V is flipped relative to Blender V,
     // so repeating overlay UVs are (Bevy x,z) / repeat.
-    let world_uv_metres = vec2<f32>(in.world_position.x, in.world_position.z);
+    let world_uv_metres = vec2<f32>(in.world_position.x, in.world_position.z) + vec2<f32>(ground.parallax.w, ground.relief.w);
     let world_dx = dpdx(world_uv_metres);
     let world_dy = dpdy(world_uv_metres);
 

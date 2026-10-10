@@ -22,6 +22,9 @@ pub struct Plane {
 pub enum BrushKind {
     /// Blocks players and bullets.
     Solid,
+    /// Blocks movement/bullets but its surface cannot become standing ground.
+    /// Authored v3 roofs use this without replacing their exact convex planes.
+    SolidNonWalkable,
     /// Blocks players only (invisible map bounds, ceilings).
     PlayerClip,
     /// Blocks bullets and sight only (glass would go here).
@@ -124,11 +127,11 @@ impl Brush {
     }
 
     pub fn blocks_players(&self) -> bool {
-        matches!(self.kind, BrushKind::Solid | BrushKind::PlayerClip)
+        matches!(self.kind, BrushKind::Solid | BrushKind::SolidNonWalkable | BrushKind::PlayerClip)
     }
 
     pub fn blocks_bullets(&self) -> bool {
-        matches!(self.kind, BrushKind::Solid | BrushKind::BulletOnly)
+        matches!(self.kind, BrushKind::Solid | BrushKind::SolidNonWalkable | BrushKind::BulletOnly)
     }
 }
 
@@ -140,6 +143,8 @@ pub struct Trace {
     /// Surface normal of what was hit (zero if nothing).
     pub normal: Vec3,
     pub start_solid: bool,
+    /// Whether the authored hit surface may be used as standing ground.
+    pub walkable: bool,
 }
 
 impl Trace {
@@ -245,7 +250,7 @@ impl CollisionWorld {
     }
 
     fn trace_filtered(&self, start: Vec3, end: Vec3, half: Vec3, keep: impl Fn(&Brush) -> bool) -> Trace {
-        let mut best = Trace { fraction: 1.0, end, normal: Vec3::ZERO, start_solid: false };
+        let mut best = Trace { fraction: 1.0, end, normal: Vec3::ZERO, start_solid: false, walkable: true };
         let lo = start.min(end) - half - Vec3::splat(SKIN);
         let hi = start.max(end) + half + Vec3::splat(SKIN);
         for b in &self.brushes {
@@ -312,6 +317,7 @@ fn clip_to_brush(b: &Brush, start: Vec3, end: Vec3, half: Vec3, best: &mut Trace
     if enter < leave && enter > -1.0 && enter < best.fraction {
         best.fraction = enter.max(0.0);
         best.normal = enter_normal;
+        best.walkable = b.kind != BrushKind::SolidNonWalkable;
     }
 }
 

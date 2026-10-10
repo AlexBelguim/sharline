@@ -17,7 +17,9 @@ pub mod hit_fx;
 pub mod inspect;
 mod laser_fx;
 mod streak_aura;
+pub mod holster;
 pub mod throw_fx;
+pub mod throw_line;
 mod tracer_fx;
 
 use crate::AppState;
@@ -49,6 +51,7 @@ impl Plugin for RenderPlugin {
             .init_resource::<camera_fx::ViewFeel>()
             .init_resource::<inspect::ViewInspect>()
             .init_resource::<dry_fire::ViewDryFire>()
+            .init_resource::<holster::ViewHolster>()
             .add_message::<dry_fire::DryPull>()
             .init_resource::<tracer_fx::Tracers>()
             .init_resource::<hit_fx::HitMemory>()
@@ -79,6 +82,7 @@ impl Plugin for RenderPlugin {
                     camera_fx::step_feel.before(update_camera),
                     inspect::step_inspect.before(update_camera),
                     dry_fire::step_view_dry_fire.before(update_camera),
+                    holster::step_view_holster.before(update_camera),
                     dry_fire::step_held_dry_fire.before(update_player_visuals),
                     smooth_step_eye.before(update_camera),
                     update_camera,
@@ -90,6 +94,7 @@ impl Plugin for RenderPlugin {
                 Update,
                 (
                     tracer_fx::draw_tracers,
+                    throw_line::draw_throw_line,
                     (hit_fx::demo_hit_fx, hit_fx::take_hits, hit_fx::place_markers).chain(),
                     (hit_fx::watch_halos, hit_fx::crack_halos, hit_fx::flash_arcs, hit_fx::fly_shards).chain(),
                 )
@@ -118,7 +123,7 @@ pub struct ViewCamera;
 
 /// The first-person gun; remembers what it was built as.
 #[derive(Component)]
-struct Viewmodel(Option<GunLook>);
+pub(crate) struct Viewmodel(Option<GunLook>);
 
 /// A third-person player's gun, in the right hand; remembers what it was built as and where the hand is.
 #[derive(Component)]
@@ -314,16 +319,20 @@ fn spawn_level(
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
 ) {
-    let showhome = level.name.eq_ignore_ascii_case("showhome");
+    let showhome = crate::showhome_kit::is_showhome(&level);
     if showhome {
         // Showhome's real art scenes and sagging zipline are loaded by ShowhomeKitPlugin. The simulation
         // still uses these brushes for collision; drawing them too would obscure the kit with boxes.
         commands.spawn((
-            DirectionalLight {
-                color: Color::linear_rgb(1.0, 0.84, 0.66),
-                illuminance: 9000.0,
-                shadow_maps_enabled: true,
-                ..default()
+            if crate::showhome_v3::is_v3(&level.name) {
+                crate::showhome_v3::preview_sun()
+            } else {
+                DirectionalLight {
+                    color: Color::linear_rgb(1.0, 0.84, 0.66),
+                    illuminance: 9000.0,
+                    shadow_maps_enabled: true,
+                    ..default()
+                }
             },
             crate::showhome_kit::sun_transform(),
             DespawnOnExit(AppState::InGame),
@@ -980,7 +989,7 @@ fn update_camera(
     step: Res<StepEye>,
     rig: Res<ViewmodelRig>,
     feel: Res<camera_fx::ViewFeel>,
-    view_fx: (Res<inspect::ViewInspect>, Res<dry_fire::ViewDryFire>),
+    view_fx: (Res<inspect::ViewInspect>, Res<dry_fire::ViewDryFire>, Res<holster::ViewHolster>),
     data: Res<feel::FeelData>,
     me: Query<(&PlayerMove, Option<&Smoothed>, &PlayerLoadout, &Vitals), With<Controlled>>,
     mut camera: Query<
@@ -989,12 +998,13 @@ fn update_camera(
     >,
     mut lens: Query<&mut Transform, (With<ViewmodelLens>, Without<Viewmodel>)>,
     mut viewmodel: Query<(&mut Transform, &mut Visibility), With<Viewmodel>>,
-    world: (Res<Data>, Option<Res<CurrentLevel>>, Res<crate::death::DeathView>),
+    world: (Res<Data>, Option<Res<CurrentLevel>>, Res<crate::death::DeathView>,Option<Res<crate::build_editor::EditorActive>>),
     mut logged: Local<Option<(f32, f32)>>,
 ) {
     let Some((mv, smoothed, loadout, vitals)) = me.iter().next() else { return };
-    let (game, level, death) = world;
-    let (view_inspect, view_dry) = view_fx;
+    let (game, level, death, editor) = world;
+    if editor.is_some_and(|e|e.0) {for (_,mut v) in &mut viewmodel {*v=Visibility::Hidden;}return;}
+    let (view_inspect, view_dry, view_holster) = view_fx;
     // The death screen's death cam: where we died, turning toward the killer (`death.rs`).
     let death_cam = death.0.filter(|_| vitals.health.dead);
     let m = &settings.mouse;
@@ -1075,11 +1085,13 @@ fn update_camera(
             *t = dry_fire::view_gun(&data.gun.dry_fire, *t, &view_dry.fx);
         }
         *t = now.gun.move_gun(*t, now.ads);
+        // A grenade in hand: the gun drops away and hides (`holster`).
+        *t = holster::holster_gun(&data.gun.holster_pose, *t, view_holster.amount());
         if let Some(left) = inspect {
             *t = inspect_pose(&rig, left);
         }
         // Through a magnified optic the scope view takes over from the gun.
-        let hidden = dead || crate::weapon_models::scoped(&rig, ads);
+        let hidden = dead || crate::weapon_models::scoped(&rig, ads) || view_holster.hidden(&data.gun.holster_pose);
         *v = if hidden { Visibility::Hidden } else { Visibility::Inherited };
     }
 }

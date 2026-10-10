@@ -1,0 +1,22 @@
+{
+  "id": "city_car",
+  "category": "vehicles",
+  "tags": [
+    "vehicles",
+    "showhome_v3"
+  ],
+  "glb": "props/vehicles/city_car/city_car.glb",
+  "lod1": "props/vehicles/city_car/city_car_lod1.glb",
+  "collision": "props/vehicles/city_car/collision.json",
+  "source": "original assets/maps/showhome procedural GarageCar",
+  "licence": "project original",
+  "openable_parts": [],
+  "size_m": [
+    1.930999994277954,
+    4.4120001792907715,
+    1.5
+  ],
+  "triangles": 1028,
+  "collision_volumes": 67,
+  "loot_slots": []
+}

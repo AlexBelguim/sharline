@@ -1,0 +1,12 @@
+// Numerical editor options. Client controls and autosave scheduling follow later.
+(
+    position_snap_m: 0.25,
+    yaw_snap_deg: 15.0,
+    min_scale: 0.8,
+    max_scale: 1.25,
+    autosave_seconds: 120,
+    backup_count: 10,
+    camera_speed_mps: 10.0,
+    camera_fast_mult: 4.0,
+    mouse_radians_per_pixel: 0.0025,
+)

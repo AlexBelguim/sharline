@@ -1,0 +1,52 @@
+{
+  "map_id": "showhome_v3_extension",
+  "source_revision": "2026-10-10_perpendicular_road_straight_ramp_recessed_homes",
+  "phase": 2,
+  "kit_scenes": [
+    "extension.glb"
+  ],
+  "collision": "collision.json",
+  "foliage": "foliage.json",
+  "placements": "placements.proposed.ron",
+  "latest_placements_json": "placements.generated.json",
+  "ground_blend_contract": "ground_blend_contract.json",
+  "prop_ids": [
+    "bed",
+    "bookcase",
+    "city_car",
+    "dining_table",
+    "gang_box",
+    "garden_gate",
+    "kitchen_base",
+    "moving_truck",
+    "organic_planter_bench",
+    "picket_panel",
+    "playground_set",
+    "portable_toilet",
+    "printed_blocks_pallet",
+    "raised_planter",
+    "rebar_bundle",
+    "scaffold_bay",
+    "site_mesh_panel",
+    "site_office",
+    "site_office_stairs",
+    "sofa",
+    "temporary_guardrail",
+    "timber_pallet",
+    "toolbox",
+    "tower_crane",
+    "wardrobe"
+  ],
+  "fixed_world_frame": true,
+  "core_separate": true,
+  "mode": "extraction",
+  "sun": {
+    "azimuth_deg": 188,
+    "elevation_deg": 54,
+    "linear_rgb": [
+      1,
+      0.84,
+      0.66
+    ]
+  }
+}

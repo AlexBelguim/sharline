@@ -1,0 +1,6 @@
+{
+  "schema": 1,
+  "frame": "prop-local design metres X/Y/Z; default exported pose; parent tracks moving part",
+  "plane_convention": "inside: dot(normal,point) <= d",
+  "volumes": []
+}

@@ -199,6 +199,7 @@ pub struct LawnLook {
     pub macro_repeat: f32,
     pub macro_strength: f32,
     pub normal_scale: f32,
+    pub world_uv_origin: Vec2,
 }
 
 impl LawnLook {
@@ -215,13 +216,14 @@ impl LawnLook {
             macro_repeat: p.extra.z.max(0.01),
             macro_strength: p.extra.w,
             normal_scale: p.parallax.z,
+            world_uv_origin: Vec2::new(p.parallax.w, p.relief.w),
         }
     }
 
     fn ground_lanes(&self) -> (Vec4, Vec4, UVec4) {
         (
             self.tint.extend(self.macro_strength),
-            Vec4::new(self.macro_repeat, 0.0, self.normal_scale, 0.0),
+            Vec4::new(self.macro_repeat, 0.0, self.normal_scale, self.world_uv_origin.y),
             UVec4::new(self.base_layer, self.macro_layer, 0, 0),
         )
     }
@@ -248,7 +250,7 @@ pub fn lawn_uniform(d: &FoliageData, q: usize, look: &LawnLook) -> GrassUniform 
     GrassUniform {
         wind_dir,
         wind,
-        march: Vec4::new(l.layers[q] as f32, l.height, 1.0 / l.max_run.max(1.0), 0.0),
+        march: Vec4::new(l.layers[q] as f32, l.height, 1.0 / l.max_run.max(1.0), look.world_uv_origin.x),
         shape: Vec4::new(l.spacing, l.radius, l.shortest, l.lean),
         fade: Vec4::new(l.fade_start[q], l.fade_end[q], l.dirt_thin.0, l.dirt_thin.1),
         shade: Vec4::new(l.root_shade, l.tip_lift, l.value_jitter, l.patch_strength),
@@ -269,7 +271,7 @@ pub fn tuft_uniform(d: &FoliageData, q: usize, look: &LawnLook) -> GrassUniform 
     GrassUniform {
         wind_dir,
         wind,
-        march: Vec4::ZERO,
+        march: Vec4::new(0., 0., 0., look.world_uv_origin.x),
         shape: Vec4::ZERO,
         fade: Vec4::new(t.fade_start[q], t.fade_end[q], 0.0, 0.0),
         shade: Vec4::new(t.root_shade, t.tip_lift, 0.0, 0.0),
@@ -471,7 +473,11 @@ pub fn solid_footprints(level: &Level) -> Vec<Rect> {
         .world
         .brushes
         .iter()
-        .filter(|b| b.kind == BrushKind::Solid && b.look != Look::Invisible && b.ramp.is_none())
+        .filter(|b| {
+            matches!(b.kind, BrushKind::Solid | BrushKind::SolidNonWalkable)
+                && b.look != Look::Invisible
+                && b.ramp.is_none()
+        })
         .filter(|b| b.min.y < 0.3 && b.max.y > 0.3)
         .map(|b| Rect { min: Vec2::new(b.min.x, b.min.z), max: Vec2::new(b.max.x, b.max.z) })
         .collect()
@@ -777,7 +783,7 @@ fn is_lawn(name: &str) -> bool {
         .rsplit_once('.')
         .filter(|(_, suffix)| suffix.chars().all(|c| c.is_ascii_digit()))
         .map_or(name, |(base, _)| base);
-    canonical == LAWN_MATERIAL
+    canonical == LAWN_MATERIAL || canonical == "M_GND_Ext_Grass"
 }
 
 #[allow(clippy::too_many_arguments)]
@@ -814,7 +820,7 @@ fn build_grass(
     ) {
         return;
     }
-    if !level.name.eq_ignore_ascii_case("showhome") {
+    if !crate::showhome_kit::is_showhome(&level) {
         return;
     }
     let preset = settings.map_or(Preset::High, |s| s.video.preset);
@@ -1209,6 +1215,7 @@ mod tests {
             macro_repeat: 12.0,
             macro_strength: 0.3,
             normal_scale: 0.5,
+            world_uv_origin: Vec2::ZERO,
         };
         for q in 1..4 {
             let u = lawn_uniform(&d, q, &look);

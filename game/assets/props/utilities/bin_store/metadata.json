@@ -1,0 +1,23 @@
+{
+  "id": "bin_store",
+  "category": "utilities",
+  "tags": [
+    "utilities",
+    "showhome_legacy"
+  ],
+  "glb": "props/utilities/bin_store/bin_store.glb",
+  "lod1": "props/utilities/bin_store/bin_store_lod1.glb",
+  "collision": "props/utilities/bin_store/collision.json",
+  "source": "original assets/maps/showhome procedural BinStore",
+  "licence": "project original",
+  "openable_parts": [],
+  "size_m": [
+    3.0159997940063477,
+    6.0,
+    2.200000047683716
+  ],
+  "triangles": 388,
+  "collision_volumes": 1,
+  "loot_slots": [],
+  "legacy_root": "PROP_BinStore"
+}

@@ -1,7 +1,8 @@
 //! Throwables: smoke grenades and molotovs (item 10b), the base the underbarrel launcher's grenades will reuse.
 //!
-//! - **The hand** ([`ThrowHand`], in the predicted [`crate::items::ItemState`]): a throw key starts a short wind-up
-//!   (the gun goes down), the grenade leaves the hand at its end ([`launch`]: from the right hand, along the aim
+//! - **The hand** ([`ThrowHand`], in the predicted [`crate::items::ItemState`]): a number key equips a grenade;
+//!   LMB charges and its release starts an overhand wind-up, RMB throws softly at once. The gun stays down while
+//!   selected, and the grenade leaves the right hand along the aim
 //!   lifted a little, plus some of the thrower's own velocity), and the gun comes back up after a recovery. How
 //!   many each life carries is the loadout's [`ThrowKit`] (`rules.ron` `throwables`).
 //! - **The flight** ([`Projectile`]): a small ball under gravity that bounces off the level (data-driven
@@ -31,8 +32,9 @@ use serde::{Deserialize, Serialize};
 // ---------------------------------------------------------------------------------------------- kinds and kits
 
 /// What can be thrown.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default, Serialize, Deserialize)]
 pub enum ThrowKind {
+    #[default]
     Smoke,
     Molotov,
 }
@@ -112,6 +114,13 @@ pub struct ThrowSpec {
     pub speed_mps: f32,
     pub lift_deg: f32,
     pub inherit: f32,
+    pub charge_s: f32,
+    pub charge_tap_s: f32,
+    pub charged_speed_mult: f32,
+    pub charged_smoke_lift_deg: f32,
+    pub charged_molotov_lift_deg: f32,
+    pub underhand_speed_mult: f32,
+    pub underhand_lift_deg: f32,
     /// From the eye in view space: right, up, forward (m).
     pub hand: (f32, f32, f32),
 }
@@ -129,6 +138,8 @@ pub struct ProjectileSpec {
 #[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
 pub struct SmokeSpec {
     pub fuse_s: f32,
+    /// Full-charge fuse; interpolation prevents a longer throw popping prematurely in flight.
+    pub charged_fuse_s: f32,
     pub radius_m: f32,
     pub height_m: f32,
     pub lift_m: f32,
@@ -170,6 +181,13 @@ impl ThrowablesFile {
             t.speed_mps,
             t.lift_deg,
             t.inherit,
+            t.charge_s,
+            t.charge_tap_s,
+            t.charged_speed_mult,
+            t.charged_smoke_lift_deg,
+            t.charged_molotov_lift_deg,
+            t.underhand_speed_mult,
+            t.underhand_lift_deg,
             t.hand.0,
             t.hand.1,
             t.hand.2,
@@ -180,6 +198,7 @@ impl ThrowablesFile {
             p.rest_speed_mps,
             p.max_flight_s,
             s.fuse_s,
+            s.charged_fuse_s,
             s.radius_m,
             s.height_m,
             s.lift_m,
@@ -203,6 +222,9 @@ impl ThrowablesFile {
         }
         let positive = [
             t.speed_mps,
+            t.charge_s,
+            t.charged_speed_mult,
+            t.underhand_speed_mult,
             p.radius_m,
             p.gravity,
             p.max_flight_s,
@@ -224,6 +246,17 @@ impl ThrowablesFile {
                 "throwables.ron: restitution, friction, inherit, sight_min_density, shield_soak within 0..1".into()
             );
         }
+        if t.charged_speed_mult < 1.0
+            || t.underhand_speed_mult > 1.0
+            || s.charged_fuse_s < s.fuse_s
+            || s.charged_fuse_s > p.max_flight_s
+            || t.charge_tap_s < 0.0
+            || t.charge_tap_s >= t.charge_s
+        {
+            return Err(
+                "throwables.ron: charged speed >=1, underhand speed <=1, charged fuse within base..max flight".into()
+            );
+        }
         if t.windup_s < 0.0 || t.recover_s < 0.0 || s.hold_s < 0.0 || s.fade_s < 0.0 || m.spread_s < 0.0 {
             return Err("throwables.ron: times must not be negative".into());
         }
@@ -238,11 +271,21 @@ impl ThrowablesFile {
 
 // ---------------------------------------------------------------------------------------------- the hand
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize, Deserialize)]
+pub enum ThrowStyle {
+    #[default]
+    Overhand,
+    Underhand,
+}
+
 /// A throw winding up: what, and the ticks until it leaves the hand.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Windup {
     pub kind: ThrowKind,
     pub left: u16,
+    pub style: ThrowStyle,
+    /// Normalised charge (0..=u16::MAX), derived from authoritative held ticks.
+    pub charge: u16,
 }
 
 /// Throwables in hand: how many are left this life, a throw in progress, and the throw counter. Predicted by
@@ -250,13 +293,17 @@ pub struct Windup {
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize, Deserialize)]
 pub struct ThrowHand {
     pub left: ThrowKit,
+    pub selected: Option<ThrowKind>,
+    pub charge_ticks: u16,
+    /// A click used for a grenade cannot later fire/aim the restored gun while still held.
+    pub block_mouse: bool,
     pub windup: Option<Windup>,
     /// Ticks until the gun comes back up after a throw.
     pub recover: u16,
     /// Throws so far this life: a throw's number (with its thrower) names its grenade on the host and every
     /// client.
     pub seq: u16,
-    /// Last tick's throw keys (a press starts a throw; a held key does not throw again).
+    /// Last tick's buttons: selection and click edges are replayed correctly after prediction rollback.
     pub keys: u16,
 }
 
@@ -265,7 +312,7 @@ pub struct ThrowHand {
 pub struct HandEvents {
     pub started: Option<ThrowKind>,
     /// A grenade left the hand: its kind and number.
-    pub released: Option<(ThrowKind, u16)>,
+    pub released: Option<(ThrowKind, u16, ThrowStyle, u16)>,
 }
 
 impl ThrowHand {
@@ -275,23 +322,53 @@ impl ThrowHand {
 
     /// Winding up or recovering: the gun is down.
     pub fn busy(&self) -> bool {
-        self.windup.is_some() || self.recover > 0
+        self.selected.is_some() || self.windup.is_some() || self.recover > 0
+    }
+
+    pub fn charge_fraction(&self, spec: &ThrowSpec, tick_hz: u32) -> f32 {
+        if let Some(w) = self.windup {
+            return w.charge as f32 / u16::MAX as f32;
+        }
+        let tap = secs_to_ticks(spec.charge_tap_s, tick_hz);
+        let full = secs_to_ticks(spec.charge_s, tick_hz).max(tap + 1);
+        (self.charge_ticks.saturating_sub(tap) as f32 / (full - tap) as f32).min(1.0)
+    }
+
+    fn release(&mut self, kind: ThrowKind, style: ThrowStyle, charge: u16, spec: &ThrowSpec, hz: u32) -> HandEvents {
+        self.selected = None;
+        self.charge_ticks = 0;
+        if !self.left.take(kind) {
+            return HandEvents::default();
+        }
+        self.seq = self.seq.wrapping_add(1);
+        self.recover = secs_to_ticks(spec.recover_s, hz);
+        self.block_mouse = true;
+        HandEvents { released: Some((kind, self.seq, style, charge)), ..Default::default() }
     }
 
     /// Advance one tick. `can_start`: the hands are free (the gun idle, no item in use, not mantling).
     pub fn step(&mut self, spec: &ThrowSpec, buttons: Buttons, can_start: bool, tick_hz: u32) -> HandEvents {
         let mut ev = HandEvents::default();
-        let keys = buttons.0 & (Buttons::THROW_SMOKE | Buttons::THROW_MOLOTOV);
+        let keys = buttons.0;
         let pressed = keys & !self.keys;
         self.keys = keys;
+        if keys & (Buttons::FIRE | Buttons::ADS) == 0 {
+            self.block_mouse = false;
+        }
+        if self.windup.is_none() && (buttons.held(Buttons::THROW_CANCEL) || buttons.held(Buttons::RELOAD)) {
+            self.selected = None;
+            self.charge_ticks = 0;
+            // A release already committed to the overhand animation is not cancellable.
+            self.block_mouse |= keys & (Buttons::FIRE | Buttons::ADS) != 0;
+            self.recover = self.recover.saturating_sub(1);
+            return ev;
+        }
         if let Some(w) = &mut self.windup {
             w.left = w.left.saturating_sub(1);
             if w.left == 0 {
-                let kind = w.kind;
+                let (kind, style, charge) = (w.kind, w.style, w.charge);
                 self.windup = None;
-                self.recover = secs_to_ticks(spec.recover_s, tick_hz);
-                self.seq = self.seq.wrapping_add(1);
-                ev.released = Some((kind, self.seq));
+                ev = self.release(kind, style, charge, spec, tick_hz);
             }
             return ev;
         }
@@ -300,24 +377,82 @@ impl ThrowHand {
             return ev;
         }
         if !can_start {
+            if self.selected.is_some() {
+                self.selected = None;
+                self.charge_ticks = 0;
+                self.block_mouse |= keys & (Buttons::FIRE | Buttons::ADS) != 0;
+            }
             return ev;
         }
         if let Some(kind) = ThrowKind::ALL.into_iter().find(|k| pressed & k.button() != 0 && self.left.get(*k) > 0) {
-            self.left.take(kind);
-            self.windup = Some(Windup { kind, left: secs_to_ticks(spec.windup_s, tick_hz).max(1) });
-            ev.started = Some(kind);
+            self.selected = if self.selected == Some(kind) { None } else { Some(kind) };
+            self.charge_ticks = 0;
+            self.block_mouse |= self.selected.is_none() && keys & (Buttons::FIRE | Buttons::ADS) != 0;
+            return ev; // The number key only equips; a click on that same tick cannot throw.
+        }
+        if let Some(kind) = self.selected {
+            if pressed & Buttons::ADS != 0 {
+                return self.release(kind, ThrowStyle::Underhand, 0, spec, tick_hz);
+            }
+            if buttons.held(Buttons::FIRE) && (pressed & Buttons::FIRE != 0 || self.charge_ticks > 0) {
+                self.charge_ticks =
+                    self.charge_ticks.saturating_add(1).min(secs_to_ticks(spec.charge_s, tick_hz).max(1));
+            } else if !buttons.held(Buttons::FIRE) && self.charge_ticks > 0 {
+                let charge = (self.charge_fraction(spec, tick_hz) * u16::MAX as f32).round() as u16;
+                self.charge_ticks = 0;
+                self.selected = None;
+                self.windup = Some(Windup {
+                    kind,
+                    style: ThrowStyle::Overhand,
+                    charge,
+                    left: secs_to_ticks(spec.windup_s, tick_hz).max(1),
+                });
+                self.block_mouse = true;
+                ev.started = Some(kind);
+            }
         }
         ev
     }
 }
 
 /// A grenade leaving the hand.
-#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Default, Serialize, Deserialize)]
 pub struct Launch {
     pub kind: ThrowKind,
     pub seq: u16,
     pub origin: Vec3,
     pub vel: Vec3,
+    pub style: ThrowStyle,
+    pub charge: u16,
+    pub team: Option<crate::level::Team>,
+}
+
+/// The host and prediction derive the same velocity from held ticks, not client-supplied strength.
+pub fn launch_charged(
+    spec: &ThrowSpec,
+    world: &CollisionWorld,
+    eye: Vec3,
+    body_vel: Vec3,
+    yaw: f32,
+    pitch: f32,
+    kind: ThrowKind,
+    style: ThrowStyle,
+    charge: u16,
+) -> (Vec3, Vec3) {
+    let mut tuned = *spec;
+    let c = charge as f32 / u16::MAX as f32;
+    if style == ThrowStyle::Underhand {
+        tuned.speed_mps *= spec.underhand_speed_mult;
+        tuned.lift_deg = spec.underhand_lift_deg;
+    } else {
+        tuned.speed_mps *= 1.0 + (spec.charged_speed_mult - 1.0) * c;
+        let lift = match kind {
+            ThrowKind::Smoke => spec.charged_smoke_lift_deg,
+            ThrowKind::Molotov => spec.charged_molotov_lift_deg,
+        };
+        tuned.lift_deg += (lift - spec.lift_deg) * c;
+    }
+    launch(&tuned, world, eye, body_vel, yaw, pitch)
 }
 
 /// Where a throw leaves from and how fast: from the hand (in view space from the `eye`; from the eye itself when
@@ -356,6 +491,7 @@ pub struct Projectile {
     /// Ticks since the throw.
     pub age: u32,
     pub resting: bool,
+    pub charge: u16,
 }
 
 /// What a grenade did this tick.
@@ -380,7 +516,7 @@ const QUIET_BOUNCE_MPS: f32 = 1.0;
 
 impl Projectile {
     pub fn new(id: ThrowId, l: &Launch) -> Self {
-        Self { id, kind: l.kind, pos: l.origin, vel: l.vel, age: 0, resting: false }
+        Self { id, kind: l.kind, pos: l.origin, vel: l.vel, age: 0, resting: false, charge: l.charge }
     }
 
     /// Advance one tick of `dt` seconds.
@@ -428,7 +564,9 @@ impl Projectile {
                 }
             }
         }
-        let fused = self.kind == ThrowKind::Smoke && (self.resting || flight_s >= data.smoke.fuse_s);
+        let fuse = data.smoke.fuse_s
+            + (data.smoke.charged_fuse_s - data.smoke.fuse_s) * (self.charge as f32 / u16::MAX as f32);
+        let fused = self.kind == ThrowKind::Smoke && (self.resting || flight_s >= fuse);
         if fused || flight_s >= p.max_flight_s {
             return Flight::Burst { at: self.ground_point(data, level, Vec3::ZERO) };
         }
@@ -458,6 +596,53 @@ impl Projectile {
             below
         }
     }
+}
+
+// ---------------------------------------------------------------------------------------------- the throw line
+
+/// Where a throw would go (the THROW LINE, Settings > Gameplay): the flight a [`Projectile`] would take, ticked
+/// exactly as the host flies it, so the line ends where the grenade really goes off. Nothing in it is random.
+#[derive(Debug, Clone, Default, PartialEq)]
+pub struct PredictedPath {
+    /// The grenade's centre from the hand onward, one point per tick (the first is the launch point).
+    pub points: Vec<Vec3>,
+    /// Where it bounced.
+    pub bounces: Vec<Vec3>,
+    /// The ground point its smoke or fire grows from; `None` if it fell out of the map or flew past `max_ticks`.
+    pub burst: Option<Vec3>,
+}
+
+/// Flies a would-be throw (`kind` from `origin` at `vel`, with its normalised `charge`) for at most `max_ticks`
+/// ticks of `dt`, without touching any world state.
+pub fn predict_path(
+    data: &ThrowablesFile,
+    level: &Level,
+    kind: ThrowKind,
+    origin: Vec3,
+    vel: Vec3,
+    charge: u16,
+    dt: f32,
+    max_ticks: u32,
+) -> PredictedPath {
+    let launch = Launch { kind, origin, vel, charge, ..Default::default() };
+    let mut p = Projectile::new(ThrowId { owner: u64::MAX, seq: 0 }, &launch);
+    let mut out = PredictedPath { points: vec![origin], ..Default::default() };
+    for _ in 0..max_ticks {
+        match p.step(data, level, dt) {
+            Flight::Flying => {}
+            Flight::Bounced { at, .. } => out.bounces.push(at),
+            Flight::Burst { at } => {
+                out.points.push(p.pos);
+                out.burst = Some(at);
+                break;
+            }
+            Flight::Lost => break,
+        }
+        if out.points.last() != Some(&p.pos) {
+            out.points.push(p.pos);
+        }
+    }
+    out
 }
 
 // ---------------------------------------------------------------------------------------------- the areas
@@ -854,6 +1039,53 @@ mod tests {
         (p, seen)
     }
 
+    /// The throw line ends exactly where the host's flight of the same throw goes off, for a molotov (first impact,
+    /// on the wall) and a smoke (bounces, rolls, pops on its fuse), tap and fully charged; the path starts at the
+    /// hand and never goes through the floor.
+    #[test]
+    fn the_throw_line_ends_where_the_grenade_goes_off() {
+        let d = GameData::embedded();
+        let level = yard();
+        let eye = Vec3::new(0.0, 1.6, 0.0);
+        // Facing +x (yaw -90 degrees), toward the wall at x = 10.
+        let yaw = -std::f32::consts::FRAC_PI_2;
+        for kind in [ThrowKind::Smoke, ThrowKind::Molotov] {
+            for (style, charge, pitch) in
+                [(ThrowStyle::Overhand, 0, 0.1), (ThrowStyle::Overhand, u16::MAX, 0.0), (ThrowStyle::Underhand, 0, -0.2)]
+            {
+                let spec = &d.throwables.throw;
+                let (origin, vel) = launch_charged(spec, &level.world, eye, Vec3::ZERO, yaw, pitch, kind, style, charge);
+                let line = predict_path(&d.throwables, &level, kind, origin, vel, charge, DT, 2000);
+                assert_eq!(line.points[0], origin);
+                let low = line.points.iter().map(|p| p.y).fold(f32::MAX, f32::min);
+                assert!(low > -0.01, "{kind:?} {style:?} {charge}: never under the floor ({low}, {:?})", line.points.iter().find(|p| p.y <= -0.01));
+                let mut world = ThrowWorld::default();
+                world.throw(7, &Launch { kind, seq: 1, origin, vel, style, charge, team: None });
+                let mut burst = None;
+                for _ in 0..2000 {
+                    for e in world.step(&d.throwables, &level, DT) {
+                        if let WorldEvent::Burst { at, .. } = e {
+                            burst = Some(at);
+                        }
+                    }
+                    if burst.is_some() {
+                        break;
+                    }
+                }
+                assert!(burst.is_some(), "{kind:?} {style:?} went off");
+                assert_eq!(line.burst, burst, "{kind:?} {style:?} charge {charge}");
+            }
+        }
+        // A smoke bounces before it pops; a molotov never does.
+        let spec = &d.throwables.throw;
+        let (o, v) = launch_charged(spec, &level.world, eye, Vec3::ZERO, yaw, -0.3, ThrowKind::Smoke, ThrowStyle::Overhand, 0);
+        assert!(!predict_path(&d.throwables, &level, ThrowKind::Smoke, o, v, 0, DT, 2000).bounces.is_empty());
+        let molotov = predict_path(&d.throwables, &level, ThrowKind::Molotov, o, v, 0, DT, 2000);
+        assert!(molotov.bounces.is_empty() && molotov.burst.is_some());
+        // Too few ticks: no burst point, no panic.
+        assert_eq!(predict_path(&d.throwables, &level, ThrowKind::Smoke, o, v, 0, DT, 3).burst, None);
+    }
+
     #[test]
     fn the_data_file_parses_and_validates() {
         let d = data();
@@ -879,8 +1111,13 @@ mod tests {
     fn the_arc_is_ballistic_and_deterministic() {
         let d = data();
         let level = yard();
-        let l =
-            Launch { kind: ThrowKind::Smoke, seq: 1, origin: Vec3::new(0.0, 1.6, 0.0), vel: Vec3::new(3.0, 8.0, -2.0) };
+        let l = Launch {
+            kind: ThrowKind::Smoke,
+            seq: 1,
+            origin: Vec3::new(0.0, 1.6, 0.0),
+            vel: Vec3::new(3.0, 8.0, -2.0),
+            ..Default::default()
+        };
         let mut p = Projectile::new(id(1), &l);
         for k in 1..=30u32 {
             p.step(&d, &level, DT);
@@ -903,8 +1140,13 @@ mod tests {
         d.smoke.fuse_s = 30.0; // only resting pops it
         d.projectile.max_flight_s = 60.0;
         let level = yard();
-        let l =
-            Launch { kind: ThrowKind::Smoke, seq: 2, origin: Vec3::new(0.0, 3.0, 0.0), vel: Vec3::new(14.0, 3.0, 0.0) };
+        let l = Launch {
+            kind: ThrowKind::Smoke,
+            seq: 2,
+            origin: Vec3::new(0.0, 3.0, 0.0),
+            vel: Vec3::new(14.0, 3.0, 0.0),
+            ..Default::default()
+        };
         let (p, seen) = fly(&d, &level, l, 3000);
         let bounces: Vec<f32> = seen
             .iter()
@@ -925,8 +1167,13 @@ mod tests {
     fn the_smoke_fuse_pops_it_in_flight() {
         let d = data();
         let level = yard();
-        let l =
-            Launch { kind: ThrowKind::Smoke, seq: 3, origin: Vec3::new(0.0, 1.6, 0.0), vel: Vec3::new(0.0, 30.0, 0.0) };
+        let l = Launch {
+            kind: ThrowKind::Smoke,
+            seq: 3,
+            origin: Vec3::new(0.0, 1.6, 0.0),
+            vel: Vec3::new(0.0, 30.0, 0.0),
+            ..Default::default()
+        };
         let (p, seen) = fly(&d, &level, l, 1000);
         assert!(matches!(seen.last(), Some(Flight::Burst { .. })));
         assert_eq!(p.age, secs_to_ticks(d.smoke.fuse_s, 60) as u32, "on the fuse");
@@ -947,6 +1194,7 @@ mod tests {
             seq: 4,
             origin: Vec3::new(0.0, 1.6, 0.0),
             vel: Vec3::new(4.0, 5.0, 0.0),
+            ..Default::default()
         };
         let (p, seen) = fly(&d, &level, lob, 600);
         assert!(!seen.iter().any(|f| matches!(f, Flight::Bounced { .. })), "no bounce first");
@@ -957,6 +1205,7 @@ mod tests {
             seq: 5,
             origin: Vec3::new(0.0, 2.0, 0.0),
             vel: Vec3::new(20.0, 2.0, 0.0),
+            ..Default::default()
         };
         let (p, seen) = fly(&d, &level, wall, 600);
         let Some(Flight::Burst { at }) = seen.last() else { panic!() };
@@ -969,7 +1218,13 @@ mod tests {
     fn a_grenade_off_the_map_is_lost() {
         let d = data();
         let level = Level { kill_y: -5.0, ..Default::default() };
-        let l = Launch { kind: ThrowKind::Molotov, seq: 6, origin: Vec3::ZERO, vel: Vec3::new(1.0, 0.0, 0.0) };
+        let l = Launch {
+            kind: ThrowKind::Molotov,
+            seq: 6,
+            origin: Vec3::ZERO,
+            vel: Vec3::new(1.0, 0.0, 0.0),
+            ..Default::default()
+        };
         let (_, seen) = fly(&d, &level, l, 600);
         assert_eq!(seen.last(), Some(&Flight::Lost));
     }
@@ -1138,8 +1393,13 @@ mod tests {
         let level = yard();
         // A smoke landing in a fire.
         let mut w = ThrowWorld { fires: vec![Fire::new(id(1), Vec3::new(0.0, 0.0, 0.0))], ..Default::default() };
-        let l =
-            Launch { kind: ThrowKind::Smoke, seq: 2, origin: Vec3::new(0.0, 0.3, 0.0), vel: Vec3::new(0.0, -1.0, 0.0) };
+        let l = Launch {
+            kind: ThrowKind::Smoke,
+            seq: 2,
+            origin: Vec3::new(0.0, 0.3, 0.0),
+            vel: Vec3::new(0.0, -1.0, 0.0),
+            ..Default::default()
+        };
         w.throw(7, &l);
         let mut doused = None;
         for t in 0..300 {
@@ -1164,6 +1424,7 @@ mod tests {
             seq: 4,
             origin: Vec3::new(0.0, 0.5, 0.0),
             vel: Vec3::new(0.0, -2.0, 0.0),
+            ..Default::default()
         };
         w.throw(7, &m);
         let mut events = Vec::new();
@@ -1187,43 +1448,125 @@ mod tests {
         assert!(!douses(&d, DT, &gone, &Fire { id: id(6), at: Vec3::ZERO, age: 60 }));
     }
 
-    /// The hand: a press winds up (one taken from the kit), the grenade leaves after windup_s with the next
-    /// number, the hands stay busy through the recovery, a held key does not throw again, and an empty kit or busy
-    /// hands throw nothing.
     #[test]
-    fn the_hand_winds_up_releases_and_counts() {
+    fn the_hand_equips_charges_releases_and_counts() {
         let d = data();
         let t = &d.throw;
         let mut h = ThrowHand::new(ThrowKit { smoke: 1, molotov: 2 });
-        let smoke = Buttons(Buttons::THROW_SMOKE);
         let none = Buttons(0);
-        assert_eq!(h.step(t, smoke, false, 60), HandEvents::default(), "hands not free");
-        h.keys = 0;
-        let ev = h.step(t, smoke, true, 60);
-        assert_eq!(ev.started, Some(ThrowKind::Smoke));
-        assert_eq!(h.left, ThrowKit { smoke: 0, molotov: 2 });
-        assert!(h.busy());
-        let windup = secs_to_ticks(t.windup_s, 60);
-        let mut released = None;
-        for k in 1..=windup {
-            let ev = h.step(t, smoke, true, 60);
-            if let Some(r) = ev.released {
-                released = Some((k, r));
-            }
+        let select = Buttons(Buttons::THROW_SMOKE);
+        let fire = Buttons(Buttons::FIRE);
+        assert_eq!(h.step(t, select, false, 60), HandEvents::default());
+        h.step(t, none, true, 60);
+        assert_eq!(h.step(t, select, true, 60), HandEvents::default());
+        assert_eq!(h.selected, Some(ThrowKind::Smoke));
+        assert_eq!(h.left.smoke, 1);
+        for _ in 0..10 {
+            assert_eq!(h.step(t, none, true, 60).released, None);
         }
-        assert_eq!(released, Some((windup, (ThrowKind::Smoke, 1))), "after the wind-up, number 1");
-        assert!(h.busy(), "recovering");
+        for _ in 0..200 {
+            assert_eq!(h.step(t, fire, true, 60).released, None);
+        }
+        assert_eq!(h.charge_fraction(t, 60), 1.0);
+        assert_eq!(h.step(t, none, true, 60).started, Some(ThrowKind::Smoke));
+        assert_eq!(h.left.smoke, 1, "not consumed before launch");
+        let mut launched = None;
+        for _ in 0..secs_to_ticks(t.windup_s, 60) {
+            launched = h.step(t, none, true, 60).released.or(launched);
+        }
+        assert_eq!(launched, Some((ThrowKind::Smoke, 1, ThrowStyle::Overhand, u16::MAX)));
+        assert_eq!(h.left.smoke, 0);
         for _ in 0..secs_to_ticks(t.recover_s, 60) {
-            h.step(t, smoke, true, 60);
+            h.step(t, none, true, 60);
         }
         assert!(!h.busy());
-        // Held: no second throw (and none left anyway); a fresh press of the other key throws a molotov.
-        assert_eq!(h.step(t, smoke, true, 60).started, None);
-        h.step(t, none, true, 60);
-        assert_eq!(h.step(t, smoke, true, 60).started, None, "no smoke left");
-        let ev = h.step(t, Buttons(Buttons::THROW_SMOKE | Buttons::THROW_MOLOTOV), true, 60);
-        assert_eq!(ev.started, Some(ThrowKind::Molotov));
+        h.step(t, Buttons(Buttons::THROW_MOLOTOV), true, 60);
+        assert_eq!(
+            h.step(t, Buttons(Buttons::ADS), true, 60).released,
+            Some((ThrowKind::Molotov, 2, ThrowStyle::Underhand, 0))
+        );
         assert_eq!(h.left.molotov, 1);
+        for _ in 0..120 {
+            assert_eq!(h.step(t, Buttons(Buttons::ADS), true, 60).released, None);
+        }
+    }
+
+    #[test]
+    fn cancel_or_switch_keeps_inventory_and_blocks_the_used_click() {
+        let d = data();
+        let mut h = ThrowHand::new(ThrowKit { smoke: 1, molotov: 1 });
+        h.step(&d.throw, Buttons(Buttons::THROW_SMOKE), true, 60);
+        h.step(&d.throw, Buttons(Buttons::FIRE), true, 60);
+        h.step(&d.throw, Buttons(Buttons::THROW_CANCEL | Buttons::FIRE), true, 60);
+        assert_eq!(h.selected, None);
+        assert_eq!(h.left.total(), 2);
+        assert!(h.block_mouse);
+        assert!(!h.busy());
+        h.step(&d.throw, Buttons(Buttons::FIRE), true, 60);
+        assert!(h.block_mouse);
+        h.step(&d.throw, Buttons(0), true, 60);
+        assert!(!h.block_mouse);
+        h.step(&d.throw, Buttons(Buttons::THROW_SMOKE), true, 60);
+        h.step(&d.throw, Buttons(Buttons::THROW_MOLOTOV), true, 60);
+        assert_eq!(h.selected, Some(ThrowKind::Molotov));
+        h.step(&d.throw, Buttons(0), true, 60);
+        h.step(&d.throw, Buttons(Buttons::THROW_MOLOTOV), true, 60);
+        assert_eq!(h.selected, None);
+        assert_eq!(h.left.total(), 2);
+    }
+
+    #[test]
+    fn taps_keep_baseline_and_full_charge_is_capped_at_both_tick_rates() {
+        let d = data();
+        for hz in [60, 120] {
+            let mut h = ThrowHand::new(ThrowKit { smoke: 1, molotov: 1 });
+            h.step(&d.throw, Buttons(Buttons::THROW_SMOKE), true, hz);
+            for _ in 0..secs_to_ticks(d.throw.charge_tap_s, hz) {
+                h.step(&d.throw, Buttons(Buttons::FIRE), true, hz);
+            }
+            h.step(&d.throw, Buttons(0), true, hz);
+            assert_eq!(h.windup.unwrap().charge, 0, "tap at {hz} Hz");
+            let mut h = ThrowHand::new(ThrowKit { smoke: 1, molotov: 1 });
+            h.step(&d.throw, Buttons(Buttons::THROW_SMOKE), true, hz);
+            for _ in 0..secs_to_ticks(d.throw.charge_s + 1.0, hz) {
+                h.step(&d.throw, Buttons(Buttons::FIRE), true, hz);
+            }
+            h.step(&d.throw, Buttons(0), true, hz);
+            assert_eq!(h.windup.unwrap().charge, u16::MAX, "full at {hz} Hz");
+        }
+    }
+
+    #[test]
+    fn full_charge_measures_six_times_tap_range_including_fuse_and_bounces() {
+        let d = data();
+        let mut level = Level { kill_y: -100.0, ..Default::default() };
+        level.world.push(Brush::cuboid(Vec3::new(-1000., -1., -1000.), Vec3::new(1000., 0., 1000.), BrushKind::Solid));
+        let range = |kind, style, charge| {
+            let (origin, vel) =
+                launch_charged(&d.throw, &level.world, Vec3::new(0., 1.6, 0.), Vec3::ZERO, 0., 0., kind, style, charge);
+            let mut p = Projectile::new(id(1), &Launch { kind, origin, vel, style, charge, ..Default::default() });
+            for _ in 0..600 {
+                if let Flight::Burst { at } = p.step(&d, &level, DT) {
+                    return ((at - origin).with_y(0.0).length(), p.age as f32 * DT);
+                }
+            }
+            panic!("no burst");
+        };
+        for kind in ThrowKind::ALL {
+            let tap = range(kind, ThrowStyle::Overhand, 0);
+            let full = range(kind, ThrowStyle::Overhand, u16::MAX);
+            let middle = range(kind, ThrowStyle::Overhand, u16::MAX / 2);
+            let soft = range(kind, ThrowStyle::Underhand, 0);
+            let ratio = full.0 / tap.0;
+            println!("{kind:?}: tap={tap:?}, full={full:?}, ratio={ratio:.3}, soft={soft:?}");
+            assert!((5.82..=6.18).contains(&ratio), "{kind:?} full/tap range {ratio}");
+            assert!(middle.0 > tap.0 && middle.0 < full.0);
+            assert!(soft.0 < tap.0);
+            if kind == ThrowKind::Smoke {
+                assert!(full.1 > d.smoke.fuse_s, "full throw needs longer fuse than tap");
+                assert!(full.1 <= d.smoke.charged_fuse_s + DT);
+            }
+        }
     }
 
     /// A throw leaves from the right hand ahead of the eye, along the aim lifted a little, faster when running

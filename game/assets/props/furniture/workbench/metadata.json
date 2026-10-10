@@ -1,0 +1,23 @@
+{
+  "id": "workbench",
+  "category": "furniture",
+  "tags": [
+    "furniture",
+    "showhome_legacy"
+  ],
+  "glb": "props/furniture/workbench/workbench.glb",
+  "lod1": "props/furniture/workbench/workbench_lod1.glb",
+  "collision": "props/furniture/workbench/collision.json",
+  "source": "original assets/maps/showhome procedural Workbench",
+  "licence": "project original",
+  "openable_parts": [],
+  "size_m": [
+    0.7139999866485596,
+    4.0,
+    1.0
+  ],
+  "triangles": 324,
+  "collision_volumes": 1,
+  "loot_slots": [],
+  "legacy_root": "PROP_Workbench"
+}

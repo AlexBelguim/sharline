@@ -1,0 +1,38 @@
+{
+  "id": "gang_box",
+  "category": "containers",
+  "tags": [
+    "containers",
+    "showhome_v3",
+    "toolbox"
+  ],
+  "glb": "props/containers/gang_box/gang_box.glb",
+  "lod1": "props/containers/gang_box/gang_box_lod1.glb",
+  "collision": "props/containers/gang_box/collision.json",
+  "source": "original procedural v3",
+  "licence": "project original",
+  "openable_parts": [
+    {
+      "name": "OPEN_LID_0",
+      "properties": {
+        "axis": "X",
+        "ajar": -7,
+        "pose": "ajar",
+        "pose_unit": "degrees",
+        "min_deg": -105,
+        "max_deg": 0,
+        "closed_rotation_deg": 0
+      }
+    }
+  ],
+  "size_m": [
+    1.2200000286102295,
+    0.6880347728729248,
+    0.8003964424133301
+  ],
+  "triangles": 572,
+  "collision_volumes": 6,
+  "loot_slots": [
+    "LOOT_SLOT_0"
+  ]
+}

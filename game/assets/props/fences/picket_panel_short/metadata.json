@@ -1,0 +1,22 @@
+{
+  "id": "picket_panel_short",
+  "category": "fences",
+  "tags": [
+    "fences",
+    "showhome_v3"
+  ],
+  "glb": "props/fences/picket_panel_short/picket_panel_short.glb",
+  "lod1": "props/fences/picket_panel_short/picket_panel_short_lod1.glb",
+  "collision": "props/fences/picket_panel_short/collision.json",
+  "source": "original procedural v3",
+  "licence": "project original",
+  "openable_parts": [],
+  "size_m": [
+    1.8200000524520874,
+    0.07000000029802322,
+    1.2000000476837158
+  ],
+  "triangles": 836,
+  "collision_volumes": 19,
+  "loot_slots": []
+}

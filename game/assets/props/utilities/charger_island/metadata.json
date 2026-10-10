@@ -1,0 +1,23 @@
+{
+  "id": "charger_island",
+  "category": "utilities",
+  "tags": [
+    "utilities",
+    "showhome_legacy"
+  ],
+  "glb": "props/utilities/charger_island/charger_island.glb",
+  "lod1": "props/utilities/charger_island/charger_island_lod1.glb",
+  "collision": "props/utilities/charger_island/collision.json",
+  "source": "original assets/maps/showhome procedural ChargerIsland",
+  "licence": "project original",
+  "openable_parts": [],
+  "size_m": [
+    2.0303988456726074,
+    4.0,
+    2.4000000953674316
+  ],
+  "triangles": 1192,
+  "collision_volumes": 1,
+  "loot_slots": [],
+  "legacy_root": "PROP_ChargerIsland"
+}

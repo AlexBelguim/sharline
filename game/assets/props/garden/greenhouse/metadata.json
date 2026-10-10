@@ -1,0 +1,35 @@
+{
+  "id": "greenhouse",
+  "category": "garden",
+  "tags": [
+    "garden",
+    "showhome_v3"
+  ],
+  "glb": "props/garden/greenhouse/greenhouse.glb",
+  "lod1": "props/garden/greenhouse/greenhouse_lod1.glb",
+  "collision": "props/garden/greenhouse/collision.json",
+  "source": "original procedural v3",
+  "licence": "project original",
+  "openable_parts": [
+    {
+      "name": "OPEN_DOOR_Greenhouse",
+      "properties": {
+        "axis": "Z",
+        "ajar": 12,
+        "pose": "open",
+        "pose_unit": "degrees",
+        "min_deg": 0,
+        "max_deg": 110,
+        "closed_rotation_deg": 0
+      }
+    }
+  ],
+  "size_m": [
+    4.079999923706055,
+    5.670000076293945,
+    2.8370983600616455
+  ],
+  "triangles": 3972,
+  "collision_volumes": 34,
+  "loot_slots": []
+}

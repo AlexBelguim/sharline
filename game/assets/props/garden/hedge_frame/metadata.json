@@ -1,0 +1,22 @@
+{
+  "id": "hedge_frame",
+  "category": "garden",
+  "tags": [
+    "garden",
+    "showhome_v3"
+  ],
+  "glb": "props/garden/hedge_frame/hedge_frame.glb",
+  "lod1": "props/garden/hedge_frame/hedge_frame_lod1.glb",
+  "collision": "props/garden/hedge_frame/collision.json",
+  "source": "original procedural v3",
+  "licence": "project original",
+  "openable_parts": [],
+  "size_m": [
+    4.159999847412109,
+    0.1599999964237213,
+    2.9099998474121094
+  ],
+  "triangles": 220,
+  "collision_volumes": 5,
+  "loot_slots": []
+}
