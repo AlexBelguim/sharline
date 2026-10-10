@@ -58,6 +58,10 @@ fn superseded(path: &str) -> bool {
         // The tick rate is a host setting, 60 or 120 Hz, default 120 (net.ron; DESIGN_DELTAS.md, '120 Hz').
         || path == "weapons.slice.json.tick_hz"
         || path == "movement.slice.json.tick_hz"
+        // Playtest round 4: a faster, longer slide (DESIGN_DELTAS.md section 40).
+        || path == "movement.slice.json.movement.slide.boost"
+        || path == "movement.slice.json.movement.slide.friction"
+        || path.ends_with("slide_boost") && path.contains(".weight_effects.")
 }
 
 /// Playtest round 3 (DESIGN_DELTAS.md section 15): the Mako's pattern is a T, looping its two full sweeps, and

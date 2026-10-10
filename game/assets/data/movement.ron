@@ -51,9 +51,11 @@
         min_entry_speed: 4.0,
         // Moving within this angle of the facing: run or sprint forward (diagonals included), not a strafe.
         entry_max_angle_deg: 60.0,
-        boost: 2.0,
+        // The boost a slide actually gets is armor.ron weight_effects slide_boost (3.0 with no halo or a Light one).
+        // From a 7.0 sprint: a 10 m/s peak, then (10 - 3.6) / 3.75 = 1.7 s and about 11.6 m on flat ground.
+        boost: 3.0,
         boost_cooldown_s: 2.0,
-        friction: 4.5,
+        friction: 3.75,
         end_speed: 3.6,
         downhill_min_deg: 8.0,
         max_speed: 13.0,

@@ -900,3 +900,12 @@ New (item 9c2, user direction; the design docs have no streaks). All numbers in 
 - **Now:** 46 to 35 m, 42 at 60 m, 38 from 90 m (`weapons.ron`, `min_damage` 38). Three bare-torso hits hold to
   about 75 m, and it never takes more than four. Headshot multipliers and the SMG's steep drop are unchanged. The
   design JSON's falloff was already superseded (design_sync `gun_tuning_round_1`).
+
+## 40. A faster, longer slide (2026-10-10)
+- **Before:** a slide boost of 2.0 on top of the entry speed (armor.ron `weight_effects` `slide_boost`: None and Light
+  2.0, Medium 1.7, Heavy 1.3) and friction 4.5: from a 7.0 sprint about 9 m/s, 1.2 s and 7.6 m on flat ground (user:
+  "slide feels a little slow and short").
+- **Now:** `slide_boost` None and Light 3.0, Medium 2.6, Heavy 2.0 (the same ratios), friction 3.75, end speed 3.6
+  unchanged: from a sprint a 10 m/s peak, then 1.7 s and about 11.6 m on flat ground; downhill still goes further.
+  The boost cooldown, the low-gap stance and the strafe-jump cap are unchanged. `movement.ron` `slide.boost` now
+  mirrors the no-halo value.

@@ -232,14 +232,19 @@ fn slide_boosts_then_slows_to_a_crouch() {
     let ev = step(&d, &level, &mut st, &input(Vec2::Y, Buttons::SPRINT | Buttons::CROUCH), &m, DT);
     assert!(ev.slide_started);
     assert_eq!(st.mode, MoveMode::Slide);
-    assert!(st.horizontal_speed() > 8.8, "boosted: {}", st.horizontal_speed());
-    // (9.0 - 3.6) / 4.5 = 1.2 s of sliding on flat ground
+    assert!(st.horizontal_speed() > 9.8, "boosted: {}", st.horizontal_speed());
+    // Playtest round 4 ("slide feels a little slow and short"): (10 - 3.6) / 3.75 = 1.7 s and about 11.6 m of
+    // sliding on flat ground, inside the 1.6-1.8 s and 11-13 m asked for.
+    let start = st.pos;
     let mut ticks = 0;
     while st.mode == MoveMode::Slide && ticks < 300 {
         step(&d, &level, &mut st, &input(Vec2::Y, Buttons::CROUCH), &m, DT);
         ticks += 1;
     }
-    assert!((60..=80).contains(&ticks), "{ticks}");
+    let secs = ticks as f32 * DT;
+    let dist = horizontal(st.pos - start).length();
+    assert!((1.6..=1.8).contains(&secs), "{secs} s");
+    assert!((11.0..=13.0).contains(&dist), "{dist} m");
     assert_eq!(st.stance, Stance::Crouch);
 }
 

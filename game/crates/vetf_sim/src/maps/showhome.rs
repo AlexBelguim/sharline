@@ -762,8 +762,10 @@ mod tests {
         let under_door = |st: &MoveState| (15.85 - cap.radius..16.15 + cap.radius).contains(&-st.pos.z);
         // (slide at design y, let go of crouch at design y): from a sprint, crouch released at points along the
         // way; or from a run, crouch held from slides started closer and closer until they run out of speed.
-        let mut runs: Vec<(f32, f32)> = (0..60).map(|i| (13.0, 13.5 + i as f32 * 0.05)).collect();
-        runs.extend((0..30).map(|i| (12.0 + i as f32 * 0.1, f32::INFINITY)));
+        // Slides are long (about 11.6 m from a sprint), so the runs also start sliding right after the spawn.
+        let mut runs: Vec<(f32, f32)> =
+            [10.8, 13.0].iter().flat_map(|&s| (0..60).map(move |i| (s, 13.5 + i as f32 * 0.05))).collect();
+        runs.extend((0..43).map(|i| (10.8 + i as f32 * 0.1, f32::INFINITY)));
         // Between the car (x 14.5) and the roller's east jamb (x 16), north of the bins (y 10): the lane in.
         for x in [15.25, MAP_W - 15.25] {
             let floor = surface_below(&l, design(x, 16.0, 0.5));
