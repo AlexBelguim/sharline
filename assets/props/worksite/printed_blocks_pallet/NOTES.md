@@ -1,0 +1,1 @@
+Original reusable Showhome v3 worksite prop. Rebuild with extension/build_extension.py. Metres, Z-up, ground-centre pivot; front -Y. Existing painted texture library; convex collision, UVs, phys extras and LOD1. Movable items are catalog placements, not baked into the extension scene.

@@ -1,0 +1,23 @@
+{
+  "id": "kitchen_island",
+  "category": "furniture",
+  "tags": [
+    "furniture",
+    "showhome_legacy"
+  ],
+  "glb": "props/furniture/kitchen_island/kitchen_island.glb",
+  "lod1": "props/furniture/kitchen_island/kitchen_island_lod1.glb",
+  "collision": "props/furniture/kitchen_island/collision.json",
+  "source": "original assets/maps/showhome procedural KitchenIsland",
+  "licence": "project original",
+  "openable_parts": [],
+  "size_m": [
+    2.0139999389648438,
+    2.5,
+    1.0
+  ],
+  "triangles": 324,
+  "collision_volumes": 1,
+  "loot_slots": [],
+  "legacy_root": "PROP_KitchenIsland"
+}

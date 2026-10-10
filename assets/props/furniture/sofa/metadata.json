@@ -1,0 +1,22 @@
+{
+  "id": "sofa",
+  "category": "furniture",
+  "tags": [
+    "furniture",
+    "showhome_v3"
+  ],
+  "glb": "props/furniture/sofa/sofa.glb",
+  "lod1": "props/furniture/sofa/sofa_lod1.glb",
+  "collision": "props/furniture/sofa/collision.json",
+  "source": "original assets/maps/showhome procedural Sofa",
+  "licence": "project original",
+  "openable_parts": [],
+  "size_m": [
+    2.5,
+    0.8999999761581421,
+    0.8009999990463257
+  ],
+  "triangles": 1024,
+  "collision_volumes": 1,
+  "loot_slots": []
+}

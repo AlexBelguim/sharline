@@ -1,0 +1,23 @@
+{
+  "preferred_inputs": [
+    "images/city_hatchback_blue.png",
+    "images/city_hatchback_clay.png",
+    "images/city_hatchback_trunk_open_rear.png",
+    "images/delivery_van_ivory.png",
+    "images/panel_van_sage.png",
+    "images/pickup_truck_ivory.png",
+    "images/pickup_truck_clay.png",
+    "images/semi_truck_ivory.png",
+    "images/cement_mixer_truck.png",
+    "images/kitchen_base_cabinet_static.png",
+    "images/kitchen_drawer_half_open_static.png",
+    "images/small_drawer_cabinet.png",
+    "images/small_drawer_cabinet_sage.png",
+    "images/steel_pipe_bundle_static.png",
+    "images/printed_blocks_stack.png",
+    "images/timber_board_stack.png",
+    "images/compact_excavator_yellow.png"
+  ],
+  "raw_variants_retained": true,
+  "trellis_started": false
+}

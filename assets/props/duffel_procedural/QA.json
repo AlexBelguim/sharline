@@ -1,0 +1,831 @@
+{
+  "asset": "duffel_procedural",
+  "method": "Original procedural mesh geometry. Image reference informs the design only; no generated geometry, no TRELLIS source, no baked lighting.",
+  "source_prefix": "DFP_",
+  "reference": "reference/PICK_a_duffel.png",
+  "texture_sources": [
+    "art/textures/fabric_ripstop.png",
+    "art/textures/fabric_soft.png",
+    "art/textures/leather_soft.png",
+    "assets/characters/kestrel/v2/textures/jacket_normal.png",
+    "assets/characters/kestrel/v2/textures/webLight_normal.png",
+    "assets/characters/kestrel/v2/textures/web_normal.png"
+  ],
+  "pbr": "sRGB albedo; linear ORM R=1, G=roughness, B=metalness; existing OpenGL normal relief attenuated to 6%; no baked illumination",
+  "built": {
+    "triangles": 3890,
+    "mesh_objects": 66,
+    "all_uvs": true,
+    "all_identity_transforms": true,
+    "nonmanifold_edges": 0,
+    "boundary_edges": 0,
+    "degenerate_triangles": 0,
+    "bounds_blender_z_up_m": {
+      "min": [
+        -0.334484,
+        -0.213642,
+        0.0
+      ],
+      "max": [
+        0.332,
+        0.169579,
+        0.406373
+      ],
+      "size": [
+        0.666484,
+        0.383221,
+        0.406373
+      ]
+    },
+    "objects": [
+      {
+        "name": "DFP_Sculpted_Canvas_Body",
+        "triangles": 716,
+        "vertices": 360,
+        "uv_layers": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "degenerate_triangles": 0,
+        "identity_transform": true
+      },
+      {
+        "name": "DFP_Teal_End_Panel",
+        "triangles": 142,
+        "vertices": 73,
+        "uv_layers": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "degenerate_triangles": 0,
+        "identity_transform": true
+      },
+      {
+        "name": "DFP_Bone_End_Binding",
+        "triangles": 192,
+        "vertices": 96,
+        "uv_layers": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "degenerate_triangles": 0,
+        "identity_transform": true
+      },
+      {
+        "name": "DFP_Teal_Seam_Piping",
+        "triangles": 192,
+        "vertices": 96,
+        "uv_layers": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "degenerate_triangles": 0,
+        "identity_transform": true
+      },
+      {
+        "name": "DFP_Navy_End_Piping",
+        "triangles": 192,
+        "vertices": 96,
+        "uv_layers": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "degenerate_triangles": 0,
+        "identity_transform": true
+      },
+      {
+        "name": "DFP_Zipper_Tape",
+        "triangles": 124,
+        "vertices": 64,
+        "uv_layers": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "degenerate_triangles": 0,
+        "identity_transform": true
+      },
+      {
+        "name": "DFP_Zipper_Tooth_00",
+        "triangles": 12,
+        "vertices": 8,
+        "uv_layers": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "degenerate_triangles": 0,
+        "identity_transform": true
+      },
+      {
+        "name": "DFP_Zipper_Tooth_01",
+        "triangles": 12,
+        "vertices": 8,
+        "uv_layers": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "degenerate_triangles": 0,
+        "identity_transform": true
+      },
+      {
+        "name": "DFP_Zipper_Tooth_02",
+        "triangles": 12,
+        "vertices": 8,
+        "uv_layers": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "degenerate_triangles": 0,
+        "identity_transform": true
+      },
+      {
+        "name": "DFP_Zipper_Tooth_03",
+        "triangles": 12,
+        "vertices": 8,
+        "uv_layers": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "degenerate_triangles": 0,
+        "identity_transform": true
+      },
+      {
+        "name": "DFP_Zipper_Tooth_04",
+        "triangles": 12,
+        "vertices": 8,
+        "uv_layers": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "degenerate_triangles": 0,
+        "identity_transform": true
+      },
+      {
+        "name": "DFP_Zipper_Tooth_05",
+        "triangles": 12,
+        "vertices": 8,
+        "uv_layers": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "degenerate_triangles": 0,
+        "identity_transform": true
+      },
+      {
+        "name": "DFP_Zipper_Tooth_06",
+        "triangles": 12,
+        "vertices": 8,
+        "uv_layers": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "degenerate_triangles": 0,
+        "identity_transform": true
+      },
+      {
+        "name": "DFP_Zipper_Tooth_07",
+        "triangles": 12,
+        "vertices": 8,
+        "uv_layers": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "degenerate_triangles": 0,
+        "identity_transform": true
+      },
+      {
+        "name": "DFP_Zipper_Tooth_08",
+        "triangles": 12,
+        "vertices": 8,
+        "uv_layers": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "degenerate_triangles": 0,
+        "identity_transform": true
+      },
+      {
+        "name": "DFP_Zipper_Tooth_09",
+        "triangles": 12,
+        "vertices": 8,
+        "uv_layers": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "degenerate_triangles": 0,
+        "identity_transform": true
+      },
+      {
+        "name": "DFP_Zipper_Tooth_10",
+        "triangles": 12,
+        "vertices": 8,
+        "uv_layers": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "degenerate_triangles": 0,
+        "identity_transform": true
+      },
+      {
+        "name": "DFP_Zipper_Tooth_11",
+        "triangles": 12,
+        "vertices": 8,
+        "uv_layers": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "degenerate_triangles": 0,
+        "identity_transform": true
+      },
+      {
+        "name": "DFP_Zipper_Tooth_12",
+        "triangles": 12,
+        "vertices": 8,
+        "uv_layers": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "degenerate_triangles": 0,
+        "identity_transform": true
+      },
+      {
+        "name": "DFP_Zipper_Tooth_13",
+        "triangles": 12,
+        "vertices": 8,
+        "uv_layers": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "degenerate_triangles": 0,
+        "identity_transform": true
+      },
+      {
+        "name": "DFP_Zipper_Tooth_14",
+        "triangles": 12,
+        "vertices": 8,
+        "uv_layers": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "degenerate_triangles": 0,
+        "identity_transform": true
+      },
+      {
+        "name": "DFP_Zipper_Tooth_15",
+        "triangles": 12,
+        "vertices": 8,
+        "uv_layers": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "degenerate_triangles": 0,
+        "identity_transform": true
+      },
+      {
+        "name": "DFP_Zipper_Tooth_16",
+        "triangles": 12,
+        "vertices": 8,
+        "uv_layers": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "degenerate_triangles": 0,
+        "identity_transform": true
+      },
+      {
+        "name": "DFP_Zipper_Tooth_17",
+        "triangles": 12,
+        "vertices": 8,
+        "uv_layers": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "degenerate_triangles": 0,
+        "identity_transform": true
+      },
+      {
+        "name": "DFP_Zipper_Tooth_18",
+        "triangles": 12,
+        "vertices": 8,
+        "uv_layers": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "degenerate_triangles": 0,
+        "identity_transform": true
+      },
+      {
+        "name": "DFP_Zipper_Tooth_19",
+        "triangles": 12,
+        "vertices": 8,
+        "uv_layers": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "degenerate_triangles": 0,
+        "identity_transform": true
+      },
+      {
+        "name": "DFP_Zipper_Tooth_20",
+        "triangles": 12,
+        "vertices": 8,
+        "uv_layers": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "degenerate_triangles": 0,
+        "identity_transform": true
+      },
+      {
+        "name": "DFP_Zipper_Tooth_21",
+        "triangles": 12,
+        "vertices": 8,
+        "uv_layers": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "degenerate_triangles": 0,
+        "identity_transform": true
+      },
+      {
+        "name": "DFP_Zipper_Tooth_22",
+        "triangles": 12,
+        "vertices": 8,
+        "uv_layers": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "degenerate_triangles": 0,
+        "identity_transform": true
+      },
+      {
+        "name": "DFP_Zipper_Tooth_23",
+        "triangles": 12,
+        "vertices": 8,
+        "uv_layers": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "degenerate_triangles": 0,
+        "identity_transform": true
+      },
+      {
+        "name": "DFP_Zipper_Tooth_24",
+        "triangles": 12,
+        "vertices": 8,
+        "uv_layers": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "degenerate_triangles": 0,
+        "identity_transform": true
+      },
+      {
+        "name": "DFP_Zipper_Tooth_25",
+        "triangles": 12,
+        "vertices": 8,
+        "uv_layers": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "degenerate_triangles": 0,
+        "identity_transform": true
+      },
+      {
+        "name": "DFP_Zipper_Tooth_26",
+        "triangles": 12,
+        "vertices": 8,
+        "uv_layers": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "degenerate_triangles": 0,
+        "identity_transform": true
+      },
+      {
+        "name": "DFP_Zipper_Slider",
+        "triangles": 44,
+        "vertices": 24,
+        "uv_layers": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "degenerate_triangles": 0,
+        "identity_transform": true
+      },
+      {
+        "name": "DFP_Zipper_Pull",
+        "triangles": 48,
+        "vertices": 24,
+        "uv_layers": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "degenerate_triangles": 0,
+        "identity_transform": true
+      },
+      {
+        "name": "DFP_Body_Webbing_-0.181_-1",
+        "triangles": 156,
+        "vertices": 80,
+        "uv_layers": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "degenerate_triangles": 0,
+        "identity_transform": true
+      },
+      {
+        "name": "DFP_Sewn_Anchor_-0.181_-1",
+        "triangles": 44,
+        "vertices": 24,
+        "uv_layers": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "degenerate_triangles": 0,
+        "identity_transform": true
+      },
+      {
+        "name": "DFP_Anchor_Stitch_-0.181_-1_-0.012",
+        "triangles": 12,
+        "vertices": 8,
+        "uv_layers": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "degenerate_triangles": 0,
+        "identity_transform": true
+      },
+      {
+        "name": "DFP_Anchor_Stitch_-0.181_-1_0.012",
+        "triangles": 12,
+        "vertices": 8,
+        "uv_layers": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "degenerate_triangles": 0,
+        "identity_transform": true
+      },
+      {
+        "name": "DFP_Body_Webbing_-0.181_1",
+        "triangles": 156,
+        "vertices": 80,
+        "uv_layers": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "degenerate_triangles": 0,
+        "identity_transform": true
+      },
+      {
+        "name": "DFP_Sewn_Anchor_-0.181_1",
+        "triangles": 44,
+        "vertices": 24,
+        "uv_layers": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "degenerate_triangles": 0,
+        "identity_transform": true
+      },
+      {
+        "name": "DFP_Anchor_Stitch_-0.181_1_-0.012",
+        "triangles": 12,
+        "vertices": 8,
+        "uv_layers": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "degenerate_triangles": 0,
+        "identity_transform": true
+      },
+      {
+        "name": "DFP_Anchor_Stitch_-0.181_1_0.012",
+        "triangles": 12,
+        "vertices": 8,
+        "uv_layers": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "degenerate_triangles": 0,
+        "identity_transform": true
+      },
+      {
+        "name": "DFP_Body_Webbing_0.181_-1",
+        "triangles": 156,
+        "vertices": 80,
+        "uv_layers": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "degenerate_triangles": 0,
+        "identity_transform": true
+      },
+      {
+        "name": "DFP_Sewn_Anchor_0.181_-1",
+        "triangles": 44,
+        "vertices": 24,
+        "uv_layers": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "degenerate_triangles": 0,
+        "identity_transform": true
+      },
+      {
+        "name": "DFP_Anchor_Stitch_0.181_-1_-0.012",
+        "triangles": 12,
+        "vertices": 8,
+        "uv_layers": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "degenerate_triangles": 0,
+        "identity_transform": true
+      },
+      {
+        "name": "DFP_Anchor_Stitch_0.181_-1_0.012",
+        "triangles": 12,
+        "vertices": 8,
+        "uv_layers": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "degenerate_triangles": 0,
+        "identity_transform": true
+      },
+      {
+        "name": "DFP_Body_Webbing_0.181_1",
+        "triangles": 156,
+        "vertices": 80,
+        "uv_layers": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "degenerate_triangles": 0,
+        "identity_transform": true
+      },
+      {
+        "name": "DFP_Sewn_Anchor_0.181_1",
+        "triangles": 44,
+        "vertices": 24,
+        "uv_layers": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "degenerate_triangles": 0,
+        "identity_transform": true
+      },
+      {
+        "name": "DFP_Anchor_Stitch_0.181_1_-0.012",
+        "triangles": 12,
+        "vertices": 8,
+        "uv_layers": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "degenerate_triangles": 0,
+        "identity_transform": true
+      },
+      {
+        "name": "DFP_Anchor_Stitch_0.181_1_0.012",
+        "triangles": 12,
+        "vertices": 8,
+        "uv_layers": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "degenerate_triangles": 0,
+        "identity_transform": true
+      },
+      {
+        "name": "DFP_Carry_Handle_-1",
+        "triangles": 156,
+        "vertices": 80,
+        "uv_layers": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "degenerate_triangles": 0,
+        "identity_transform": true
+      },
+      {
+        "name": "DFP_Padded_Grip_-1",
+        "triangles": 60,
+        "vertices": 32,
+        "uv_layers": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "degenerate_triangles": 0,
+        "identity_transform": true
+      },
+      {
+        "name": "DFP_Carry_Handle_1",
+        "triangles": 156,
+        "vertices": 80,
+        "uv_layers": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "degenerate_triangles": 0,
+        "identity_transform": true
+      },
+      {
+        "name": "DFP_Padded_Grip_1",
+        "triangles": 60,
+        "vertices": 32,
+        "uv_layers": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "degenerate_triangles": 0,
+        "identity_transform": true
+      },
+      {
+        "name": "DFP_Shoulder_Strap",
+        "triangles": 172,
+        "vertices": 88,
+        "uv_layers": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "degenerate_triangles": 0,
+        "identity_transform": true
+      },
+      {
+        "name": "DFP_Shoulder_Pad_Shell",
+        "triangles": 60,
+        "vertices": 32,
+        "uv_layers": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "degenerate_triangles": 0,
+        "identity_transform": true
+      },
+      {
+        "name": "DFP_Shoulder_Pad_Navy_Insert",
+        "triangles": 60,
+        "vertices": 32,
+        "uv_layers": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "degenerate_triangles": 0,
+        "identity_transform": true
+      },
+      {
+        "name": "DFP_Shoulder_Attachment_Tab_-1",
+        "triangles": 44,
+        "vertices": 24,
+        "uv_layers": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "degenerate_triangles": 0,
+        "identity_transform": true
+      },
+      {
+        "name": "DFP_Shoulder_Gate_Clip_-1",
+        "triangles": 48,
+        "vertices": 24,
+        "uv_layers": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "degenerate_triangles": 0,
+        "identity_transform": true
+      },
+      {
+        "name": "DFP_Shoulder_Clip_Gate_-1",
+        "triangles": 12,
+        "vertices": 8,
+        "uv_layers": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "degenerate_triangles": 0,
+        "identity_transform": true
+      },
+      {
+        "name": "DFP_Shoulder_Attachment_Tab_1",
+        "triangles": 44,
+        "vertices": 24,
+        "uv_layers": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "degenerate_triangles": 0,
+        "identity_transform": true
+      },
+      {
+        "name": "DFP_Shoulder_Gate_Clip_1",
+        "triangles": 48,
+        "vertices": 24,
+        "uv_layers": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "degenerate_triangles": 0,
+        "identity_transform": true
+      },
+      {
+        "name": "DFP_Shoulder_Clip_Gate_1",
+        "triangles": 12,
+        "vertices": 8,
+        "uv_layers": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "degenerate_triangles": 0,
+        "identity_transform": true
+      },
+      {
+        "name": "DFP_Woven_Label",
+        "triangles": 44,
+        "vertices": 24,
+        "uv_layers": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "degenerate_triangles": 0,
+        "identity_transform": true
+      },
+      {
+        "name": "DFP_Label_Inset",
+        "triangles": 44,
+        "vertices": 24,
+        "uv_layers": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "degenerate_triangles": 0,
+        "identity_transform": true
+      }
+    ]
+  },
+  "export_document": {
+    "triangles": 3890,
+    "meshes": 1,
+    "materials": 4,
+    "images": 12,
+    "all_uv0": true,
+    "extensions_used": [],
+    "node_transforms": {
+      "DFP_Duffel": {}
+    },
+    "pbr_materials": [
+      {
+        "name": "M_DFP_Navy_Canvas",
+        "basecolor_texture": true,
+        "roughness_metallic_texture": true,
+        "normal_texture": true
+      },
+      {
+        "name": "M_DFP_Teal_Canvas",
+        "basecolor_texture": true,
+        "roughness_metallic_texture": true,
+        "normal_texture": true
+      },
+      {
+        "name": "M_DFP_Bone_Binding",
+        "basecolor_texture": true,
+        "roughness_metallic_texture": true,
+        "normal_texture": true
+      },
+      {
+        "name": "M_DFP_Graphite_Webbing",
+        "basecolor_texture": true,
+        "roughness_metallic_texture": true,
+        "normal_texture": true
+      }
+    ]
+  },
+  "fbx_material_fallback": "Embedded albedo and normal; scalar roughness (.73/.71/.59/.65) and metalness=0 because FBX does not preserve glTF packed ORM channel graph. Full ORM maps are supplied in textures/ and GLB.",
+  "pivot": "Origin at body base-centre, metres, front -Y, Blender Z up; glTF Y up, identity root mesh.",
+  "fresh_glb_import": {
+    "triangles": 3890,
+    "mesh_objects": 1,
+    "all_uvs": true,
+    "all_identity_transforms": true,
+    "nonmanifold_edges": 0,
+    "boundary_edges": 0,
+    "degenerate_triangles": 0,
+    "bounds_blender_z_up_m": {
+      "min": [
+        -0.334484,
+        -0.213642,
+        0.0
+      ],
+      "max": [
+        0.332,
+        0.169579,
+        0.406373
+      ],
+      "size": [
+        0.666484,
+        0.383221,
+        0.406373
+      ]
+    },
+    "objects": [
+      {
+        "name": "DFP_Duffel",
+        "triangles": 3890,
+        "vertices": 2737,
+        "uv_layers": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "degenerate_triangles": 0,
+        "identity_transform": true
+      }
+    ],
+    "materials": [
+      "M_DFP_Bone_Binding",
+      "M_DFP_Graphite_Webbing",
+      "M_DFP_Navy_Canvas",
+      "M_DFP_Teal_Canvas"
+    ]
+  },
+  "fresh_fbx_import": {
+    "triangles": 3890,
+    "mesh_objects": 1,
+    "all_uvs": true,
+    "all_identity_transforms": true,
+    "nonmanifold_edges": 0,
+    "boundary_edges": 0,
+    "degenerate_triangles": 0,
+    "bounds_blender_z_up_m": {
+      "min": [
+        -0.334484,
+        -0.213642,
+        -0.0
+      ],
+      "max": [
+        0.332,
+        0.169579,
+        0.406373
+      ],
+      "size": [
+        0.666484,
+        0.383221,
+        0.406373
+      ]
+    },
+    "objects": [
+      {
+        "name": "DFP_Duffel",
+        "triangles": 3890,
+        "vertices": 2065,
+        "uv_layers": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "degenerate_triangles": 0,
+        "identity_transform": true
+      }
+    ],
+    "materials": [
+      "M_DFP_Bone_Binding",
+      "M_DFP_Graphite_Webbing",
+      "M_DFP_Navy_Canvas",
+      "M_DFP_Teal_Canvas"
+    ]
+  },
+  "wall_seconds": 64.02
+}

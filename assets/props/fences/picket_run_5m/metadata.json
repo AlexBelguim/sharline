@@ -1,0 +1,23 @@
+{
+  "id": "picket_run_5m",
+  "category": "fences",
+  "tags": [
+    "fences",
+    "showhome_legacy"
+  ],
+  "glb": "props/fences/picket_run_5m/picket_run_5m.glb",
+  "lod1": "props/fences/picket_run_5m/picket_run_5m_lod1.glb",
+  "collision": "props/fences/picket_run_5m/collision.json",
+  "source": "original assets/maps/showhome procedural Fence_Run_N",
+  "licence": "project original",
+  "openable_parts": [],
+  "size_m": [
+    0.30000001192092896,
+    5.0,
+    1.2000000476837158
+  ],
+  "triangles": 4644,
+  "collision_volumes": 1,
+  "loot_slots": [],
+  "legacy_root": "PROP_Fence_Run_N"
+}

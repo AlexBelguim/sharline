@@ -1,0 +1,23 @@
+{
+  "id": "chest_of_drawers",
+  "category": "furniture",
+  "tags": [
+    "furniture",
+    "showhome_legacy"
+  ],
+  "glb": "props/furniture/chest_of_drawers/chest_of_drawers.glb",
+  "lod1": "props/furniture/chest_of_drawers/chest_of_drawers_lod1.glb",
+  "collision": "props/furniture/chest_of_drawers/collision.json",
+  "source": "original assets/maps/showhome procedural Dresser",
+  "licence": "project original",
+  "openable_parts": [],
+  "size_m": [
+    0.6150000095367432,
+    2.0,
+    1.2000000476837158
+  ],
+  "triangles": 652,
+  "collision_volumes": 1,
+  "loot_slots": [],
+  "legacy_root": "PROP_Dresser"
+}

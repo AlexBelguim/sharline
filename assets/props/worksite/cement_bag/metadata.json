@@ -1,0 +1,23 @@
+{
+  "id": "cement_bag",
+  "category": "worksite",
+  "tags": [
+    "worksite",
+    "showhome_legacy"
+  ],
+  "glb": "props/worksite/cement_bag/cement_bag.glb",
+  "lod1": "props/worksite/cement_bag/cement_bag_lod1.glb",
+  "collision": "props/worksite/cement_bag/collision.json",
+  "source": "original assets/maps/showhome procedural CementBag",
+  "licence": "project original",
+  "openable_parts": [],
+  "size_m": [
+    0.6200000047683716,
+    0.36000001430511475,
+    0.15700000524520874
+  ],
+  "triangles": 284,
+  "collision_volumes": 1,
+  "loot_slots": [],
+  "legacy_root": "PROP_CementBag"
+}

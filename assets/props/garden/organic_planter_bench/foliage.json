@@ -1,0 +1,67 @@
+{
+  "schema": 1,
+  "frame": "prop local design XYZ metres",
+  "volumes": [
+    {
+      "name": "GREENFOL_OrganicPlanter_0",
+      "foliage": "hedge",
+      "density": 1.15,
+      "tint": "sage_hedge",
+      "aabb": {
+        "min": [
+          -2.843966007232666,
+          -0.18035686016082764,
+          0.5350000262260437
+        ],
+        "max": [
+          -2.2221803665161133,
+          0.39359939098358154,
+          1.350000023841858
+        ]
+      },
+      "source_prop": "organic_planter_bench",
+      "render_proxy": "existing game foliage system; no leaves baked"
+    },
+    {
+      "name": "GREENFOL_OrganicPlanter_1",
+      "foliage": "hedge",
+      "density": 1.15,
+      "tint": "sage_hedge",
+      "aabb": {
+        "min": [
+          -1.6835732460021973,
+          -0.6673787236213684,
+          0.5350000262260437
+        ],
+        "max": [
+          0.017426729202270508,
+          -0.01937873661518097,
+          1.350000023841858
+        ]
+      },
+      "source_prop": "organic_planter_bench",
+      "render_proxy": "existing game foliage system; no leaves baked"
+    },
+    {
+      "name": "GREENFOL_OrganicPlanter_2",
+      "foliage": "hedge",
+      "density": 1.15,
+      "tint": "sage_hedge",
+      "aabb": {
+        "min": [
+          0.924426794052124,
+          -0.2608787417411804,
+          0.5350000262260437
+        ],
+        "max": [
+          2.409426689147949,
+          0.7741212844848633,
+          1.350000023841858
+        ]
+      },
+      "source_prop": "organic_planter_bench",
+      "render_proxy": "existing game foliage system; no leaves baked"
+    }
+  ],
+  "leaf_generation": "existing game foliage system"
+}

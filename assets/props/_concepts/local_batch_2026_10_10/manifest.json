@@ -1,0 +1,451 @@
+{
+  "model": "Qwen Image2.1 int8",
+  "endpoint": "http://127.0.0.1:8188",
+  "image_size": [
+    1024,
+    1024
+  ],
+  "steps": 25,
+  "cfg": 1,
+  "no_loras": true,
+  "trellis_started": false,
+  "jobs": [
+    {
+      "name": "city_hatchback_blue",
+      "seed": 110,
+      "prompt": "A compact near-future five-door hatchback car, muted blue body, graphite lower trim, simple dark wheels, lightly blue clear windows, closed rear trunk. An original stylized extraction-shooter videogame prop, matching a calm sage, clay, ivory and graphite painted palette. Chunky clean readable shapes, soft bevels, broad hand-painted colour blocks and subtle brush shading, matte surfaces, restrained highlights. Complete single isolated object in a front three-quarter view, centred with generous margin, pure white background and even soft lighting. No logos, lettering, numbers, watermark, scenery, floor plane, cast ground shadow, photographic grime or tiny decorative clutter. All wheels, handles and corners visible inside the frame.",
+      "input_image": null,
+      "output": "images\\city_hatchback_blue.png",
+      "prompt_id": "4f4f6728-e9d1-4d24-8a13-58f2a8d63c70",
+      "status": "complete",
+      "seconds": 16.0,
+      "comfy_output": {
+        "filename": "showhome_prop_city_hatchback_blue_00001_.png",
+        "subfolder": "",
+        "type": "output"
+      },
+      "reused": true,
+      "sha256": "2c9ae9ef407d8073be3f46703cd60917d1e7834c5950ea4c924d6e5641e494d6",
+      "dimensions": [
+        1024,
+        1024
+      ]
+    },
+    {
+      "name": "delivery_van_ivory",
+      "seed": 111,
+      "prompt": "A compact boxy delivery van, warm ivory body, charcoal bumpers, simple dark wheels, cargo doors closed, grounded modern residential delivery vehicle. An original stylized extraction-shooter videogame prop, matching a calm sage, clay, ivory and graphite painted palette. Chunky clean readable shapes, soft bevels, broad hand-painted colour blocks and subtle brush shading, matte surfaces, restrained highlights. Complete single isolated object in a front three-quarter view, centred with generous margin, pure white background and even soft lighting. No logos, lettering, numbers, watermark, scenery, floor plane, cast ground shadow, photographic grime or tiny decorative clutter. All wheels, handles and corners visible inside the frame.",
+      "input_image": null,
+      "output": "images\\delivery_van_ivory.png",
+      "prompt_id": "c288642a-f67b-464c-87d0-89742ef496d3",
+      "status": "complete",
+      "seconds": 12.1,
+      "comfy_output": {
+        "filename": "showhome_prop_delivery_van_ivory_00001_.png",
+        "subfolder": "",
+        "type": "output"
+      },
+      "reused": true,
+      "sha256": "548d60428cec37d253114acd5e29994c0969cb49b4857aaba4bf6e13a063d1ff",
+      "dimensions": [
+        1024,
+        1024
+      ]
+    },
+    {
+      "name": "kitchen_base_cabinet",
+      "seed": 112,
+      "prompt": "A freestanding compact kitchen base cabinet, two cream painted lower doors and one wide upper drawer, dark stained wood worktop, simple recessed pulls, all doors and drawer closed. An original stylized extraction-shooter videogame prop, matching a calm sage, clay, ivory and graphite painted palette. Chunky clean readable shapes, soft bevels, broad hand-painted colour blocks and subtle brush shading, matte surfaces, restrained highlights. Complete single isolated object in a front three-quarter view, centred with generous margin, pure white background and even soft lighting. No logos, lettering, numbers, watermark, scenery, floor plane, cast ground shadow, photographic grime or tiny decorative clutter. All wheels, handles and corners visible inside the frame.",
+      "input_image": null,
+      "output": "images\\kitchen_base_cabinet.png",
+      "prompt_id": "9e877540-43ab-4623-ae54-d525687b7208",
+      "status": "complete",
+      "seconds": 12.0,
+      "comfy_output": {
+        "filename": "showhome_prop_kitchen_base_cabinet_00001_.png",
+        "subfolder": "",
+        "type": "output"
+      },
+      "reused": true,
+      "sha256": "3426f55e2d414c289c088928039e1bda040e6942bfa324680aaa4c8ffbd85af1",
+      "dimensions": [
+        1024,
+        1024
+      ]
+    },
+    {
+      "name": "small_drawer_cabinet",
+      "seed": 113,
+      "prompt": "A small freestanding three-drawer household cabinet, clay painted rectangular drawer fronts, charcoal frame and short legs, dark wood top, all drawers closed. An original stylized extraction-shooter videogame prop, matching a calm sage, clay, ivory and graphite painted palette. Chunky clean readable shapes, soft bevels, broad hand-painted colour blocks and subtle brush shading, matte surfaces, restrained highlights. Complete single isolated object in a front three-quarter view, centred with generous margin, pure white background and even soft lighting. No logos, lettering, numbers, watermark, scenery, floor plane, cast ground shadow, photographic grime or tiny decorative clutter. All wheels, handles and corners visible inside the frame.",
+      "input_image": null,
+      "output": "images\\small_drawer_cabinet.png",
+      "prompt_id": "ccf8e502-675d-40ca-934b-9de7fafcff4a",
+      "status": "complete",
+      "seconds": 12.1,
+      "comfy_output": {
+        "filename": "showhome_prop_small_drawer_cabinet_00001_.png",
+        "subfolder": "",
+        "type": "output"
+      },
+      "reused": true,
+      "sha256": "a59b05b56de88a02035b3e48c8bfc9f98094c56f13010a0f11aff71fafb5d000",
+      "dimensions": [
+        1024,
+        1024
+      ]
+    },
+    {
+      "name": "steel_pipe_bundle",
+      "seed": 114,
+      "prompt": "A small tidy stack of eight thick steel construction pipes resting directly together, flat sawn circular ends clearly visible, graphite painted steel with subtle restrained wear. An original stylized extraction-shooter videogame prop, matching a calm sage, clay, ivory and graphite painted palette. Chunky clean readable shapes, soft bevels, broad hand-painted colour blocks and subtle brush shading, matte surfaces, restrained highlights. Complete single isolated object in a front three-quarter view, centred with generous margin, pure white background and even soft lighting. No logos, lettering, numbers, watermark, scenery, floor plane, cast ground shadow, photographic grime or tiny decorative clutter. All wheels, handles and corners visible inside the frame.",
+      "input_image": null,
+      "output": "images\\steel_pipe_bundle.png",
+      "prompt_id": "309b50ea-4517-44b4-a022-124e9c1b6628",
+      "status": "complete",
+      "seconds": 12.1,
+      "comfy_output": {
+        "filename": "showhome_prop_steel_pipe_bundle_00001_.png",
+        "subfolder": "",
+        "type": "output"
+      },
+      "reused": true,
+      "sha256": "970a3dc8635892a3ced710f78ebd7283fdfe1e30f15f051eec20c54453d06b90",
+      "dimensions": [
+        1024,
+        1024
+      ]
+    },
+    {
+      "name": "printed_blocks_stack",
+      "seed": 115,
+      "prompt": "A small stable irregular stack of cream 3D-printed concrete building blocks, horizontal printed layer grooves, a few staggered rectangular blocks, no pallet or unrelated object. An original stylized extraction-shooter videogame prop, matching a calm sage, clay, ivory and graphite painted palette. Chunky clean readable shapes, soft bevels, broad hand-painted colour blocks and subtle brush shading, matte surfaces, restrained highlights. Complete single isolated object in a front three-quarter view, centred with generous margin, pure white background and even soft lighting. No logos, lettering, numbers, watermark, scenery, floor plane, cast ground shadow, photographic grime or tiny decorative clutter. All wheels, handles and corners visible inside the frame.",
+      "input_image": null,
+      "output": "images\\printed_blocks_stack.png",
+      "prompt_id": "7ee3677d-ee00-43d6-ac5a-0a4d82e1d1b4",
+      "status": "complete",
+      "seconds": 14.1,
+      "comfy_output": {
+        "filename": "showhome_prop_printed_blocks_stack_00001_.png",
+        "subfolder": "",
+        "type": "output"
+      },
+      "reused": true,
+      "sha256": "8b30e26b8f990b9b91cbbf168d7df13401c2b5a57c825aa24740044fa03514bd",
+      "dimensions": [
+        1024,
+        1024
+      ]
+    },
+    {
+      "name": "timber_board_stack",
+      "seed": 116,
+      "prompt": "A short coherent stack of five thick dark stained timber construction boards, slightly offset flat ends, broad simple wood grain, all boards touching. An original stylized extraction-shooter videogame prop, matching a calm sage, clay, ivory and graphite painted palette. Chunky clean readable shapes, soft bevels, broad hand-painted colour blocks and subtle brush shading, matte surfaces, restrained highlights. Complete single isolated object in a front three-quarter view, centred with generous margin, pure white background and even soft lighting. No logos, lettering, numbers, watermark, scenery, floor plane, cast ground shadow, photographic grime or tiny decorative clutter. All wheels, handles and corners visible inside the frame.",
+      "input_image": null,
+      "output": "images\\timber_board_stack.png",
+      "prompt_id": "0e0af452-f8a1-4835-94e2-7f8be10ba576",
+      "status": "complete",
+      "seconds": 12.1,
+      "comfy_output": {
+        "filename": "showhome_prop_timber_board_stack_00001_.png",
+        "subfolder": "",
+        "type": "output"
+      },
+      "reused": true,
+      "sha256": "dd791b82c9c047b4301436cc7ee2bde055ec9cebd4cd19b349f0cd54663aa322",
+      "dimensions": [
+        1024,
+        1024
+      ]
+    },
+    {
+      "name": "compact_excavator_yellow",
+      "seed": 117,
+      "prompt": "A complete compact tracked construction excavator, warm mustard yellow cab and folded articulated boom, graphite crawler tracks and bucket, parked pose with bucket resting close to machine. An original stylized extraction-shooter videogame prop, matching a calm sage, clay, ivory and graphite painted palette. Chunky clean readable shapes, soft bevels, broad hand-painted colour blocks and subtle brush shading, matte surfaces, restrained highlights. Complete single isolated object in a front three-quarter view, centred with generous margin, pure white background and even soft lighting. No logos, lettering, numbers, watermark, scenery, floor plane, cast ground shadow, photographic grime or tiny decorative clutter. All wheels, handles and corners visible inside the frame.",
+      "input_image": null,
+      "output": "images\\compact_excavator_yellow.png",
+      "prompt_id": "01b22e45-cc3a-42ec-b4c4-0a0aa7498f80",
+      "status": "complete",
+      "seconds": 12.1,
+      "comfy_output": {
+        "filename": "showhome_prop_compact_excavator_yellow_00001_.png",
+        "subfolder": "",
+        "type": "output"
+      },
+      "reused": true,
+      "sha256": "27e43289d0bcc6b8ed7b5d3a7159e9941c552842d6a9240ec5df90aac1a8bfb7",
+      "dimensions": [
+        1024,
+        1024
+      ]
+    },
+    {
+      "name": "cement_mixer_truck",
+      "seed": 118,
+      "prompt": "A complete concrete mixer truck, ivory cab, muted mustard yellow rotating mixer drum and chassis accents, graphite wheels, compact clean readable construction-site silhouette. An original stylized extraction-shooter videogame prop, matching a calm sage, clay, ivory and graphite painted palette. Chunky clean readable shapes, soft bevels, broad hand-painted colour blocks and subtle brush shading, matte surfaces, restrained highlights. Complete single isolated object in a front three-quarter view, centred with generous margin, pure white background and even soft lighting. No logos, lettering, numbers, watermark, scenery, floor plane, cast ground shadow, photographic grime or tiny decorative clutter. All wheels, handles and corners visible inside the frame.",
+      "input_image": null,
+      "output": "images\\cement_mixer_truck.png",
+      "prompt_id": "93d5ae2f-fba3-4661-bb06-5e6db1f02653",
+      "status": "complete",
+      "seconds": 10.1,
+      "comfy_output": {
+        "filename": "showhome_prop_cement_mixer_truck_00001_.png",
+        "subfolder": "",
+        "type": "output"
+      },
+      "reused": true,
+      "sha256": "36cd0834e089f21b58bc01ac78ce37940b1e5d9b8170f179852081d8c5d60916",
+      "dimensions": [
+        1024,
+        1024
+      ]
+    },
+    {
+      "name": "pickup_truck_ivory",
+      "seed": 119,
+      "prompt": "A complete modern crew-cab pickup truck, ivory body, charcoal trim, open empty cargo bed, four large simple dark wheels, grounded near-future work vehicle. An original stylized extraction-shooter videogame prop, matching a calm sage, clay, ivory and graphite painted palette. Chunky clean readable shapes, soft bevels, broad hand-painted colour blocks and subtle brush shading, matte surfaces, restrained highlights. Complete single isolated object in a front three-quarter view, centred with generous margin, pure white background and even soft lighting. No logos, lettering, numbers, watermark, scenery, floor plane, cast ground shadow, photographic grime or tiny decorative clutter. All wheels, handles and corners visible inside the frame.",
+      "input_image": null,
+      "output": "images\\pickup_truck_ivory.png",
+      "prompt_id": "adcb68b9-02e8-4bd9-892b-952034190df0",
+      "status": "complete",
+      "seconds": 10.1,
+      "comfy_output": {
+        "filename": "showhome_prop_pickup_truck_ivory_00001_.png",
+        "subfolder": "",
+        "type": "output"
+      },
+      "reused": true,
+      "sha256": "d12b4f019ed1e8842df9771bdede612f81d21ecde34caddc22ab291f3ecb474b",
+      "dimensions": [
+        1024,
+        1024
+      ]
+    },
+    {
+      "name": "panel_van_sage",
+      "seed": 120,
+      "prompt": "A small complete short-wheelbase panel van, sage green painted body, graphite lower bumpers, two front doors and closed rear double cargo doors, simple black wheels. An original stylized extraction-shooter videogame prop, matching a calm sage, clay, ivory and graphite painted palette. Chunky clean readable shapes, soft bevels, broad hand-painted colour blocks and subtle brush shading, matte surfaces, restrained highlights. Complete single isolated object in a front three-quarter view, centred with generous margin, pure white background and even soft lighting. No logos, lettering, numbers, watermark, scenery, floor plane, cast ground shadow, photographic grime or tiny decorative clutter. All wheels, handles and corners visible inside the frame.",
+      "input_image": null,
+      "output": "images\\panel_van_sage.png",
+      "prompt_id": "ff803965-fc79-4f26-8ffe-ffcb687acbae",
+      "status": "complete",
+      "seconds": 10.2,
+      "comfy_output": {
+        "filename": "showhome_prop_panel_van_sage_00001_.png",
+        "subfolder": "",
+        "type": "output"
+      },
+      "reused": true,
+      "sha256": "d30f69ff009f6397a3396a62ae723b19ee1b7e49750b807ca46f0b7165c77066",
+      "dimensions": [
+        1024,
+        1024
+      ]
+    },
+    {
+      "name": "semi_truck_ivory",
+      "seed": 121,
+      "prompt": "A complete cab-over semi-truck tractor unit without a trailer, ivory cab with muted clay accents, exposed rear coupling platform, chunky graphite chassis and six simple wheels. An original stylized extraction-shooter videogame prop, matching a calm sage, clay, ivory and graphite painted palette. Chunky clean readable shapes, soft bevels, broad hand-painted colour blocks and subtle brush shading, matte surfaces, restrained highlights. Complete single isolated object in a front three-quarter view, centred with generous margin, pure white background and even soft lighting. No logos, lettering, numbers, watermark, scenery, floor plane, cast ground shadow, photographic grime or tiny decorative clutter. All wheels, handles and corners visible inside the frame.",
+      "input_image": null,
+      "output": "images\\semi_truck_ivory.png",
+      "prompt_id": "42a98ef7-aef2-4e9c-b12b-31cd92173ee7",
+      "status": "complete",
+      "seconds": 14.0,
+      "comfy_output": {
+        "filename": "showhome_prop_semi_truck_ivory_00001_.png",
+        "subfolder": "",
+        "type": "output"
+      },
+      "reused": true,
+      "sha256": "a3d54cf249946e4f1a3486cd56d52afc1b19d846f37f5131b056ecb9bf870ba2",
+      "dimensions": [
+        1024,
+        1024
+      ]
+    },
+    {
+      "name": "city_hatchback_clay",
+      "seed": 122,
+      "prompt": "Edit <image1>. Change only the blue painted body panels to muted terracotta clay. Preserve exact vehicle geometry, wheels, glass, camera and white background. An original stylized extraction-shooter videogame prop, matching a calm sage, clay, ivory and graphite painted palette. Chunky clean readable shapes, soft bevels, broad hand-painted colour blocks and subtle brush shading, matte surfaces, restrained highlights. Complete single isolated object in a front three-quarter view, centred with generous margin, pure white background and even soft lighting. No logos, lettering, numbers, watermark, scenery, floor plane, cast ground shadow, photographic grime or tiny decorative clutter. All wheels, handles and corners visible inside the frame.",
+      "input_image": "city_hatchback_blue",
+      "output": "images\\city_hatchback_clay.png",
+      "prompt_id": "4cf98694-cf64-47a0-9dec-a11e27953bc1",
+      "status": "complete",
+      "seconds": 16.1,
+      "comfy_output": {
+        "filename": "showhome_prop_city_hatchback_clay_00001_.png",
+        "subfolder": "",
+        "type": "output"
+      },
+      "reused": true,
+      "sha256": "6c049ef8f220a00818de7cd885a439d5e1b710335977d988edb6bc2fb639ad87",
+      "dimensions": [
+        1024,
+        1024
+      ]
+    },
+    {
+      "name": "city_hatchback_trunk_open",
+      "seed": 123,
+      "prompt": "Edit <image1>. Open the rear hatch upward so the empty trunk compartment is visible, with a simple dark interior. Preserve the same car body, blue paint, wheels and white background. Shift the three-quarter view slightly toward the rear only enough to show the lifted hatch and compartment; keep the entire car inside the frame. An original stylized extraction-shooter videogame prop, matching a calm sage, clay, ivory and graphite painted palette. Chunky clean readable shapes, soft bevels, broad hand-painted colour blocks and subtle brush shading, matte surfaces, restrained highlights. Complete single isolated object in a front three-quarter view, centred with generous margin, pure white background and even soft lighting. No logos, lettering, numbers, watermark, scenery, floor plane, cast ground shadow, photographic grime or tiny decorative clutter. All wheels, handles and corners visible inside the frame.",
+      "input_image": "city_hatchback_blue",
+      "output": "images\\city_hatchback_trunk_open.png",
+      "prompt_id": "7b84cb74-5516-444c-aab8-ed9ad76610aa",
+      "status": "complete",
+      "seconds": 16.1,
+      "comfy_output": {
+        "filename": "showhome_prop_city_hatchback_trunk_open_00001_.png",
+        "subfolder": "",
+        "type": "output"
+      },
+      "reused": true,
+      "sha256": "3fa16bf7c9ba114a01700ec463346bbec093b45f5b75b8c796a45013ec6d348d",
+      "dimensions": [
+        1024,
+        1024
+      ]
+    },
+    {
+      "name": "kitchen_drawer_half_open",
+      "seed": 124,
+      "prompt": "Edit <image1>. Slide the upper drawer halfway open, showing a clean empty drawer box. Keep both lower doors closed. Preserve the exact cabinet dimensions, cream paint, dark wood top, camera and white background. An original stylized extraction-shooter videogame prop, matching a calm sage, clay, ivory and graphite painted palette. Chunky clean readable shapes, soft bevels, broad hand-painted colour blocks and subtle brush shading, matte surfaces, restrained highlights. Complete single isolated object in a front three-quarter view, centred with generous margin, pure white background and even soft lighting. No logos, lettering, numbers, watermark, scenery, floor plane, cast ground shadow, photographic grime or tiny decorative clutter. All wheels, handles and corners visible inside the frame.",
+      "input_image": "kitchen_base_cabinet",
+      "output": "images\\kitchen_drawer_half_open.png",
+      "prompt_id": "8745a46a-0c36-41f5-a110-c94af2dc1650",
+      "status": "complete",
+      "seconds": 18.1,
+      "comfy_output": {
+        "filename": "showhome_prop_kitchen_drawer_half_open_00001_.png",
+        "subfolder": "",
+        "type": "output"
+      },
+      "reused": true,
+      "sha256": "1a23b7f88e94f322d3a60f0f9358f16177260f603259d03a2b74d3f02367b81b",
+      "dimensions": [
+        1024,
+        1024
+      ]
+    },
+    {
+      "name": "small_drawer_cabinet_sage",
+      "seed": 125,
+      "prompt": "Edit <image1>. Change only the clay drawer fronts to muted sage green. Preserve the exact cabinet shape, closed drawers, charcoal frame, dark wood top, camera and white background. An original stylized extraction-shooter videogame prop, matching a calm sage, clay, ivory and graphite painted palette. Chunky clean readable shapes, soft bevels, broad hand-painted colour blocks and subtle brush shading, matte surfaces, restrained highlights. Complete single isolated object in a front three-quarter view, centred with generous margin, pure white background and even soft lighting. No logos, lettering, numbers, watermark, scenery, floor plane, cast ground shadow, photographic grime or tiny decorative clutter. All wheels, handles and corners visible inside the frame.",
+      "input_image": "small_drawer_cabinet",
+      "output": "images\\small_drawer_cabinet_sage.png",
+      "prompt_id": "d012d56f-aece-4399-ad90-acd727ddee81",
+      "status": "complete",
+      "seconds": 18.0,
+      "comfy_output": {
+        "filename": "showhome_prop_small_drawer_cabinet_sage_00001_.png",
+        "subfolder": "",
+        "type": "output"
+      },
+      "reused": true,
+      "sha256": "ad4370a07053d2f7ed9a503be872c652f0ad59336b8b5dcddefae5af1ccb61fd",
+      "dimensions": [
+        1024,
+        1024
+      ]
+    },
+    {
+      "name": "pickup_truck_clay",
+      "seed": 126,
+      "prompt": "Edit <image1>. Change only the ivory body panels to muted terracotta clay. Preserve the exact pickup shape, open empty bed, wheels, glass, camera and white background. An original stylized extraction-shooter videogame prop, matching a calm sage, clay, ivory and graphite painted palette. Chunky clean readable shapes, soft bevels, broad hand-painted colour blocks and subtle brush shading, matte surfaces, restrained highlights. Complete single isolated object in a front three-quarter view, centred with generous margin, pure white background and even soft lighting. No logos, lettering, numbers, watermark, scenery, floor plane, cast ground shadow, photographic grime or tiny decorative clutter. All wheels, handles and corners visible inside the frame.",
+      "input_image": "pickup_truck_ivory",
+      "output": "images\\pickup_truck_clay.png",
+      "prompt_id": "6fa8c2ab-a928-434e-8a40-bfa1b56979d9",
+      "status": "complete",
+      "seconds": 18.1,
+      "comfy_output": {
+        "filename": "showhome_prop_pickup_truck_clay_00001_.png",
+        "subfolder": "",
+        "type": "output"
+      },
+      "reused": true,
+      "sha256": "c813b6f05f1994985868cab6c7dc1a94fe8583c533ba2821820e5a6a83319517",
+      "dimensions": [
+        1024,
+        1024
+      ]
+    },
+    {
+      "name": "steel_pipe_bundle_static",
+      "seed": 127,
+      "prompt": "Edit <image1>. Remove the wheeled trolley and all wheels completely. Show only the coherent bundle of graphite steel pipes resting together directly on the white background, with flat hollow circular ends clearly visible. Preserve the painted style and three-quarter framing. An original stylized extraction-shooter videogame prop, matching a calm sage, clay, ivory and graphite painted palette. Chunky clean readable shapes, soft bevels, broad hand-painted colour blocks and subtle brush shading, matte surfaces, restrained highlights. Complete single isolated object in a front three-quarter view, centred with generous margin, pure white background and even soft lighting. No logos, lettering, numbers, watermark, scenery, floor plane, cast ground shadow, photographic grime or tiny decorative clutter. Every part of the requested object stays inside the frame.",
+      "input_image": "steel_pipe_bundle",
+      "output": "images\\steel_pipe_bundle_static.png",
+      "prompt_id": "2b665bd1-6846-4cdb-a6fe-6e4483f57133",
+      "status": "complete",
+      "seconds": 24.1,
+      "comfy_output": {
+        "filename": "showhome_prop_steel_pipe_bundle_static_00001_.png",
+        "subfolder": "",
+        "type": "output"
+      },
+      "sha256": "16205ff7109ac4eb4fe4b83fc91f2d97ad2279fb44234c3fe0a28045b730a9fe",
+      "dimensions": [
+        1024,
+        1024
+      ]
+    },
+    {
+      "name": "kitchen_base_cabinet_static",
+      "seed": 128,
+      "prompt": "Edit <image1>. Replace all caster wheels with one simple charcoal recessed rectangular plinth beneath the cabinet. This is a stationary kitchen cabinet. Preserve exact cabinet dimensions, closed drawer and doors, cream paint, dark wood top, camera and white background. An original stylized extraction-shooter videogame prop, matching a calm sage, clay, ivory and graphite painted palette. Chunky clean readable shapes, soft bevels, broad hand-painted colour blocks and subtle brush shading, matte surfaces, restrained highlights. Complete single isolated object in a front three-quarter view, centred with generous margin, pure white background and even soft lighting. No logos, lettering, numbers, watermark, scenery, floor plane, cast ground shadow, photographic grime or tiny decorative clutter. Every part of the requested object stays inside the frame.",
+      "input_image": "kitchen_base_cabinet",
+      "output": "images\\kitchen_base_cabinet_static.png",
+      "prompt_id": "c5c07053-478d-4508-8c3f-652f3ff35929",
+      "status": "complete",
+      "seconds": 18.1,
+      "comfy_output": {
+        "filename": "showhome_prop_kitchen_base_cabinet_static_00001_.png",
+        "subfolder": "",
+        "type": "output"
+      },
+      "sha256": "fa9eab34f26d1d2c501c07bd38134a137842023dfa9edf18363e5eaa4edbe884",
+      "dimensions": [
+        1024,
+        1024
+      ]
+    },
+    {
+      "name": "kitchen_drawer_half_open_static",
+      "seed": 129,
+      "prompt": "Edit <image1>. Slide only the wide upper drawer halfway open, showing the clean empty drawer box. Keep lower doors closed and the stationary rectangular plinth. Preserve exact cabinet size, cream paint, dark wood top, camera and white background. An original stylized extraction-shooter videogame prop, matching a calm sage, clay, ivory and graphite painted palette. Chunky clean readable shapes, soft bevels, broad hand-painted colour blocks and subtle brush shading, matte surfaces, restrained highlights. Complete single isolated object in a front three-quarter view, centred with generous margin, pure white background and even soft lighting. No logos, lettering, numbers, watermark, scenery, floor plane, cast ground shadow, photographic grime or tiny decorative clutter. Every part of the requested object stays inside the frame.",
+      "input_image": "kitchen_base_cabinet_static",
+      "output": "images\\kitchen_drawer_half_open_static.png",
+      "prompt_id": "1ca10746-cad0-40f0-a3d6-ae8bb5afe6e1",
+      "status": "complete",
+      "seconds": 16.1,
+      "comfy_output": {
+        "filename": "showhome_prop_kitchen_drawer_half_open_static_00001_.png",
+        "subfolder": "",
+        "type": "output"
+      },
+      "sha256": "8add6ee4b15ad3e43e2ed6e81e53ec29cf38a00fed0e3b81bed9b91e3dab712d",
+      "dimensions": [
+        1024,
+        1024
+      ]
+    },
+    {
+      "name": "city_hatchback_trunk_open_rear",
+      "seed": 130,
+      "prompt": "Edit <image1>. Show this exact blue hatchback from a REAR three-quarter viewpoint, camera behind the vehicle so the lifted rear hatch and empty dark cargo compartment are clearly visible. Preserve car geometry, blue paint, wheels and white background. Keep the whole car in frame, including the raised hatch. An original stylized extraction-shooter videogame prop, matching a calm sage, clay, ivory and graphite painted palette. Chunky clean readable shapes, soft bevels, broad hand-painted colour blocks and subtle brush shading, matte surfaces, restrained highlights. Complete single isolated object in a front three-quarter view, centred with generous margin, pure white background and even soft lighting. No logos, lettering, numbers, watermark, scenery, floor plane, cast ground shadow, photographic grime or tiny decorative clutter. Every part of the requested object stays inside the frame.",
+      "input_image": "city_hatchback_trunk_open",
+      "output": "images\\city_hatchback_trunk_open_rear.png",
+      "prompt_id": "e6ff93b5-12e5-4153-93ee-190aa636164c",
+      "status": "complete",
+      "seconds": 16.1,
+      "comfy_output": {
+        "filename": "showhome_prop_city_hatchback_trunk_open_rear_00001_.png",
+        "subfolder": "",
+        "type": "output"
+      },
+      "sha256": "a43ca132a510fb9dec063671dee2703636ddfa1942a640c7b6304d67bd5a9e96",
+      "dimensions": [
+        1024,
+        1024
+      ]
+    }
+  ]
+}

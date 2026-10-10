@@ -1,0 +1,38 @@
+{
+  "id": "ammo_box",
+  "category": "containers",
+  "tags": [
+    "containers",
+    "showhome_v3",
+    "ammo_box"
+  ],
+  "glb": "props/containers/ammo_box/ammo_box.glb",
+  "lod1": "props/containers/ammo_box/ammo_box_lod1.glb",
+  "collision": "props/containers/ammo_box/collision.json",
+  "source": "original procedural v3",
+  "licence": "project original",
+  "openable_parts": [
+    {
+      "name": "OPEN_LID_0",
+      "properties": {
+        "axis": "X",
+        "ajar": -7,
+        "pose": "ajar",
+        "pose_unit": "degrees",
+        "min_deg": -105,
+        "max_deg": 0,
+        "closed_rotation_deg": 0
+      }
+    }
+  ],
+  "size_m": [
+    0.5400000214576721,
+    0.2880347967147827,
+    0.427645742893219
+  ],
+  "triangles": 572,
+  "collision_volumes": 6,
+  "loot_slots": [
+    "LOOT_SLOT_0"
+  ]
+}

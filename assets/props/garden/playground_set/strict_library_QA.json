@@ -1,0 +1,95 @@
+{
+  "passed": true,
+  "failures": [],
+  "warnings": [
+    {
+      "check": "Sloped/bevelled glass prism minimum span is slightly below nominal 10mm",
+      "actual_min_m": 0.009183
+    }
+  ],
+  "stats": {
+    "library": {
+      "props": 51,
+      "moving_parts": 33,
+      "loot_slots": 27,
+      "thinnest": [
+        [
+          0.007999420166015625,
+          "COL_CraneCabSkin",
+          "sheet_metal"
+        ],
+        [
+          0.007999897003173828,
+          "COL_Landing_Front",
+          "sheet_metal"
+        ],
+        [
+          0.007999897003173828,
+          "COL_Landing_NotchMargin",
+          "sheet_metal"
+        ],
+        [
+          0.007999897003173828,
+          "COL_Landing_ToeBoard_0",
+          "sheet_metal"
+        ],
+        [
+          0.007999897003173828,
+          "COL_Landing_ToeBoard_4",
+          "sheet_metal"
+        ],
+        [
+          0.007999897003173828,
+          "COL_Landing_Turn",
+          "sheet_metal"
+        ],
+        [
+          0.007999897003173828,
+          "COL_OfficeEnd",
+          "sheet_metal"
+        ],
+        [
+          0.007999897003173828,
+          "COL_OfficeEnd.001",
+          "sheet_metal"
+        ],
+        [
+          0.007999897003173828,
+          "COL_OfficeRoof",
+          "sheet_metal"
+        ],
+        [
+          0.007999897003173828,
+          "COL_Slide_SideLipSheet",
+          "sheet_metal"
+        ],
+        [
+          0.007999897003173828,
+          "COL_Slide_SideLipSheet.001",
+          "sheet_metal"
+        ],
+        [
+          0.007999897003173828,
+          "COL_Stair_ToeRail.001",
+          "sheet_metal"
+        ]
+      ],
+      "vehicle_materials": {
+        "moving_truck": {
+          "sheet_metal": 10,
+          "metal_heavy": 2,
+          "glass": 24
+        },
+        "city_car": {
+          "metal_heavy": 2,
+          "sheet_metal": 5,
+          "glass": 60
+        }
+      },
+      "sheet_metal_max_m": 0.01,
+      "glass_min_m": 0.009183,
+      "glass_max_m": 0.015
+    }
+  },
+  "scope": "strict full v3 library check after playground-only repair"
+}

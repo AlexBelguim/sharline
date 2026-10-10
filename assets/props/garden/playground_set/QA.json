@@ -1,0 +1,27 @@
+{
+  "passed": true,
+  "phys_ok": true,
+  "uv_ok": true,
+  "convex_collision_ok": true,
+  "collision_volumes": 76,
+  "minimum_collision_thickness_m": 0.008,
+  "lod0_triangles": 5664,
+  "lod1_triangles": 912,
+  "external_images_ok": true,
+  "external_images": [
+    "../../../maps/showhome_v3/textures/3aae2e57daa643cebba105c7.png",
+    "../../../maps/showhome_v3/textures/50ecbe86f063026316d7ee42.png",
+    "../../../maps/showhome_v3/textures/5d83fc6acaf699ab2a39b8ca.png",
+    "../../../maps/showhome_v3/textures/7ff7f87d8226949ba9f97223.png",
+    "../../../maps/showhome_v3/textures/b5f842ee72423a073a5e57fd.png",
+    "../../../maps/showhome_v3/textures/df551fcba2acfc9b861f8358.png"
+  ],
+  "no_new_images": true,
+  "base_centre_pivot_ok": true,
+  "footprint_m": [
+    8.0,
+    6.0
+  ],
+  "height_m": 2.700000047683716,
+  "sheet_metal_max_m": 0.009466
+}

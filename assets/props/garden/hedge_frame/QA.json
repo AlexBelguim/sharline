@@ -1,0 +1,8 @@
+{
+  "phys_ok": true,
+  "uv_ok": true,
+  "convex_collision_ok": true,
+  "min_thickness_m": 0.1,
+  "lod0_triangles": 220,
+  "openables": 0
+}

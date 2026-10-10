@@ -1,0 +1,35 @@
+{
+  "id": "privacy_gate",
+  "category": "fences",
+  "tags": [
+    "fences",
+    "showhome_v3"
+  ],
+  "glb": "props/fences/privacy_gate/privacy_gate.glb",
+  "lod1": "props/fences/privacy_gate/privacy_gate_lod1.glb",
+  "collision": "props/fences/privacy_gate/collision.json",
+  "source": "original procedural v3",
+  "licence": "project original",
+  "openable_parts": [
+    {
+      "name": "OPEN_DOOR_Privacy",
+      "properties": {
+        "axis": "Z",
+        "ajar": 12,
+        "pose": "open",
+        "pose_unit": "degrees",
+        "min_deg": 0,
+        "max_deg": 110,
+        "closed_rotation_deg": 0
+      }
+    }
+  ],
+  "size_m": [
+    2.273604154586792,
+    2.040004014968872,
+    2.200000047683716
+  ],
+  "triangles": 1100,
+  "collision_volumes": 24,
+  "loot_slots": []
+}

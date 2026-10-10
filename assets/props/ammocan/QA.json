@@ -1,0 +1,705 @@
+{
+  "asset": "ammocan",
+  "method": "Source-guided hard-surface reconstruction; no source triangles or baked source normals retained",
+  "source_read_only": "C:\\Users\\alexw\\AppData\\Roaming\\StabilityMatrix\\Packages\\ComfyUI\\output\\valetf_c_ammocan_full_00001_.glb",
+  "source_sha256": "39574a36e7561792a18e462eb743dacf8f8eab7fcb1664413c21869bc8520927",
+  "source_document": {
+    "meshes": 1,
+    "primitives": 1,
+    "triangles": 699081,
+    "materials": 1,
+    "images": 3,
+    "extensions_used": [],
+    "all_primitives_uv0": true,
+    "node_transform_fields": {
+      "0": {}
+    }
+  },
+  "reference": "F:\\git\\val etf\\assets\\props\\ammocan\\reference\\PICK_c_ammocan.png",
+  "texture_sources": [
+    "art/textures/worn_paint.png",
+    "art/textures/brushed_metal.png",
+    "art/textures/polymer_stipple.png"
+  ],
+  "pbr": {
+    "basecolor": "sRGB",
+    "normal": "OpenGL tangent-space flat, no TRELLIS normal bake",
+    "orm": "linear: R=1 unoccluded, G=roughness, B=metallic"
+  },
+  "built": {
+    "triangles": 2256,
+    "vertices": 1192,
+    "mesh_objects": 35,
+    "boundary_edges": 0,
+    "nonmanifold_edges": 0,
+    "all_uvs": true,
+    "all_identity_transforms": true,
+    "degenerate_triangles": 0,
+    "topology_measurement": "Welded coincident positions at 1e-7 m on disposable BMesh; UV/hard-normal splits remain in export",
+    "bounds_blender_z_up_m": {
+      "min": [
+        -0.28,
+        -0.1275,
+        0.0
+      ],
+      "max": [
+        0.293,
+        0.1275,
+        0.556955
+      ],
+      "size": [
+        0.573,
+        0.255,
+        0.556955
+      ]
+    },
+    "objects": [
+      {
+        "name": "AMC_Body_Shell",
+        "triangles": 76,
+        "vertices": 40,
+        "uv_layers": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "identity_transform": true,
+        "materials": [
+          "M_AMC_Olive_Paint",
+          "M_AMC_Interior_Paint",
+          "M_AMC_Olive_Stencil"
+        ],
+        "degenerate_triangles": 0
+      },
+      {
+        "name": "AMC_Top_Rim",
+        "triangles": 192,
+        "vertices": 96,
+        "uv_layers": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "identity_transform": true,
+        "materials": [
+          "M_AMC_Lid_Paint"
+        ],
+        "degenerate_triangles": 0
+      },
+      {
+        "name": "AMC_Base_Rolled_Edge",
+        "triangles": 192,
+        "vertices": 96,
+        "uv_layers": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "identity_transform": true,
+        "materials": [
+          "M_AMC_Olive_Paint"
+        ],
+        "degenerate_triangles": 0
+      },
+      {
+        "name": "AMC_Corner_-1_-1",
+        "triangles": 44,
+        "vertices": 24,
+        "uv_layers": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "identity_transform": true,
+        "materials": [
+          "M_AMC_Lid_Paint"
+        ],
+        "degenerate_triangles": 0
+      },
+      {
+        "name": "AMC_Corner_-1_1",
+        "triangles": 44,
+        "vertices": 24,
+        "uv_layers": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "identity_transform": true,
+        "materials": [
+          "M_AMC_Lid_Paint"
+        ],
+        "degenerate_triangles": 0
+      },
+      {
+        "name": "AMC_Corner_1_-1",
+        "triangles": 44,
+        "vertices": 24,
+        "uv_layers": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "identity_transform": true,
+        "materials": [
+          "M_AMC_Lid_Paint"
+        ],
+        "degenerate_triangles": 0
+      },
+      {
+        "name": "AMC_Corner_1_1",
+        "triangles": 44,
+        "vertices": 24,
+        "uv_layers": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "identity_transform": true,
+        "materials": [
+          "M_AMC_Lid_Paint"
+        ],
+        "degenerate_triangles": 0
+      },
+      {
+        "name": "AMC_Lid_Panel",
+        "triangles": 108,
+        "vertices": 56,
+        "uv_layers": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "identity_transform": true,
+        "materials": [
+          "M_AMC_Lid_Paint"
+        ],
+        "degenerate_triangles": 0
+      },
+      {
+        "name": "AMC_Lid_Underside_Recess",
+        "triangles": 44,
+        "vertices": 24,
+        "uv_layers": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "identity_transform": true,
+        "materials": [
+          "M_AMC_Interior_Paint"
+        ],
+        "degenerate_triangles": 0
+      },
+      {
+        "name": "AMC_Lid_Gasket",
+        "triangles": 44,
+        "vertices": 24,
+        "uv_layers": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "identity_transform": true,
+        "materials": [
+          "M_AMC_Grip"
+        ],
+        "degenerate_triangles": 0
+      },
+      {
+        "name": "AMC_Handle_Mount_0.095",
+        "triangles": 44,
+        "vertices": 24,
+        "uv_layers": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "identity_transform": true,
+        "materials": [
+          "M_AMC_Steel"
+        ],
+        "degenerate_triangles": 0
+      },
+      {
+        "name": "AMC_Handle_Arm_0.095_-0.024",
+        "triangles": 44,
+        "vertices": 24,
+        "uv_layers": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "identity_transform": true,
+        "materials": [
+          "M_AMC_Steel"
+        ],
+        "degenerate_triangles": 0
+      },
+      {
+        "name": "AMC_Handle_Arm_0.095_0.024",
+        "triangles": 44,
+        "vertices": 24,
+        "uv_layers": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "identity_transform": true,
+        "materials": [
+          "M_AMC_Steel"
+        ],
+        "degenerate_triangles": 0
+      },
+      {
+        "name": "AMC_Handle_Mount_0.452",
+        "triangles": 44,
+        "vertices": 24,
+        "uv_layers": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "identity_transform": true,
+        "materials": [
+          "M_AMC_Steel"
+        ],
+        "degenerate_triangles": 0
+      },
+      {
+        "name": "AMC_Handle_Arm_0.452_-0.024",
+        "triangles": 44,
+        "vertices": 24,
+        "uv_layers": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "identity_transform": true,
+        "materials": [
+          "M_AMC_Steel"
+        ],
+        "degenerate_triangles": 0
+      },
+      {
+        "name": "AMC_Handle_Arm_0.452_0.024",
+        "triangles": 44,
+        "vertices": 24,
+        "uv_layers": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "identity_transform": true,
+        "materials": [
+          "M_AMC_Steel"
+        ],
+        "degenerate_triangles": 0
+      },
+      {
+        "name": "AMC_Handle_Rail_-0.024",
+        "triangles": 44,
+        "vertices": 24,
+        "uv_layers": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "identity_transform": true,
+        "materials": [
+          "M_AMC_Steel"
+        ],
+        "degenerate_triangles": 0
+      },
+      {
+        "name": "AMC_Handle_Rail_0.024",
+        "triangles": 44,
+        "vertices": 24,
+        "uv_layers": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "identity_transform": true,
+        "materials": [
+          "M_AMC_Steel"
+        ],
+        "degenerate_triangles": 0
+      },
+      {
+        "name": "AMC_Handle_Grip",
+        "triangles": 108,
+        "vertices": 56,
+        "uv_layers": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "identity_transform": true,
+        "materials": [
+          "M_AMC_Grip"
+        ],
+        "degenerate_triangles": 0
+      },
+      {
+        "name": "AMC_Hinge_Barrel_-0.07",
+        "triangles": 92,
+        "vertices": 48,
+        "uv_layers": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "identity_transform": true,
+        "materials": [
+          "M_AMC_Steel"
+        ],
+        "degenerate_triangles": 0
+      },
+      {
+        "name": "AMC_Hinge_Body_Leaf_-0.07",
+        "triangles": 44,
+        "vertices": 24,
+        "uv_layers": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "identity_transform": true,
+        "materials": [
+          "M_AMC_Olive_Paint"
+        ],
+        "degenerate_triangles": 0
+      },
+      {
+        "name": "AMC_Hinge_Lid_Leaf_-0.07",
+        "triangles": 44,
+        "vertices": 24,
+        "uv_layers": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "identity_transform": true,
+        "materials": [
+          "M_AMC_Steel"
+        ],
+        "degenerate_triangles": 0
+      },
+      {
+        "name": "AMC_Hinge_Barrel_0.07",
+        "triangles": 92,
+        "vertices": 48,
+        "uv_layers": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "identity_transform": true,
+        "materials": [
+          "M_AMC_Steel"
+        ],
+        "degenerate_triangles": 0
+      },
+      {
+        "name": "AMC_Hinge_Body_Leaf_0.07",
+        "triangles": 44,
+        "vertices": 24,
+        "uv_layers": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "identity_transform": true,
+        "materials": [
+          "M_AMC_Olive_Paint"
+        ],
+        "degenerate_triangles": 0
+      },
+      {
+        "name": "AMC_Hinge_Lid_Leaf_0.07",
+        "triangles": 44,
+        "vertices": 24,
+        "uv_layers": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "identity_transform": true,
+        "materials": [
+          "M_AMC_Steel"
+        ],
+        "degenerate_triangles": 0
+      },
+      {
+        "name": "AMC_Latch_Plate",
+        "triangles": 44,
+        "vertices": 24,
+        "uv_layers": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "identity_transform": true,
+        "materials": [
+          "M_AMC_Olive_Paint"
+        ],
+        "degenerate_triangles": 0
+      },
+      {
+        "name": "AMC_Latch_Cap",
+        "triangles": 44,
+        "vertices": 24,
+        "uv_layers": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "identity_transform": true,
+        "materials": [
+          "M_AMC_Lid_Paint"
+        ],
+        "degenerate_triangles": 0
+      },
+      {
+        "name": "AMC_Latch_Recess",
+        "triangles": 44,
+        "vertices": 24,
+        "uv_layers": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "identity_transform": true,
+        "materials": [
+          "M_AMC_Interior_Paint"
+        ],
+        "degenerate_triangles": 0
+      },
+      {
+        "name": "AMC_Latch_Thumb_Tab",
+        "triangles": 44,
+        "vertices": 24,
+        "uv_layers": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "identity_transform": true,
+        "materials": [
+          "M_AMC_Steel"
+        ],
+        "degenerate_triangles": 0
+      },
+      {
+        "name": "AMC_Latch_Link_-0.07",
+        "triangles": 44,
+        "vertices": 24,
+        "uv_layers": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "identity_transform": true,
+        "materials": [
+          "M_AMC_Steel"
+        ],
+        "degenerate_triangles": 0
+      },
+      {
+        "name": "AMC_Latch_Pivot_-0.07",
+        "triangles": 116,
+        "vertices": 60,
+        "uv_layers": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "identity_transform": true,
+        "materials": [
+          "M_AMC_Steel"
+        ],
+        "degenerate_triangles": 0
+      },
+      {
+        "name": "AMC_Latch_Link_0.07",
+        "triangles": 44,
+        "vertices": 24,
+        "uv_layers": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "identity_transform": true,
+        "materials": [
+          "M_AMC_Steel"
+        ],
+        "degenerate_triangles": 0
+      },
+      {
+        "name": "AMC_Latch_Pivot_0.07",
+        "triangles": 116,
+        "vertices": 60,
+        "uv_layers": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "identity_transform": true,
+        "materials": [
+          "M_AMC_Steel"
+        ],
+        "degenerate_triangles": 0
+      },
+      {
+        "name": "AMC_End_Latch_Bail",
+        "triangles": 64,
+        "vertices": 32,
+        "uv_layers": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "identity_transform": true,
+        "materials": [
+          "M_AMC_Steel"
+        ],
+        "degenerate_triangles": 0
+      },
+      {
+        "name": "AMC_Latch_Safety_Mark",
+        "triangles": 44,
+        "vertices": 24,
+        "uv_layers": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "identity_transform": true,
+        "materials": [
+          "M_AMC_Ochre_Mark"
+        ],
+        "degenerate_triangles": 0
+      }
+    ]
+  },
+  "export_document": {
+    "meshes": 1,
+    "primitives": 7,
+    "triangles": 2256,
+    "materials": 7,
+    "images": 15,
+    "extensions_used": [],
+    "all_primitives_uv0": true,
+    "node_transform_fields": {
+      "AMC_AmmoCan": {}
+    }
+  },
+  "export_materials": [
+    {
+      "name": "M_AMC_Olive_Paint",
+      "basecolor_texture": true,
+      "metallic_roughness_texture": true,
+      "normal_texture": true,
+      "double_sided": false
+    },
+    {
+      "name": "M_AMC_Interior_Paint",
+      "basecolor_texture": true,
+      "metallic_roughness_texture": true,
+      "normal_texture": true,
+      "double_sided": false
+    },
+    {
+      "name": "M_AMC_Olive_Stencil",
+      "basecolor_texture": true,
+      "metallic_roughness_texture": true,
+      "normal_texture": true,
+      "double_sided": false
+    },
+    {
+      "name": "M_AMC_Lid_Paint",
+      "basecolor_texture": true,
+      "metallic_roughness_texture": true,
+      "normal_texture": true,
+      "double_sided": false
+    },
+    {
+      "name": "M_AMC_Grip",
+      "basecolor_texture": true,
+      "metallic_roughness_texture": true,
+      "normal_texture": true,
+      "double_sided": false
+    },
+    {
+      "name": "M_AMC_Steel",
+      "basecolor_texture": true,
+      "metallic_roughness_texture": true,
+      "normal_texture": true,
+      "double_sided": false
+    },
+    {
+      "name": "M_AMC_Ochre_Mark",
+      "basecolor_texture": true,
+      "metallic_roughness_texture": true,
+      "normal_texture": true,
+      "double_sided": false
+    }
+  ],
+  "bounds_gltf_y_up_m": {
+    "min": [
+      -0.28,
+      0,
+      -0.1275
+    ],
+    "max": [
+      0.293,
+      0.556955,
+      0.1275
+    ],
+    "size": [
+      0.573,
+      0.556955,
+      0.255
+    ]
+  },
+  "pivot": "Identity mesh node at body-centre ground level; Blender Z=0 / glTF Y=0",
+  "fresh_glb_import": {
+    "triangles": 2256,
+    "vertices": 4640,
+    "mesh_objects": 1,
+    "boundary_edges": 0,
+    "nonmanifold_edges": 0,
+    "all_uvs": true,
+    "all_identity_transforms": true,
+    "degenerate_triangles": 0,
+    "topology_measurement": "Welded coincident positions at 1e-7 m on disposable BMesh; UV/hard-normal splits remain in export",
+    "bounds_blender_z_up_m": {
+      "min": [
+        -0.28,
+        -0.1275,
+        0.0
+      ],
+      "max": [
+        0.293,
+        0.1275,
+        0.556955
+      ],
+      "size": [
+        0.573,
+        0.255,
+        0.556955
+      ]
+    },
+    "objects": [
+      {
+        "name": "AMC_AmmoCan",
+        "triangles": 2256,
+        "vertices": 4640,
+        "uv_layers": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "identity_transform": true,
+        "materials": [
+          "M_AMC_Olive_Paint",
+          "M_AMC_Interior_Paint",
+          "M_AMC_Olive_Stencil",
+          "M_AMC_Lid_Paint",
+          "M_AMC_Grip",
+          "M_AMC_Steel",
+          "M_AMC_Ochre_Mark"
+        ],
+        "degenerate_triangles": 0
+      }
+    ],
+    "material_names": [
+      "M_AMC_Grip",
+      "M_AMC_Interior_Paint",
+      "M_AMC_Lid_Paint",
+      "M_AMC_Ochre_Mark",
+      "M_AMC_Olive_Paint",
+      "M_AMC_Olive_Stencil",
+      "M_AMC_Steel"
+    ]
+  },
+  "fresh_fbx_import": {
+    "triangles": 2256,
+    "vertices": 1192,
+    "mesh_objects": 1,
+    "boundary_edges": 0,
+    "nonmanifold_edges": 0,
+    "all_uvs": true,
+    "all_identity_transforms": true,
+    "degenerate_triangles": 0,
+    "topology_measurement": "Welded coincident positions at 1e-7 m on disposable BMesh; UV/hard-normal splits remain in export",
+    "bounds_blender_z_up_m": {
+      "min": [
+        -0.28,
+        -0.1275,
+        -0.0
+      ],
+      "max": [
+        0.293,
+        0.1275,
+        0.556955
+      ],
+      "size": [
+        0.573,
+        0.255,
+        0.556955
+      ]
+    },
+    "objects": [
+      {
+        "name": "AMC_AmmoCan",
+        "triangles": 2256,
+        "vertices": 1192,
+        "uv_layers": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "identity_transform": true,
+        "materials": [
+          "M_AMC_Olive_Paint",
+          "M_AMC_Interior_Paint",
+          "M_AMC_Olive_Stencil",
+          "M_AMC_Lid_Paint",
+          "M_AMC_Grip",
+          "M_AMC_Steel",
+          "M_AMC_Ochre_Mark"
+        ],
+        "degenerate_triangles": 0
+      }
+    ]
+  },
+  "wall_seconds": 13.69
+}

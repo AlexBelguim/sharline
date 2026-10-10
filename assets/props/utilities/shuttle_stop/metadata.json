@@ -1,0 +1,23 @@
+{
+  "id": "shuttle_stop",
+  "category": "utilities",
+  "tags": [
+    "utilities",
+    "showhome_legacy"
+  ],
+  "glb": "props/utilities/shuttle_stop/shuttle_stop.glb",
+  "lod1": "props/utilities/shuttle_stop/shuttle_stop_lod1.glb",
+  "collision": "props/utilities/shuttle_stop/collision.json",
+  "source": "original assets/maps/showhome procedural ShuttleStop",
+  "licence": "project original",
+  "openable_parts": [],
+  "size_m": [
+    4.0,
+    2.0160000324249268,
+    2.5999999046325684
+  ],
+  "triangles": 276,
+  "collision_volumes": 1,
+  "loot_slots": [],
+  "legacy_root": "PROP_ShuttleStop"
+}

@@ -1,0 +1,108 @@
+{
+  "1": {
+    "class_type": "UNETLoader",
+    "inputs": {
+      "unet_name": "qwen_image_2.1_int8_convrot.safetensors",
+      "weight_dtype": "default"
+    }
+  },
+  "2": {
+    "class_type": "QwenImage21Cache",
+    "inputs": {
+      "model": [
+        "1",
+        0
+      ],
+      "device": "auto",
+      "dtype": "default"
+    }
+  },
+  "3": {
+    "class_type": "CLIPLoader",
+    "inputs": {
+      "clip_name": "qwen3vl_8b_int8_convrot.safetensors",
+      "type": "qwen_image",
+      "device": "default"
+    }
+  },
+  "4": {
+    "class_type": "VAELoader",
+    "inputs": {
+      "vae_name": "qwen_image_2.1_vae_bf16.safetensors"
+    }
+  },
+  "6": {
+    "class_type": "TextEncodeQwenImage21",
+    "inputs": {
+      "clip": [
+        "3",
+        0
+      ],
+      "prompt": "A complete standalone semi-truck box trailer without a tractor cab. Long ivory rectangular cargo box, charcoal chassis, three rear wheel axles, two lowered front support legs, closed rear double doors. Front coupling plate visible, simple restrained clay accent stripe, full long trailer in frame. One original stylized extraction-shooter prop matching calm sage, clay, cream, graphite and dark stained wood. Clean chunky low-poly forms with soft bevels, broad hand-painted colours, gentle mottling and matte materials. A coherent single object isolated in a full three-quarter view with generous margins on a pure white background. Soft even light, no scenery, floor, cast ground shadow, text, logos, watermark, photographic grain or grime. Show every part completely; preserve physically sensible hinges, supports and proportions. Furniture is stationary with plinths or simple feet, no caster wheels unless explicitly requested. Kitchen modules share cream flat-panel fronts, recessed graphite pulls, a dark wood worktop and charcoal toe-kick; modern near-future home design. Open variations preserve the exact base object and camera, changing only the requested moving part.",
+      "negative_prompt": "",
+      "resolution": 1024,
+      "vae": [
+        "4",
+        0
+      ]
+    }
+  },
+  "7": {
+    "class_type": "KSampler",
+    "inputs": {
+      "seed": 316,
+      "steps": 25,
+      "cfg": 1.0,
+      "sampler_name": "euler",
+      "scheduler": "simple",
+      "denoise": 1.0,
+      "model": [
+        "2",
+        0
+      ],
+      "positive": [
+        "6",
+        0
+      ],
+      "negative": [
+        "6",
+        1
+      ],
+      "latent_image": [
+        "10",
+        0
+      ]
+    }
+  },
+  "8": {
+    "class_type": "VAEDecode",
+    "inputs": {
+      "samples": [
+        "7",
+        0
+      ],
+      "vae": [
+        "4",
+        0
+      ]
+    }
+  },
+  "9": {
+    "class_type": "SaveImage",
+    "inputs": {
+      "filename_prefix": "showhome_prop_semi_box_trailer",
+      "images": [
+        "8",
+        0
+      ]
+    }
+  },
+  "10": {
+    "class_type": "EmptyLatentImage",
+    "inputs": {
+      "width": 1024,
+      "height": 1024,
+      "batch_size": 1
+    }
+  }
+}

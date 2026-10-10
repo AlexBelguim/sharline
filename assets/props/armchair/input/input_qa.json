@@ -1,0 +1,9 @@
+{
+  "source": "C:\\Users\\alexw\\AppData\\Roaming\\StabilityMatrix\\Packages\\ComfyUI\\output\\valetf_b_armchair_full_00001_.glb",
+  "triangles": 4500,
+  "vertices": 2250,
+  "boundary_edges": 0,
+  "nonmanifold_edges": 0,
+  "method": "reproduction of initial tested 4mm voxel + 4500 budget; isolated from live shared-test rewrites",
+  "source_sha256": "aed22e00fea01d91a46d8c29f1dc7f942fb3ebaffb9201556e00ceaf2515c8f2"
+}

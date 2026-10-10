@@ -1,0 +1,36 @@
+{
+  "id": "portable_toilet",
+  "category": "worksite",
+  "tags": [
+    "worksite",
+    "showhome_v3"
+  ],
+  "glb": "props/worksite/portable_toilet/portable_toilet.glb",
+  "lod1": "props/worksite/portable_toilet/portable_toilet_lod1.glb",
+  "collision": "props/worksite/portable_toilet/collision.json",
+  "source": "original procedural phase-2 worksite kit",
+  "licence": "project original",
+  "openable_parts": [
+    {
+      "name": "OPEN_DOOR_Toilet",
+      "properties": {
+        "part": "plastic",
+        "axis": "Z",
+        "ajar": 4,
+        "pose": "ajar",
+        "pose_unit": "degrees",
+        "min_deg": 0,
+        "max_deg": 105,
+        "closed_rotation_deg": 0
+      }
+    }
+  ],
+  "size_m": [
+    1.2200000286102295,
+    1.2899999618530273,
+    2.359999895095825
+  ],
+  "triangles": 660,
+  "collision_volumes": 10,
+  "loot_slots": []
+}

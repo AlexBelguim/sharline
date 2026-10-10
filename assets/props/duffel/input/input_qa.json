@@ -1,0 +1,21 @@
+{
+  "tris": 4499,
+  "verts": 2164,
+  "faces": 4499,
+  "quads": 0,
+  "ngons": 0,
+  "components": 3,
+  "boundary_edges": 3,
+  "nonmanifold_edges": 3,
+  "uv_islands": 639,
+  "uv_area_used": 0.418,
+  "uv_seam_edge_share": null,
+  "dims_m": [
+    0.999,
+    0.553,
+    0.601
+  ],
+  "raw_source": "C:\\Users\\alexw\\AppData\\Roaming\\StabilityMatrix\\Packages\\ComfyUI\\output\\valetf_a_duffel_full_00001_.glb",
+  "source_sha256": "9209ccbb3a41239d16ccbaeec5984db482917b85689986531da42afb98020929",
+  "preparation": "normalized 1m source, 4mm voxel cleanup, target4500, own UV and bake"
+}

@@ -1,0 +1,23 @@
+{
+  "id": "parcel_hub",
+  "category": "buildings",
+  "tags": [
+    "buildings",
+    "showhome_legacy"
+  ],
+  "glb": "props/buildings/parcel_hub/parcel_hub.glb",
+  "lod1": "props/buildings/parcel_hub/parcel_hub_lod1.glb",
+  "collision": "props/buildings/parcel_hub/collision.json",
+  "source": "original assets/maps/showhome procedural ParcelHub",
+  "licence": "project original",
+  "openable_parts": [],
+  "size_m": [
+    4.0,
+    5.0,
+    3.0
+  ],
+  "triangles": 3536,
+  "collision_volumes": 2,
+  "loot_slots": [],
+  "legacy_root": "PROP_ParcelHub"
+}

@@ -1,0 +1,23 @@
+{
+  "id": "kerb_pod",
+  "category": "vehicles",
+  "tags": [
+    "vehicles",
+    "showhome_legacy"
+  ],
+  "glb": "props/vehicles/kerb_pod/kerb_pod.glb",
+  "lod1": "props/vehicles/kerb_pod/kerb_pod_lod1.glb",
+  "collision": "props/vehicles/kerb_pod/collision.json",
+  "source": "original assets/maps/showhome procedural KerbPod",
+  "licence": "project original",
+  "openable_parts": [],
+  "size_m": [
+    2.0160000324249268,
+    3.611999988555908,
+    2.200000047683716
+  ],
+  "triangles": 6752,
+  "collision_volumes": 1,
+  "loot_slots": [],
+  "legacy_root": "PROP_KerbPod"
+}

@@ -1,0 +1,38 @@
+{
+  "id": "toolbox",
+  "category": "containers",
+  "tags": [
+    "containers",
+    "showhome_v3",
+    "toolbox"
+  ],
+  "glb": "props/containers/toolbox/toolbox.glb",
+  "lod1": "props/containers/toolbox/toolbox_lod1.glb",
+  "collision": "props/containers/toolbox/collision.json",
+  "source": "original procedural v3",
+  "licence": "project original",
+  "openable_parts": [
+    {
+      "name": "OPEN_LID_0",
+      "properties": {
+        "axis": "X",
+        "ajar": -7,
+        "pose": "ajar",
+        "pose_unit": "degrees",
+        "min_deg": -105,
+        "max_deg": 0,
+        "closed_rotation_deg": 0
+      }
+    }
+  ],
+  "size_m": [
+    0.5,
+    0.2780348062515259,
+    0.30709734559059143
+  ],
+  "triangles": 572,
+  "collision_volumes": 6,
+  "loot_slots": [
+    "LOOT_SLOT_0"
+  ]
+}

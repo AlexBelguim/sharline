@@ -1,0 +1,112 @@
+{
+  "asset": "armchair_procedural",
+  "geometry": "Original authored radial pressure lofts and profiles; no imported geometry or generated mesh",
+  "front": "-Y in Blender, +Z in glTF",
+  "units": "metres",
+  "origin": "centre of footprint on ground, all mesh origins world zero",
+  "target_dimensions_m": [
+    0.88,
+    0.76,
+    0.95
+  ],
+  "seat_surface_height_m": 0.44,
+  "reference_image": "assets/props/_tests/trellis2/inputs/PICK_b_armchair.png (visual proportions only)",
+  "texture_sources": [
+    "art/textures/fabric_soft.png",
+    "assets/maps/showhome/kit/textures/oak_boards.png"
+  ],
+  "pbr": "Baked sRGB basecolor; linear ORM R=1, G=roughness, B=0; authored geometry normals; no noise/normal-map shader",
+  "built": {
+    "triangles": 4496,
+    "meshes": 20,
+    "materials": 4,
+    "bounds_min_m": [
+      -0.44,
+      -0.38,
+      0.0
+    ],
+    "bounds_max_m": [
+      0.44,
+      0.38,
+      0.95
+    ],
+    "dimensions_m": [
+      0.88,
+      0.76,
+      0.95
+    ],
+    "all_uv0": true,
+    "all_identity_transforms": true,
+    "nonmanifold_edges": 0,
+    "position_weld_nonmanifold_edges": 0,
+    "position_weld_epsilon_m": 1e-07,
+    "degenerate_triangles": 0
+  },
+  "gltf_document": {
+    "triangles": 4496,
+    "meshes": 1,
+    "primitives": 4,
+    "materials": 4,
+    "images": 8,
+    "all_uv0": true,
+    "node_transform_fields": {
+      "ACP_Armchair": {}
+    },
+    "extensions_used": [
+      "KHR_materials_specular"
+    ]
+  },
+  "fresh_glb_import": {
+    "triangles": 4496,
+    "meshes": 1,
+    "materials": 4,
+    "bounds_min_m": [
+      -0.44,
+      -0.38,
+      0.0
+    ],
+    "bounds_max_m": [
+      0.44,
+      0.38,
+      0.95
+    ],
+    "dimensions_m": [
+      0.88,
+      0.76,
+      0.95
+    ],
+    "all_uv0": true,
+    "all_identity_transforms": true,
+    "nonmanifold_edges": 2618,
+    "position_weld_nonmanifold_edges": 0,
+    "position_weld_epsilon_m": 1e-07,
+    "degenerate_triangles": 0
+  },
+  "fresh_fbx_import": {
+    "triangles": 4496,
+    "meshes": 1,
+    "materials": 4,
+    "bounds_min_m": [
+      -0.44,
+      -0.38,
+      -0.0
+    ],
+    "bounds_max_m": [
+      0.44,
+      0.38,
+      0.95
+    ],
+    "dimensions_m": [
+      0.88,
+      0.76,
+      0.95
+    ],
+    "all_uv0": true,
+    "all_identity_transforms": true,
+    "nonmanifold_edges": 0,
+    "position_weld_nonmanifold_edges": 0,
+    "position_weld_epsilon_m": 1e-07,
+    "degenerate_triangles": 0
+  },
+  "wall_seconds": 69.61
+}

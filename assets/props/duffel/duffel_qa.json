@@ -1,0 +1,48 @@
+{
+  "source": "C:\\Users\\alexw\\AppData\\Roaming\\StabilityMatrix\\Packages\\ComfyUI\\output\\valetf_a_duffel_full_00001_.glb",
+  "clean_mesh_cache": "F:\\git\\val etf\\assets\\props\\duffel\\input\\duffel_clean_input.glb",
+  "status": "prop_style_test",
+  "surface_cleanup": {
+    "selected_vertices": 498,
+    "relaxation_steps": 2,
+    "max_step_m": 0.001600000177769701,
+    "moved_vertex_steps": 996,
+    "preserved": "high-angle seams/folds, neutral webbing/hardware, handle silhouette"
+  },
+  "geometry": {
+    "vertices": 2161,
+    "triangles": 4492,
+    "boundary_edges": 5,
+    "nonmanifold_edges": 6
+  },
+  "source_triangles": 698809,
+  "reduction_percent": 99.35719202242673,
+  "dimensions_m": [
+    0.6499999761581421,
+    0.35934072732925415,
+    0.3908185362815857
+  ],
+  "bounds": [
+    [
+      -0.32499998807907104,
+      -0.17984752357006073,
+      0.0
+    ],
+    [
+      0.32499998807907104,
+      0.17949318885803223,
+      0.3908185362815857
+    ]
+  ],
+  "materials": [
+    "M_Duffel_Painted"
+  ],
+  "mesh_per_material": true,
+  "UVs": true,
+  "outputs": [
+    "duffel.blend",
+    "duffel.glb",
+    "duffel.fbx"
+  ],
+  "game_code_changed": false
+}

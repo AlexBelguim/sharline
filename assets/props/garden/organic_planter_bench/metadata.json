@@ -1,0 +1,127 @@
+{
+  "id": "organic_planter_bench",
+  "category": "garden",
+  "tags": [
+    "garden",
+    "showhome_v3"
+  ],
+  "glb": "props/garden/organic_planter_bench/organic_planter_bench.glb",
+  "lod1": "props/garden/organic_planter_bench/organic_planter_bench_lod1.glb",
+  "collision": "props/garden/organic_planter_bench/collision.json",
+  "source": "original procedural organic planter/bench; extension/build_organic_planter.py",
+  "licence": "project original",
+  "openable_parts": [],
+  "size_m": [
+    7.142146110534668,
+    3.7175726890563965,
+    0.6499999761581421
+  ],
+  "triangles": 16608,
+  "collision_volumes": 270,
+  "loot_slots": [],
+  "bounds_m": {
+    "min": [
+      -3.571073055267334,
+      -1.8587863445281982,
+      0.0
+    ],
+    "max": [
+      3.571073055267334,
+      1.8587863445281982,
+      0.6499999761581421
+    ]
+  },
+  "seat_top_m": 0.45,
+  "soil_top_m": 0.53,
+  "bed_bounds_m": {
+    "min": [
+      -3.571073055267334,
+      -1.346671462059021,
+      0.0
+    ],
+    "max": [
+      3.4649267196655273,
+      1.3427371978759766,
+      0.6499999761581421
+    ]
+  },
+  "wall_thickness_m": 0.22,
+  "printed_course_pitch_m": 0.04,
+  "printed_relief_m": 0.009,
+  "bench_run_lengths_m": [
+    6.305202245277158,
+    2.4344379743102453
+  ],
+  "foliage_baked": false,
+  "foliage_local_volumes": [
+    {
+      "name": "GREENFOL_OrganicPlanter_0",
+      "foliage": "hedge",
+      "density": 1.15,
+      "tint": "sage_hedge",
+      "aabb": {
+        "min": [
+          -2.843966007232666,
+          -0.18035686016082764,
+          0.5350000262260437
+        ],
+        "max": [
+          -2.2221803665161133,
+          0.39359939098358154,
+          1.350000023841858
+        ]
+      },
+      "source_prop": "organic_planter_bench",
+      "render_proxy": "existing game foliage system; no leaves baked"
+    },
+    {
+      "name": "GREENFOL_OrganicPlanter_1",
+      "foliage": "hedge",
+      "density": 1.15,
+      "tint": "sage_hedge",
+      "aabb": {
+        "min": [
+          -1.6835732460021973,
+          -0.6673787236213684,
+          0.5350000262260437
+        ],
+        "max": [
+          0.017426729202270508,
+          -0.01937873661518097,
+          1.350000023841858
+        ]
+      },
+      "source_prop": "organic_planter_bench",
+      "render_proxy": "existing game foliage system; no leaves baked"
+    },
+    {
+      "name": "GREENFOL_OrganicPlanter_2",
+      "foliage": "hedge",
+      "density": 1.15,
+      "tint": "sage_hedge",
+      "aabb": {
+        "min": [
+          0.924426794052124,
+          -0.2608787417411804,
+          0.5350000262260437
+        ],
+        "max": [
+          2.409426689147949,
+          0.7741212844848633,
+          1.350000023841858
+        ]
+      },
+      "source_prop": "organic_planter_bench",
+      "render_proxy": "existing game foliage system; no leaves baked"
+    }
+  ],
+  "base_centre_offset_m": [
+    -0.3330732583999634,
+    0.10662126541137695,
+    -0.0
+  ],
+  "pivot": "base-centre at Z=0",
+  "front": "design -Y",
+  "original_geometry": true,
+  "source_builder": "maps/showhome_v3/extension/build_organic_planter.py"
+}

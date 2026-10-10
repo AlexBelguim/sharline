@@ -1,0 +1,23 @@
+{
+  "id": "printed_block_stack",
+  "category": "worksite",
+  "tags": [
+    "worksite",
+    "showhome_legacy"
+  ],
+  "glb": "props/worksite/printed_block_stack/printed_block_stack.glb",
+  "lod1": "props/worksite/printed_block_stack/printed_block_stack_lod1.glb",
+  "collision": "props/worksite/printed_block_stack/collision.json",
+  "source": "original assets/maps/showhome procedural PrintedBlockStack",
+  "licence": "project original",
+  "openable_parts": [],
+  "size_m": [
+    1.2000000476837158,
+    0.800000011920929,
+    0.9660000205039978
+  ],
+  "triangles": 3592,
+  "collision_volumes": 1,
+  "loot_slots": [],
+  "legacy_root": "PROP_PrintedBlockStack"
+}

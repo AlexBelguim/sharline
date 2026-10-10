@@ -1,0 +1,22 @@
+{
+  "id": "scaffold_bay",
+  "category": "worksite",
+  "tags": [
+    "worksite",
+    "showhome_v3"
+  ],
+  "glb": "props/worksite/scaffold_bay/scaffold_bay.glb",
+  "lod1": "props/worksite/scaffold_bay/scaffold_bay_lod1.glb",
+  "collision": "props/worksite/scaffold_bay/collision.json",
+  "source": "original procedural phase-2 worksite kit",
+  "licence": "project original",
+  "openable_parts": [],
+  "size_m": [
+    4.199999809265137,
+    1.3450000286102295,
+    10.699999809265137
+  ],
+  "triangles": 2004,
+  "collision_volumes": 64,
+  "loot_slots": []
+}

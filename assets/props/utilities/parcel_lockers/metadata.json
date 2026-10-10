@@ -1,0 +1,23 @@
+{
+  "id": "parcel_lockers",
+  "category": "utilities",
+  "tags": [
+    "utilities",
+    "showhome_legacy"
+  ],
+  "glb": "props/utilities/parcel_lockers/parcel_lockers.glb",
+  "lod1": "props/utilities/parcel_lockers/parcel_lockers_lod1.glb",
+  "collision": "props/utilities/parcel_lockers/collision.json",
+  "source": "original assets/maps/showhome procedural ParcelLockers",
+  "licence": "project original",
+  "openable_parts": [],
+  "size_m": [
+    2.0160000324249268,
+    8.0,
+    2.200000047683716
+  ],
+  "triangles": 3812,
+  "collision_volumes": 1,
+  "loot_slots": [],
+  "legacy_root": "PROP_ParcelLockers"
+}

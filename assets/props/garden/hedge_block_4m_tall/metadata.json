@@ -1,0 +1,23 @@
+{
+  "id": "hedge_block_4m_tall",
+  "category": "garden",
+  "tags": [
+    "garden",
+    "showhome_legacy"
+  ],
+  "glb": "props/garden/hedge_block_4m_tall/hedge_block_4m_tall.glb",
+  "lod1": "props/garden/hedge_block_4m_tall/hedge_block_4m_tall_lod1.glb",
+  "collision": "props/garden/hedge_block_4m_tall/collision.json",
+  "source": "original assets/maps/showhome procedural Hedge_Block_4m_Tall",
+  "licence": "project original",
+  "openable_parts": [],
+  "size_m": [
+    3.9900026321411133,
+    0.9912543296813965,
+    2.3904199600219727
+  ],
+  "triangles": 1200,
+  "collision_volumes": 1,
+  "loot_slots": [],
+  "legacy_root": "PROP_Hedge_Block_4m_Tall"
+}

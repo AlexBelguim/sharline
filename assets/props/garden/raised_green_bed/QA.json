@@ -1,0 +1,29 @@
+{
+  "passed": true,
+  "phys_ok": true,
+  "uv_ok": true,
+  "convex_collision_ok": true,
+  "collision_volumes": 9,
+  "minimum_collision_thickness_m": 0.045,
+  "lod0_triangles": 396,
+  "lod1_triangles": 108,
+  "external_images_ok": true,
+  "external_images": [
+    "../../../maps/showhome_v3/textures/3aae2e57daa643cebba105c7.png",
+    "../../../maps/showhome_v3/textures/58e7730535470ff5d0561335.png",
+    "../../../maps/showhome_v3/textures/7aef40134189fccef8d7af00.png",
+    "../../../maps/showhome_v3/textures/7ff7f87d8226949ba9f97223.png",
+    "../../../maps/showhome_v3/textures/a1dce470305881e11cd4413f.png",
+    "../../../maps/showhome_v3/textures/b5f842ee72423a073a5e57fd.png",
+    "../../../maps/showhome_v3/textures/d0d805ead64aa1c666760f1c.png",
+    "../../../maps/showhome_v3/textures/d1ea1607ee97ce3a1c4eacb9.png",
+    "../../../maps/showhome_v3/textures/ec7b22229ba76e43d4697dd7.png"
+  ],
+  "no_new_images": true,
+  "base_centre_pivot_ok": true,
+  "footprint_m": [
+    4.0,
+    2.0
+  ],
+  "height_m": 0.44999998807907104
+}

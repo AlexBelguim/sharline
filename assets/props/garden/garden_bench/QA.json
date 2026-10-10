@@ -1,0 +1,23 @@
+{
+  "passed": true,
+  "phys_ok": true,
+  "uv_ok": true,
+  "convex_collision_ok": true,
+  "collision_volumes": 24,
+  "minimum_collision_thickness_m": 0.025,
+  "lod0_triangles": 1056,
+  "lod1_triangles": 288,
+  "external_images_ok": true,
+  "external_images": [
+    "../../../maps/showhome_v3/textures/3aae2e57daa643cebba105c7.png",
+    "../../../maps/showhome_v3/textures/7ff7f87d8226949ba9f97223.png",
+    "../../../maps/showhome_v3/textures/b5f842ee72423a073a5e57fd.png"
+  ],
+  "no_new_images": true,
+  "base_centre_pivot_ok": true,
+  "footprint_m": [
+    1.7999999523162842,
+    0.7132359743118286
+  ],
+  "height_m": 0.878000020980835
+}

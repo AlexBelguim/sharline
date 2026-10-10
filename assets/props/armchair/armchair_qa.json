@@ -1,0 +1,135 @@
+{
+  "source": "C:\\Users\\alexw\\AppData\\Roaming\\StabilityMatrix\\Packages\\ComfyUI\\output\\valetf_b_armchair_full_00001_.glb",
+  "source_sha256": "aed22e00fea01d91a46d8c29f1dc7f942fb3ebaffb9201556e00ceaf2515c8f2",
+  "clean_input_sha256": "2e968a35115fbe07b750606fed62682c894303104633e37f525ace3178c83fa3",
+  "clean_mesh_cache": "F:\\git\\val etf\\assets\\props\\armchair\\input\\armchair_clean_input.glb",
+  "before": {
+    "triangles": 4500,
+    "objects": [
+      {
+        "object": "ACH_Upholstery",
+        "triangles": 4500,
+        "vertices": 2250,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "UVs": true,
+        "identity_transform": true
+      }
+    ],
+    "dimensions_m": [
+      0.9248777627944946,
+      0.7028263211250305,
+      0.9986703395843506
+    ],
+    "bounds": [
+      [
+        -0.4623544216156006,
+        -0.3514406979084015,
+        -0.00043793421355076134
+      ],
+      [
+        0.46252337098121643,
+        0.35138562321662903,
+        0.9982324242591858
+      ]
+    ],
+    "UV_split_vertices_welded": 0
+  },
+  "finished": {
+    "triangles": 4902,
+    "objects": [
+      {
+        "object": "ACH_Upholstery",
+        "triangles": 4470,
+        "vertices": 2235,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "UVs": true,
+        "identity_transform": true
+      },
+      {
+        "object": "ACH_Leg_L_Front",
+        "triangles": 108,
+        "vertices": 56,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "UVs": true,
+        "identity_transform": true
+      },
+      {
+        "object": "ACH_Leg_L_Rear",
+        "triangles": 108,
+        "vertices": 56,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "UVs": true,
+        "identity_transform": true
+      },
+      {
+        "object": "ACH_Leg_R_Front",
+        "triangles": 108,
+        "vertices": 56,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "UVs": true,
+        "identity_transform": true
+      },
+      {
+        "object": "ACH_Leg_R_Rear",
+        "triangles": 108,
+        "vertices": 56,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "UVs": true,
+        "identity_transform": true
+      }
+    ],
+    "dimensions_m": [
+      0.8793771266937256,
+      0.6695781946182251,
+      0.949999988079071
+    ],
+    "bounds": [
+      [
+        -0.4396885633468628,
+        -0.33478909730911255,
+        0.0
+      ],
+      [
+        0.4396885633468628,
+        0.33478909730911255,
+        0.949999988079071
+      ]
+    ]
+  },
+  "surface_cleanup": {
+    "method": "weighted nonshrinking Taubin surface diffusion; no further decimation",
+    "pairs": 11,
+    "broad_cushion_fit_vertices": 122,
+    "maximum_m": 0.009769377102108253,
+    "mean_m": 0.003260962631184026,
+    "protected": "scroll fronts, cushion channel edges, back perimeter seam, leg joints"
+  },
+  "source_triangles": 699034,
+  "budget_target_triangles": [
+    3000,
+    5000
+  ],
+  "materials": [
+    "M_Armchair_Terracotta",
+    "M_Armchair_DarkTimber"
+  ],
+  "maps": "sRGB albedo, OpenGL tangent normal, linear ORM",
+  "UV_layout": "isolated source rebake retained for upholstery; smart unwrap for rebuilt timber feet",
+  "outputs": [
+    "armchair.blend",
+    "armchair.glb",
+    "armchair.fbx"
+  ],
+  "game_code_changed": false,
+  "known_limits": [
+    "Single generated upholstery shell retains a few irregular seam junctions.",
+    "Scroll faces retain source asymmetry; those defining folds were deliberately protected.",
+    "Budget topology has uneven triangle size and is suitable for a static environmental prop."
+  ]
+}

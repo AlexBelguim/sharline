@@ -1,0 +1,35 @@
+{
+  "id": "shed",
+  "category": "garden",
+  "tags": [
+    "garden",
+    "showhome_v3"
+  ],
+  "glb": "props/garden/shed/shed.glb",
+  "lod1": "props/garden/shed/shed_lod1.glb",
+  "collision": "props/garden/shed/collision.json",
+  "source": "original procedural v3",
+  "licence": "project original",
+  "openable_parts": [
+    {
+      "name": "OPEN_DOOR_Shed",
+      "properties": {
+        "axis": "Z",
+        "ajar": 12,
+        "pose": "open",
+        "pose_unit": "degrees",
+        "min_deg": 0,
+        "max_deg": 110,
+        "closed_rotation_deg": 0
+      }
+    }
+  ],
+  "size_m": [
+    3.01840877532959,
+    3.640000104904175,
+    2.702338933944702
+  ],
+  "triangles": 948,
+  "collision_volumes": 10,
+  "loot_slots": []
+}

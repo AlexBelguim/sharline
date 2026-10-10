@@ -1,0 +1,16 @@
+{
+  "passed": true,
+  "phys_ok": true,
+  "uv_ok": true,
+  "convex_collision_ok": true,
+  "external_images_ok": true,
+  "lod0_triangles": 16608,
+  "lod1_triangles": 2284,
+  "collision_volumes": 270,
+  "min_collision_thickness_m": 0.045,
+  "original_geometry": true,
+  "no_new_images": true,
+  "printed_courses_are_geometry": true,
+  "foliage_volumes": 3,
+  "foliage_baked": false
+}

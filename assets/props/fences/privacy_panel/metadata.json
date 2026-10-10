@@ -1,0 +1,22 @@
+{
+  "id": "privacy_panel",
+  "category": "fences",
+  "tags": [
+    "fences",
+    "showhome_v3"
+  ],
+  "glb": "props/fences/privacy_panel/privacy_panel.glb",
+  "lod1": "props/fences/privacy_panel/privacy_panel_lod1.glb",
+  "collision": "props/fences/privacy_panel/collision.json",
+  "source": "original procedural v3",
+  "licence": "project original",
+  "openable_parts": [],
+  "size_m": [
+    2.0899999141693115,
+    0.09950000047683716,
+    2.200000047683716
+  ],
+  "triangles": 1056,
+  "collision_volumes": 24,
+  "loot_slots": []
+}

@@ -1,0 +1,177 @@
+{
+  "glb": {
+    "triangles": 4902,
+    "objects": [
+      {
+        "object": "ACH_Leg_L_Front",
+        "triangles": 108,
+        "vertices": 56,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "UVs": true,
+        "identity_transform": true
+      },
+      {
+        "object": "ACH_Leg_L_Rear",
+        "triangles": 108,
+        "vertices": 56,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "UVs": true,
+        "identity_transform": true
+      },
+      {
+        "object": "ACH_Leg_R_Front",
+        "triangles": 108,
+        "vertices": 56,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "UVs": true,
+        "identity_transform": true
+      },
+      {
+        "object": "ACH_Leg_R_Rear",
+        "triangles": 108,
+        "vertices": 56,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "UVs": true,
+        "identity_transform": true
+      },
+      {
+        "object": "ACH_Upholstery",
+        "triangles": 4470,
+        "vertices": 2235,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "UVs": true,
+        "identity_transform": true
+      }
+    ],
+    "dimensions_m": [
+      0.8793771266937256,
+      0.6695781946182251,
+      0.949999988079071
+    ],
+    "bounds": [
+      [
+        -0.4396885633468628,
+        -0.33478909730911255,
+        0.0
+      ],
+      [
+        0.4396885633468628,
+        0.33478909730911255,
+        0.949999988079071
+      ]
+    ],
+    "all_named": true,
+    "materials": [
+      "M_Armchair_DarkTimber",
+      "M_Armchair_Terracotta"
+    ],
+    "all_uvs": true,
+    "minimum_z_m": 0.0,
+    "passes": true,
+    "closed_manifold": true,
+    "identity_transforms": true
+  },
+  "fbx": {
+    "triangles": 4902,
+    "objects": [
+      {
+        "object": "ACH_Leg_L_Front",
+        "triangles": 108,
+        "vertices": 56,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "UVs": true,
+        "identity_transform": true
+      },
+      {
+        "object": "ACH_Leg_L_Rear",
+        "triangles": 108,
+        "vertices": 56,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "UVs": true,
+        "identity_transform": true
+      },
+      {
+        "object": "ACH_Leg_R_Front",
+        "triangles": 108,
+        "vertices": 56,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "UVs": true,
+        "identity_transform": true
+      },
+      {
+        "object": "ACH_Leg_R_Rear",
+        "triangles": 108,
+        "vertices": 56,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "UVs": true,
+        "identity_transform": true
+      },
+      {
+        "object": "ACH_Upholstery",
+        "triangles": 4470,
+        "vertices": 2235,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "UVs": true,
+        "identity_transform": true
+      }
+    ],
+    "dimensions_m": [
+      0.8793771266937256,
+      0.6695783138275146,
+      0.9500000476837158
+    ],
+    "bounds": [
+      [
+        -0.4396885633468628,
+        -0.33478906750679016,
+        -2.691913891794684e-08
+      ],
+      [
+        0.4396885633468628,
+        0.3347892463207245,
+        0.9500000476837158
+      ]
+    ],
+    "all_named": true,
+    "materials": [
+      "M_Armchair_DarkTimber",
+      "M_Armchair_Terracotta"
+    ],
+    "all_uvs": true,
+    "minimum_z_m": -2.691913891794684e-08,
+    "passes": true,
+    "closed_manifold": true,
+    "identity_transforms": true
+  },
+  "gltf_materials": [
+    {
+      "name": "M_Armchair_DarkTimber",
+      "basecolor_texture": true,
+      "ORM_texture": true,
+      "normal_texture": false,
+      "metallicFactor": 1,
+      "extensions": []
+    },
+    {
+      "name": "M_Armchair_Terracotta",
+      "basecolor_texture": true,
+      "ORM_texture": true,
+      "normal_texture": true,
+      "metallicFactor": 1,
+      "extensions": []
+    }
+  ],
+  "GLB_geometry_triangles": 4902,
+  "all_pbr_maps_embedded": true,
+  "export_axes": "GLB Y-up; FBX -Z forward / Y-up; imported back to Blender Z-up"
+}

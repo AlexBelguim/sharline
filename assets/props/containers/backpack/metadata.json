@@ -1,0 +1,38 @@
+{
+  "id": "backpack",
+  "category": "containers",
+  "tags": [
+    "containers",
+    "showhome_v3",
+    "backpack"
+  ],
+  "glb": "props/containers/backpack/backpack.glb",
+  "lod1": "props/containers/backpack/backpack_lod1.glb",
+  "collision": "props/containers/backpack/collision.json",
+  "source": "original procedural v3",
+  "licence": "project original",
+  "openable_parts": [
+    {
+      "name": "OPEN_LID_Flap",
+      "properties": {
+        "axis": "X",
+        "ajar": -28,
+        "pose": "ajar",
+        "pose_unit": "degrees",
+        "min_deg": -120,
+        "max_deg": 0,
+        "closed_rotation_deg": 0
+      }
+    }
+  ],
+  "size_m": [
+    0.3400000035762787,
+    0.2199999988079071,
+    0.5520000457763672
+  ],
+  "triangles": 668,
+  "collision_volumes": 5,
+  "loot_slots": [
+    "LOOT_SLOT_0"
+  ]
+}

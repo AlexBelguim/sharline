@@ -1,0 +1,23 @@
+{
+  "id": "utility_pylon",
+  "category": "utilities",
+  "tags": [
+    "utilities",
+    "showhome_legacy"
+  ],
+  "glb": "props/utilities/utility_pylon/utility_pylon.glb",
+  "lod1": "props/utilities/utility_pylon/utility_pylon_lod1.glb",
+  "collision": "props/utilities/utility_pylon/collision.json",
+  "source": "original assets/maps/showhome procedural Pylon",
+  "licence": "project original",
+  "openable_parts": [],
+  "size_m": [
+    2.0,
+    2.0,
+    6.600000381469727
+  ],
+  "triangles": 2004,
+  "collision_volumes": 2,
+  "loot_slots": [],
+  "legacy_root": "PROP_Pylon"
+}

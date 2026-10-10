@@ -1,0 +1,22 @@
+{
+  "id": "hot_tub",
+  "category": "garden",
+  "tags": [
+    "garden",
+    "showhome_v3"
+  ],
+  "glb": "props/garden/hot_tub/hot_tub.glb",
+  "lod1": "props/garden/hot_tub/hot_tub_lod1.glb",
+  "collision": "props/garden/hot_tub/collision.json",
+  "source": "original assets/maps/showhome procedural HotTub",
+  "licence": "project original",
+  "openable_parts": [],
+  "size_m": [
+    2.5,
+    2.504000186920166,
+    1.003999948501587
+  ],
+  "triangles": 284,
+  "collision_volumes": 5,
+  "loot_slots": []
+}

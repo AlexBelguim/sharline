@@ -1,0 +1,22 @@
+{
+  "id": "pergola",
+  "category": "garden",
+  "tags": [
+    "garden",
+    "showhome_v3"
+  ],
+  "glb": "props/garden/pergola/pergola.glb",
+  "lod1": "props/garden/pergola/pergola_lod1.glb",
+  "collision": "props/garden/pergola/collision.json",
+  "source": "original procedural v3",
+  "licence": "project original",
+  "openable_parts": [],
+  "size_m": [
+    5.119999885559082,
+    4.300000190734863,
+    2.759999990463257
+  ],
+  "triangles": 748,
+  "collision_volumes": 17,
+  "loot_slots": []
+}
