@@ -96,7 +96,10 @@ pub(crate) fn host_step(
     mut damage: Query<&mut MessageSender<DamageTaken>>,
     mut deaths: MessageWriter<PlayerDied>,
 ) {
-    if editor.is_some_and(|e|e.0) {launched.clear();return;}
+    if editor.is_some_and(|e| e.0) {
+        launched.clear();
+        return;
+    }
     let Some(level) = level else {
         launched.clear();
         return;

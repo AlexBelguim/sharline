@@ -1144,7 +1144,9 @@ pub(crate) fn simulate_authoritative(
     infos: Query<&PlayerInfo>,
     mut launches: MessageWriter<crate::throwables::ThrowLaunched>,
 ) {
-    if editor.is_some_and(|e|e.0) {return;}
+    if editor.is_some_and(|e| e.0) {
+        return;
+    }
     let Some(level) = level else { return };
     let rules = match_rules(&matches);
     let tick = timeline.tick().0;
@@ -2851,7 +2853,9 @@ fn run_match(
     mut players: Query<(&PlayerId, &mut PlayerNet, &mut Vitals, &mut Score, &ServerPlayer)>,
     mut intermission: Local<f32>,
 ) {
-    if editor.is_some_and(|e|e.0) {return;}
+    if editor.is_some_and(|e| e.0) {
+        return;
+    }
     let Some(mut m) = matches.iter_mut().next() else { return };
     if !m.mode.is_deathmatch() {
         return;

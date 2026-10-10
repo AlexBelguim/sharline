@@ -331,11 +331,11 @@ fn distributed_spawns(
                     if x <= bounds[0] || x >= bounds[2] || y + dy <= bounds[1] || y + dy >= bounds[3] {
                         continue;
                     }
-                    if let Some(s) = safe_spawn(world, p.origin, [x, y + dy, 0.], team) {
-                        if out.iter().all(|old: &SpawnPoint| old.pos.distance(s.pos) > 2.) {
-                            accepted = Some(s);
-                            break 'band;
-                        }
+                    if let Some(s) = safe_spawn(world, p.origin, [x, y + dy, 0.], team)
+                        && out.iter().all(|old: &SpawnPoint| old.pos.distance(s.pos) > 2.)
+                    {
+                        accepted = Some(s);
+                        break 'band;
                     }
                 }
             }
@@ -377,11 +377,11 @@ fn distributed_spawns(
                 let mut accepted = None;
                 'candidate: for dy in [0., 1., -1., 2., -2.] {
                     for dx in [0., 1., -1., 2., -2.] {
-                        if let Some(s) = safe_spawn(world, p.origin, [x + dx, y + dy, z], team) {
-                            if out.iter().all(|old| old.pos.distance(s.pos) > 2.) {
-                                accepted = Some(s);
-                                break 'candidate;
-                            }
+                        if let Some(s) = safe_spawn(world, p.origin, [x + dx, y + dy, z], team)
+                            && out.iter().all(|old| old.pos.distance(s.pos) > 2.)
+                        {
+                            accepted = Some(s);
+                            break 'candidate;
                         }
                     }
                 }
@@ -540,11 +540,11 @@ mod tests {
         'find: for point in &initial.level.spawns {
             for (dx, dy) in [(1.2, 1.2), (-1.2, 1.2), (1.8, 0.), (0., 1.8)] {
                 let position = [point.pos.x as f64 + p.origin[0] + dx, -point.pos.z as f64 + p.origin[1] + dy, 0.];
-                if let Some(s) = safe_spawn(&initial.level.world, p.origin, position, Team::A) {
-                    if initial.level.spawns.iter().all(|old| old.pos.distance(s.pos) > 1.) {
-                        candidate = Some(position);
-                        break 'find;
-                    }
+                if let Some(s) = safe_spawn(&initial.level.world, p.origin, position, Team::A)
+                    && initial.level.spawns.iter().all(|old| old.pos.distance(s.pos) > 1.)
+                {
+                    candidate = Some(position);
+                    break 'find;
                 }
             }
         }

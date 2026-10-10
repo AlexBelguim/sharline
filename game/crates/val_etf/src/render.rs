@@ -14,10 +14,10 @@ pub mod executor;
 pub mod feel;
 pub mod friend_foe;
 pub mod hit_fx;
+pub mod holster;
 pub mod inspect;
 mod laser_fx;
 mod streak_aura;
-pub mod holster;
 pub mod throw_fx;
 pub mod throw_line;
 mod tracer_fx;
@@ -998,12 +998,22 @@ fn update_camera(
     >,
     mut lens: Query<&mut Transform, (With<ViewmodelLens>, Without<Viewmodel>)>,
     mut viewmodel: Query<(&mut Transform, &mut Visibility), With<Viewmodel>>,
-    world: (Res<Data>, Option<Res<CurrentLevel>>, Res<crate::death::DeathView>,Option<Res<crate::build_editor::EditorActive>>),
+    world: (
+        Res<Data>,
+        Option<Res<CurrentLevel>>,
+        Res<crate::death::DeathView>,
+        Option<Res<crate::build_editor::EditorActive>>,
+    ),
     mut logged: Local<Option<(f32, f32)>>,
 ) {
     let Some((mv, smoothed, loadout, vitals)) = me.iter().next() else { return };
     let (game, level, death, editor) = world;
-    if editor.is_some_and(|e|e.0) {for (_,mut v) in &mut viewmodel {*v=Visibility::Hidden;}return;}
+    if editor.is_some_and(|e| e.0) {
+        for (_, mut v) in &mut viewmodel {
+            *v = Visibility::Hidden;
+        }
+        return;
+    }
     let (view_inspect, view_dry, view_holster) = view_fx;
     // The death screen's death cam: where we died, turning toward the killer (`death.rs`).
     let death_cam = death.0.filter(|_| vitals.health.dead);

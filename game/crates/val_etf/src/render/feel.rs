@@ -484,7 +484,10 @@ mod tests {
         let base = *f.shot("ar7_mako");
         assert_eq!(base.scaled(1.0, 1.0), base);
         let s = base.scaled(0.6, 0.55);
-        assert!((s.pitch_deg - base.pitch_deg * 0.6).abs() < 1e-6 && (s.gun_pitch_deg - base.gun_pitch_deg * 0.6).abs() < 1e-6);
+        assert!(
+            (s.pitch_deg - base.pitch_deg * 0.6).abs() < 1e-6
+                && (s.gun_pitch_deg - base.gun_pitch_deg * 0.6).abs() < 1e-6
+        );
         assert!((s.back_m - base.back_m * 0.6).abs() < 1e-6 && (s.gun_back_m - base.gun_back_m * 0.6).abs() < 1e-6);
         assert!((s.yaw_deg - base.yaw_deg * 0.55).abs() < 1e-6 && (s.roll_deg - base.roll_deg * 0.55).abs() < 1e-6);
         assert_eq!((s.settle_hz, s.gun_settle_hz), (base.settle_hz, base.gun_settle_hz));

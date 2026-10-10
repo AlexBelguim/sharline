@@ -428,6 +428,7 @@ pub struct Launch {
 }
 
 /// The host and prediction derive the same velocity from held ticks, not client-supplied strength.
+#[allow(clippy::too_many_arguments)]
 pub fn launch_charged(
     spec: &ThrowSpec,
     world: &CollisionWorld,
@@ -614,6 +615,7 @@ pub struct PredictedPath {
 
 /// Flies a would-be throw (`kind` from `origin` at `vel`, with its normalised `charge`) for at most `max_ticks`
 /// ticks of `dt`, without touching any world state.
+#[allow(clippy::too_many_arguments)]
 pub fn predict_path(
     data: &ThrowablesFile,
     level: &Level,
@@ -1050,15 +1052,22 @@ mod tests {
         // Facing +x (yaw -90 degrees), toward the wall at x = 10.
         let yaw = -std::f32::consts::FRAC_PI_2;
         for kind in [ThrowKind::Smoke, ThrowKind::Molotov] {
-            for (style, charge, pitch) in
-                [(ThrowStyle::Overhand, 0, 0.1), (ThrowStyle::Overhand, u16::MAX, 0.0), (ThrowStyle::Underhand, 0, -0.2)]
-            {
+            for (style, charge, pitch) in [
+                (ThrowStyle::Overhand, 0, 0.1),
+                (ThrowStyle::Overhand, u16::MAX, 0.0),
+                (ThrowStyle::Underhand, 0, -0.2),
+            ] {
                 let spec = &d.throwables.throw;
-                let (origin, vel) = launch_charged(spec, &level.world, eye, Vec3::ZERO, yaw, pitch, kind, style, charge);
+                let (origin, vel) =
+                    launch_charged(spec, &level.world, eye, Vec3::ZERO, yaw, pitch, kind, style, charge);
                 let line = predict_path(&d.throwables, &level, kind, origin, vel, charge, DT, 2000);
                 assert_eq!(line.points[0], origin);
                 let low = line.points.iter().map(|p| p.y).fold(f32::MAX, f32::min);
-                assert!(low > -0.01, "{kind:?} {style:?} {charge}: never under the floor ({low}, {:?})", line.points.iter().find(|p| p.y <= -0.01));
+                assert!(
+                    low > -0.01,
+                    "{kind:?} {style:?} {charge}: never under the floor ({low}, {:?})",
+                    line.points.iter().find(|p| p.y <= -0.01)
+                );
                 let mut world = ThrowWorld::default();
                 world.throw(7, &Launch { kind, seq: 1, origin, vel, style, charge, team: None });
                 let mut burst = None;
@@ -1078,7 +1087,8 @@ mod tests {
         }
         // A smoke bounces before it pops; a molotov never does.
         let spec = &d.throwables.throw;
-        let (o, v) = launch_charged(spec, &level.world, eye, Vec3::ZERO, yaw, -0.3, ThrowKind::Smoke, ThrowStyle::Overhand, 0);
+        let (o, v) =
+            launch_charged(spec, &level.world, eye, Vec3::ZERO, yaw, -0.3, ThrowKind::Smoke, ThrowStyle::Overhand, 0);
         assert!(!predict_path(&d.throwables, &level, ThrowKind::Smoke, o, v, 0, DT, 2000).bounces.is_empty());
         let molotov = predict_path(&d.throwables, &level, ThrowKind::Molotov, o, v, 0, DT, 2000);
         assert!(molotov.bounces.is_empty() && molotov.burst.is_some());

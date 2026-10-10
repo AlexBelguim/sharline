@@ -78,7 +78,9 @@ fn simulate_predicted(
     mut shots: MessageWriter<LocalShot>,
     mut events: MessageWriter<LocalPlayerEvents>,
 ) {
-    if editor.is_some_and(|e|e.0) {return;}
+    if editor.is_some_and(|e| e.0) {
+        return;
+    }
     let Some(level) = level else { return };
     for (id, input, mut mv, mut weapon, mut items, loadout, vitals) in &mut players {
         if vitals.is_some_and(|v| v.health.dead) {

@@ -33,10 +33,12 @@ pub(crate) fn normal_scales_for_path(path: &str) -> Result<BTreeMap<String, f32>
     let json = vetf_sim::build_mode::collision::glb_json(&bytes).map_err(|e| e.to_string())?;
     let mut result = BTreeMap::new();
     for material in json["materials"].as_array().into_iter().flatten() {
-        if let (Some(name), Some(scale)) = (material["name"].as_str(), material["normalTexture"]["scale"].as_f64()) {
-            if scale.is_finite() && scale >= 0. && scale != 1. {
-                result.insert(name.into(), scale as f32);
-            }
+        if let (Some(name), Some(scale)) = (material["name"].as_str(), material["normalTexture"]["scale"].as_f64())
+            && scale.is_finite()
+            && scale >= 0.
+            && scale != 1.
+        {
+            result.insert(name.into(), scale as f32);
         }
     }
     Ok(result)

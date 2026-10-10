@@ -266,7 +266,9 @@ fn esc_in_match(
     me: Query<&PlayerItems, With<Controlled>>,
     editor: Option<Res<crate::build_editor::EditorActive>>,
 ) {
-    if editor.is_some_and(|e|e.0) { return; }
+    if editor.is_some_and(|e| e.0) {
+        return;
+    }
     if esc.take() {
         // Esc closes an open ring menu first (and forgets a reload hold, so it does not reopen).
         let heal = control.heal.take().is_some();

@@ -186,7 +186,12 @@ impl Cli {
             let mut val = || args.next().unwrap_or_default();
             match a.as_str() {
                 "--host" => cli.host = Some(val()),
-                "--build" => { let map=val();cli.build=Some(map.clone());cli.host=Some(map);cli.live=true; },
+                "--build" => {
+                    let map = val();
+                    cli.build = Some(map.clone());
+                    cli.host = Some(map);
+                    cli.live = true;
+                }
                 "--live" => cli.live = true,
                 "--mode" => {
                     let v = val();

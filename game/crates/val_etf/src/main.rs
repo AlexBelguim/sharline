@@ -7,6 +7,8 @@
 #![allow(clippy::too_many_arguments, clippy::type_complexity)]
 
 mod bots;
+mod build_editor;
+mod build_editor_ui;
 mod client;
 mod config;
 mod death;
@@ -35,8 +37,6 @@ mod shared;
 mod showhome_ground;
 mod showhome_kit;
 mod showhome_v3;
-mod build_editor;
-mod build_editor_ui;
 mod sound;
 mod streaks;
 mod throwables;

@@ -349,13 +349,13 @@ impl Placements {
                     if !p.spawn_chance.is_finite() || !(0.0..=1.).contains(&p.spawn_chance) || p.max_count == 0 {
                         return Err(BuildError::Invalid(format!("Loot {} has invalid chance/count", p.id)));
                     }
-                    if let Some(id) = &p.container_id {
-                        if !self.instances.iter().any(|x| &x.id == id && x.lootable) {
-                            return Err(BuildError::Invalid(format!(
-                                "Loot {} references a missing/non-lootable container",
-                                p.id
-                            )));
-                        }
+                    if let Some(id) = &p.container_id
+                        && !self.instances.iter().any(|x| &x.id == id && x.lootable)
+                    {
+                        return Err(BuildError::Invalid(format!(
+                            "Loot {} references a missing/non-lootable container",
+                            p.id
+                        )));
                     }
                 }
                 EditableItem::Foliage(p) => p.validate()?,
@@ -510,6 +510,7 @@ impl EditableItem {
 }
 
 #[derive(Debug, Clone)]
+#[allow(clippy::large_enum_variant)] // one command at a time; Add carries a whole item by design
 pub enum EditCommand {
     Add(EditableItem),
     Delete {
@@ -791,6 +792,11 @@ pub struct EditorOptions {
     pub max_scale: f64,
     pub autosave_seconds: u64,
     pub backup_count: usize,
+    /// The free-fly camera (the game's editor reads these too): metres a second, the fast multiplier (Shift)
+    /// and mouse look in radians per pixel.
+    pub camera_speed_mps: f64,
+    pub camera_fast_mult: f64,
+    pub mouse_radians_per_pixel: f64,
 }
 impl Default for EditorOptions {
     fn default() -> Self {
@@ -801,6 +807,9 @@ impl Default for EditorOptions {
             max_scale: 1.25,
             autosave_seconds: 120,
             backup_count: 10,
+            camera_speed_mps: 10.,
+            camera_fast_mult: 4.,
+            mouse_radians_per_pixel: 0.0025,
         }
     }
 }
@@ -823,6 +832,7 @@ impl EditorOptions {
             || self.max_scale != 1.25
             || !(1..=10).contains(&self.backup_count)
             || self.autosave_seconds == 0
+            || !(self.camera_speed_mps > 0. && self.camera_fast_mult >= 1. && self.mouse_radians_per_pixel > 0.)
         {
             Err(BuildError::Invalid("Invalid numerical editor options".into()))
         } else {
@@ -939,10 +949,10 @@ pub fn save_atomic(
     options.validate()?;
     let text = document.to_ron()?;
     let previous = if path.exists() { Some(fs::read(path)?) } else { None };
-    if let Some(expected) = expected_sha256 {
-        if previous.as_ref().is_none_or(|p| sha256(p) != expected) {
-            return Err(BuildError::SaveConflict);
-        }
+    if let Some(expected) = expected_sha256
+        && previous.as_ref().is_none_or(|p| sha256(p) != expected)
+    {
+        return Err(BuildError::SaveConflict);
     }
     let dir = path.parent().ok_or_else(|| BuildError::Invalid("Save has no parent directory".into()))?;
     fs::create_dir_all(dir)?;
@@ -1148,20 +1158,18 @@ pub fn inspect_map(assets_root: &Path, map_id: &str) -> Result<MapInspection, Bu
         for instance in &document.instances {
             catalog.get(&instance.prop_id)?;
             used_props.insert(instance.prop_id.clone());
-            if index == 0 {
-                if let Some(bounds) = manifest.core_bounds_design {
-                    if instance.position[0] < bounds[0]
-                        || instance.position[0] > bounds[2]
-                        || instance.position[1] < bounds[1]
-                        || instance.position[1] > bounds[3]
-                    {
-                        warnings.push(Diagnostic {
-                            code: "off_core_bounds".into(),
-                            item_id: Some(instance.id.clone()),
-                            message: "Placement centre lies outside the TDM core; review its mode".into(),
-                        });
-                    }
-                }
+            if index == 0
+                && let Some(bounds) = manifest.core_bounds_design
+                && (instance.position[0] < bounds[0]
+                    || instance.position[0] > bounds[2]
+                    || instance.position[1] < bounds[1]
+                    || instance.position[1] > bounds[3])
+            {
+                warnings.push(Diagnostic {
+                    code: "off_core_bounds".into(),
+                    item_id: Some(instance.id.clone()),
+                    message: "Placement centre lies outside the TDM core; review its mode".into(),
+                });
             }
         }
         prop_count += collision::instantiate_props(assets_root, &catalog, &document, None)?.len();

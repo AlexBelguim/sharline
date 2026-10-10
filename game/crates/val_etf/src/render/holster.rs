@@ -33,11 +33,7 @@ impl ViewHolster {
 
 /// One frame toward away (`busy`) or back in the hands: down over `down_s`, up over `up_s`.
 pub fn step(t: f32, busy: bool, pose: &HolsterPose, dt: f32) -> f32 {
-    if busy {
-        (t + dt / pose.down_s.max(1e-3)).min(1.0)
-    } else {
-        (t - dt / pose.up_s.max(1e-3)).max(0.0)
-    }
+    if busy { (t + dt / pose.down_s.max(1e-3)).min(1.0) } else { (t - dt / pose.up_s.max(1e-3)).max(0.0) }
 }
 
 /// The gun's view pose with `amount` of the holster on top: shifted (view axes, metres) and pitched muzzle down.

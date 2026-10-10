@@ -247,12 +247,16 @@ fn apply_cursor(
     editor: Option<Res<crate::build_editor::EditorActive>>,
     editor_look: Option<Res<crate::build_editor::EditorLook>>,
 ) {
-    let free = if editor.is_some_and(|e|e.0) { !editor_look.is_some_and(|e|e.0) || cli.hands_off() } else {cursor_free(
-        *state.get() == AppState::InGame,
-        !screens.is_empty(),
-        control.is_some_and(|c| c.paused),
-        cli.hands_off(),
-    )};
+    let free = if editor.is_some_and(|e| e.0) {
+        !editor_look.is_some_and(|e| e.0) || cli.hands_off()
+    } else {
+        cursor_free(
+            *state.get() == AppState::InGame,
+            !screens.is_empty(),
+            control.is_some_and(|c| c.paused),
+            cli.hands_off(),
+        )
+    };
     let (visible, grab) = if free { (true, CursorGrabMode::None) } else { (false, CursorGrabMode::Locked) };
     for mut c in &mut cursor {
         if c.visible != visible || c.grab_mode != grab {

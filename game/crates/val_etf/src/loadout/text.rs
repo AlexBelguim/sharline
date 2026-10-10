@@ -587,14 +587,14 @@ mod tests {
         let d = GameData::embedded();
         let under = AttachmentCategory::Under;
         let angled = own(&d, "ar7_mako", "grip_angled");
-        assert_eq!(texts(&angled), ["RECOIL H −12 %", "ADS TIME −8 %"]);
+        assert_eq!(texts(&angled), ["RECOIL H −30 %", "ADS TIME −8 %"]);
         assert!(angled.iter().all(|x| x.tone == Tone::Good));
         assert_eq!(
             texts(&own(&d, "ar7_mako", "grip_stub")),
-            ["MOVING SPREAD −12 %", "SPRINT-TO-FIRE −10 %", "RECOIL H −6 %"]
+            ["RECOIL H −18 %", "MOVING SPREAD −12 %", "SPRINT-TO-FIRE −10 %"]
         );
         let brace = own(&d, "ar7_mako", "grip_vertical");
-        assert_eq!(texts(&brace), ["RECOIL H −22 %", "SWAY −5 %", "ADS TIME +3 %"], "good first, then bad");
+        assert_eq!(texts(&brace), ["RECOIL H −45 %", "SWAY −5 %", "ADS TIME +3 %"], "good first, then bad");
         assert_eq!(brace[2].tone, Tone::Bad);
         let (empty, none) = stats_pair(&d, "ar7_mako", under, None);
         assert_eq!(texts(&own_lines(&empty, &none, None)), ["BASELINE"], "NONE does nothing");
@@ -602,12 +602,12 @@ mod tests {
         // the stub grip is the quiet vs-equipped line.
         let (_, stub) = stats_pair(&d, "ar7_mako", under, Some("grip_stub"));
         let vs_none = stat_lines(&stub, &none);
-        assert_eq!(texts(&vs_none), ["MOVING SPREAD +14 %", "SPRINT-TO-FIRE +11 %", "RECOIL H +6 %"]);
+        assert_eq!(texts(&vs_none), ["RECOIL H +22 %", "MOVING SPREAD +14 %", "SPRINT-TO-FIRE +11 %"]);
         assert!(vs_none.iter().all(|x| x.tone == Tone::Bad));
         let (_, ang) = stats_pair(&d, "ar7_mako", under, Some("grip_angled"));
         assert_eq!(
             texts(&stat_lines(&stub, &ang)),
-            ["ADS TIME −8 %", "RECOIL H −6 %", "MOVING SPREAD +14 %", "SPRINT-TO-FIRE +11 %"]
+            ["RECOIL H −15 %", "ADS TIME −8 %", "MOVING SPREAD +14 %", "SPRINT-TO-FIRE +11 %"]
         );
         assert!(stat_lines(&stub, &stub).is_empty(), "nothing changes against itself");
         // The own effect does not depend on what else is fitted (a different stock, say).
@@ -620,7 +620,7 @@ mod tests {
         assert_eq!(texts(&own_lines(&e2, &w2, d.attachment("grip_angled"))), texts(&angled));
         // Required slots: against the slot empty. A default stock is the plain gun; a magazine has its capacity.
         assert_eq!(texts(&own(&d, "ar7_mako", "mako_stock_standard")), ["BASELINE"]);
-        assert_eq!(texts(&own(&d, "ar7_mako", "mako_stock_precision"))[0], "RECOIL V −20 %");
+        assert_eq!(texts(&own(&d, "ar7_mako", "mako_stock_precision"))[0], "RECOIL V −40 %");
         assert_eq!(texts(&own(&d, "ar7_mako", "mag_30")), ["CAPACITY 30"]);
         let m45 = own(&d, "ar7_mako", "mag_45");
         assert_eq!(texts(&m45), ["CAPACITY 45", "RELOAD +12 %", "ADS TIME +5 %", "MOBILITY −1 %"]);

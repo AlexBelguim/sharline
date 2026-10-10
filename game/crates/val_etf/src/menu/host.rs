@@ -216,11 +216,8 @@ pub(super) fn spawn_page(
         t.spawn((button_with_key(fonts, "Back", "Esc", BtnKind::Normal, BtnSize::M), Click(MenuAction::CloseModal)));
     });
     // The settings, centred under the bar; the page scrolls nothing, the panel fits 1080 p.
-    r.spawn(Node {
-        justify_content: JustifyContent::Center,
-        ..abs(Some(0.0), Some(0.0), Some(112.0), Some(112.0))
-    })
-    .with_children(|c| spawn_form(c, ctx, host, session, state));
+    r.spawn(Node { justify_content: JustifyContent::Center, ..abs(Some(0.0), Some(0.0), Some(112.0), Some(112.0)) })
+        .with_children(|c| spawn_form(c, ctx, host, session, state));
     // Bottom bar: why it could not host (if it failed), and CREATE LOBBY on the right.
     r.spawn(bottom_bar(88.0)).with_children(|b| {
         b.spawn((

@@ -385,7 +385,7 @@ fn scale_normal_image(source: &Image, scale: f32) -> Option<Image> {
         return None;
     }
     let mut result = source.clone();
-    for pixel in result.data.as_mut()?.chunks_exact_mut(4) {
+    for pixel in result.data.as_mut()?.as_chunks_mut::<4>().0 {
         let n = Vec3::new(
             (pixel[0] as f32 / 255. * 2. - 1.) * scale,
             (pixel[1] as f32 / 255. * 2. - 1.) * scale,
