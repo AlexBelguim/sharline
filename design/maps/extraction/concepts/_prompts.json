@@ -1,0 +1,1595 @@
+{
+ "about": "Concept art for the SHARD/LINE extraction map (design/maps/extraction/LAYOUT.md), made with the local Krea2 model via tools/comfy_gen.py. Style target: the Showhome concepts in design/maps/tdm/concepts/_candidates/A_showhome_*. Every text-to-image prompt = area text + lighting line + the exact Showhome style suffix.",
+ "tool": "tools/comfy_gen.py (ComfyUI at http://127.0.0.1:8188)",
+ "style_suffix": "Stylized 3D game environment concept art in the style of a modern hero shooter: clean planar hard-surface shapes, generous bevels, chunky readable silhouettes, painted slightly flat materials, soft colour gradients, minimal grime, grounded near-future design, not cyberpunk, no neon. No people, no text, no letters, no logos.",
+ "lighting_aerial": "Warm late-afternoon sun, long soft shadows, pale blue sky haze on the horizon.",
+ "lighting_ground": "Warm late-afternoon sunlight, long soft shadows, soft blue sky with a few warm clouds.",
+ "picks": {
+  "01_worksite": {
+   "worksite_aerial.png": "worksite_aerial_v2_t2i_s11.png",
+   "worksite_ground.png": "worksite_ground_v2_t2i_s12.png"
+  },
+  "02_river_bridge": {
+   "river_bridge_aerial.png": "river_bridge_aerial_v2_t2i_s11.png",
+   "river_bridge_ground.png": "river_bridge_ground_v2_t2i_s11.png"
+  },
+  "03_dirt_bridge": {
+   "dirt_bridge_aerial.png": "dirt_bridge_aerial_v2_t2i_s11.png",
+   "dirt_bridge_ground.png": "dirt_bridge_ground_v2_t2i_s11.png"
+  },
+  "04_weir": {
+   "weir_aerial.png": "weir_aerial_v1_t2i_s11.png",
+   "weir_ground.png": "weir_ground_v1_t2i_s11.png"
+  },
+  "05_treatment_plant": {
+   "treatment_plant_aerial.png": "treatment_plant_aerial_v1_t2i_s12.png",
+   "treatment_plant_ground.png": "treatment_plant_ground_v1_t2i_s11.png"
+  },
+  "06_container_park": {
+   "container_park_aerial.png": "container_park_aerial_v3_t2i_s11.png",
+   "container_park_ground.png": "container_park_ground_v4_t2i_s11.png"
+  },
+  "07_self_storage": {
+   "self_storage_aerial.png": "self_storage_aerial_v2_t2i_s11.png",
+   "self_storage_ground.png": "self_storage_ground_v1_t2i_s11.png"
+  },
+  "08_gas_station": {
+   "gas_station_aerial.png": "gas_station_aerial_v2_t2i_s11.png",
+   "gas_station_ground.png": "gas_station_ground_v1_t2i_s11.png"
+  },
+  "09_highway": {
+   "highway_aerial.png": "highway_aerial_v5_t2i_s13.png",
+   "highway_ground.png": "highway_ground_v2_t2i_s11.png",
+   "underpass_ground.png": "underpass_ground_v1_t2i_s12.png"
+  },
+  "10_farm": {
+   "farm_aerial.png": "farm_aerial_v1_t2i_s11.png",
+   "farm_ground.png": "farm_ground_v1_t2i_s12.png"
+  },
+  "11_substation_hut": {
+   "substation_aerial.png": "substation_aerial_v1_t2i_s12.png",
+   "substation_ground.png": "substation_ground_v1_t2i_s12.png",
+   "foresters_hut_aerial.png": "foresters_hut_aerial_v2_t2i_s11.png",
+   "foresters_hut_ground.png": "foresters_hut_ground_v1_t2i_s11.png"
+  },
+  "12_dike_sluice": {
+   "dike_sluice_aerial.png": "dike_sluice_aerial_v2_t2i_s11.png",
+   "dike_sluice_ground.png": "dike_sluice_ground_v3_t2i_s11.png"
+  }
+ },
+ "candidates": {
+  "01_worksite": {
+   "worksite_aerial_v1_refb2_s11.png": {
+    "view": "aerial",
+    "subject": "worksite",
+    "prompt_version": "v1",
+    "seed": 11,
+    "mode": "reference edit (Krea2 identity edit, --ref)",
+    "size": [
+     1536,
+     864
+    ],
+    "steps": 10,
+    "prompt": "Keep this exact painting style, colour palette, camera angle and warm late-afternoon lighting, but show a completely different place instead of these houses: High aerial three-quarter view of a large residential construction site in the 2060s, the half-built edge of a new housing district in flat Flemish countryside. In the centre a row of four half-built terraced houses: bare grey concrete floor slabs stacked three storeys high on concrete columns, no walls yet, wrapped in steel scaffolding with ladders. Two tall yellow-orange lattice tower cranes with long horizontal jibs. A site office compound of white and grey office containers stacked two high, a row of portable toilets and a generator. A material yard with pallet stacks of bricks, rebar racks, pipe stacks, a tipper truck and a tracked excavator. Graded sandy dirt plots with concrete foundation slabs and sticking-up rebar, rectangular excavation pits with earth ramps, mounds of soil. Gravel site tracks and mesh construction fence panels. At the front edge two finished modern show homes, one sage-green and one terracotta, beside a short street with a white removal truck; woods and green fields beyond. Same stylized hero-shooter concept-art look, no people, no text.",
+    "ref": "design/maps/tdm/concepts/_candidates/A_showhome_aerial_s12.png",
+    "ref_boost": 2.0
+   },
+   "worksite_aerial_v1_t2i_s11.png": {
+    "view": "aerial",
+    "subject": "worksite",
+    "prompt_version": "v1",
+    "seed": 11,
+    "mode": "text-to-image (Krea2 turbo, no LoRA)",
+    "size": [
+     1536,
+     864
+    ],
+    "steps": 8,
+    "prompt": "High aerial three-quarter view of a large residential construction site in the 2060s, the half-built edge of a new housing district in flat Flemish countryside. In the centre a row of four half-built terraced houses: bare grey concrete floor slabs stacked three storeys high on concrete columns, no walls yet, wrapped in steel scaffolding with ladders. Two tall yellow-orange lattice tower cranes with long horizontal jibs. A site office compound of white and grey office containers stacked two high, a row of portable toilets and a generator. A material yard with pallet stacks of bricks, rebar racks, pipe stacks, a tipper truck and a tracked excavator. Graded sandy dirt plots with concrete foundation slabs and sticking-up rebar, rectangular excavation pits with earth ramps, mounds of soil. Gravel site tracks and mesh construction fence panels. At the front edge two finished modern show homes, one sage-green and one terracotta, beside a short street with a white removal truck; woods and green fields beyond. Warm late-afternoon sun, long soft shadows, pale blue sky haze on the horizon. Stylized 3D game environment concept art in the style of a modern hero shooter: clean planar hard-surface shapes, generous bevels, chunky readable silhouettes, painted slightly flat materials, soft colour gradients, minimal grime, grounded near-future design, not cyberpunk, no neon. No people, no text, no letters, no logos."
+   },
+   "worksite_aerial_v1_t2i_s12.png": {
+    "view": "aerial",
+    "subject": "worksite",
+    "prompt_version": "v1",
+    "seed": 12,
+    "mode": "text-to-image (Krea2 turbo, no LoRA)",
+    "size": [
+     1536,
+     864
+    ],
+    "steps": 8,
+    "prompt": "High aerial three-quarter view of a large residential construction site in the 2060s, the half-built edge of a new housing district in flat Flemish countryside. In the centre a row of four half-built terraced houses: bare grey concrete floor slabs stacked three storeys high on concrete columns, no walls yet, wrapped in steel scaffolding with ladders. Two tall yellow-orange lattice tower cranes with long horizontal jibs. A site office compound of white and grey office containers stacked two high, a row of portable toilets and a generator. A material yard with pallet stacks of bricks, rebar racks, pipe stacks, a tipper truck and a tracked excavator. Graded sandy dirt plots with concrete foundation slabs and sticking-up rebar, rectangular excavation pits with earth ramps, mounds of soil. Gravel site tracks and mesh construction fence panels. At the front edge two finished modern show homes, one sage-green and one terracotta, beside a short street with a white removal truck; woods and green fields beyond. Warm late-afternoon sun, long soft shadows, pale blue sky haze on the horizon. Stylized 3D game environment concept art in the style of a modern hero shooter: clean planar hard-surface shapes, generous bevels, chunky readable silhouettes, painted slightly flat materials, soft colour gradients, minimal grime, grounded near-future design, not cyberpunk, no neon. No people, no text, no letters, no logos."
+   },
+   "worksite_aerial_v2_t2i_s11.png": {
+    "view": "aerial",
+    "subject": "worksite",
+    "prompt_version": "v2",
+    "seed": 11,
+    "mode": "text-to-image (Krea2 turbo, no LoRA)",
+    "size": [
+     1536,
+     864
+    ],
+    "steps": 8,
+    "prompt": "High aerial three-quarter view of a large residential construction site in the 2060s, the half-built edge of a new Belgian housing district in flat countryside. In the middle a row of four half-built modern rowhouses with flat roofs: only bare grey concrete floor slabs stacked on concrete columns, ground floor, two open upper floors and a flat roof slab, no walls yet, wrapped in steel scaffolding with ladders. Two tall yellow-orange lattice tower cranes with long horizontal jibs, one swinging over a short street. A site office compound of white office containers stacked two high, portable toilets and a generator by the gate, a cement mixer truck parked at the gate. A material yard with pallet stacks of bricks, rebar racks, pipe stacks, a tipper truck and a tracked excavator. Sandy dirt plots with foundation slabs and sticking-up rebar, three rectangular excavation pits with earth ramps, mounds of soil, gravel site tracks, mesh fence panels. At the front two finished modern show homes, one sage-green and one terracotta, with dark solar-tile gable roofs and rounded 3D-printed concrete corners, a white removal truck in the street between them. Woods and green fields beyond. Warm late-afternoon sun, long soft shadows, pale blue sky haze on the horizon. Stylized 3D game environment concept art in the style of a modern hero shooter: clean planar hard-surface shapes, generous bevels, chunky readable silhouettes, painted slightly flat materials, soft colour gradients, minimal grime, grounded near-future design, not cyberpunk, no neon. No people, no text, no letters, no logos."
+   },
+   "worksite_aerial_v2_t2i_s12.png": {
+    "view": "aerial",
+    "subject": "worksite",
+    "prompt_version": "v2",
+    "seed": 12,
+    "mode": "text-to-image (Krea2 turbo, no LoRA)",
+    "size": [
+     1536,
+     864
+    ],
+    "steps": 8,
+    "prompt": "High aerial three-quarter view of a large residential construction site in the 2060s, the half-built edge of a new Belgian housing district in flat countryside. In the middle a row of four half-built modern rowhouses with flat roofs: only bare grey concrete floor slabs stacked on concrete columns, ground floor, two open upper floors and a flat roof slab, no walls yet, wrapped in steel scaffolding with ladders. Two tall yellow-orange lattice tower cranes with long horizontal jibs, one swinging over a short street. A site office compound of white office containers stacked two high, portable toilets and a generator by the gate, a cement mixer truck parked at the gate. A material yard with pallet stacks of bricks, rebar racks, pipe stacks, a tipper truck and a tracked excavator. Sandy dirt plots with foundation slabs and sticking-up rebar, three rectangular excavation pits with earth ramps, mounds of soil, gravel site tracks, mesh fence panels. At the front two finished modern show homes, one sage-green and one terracotta, with dark solar-tile gable roofs and rounded 3D-printed concrete corners, a white removal truck in the street between them. Woods and green fields beyond. Warm late-afternoon sun, long soft shadows, pale blue sky haze on the horizon. Stylized 3D game environment concept art in the style of a modern hero shooter: clean planar hard-surface shapes, generous bevels, chunky readable silhouettes, painted slightly flat materials, soft colour gradients, minimal grime, grounded near-future design, not cyberpunk, no neon. No people, no text, no letters, no logos."
+   },
+   "worksite_aerial_v3_t2i_s11.png": {
+    "view": "aerial",
+    "subject": "worksite",
+    "prompt_version": "v3",
+    "seed": 11,
+    "mode": "text-to-image (Krea2 turbo, no LoRA)",
+    "size": [
+     1536,
+     864
+    ],
+    "steps": 8,
+    "prompt": "High aerial three-quarter view from the woods side looking over a residential construction site in the 2060s in flat Flemish countryside: in the foreground a row of four half-built modern flat-roofed rowhouses, only bare grey concrete floor slabs on columns, three storeys plus a flat roof slab, no walls, wrapped in scaffolding with ladders. Behind them a gravel back road and a mesh site fence, then two finished modern show homes with sage-green and terracotta facade panels, dark solar-tile gable roofs, back gardens with greenhouses and carports. Two tall yellow-orange lattice tower cranes, white site office containers stacked two high, a material yard with pallets and an excavator, sandy plots, excavation pits and soil heaps. Warm late-afternoon sun, long soft shadows, pale blue sky haze on the horizon. Stylized 3D game environment concept art in the style of a modern hero shooter: clean planar hard-surface shapes, generous bevels, chunky readable silhouettes, painted slightly flat materials, soft colour gradients, minimal grime, grounded near-future design, not cyberpunk, no neon. No people, no text, no letters, no logos."
+   },
+   "worksite_ground_v1_t2i_s11.png": {
+    "view": "ground",
+    "subject": "worksite",
+    "prompt_version": "v1",
+    "seed": 11,
+    "mode": "text-to-image (Krea2 turbo, no LoRA)",
+    "size": [
+     1536,
+     864
+    ],
+    "steps": 8,
+    "prompt": "Eye-level view standing on a gravel site track on a residential construction site in the 2060s. Ahead a row of four half-built terraced houses: three bare grey concrete floor slabs on concrete columns with open sides and no walls yet, wrapped in steel scaffolding with ladders. A tall yellow-orange lattice tower crane rises behind with its jib across the sky. Pallet stacks of bricks, rebar bundles, a parked tracked excavator, a mound of sandy soil and a shallow excavation pit with a dirt ramp in the foreground, mesh construction fence panels on concrete feet, stacked white site office containers on the left. Warm late-afternoon sunlight, long soft shadows, soft blue sky with a few warm clouds. Stylized 3D game environment concept art in the style of a modern hero shooter: clean planar hard-surface shapes, generous bevels, chunky readable silhouettes, painted slightly flat materials, soft colour gradients, minimal grime, grounded near-future design, not cyberpunk, no neon. No people, no text, no letters, no logos."
+   },
+   "worksite_ground_v1_t2i_s12.png": {
+    "view": "ground",
+    "subject": "worksite",
+    "prompt_version": "v1",
+    "seed": 12,
+    "mode": "text-to-image (Krea2 turbo, no LoRA)",
+    "size": [
+     1536,
+     864
+    ],
+    "steps": 8,
+    "prompt": "Eye-level view standing on a gravel site track on a residential construction site in the 2060s. Ahead a row of four half-built terraced houses: three bare grey concrete floor slabs on concrete columns with open sides and no walls yet, wrapped in steel scaffolding with ladders. A tall yellow-orange lattice tower crane rises behind with its jib across the sky. Pallet stacks of bricks, rebar bundles, a parked tracked excavator, a mound of sandy soil and a shallow excavation pit with a dirt ramp in the foreground, mesh construction fence panels on concrete feet, stacked white site office containers on the left. Warm late-afternoon sunlight, long soft shadows, soft blue sky with a few warm clouds. Stylized 3D game environment concept art in the style of a modern hero shooter: clean planar hard-surface shapes, generous bevels, chunky readable silhouettes, painted slightly flat materials, soft colour gradients, minimal grime, grounded near-future design, not cyberpunk, no neon. No people, no text, no letters, no logos."
+   },
+   "worksite_ground_v2_refb1_s11.png": {
+    "view": "ground",
+    "subject": "worksite",
+    "prompt_version": "v2",
+    "seed": 11,
+    "mode": "reference edit (Krea2 identity edit, --ref)",
+    "size": [
+     1536,
+     864
+    ],
+    "steps": 10,
+    "prompt": "Keep this exact painting style, colour palette, camera angle and warm late-afternoon lighting, but show a completely different place instead of these houses: Eye-level view standing on a gravel site track on a residential construction site in the 2060s. Ahead a row of four half-built modern flat-roofed rowhouses, no chimneys: only bare grey concrete floor slabs on concrete columns, a ground floor, two open upper floors and a flat roof slab on top, open sides with no walls yet, steel scaffolding with ladders up the front. A tall yellow-orange lattice tower crane rises behind with its jib across the sky. Stacked white site office containers on the left, pallet stacks of bricks, rebar bundles, a parked tracked excavator, a mound of sandy soil and a shallow excavation pit with a dirt ramp in the foreground, mesh construction fence panels on concrete feet. Same stylized hero-shooter concept-art look, no people, no text.",
+    "ref": "design/maps/tdm/concepts/_candidates/A_showhome_ground_s12.png",
+    "ref_boost": 1.0
+   },
+   "worksite_ground_v2_t2i_s11.png": {
+    "view": "ground",
+    "subject": "worksite",
+    "prompt_version": "v2",
+    "seed": 11,
+    "mode": "text-to-image (Krea2 turbo, no LoRA)",
+    "size": [
+     1536,
+     864
+    ],
+    "steps": 8,
+    "prompt": "Eye-level view standing on a gravel site track on a residential construction site in the 2060s. Ahead a row of four half-built modern flat-roofed rowhouses, no chimneys: only bare grey concrete floor slabs on concrete columns, a ground floor, two open upper floors and a flat roof slab on top, open sides with no walls yet, steel scaffolding with ladders up the front. A tall yellow-orange lattice tower crane rises behind with its jib across the sky. Stacked white site office containers on the left, pallet stacks of bricks, rebar bundles, a parked tracked excavator, a mound of sandy soil and a shallow excavation pit with a dirt ramp in the foreground, mesh construction fence panels on concrete feet. Warm late-afternoon sunlight, long soft shadows, soft blue sky with a few warm clouds. Stylized 3D game environment concept art in the style of a modern hero shooter: clean planar hard-surface shapes, generous bevels, chunky readable silhouettes, painted slightly flat materials, soft colour gradients, minimal grime, grounded near-future design, not cyberpunk, no neon. No people, no text, no letters, no logos."
+   },
+   "worksite_ground_v2_t2i_s12.png": {
+    "view": "ground",
+    "subject": "worksite",
+    "prompt_version": "v2",
+    "seed": 12,
+    "mode": "text-to-image (Krea2 turbo, no LoRA)",
+    "size": [
+     1536,
+     864
+    ],
+    "steps": 8,
+    "prompt": "Eye-level view standing on a gravel site track on a residential construction site in the 2060s. Ahead a row of four half-built modern flat-roofed rowhouses, no chimneys: only bare grey concrete floor slabs on concrete columns, a ground floor, two open upper floors and a flat roof slab on top, open sides with no walls yet, steel scaffolding with ladders up the front. A tall yellow-orange lattice tower crane rises behind with its jib across the sky. Stacked white site office containers on the left, pallet stacks of bricks, rebar bundles, a parked tracked excavator, a mound of sandy soil and a shallow excavation pit with a dirt ramp in the foreground, mesh construction fence panels on concrete feet. Warm late-afternoon sunlight, long soft shadows, soft blue sky with a few warm clouds. Stylized 3D game environment concept art in the style of a modern hero shooter: clean planar hard-surface shapes, generous bevels, chunky readable silhouettes, painted slightly flat materials, soft colour gradients, minimal grime, grounded near-future design, not cyberpunk, no neon. No people, no text, no letters, no logos."
+   },
+   "worksite_ground_v3_t2i_s11.png": {
+    "view": "ground",
+    "subject": "worksite",
+    "prompt_version": "v3",
+    "seed": 11,
+    "mode": "text-to-image (Krea2 turbo, no LoRA)",
+    "size": [
+     1536,
+     864
+    ],
+    "steps": 8,
+    "prompt": "Eye-level view standing on the bare concrete top floor slab of a half-built rowhouse on a construction site, no walls, only concrete columns and scaffolding railings at the open edge, looking out and down over the site: a gravel back road, a mesh fence, the back gardens and carports of two finished modern show homes with sage-green and terracotta facades and dark solar-tile roofs, a tall yellow-orange tower crane on the right, sandy plots and soil heaps, fields and woods on the horizon. Warm late-afternoon sunlight, long soft shadows, soft blue sky with a few warm clouds. Stylized 3D game environment concept art in the style of a modern hero shooter: clean planar hard-surface shapes, generous bevels, chunky readable silhouettes, painted slightly flat materials, soft colour gradients, minimal grime, grounded near-future design, not cyberpunk, no neon. No people, no text, no letters, no logos."
+   }
+  },
+  "02_river_bridge": {
+   "river_bridge_aerial_v1_t2i_s11.png": {
+    "view": "aerial",
+    "subject": "river_bridge",
+    "prompt_version": "v1",
+    "seed": 11,
+    "mode": "text-to-image (Krea2 turbo, no LoRA)",
+    "size": [
+     1536,
+     864
+    ],
+    "steps": 8,
+    "prompt": "High aerial three-quarter view of a 40 metre wide calm green river winding through flat Flemish countryside in the 2060s, between banks of grey riprap stones and steel sheet piling, with gravel towpaths along both banks. A plain modern concrete girder road bridge crosses the river: two traffic lanes with footpaths, low solid concrete parapets, two abandoned wrecked cars stopped at angles on the deck. A tree-lined road leads onto the bridge from both sides. On the near bank green fields, a row of tall poplars and a distant construction site with a tower crane; on the far bank woods and a fenced industrial edge with round treatment tanks. Warm late-afternoon sun, long soft shadows, pale blue sky haze on the horizon. Stylized 3D game environment concept art in the style of a modern hero shooter: clean planar hard-surface shapes, generous bevels, chunky readable silhouettes, painted slightly flat materials, soft colour gradients, minimal grime, grounded near-future design, not cyberpunk, no neon. No people, no text, no letters, no logos."
+   },
+   "river_bridge_aerial_v1_t2i_s12.png": {
+    "view": "aerial",
+    "subject": "river_bridge",
+    "prompt_version": "v1",
+    "seed": 12,
+    "mode": "text-to-image (Krea2 turbo, no LoRA)",
+    "size": [
+     1536,
+     864
+    ],
+    "steps": 8,
+    "prompt": "High aerial three-quarter view of a 40 metre wide calm green river winding through flat Flemish countryside in the 2060s, between banks of grey riprap stones and steel sheet piling, with gravel towpaths along both banks. A plain modern concrete girder road bridge crosses the river: two traffic lanes with footpaths, low solid concrete parapets, two abandoned wrecked cars stopped at angles on the deck. A tree-lined road leads onto the bridge from both sides. On the near bank green fields, a row of tall poplars and a distant construction site with a tower crane; on the far bank woods and a fenced industrial edge with round treatment tanks. Warm late-afternoon sun, long soft shadows, pale blue sky haze on the horizon. Stylized 3D game environment concept art in the style of a modern hero shooter: clean planar hard-surface shapes, generous bevels, chunky readable silhouettes, painted slightly flat materials, soft colour gradients, minimal grime, grounded near-future design, not cyberpunk, no neon. No people, no text, no letters, no logos."
+   },
+   "river_bridge_aerial_v2_t2i_s11.png": {
+    "view": "aerial",
+    "subject": "river_bridge",
+    "prompt_version": "v2",
+    "seed": 11,
+    "mode": "text-to-image (Krea2 turbo, no LoRA)",
+    "size": [
+     1536,
+     864
+    ],
+    "steps": 8,
+    "prompt": "High aerial three-quarter view centred on a plain modern concrete girder road bridge crossing a 40 metre wide calm green river in flat Flemish countryside in the 2060s: a two-lane road with footpaths and low solid concrete parapets, two abandoned wrecked cars left at odd angles in the middle of the bridge deck. The river banks are grey riprap stones and steel sheet piling with gravel towpaths along both banks. A tree-lined road leads onto the bridge from both sides. On the near bank green fields and a row of tall poplars, a distant construction site with a tower crane; on the far bank woods and a fenced recycling yard. Warm late-afternoon sun, long soft shadows, pale blue sky haze on the horizon. Stylized 3D game environment concept art in the style of a modern hero shooter: clean planar hard-surface shapes, generous bevels, chunky readable silhouettes, painted slightly flat materials, soft colour gradients, minimal grime, grounded near-future design, not cyberpunk, no neon. No people, no text, no letters, no logos."
+   },
+   "river_bridge_aerial_v2_t2i_s12.png": {
+    "view": "aerial",
+    "subject": "river_bridge",
+    "prompt_version": "v2",
+    "seed": 12,
+    "mode": "text-to-image (Krea2 turbo, no LoRA)",
+    "size": [
+     1536,
+     864
+    ],
+    "steps": 8,
+    "prompt": "High aerial three-quarter view centred on a plain modern concrete girder road bridge crossing a 40 metre wide calm green river in flat Flemish countryside in the 2060s: a two-lane road with footpaths and low solid concrete parapets, two abandoned wrecked cars left at odd angles in the middle of the bridge deck. The river banks are grey riprap stones and steel sheet piling with gravel towpaths along both banks. A tree-lined road leads onto the bridge from both sides. On the near bank green fields and a row of tall poplars, a distant construction site with a tower crane; on the far bank woods and a fenced recycling yard. Warm late-afternoon sun, long soft shadows, pale blue sky haze on the horizon. Stylized 3D game environment concept art in the style of a modern hero shooter: clean planar hard-surface shapes, generous bevels, chunky readable silhouettes, painted slightly flat materials, soft colour gradients, minimal grime, grounded near-future design, not cyberpunk, no neon. No people, no text, no letters, no logos."
+   },
+   "river_bridge_aerial_v3_t2i_s11.png": {
+    "view": "aerial",
+    "subject": "river_bridge",
+    "prompt_version": "v3",
+    "seed": 11,
+    "mode": "text-to-image (Krea2 turbo, no LoRA)",
+    "size": [
+     1536,
+     864
+    ],
+    "steps": 8,
+    "prompt": "High aerial three-quarter view looking down a 40 metre wide calm green river in flat Flemish countryside in the 2060s: in the foreground a plain modern concrete girder road bridge with two wrecked cars on its deck, low parapets, a tree-lined road on both banks. The river runs away into the distance between riprap banks and towpaths, a row of tall poplars on the right bank, the round tanks and silver egg-shaped digesters of a water treatment plant on the left bank, and far away a low weir across the river. Warm late-afternoon sun, long soft shadows, pale blue sky haze on the horizon. Stylized 3D game environment concept art in the style of a modern hero shooter: clean planar hard-surface shapes, generous bevels, chunky readable silhouettes, painted slightly flat materials, soft colour gradients, minimal grime, grounded near-future design, not cyberpunk, no neon. No people, no text, no letters, no logos."
+   },
+   "river_bridge_ground_v1_t2i_s11.png": {
+    "view": "ground",
+    "subject": "river_bridge",
+    "prompt_version": "v1",
+    "seed": 11,
+    "mode": "text-to-image (Krea2 turbo, no LoRA)",
+    "size": [
+     1536,
+     864
+    ],
+    "steps": 8,
+    "prompt": "Eye-level view standing on a modern concrete road bridge over a wide calm river in the 2060s: a two-lane asphalt deck with footpaths and low solid concrete parapets on both sides, two abandoned wrecked hatchback cars stopped at angles on the deck as cover, the road continuing ahead between trees on the far bank. The calm river visible over the parapet with riprap banks and towpaths, a row of tall poplars along the bank, flat green Flemish countryside, a yellow tower crane on the horizon. Warm late-afternoon sunlight, long soft shadows, soft blue sky with a few warm clouds. Stylized 3D game environment concept art in the style of a modern hero shooter: clean planar hard-surface shapes, generous bevels, chunky readable silhouettes, painted slightly flat materials, soft colour gradients, minimal grime, grounded near-future design, not cyberpunk, no neon. No people, no text, no letters, no logos."
+   },
+   "river_bridge_ground_v1_t2i_s12.png": {
+    "view": "ground",
+    "subject": "river_bridge",
+    "prompt_version": "v1",
+    "seed": 12,
+    "mode": "text-to-image (Krea2 turbo, no LoRA)",
+    "size": [
+     1536,
+     864
+    ],
+    "steps": 8,
+    "prompt": "Eye-level view standing on a modern concrete road bridge over a wide calm river in the 2060s: a two-lane asphalt deck with footpaths and low solid concrete parapets on both sides, two abandoned wrecked hatchback cars stopped at angles on the deck as cover, the road continuing ahead between trees on the far bank. The calm river visible over the parapet with riprap banks and towpaths, a row of tall poplars along the bank, flat green Flemish countryside, a yellow tower crane on the horizon. Warm late-afternoon sunlight, long soft shadows, soft blue sky with a few warm clouds. Stylized 3D game environment concept art in the style of a modern hero shooter: clean planar hard-surface shapes, generous bevels, chunky readable silhouettes, painted slightly flat materials, soft colour gradients, minimal grime, grounded near-future design, not cyberpunk, no neon. No people, no text, no letters, no logos."
+   },
+   "river_bridge_ground_v2_refb1_s11.png": {
+    "view": "ground",
+    "subject": "river_bridge",
+    "prompt_version": "v2",
+    "seed": 11,
+    "mode": "reference edit (Krea2 identity edit, --ref)",
+    "size": [
+     1536,
+     864
+    ],
+    "steps": 10,
+    "prompt": "Keep this exact painting style, colour palette, camera angle and warm late-afternoon lighting, but show a completely different place instead of these houses: Eye-level view standing on the footpath of a modern concrete road bridge in the middle of a 40 metre wide calm river in the 2060s: low solid concrete parapets on both sides with the open river visible far below on the left and right, a two-lane asphalt deck, two abandoned wrecked hatchback cars stopped at angles on the deck as cover, the road continuing to the far bank between avenue trees, a row of tall poplars along the riverbank, flat green Flemish countryside, a yellow tower crane on the horizon. Same stylized hero-shooter concept-art look, no people, no text.",
+    "ref": "design/maps/tdm/concepts/_candidates/A_showhome_ground_s11.png",
+    "ref_boost": 1.0
+   },
+   "river_bridge_ground_v2_t2i_s11.png": {
+    "view": "ground",
+    "subject": "river_bridge",
+    "prompt_version": "v2",
+    "seed": 11,
+    "mode": "text-to-image (Krea2 turbo, no LoRA)",
+    "size": [
+     1536,
+     864
+    ],
+    "steps": 8,
+    "prompt": "Eye-level view standing on the footpath of a modern concrete road bridge in the middle of a 40 metre wide calm river in the 2060s: low solid concrete parapets on both sides with the open river visible far below on the left and right, a two-lane asphalt deck, two abandoned wrecked hatchback cars stopped at angles on the deck as cover, the road continuing to the far bank between avenue trees, a row of tall poplars along the riverbank, flat green Flemish countryside, a yellow tower crane on the horizon. Warm late-afternoon sunlight, long soft shadows, soft blue sky with a few warm clouds. Stylized 3D game environment concept art in the style of a modern hero shooter: clean planar hard-surface shapes, generous bevels, chunky readable silhouettes, painted slightly flat materials, soft colour gradients, minimal grime, grounded near-future design, not cyberpunk, no neon. No people, no text, no letters, no logos."
+   },
+   "river_bridge_ground_v2_t2i_s12.png": {
+    "view": "ground",
+    "subject": "river_bridge",
+    "prompt_version": "v2",
+    "seed": 12,
+    "mode": "text-to-image (Krea2 turbo, no LoRA)",
+    "size": [
+     1536,
+     864
+    ],
+    "steps": 8,
+    "prompt": "Eye-level view standing on the footpath of a modern concrete road bridge in the middle of a 40 metre wide calm river in the 2060s: low solid concrete parapets on both sides with the open river visible far below on the left and right, a two-lane asphalt deck, two abandoned wrecked hatchback cars stopped at angles on the deck as cover, the road continuing to the far bank between avenue trees, a row of tall poplars along the riverbank, flat green Flemish countryside, a yellow tower crane on the horizon. Warm late-afternoon sunlight, long soft shadows, soft blue sky with a few warm clouds. Stylized 3D game environment concept art in the style of a modern hero shooter: clean planar hard-surface shapes, generous bevels, chunky readable silhouettes, painted slightly flat materials, soft colour gradients, minimal grime, grounded near-future design, not cyberpunk, no neon. No people, no text, no letters, no logos."
+   }
+  },
+  "03_dirt_bridge": {
+   "dirt_bridge_aerial_v1_t2i_s11.png": {
+    "view": "aerial",
+    "subject": "dirt_bridge",
+    "prompt_version": "v1",
+    "seed": 11,
+    "mode": "text-to-image (Krea2 turbo, no LoRA)",
+    "size": [
+     1536,
+     864
+    ],
+    "steps": 8,
+    "prompt": "High aerial three-quarter view of a narrow old farm-track bridge crossing a 40 metre wide calm river deep in a dense mixed forest in flat Flemish countryside: a four metre wide weathered timber plank deck with simple wooden rails, resting on old stone and concrete piers, a dirt forest track leading to it from both sides. Dense woods of oak, birch and pine reach right down to the water on both banks, tree canopies overhang the river. A quiet hidden crossing. Warm late-afternoon sun, long soft shadows, pale blue sky haze on the horizon. Stylized 3D game environment concept art in the style of a modern hero shooter: clean planar hard-surface shapes, generous bevels, chunky readable silhouettes, painted slightly flat materials, soft colour gradients, minimal grime, grounded near-future design, not cyberpunk, no neon. No people, no text, no letters, no logos."
+   },
+   "dirt_bridge_aerial_v1_t2i_s12.png": {
+    "view": "aerial",
+    "subject": "dirt_bridge",
+    "prompt_version": "v1",
+    "seed": 12,
+    "mode": "text-to-image (Krea2 turbo, no LoRA)",
+    "size": [
+     1536,
+     864
+    ],
+    "steps": 8,
+    "prompt": "High aerial three-quarter view of a narrow old farm-track bridge crossing a 40 metre wide calm river deep in a dense mixed forest in flat Flemish countryside: a four metre wide weathered timber plank deck with simple wooden rails, resting on old stone and concrete piers, a dirt forest track leading to it from both sides. Dense woods of oak, birch and pine reach right down to the water on both banks, tree canopies overhang the river. A quiet hidden crossing. Warm late-afternoon sun, long soft shadows, pale blue sky haze on the horizon. Stylized 3D game environment concept art in the style of a modern hero shooter: clean planar hard-surface shapes, generous bevels, chunky readable silhouettes, painted slightly flat materials, soft colour gradients, minimal grime, grounded near-future design, not cyberpunk, no neon. No people, no text, no letters, no logos."
+   },
+   "dirt_bridge_aerial_v2_t2i_s11.png": {
+    "view": "aerial",
+    "subject": "dirt_bridge",
+    "prompt_version": "v2",
+    "seed": 11,
+    "mode": "text-to-image (Krea2 turbo, no LoRA)",
+    "size": [
+     1536,
+     864
+    ],
+    "steps": 8,
+    "prompt": "High aerial three-quarter view of a long narrow old farm-track bridge, about fifty metres long, crossing a broad 40 metre wide calm river deep in a dense mixed forest in flat Flemish countryside: a four metre wide weathered timber plank deck with simple wooden rails resting on a row of old stone and concrete piers, a dirt forest track leading to it from both sides. Dense woods of oak, birch and pine reach right down to the water on both banks. A quiet hidden crossing. Warm late-afternoon sun, long soft shadows, pale blue sky haze on the horizon. Stylized 3D game environment concept art in the style of a modern hero shooter: clean planar hard-surface shapes, generous bevels, chunky readable silhouettes, painted slightly flat materials, soft colour gradients, minimal grime, grounded near-future design, not cyberpunk, no neon. No people, no text, no letters, no logos."
+   },
+   "dirt_bridge_aerial_v2_t2i_s12.png": {
+    "view": "aerial",
+    "subject": "dirt_bridge",
+    "prompt_version": "v2",
+    "seed": 12,
+    "mode": "text-to-image (Krea2 turbo, no LoRA)",
+    "size": [
+     1536,
+     864
+    ],
+    "steps": 8,
+    "prompt": "High aerial three-quarter view of a long narrow old farm-track bridge, about fifty metres long, crossing a broad 40 metre wide calm river deep in a dense mixed forest in flat Flemish countryside: a four metre wide weathered timber plank deck with simple wooden rails resting on a row of old stone and concrete piers, a dirt forest track leading to it from both sides. Dense woods of oak, birch and pine reach right down to the water on both banks. A quiet hidden crossing. Warm late-afternoon sun, long soft shadows, pale blue sky haze on the horizon. Stylized 3D game environment concept art in the style of a modern hero shooter: clean planar hard-surface shapes, generous bevels, chunky readable silhouettes, painted slightly flat materials, soft colour gradients, minimal grime, grounded near-future design, not cyberpunk, no neon. No people, no text, no letters, no logos."
+   },
+   "dirt_bridge_ground_v1_t2i_s11.png": {
+    "view": "ground",
+    "subject": "dirt_bridge",
+    "prompt_version": "v1",
+    "seed": 11,
+    "mode": "text-to-image (Krea2 turbo, no LoRA)",
+    "size": [
+     1536,
+     864
+    ],
+    "steps": 8,
+    "prompt": "Eye-level view standing at the end of a narrow old timber farm-track bridge over a calm river in a dense forest: a weathered plank deck with simple wooden rails on old stone piers, the dirt track continuing into the woods on the far bank, ferns, undergrowth and tree trunks close on both sides, dappled light through the leaves, warm sunbeams over the water. Warm late-afternoon sunlight, long soft shadows, soft blue sky with a few warm clouds. Stylized 3D game environment concept art in the style of a modern hero shooter: clean planar hard-surface shapes, generous bevels, chunky readable silhouettes, painted slightly flat materials, soft colour gradients, minimal grime, grounded near-future design, not cyberpunk, no neon. No people, no text, no letters, no logos."
+   },
+   "dirt_bridge_ground_v1_t2i_s12.png": {
+    "view": "ground",
+    "subject": "dirt_bridge",
+    "prompt_version": "v1",
+    "seed": 12,
+    "mode": "text-to-image (Krea2 turbo, no LoRA)",
+    "size": [
+     1536,
+     864
+    ],
+    "steps": 8,
+    "prompt": "Eye-level view standing at the end of a narrow old timber farm-track bridge over a calm river in a dense forest: a weathered plank deck with simple wooden rails on old stone piers, the dirt track continuing into the woods on the far bank, ferns, undergrowth and tree trunks close on both sides, dappled light through the leaves, warm sunbeams over the water. Warm late-afternoon sunlight, long soft shadows, soft blue sky with a few warm clouds. Stylized 3D game environment concept art in the style of a modern hero shooter: clean planar hard-surface shapes, generous bevels, chunky readable silhouettes, painted slightly flat materials, soft colour gradients, minimal grime, grounded near-future design, not cyberpunk, no neon. No people, no text, no letters, no logos."
+   },
+   "dirt_bridge_ground_v2_t2i_s11.png": {
+    "view": "ground",
+    "subject": "dirt_bridge",
+    "prompt_version": "v2",
+    "seed": 11,
+    "mode": "text-to-image (Krea2 turbo, no LoRA)",
+    "size": [
+     1536,
+     864
+    ],
+    "steps": 8,
+    "prompt": "Eye-level view standing at the end of a long narrow old timber farm-track bridge that crosses a broad calm river, about fifty metres to the far bank: a weathered plank deck with simple wooden rails on a row of old stone piers, the wide water stretching left and right, the dirt track continuing into dense woods on the far bank, ferns, undergrowth and tree trunks close on both sides of the near end, dappled light, warm sunbeams over the water. Warm late-afternoon sunlight, long soft shadows, soft blue sky with a few warm clouds. Stylized 3D game environment concept art in the style of a modern hero shooter: clean planar hard-surface shapes, generous bevels, chunky readable silhouettes, painted slightly flat materials, soft colour gradients, minimal grime, grounded near-future design, not cyberpunk, no neon. No people, no text, no letters, no logos."
+   },
+   "dirt_bridge_ground_v2_t2i_s12.png": {
+    "view": "ground",
+    "subject": "dirt_bridge",
+    "prompt_version": "v2",
+    "seed": 12,
+    "mode": "text-to-image (Krea2 turbo, no LoRA)",
+    "size": [
+     1536,
+     864
+    ],
+    "steps": 8,
+    "prompt": "Eye-level view standing at the end of a long narrow old timber farm-track bridge that crosses a broad calm river, about fifty metres to the far bank: a weathered plank deck with simple wooden rails on a row of old stone piers, the wide water stretching left and right, the dirt track continuing into dense woods on the far bank, ferns, undergrowth and tree trunks close on both sides of the near end, dappled light, warm sunbeams over the water. Warm late-afternoon sunlight, long soft shadows, soft blue sky with a few warm clouds. Stylized 3D game environment concept art in the style of a modern hero shooter: clean planar hard-surface shapes, generous bevels, chunky readable silhouettes, painted slightly flat materials, soft colour gradients, minimal grime, grounded near-future design, not cyberpunk, no neon. No people, no text, no letters, no logos."
+   },
+   "dirt_bridge_ground_v3_t2i_s11.png": {
+    "view": "ground",
+    "subject": "dirt_bridge",
+    "prompt_version": "v3",
+    "seed": 11,
+    "mode": "text-to-image (Krea2 turbo, no LoRA)",
+    "size": [
+     1536,
+     864
+    ],
+    "steps": 8,
+    "prompt": "Eye-level view standing in the middle of a long narrow old timber farm-track bridge over a broad calm river in a dense forest: weathered planks and simple wooden rails, wide water on both sides reflecting the trees, the forest wall on both banks with the canopy overhanging the water, the dirt track disappearing into the woods ahead, warm low sunbeams slanting across the river. Warm late-afternoon sunlight, long soft shadows, soft blue sky with a few warm clouds. Stylized 3D game environment concept art in the style of a modern hero shooter: clean planar hard-surface shapes, generous bevels, chunky readable silhouettes, painted slightly flat materials, soft colour gradients, minimal grime, grounded near-future design, not cyberpunk, no neon. No people, no text, no letters, no logos."
+   }
+  },
+  "04_weir": {
+   "weir_aerial_v1_t2i_s11.png": {
+    "view": "aerial",
+    "subject": "weir",
+    "prompt_version": "v1",
+    "seed": 11,
+    "mode": "text-to-image (Krea2 turbo, no LoRA)",
+    "size": [
+     1536,
+     864
+    ],
+    "steps": 8,
+    "prompt": "High aerial three-quarter view of a river weir across a 40 metre wide calm river in flat Flemish countryside in the 2060s: a low concrete weir with a row of seven steel sluice gates between concrete piers, white foaming water spilling through, a narrow railed steel service catwalk running across the top. On the far bank right next to the weir a two-storey brick-and-concrete pump house with a flat roof, part of a water treatment plant whose round concrete tanks are visible behind a green palisade fence. On the near bank a row of tall poplars, a towpath and fields. Warm late-afternoon sun, long soft shadows, pale blue sky haze on the horizon. Stylized 3D game environment concept art in the style of a modern hero shooter: clean planar hard-surface shapes, generous bevels, chunky readable silhouettes, painted slightly flat materials, soft colour gradients, minimal grime, grounded near-future design, not cyberpunk, no neon. No people, no text, no letters, no logos."
+   },
+   "weir_aerial_v1_t2i_s12.png": {
+    "view": "aerial",
+    "subject": "weir",
+    "prompt_version": "v1",
+    "seed": 12,
+    "mode": "text-to-image (Krea2 turbo, no LoRA)",
+    "size": [
+     1536,
+     864
+    ],
+    "steps": 8,
+    "prompt": "High aerial three-quarter view of a river weir across a 40 metre wide calm river in flat Flemish countryside in the 2060s: a low concrete weir with a row of seven steel sluice gates between concrete piers, white foaming water spilling through, a narrow railed steel service catwalk running across the top. On the far bank right next to the weir a two-storey brick-and-concrete pump house with a flat roof, part of a water treatment plant whose round concrete tanks are visible behind a green palisade fence. On the near bank a row of tall poplars, a towpath and fields. Warm late-afternoon sun, long soft shadows, pale blue sky haze on the horizon. Stylized 3D game environment concept art in the style of a modern hero shooter: clean planar hard-surface shapes, generous bevels, chunky readable silhouettes, painted slightly flat materials, soft colour gradients, minimal grime, grounded near-future design, not cyberpunk, no neon. No people, no text, no letters, no logos."
+   },
+   "weir_aerial_v3_t2i_s11.png": {
+    "view": "aerial",
+    "subject": "weir",
+    "prompt_version": "v3",
+    "seed": 11,
+    "mode": "text-to-image (Krea2 turbo, no LoRA)",
+    "size": [
+     1536,
+     864
+    ],
+    "steps": 8,
+    "prompt": "High aerial three-quarter view from behind a two-storey brick-and-concrete pump house on the bank of a 40 metre wide river, looking across a long low concrete weir with seven steel sluice gates and a narrow railed steel catwalk running over it to the far bank, where a row of tall poplars, a towpath, a tree nursery and flat fields lie. White water foams below the gates. A green palisade fence and round treatment tanks next to the pump house. Flat Flemish countryside in the 2060s. Warm late-afternoon sun, long soft shadows, pale blue sky haze on the horizon. Stylized 3D game environment concept art in the style of a modern hero shooter: clean planar hard-surface shapes, generous bevels, chunky readable silhouettes, painted slightly flat materials, soft colour gradients, minimal grime, grounded near-future design, not cyberpunk, no neon. No people, no text, no letters, no logos."
+   },
+   "weir_ground_v1_t2i_s11.png": {
+    "view": "ground",
+    "subject": "weir",
+    "prompt_version": "v1",
+    "seed": 11,
+    "mode": "text-to-image (Krea2 turbo, no LoRA)",
+    "size": [
+     1536,
+     864
+    ],
+    "steps": 8,
+    "prompt": "Eye-level view standing at the start of a narrow railed steel service catwalk that runs across a river weir: a row of concrete piers with steel sluice gate frames, white water foaming below, the single-file catwalk leading straight to the far bank where a two-storey brick-and-concrete pump house with a flat roof stands beside the water, a green palisade fence and round treatment tanks behind it. Warm late-afternoon sunlight, long soft shadows, soft blue sky with a few warm clouds. Stylized 3D game environment concept art in the style of a modern hero shooter: clean planar hard-surface shapes, generous bevels, chunky readable silhouettes, painted slightly flat materials, soft colour gradients, minimal grime, grounded near-future design, not cyberpunk, no neon. No people, no text, no letters, no logos."
+   },
+   "weir_ground_v1_t2i_s12.png": {
+    "view": "ground",
+    "subject": "weir",
+    "prompt_version": "v1",
+    "seed": 12,
+    "mode": "text-to-image (Krea2 turbo, no LoRA)",
+    "size": [
+     1536,
+     864
+    ],
+    "steps": 8,
+    "prompt": "Eye-level view standing at the start of a narrow railed steel service catwalk that runs across a river weir: a row of concrete piers with steel sluice gate frames, white water foaming below, the single-file catwalk leading straight to the far bank where a two-storey brick-and-concrete pump house with a flat roof stands beside the water, a green palisade fence and round treatment tanks behind it. Warm late-afternoon sunlight, long soft shadows, soft blue sky with a few warm clouds. Stylized 3D game environment concept art in the style of a modern hero shooter: clean planar hard-surface shapes, generous bevels, chunky readable silhouettes, painted slightly flat materials, soft colour gradients, minimal grime, grounded near-future design, not cyberpunk, no neon. No people, no text, no letters, no logos."
+   },
+   "weir_ground_v3_t2i_s11.png": {
+    "view": "ground",
+    "subject": "weir",
+    "prompt_version": "v3",
+    "seed": 11,
+    "mode": "text-to-image (Krea2 turbo, no LoRA)",
+    "size": [
+     1536,
+     864
+    ],
+    "steps": 8,
+    "prompt": "Eye-level view standing on the flat roof of a two-storey pump house beside a river, a low parapet in front, looking down at a long concrete weir with seven steel sluice gates and a narrow railed steel catwalk running across the river, white water foaming below, a row of tall poplars and fields on the far bank. Warm late-afternoon sunlight, long soft shadows, soft blue sky with a few warm clouds. Stylized 3D game environment concept art in the style of a modern hero shooter: clean planar hard-surface shapes, generous bevels, chunky readable silhouettes, painted slightly flat materials, soft colour gradients, minimal grime, grounded near-future design, not cyberpunk, no neon. No people, no text, no letters, no logos."
+   }
+  },
+  "05_treatment_plant": {
+   "treatment_plant_aerial_v1_refb2_s11.png": {
+    "view": "aerial",
+    "subject": "treatment_plant",
+    "prompt_version": "v1",
+    "seed": 11,
+    "mode": "reference edit (Krea2 identity edit, --ref)",
+    "size": [
+     1536,
+     864
+    ],
+    "steps": 10,
+    "prompt": "Keep this exact painting style, colour palette, camera angle and warm late-afternoon lighting, but show a completely different place instead of these houses: High aerial three-quarter view of a compact modern water treatment plant in flat Flemish countryside in the 2060s: four large round concrete clarifier tanks with rotating steel bridges over dark water, a rectangular aeration basin with four long lanes of bubbling water and steel catwalks between them, a row of six rectangular sludge drying beds with low concrete walls, a three-storey concrete control building with a stair tower and a flat roof, and two tall silver egg-shaped digester tanks as the landmark. Internal service roads, pipes, a green palisade fence around the site, woods around it and a river along one side. Same stylized hero-shooter concept-art look, no people, no text.",
+    "ref": "design/maps/tdm/concepts/_candidates/A_showhome_aerial_s11.png",
+    "ref_boost": 2.0
+   },
+   "treatment_plant_aerial_v1_t2i_s11.png": {
+    "view": "aerial",
+    "subject": "treatment_plant",
+    "prompt_version": "v1",
+    "seed": 11,
+    "mode": "text-to-image (Krea2 turbo, no LoRA)",
+    "size": [
+     1536,
+     864
+    ],
+    "steps": 8,
+    "prompt": "High aerial three-quarter view of a compact modern water treatment plant in flat Flemish countryside in the 2060s: four large round concrete clarifier tanks with rotating steel bridges over dark water, a rectangular aeration basin with four long lanes of bubbling water and steel catwalks between them, a row of six rectangular sludge drying beds with low concrete walls, a three-storey concrete control building with a stair tower and a flat roof, and two tall silver egg-shaped digester tanks as the landmark. Internal service roads, pipes, a green palisade fence around the site, woods around it and a river along one side. Warm late-afternoon sun, long soft shadows, pale blue sky haze on the horizon. Stylized 3D game environment concept art in the style of a modern hero shooter: clean planar hard-surface shapes, generous bevels, chunky readable silhouettes, painted slightly flat materials, soft colour gradients, minimal grime, grounded near-future design, not cyberpunk, no neon. No people, no text, no letters, no logos."
+   },
+   "treatment_plant_aerial_v1_t2i_s12.png": {
+    "view": "aerial",
+    "subject": "treatment_plant",
+    "prompt_version": "v1",
+    "seed": 12,
+    "mode": "text-to-image (Krea2 turbo, no LoRA)",
+    "size": [
+     1536,
+     864
+    ],
+    "steps": 8,
+    "prompt": "High aerial three-quarter view of a compact modern water treatment plant in flat Flemish countryside in the 2060s: four large round concrete clarifier tanks with rotating steel bridges over dark water, a rectangular aeration basin with four long lanes of bubbling water and steel catwalks between them, a row of six rectangular sludge drying beds with low concrete walls, a three-storey concrete control building with a stair tower and a flat roof, and two tall silver egg-shaped digester tanks as the landmark. Internal service roads, pipes, a green palisade fence around the site, woods around it and a river along one side. Warm late-afternoon sun, long soft shadows, pale blue sky haze on the horizon. Stylized 3D game environment concept art in the style of a modern hero shooter: clean planar hard-surface shapes, generous bevels, chunky readable silhouettes, painted slightly flat materials, soft colour gradients, minimal grime, grounded near-future design, not cyberpunk, no neon. No people, no text, no letters, no logos."
+   },
+   "treatment_plant_aerial_v1_t2i_s13.png": {
+    "view": "aerial",
+    "subject": "treatment_plant",
+    "prompt_version": "v1",
+    "seed": 13,
+    "mode": "text-to-image (Krea2 turbo, no LoRA)",
+    "size": [
+     1536,
+     864
+    ],
+    "steps": 8,
+    "prompt": "High aerial three-quarter view of a compact modern water treatment plant in flat Flemish countryside in the 2060s: four large round concrete clarifier tanks with rotating steel bridges over dark water, a rectangular aeration basin with four long lanes of bubbling water and steel catwalks between them, a row of six rectangular sludge drying beds with low concrete walls, a three-storey concrete control building with a stair tower and a flat roof, and two tall silver egg-shaped digester tanks as the landmark. Internal service roads, pipes, a green palisade fence around the site, woods around it and a river along one side. Warm late-afternoon sun, long soft shadows, pale blue sky haze on the horizon. Stylized 3D game environment concept art in the style of a modern hero shooter: clean planar hard-surface shapes, generous bevels, chunky readable silhouettes, painted slightly flat materials, soft colour gradients, minimal grime, grounded near-future design, not cyberpunk, no neon. No people, no text, no letters, no logos."
+   },
+   "treatment_plant_ground_v1_t2i_s11.png": {
+    "view": "ground",
+    "subject": "treatment_plant",
+    "prompt_version": "v1",
+    "seed": 11,
+    "mode": "text-to-image (Krea2 turbo, no LoRA)",
+    "size": [
+     1536,
+     864
+    ],
+    "steps": 8,
+    "prompt": "Eye-level view standing on a concrete service road inside a water treatment plant: on the left the curved concrete rim of a large round clarifier tank with a steel walkway bridge over it, ahead a three-storey concrete control building with a stair tower, behind it two tall silver egg-shaped digester tanks towering over the plant, steel pipes, yellow railings and catwalks. Warm late-afternoon sunlight, long soft shadows, soft blue sky with a few warm clouds. Stylized 3D game environment concept art in the style of a modern hero shooter: clean planar hard-surface shapes, generous bevels, chunky readable silhouettes, painted slightly flat materials, soft colour gradients, minimal grime, grounded near-future design, not cyberpunk, no neon. No people, no text, no letters, no logos."
+   },
+   "treatment_plant_ground_v1_t2i_s12.png": {
+    "view": "ground",
+    "subject": "treatment_plant",
+    "prompt_version": "v1",
+    "seed": 12,
+    "mode": "text-to-image (Krea2 turbo, no LoRA)",
+    "size": [
+     1536,
+     864
+    ],
+    "steps": 8,
+    "prompt": "Eye-level view standing on a concrete service road inside a water treatment plant: on the left the curved concrete rim of a large round clarifier tank with a steel walkway bridge over it, ahead a three-storey concrete control building with a stair tower, behind it two tall silver egg-shaped digester tanks towering over the plant, steel pipes, yellow railings and catwalks. Warm late-afternoon sunlight, long soft shadows, soft blue sky with a few warm clouds. Stylized 3D game environment concept art in the style of a modern hero shooter: clean planar hard-surface shapes, generous bevels, chunky readable silhouettes, painted slightly flat materials, soft colour gradients, minimal grime, grounded near-future design, not cyberpunk, no neon. No people, no text, no letters, no logos."
+   },
+   "treatment_plant_ground_v3_t2i_s11.png": {
+    "view": "ground",
+    "subject": "treatment_plant",
+    "prompt_version": "v3",
+    "seed": 11,
+    "mode": "text-to-image (Krea2 turbo, no LoRA)",
+    "size": [
+     1536,
+     864
+    ],
+    "steps": 8,
+    "prompt": "Eye-level view standing on a steel catwalk between the long lanes of a rectangular aeration basin in a water treatment plant, bubbling grey-blue water in concrete channels on both sides, yellow railings, ahead a three-storey concrete control building with a stair tower and two tall silver egg-shaped digester tanks behind it. Warm late-afternoon sunlight, long soft shadows, soft blue sky with a few warm clouds. Stylized 3D game environment concept art in the style of a modern hero shooter: clean planar hard-surface shapes, generous bevels, chunky readable silhouettes, painted slightly flat materials, soft colour gradients, minimal grime, grounded near-future design, not cyberpunk, no neon. No people, no text, no letters, no logos."
+   }
+  },
+  "06_container_park": {
+   "container_park_aerial_v1_refb1_s11.png": {
+    "view": "aerial",
+    "subject": "container_park",
+    "prompt_version": "v1",
+    "seed": 11,
+    "mode": "reference edit (Krea2 identity edit, --ref)",
+    "size": [
+     1536,
+     864
+    ],
+    "steps": 10,
+    "prompt": "Keep this exact painting style, colour palette, camera angle and warm late-afternoon lighting, but show a completely different place instead of these houses: High aerial three-quarter view of a municipal recycling yard in Flanders in the 2060s: a raised concrete ramp deck shaped like a rectangular ring around a sunken central courtyard, with an up ramp and a down ramp, steel railings along the deck edge. Along the outside of the ring sixteen large open-top steel skips stand below the deck edge, painted in muted colours, filled with wood, scrap metal, green waste, rubble and cardboard. In the courtyard a roofed open shed full of old computers, televisions and cables. A gate with a small guard hut, a fenced hazardous waste cage, a perimeter fence, trees around. Same stylized hero-shooter concept-art look, no people, no text.",
+    "ref": "design/maps/tdm/concepts/_candidates/A_showhome_aerial_s12.png",
+    "ref_boost": 1.0
+   },
+   "container_park_aerial_v1_t2i_s11.png": {
+    "view": "aerial",
+    "subject": "container_park",
+    "prompt_version": "v1",
+    "seed": 11,
+    "mode": "text-to-image (Krea2 turbo, no LoRA)",
+    "size": [
+     1536,
+     864
+    ],
+    "steps": 8,
+    "prompt": "High aerial three-quarter view of a municipal recycling yard in Flanders in the 2060s: a raised concrete ramp deck shaped like a rectangular ring around a sunken central courtyard, with an up ramp and a down ramp, steel railings along the deck edge. Along the outside of the ring sixteen large open-top steel skips stand below the deck edge, painted in muted colours, filled with wood, scrap metal, green waste, rubble and cardboard. In the courtyard a roofed open shed full of old computers, televisions and cables. A gate with a small guard hut, a fenced hazardous waste cage, a perimeter fence, trees around. Warm late-afternoon sun, long soft shadows, pale blue sky haze on the horizon. Stylized 3D game environment concept art in the style of a modern hero shooter: clean planar hard-surface shapes, generous bevels, chunky readable silhouettes, painted slightly flat materials, soft colour gradients, minimal grime, grounded near-future design, not cyberpunk, no neon. No people, no text, no letters, no logos."
+   },
+   "container_park_aerial_v1_t2i_s12.png": {
+    "view": "aerial",
+    "subject": "container_park",
+    "prompt_version": "v1",
+    "seed": 12,
+    "mode": "text-to-image (Krea2 turbo, no LoRA)",
+    "size": [
+     1536,
+     864
+    ],
+    "steps": 8,
+    "prompt": "High aerial three-quarter view of a municipal recycling yard in Flanders in the 2060s: a raised concrete ramp deck shaped like a rectangular ring around a sunken central courtyard, with an up ramp and a down ramp, steel railings along the deck edge. Along the outside of the ring sixteen large open-top steel skips stand below the deck edge, painted in muted colours, filled with wood, scrap metal, green waste, rubble and cardboard. In the courtyard a roofed open shed full of old computers, televisions and cables. A gate with a small guard hut, a fenced hazardous waste cage, a perimeter fence, trees around. Warm late-afternoon sun, long soft shadows, pale blue sky haze on the horizon. Stylized 3D game environment concept art in the style of a modern hero shooter: clean planar hard-surface shapes, generous bevels, chunky readable silhouettes, painted slightly flat materials, soft colour gradients, minimal grime, grounded near-future design, not cyberpunk, no neon. No people, no text, no letters, no logos."
+   },
+   "container_park_aerial_v3_t2i_s11.png": {
+    "view": "aerial",
+    "subject": "container_park",
+    "prompt_version": "v3",
+    "seed": 11,
+    "mode": "text-to-image (Krea2 turbo, no LoRA)",
+    "size": [
+     1536,
+     864
+    ],
+    "steps": 8,
+    "prompt": "High aerial three-quarter view from the gate side of a municipal recycling yard in Flanders in the 2060s: in front a sliding gate with a small guard hut and a fenced hazardous waste cage, beyond it a raised concrete ramp deck shaped like a rectangular ring with an up ramp and a down ramp and steel railings, large open-top steel skips in muted colours lined up below the outer edge of the deck, filled with wood, scrap metal, green waste and rubble, a sunken courtyard in the middle with a roofed shed of old electronics. A grassy motorway embankment and a river bridge in the distance. Warm late-afternoon sun, long soft shadows, pale blue sky haze on the horizon. Stylized 3D game environment concept art in the style of a modern hero shooter: clean planar hard-surface shapes, generous bevels, chunky readable silhouettes, painted slightly flat materials, soft colour gradients, minimal grime, grounded near-future design, not cyberpunk, no neon. No people, no text, no letters, no logos."
+   },
+   "container_park_ground_v1_t2i_s11.png": {
+    "view": "ground",
+    "subject": "container_park",
+    "prompt_version": "v1",
+    "seed": 11,
+    "mode": "text-to-image (Krea2 turbo, no LoRA)",
+    "size": [
+     1536,
+     864
+    ],
+    "steps": 8,
+    "prompt": "Eye-level view standing on the raised concrete ramp deck of a recycling yard, steel railings at the deck edge and large open-top steel skips just below the deck filled with scrap metal, wood and rubble, the deck running around a sunken courtyard with a roofed shed full of old computers and televisions, a grassy highway embankment in the background. Warm late-afternoon sunlight, long soft shadows, soft blue sky with a few warm clouds. Stylized 3D game environment concept art in the style of a modern hero shooter: clean planar hard-surface shapes, generous bevels, chunky readable silhouettes, painted slightly flat materials, soft colour gradients, minimal grime, grounded near-future design, not cyberpunk, no neon. No people, no text, no letters, no logos."
+   },
+   "container_park_ground_v1_t2i_s12.png": {
+    "view": "ground",
+    "subject": "container_park",
+    "prompt_version": "v1",
+    "seed": 12,
+    "mode": "text-to-image (Krea2 turbo, no LoRA)",
+    "size": [
+     1536,
+     864
+    ],
+    "steps": 8,
+    "prompt": "Eye-level view standing on the raised concrete ramp deck of a recycling yard, steel railings at the deck edge and large open-top steel skips just below the deck filled with scrap metal, wood and rubble, the deck running around a sunken courtyard with a roofed shed full of old computers and televisions, a grassy highway embankment in the background. Warm late-afternoon sunlight, long soft shadows, soft blue sky with a few warm clouds. Stylized 3D game environment concept art in the style of a modern hero shooter: clean planar hard-surface shapes, generous bevels, chunky readable silhouettes, painted slightly flat materials, soft colour gradients, minimal grime, grounded near-future design, not cyberpunk, no neon. No people, no text, no letters, no logos."
+   },
+   "container_park_ground_v2_t2i_s11.png": {
+    "view": "ground",
+    "subject": "container_park",
+    "prompt_version": "v2",
+    "seed": 11,
+    "mode": "text-to-image (Krea2 turbo, no LoRA)",
+    "size": [
+     1536,
+     864
+    ],
+    "steps": 8,
+    "prompt": "Eye-level view standing on top of a raised concrete ramp deck at a municipal recycling yard in the 2060s, looking along the deck as it curves around a corner: a steel railing at the outer edge of the deck, and just below the edge a long row of big open-top steel skips in muted green, blue and rust colours, filled with scrap metal, broken wood, rubble and garden waste, so you look down into them from the deck. On the inner side the deck drops to a sunken courtyard with a roofed shed full of old computers and televisions. A fence, trees and a grassy motorway embankment in the background. Warm late-afternoon sunlight, long soft shadows, soft blue sky with a few warm clouds. Stylized 3D game environment concept art in the style of a modern hero shooter: clean planar hard-surface shapes, generous bevels, chunky readable silhouettes, painted slightly flat materials, soft colour gradients, minimal grime, grounded near-future design, not cyberpunk, no neon. No people, no text, no letters, no logos."
+   },
+   "container_park_ground_v2_t2i_s12.png": {
+    "view": "ground",
+    "subject": "container_park",
+    "prompt_version": "v2",
+    "seed": 12,
+    "mode": "text-to-image (Krea2 turbo, no LoRA)",
+    "size": [
+     1536,
+     864
+    ],
+    "steps": 8,
+    "prompt": "Eye-level view standing on top of a raised concrete ramp deck at a municipal recycling yard in the 2060s, looking along the deck as it curves around a corner: a steel railing at the outer edge of the deck, and just below the edge a long row of big open-top steel skips in muted green, blue and rust colours, filled with scrap metal, broken wood, rubble and garden waste, so you look down into them from the deck. On the inner side the deck drops to a sunken courtyard with a roofed shed full of old computers and televisions. A fence, trees and a grassy motorway embankment in the background. Warm late-afternoon sunlight, long soft shadows, soft blue sky with a few warm clouds. Stylized 3D game environment concept art in the style of a modern hero shooter: clean planar hard-surface shapes, generous bevels, chunky readable silhouettes, painted slightly flat materials, soft colour gradients, minimal grime, grounded near-future design, not cyberpunk, no neon. No people, no text, no letters, no logos."
+   },
+   "container_park_ground_v4_t2i_s11.png": {
+    "view": "ground",
+    "subject": "container_park",
+    "prompt_version": "v4",
+    "seed": 11,
+    "mode": "text-to-image (Krea2 turbo, no LoRA)",
+    "size": [
+     1536,
+     864
+    ],
+    "steps": 8,
+    "prompt": "Eye-level view standing on a wide raised concrete driving deck, two and a half metres above the ground, at a municipal recycling yard in the 2060s. On the right side the deck ends at a low steel railing, and directly below that edge, outside the deck, stands a long row of big open-top steel skips in muted green, blue and rust colours, their rims level with the deck, filled with scrap metal, broken wood, rubble and garden waste. The deck runs straight ahead and turns left at the far corner. On the left side, beyond a second railing, lies a sunken courtyard with a roofed open shed full of old computers and televisions. A perimeter fence, trees and a grassy motorway embankment in the distance. Warm late-afternoon sunlight, long soft shadows, soft blue sky with a few warm clouds. Stylized 3D game environment concept art in the style of a modern hero shooter: clean planar hard-surface shapes, generous bevels, chunky readable silhouettes, painted slightly flat materials, soft colour gradients, minimal grime, grounded near-future design, not cyberpunk, no neon. No people, no text, no letters, no logos."
+   },
+   "container_park_ground_v4_t2i_s12.png": {
+    "view": "ground",
+    "subject": "container_park",
+    "prompt_version": "v4",
+    "seed": 12,
+    "mode": "text-to-image (Krea2 turbo, no LoRA)",
+    "size": [
+     1536,
+     864
+    ],
+    "steps": 8,
+    "prompt": "Eye-level view standing on a wide raised concrete driving deck, two and a half metres above the ground, at a municipal recycling yard in the 2060s. On the right side the deck ends at a low steel railing, and directly below that edge, outside the deck, stands a long row of big open-top steel skips in muted green, blue and rust colours, their rims level with the deck, filled with scrap metal, broken wood, rubble and garden waste. The deck runs straight ahead and turns left at the far corner. On the left side, beyond a second railing, lies a sunken courtyard with a roofed open shed full of old computers and televisions. A perimeter fence, trees and a grassy motorway embankment in the distance. Warm late-afternoon sunlight, long soft shadows, soft blue sky with a few warm clouds. Stylized 3D game environment concept art in the style of a modern hero shooter: clean planar hard-surface shapes, generous bevels, chunky readable silhouettes, painted slightly flat materials, soft colour gradients, minimal grime, grounded near-future design, not cyberpunk, no neon. No people, no text, no letters, no logos."
+   },
+   "container_park_ground_v4_t2i_s13.png": {
+    "view": "ground",
+    "subject": "container_park",
+    "prompt_version": "v4",
+    "seed": 13,
+    "mode": "text-to-image (Krea2 turbo, no LoRA)",
+    "size": [
+     1536,
+     864
+    ],
+    "steps": 8,
+    "prompt": "Eye-level view standing on a wide raised concrete driving deck, two and a half metres above the ground, at a municipal recycling yard in the 2060s. On the right side the deck ends at a low steel railing, and directly below that edge, outside the deck, stands a long row of big open-top steel skips in muted green, blue and rust colours, their rims level with the deck, filled with scrap metal, broken wood, rubble and garden waste. The deck runs straight ahead and turns left at the far corner. On the left side, beyond a second railing, lies a sunken courtyard with a roofed open shed full of old computers and televisions. A perimeter fence, trees and a grassy motorway embankment in the distance. Warm late-afternoon sunlight, long soft shadows, soft blue sky with a few warm clouds. Stylized 3D game environment concept art in the style of a modern hero shooter: clean planar hard-surface shapes, generous bevels, chunky readable silhouettes, painted slightly flat materials, soft colour gradients, minimal grime, grounded near-future design, not cyberpunk, no neon. No people, no text, no letters, no logos."
+   }
+  },
+  "07_self_storage": {
+   "self_storage_aerial_v1_t2i_s11.png": {
+    "view": "aerial",
+    "subject": "self_storage",
+    "prompt_version": "v1",
+    "seed": 11,
+    "mode": "text-to-image (Krea2 turbo, no LoRA)",
+    "size": [
+     1536,
+     864
+    ],
+    "steps": 8,
+    "prompt": "High aerial three-quarter view of a self-storage facility on the edge of town in the 2060s: five long parallel single-storey rows of storage units with flat roofs and many roll-up metal doors in muted teal and grey, wide asphalt aisles between the rows, a few doors half open, a two-storey indoor storage block, a small office building at the front gate, a tall green palisade perimeter fence with a sliding gate, woods and a motorway cutting behind. Warm late-afternoon sun, long soft shadows, pale blue sky haze on the horizon. Stylized 3D game environment concept art in the style of a modern hero shooter: clean planar hard-surface shapes, generous bevels, chunky readable silhouettes, painted slightly flat materials, soft colour gradients, minimal grime, grounded near-future design, not cyberpunk, no neon. No people, no text, no letters, no logos."
+   },
+   "self_storage_aerial_v1_t2i_s12.png": {
+    "view": "aerial",
+    "subject": "self_storage",
+    "prompt_version": "v1",
+    "seed": 12,
+    "mode": "text-to-image (Krea2 turbo, no LoRA)",
+    "size": [
+     1536,
+     864
+    ],
+    "steps": 8,
+    "prompt": "High aerial three-quarter view of a self-storage facility on the edge of town in the 2060s: five long parallel single-storey rows of storage units with flat roofs and many roll-up metal doors in muted teal and grey, wide asphalt aisles between the rows, a few doors half open, a two-storey indoor storage block, a small office building at the front gate, a tall green palisade perimeter fence with a sliding gate, woods and a motorway cutting behind. Warm late-afternoon sun, long soft shadows, pale blue sky haze on the horizon. Stylized 3D game environment concept art in the style of a modern hero shooter: clean planar hard-surface shapes, generous bevels, chunky readable silhouettes, painted slightly flat materials, soft colour gradients, minimal grime, grounded near-future design, not cyberpunk, no neon. No people, no text, no letters, no logos."
+   },
+   "self_storage_aerial_v2_t2i_s11.png": {
+    "view": "aerial",
+    "subject": "self_storage",
+    "prompt_version": "v2",
+    "seed": 11,
+    "mode": "text-to-image (Krea2 turbo, no LoRA)",
+    "size": [
+     1536,
+     864
+    ],
+    "steps": 8,
+    "prompt": "High aerial three-quarter view of a self-storage facility in the 2060s standing alone in a clearing among woods and fields, no houses around: five long parallel single-storey rows of storage units with flat roofs and many roll-up metal doors in muted teal and grey, wide asphalt aisles between the rows, a few doors half open, a two-storey indoor storage block, a small office at the front gate, a tall green palisade perimeter fence with a sliding front gate and a rear gate, a quiet access road. Behind it dense woods and an abandoned motorway in a cutting with a few stalled cars. Warm late-afternoon sun, long soft shadows, pale blue sky haze on the horizon. Stylized 3D game environment concept art in the style of a modern hero shooter: clean planar hard-surface shapes, generous bevels, chunky readable silhouettes, painted slightly flat materials, soft colour gradients, minimal grime, grounded near-future design, not cyberpunk, no neon. No people, no text, no letters, no logos."
+   },
+   "self_storage_aerial_v2_t2i_s12.png": {
+    "view": "aerial",
+    "subject": "self_storage",
+    "prompt_version": "v2",
+    "seed": 12,
+    "mode": "text-to-image (Krea2 turbo, no LoRA)",
+    "size": [
+     1536,
+     864
+    ],
+    "steps": 8,
+    "prompt": "High aerial three-quarter view of a self-storage facility in the 2060s standing alone in a clearing among woods and fields, no houses around: five long parallel single-storey rows of storage units with flat roofs and many roll-up metal doors in muted teal and grey, wide asphalt aisles between the rows, a few doors half open, a two-storey indoor storage block, a small office at the front gate, a tall green palisade perimeter fence with a sliding front gate and a rear gate, a quiet access road. Behind it dense woods and an abandoned motorway in a cutting with a few stalled cars. Warm late-afternoon sun, long soft shadows, pale blue sky haze on the horizon. Stylized 3D game environment concept art in the style of a modern hero shooter: clean planar hard-surface shapes, generous bevels, chunky readable silhouettes, painted slightly flat materials, soft colour gradients, minimal grime, grounded near-future design, not cyberpunk, no neon. No people, no text, no letters, no logos."
+   },
+   "self_storage_ground_v1_t2i_s11.png": {
+    "view": "ground",
+    "subject": "self_storage",
+    "prompt_version": "v1",
+    "seed": 11,
+    "mode": "text-to-image (Krea2 turbo, no LoRA)",
+    "size": [
+     1536,
+     864
+    ],
+    "steps": 8,
+    "prompt": "Eye-level view standing in a wide asphalt aisle between two long single-storey rows of self-storage units: rows of roll-up metal doors in muted teal and grey on both sides, one door half open with cardboard boxes inside, flat roofs with a steel ladder at the row end, a tall green palisade fence and trees at the far end of the aisle. Warm late-afternoon sunlight, long soft shadows, soft blue sky with a few warm clouds. Stylized 3D game environment concept art in the style of a modern hero shooter: clean planar hard-surface shapes, generous bevels, chunky readable silhouettes, painted slightly flat materials, soft colour gradients, minimal grime, grounded near-future design, not cyberpunk, no neon. No people, no text, no letters, no logos."
+   },
+   "self_storage_ground_v1_t2i_s12.png": {
+    "view": "ground",
+    "subject": "self_storage",
+    "prompt_version": "v1",
+    "seed": 12,
+    "mode": "text-to-image (Krea2 turbo, no LoRA)",
+    "size": [
+     1536,
+     864
+    ],
+    "steps": 8,
+    "prompt": "Eye-level view standing in a wide asphalt aisle between two long single-storey rows of self-storage units: rows of roll-up metal doors in muted teal and grey on both sides, one door half open with cardboard boxes inside, flat roofs with a steel ladder at the row end, a tall green palisade fence and trees at the far end of the aisle. Warm late-afternoon sunlight, long soft shadows, soft blue sky with a few warm clouds. Stylized 3D game environment concept art in the style of a modern hero shooter: clean planar hard-surface shapes, generous bevels, chunky readable silhouettes, painted slightly flat materials, soft colour gradients, minimal grime, grounded near-future design, not cyberpunk, no neon. No people, no text, no letters, no logos."
+   },
+   "self_storage_ground_v3_t2i_s11.png": {
+    "view": "ground",
+    "subject": "self_storage",
+    "prompt_version": "v3",
+    "seed": 11,
+    "mode": "text-to-image (Krea2 turbo, no LoRA)",
+    "size": [
+     1536,
+     864
+    ],
+    "steps": 8,
+    "prompt": "Eye-level view standing on the flat roof of a long single-storey self-storage row, looking across the roofs of the parallel rows and down into the wide asphalt aisles between them, roll-up doors in muted teal and grey, a ladder at the row end, a two-storey indoor storage block and a green palisade fence, a motorway cutting and woods behind. Warm late-afternoon sunlight, long soft shadows, soft blue sky with a few warm clouds. Stylized 3D game environment concept art in the style of a modern hero shooter: clean planar hard-surface shapes, generous bevels, chunky readable silhouettes, painted slightly flat materials, soft colour gradients, minimal grime, grounded near-future design, not cyberpunk, no neon. No people, no text, no letters, no logos."
+   }
+  },
+  "08_gas_station": {
+   "gas_station_aerial_v1_t2i_s11.png": {
+    "view": "aerial",
+    "subject": "gas_station",
+    "prompt_version": "v1",
+    "seed": 11,
+    "mode": "text-to-image (Krea2 turbo, no LoRA)",
+    "size": [
+     1536,
+     864
+    ],
+    "steps": 8,
+    "prompt": "High aerial three-quarter view of an abandoned roadside fuel station in the 2060s, overgrown and slowly reclaimed by nature: a large flat canopy on columns over three pump islands, a small shop building with grimy glass windows, a long open-ended drive-through car wash tunnel, a tall slim price pylon with faded blank panels, a cracked asphalt forecourt with weeds, tall grass and young birch trees growing through, an old road passing in front, a grassy motorway embankment nearby. Warm late-afternoon sun, long soft shadows, pale blue sky haze on the horizon. Stylized 3D game environment concept art in the style of a modern hero shooter: clean planar hard-surface shapes, generous bevels, chunky readable silhouettes, painted slightly flat materials, soft colour gradients, minimal grime, grounded near-future design, not cyberpunk, no neon. No people, no text, no letters, no logos."
+   },
+   "gas_station_aerial_v1_t2i_s12.png": {
+    "view": "aerial",
+    "subject": "gas_station",
+    "prompt_version": "v1",
+    "seed": 12,
+    "mode": "text-to-image (Krea2 turbo, no LoRA)",
+    "size": [
+     1536,
+     864
+    ],
+    "steps": 8,
+    "prompt": "High aerial three-quarter view of an abandoned roadside fuel station in the 2060s, overgrown and slowly reclaimed by nature: a large flat canopy on columns over three pump islands, a small shop building with grimy glass windows, a long open-ended drive-through car wash tunnel, a tall slim price pylon with faded blank panels, a cracked asphalt forecourt with weeds, tall grass and young birch trees growing through, an old road passing in front, a grassy motorway embankment nearby. Warm late-afternoon sun, long soft shadows, pale blue sky haze on the horizon. Stylized 3D game environment concept art in the style of a modern hero shooter: clean planar hard-surface shapes, generous bevels, chunky readable silhouettes, painted slightly flat materials, soft colour gradients, minimal grime, grounded near-future design, not cyberpunk, no neon. No people, no text, no letters, no logos."
+   },
+   "gas_station_aerial_v2_t2i_s11.png": {
+    "view": "aerial",
+    "subject": "gas_station",
+    "prompt_version": "v2",
+    "seed": 11,
+    "mode": "text-to-image (Krea2 turbo, no LoRA)",
+    "size": [
+     1536,
+     864
+    ],
+    "steps": 8,
+    "prompt": "High aerial three-quarter view of an abandoned roadside fuel station in the 2060s, overgrown and slowly reclaimed by nature: a large flat canopy on columns over three pump islands, a small shop building with grimy windows, a separate long open-ended drive-through car wash tunnel beside it, and a very tall slim price pylon towering over everything with faded blank panels. Cracked asphalt forecourt with weeds, tall grass and young birch trees growing through, an old road passing in front that runs into a concrete underpass under a grassy motorway embankment. Warm late-afternoon sun, long soft shadows, pale blue sky haze on the horizon. Stylized 3D game environment concept art in the style of a modern hero shooter: clean planar hard-surface shapes, generous bevels, chunky readable silhouettes, painted slightly flat materials, soft colour gradients, minimal grime, grounded near-future design, not cyberpunk, no neon. No people, no text, no letters, no logos."
+   },
+   "gas_station_aerial_v2_t2i_s12.png": {
+    "view": "aerial",
+    "subject": "gas_station",
+    "prompt_version": "v2",
+    "seed": 12,
+    "mode": "text-to-image (Krea2 turbo, no LoRA)",
+    "size": [
+     1536,
+     864
+    ],
+    "steps": 8,
+    "prompt": "High aerial three-quarter view of an abandoned roadside fuel station in the 2060s, overgrown and slowly reclaimed by nature: a large flat canopy on columns over three pump islands, a small shop building with grimy windows, a separate long open-ended drive-through car wash tunnel beside it, and a very tall slim price pylon towering over everything with faded blank panels. Cracked asphalt forecourt with weeds, tall grass and young birch trees growing through, an old road passing in front that runs into a concrete underpass under a grassy motorway embankment. Warm late-afternoon sun, long soft shadows, pale blue sky haze on the horizon. Stylized 3D game environment concept art in the style of a modern hero shooter: clean planar hard-surface shapes, generous bevels, chunky readable silhouettes, painted slightly flat materials, soft colour gradients, minimal grime, grounded near-future design, not cyberpunk, no neon. No people, no text, no letters, no logos."
+   },
+   "gas_station_ground_v1_t2i_s11.png": {
+    "view": "ground",
+    "subject": "gas_station",
+    "prompt_version": "v1",
+    "seed": 11,
+    "mode": "text-to-image (Krea2 turbo, no LoRA)",
+    "size": [
+     1536,
+     864
+    ],
+    "steps": 8,
+    "prompt": "Eye-level view standing on the cracked overgrown forecourt of an abandoned fuel station: a big flat canopy overhead, old pump islands as cover, a small shop with grimy windows on the right, the dark mouth of a car wash tunnel, a tall price pylon with faded blank panels against the sky, ivy, tall grass and young birch trees growing through the asphalt. Warm late-afternoon sunlight, long soft shadows, soft blue sky with a few warm clouds. Stylized 3D game environment concept art in the style of a modern hero shooter: clean planar hard-surface shapes, generous bevels, chunky readable silhouettes, painted slightly flat materials, soft colour gradients, minimal grime, grounded near-future design, not cyberpunk, no neon. No people, no text, no letters, no logos."
+   },
+   "gas_station_ground_v1_t2i_s12.png": {
+    "view": "ground",
+    "subject": "gas_station",
+    "prompt_version": "v1",
+    "seed": 12,
+    "mode": "text-to-image (Krea2 turbo, no LoRA)",
+    "size": [
+     1536,
+     864
+    ],
+    "steps": 8,
+    "prompt": "Eye-level view standing on the cracked overgrown forecourt of an abandoned fuel station: a big flat canopy overhead, old pump islands as cover, a small shop with grimy windows on the right, the dark mouth of a car wash tunnel, a tall price pylon with faded blank panels against the sky, ivy, tall grass and young birch trees growing through the asphalt. Warm late-afternoon sunlight, long soft shadows, soft blue sky with a few warm clouds. Stylized 3D game environment concept art in the style of a modern hero shooter: clean planar hard-surface shapes, generous bevels, chunky readable silhouettes, painted slightly flat materials, soft colour gradients, minimal grime, grounded near-future design, not cyberpunk, no neon. No people, no text, no letters, no logos."
+   },
+   "gas_station_ground_v3_t2i_s11.png": {
+    "view": "ground",
+    "subject": "gas_station",
+    "prompt_version": "v3",
+    "seed": 11,
+    "mode": "text-to-image (Krea2 turbo, no LoRA)",
+    "size": [
+     1536,
+     864
+    ],
+    "steps": 8,
+    "prompt": "Eye-level view from inside the long open-ended tunnel of an abandoned drive-through car wash, old brush rollers and rails along the walls, looking out of the tunnel mouth at an overgrown fuel station forecourt with a flat canopy over pump islands, a small shop and a tall price pylon with faded blank panels, weeds and young birch trees. Warm late-afternoon sunlight, long soft shadows, soft blue sky with a few warm clouds. Stylized 3D game environment concept art in the style of a modern hero shooter: clean planar hard-surface shapes, generous bevels, chunky readable silhouettes, painted slightly flat materials, soft colour gradients, minimal grime, grounded near-future design, not cyberpunk, no neon. No people, no text, no letters, no logos."
+   }
+  },
+  "09_highway": {
+   "highway_aerial_v1_t2i_s11.png": {
+    "view": "aerial",
+    "subject": "highway",
+    "prompt_version": "v1",
+    "seed": 11,
+    "mode": "text-to-image (Krea2 turbo, no LoRA)",
+    "size": [
+     1536,
+     864
+    ],
+    "steps": 8,
+    "prompt": "High aerial three-quarter view of a six-lane motorway curving gently through flat Flemish countryside in the 2060s: in the distance it runs in a cutting between grassy slopes, nearer it runs on a raised grass embankment. Abandoned stalled traffic scattered across the lanes, cars and vans stopped at angles, a jackknifed articulated lorry blocking several lanes, a concrete median barrier, two steel sign gantries spanning the road with plain blank dark-green signboards, mesh fences along the slopes, and a dark concrete box underpass where a local road passes under the embankment. Warm late-afternoon sun, long soft shadows, pale blue sky haze on the horizon. Stylized 3D game environment concept art in the style of a modern hero shooter: clean planar hard-surface shapes, generous bevels, chunky readable silhouettes, painted slightly flat materials, soft colour gradients, minimal grime, grounded near-future design, not cyberpunk, no neon. No people, no text, no letters, no logos."
+   },
+   "highway_aerial_v1_t2i_s12.png": {
+    "view": "aerial",
+    "subject": "highway",
+    "prompt_version": "v1",
+    "seed": 12,
+    "mode": "text-to-image (Krea2 turbo, no LoRA)",
+    "size": [
+     1536,
+     864
+    ],
+    "steps": 8,
+    "prompt": "High aerial three-quarter view of a six-lane motorway curving gently through flat Flemish countryside in the 2060s: in the distance it runs in a cutting between grassy slopes, nearer it runs on a raised grass embankment. Abandoned stalled traffic scattered across the lanes, cars and vans stopped at angles, a jackknifed articulated lorry blocking several lanes, a concrete median barrier, two steel sign gantries spanning the road with plain blank dark-green signboards, mesh fences along the slopes, and a dark concrete box underpass where a local road passes under the embankment. Warm late-afternoon sun, long soft shadows, pale blue sky haze on the horizon. Stylized 3D game environment concept art in the style of a modern hero shooter: clean planar hard-surface shapes, generous bevels, chunky readable silhouettes, painted slightly flat materials, soft colour gradients, minimal grime, grounded near-future design, not cyberpunk, no neon. No people, no text, no letters, no logos."
+   },
+   "highway_aerial_v2_t2i_s11.png": {
+    "view": "aerial",
+    "subject": "highway",
+    "prompt_version": "v2",
+    "seed": 11,
+    "mode": "text-to-image (Krea2 turbo, no LoRA)",
+    "size": [
+     1536,
+     864
+    ],
+    "steps": 8,
+    "prompt": "High aerial three-quarter view of an abandoned six-lane motorway curving gently through flat Flemish countryside in the 2060s, silent and empty of moving traffic: a few dozen stalled abandoned cars and vans scattered sparsely at odd angles across the lanes with doors left open, one big articulated lorry jackknifed across three lanes with its trailer folded sharply against the cab, a concrete median barrier, two steel sign gantries with plain blank dark-green signboards. In the distance the motorway runs in a cutting between grassy slopes, nearer it runs on a raised grass embankment with mesh fences, and a local road passes under the embankment through a dark concrete box underpass. Warm late-afternoon sun, long soft shadows, pale blue sky haze on the horizon. Stylized 3D game environment concept art in the style of a modern hero shooter: clean planar hard-surface shapes, generous bevels, chunky readable silhouettes, painted slightly flat materials, soft colour gradients, minimal grime, grounded near-future design, not cyberpunk, no neon. No people, no text, no letters, no logos."
+   },
+   "highway_aerial_v2_t2i_s12.png": {
+    "view": "aerial",
+    "subject": "highway",
+    "prompt_version": "v2",
+    "seed": 12,
+    "mode": "text-to-image (Krea2 turbo, no LoRA)",
+    "size": [
+     1536,
+     864
+    ],
+    "steps": 8,
+    "prompt": "High aerial three-quarter view of an abandoned six-lane motorway curving gently through flat Flemish countryside in the 2060s, silent and empty of moving traffic: a few dozen stalled abandoned cars and vans scattered sparsely at odd angles across the lanes with doors left open, one big articulated lorry jackknifed across three lanes with its trailer folded sharply against the cab, a concrete median barrier, two steel sign gantries with plain blank dark-green signboards. In the distance the motorway runs in a cutting between grassy slopes, nearer it runs on a raised grass embankment with mesh fences, and a local road passes under the embankment through a dark concrete box underpass. Warm late-afternoon sun, long soft shadows, pale blue sky haze on the horizon. Stylized 3D game environment concept art in the style of a modern hero shooter: clean planar hard-surface shapes, generous bevels, chunky readable silhouettes, painted slightly flat materials, soft colour gradients, minimal grime, grounded near-future design, not cyberpunk, no neon. No people, no text, no letters, no logos."
+   },
+   "highway_aerial_v4_t2i_s11.png": {
+    "view": "aerial",
+    "subject": "highway",
+    "prompt_version": "v4",
+    "seed": 11,
+    "mode": "text-to-image (Krea2 turbo, no LoRA)",
+    "size": [
+     1536,
+     864
+    ],
+    "steps": 8,
+    "prompt": "High aerial three-quarter view of an abandoned six-lane motorway in flat Flemish countryside in the 2060s, long after an evacuation: nothing moves, the road is a frozen traffic jam left behind, cars and vans standing still bumper to bumper and skewed at random angles across all lanes, some pushed onto the hard shoulder and the grass verge, doors and boots left open, weeds growing in the cracks. One big articulated lorry is jackknifed across three lanes, its trailer folded at a right angle against the cab, blocking the road. A concrete median barrier, a steel sign gantry with plain blank dark-green signboards. In the distance the motorway runs in a cutting between grassy slopes, nearer it runs on a raised grass embankment with mesh fences, with a dark concrete box underpass for a local road below. Warm late-afternoon sun, long soft shadows, pale blue sky haze on the horizon. Stylized 3D game environment concept art in the style of a modern hero shooter: clean planar hard-surface shapes, generous bevels, chunky readable silhouettes, painted slightly flat materials, soft colour gradients, minimal grime, grounded near-future design, not cyberpunk, no neon. No people, no text, no letters, no logos."
+   },
+   "highway_aerial_v4_t2i_s12.png": {
+    "view": "aerial",
+    "subject": "highway",
+    "prompt_version": "v4",
+    "seed": 12,
+    "mode": "text-to-image (Krea2 turbo, no LoRA)",
+    "size": [
+     1536,
+     864
+    ],
+    "steps": 8,
+    "prompt": "High aerial three-quarter view of an abandoned six-lane motorway in flat Flemish countryside in the 2060s, long after an evacuation: nothing moves, the road is a frozen traffic jam left behind, cars and vans standing still bumper to bumper and skewed at random angles across all lanes, some pushed onto the hard shoulder and the grass verge, doors and boots left open, weeds growing in the cracks. One big articulated lorry is jackknifed across three lanes, its trailer folded at a right angle against the cab, blocking the road. A concrete median barrier, a steel sign gantry with plain blank dark-green signboards. In the distance the motorway runs in a cutting between grassy slopes, nearer it runs on a raised grass embankment with mesh fences, with a dark concrete box underpass for a local road below. Warm late-afternoon sun, long soft shadows, pale blue sky haze on the horizon. Stylized 3D game environment concept art in the style of a modern hero shooter: clean planar hard-surface shapes, generous bevels, chunky readable silhouettes, painted slightly flat materials, soft colour gradients, minimal grime, grounded near-future design, not cyberpunk, no neon. No people, no text, no letters, no logos."
+   },
+   "highway_aerial_v5_refb1_s11.png": {
+    "view": "aerial",
+    "subject": "highway",
+    "prompt_version": "v5",
+    "seed": 11,
+    "mode": "reference edit (Krea2 identity edit, --ref)",
+    "size": [
+     1536,
+     864
+    ],
+    "steps": 10,
+    "prompt": "Show this exact abandoned motorway scene, same painting style, palette and warm late-afternoon light, but seen from high above in a three-quarter aerial view: High aerial three-quarter view looking down at a short stretch of an abandoned six-lane motorway on a raised grass embankment in flat Flemish countryside in the 2060s, deserted and silent. Only a handful of abandoned cars and vans, widely spaced and parked crooked across the lanes, one car crashed into the concrete median barrier, doors hanging open, weeds in the cracked asphalt. In the middle of the carriageway a big articulated lorry lies jackknifed: its cab points one way and its long trailer has swung sideways across three lanes, forming a sharp V shape. A steel sign gantry with plain blank dark-green signboards spans the road. Mesh fences along the top of the grassy slopes, and at the foot of the embankment a dark concrete box underpass where a small local road passes under the motorway. Same stylized hero-shooter concept-art look, no people, no text.",
+    "ref": "design/maps/extraction/concepts/09_highway/highway_ground_v2_t2i_s12.png",
+    "ref_boost": 1.0
+   },
+   "highway_aerial_v5_t2i_s11.png": {
+    "view": "aerial",
+    "subject": "highway",
+    "prompt_version": "v5",
+    "seed": 11,
+    "mode": "text-to-image (Krea2 turbo, no LoRA)",
+    "size": [
+     1536,
+     864
+    ],
+    "steps": 8,
+    "prompt": "High aerial three-quarter view looking down at a short stretch of an abandoned six-lane motorway on a raised grass embankment in flat Flemish countryside in the 2060s, deserted and silent. Only a handful of abandoned cars and vans, widely spaced and parked crooked across the lanes, one car crashed into the concrete median barrier, doors hanging open, weeds in the cracked asphalt. In the middle of the carriageway a big articulated lorry lies jackknifed: its cab points one way and its long trailer has swung sideways across three lanes, forming a sharp V shape. A steel sign gantry with plain blank dark-green signboards spans the road. Mesh fences along the top of the grassy slopes, and at the foot of the embankment a dark concrete box underpass where a small local road passes under the motorway. Warm late-afternoon sun, long soft shadows, pale blue sky haze on the horizon. Stylized 3D game environment concept art in the style of a modern hero shooter: clean planar hard-surface shapes, generous bevels, chunky readable silhouettes, painted slightly flat materials, soft colour gradients, minimal grime, grounded near-future design, not cyberpunk, no neon. No people, no text, no letters, no logos."
+   },
+   "highway_aerial_v5_t2i_s12.png": {
+    "view": "aerial",
+    "subject": "highway",
+    "prompt_version": "v5",
+    "seed": 12,
+    "mode": "text-to-image (Krea2 turbo, no LoRA)",
+    "size": [
+     1536,
+     864
+    ],
+    "steps": 8,
+    "prompt": "High aerial three-quarter view looking down at a short stretch of an abandoned six-lane motorway on a raised grass embankment in flat Flemish countryside in the 2060s, deserted and silent. Only a handful of abandoned cars and vans, widely spaced and parked crooked across the lanes, one car crashed into the concrete median barrier, doors hanging open, weeds in the cracked asphalt. In the middle of the carriageway a big articulated lorry lies jackknifed: its cab points one way and its long trailer has swung sideways across three lanes, forming a sharp V shape. A steel sign gantry with plain blank dark-green signboards spans the road. Mesh fences along the top of the grassy slopes, and at the foot of the embankment a dark concrete box underpass where a small local road passes under the motorway. Warm late-afternoon sun, long soft shadows, pale blue sky haze on the horizon. Stylized 3D game environment concept art in the style of a modern hero shooter: clean planar hard-surface shapes, generous bevels, chunky readable silhouettes, painted slightly flat materials, soft colour gradients, minimal grime, grounded near-future design, not cyberpunk, no neon. No people, no text, no letters, no logos."
+   },
+   "highway_aerial_v5_t2i_s13.png": {
+    "view": "aerial",
+    "subject": "highway",
+    "prompt_version": "v5",
+    "seed": 13,
+    "mode": "text-to-image (Krea2 turbo, no LoRA)",
+    "size": [
+     1536,
+     864
+    ],
+    "steps": 8,
+    "prompt": "High aerial three-quarter view looking down at a short stretch of an abandoned six-lane motorway on a raised grass embankment in flat Flemish countryside in the 2060s, deserted and silent. Only a handful of abandoned cars and vans, widely spaced and parked crooked across the lanes, one car crashed into the concrete median barrier, doors hanging open, weeds in the cracked asphalt. In the middle of the carriageway a big articulated lorry lies jackknifed: its cab points one way and its long trailer has swung sideways across three lanes, forming a sharp V shape. A steel sign gantry with plain blank dark-green signboards spans the road. Mesh fences along the top of the grassy slopes, and at the foot of the embankment a dark concrete box underpass where a small local road passes under the motorway. Warm late-afternoon sun, long soft shadows, pale blue sky haze on the horizon. Stylized 3D game environment concept art in the style of a modern hero shooter: clean planar hard-surface shapes, generous bevels, chunky readable silhouettes, painted slightly flat materials, soft colour gradients, minimal grime, grounded near-future design, not cyberpunk, no neon. No people, no text, no letters, no logos."
+   },
+   "highway_ground_v1_t2i_s11.png": {
+    "view": "ground",
+    "subject": "highway",
+    "prompt_version": "v1",
+    "seed": 11,
+    "mode": "text-to-image (Krea2 turbo, no LoRA)",
+    "size": [
+     1536,
+     864
+    ],
+    "steps": 8,
+    "prompt": "Eye-level view standing on a six-lane motorway among abandoned stalled traffic: cars and vans stopped at angles across the lanes, a jackknifed articulated lorry with its trailer swung across the lanes ahead, a concrete median barrier, a steel sign gantry spanning the road with plain blank dark-green signboards, grassy embankment slopes with mesh fences on both sides. Warm late-afternoon sunlight, long soft shadows, soft blue sky with a few warm clouds. Stylized 3D game environment concept art in the style of a modern hero shooter: clean planar hard-surface shapes, generous bevels, chunky readable silhouettes, painted slightly flat materials, soft colour gradients, minimal grime, grounded near-future design, not cyberpunk, no neon. No people, no text, no letters, no logos."
+   },
+   "highway_ground_v1_t2i_s12.png": {
+    "view": "ground",
+    "subject": "highway",
+    "prompt_version": "v1",
+    "seed": 12,
+    "mode": "text-to-image (Krea2 turbo, no LoRA)",
+    "size": [
+     1536,
+     864
+    ],
+    "steps": 8,
+    "prompt": "Eye-level view standing on a six-lane motorway among abandoned stalled traffic: cars and vans stopped at angles across the lanes, a jackknifed articulated lorry with its trailer swung across the lanes ahead, a concrete median barrier, a steel sign gantry spanning the road with plain blank dark-green signboards, grassy embankment slopes with mesh fences on both sides. Warm late-afternoon sunlight, long soft shadows, soft blue sky with a few warm clouds. Stylized 3D game environment concept art in the style of a modern hero shooter: clean planar hard-surface shapes, generous bevels, chunky readable silhouettes, painted slightly flat materials, soft colour gradients, minimal grime, grounded near-future design, not cyberpunk, no neon. No people, no text, no letters, no logos."
+   },
+   "highway_ground_v2_t2i_s11.png": {
+    "view": "ground",
+    "subject": "highway",
+    "prompt_version": "v2",
+    "seed": 11,
+    "mode": "text-to-image (Krea2 turbo, no LoRA)",
+    "size": [
+     1536,
+     864
+    ],
+    "steps": 8,
+    "prompt": "Eye-level view standing on an abandoned six-lane motorway, silent and empty of moving traffic: a few stalled abandoned cars and a van left at odd angles with doors open, no lights on, weeds in the cracks, and ahead a big articulated lorry jackknifed across the lanes with its trailer folded at a sharp angle against the cab. A concrete median barrier, a steel sign gantry spanning the road with plain blank dark-green signboards, grassy embankment slopes with mesh fences on both sides. Warm late-afternoon sunlight, long soft shadows, soft blue sky with a few warm clouds. Stylized 3D game environment concept art in the style of a modern hero shooter: clean planar hard-surface shapes, generous bevels, chunky readable silhouettes, painted slightly flat materials, soft colour gradients, minimal grime, grounded near-future design, not cyberpunk, no neon. No people, no text, no letters, no logos."
+   },
+   "highway_ground_v2_t2i_s12.png": {
+    "view": "ground",
+    "subject": "highway",
+    "prompt_version": "v2",
+    "seed": 12,
+    "mode": "text-to-image (Krea2 turbo, no LoRA)",
+    "size": [
+     1536,
+     864
+    ],
+    "steps": 8,
+    "prompt": "Eye-level view standing on an abandoned six-lane motorway, silent and empty of moving traffic: a few stalled abandoned cars and a van left at odd angles with doors open, no lights on, weeds in the cracks, and ahead a big articulated lorry jackknifed across the lanes with its trailer folded at a sharp angle against the cab. A concrete median barrier, a steel sign gantry spanning the road with plain blank dark-green signboards, grassy embankment slopes with mesh fences on both sides. Warm late-afternoon sunlight, long soft shadows, soft blue sky with a few warm clouds. Stylized 3D game environment concept art in the style of a modern hero shooter: clean planar hard-surface shapes, generous bevels, chunky readable silhouettes, painted slightly flat materials, soft colour gradients, minimal grime, grounded near-future design, not cyberpunk, no neon. No people, no text, no letters, no logos."
+   },
+   "highway_ground_v3_t2i_s11.png": {
+    "view": "ground",
+    "subject": "highway",
+    "prompt_version": "v3",
+    "seed": 11,
+    "mode": "text-to-image (Krea2 turbo, no LoRA)",
+    "size": [
+     1536,
+     864
+    ],
+    "steps": 8,
+    "prompt": "Eye-level view standing on a narrow farm overpass bridge with low parapets that spans a motorway cutting, looking down along an abandoned six-lane motorway sunk between steep grassy slopes: stalled abandoned cars and vans at odd angles, a hard shoulder, a concrete median barrier, a steel sign gantry with plain blank dark-green signboards further down, mesh fences along the tops of the slopes. Warm late-afternoon sunlight, long soft shadows, soft blue sky with a few warm clouds. Stylized 3D game environment concept art in the style of a modern hero shooter: clean planar hard-surface shapes, generous bevels, chunky readable silhouettes, painted slightly flat materials, soft colour gradients, minimal grime, grounded near-future design, not cyberpunk, no neon. No people, no text, no letters, no logos."
+   },
+   "underpass_ground_v1_t2i_s11.png": {
+    "view": "ground",
+    "subject": "underpass",
+    "prompt_version": "v1",
+    "seed": 11,
+    "mode": "text-to-image (Krea2 turbo, no LoRA)",
+    "size": [
+     1536,
+     864
+    ],
+    "steps": 8,
+    "prompt": "Eye-level view standing on a two-lane local road in front of a concrete box tunnel underpass that passes under a tall grassy motorway embankment: the dark rectangular tunnel mouth with a row of square centre pillars, the embankment slope with a mesh fence along its top, abandoned cars visible on the motorway above, an abandoned overgrown fuel station canopy beside the road. Warm late-afternoon sunlight, long soft shadows, soft blue sky with a few warm clouds. Stylized 3D game environment concept art in the style of a modern hero shooter: clean planar hard-surface shapes, generous bevels, chunky readable silhouettes, painted slightly flat materials, soft colour gradients, minimal grime, grounded near-future design, not cyberpunk, no neon. No people, no text, no letters, no logos."
+   },
+   "underpass_ground_v1_t2i_s12.png": {
+    "view": "ground",
+    "subject": "underpass",
+    "prompt_version": "v1",
+    "seed": 12,
+    "mode": "text-to-image (Krea2 turbo, no LoRA)",
+    "size": [
+     1536,
+     864
+    ],
+    "steps": 8,
+    "prompt": "Eye-level view standing on a two-lane local road in front of a concrete box tunnel underpass that passes under a tall grassy motorway embankment: the dark rectangular tunnel mouth with a row of square centre pillars, the embankment slope with a mesh fence along its top, abandoned cars visible on the motorway above, an abandoned overgrown fuel station canopy beside the road. Warm late-afternoon sunlight, long soft shadows, soft blue sky with a few warm clouds. Stylized 3D game environment concept art in the style of a modern hero shooter: clean planar hard-surface shapes, generous bevels, chunky readable silhouettes, painted slightly flat materials, soft colour gradients, minimal grime, grounded near-future design, not cyberpunk, no neon. No people, no text, no letters, no logos."
+   }
+  },
+  "10_farm": {
+   "farm_aerial_v1_t2i_s11.png": {
+    "view": "aerial",
+    "subject": "farm",
+    "prompt_version": "v1",
+    "seed": 11,
+    "mode": "text-to-image (Krea2 turbo, no LoRA)",
+    "size": [
+     1536,
+     864
+    ],
+    "steps": 8,
+    "prompt": "High aerial three-quarter view of a traditional Flemish square farmstead in flat countryside in the 2060s: four wings of whitewashed and red brick buildings with red-orange clay pantile roofs enclose a square cobbled courtyard with an arched gateway: a farmhouse, stables, a big barn with a hayloft door and a machine shed with solar panels on its roof. A tall round concrete silo stands beside it, and an open hay barn with stacked round hay bales. Around it a tree nursery of neat rows of young trees, large green and ploughed fields divided by hedgerows and drainage ditches, a tree-lined road with a small roadside chapel. Warm late-afternoon sun, long soft shadows, pale blue sky haze on the horizon. Stylized 3D game environment concept art in the style of a modern hero shooter: clean planar hard-surface shapes, generous bevels, chunky readable silhouettes, painted slightly flat materials, soft colour gradients, minimal grime, grounded near-future design, not cyberpunk, no neon. No people, no text, no letters, no logos."
+   },
+   "farm_aerial_v1_t2i_s12.png": {
+    "view": "aerial",
+    "subject": "farm",
+    "prompt_version": "v1",
+    "seed": 12,
+    "mode": "text-to-image (Krea2 turbo, no LoRA)",
+    "size": [
+     1536,
+     864
+    ],
+    "steps": 8,
+    "prompt": "High aerial three-quarter view of a traditional Flemish square farmstead in flat countryside in the 2060s: four wings of whitewashed and red brick buildings with red-orange clay pantile roofs enclose a square cobbled courtyard with an arched gateway: a farmhouse, stables, a big barn with a hayloft door and a machine shed with solar panels on its roof. A tall round concrete silo stands beside it, and an open hay barn with stacked round hay bales. Around it a tree nursery of neat rows of young trees, large green and ploughed fields divided by hedgerows and drainage ditches, a tree-lined road with a small roadside chapel. Warm late-afternoon sun, long soft shadows, pale blue sky haze on the horizon. Stylized 3D game environment concept art in the style of a modern hero shooter: clean planar hard-surface shapes, generous bevels, chunky readable silhouettes, painted slightly flat materials, soft colour gradients, minimal grime, grounded near-future design, not cyberpunk, no neon. No people, no text, no letters, no logos."
+   },
+   "farm_aerial_v1_t2i_s13.png": {
+    "view": "aerial",
+    "subject": "farm",
+    "prompt_version": "v1",
+    "seed": 13,
+    "mode": "text-to-image (Krea2 turbo, no LoRA)",
+    "size": [
+     1536,
+     864
+    ],
+    "steps": 8,
+    "prompt": "High aerial three-quarter view of a traditional Flemish square farmstead in flat countryside in the 2060s: four wings of whitewashed and red brick buildings with red-orange clay pantile roofs enclose a square cobbled courtyard with an arched gateway: a farmhouse, stables, a big barn with a hayloft door and a machine shed with solar panels on its roof. A tall round concrete silo stands beside it, and an open hay barn with stacked round hay bales. Around it a tree nursery of neat rows of young trees, large green and ploughed fields divided by hedgerows and drainage ditches, a tree-lined road with a small roadside chapel. Warm late-afternoon sun, long soft shadows, pale blue sky haze on the horizon. Stylized 3D game environment concept art in the style of a modern hero shooter: clean planar hard-surface shapes, generous bevels, chunky readable silhouettes, painted slightly flat materials, soft colour gradients, minimal grime, grounded near-future design, not cyberpunk, no neon. No people, no text, no letters, no logos."
+   },
+   "farm_ground_v1_refb2_s11.png": {
+    "view": "ground",
+    "subject": "farm",
+    "prompt_version": "v1",
+    "seed": 11,
+    "mode": "reference edit (Krea2 identity edit, --ref)",
+    "size": [
+     1536,
+     864
+    ],
+    "steps": 10,
+    "prompt": "Keep this exact painting style, colour palette, camera angle and warm late-afternoon lighting, but show a completely different place instead of these houses: Eye-level view standing in the cobbled square courtyard of a traditional Flemish farmstead: whitewashed and red brick wings with red-orange clay pantile roofs on all four sides, a big barn with an open hayloft door, wooden stable doors, an old tractor, a tall round concrete silo rising over the roofs, an arched gateway open to the fields. Same stylized hero-shooter concept-art look, no people, no text.",
+    "ref": "design/maps/tdm/concepts/_candidates/A_showhome_ground_s11.png",
+    "ref_boost": 2.0
+   },
+   "farm_ground_v1_t2i_s11.png": {
+    "view": "ground",
+    "subject": "farm",
+    "prompt_version": "v1",
+    "seed": 11,
+    "mode": "text-to-image (Krea2 turbo, no LoRA)",
+    "size": [
+     1536,
+     864
+    ],
+    "steps": 8,
+    "prompt": "Eye-level view standing in the cobbled square courtyard of a traditional Flemish farmstead: whitewashed and red brick wings with red-orange clay pantile roofs on all four sides, a big barn with an open hayloft door, wooden stable doors, an old tractor, a tall round concrete silo rising over the roofs, an arched gateway open to the fields. Warm late-afternoon sunlight, long soft shadows, soft blue sky with a few warm clouds. Stylized 3D game environment concept art in the style of a modern hero shooter: clean planar hard-surface shapes, generous bevels, chunky readable silhouettes, painted slightly flat materials, soft colour gradients, minimal grime, grounded near-future design, not cyberpunk, no neon. No people, no text, no letters, no logos."
+   },
+   "farm_ground_v1_t2i_s12.png": {
+    "view": "ground",
+    "subject": "farm",
+    "prompt_version": "v1",
+    "seed": 12,
+    "mode": "text-to-image (Krea2 turbo, no LoRA)",
+    "size": [
+     1536,
+     864
+    ],
+    "steps": 8,
+    "prompt": "Eye-level view standing in the cobbled square courtyard of a traditional Flemish farmstead: whitewashed and red brick wings with red-orange clay pantile roofs on all four sides, a big barn with an open hayloft door, wooden stable doors, an old tractor, a tall round concrete silo rising over the roofs, an arched gateway open to the fields. Warm late-afternoon sunlight, long soft shadows, soft blue sky with a few warm clouds. Stylized 3D game environment concept art in the style of a modern hero shooter: clean planar hard-surface shapes, generous bevels, chunky readable silhouettes, painted slightly flat materials, soft colour gradients, minimal grime, grounded near-future design, not cyberpunk, no neon. No people, no text, no letters, no logos."
+   },
+   "farm_ground_v3_t2i_s11.png": {
+    "view": "ground",
+    "subject": "farm",
+    "prompt_version": "v3",
+    "seed": 11,
+    "mode": "text-to-image (Krea2 turbo, no LoRA)",
+    "size": [
+     1536,
+     864
+    ],
+    "steps": 8,
+    "prompt": "Eye-level view standing in a tree nursery on the edge of flat Flemish fields, neat rows of young trees on both sides, looking towards a traditional square farmstead with whitewashed and red brick wings and red-orange clay pantile roofs, a tall round concrete silo beside it, round hay bales stacked in an open hay barn, a hedgerow and a drainage ditch in front. Warm late-afternoon sunlight, long soft shadows, soft blue sky with a few warm clouds. Stylized 3D game environment concept art in the style of a modern hero shooter: clean planar hard-surface shapes, generous bevels, chunky readable silhouettes, painted slightly flat materials, soft colour gradients, minimal grime, grounded near-future design, not cyberpunk, no neon. No people, no text, no letters, no logos."
+   }
+  },
+  "11_substation_hut": {
+   "foresters_hut_aerial_v1_t2i_s11.png": {
+    "view": "aerial",
+    "subject": "foresters_hut",
+    "prompt_version": "v1",
+    "seed": 11,
+    "mode": "text-to-image (Krea2 turbo, no LoRA)",
+    "size": [
+     1536,
+     864
+    ],
+    "steps": 8,
+    "prompt": "High aerial three-quarter view of a small forester's hut in a round clearing in a dense pine and oak forest in flat Flemish countryside: a timber cabin with a dark pitched roof and a small porch, stacked firewood, a tall wooden hunter's high seat on stilts at the edge of the clearing, a dirt logging track running through the clearing into the woods. Warm late-afternoon sun, long soft shadows, pale blue sky haze on the horizon. Stylized 3D game environment concept art in the style of a modern hero shooter: clean planar hard-surface shapes, generous bevels, chunky readable silhouettes, painted slightly flat materials, soft colour gradients, minimal grime, grounded near-future design, not cyberpunk, no neon. No people, no text, no letters, no logos."
+   },
+   "foresters_hut_aerial_v1_t2i_s12.png": {
+    "view": "aerial",
+    "subject": "foresters_hut",
+    "prompt_version": "v1",
+    "seed": 12,
+    "mode": "text-to-image (Krea2 turbo, no LoRA)",
+    "size": [
+     1536,
+     864
+    ],
+    "steps": 8,
+    "prompt": "High aerial three-quarter view of a small forester's hut in a round clearing in a dense pine and oak forest in flat Flemish countryside: a timber cabin with a dark pitched roof and a small porch, stacked firewood, a tall wooden hunter's high seat on stilts at the edge of the clearing, a dirt logging track running through the clearing into the woods. Warm late-afternoon sun, long soft shadows, pale blue sky haze on the horizon. Stylized 3D game environment concept art in the style of a modern hero shooter: clean planar hard-surface shapes, generous bevels, chunky readable silhouettes, painted slightly flat materials, soft colour gradients, minimal grime, grounded near-future design, not cyberpunk, no neon. No people, no text, no letters, no logos."
+   },
+   "foresters_hut_aerial_v2_t2i_s11.png": {
+    "view": "aerial",
+    "subject": "foresters_hut",
+    "prompt_version": "v2",
+    "seed": 11,
+    "mode": "text-to-image (Krea2 turbo, no LoRA)",
+    "size": [
+     1536,
+     864
+    ],
+    "steps": 8,
+    "prompt": "High aerial three-quarter view of a small forester's hut in a sunny round clearing in a pine and oak forest in flat Flemish countryside: a timber cabin with a dark pitched roof and a small porch, stacked firewood and logs, a tall wooden hunter's high seat on stilts with a little roofed box at the edge of the clearing, a dirt logging track running through the clearing into the woods. Warm sunlight fills the clearing. Warm late-afternoon sun, long soft shadows, pale blue sky haze on the horizon. Stylized 3D game environment concept art in the style of a modern hero shooter: clean planar hard-surface shapes, generous bevels, chunky readable silhouettes, painted slightly flat materials, soft colour gradients, minimal grime, grounded near-future design, not cyberpunk, no neon. No people, no text, no letters, no logos."
+   },
+   "foresters_hut_aerial_v2_t2i_s12.png": {
+    "view": "aerial",
+    "subject": "foresters_hut",
+    "prompt_version": "v2",
+    "seed": 12,
+    "mode": "text-to-image (Krea2 turbo, no LoRA)",
+    "size": [
+     1536,
+     864
+    ],
+    "steps": 8,
+    "prompt": "High aerial three-quarter view of a small forester's hut in a sunny round clearing in a pine and oak forest in flat Flemish countryside: a timber cabin with a dark pitched roof and a small porch, stacked firewood and logs, a tall wooden hunter's high seat on stilts with a little roofed box at the edge of the clearing, a dirt logging track running through the clearing into the woods. Warm sunlight fills the clearing. Warm late-afternoon sun, long soft shadows, pale blue sky haze on the horizon. Stylized 3D game environment concept art in the style of a modern hero shooter: clean planar hard-surface shapes, generous bevels, chunky readable silhouettes, painted slightly flat materials, soft colour gradients, minimal grime, grounded near-future design, not cyberpunk, no neon. No people, no text, no letters, no logos."
+   },
+   "foresters_hut_ground_v1_t2i_s11.png": {
+    "view": "ground",
+    "subject": "foresters_hut",
+    "prompt_version": "v1",
+    "seed": 11,
+    "mode": "text-to-image (Krea2 turbo, no LoRA)",
+    "size": [
+     1536,
+     864
+    ],
+    "steps": 8,
+    "prompt": "Eye-level view standing on a dirt logging track entering a small forest clearing: a timber forester's cabin with a dark pitched roof, a porch and stacked firewood, a tall wooden hunter's high seat on stilts at the clearing edge, tall pine and oak trunks all around, warm light slanting through the trees. Warm late-afternoon sunlight, long soft shadows, soft blue sky with a few warm clouds. Stylized 3D game environment concept art in the style of a modern hero shooter: clean planar hard-surface shapes, generous bevels, chunky readable silhouettes, painted slightly flat materials, soft colour gradients, minimal grime, grounded near-future design, not cyberpunk, no neon. No people, no text, no letters, no logos."
+   },
+   "foresters_hut_ground_v1_t2i_s12.png": {
+    "view": "ground",
+    "subject": "foresters_hut",
+    "prompt_version": "v1",
+    "seed": 12,
+    "mode": "text-to-image (Krea2 turbo, no LoRA)",
+    "size": [
+     1536,
+     864
+    ],
+    "steps": 8,
+    "prompt": "Eye-level view standing on a dirt logging track entering a small forest clearing: a timber forester's cabin with a dark pitched roof, a porch and stacked firewood, a tall wooden hunter's high seat on stilts at the clearing edge, tall pine and oak trunks all around, warm light slanting through the trees. Warm late-afternoon sunlight, long soft shadows, soft blue sky with a few warm clouds. Stylized 3D game environment concept art in the style of a modern hero shooter: clean planar hard-surface shapes, generous bevels, chunky readable silhouettes, painted slightly flat materials, soft colour gradients, minimal grime, grounded near-future design, not cyberpunk, no neon. No people, no text, no letters, no logos."
+   },
+   "foresters_hut_ground_v3_t2i_s11.png": {
+    "view": "ground",
+    "subject": "foresters_hut",
+    "prompt_version": "v3",
+    "seed": 11,
+    "mode": "text-to-image (Krea2 turbo, no LoRA)",
+    "size": [
+     1536,
+     864
+    ],
+    "steps": 8,
+    "prompt": "Eye-level view from the edge of a small forest clearing under tall pines: on the left a tall wooden hunter's high seat on stilts with a ladder, in the middle of the clearing a timber forester's cabin with a dark pitched roof, porch and stacked firewood, a dirt logging track crossing the clearing, ferns and fallen logs in the foreground, warm light slanting through the trees. Warm late-afternoon sunlight, long soft shadows, soft blue sky with a few warm clouds. Stylized 3D game environment concept art in the style of a modern hero shooter: clean planar hard-surface shapes, generous bevels, chunky readable silhouettes, painted slightly flat materials, soft colour gradients, minimal grime, grounded near-future design, not cyberpunk, no neon. No people, no text, no letters, no logos."
+   },
+   "substation_aerial_v1_t2i_s11.png": {
+    "view": "aerial",
+    "subject": "substation",
+    "prompt_version": "v1",
+    "seed": 11,
+    "mode": "text-to-image (Krea2 turbo, no LoRA)",
+    "size": [
+     1536,
+     864
+    ],
+    "steps": 8,
+    "prompt": "High aerial three-quarter view of a fenced electrical substation in a clearing surrounded by woods in flat Flemish countryside in the 2060s: a gravel yard with twelve large grey transformers in a neat grid, steel lattice gantries with insulators and cables, a small concrete control kiosk, a tall security fence with a gate, a high-voltage power line on lattice pylons leaving the yard across the fields, a gravel service track. Warm late-afternoon sun, long soft shadows, pale blue sky haze on the horizon. Stylized 3D game environment concept art in the style of a modern hero shooter: clean planar hard-surface shapes, generous bevels, chunky readable silhouettes, painted slightly flat materials, soft colour gradients, minimal grime, grounded near-future design, not cyberpunk, no neon. No people, no text, no letters, no logos."
+   },
+   "substation_aerial_v1_t2i_s12.png": {
+    "view": "aerial",
+    "subject": "substation",
+    "prompt_version": "v1",
+    "seed": 12,
+    "mode": "text-to-image (Krea2 turbo, no LoRA)",
+    "size": [
+     1536,
+     864
+    ],
+    "steps": 8,
+    "prompt": "High aerial three-quarter view of a fenced electrical substation in a clearing surrounded by woods in flat Flemish countryside in the 2060s: a gravel yard with twelve large grey transformers in a neat grid, steel lattice gantries with insulators and cables, a small concrete control kiosk, a tall security fence with a gate, a high-voltage power line on lattice pylons leaving the yard across the fields, a gravel service track. Warm late-afternoon sun, long soft shadows, pale blue sky haze on the horizon. Stylized 3D game environment concept art in the style of a modern hero shooter: clean planar hard-surface shapes, generous bevels, chunky readable silhouettes, painted slightly flat materials, soft colour gradients, minimal grime, grounded near-future design, not cyberpunk, no neon. No people, no text, no letters, no logos."
+   },
+   "substation_aerial_v1_t2i_s13.png": {
+    "view": "aerial",
+    "subject": "substation",
+    "prompt_version": "v1",
+    "seed": 13,
+    "mode": "text-to-image (Krea2 turbo, no LoRA)",
+    "size": [
+     1536,
+     864
+    ],
+    "steps": 8,
+    "prompt": "High aerial three-quarter view of a fenced electrical substation in a clearing surrounded by woods in flat Flemish countryside in the 2060s: a gravel yard with twelve large grey transformers in a neat grid, steel lattice gantries with insulators and cables, a small concrete control kiosk, a tall security fence with a gate, a high-voltage power line on lattice pylons leaving the yard across the fields, a gravel service track. Warm late-afternoon sun, long soft shadows, pale blue sky haze on the horizon. Stylized 3D game environment concept art in the style of a modern hero shooter: clean planar hard-surface shapes, generous bevels, chunky readable silhouettes, painted slightly flat materials, soft colour gradients, minimal grime, grounded near-future design, not cyberpunk, no neon. No people, no text, no letters, no logos."
+   },
+   "substation_ground_v1_t2i_s11.png": {
+    "view": "ground",
+    "subject": "substation",
+    "prompt_version": "v1",
+    "seed": 11,
+    "mode": "text-to-image (Krea2 turbo, no LoRA)",
+    "size": [
+     1536,
+     864
+    ],
+    "steps": 8,
+    "prompt": "Eye-level view standing inside an electrical substation yard on gravel between large grey transformers with cooling fins and insulators, steel lattice gantries and cables overhead, a small concrete control kiosk with a metal door, a tall security fence, tall trees beyond. Warm late-afternoon sunlight, long soft shadows, soft blue sky with a few warm clouds. Stylized 3D game environment concept art in the style of a modern hero shooter: clean planar hard-surface shapes, generous bevels, chunky readable silhouettes, painted slightly flat materials, soft colour gradients, minimal grime, grounded near-future design, not cyberpunk, no neon. No people, no text, no letters, no logos."
+   },
+   "substation_ground_v1_t2i_s12.png": {
+    "view": "ground",
+    "subject": "substation",
+    "prompt_version": "v1",
+    "seed": 12,
+    "mode": "text-to-image (Krea2 turbo, no LoRA)",
+    "size": [
+     1536,
+     864
+    ],
+    "steps": 8,
+    "prompt": "Eye-level view standing inside an electrical substation yard on gravel between large grey transformers with cooling fins and insulators, steel lattice gantries and cables overhead, a small concrete control kiosk with a metal door, a tall security fence, tall trees beyond. Warm late-afternoon sunlight, long soft shadows, soft blue sky with a few warm clouds. Stylized 3D game environment concept art in the style of a modern hero shooter: clean planar hard-surface shapes, generous bevels, chunky readable silhouettes, painted slightly flat materials, soft colour gradients, minimal grime, grounded near-future design, not cyberpunk, no neon. No people, no text, no letters, no logos."
+   },
+   "substation_ground_v3_t2i_s11.png": {
+    "view": "ground",
+    "subject": "substation",
+    "prompt_version": "v3",
+    "seed": 11,
+    "mode": "text-to-image (Krea2 turbo, no LoRA)",
+    "size": [
+     1536,
+     864
+    ],
+    "steps": 8,
+    "prompt": "Eye-level view standing on a gravel service track outside the tall security fence of an electrical substation at the edge of a wood: through the fence large grey transformers and steel lattice gantries with insulators, a small concrete control kiosk next to the closed gate, a high-voltage line on lattice pylons leaving across the fields. Warm late-afternoon sunlight, long soft shadows, soft blue sky with a few warm clouds. Stylized 3D game environment concept art in the style of a modern hero shooter: clean planar hard-surface shapes, generous bevels, chunky readable silhouettes, painted slightly flat materials, soft colour gradients, minimal grime, grounded near-future design, not cyberpunk, no neon. No people, no text, no letters, no logos."
+   }
+  },
+  "12_dike_sluice": {
+   "dike_sluice_aerial_v1_t2i_s11.png": {
+    "view": "aerial",
+    "subject": "dike_sluice",
+    "prompt_version": "v1",
+    "seed": 11,
+    "mode": "text-to-image (Krea2 turbo, no LoRA)",
+    "size": [
+     1536,
+     864
+    ],
+    "steps": 8,
+    "prompt": "High aerial three-quarter view of a long grassy flood dike, a raised earth embankment about five metres high with a fenced path along its crest, running across flat Flemish fields in the 2060s. Where a 40 metre wide river meets the dike there is a concrete sluice with steel gates letting the river through, and beside it on the riverbank a small brick lock-keeper's house with a red-tiled roof and a wooden jetty on the water with a small post. Poplars, reeds and drainage ditches. Warm late-afternoon sun, long soft shadows, pale blue sky haze on the horizon. Stylized 3D game environment concept art in the style of a modern hero shooter: clean planar hard-surface shapes, generous bevels, chunky readable silhouettes, painted slightly flat materials, soft colour gradients, minimal grime, grounded near-future design, not cyberpunk, no neon. No people, no text, no letters, no logos."
+   },
+   "dike_sluice_aerial_v1_t2i_s12.png": {
+    "view": "aerial",
+    "subject": "dike_sluice",
+    "prompt_version": "v1",
+    "seed": 12,
+    "mode": "text-to-image (Krea2 turbo, no LoRA)",
+    "size": [
+     1536,
+     864
+    ],
+    "steps": 8,
+    "prompt": "High aerial three-quarter view of a long grassy flood dike, a raised earth embankment about five metres high with a fenced path along its crest, running across flat Flemish fields in the 2060s. Where a 40 metre wide river meets the dike there is a concrete sluice with steel gates letting the river through, and beside it on the riverbank a small brick lock-keeper's house with a red-tiled roof and a wooden jetty on the water with a small post. Poplars, reeds and drainage ditches. Warm late-afternoon sun, long soft shadows, pale blue sky haze on the horizon. Stylized 3D game environment concept art in the style of a modern hero shooter: clean planar hard-surface shapes, generous bevels, chunky readable silhouettes, painted slightly flat materials, soft colour gradients, minimal grime, grounded near-future design, not cyberpunk, no neon. No people, no text, no letters, no logos."
+   },
+   "dike_sluice_aerial_v2_t2i_s11.png": {
+    "view": "aerial",
+    "subject": "dike_sluice",
+    "prompt_version": "v2",
+    "seed": 11,
+    "mode": "text-to-image (Krea2 turbo, no LoRA)",
+    "size": [
+     1536,
+     864
+    ],
+    "steps": 8,
+    "prompt": "High aerial three-quarter view of the end of a broad 40 metre wide river where it meets a long grassy flood dike, a raised earth embankment about five metres high with a fenced path on its crest that runs across the whole picture through flat Flemish fields in the 2060s. Where the river meets the dike a wide concrete sluice structure with four tall steel lift gates spans the full width of the river. Beside it on the riverbank stands a two-storey brick lock-keeper's house with a red-tiled roof, a small garden and a wooden jetty on the water with a call post. Poplars, reeds, towpaths and drainage ditches. Warm late-afternoon sun, long soft shadows, pale blue sky haze on the horizon. Stylized 3D game environment concept art in the style of a modern hero shooter: clean planar hard-surface shapes, generous bevels, chunky readable silhouettes, painted slightly flat materials, soft colour gradients, minimal grime, grounded near-future design, not cyberpunk, no neon. No people, no text, no letters, no logos."
+   },
+   "dike_sluice_aerial_v2_t2i_s12.png": {
+    "view": "aerial",
+    "subject": "dike_sluice",
+    "prompt_version": "v2",
+    "seed": 12,
+    "mode": "text-to-image (Krea2 turbo, no LoRA)",
+    "size": [
+     1536,
+     864
+    ],
+    "steps": 8,
+    "prompt": "High aerial three-quarter view of the end of a broad 40 metre wide river where it meets a long grassy flood dike, a raised earth embankment about five metres high with a fenced path on its crest that runs across the whole picture through flat Flemish fields in the 2060s. Where the river meets the dike a wide concrete sluice structure with four tall steel lift gates spans the full width of the river. Beside it on the riverbank stands a two-storey brick lock-keeper's house with a red-tiled roof, a small garden and a wooden jetty on the water with a call post. Poplars, reeds, towpaths and drainage ditches. Warm late-afternoon sun, long soft shadows, pale blue sky haze on the horizon. Stylized 3D game environment concept art in the style of a modern hero shooter: clean planar hard-surface shapes, generous bevels, chunky readable silhouettes, painted slightly flat materials, soft colour gradients, minimal grime, grounded near-future design, not cyberpunk, no neon. No people, no text, no letters, no logos."
+   },
+   "dike_sluice_ground_v1_t2i_s11.png": {
+    "view": "ground",
+    "subject": "dike_sluice",
+    "prompt_version": "v1",
+    "seed": 11,
+    "mode": "text-to-image (Krea2 turbo, no LoRA)",
+    "size": [
+     1536,
+     864
+    ],
+    "steps": 8,
+    "prompt": "Eye-level view standing on the grassy riverbank by a small brick lock-keeper's house with a red-tiled pitched roof, a wooden jetty on the calm river with a small call post, behind it a long grassy flood dike with a fence along its crest and a concrete sluice with steel gates where the river passes through the dike. Warm late-afternoon sunlight, long soft shadows, soft blue sky with a few warm clouds. Stylized 3D game environment concept art in the style of a modern hero shooter: clean planar hard-surface shapes, generous bevels, chunky readable silhouettes, painted slightly flat materials, soft colour gradients, minimal grime, grounded near-future design, not cyberpunk, no neon. No people, no text, no letters, no logos."
+   },
+   "dike_sluice_ground_v1_t2i_s12.png": {
+    "view": "ground",
+    "subject": "dike_sluice",
+    "prompt_version": "v1",
+    "seed": 12,
+    "mode": "text-to-image (Krea2 turbo, no LoRA)",
+    "size": [
+     1536,
+     864
+    ],
+    "steps": 8,
+    "prompt": "Eye-level view standing on the grassy riverbank by a small brick lock-keeper's house with a red-tiled pitched roof, a wooden jetty on the calm river with a small call post, behind it a long grassy flood dike with a fence along its crest and a concrete sluice with steel gates where the river passes through the dike. Warm late-afternoon sunlight, long soft shadows, soft blue sky with a few warm clouds. Stylized 3D game environment concept art in the style of a modern hero shooter: clean planar hard-surface shapes, generous bevels, chunky readable silhouettes, painted slightly flat materials, soft colour gradients, minimal grime, grounded near-future design, not cyberpunk, no neon. No people, no text, no letters, no logos."
+   },
+   "dike_sluice_ground_v2_t2i_s11.png": {
+    "view": "ground",
+    "subject": "dike_sluice",
+    "prompt_version": "v2",
+    "seed": 11,
+    "mode": "text-to-image (Krea2 turbo, no LoRA)",
+    "size": [
+     1536,
+     864
+    ],
+    "steps": 8,
+    "prompt": "Eye-level view standing on the towpath of a broad calm river in front of a two-storey brick lock-keeper's house with a red-tiled pitched roof and a small fenced garden, a wooden jetty on the water with a small call post. Behind them a long grassy flood dike five metres high with a fence along its crest crosses the view, and a wide concrete sluice with several tall steel lift gates lets the river pass through the dike. Warm late-afternoon sunlight, long soft shadows, soft blue sky with a few warm clouds. Stylized 3D game environment concept art in the style of a modern hero shooter: clean planar hard-surface shapes, generous bevels, chunky readable silhouettes, painted slightly flat materials, soft colour gradients, minimal grime, grounded near-future design, not cyberpunk, no neon. No people, no text, no letters, no logos."
+   },
+   "dike_sluice_ground_v2_t2i_s12.png": {
+    "view": "ground",
+    "subject": "dike_sluice",
+    "prompt_version": "v2",
+    "seed": 12,
+    "mode": "text-to-image (Krea2 turbo, no LoRA)",
+    "size": [
+     1536,
+     864
+    ],
+    "steps": 8,
+    "prompt": "Eye-level view standing on the towpath of a broad calm river in front of a two-storey brick lock-keeper's house with a red-tiled pitched roof and a small fenced garden, a wooden jetty on the water with a small call post. Behind them a long grassy flood dike five metres high with a fence along its crest crosses the view, and a wide concrete sluice with several tall steel lift gates lets the river pass through the dike. Warm late-afternoon sunlight, long soft shadows, soft blue sky with a few warm clouds. Stylized 3D game environment concept art in the style of a modern hero shooter: clean planar hard-surface shapes, generous bevels, chunky readable silhouettes, painted slightly flat materials, soft colour gradients, minimal grime, grounded near-future design, not cyberpunk, no neon. No people, no text, no letters, no logos."
+   },
+   "dike_sluice_ground_v3_t2i_s11.png": {
+    "view": "ground",
+    "subject": "dike_sluice",
+    "prompt_version": "v3",
+    "seed": 11,
+    "mode": "text-to-image (Krea2 turbo, no LoRA)",
+    "size": [
+     1536,
+     864
+    ],
+    "steps": 8,
+    "prompt": "Eye-level view standing on the grassy crest path of a long flood dike, a simple fence beside the path, looking along the dike to a wide concrete sluice with tall steel lift gates where a broad river passes through, a two-storey brick lock-keeper's house with a red-tiled roof and a wooden jetty on the river side, flat fields, poplars and reeds. Warm late-afternoon sunlight, long soft shadows, soft blue sky with a few warm clouds. Stylized 3D game environment concept art in the style of a modern hero shooter: clean planar hard-surface shapes, generous bevels, chunky readable silhouettes, painted slightly flat materials, soft colour gradients, minimal grime, grounded near-future design, not cyberpunk, no neon. No people, no text, no letters, no logos."
+   }
+  }
+ }
+}

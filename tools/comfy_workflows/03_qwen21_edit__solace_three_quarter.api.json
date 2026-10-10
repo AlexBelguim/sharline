@@ -1,0 +1,110 @@
+{
+ "1": {
+  "class_type": "UNETLoader",
+  "inputs": {
+   "unet_name": "qwen_image_2.1_int8_convrot.safetensors",
+   "weight_dtype": "default"
+  }
+ },
+ "2": {
+  "class_type": "QwenImage21Cache",
+  "inputs": {
+   "model": [
+    "1",
+    0
+   ],
+   "device": "auto",
+   "dtype": "default"
+  }
+ },
+ "3": {
+  "class_type": "CLIPLoader",
+  "inputs": {
+   "clip_name": "qwen3vl_8b_int8_convrot.safetensors",
+   "type": "qwen_image",
+   "device": "default"
+  }
+ },
+ "4": {
+  "class_type": "VAELoader",
+  "inputs": {
+   "vae_name": "qwen_image_2.1_vae_bf16.safetensors"
+  }
+ },
+ "6": {
+  "class_type": "TextEncodeQwenImage21",
+  "inputs": {
+   "clip": [
+    "3",
+    0
+   ],
+   "prompt": "Show the same character from <image1> in a three-quarter front view: the camera has moved 35 degrees toward her left side (the side with the coral shoulder emblem), so she faces toward the left of the image. Full body from head to boots with empty margin, same A-pose with arms out, the same face, dark hair with the low ponytail over her right shoulder, the same ivory jacket with coral piping, belt and pouch, gloves, injector bracer on her right forearm, sand pants, ivory knee pads and charcoal boots, the same colours and painted art style, plain light grey background, soft even light, no shadows on the ground.",
+   "negative_prompt": "",
+   "resolution": 0,
+   "vae": [
+    "4",
+    0
+   ],
+   "images.image_1": [
+    "51",
+    0
+   ]
+  }
+ },
+ "7": {
+  "class_type": "KSampler",
+  "inputs": {
+   "seed": 2,
+   "steps": 30,
+   "cfg": 1.0,
+   "sampler_name": "euler",
+   "scheduler": "simple",
+   "denoise": 1.0,
+   "model": [
+    "2",
+    0
+   ],
+   "positive": [
+    "6",
+    0
+   ],
+   "negative": [
+    "6",
+    1
+   ],
+   "latent_image": [
+    "6",
+    2
+   ]
+  }
+ },
+ "8": {
+  "class_type": "VAEDecode",
+  "inputs": {
+   "samples": [
+    "7",
+    0
+   ],
+   "vae": [
+    "4",
+    0
+   ]
+  }
+ },
+ "9": {
+  "class_type": "SaveImage",
+  "inputs": {
+   "filename_prefix": "valetf_wf_qwen_edit",
+   "images": [
+    "8",
+    0
+   ]
+  }
+ },
+ "51": {
+  "class_type": "LoadImage",
+  "inputs": {
+   "image": "valetf_wf_solace_front.png"
+  }
+ }
+}

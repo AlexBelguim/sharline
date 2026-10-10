@@ -1,0 +1,3447 @@
+{
+  "ApplyTextureToMesh": {
+    "input": {
+      "required": {
+        "mesh": [
+          "MESH",
+          {}
+        ],
+        "base_color": [
+          "IMAGE",
+          {}
+        ]
+      },
+      "optional": {
+        "metallic": [
+          "IMAGE",
+          {}
+        ],
+        "roughness": [
+          "IMAGE",
+          {}
+        ],
+        "occlusion": [
+          "IMAGE",
+          {}
+        ],
+        "normal_map": [
+          "IMAGE",
+          {}
+        ]
+      }
+    },
+    "input_order": {
+      "required": [
+        "mesh",
+        "base_color"
+      ],
+      "optional": [
+        "metallic",
+        "roughness",
+        "occlusion",
+        "normal_map"
+      ]
+    },
+    "output": [
+      "MESH"
+    ],
+    "output_name": [
+      "mesh"
+    ],
+    "output_node": false
+  },
+  "BakeAmbientOcclusion": {
+    "input": {
+      "required": {
+        "low_poly": [
+          "MESH",
+          {}
+        ],
+        "high_poly": [
+          "MESH",
+          {}
+        ],
+        "resolution": [
+          "INT",
+          {
+            "default": 1024,
+            "min": 64,
+            "max": 8192,
+            "step": 64
+          }
+        ],
+        "samples": [
+          "INT",
+          {
+            "tooltip": "Rays per texel. More = smoother, slower. Raise if grainy.",
+            "default": 64,
+            "min": 4,
+            "max": 1024,
+            "step": 4
+          }
+        ],
+        "max_distance": [
+          "FLOAT",
+          {
+            "tooltip": "Ray length, as a fraction of the bounding box diagonal. Smaller = tighter, more local occlusion.",
+            "default": 0.5,
+            "min": 0.01,
+            "max": 2.0,
+            "step": 0.01
+          }
+        ],
+        "strength": [
+          "FLOAT",
+          {
+            "tooltip": "Scales the occlusion. >1 darkens, <1 lightens.",
+            "default": 1.0,
+            "min": 0.0,
+            "max": 2.0,
+            "step": 0.05
+          }
+        ],
+        "bias": [
+          "FLOAT",
+          {
+            "tooltip": "Ray origin lift off the surface, as a fraction of the bounding box diagonal. Raise if even surfaces show dark blotches/holes.",
+            "default": 0.01,
+            "min": 0.0001,
+            "max": 0.2,
+            "step": 0.0005
+          }
+        ]
+      }
+    },
+    "input_order": {
+      "required": [
+        "low_poly",
+        "high_poly",
+        "resolution",
+        "samples",
+        "max_distance",
+        "strength",
+        "bias"
+      ]
+    },
+    "output": [
+      "IMAGE"
+    ],
+    "output_name": [
+      "occlusion"
+    ],
+    "output_node": false
+  },
+  "BakeNormalMapFromMesh": {
+    "input": {
+      "required": {
+        "low_poly": [
+          "MESH",
+          {}
+        ],
+        "high_poly": [
+          "MESH",
+          {}
+        ],
+        "resolution": [
+          "INT",
+          {
+            "display_name": "resolution",
+            "default": 1024,
+            "min": 64,
+            "max": 8192,
+            "step": 64
+          }
+        ],
+        "cage_distance": [
+          "FLOAT",
+          {
+            "tooltip": "Surface search band, as a fraction of the bounding box diagonal. Raise for wrong/missing patches under heavy decimation; lower if it grabs across gaps.",
+            "default": 0.05,
+            "min": 0.001,
+            "max": 0.5,
+            "step": 0.001
+          }
+        ],
+        "ignore_backfaces": [
+          "BOOLEAN",
+          {
+            "tooltip": "Skip high-poly surfaces facing away from the texel, so crevices/enclosed spaces don't grab the opposite wall. Disable only if the high-poly winding is inconsistent.",
+            "default": true
+          }
+        ]
+      }
+    },
+    "input_order": {
+      "required": [
+        "low_poly",
+        "high_poly",
+        "resolution",
+        "cage_distance",
+        "ignore_backfaces"
+      ]
+    },
+    "output": [
+      "IMAGE"
+    ],
+    "output_name": [
+      "normal_map"
+    ],
+    "output_node": false
+  },
+  "BakeTextureFromVoxel": {
+    "input": {
+      "required": {
+        "mesh": [
+          "MESH",
+          {}
+        ],
+        "voxel_colors": [
+          "VOXEL",
+          {}
+        ],
+        "texture_size": [
+          "INT",
+          {
+            "display_name": "resolution",
+            "tooltip": "Square UV atlas resolution.",
+            "default": 2048,
+            "min": 64,
+            "max": 8192
+          }
+        ]
+      },
+      "optional": {
+        "reference_mesh": [
+          "MESH",
+          {
+            "tooltip": "Optional dense pre-decimation mesh; back-projects each texel onto its true surface before sampling, removing faceted baking on coarse meshes."
+          }
+        ]
+      }
+    },
+    "input_order": {
+      "required": [
+        "mesh",
+        "voxel_colors",
+        "texture_size"
+      ],
+      "optional": [
+        "reference_mesh"
+      ]
+    },
+    "output": [
+      "IMAGE",
+      "IMAGE",
+      "IMAGE"
+    ],
+    "output_name": [
+      "base_color",
+      "metallic",
+      "roughness"
+    ],
+    "output_node": false
+  },
+  "CFGOverride": {
+    "input": {
+      "required": {
+        "model": [
+          "MODEL",
+          {}
+        ],
+        "cfg": [
+          "FLOAT",
+          {
+            "default": 1.0,
+            "min": 0.0,
+            "max": 100.0,
+            "step": 0.1,
+            "round": 0.01
+          }
+        ],
+        "start_percent": [
+          "FLOAT",
+          {
+            "default": 0.0,
+            "min": 0.0,
+            "max": 1.0,
+            "step": 0.001
+          }
+        ],
+        "end_percent": [
+          "FLOAT",
+          {
+            "default": 1.0,
+            "min": 0.0,
+            "max": 1.0,
+            "step": 0.001
+          }
+        ]
+      }
+    },
+    "input_order": {
+      "required": [
+        "model",
+        "cfg",
+        "start_percent",
+        "end_percent"
+      ]
+    },
+    "output": [
+      "MODEL"
+    ],
+    "output_name": [
+      "MODEL"
+    ],
+    "output_node": false
+  },
+  "CLIPLoader": {
+    "input": {
+      "required": {
+        "clip_name": [
+          [
+            "Qwen3-VL-8B-Instruct\\model-00001-of-00004.safetensors",
+            "Qwen3-VL-8B-Instruct\\model-00002-of-00004.safetensors",
+            "Qwen3-VL-8B-Instruct\\model-00003-of-00004.safetensors",
+            "Qwen3-VL-8B-Instruct\\model-00004-of-00004.safetensors",
+            "Qwen3.5-4B\\model.safetensors-00001-of-00002.safetensors",
+            "Qwen3.5-4B\\model.safetensors-00002-of-00002.safetensors",
+            "Qwen3.5-9B\\model.safetensors-00001-of-00004.safetensors",
+            "Qwen3.5-9B\\model.safetensors-00002-of-00004.safetensors",
+            "Qwen3.5-9B\\model.safetensors-00003-of-00004.safetensors",
+            "Qwen3.5-9B\\model.safetensors-00004-of-00004.safetensors",
+            "byt5_small_glyphxl_fp16.safetensors",
+            "clip_l.safetensors",
+            "gemma4_e4b_it_fp8_scaled.safetensors",
+            "qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors",
+            "qwen3vl_4b_fp8_scaled.safetensors",
+            "qwen3vl_8b_int8_convrot.safetensors",
+            "qwen_2.5_vl_7b_fp8_scaled.safetensors",
+            "qwen_3_4b_fp4_flux2.safetensors",
+            "t5xxl_fp8_e4m3fn_scaled.safetensors"
+          ]
+        ],
+        "type": [
+          [
+            "stable_diffusion",
+            "stable_cascade",
+            "sd3",
+            "stable_audio",
+            "mochi",
+            "ltxv",
+            "pixart",
+            "cosmos",
+            "lumina2",
+            "wan",
+            "hidream",
+            "chroma",
+            "ace",
+            "omnigen2",
+            "qwen_image",
+            "hunyuan_image",
+            "flux2",
+            "ovis",
+            "longcat_image",
+            "cogvideox",
+            "lens",
+            "pixeldit",
+            "ideogram4",
+            "boogu",
+            "krea2",
+            "joyimage",
+            "mage",
+            "minimax",
+            "yue2"
+          ]
+        ]
+      },
+      "optional": {
+        "device": [
+          [
+            "default",
+            "cpu"
+          ],
+          {
+            "advanced": true
+          }
+        ]
+      }
+    },
+    "input_order": {
+      "required": [
+        "clip_name",
+        "type"
+      ],
+      "optional": [
+        "device"
+      ]
+    },
+    "output": [
+      "CLIP"
+    ],
+    "output_name": [
+      "CLIP"
+    ],
+    "output_node": false
+  },
+  "CLIPVisionLoader": {
+    "input": {
+      "required": {
+        "clip_name": [
+          [
+            "dino_v3_L_naf_fp32.safetensors",
+            "sigclip_vision_patch14_384.safetensors"
+          ]
+        ]
+      }
+    },
+    "input_order": {
+      "required": [
+        "clip_name"
+      ]
+    },
+    "output": [
+      "CLIP_VISION"
+    ],
+    "output_name": [
+      "CLIP_VISION"
+    ],
+    "output_node": false
+  },
+  "ComfySwitchNode": {
+    "input": {
+      "required": {
+        "switch": [
+          "BOOLEAN",
+          {}
+        ]
+      },
+      "optional": {
+        "on_false": [
+          "COMFY_MATCHTYPE_V3",
+          {
+            "lazy": true,
+            "template": {
+              "template_id": "switch",
+              "allowed_types": "*"
+            }
+          }
+        ],
+        "on_true": [
+          "COMFY_MATCHTYPE_V3",
+          {
+            "lazy": true,
+            "template": {
+              "template_id": "switch",
+              "allowed_types": "*"
+            }
+          }
+        ]
+      }
+    },
+    "input_order": {
+      "required": [
+        "switch"
+      ],
+      "optional": [
+        "on_false",
+        "on_true"
+      ]
+    },
+    "output": [
+      "COMFY_MATCHTYPE_V3"
+    ],
+    "output_name": [
+      "output"
+    ],
+    "output_node": false
+  },
+  "DecimateMesh": {
+    "input": {
+      "required": {
+        "mesh": [
+          "MESH",
+          {}
+        ],
+        "target_face_count": [
+          "INT",
+          {
+            "tooltip": "Target max faces. 0 disables.",
+            "default": 200000,
+            "min": 0,
+            "max": 50000000
+          }
+        ],
+        "placement_mode": [
+          "COMFY_DYNAMICCOMBO_V3",
+          {
+            "display_name": "placement_mode",
+            "tooltip": "midpoint: cumesh-faithful (recommended). qem: QEM-optimal placement.",
+            "options": [
+              {
+                "key": "midpoint",
+                "inputs": {
+                  "required": {}
+                }
+              },
+              {
+                "key": "qem",
+                "inputs": {
+                  "required": {
+                    "line_quadric_weight": [
+                      "FLOAT",
+                      {
+                        "tooltip": "Per-edge line-quadric weight; preserves sharp ridges/valleys. 0 = off.",
+                        "default": 0.0,
+                        "min": 0.0,
+                        "max": 100.0,
+                        "step": 0.1
+                      }
+                    ],
+                    "feature_edge_quadric_weight": [
+                      "FLOAT",
+                      {
+                        "tooltip": "Extra quadric weight on dihedral feature edges (creases). 0 = off.",
+                        "default": 0.0,
+                        "min": 0.0,
+                        "max": 1000.0,
+                        "step": 1.0
+                      }
+                    ],
+                    "feature_edge_min_dihedral_deg": [
+                      "FLOAT",
+                      {
+                        "tooltip": "Minimum dihedral angle (degree) to count an edge as a feature edge.",
+                        "default": 30.0,
+                        "min": 0.0,
+                        "max": 180.0,
+                        "step": 1.0
+                      }
+                    ],
+                    "clamp_v_to_edge": [
+                      "BOOLEAN",
+                      {
+                        "tooltip": "Project the QEM-optimal position onto the collapsed edge segment.",
+                        "default": true
+                      }
+                    ]
+                  }
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "hidden": {
+        "unique_id": [
+          "UNIQUE_ID"
+        ]
+      }
+    },
+    "input_order": {
+      "required": [
+        "mesh",
+        "target_face_count",
+        "placement_mode"
+      ],
+      "hidden": [
+        "unique_id"
+      ]
+    },
+    "output": [
+      "MESH"
+    ],
+    "output_name": [
+      "mesh"
+    ],
+    "output_node": false
+  },
+  "EmptyTrellis2LatentStructure": {
+    "input": {
+      "required": {
+        "batch_size": [
+          "INT",
+          {
+            "tooltip": "The number of latent images in the batch.",
+            "default": 1,
+            "min": 1,
+            "max": 4096
+          }
+        ]
+      }
+    },
+    "input_order": {
+      "required": [
+        "batch_size"
+      ]
+    },
+    "output": [
+      "LATENT"
+    ],
+    "output_name": [
+      "LATENT"
+    ],
+    "output_node": false
+  },
+  "GetMeshInfo": {
+    "input": {
+      "required": {
+        "mesh": [
+          "MESH",
+          {}
+        ]
+      },
+      "hidden": {
+        "unique_id": [
+          "UNIQUE_ID"
+        ]
+      }
+    },
+    "input_order": {
+      "required": [
+        "mesh"
+      ],
+      "hidden": [
+        "unique_id"
+      ]
+    },
+    "output": [
+      "MESH",
+      "STRING"
+    ],
+    "output_name": [
+      "mesh",
+      "info"
+    ],
+    "output_node": false
+  },
+  "ImageCropToMask": {
+    "input": {
+      "required": {
+        "images": [
+          "IMAGE",
+          {}
+        ],
+        "masks": [
+          "MASK",
+          {}
+        ],
+        "width": [
+          "INT",
+          {
+            "tooltip": "Output width in pixels.",
+            "default": 1024,
+            "min": 64,
+            "max": 4096,
+            "step": 8
+          }
+        ],
+        "height": [
+          "INT",
+          {
+            "tooltip": "Output height in pixels.",
+            "default": 1024,
+            "min": 64,
+            "max": 4096,
+            "step": 8
+          }
+        ],
+        "pad_factor": [
+          "FLOAT",
+          {
+            "tooltip": "Extra margin around the mask bounding box as a multiplier.",
+            "default": 1.0,
+            "min": 1.0,
+            "max": 2.0,
+            "step": 0.01
+          }
+        ],
+        "grow_mask": [
+          "INT",
+          {
+            "tooltip": "Grow or shrink the mask by this many pixels before cropping.",
+            "default": 0,
+            "min": -32,
+            "max": 32,
+            "step": 1
+          }
+        ],
+        "background": [
+          "COLOR",
+          {
+            "tooltip": "Background color behind the masked subject.",
+            "default": "#000000",
+            "socketless": true
+          }
+        ]
+      }
+    },
+    "input_order": {
+      "required": [
+        "images",
+        "masks",
+        "width",
+        "height",
+        "pad_factor",
+        "grow_mask",
+        "background"
+      ]
+    },
+    "output": [
+      "IMAGE"
+    ],
+    "output_name": [
+      "images"
+    ],
+    "output_node": false
+  },
+  "KSampler": {
+    "input": {
+      "required": {
+        "model": [
+          "MODEL",
+          {
+            "tooltip": "The model used for denoising the input latent."
+          }
+        ],
+        "seed": [
+          "INT",
+          {
+            "default": 0,
+            "min": 0,
+            "max": 18446744073709551615,
+            "control_after_generate": true,
+            "tooltip": "The random seed used for creating the noise."
+          }
+        ],
+        "steps": [
+          "INT",
+          {
+            "default": 20,
+            "min": 1,
+            "max": 10000,
+            "tooltip": "The number of steps used in the denoising process."
+          }
+        ],
+        "cfg": [
+          "FLOAT",
+          {
+            "default": 8.0,
+            "min": 0.0,
+            "max": 100.0,
+            "step": 0.1,
+            "round": 0.01,
+            "tooltip": "The Classifier-Free Guidance scale balances creativity and adherence to the prompt. Higher values result in images more closely matching the prompt however too high values will negatively impact quality."
+          }
+        ],
+        "sampler_name": [
+          [
+            "euler",
+            "euler_cfg_pp",
+            "euler_ancestral",
+            "euler_ancestral_cfg_pp",
+            "heun",
+            "heunpp2",
+            "exp_heun_2_x0",
+            "exp_heun_2_x0_sde",
+            "dpm_2",
+            "dpm_2_ancestral",
+            "lms",
+            "dpm_fast",
+            "dpm_adaptive",
+            "dpmpp_2s_ancestral",
+            "dpmpp_2s_ancestral_cfg_pp",
+            "dpmpp_sde",
+            "dpmpp_sde_gpu",
+            "dpmpp_2m",
+            "dpmpp_2m_cfg_pp",
+            "dpmpp_2m_sde",
+            "dpmpp_2m_sde_gpu",
+            "dpmpp_2m_sde_heun",
+            "dpmpp_2m_sde_heun_gpu",
+            "dpmpp_3m_sde",
+            "dpmpp_3m_sde_gpu",
+            "ddpm",
+            "lcm",
+            "ipndm",
+            "ipndm_v",
+            "deis",
+            "cfgpp_ud10_ab",
+            "res_multistep",
+            "res_multistep_cfg_pp",
+            "res_multistep_ancestral",
+            "res_multistep_ancestral_cfg_pp",
+            "gradient_estimation",
+            "gradient_estimation_cfg_pp",
+            "er_sde",
+            "seeds_2",
+            "seeds_3",
+            "sa_solver",
+            "sa_solver_pece",
+            "ddim",
+            "uni_pc",
+            "uni_pc_bh2",
+            "legacy_rk",
+            "rk",
+            "rk_beta",
+            "deis_3m_ode",
+            "deis_2m_ode",
+            "deis_3m",
+            "deis_2m",
+            "res_6s_ode",
+            "res_5s_ode",
+            "res_3s_ode",
+            "res_2s_ode",
+            "res_3m_ode",
+            "res_2m_ode",
+            "res_6s",
+            "res_5s",
+            "res_3s",
+            "res_2s",
+            "res_3m",
+            "res_2m"
+          ],
+          {
+            "tooltip": "The algorithm used when sampling, this can affect the quality, speed, and style of the generated output."
+          }
+        ],
+        "scheduler": [
+          [
+            "simple",
+            "sgm_uniform",
+            "karras",
+            "exponential",
+            "ddim_uniform",
+            "beta",
+            "normal",
+            "linear_quadratic",
+            "kl_optimal",
+            "bong_tangent",
+            "beta57"
+          ],
+          {
+            "tooltip": "The scheduler controls how noise is gradually removed to form the image."
+          }
+        ],
+        "positive": [
+          "CONDITIONING",
+          {
+            "tooltip": "The conditioning describing the attributes you want to include in the image."
+          }
+        ],
+        "negative": [
+          "CONDITIONING",
+          {
+            "tooltip": "The conditioning describing the attributes you want to exclude from the image."
+          }
+        ],
+        "latent_image": [
+          "LATENT",
+          {
+            "tooltip": "The latent image to denoise."
+          }
+        ],
+        "denoise": [
+          "FLOAT",
+          {
+            "default": 1.0,
+            "min": 0.0,
+            "max": 1.0,
+            "step": 0.01,
+            "tooltip": "The amount of denoising applied, lower values will maintain the structure of the initial image allowing for image to image sampling."
+          }
+        ]
+      }
+    },
+    "input_order": {
+      "required": [
+        "model",
+        "seed",
+        "steps",
+        "cfg",
+        "sampler_name",
+        "scheduler",
+        "positive",
+        "negative",
+        "latent_image",
+        "denoise"
+      ]
+    },
+    "output": [
+      "LATENT"
+    ],
+    "output_name": [
+      "LATENT"
+    ],
+    "output_node": false
+  },
+  "LoadBackgroundRemovalModel": {
+    "input": {
+      "required": {
+        "bg_removal_name": [
+          "COMBO",
+          {
+            "tooltip": "The model used to remove backgrounds from images",
+            "multiselect": false,
+            "options": [
+              "birefnet.safetensors"
+            ]
+          }
+        ]
+      }
+    },
+    "input_order": {
+      "required": [
+        "bg_removal_name"
+      ]
+    },
+    "output": [
+      "BACKGROUND_REMOVAL"
+    ],
+    "output_name": [
+      "bg_model"
+    ],
+    "output_node": false
+  },
+  "LoadImage": {
+    "input": {
+      "required": {
+        "image": [
+          [
+            "-5381834845455496516_121.jpg",
+            "00101.png",
+            "00105.png",
+            "00109.png",
+            "00113.png",
+            "00114.png",
+            "00118.png",
+            "00128.png",
+            "00141.png",
+            "00142.png",
+            "00160.png",
+            "00163.png",
+            "00164.png",
+            "00168.png",
+            "00188.png",
+            "00203.png",
+            "0023.png",
+            "00246.png",
+            "00259.png",
+            "00264.png",
+            "00277.png",
+            "00289.png",
+            "00291.png",
+            "00309.png",
+            "0031.png",
+            "00314.png",
+            "00325.png",
+            "00327.png",
+            "00385.png",
+            "00386.png",
+            "004.webp",
+            "00413.png",
+            "00431.png",
+            "0046.png",
+            "0059.png",
+            "0061.png",
+            "0066.png",
+            "0069.png",
+            "007.png",
+            "0077.png",
+            "009.png",
+            "0096.png",
+            "0098.png",
+            "0099.png",
+            "01636239-13c2-4221-9b23-f08bd7f085dd.png",
+            "043.jpg",
+            "06e7ed55633321a21d5c6e89b72d0b55.jpg",
+            "0_00007_.png",
+            "0_00021_.png",
+            "0_00030_.png",
+            "0_00050_.png",
+            "0_00054_.png",
+            "0_00068_.png",
+            "0_00120_.png",
+            "0_00153_.png",
+            "0_00176_.png",
+            "0_00178_.png",
+            "0_00285_.png",
+            "0f45bd0a-f4ad-45f7-b6d1-8e50da2b9fd1 (Gemiddeld).png",
+            "0f45bd0a-f4ad-45f7-b6d1-8e50da2b9fd1.png",
+            "0fc07e22-e88e-48e5-98d7-ea5beaa80a53.png",
+            "0m3xFUpq.png",
+            "1.png",
+            "10.jpg",
+            "11a0ce651d20ca53773c3faf421416f3.jpg",
+            "13364557027122499-250x250.webp",
+            "135d7870d9dd9dac169c626f57a920ac.jpg",
+            "1767339597693.jpg",
+            "1792eab5-a3cc-4adc-9eff-468eb1acdb96.png",
+            "1b464954-8234-49d4-90af-1e0d5668b34a.png",
+            "1dVPxoUJ.png",
+            "2.jpg",
+            "20220225_212342.jpg",
+            "20260714_214620.jpg",
+            "20260804_223219.jpg",
+            "2377b3a0-edd8-4d0f-a13c-38b37404e432.jpg",
+            "25d9470a-61eb-447a-98d8-9a8dc999640b.png",
+            "3.png",
+            "3024x4032_11575a0137a59f0bbea7084b3c5ff078.jpg",
+            "360_F_759543720_JWI5JPvdlckcBM0LlMeNN9S9HRr18HNq.jpg",
+            "362fdfed-2a9c-4255-938e-998548cb8484.png",
+            "4.png",
+            "4025a44c-a699-4f23-9f61-ddb17205b0b8.png",
+            "4f02656a979fe94d89bb42ff2c157e94.jpg",
+            "5.png",
+            "5fd8fd56-ce14-4239-af25-75cb5de9417f.png",
+            "6.jpg",
+            "628x823_149dd4eaf9d1845f1b986aa5e4cf06fb.jpg",
+            "687e5bca-d3b1-43c2-a256-a060aa074a2b.png",
+            "7.jpg",
+            "70642161-10f2-4dff-ae13-be39e7bfc678.png",
+            "7202cb8d-4701-4317-8e39-c0812aa1c594.png",
+            "7acc7319995659ec1a18603834ee511a.jpg",
+            "7e2087eb-01b1-40a1-8211-5386d2ee56b1.png",
+            "7e6e81ac-d6b7-4a64-b80f-c696a3377550.png",
+            "7f2abfec-5ccb-4e74-9e9f-c8b640efd752.png",
+            "8.jpg",
+            "9.png",
+            "92061885_p0_master1200.webp",
+            "9362ba3f-ac85-487d-ac6f-1a86a3382d9d.png",
+            "@nectg (Telegram) 142.jpg",
+            "ChatGPT Image Jul 14, 2026, 02_14_45 AM (1).png",
+            "ChatGPT Image Jul 14, 2026, 02_14_45 AM (2).png",
+            "ChatGPT Image Jul 14, 2026, 02_14_46 AM (3).png",
+            "ChatGPT Image Jul 14, 2026, 02_14_46 AM (5).png",
+            "ChatGPT Image Jul 14, 2026, 02_14_46 AM (6).png",
+            "ChatGPT Image Jul 14, 2026, 02_14_46 AM (7).png",
+            "ChatGPT Image Jul 14, 2026, 02_14_46 AM (8).png",
+            "ChatGPT Image Jul 14, 2026, 02_56_19 AM (1).png",
+            "ChatGPT Image Jul 14, 2026, 02_56_19 AM (2).png",
+            "ChatGPT Image Jul 14, 2026, 02_56_19 AM (3).png",
+            "ChatGPT Image Jul 15, 2026, 01_07_14 AM (1).png",
+            "ChatGPT Image Jul 15, 2026, 01_07_14 AM (10).png",
+            "ChatGPT Image Jul 15, 2026, 01_07_14 AM (2).png",
+            "ChatGPT Image Jul 15, 2026, 01_07_14 AM (3).png",
+            "ChatGPT Image Jul 15, 2026, 01_07_14 AM (4).png",
+            "ChatGPT Image Jul 15, 2026, 01_07_14 AM (5).png",
+            "ChatGPT Image Jul 15, 2026, 01_07_14 AM (6).png",
+            "ChatGPT Image Jul 15, 2026, 01_07_14 AM (7).png",
+            "ChatGPT Image Jul 15, 2026, 01_07_14 AM (8).png",
+            "ChatGPT Image Jul 15, 2026, 01_07_14 AM (9).png",
+            "ChatGPT Image Jul 15, 2026, 01_07_27 AM (1).png",
+            "ChatGPT Image Jul 15, 2026, 01_07_28 AM (2).png",
+            "ChatGPT Image Jul 15, 2026, 01_07_28 AM (3).png",
+            "ChatGPT Image Jul 15, 2026, 01_07_29 AM (4).png",
+            "ChatGPT Image Jul 15, 2026, 01_07_29 AM (5).png",
+            "ChatGPT Image Jul 15, 2026, 01_07_29 AM (6).png",
+            "ChatGPT Image Jul 15, 2026, 01_07_30 AM (7).png",
+            "ChatGPT Image Jul 15, 2026, 01_07_30 AM (8).png",
+            "ChatGPT Image Jul 15, 2026, 01_07_30 AM (9).png",
+            "ChatGPT Image Jul 15, 2026, 01_07_32 AM (10).png",
+            "ChatGPT Image Jul 20, 2026, 12_50_30 AM (1).png",
+            "ChatGPT Image Jul 20, 2026, 12_50_30 AM (2).png",
+            "ChatGPT Image Jul 20, 2026, 12_50_30 AM (3).png",
+            "ChatGPT Image Jul 20, 2026, 12_50_30 AM (4).png",
+            "ChatGPT Image Jul 20, 2026, 12_50_30 AM (5).png",
+            "ChatGPT Image Jul 20, 2026, 12_50_30 AM (6).png",
+            "ChatGPT Image Jul 20, 2026, 12_50_30 AM (7).png",
+            "ChatGPT Image Jul 20, 2026, 12_50_30 AM (8).png",
+            "ChatGPT Image Jul 20, 2026, 12_50_44 AM (1).png",
+            "ChatGPT Image Jul 20, 2026, 12_50_44 AM (2).png",
+            "ChatGPT Image Jul 20, 2026, 12_50_44 AM (3).png",
+            "ChatGPT Image Jul 20, 2026, 12_50_44 AM (4).png",
+            "ChatGPT Image Jul 20, 2026, 12_50_44 AM (5).png",
+            "ChatGPT Image Jul 20, 2026, 12_50_44 AM (6).png",
+            "ChatGPT Image Jul 20, 2026, 12_50_44 AM (7).png",
+            "ChatGPT Image Jul 20, 2026, 12_50_44 AM (8).png",
+            "ChatGPT Image Jul 20, 2026, 12_51_03 AM (1).png",
+            "ChatGPT Image Jul 20, 2026, 12_51_03 AM (2).png",
+            "ChatGPT Image Jul 20, 2026, 12_51_03 AM (3).png",
+            "ChatGPT Image Jul 20, 2026, 12_51_04 AM (4).png",
+            "ChatGPT Image Jul 20, 2026, 12_51_04 AM (5).png",
+            "ChatGPT Image Jul 20, 2026, 12_51_16 AM (1).png",
+            "ChatGPT Image Jul 20, 2026, 12_51_16 AM (2).png",
+            "ChatGPT Image Jul 20, 2026, 12_51_16 AM (3).png",
+            "ChatGPT Image Jul 20, 2026, 12_51_16 AM (4).png",
+            "ChatGPT Image Jul 20, 2026, 12_51_16 AM (5).png",
+            "ChatGPT Image Jul 20, 2026, 12_51_39 AM (1).png",
+            "ChatGPT Image Jul 20, 2026, 12_51_39 AM (2).png",
+            "ChatGPT Image Jul 20, 2026, 12_51_39 AM (3).png",
+            "ChatGPT Image Jul 20, 2026, 12_51_39 AM (4).png",
+            "ChatGPT Image Jul 20, 2026, 12_51_39 AM (5).png",
+            "ChatGPT Image Jul 20, 2026, 12_51_49 AM (1).png",
+            "ChatGPT Image Jul 20, 2026, 12_51_49 AM (2).png",
+            "ChatGPT Image Jul 20, 2026, 12_51_49 AM (3).png",
+            "ChatGPT Image Jul 20, 2026, 12_51_49 AM (4).png",
+            "ChatGPT Image Jul 20, 2026, 12_51_49 AM (5).png",
+            "ChatGPT Image Jul 20, 2026, 12_51_57 AM (1).png",
+            "ChatGPT Image Jul 20, 2026, 12_51_58 AM (2).png",
+            "ChatGPT Image Jul 20, 2026, 12_51_58 AM (3).png",
+            "ChatGPT Image Jul 20, 2026, 12_51_58 AM (4).png",
+            "ChatGPT Image Jul 20, 2026, 12_51_58 AM (5).png",
+            "ChatGPT Image Jul 20, 2026, 12_52_09 AM (1).png",
+            "ChatGPT Image Jul 20, 2026, 12_52_09 AM (2).png",
+            "ChatGPT Image Jul 20, 2026, 12_52_09 AM (3).png",
+            "ChatGPT Image Jul 20, 2026, 12_52_09 AM (4).png",
+            "ChatGPT Image Jul 20, 2026, 12_52_09 AM (5).png",
+            "ChatGPT Image Jul 20, 2026, 12_52_20 AM (1).png",
+            "ChatGPT Image Jul 20, 2026, 12_52_20 AM (2).png",
+            "ChatGPT Image Jul 20, 2026, 12_52_21 AM (3).png",
+            "ChatGPT Image Jul 20, 2026, 12_52_21 AM (4).png",
+            "ChatGPT Image Jul 20, 2026, 12_52_21 AM (5).png",
+            "ChatGPT Image Jul 20, 2026, 12_52_33 AM (1).png",
+            "ChatGPT Image Jul 20, 2026, 12_52_33 AM (2).png",
+            "ChatGPT Image Jul 20, 2026, 12_52_33 AM (3).png",
+            "ChatGPT Image Jul 20, 2026, 12_52_33 AM (4).png",
+            "ChatGPT Image Jul 20, 2026, 12_52_33 AM (5).png",
+            "ChatGPT Image Jul 20, 2026, 12_52_41 AM (1).png",
+            "ChatGPT Image Jul 20, 2026, 12_52_41 AM (2).png",
+            "ChatGPT Image Jul 20, 2026, 12_52_41 AM (3).png",
+            "ChatGPT Image Jul 20, 2026, 12_52_41 AM (4).png",
+            "ChatGPT Image Jul 20, 2026, 12_52_41 AM (5).png",
+            "ChatGPT Image Jul 20, 2026, 12_52_52 AM (1).png",
+            "ChatGPT Image Jul 20, 2026, 12_52_52 AM (2).png",
+            "ChatGPT Image Jul 20, 2026, 12_52_52 AM (3).png",
+            "ChatGPT Image Jul 20, 2026, 12_52_52 AM (4).png",
+            "ChatGPT Image Jul 20, 2026, 12_52_52 AM (5).png",
+            "ChatGPT Image Jul 20, 2026, 12_52_52 AM (6).png",
+            "ChatGPT Image Jul 20, 2026, 12_52_52 AM (7).png",
+            "ChatGPT Image Jul 20, 2026, 12_52_52 AM (8).png",
+            "ChatGPT Image Jul 20, 2026, 12_52_59 AM (1).png",
+            "ChatGPT Image Jul 20, 2026, 12_52_59 AM (2).png",
+            "ChatGPT Image Jul 20, 2026, 12_52_59 AM (3).png",
+            "ChatGPT Image Jul 20, 2026, 12_52_59 AM (4).png",
+            "ChatGPT Image Jul 20, 2026, 12_52_59 AM (5).png",
+            "ChatGPT Image Jul 20, 2026, 12_52_59 AM (6).png",
+            "ChatGPT Image Jul 20, 2026, 12_52_59 AM (7).png",
+            "ChatGPT Image Jul 20, 2026, 12_53_06 AM (1).png",
+            "ChatGPT Image Jul 20, 2026, 12_53_06 AM (2).png",
+            "ChatGPT Image Jul 20, 2026, 12_53_06 AM (3).png",
+            "ChatGPT Image Jul 20, 2026, 12_53_06 AM (4).png",
+            "ChatGPT Image Jul 20, 2026, 12_53_06 AM (5).png",
+            "ChatGPT Image Jul 20, 2026, 12_53_06 AM (6).png",
+            "ChatGPT Image Jul 20, 2026, 12_53_06 AM (7).png",
+            "ChatGPT Image Jul 20, 2026, 12_53_14 AM (1).png",
+            "ChatGPT Image Jul 20, 2026, 12_53_14 AM (2).png",
+            "ChatGPT Image Jul 20, 2026, 12_53_14 AM (3).png",
+            "ChatGPT Image Jul 20, 2026, 12_53_14 AM (4).png",
+            "ChatGPT Image Jul 20, 2026, 12_53_14 AM (5).png",
+            "ChatGPT Image Jul 20, 2026, 12_53_22 AM (1).png",
+            "ChatGPT Image Jul 20, 2026, 12_53_22 AM (2).png",
+            "ChatGPT Image Jul 20, 2026, 12_53_22 AM (3).png",
+            "ChatGPT Image Jul 20, 2026, 12_53_22 AM (4).png",
+            "ChatGPT Image Jul 20, 2026, 12_53_22 AM (5).png",
+            "ChatGPT Image Jul 20, 2026, 12_53_29 AM (1).png",
+            "ChatGPT Image Jul 20, 2026, 12_53_29 AM (2).png",
+            "ChatGPT Image Jul 20, 2026, 12_53_29 AM (3).png",
+            "ChatGPT Image Jul 20, 2026, 12_53_29 AM (4).png",
+            "ChatGPT Image Jul 20, 2026, 12_53_29 AM (5).png",
+            "ChatGPT Image Jul 20, 2026, 12_53_38 AM (1).png",
+            "ChatGPT Image Jul 20, 2026, 12_53_38 AM (2).png",
+            "ChatGPT Image Jul 20, 2026, 12_53_38 AM (3).png",
+            "ChatGPT Image Jul 20, 2026, 12_53_39 AM (4).png",
+            "ChatGPT Image Jul 20, 2026, 12_53_39 AM (5).png",
+            "ChatGPT Image Jul 20, 2026, 12_53_46 AM (1).png",
+            "ChatGPT Image Jul 20, 2026, 12_53_46 AM (2).png",
+            "ChatGPT Image Jul 20, 2026, 12_53_46 AM (3).png",
+            "ChatGPT Image Jul 20, 2026, 12_53_46 AM (4).png",
+            "ChatGPT Image Jul 20, 2026, 12_53_46 AM (5).png",
+            "ChatGPT Image Jul 20, 2026, 12_53_46 AM (6).png",
+            "ChatGPT Image Jul 20, 2026, 12_53_46 AM (7).png",
+            "ChatGPT Image Jul 20, 2026, 12_53_46 AM (8).png",
+            "ChatGPT Image Jul 20, 2026, 12_54_20 AM (1).png",
+            "ChatGPT Image Jul 20, 2026, 12_54_20 AM (2).png",
+            "ChatGPT Image Jul 20, 2026, 12_54_20 AM (3).png",
+            "ChatGPT Image Jul 20, 2026, 12_54_20 AM (4).png",
+            "ChatGPT Image Jul 20, 2026, 12_54_20 AM (5).png",
+            "ChatGPT Image Jul 20, 2026, 12_54_20 AM (6).png",
+            "ChatGPT Image Jul 20, 2026, 12_54_20 AM (7).png",
+            "ChatGPT Image Jul 20, 2026, 12_54_20 AM (8).png",
+            "ChatGPT Image Jul 20, 2026, 12_54_20 AM (9).png",
+            "ChatGPT Image Jul 20, 2026, 12_54_30 AM (1).png",
+            "ChatGPT Image Jul 20, 2026, 12_54_30 AM (2).png",
+            "ChatGPT Image Jul 20, 2026, 12_54_30 AM (3).png",
+            "ChatGPT Image Jul 20, 2026, 12_54_30 AM (4).png",
+            "ChatGPT Image Jul 20, 2026, 12_54_30 AM (5).png",
+            "ChatGPT Image Jul 20, 2026, 12_54_30 AM (6).png",
+            "ChatGPT Image Jul 20, 2026, 12_54_30 AM (7).png",
+            "ChatGPT Image Jul 20, 2026, 12_54_30 AM (8).png",
+            "ChatGPT Image Jul 20, 2026, 12_54_38 AM (1).png",
+            "ChatGPT Image Jul 20, 2026, 12_54_38 AM (2).png",
+            "ChatGPT Image Jul 20, 2026, 12_54_38 AM (3).png",
+            "ChatGPT Image Jul 20, 2026, 12_54_38 AM (4).png",
+            "ChatGPT Image Jul 20, 2026, 12_54_38 AM (5).png",
+            "ChatGPT Image Jul 20, 2026, 12_54_38 AM (6).png",
+            "ChatGPT Image Jul 20, 2026, 12_54_38 AM (7).png",
+            "ChatGPT Image Jul 20, 2026, 12_54_38 AM (8).png",
+            "ChatGPT Image Jul 20, 2026, 12_54_38 AM (9).png",
+            "ComfyUI_00004_.png",
+            "ComfyUI_00006_.png",
+            "ComfyUI_00007_.png",
+            "ComfyUI_00008_.png",
+            "ComfyUI_00015_.png",
+            "ComfyUI_00018_.png",
+            "ComfyUI_00024_.png",
+            "ComfyUI_00026_.png",
+            "ComfyUI_00037_.png",
+            "ComfyUI_00065_.png",
+            "ComfyUI_00067_.png",
+            "ComfyUI_00076_.png",
+            "ComfyUI_00543_.png",
+            "ComfyUI_7BQ8_4096_00001_.png",
+            "ComfyUI_7BQ8_4096_00002_.png",
+            "G-EDj1PakAAZ2ic.jpg",
+            "G1NfTr_aMAAfHoP.png",
+            "Gemini_Generated_Image_7g8b5m7g8b5m7g8b.png",
+            "Gemini_Generated_Image_lzsolflzsolflzso.png",
+            "Gemini_Generated_Image_m83ooom83ooom83o.png",
+            "Image_04_1116.png",
+            "Image_04_542.png",
+            "Image_0_1644.png",
+            "Image_0_879.jpg",
+            "Image_0_907.jpg",
+            "Korean-Girl-Dp1.jpg.webp",
+            "Krea2_turbo_00012_.png",
+            "Krea2_turbo_00018_.png",
+            "Krea2_turbo_00021_.png",
+            "Krea2_turbo_00023_.png",
+            "Krea2_turbo_00034_.png",
+            "Krea2_turbo_00036_.png",
+            "Krea2_turbo_00037_.png",
+            "Krea2_turbo_00039_.png",
+            "Krea2_turbo_00041_.png",
+            "Krea2_turbo_00043_.png",
+            "Krea2_turbo_00044_.png",
+            "Krea2_turbo_00045_.png",
+            "Krea2_turbo_00064_.png",
+            "Krea2_turbo_00086_.png",
+            "Krea2_turbo_00093_.png",
+            "Krea2_turbo_00113_.png",
+            "Krea2_turbo_00116_.png",
+            "Krea2_turbo_00125_.png",
+            "Krea2_turbo_00135_.png",
+            "Krea2_turbo_00140_.png",
+            "Krea2_turbo_00141_.png",
+            "Krea2_turbo_00157_.png",
+            "Krea2_turbo_00162_.png",
+            "Krea2_turbo_00189_.png",
+            "Krea2_turbo_00191_.png",
+            "Krea2_turbo_00193_.png",
+            "Krea2_turbo_00205_.png",
+            "Krea2_turbo_00238_.png",
+            "Krea2_turbo_00299_.png",
+            "Krea2_turbo_00334_.png",
+            "Krea2_turbo_00349_.png",
+            "Krea2_turbo_00360_.png",
+            "Krea2_turbo_00361_.png",
+            "Krea2_turbo_00383_.png",
+            "Krea2_turbo_00385_.png",
+            "Krea2_turbo_00388_.png",
+            "Krea2_turbo_00392_.png",
+            "Krea2_turbo_00405_.png",
+            "Krea2_turbo_00429_.png",
+            "Krea2_turbo_00439_.png",
+            "Krea2_turbo_00441_.png",
+            "Krea2_turbo_00445_.png",
+            "Krea2_turbo_00464_.png",
+            "Krea2_turbo_00465_.png",
+            "Krea2_turbo_00472_.png",
+            "Krea2_turbo_00473_.png",
+            "Krea2_turbo_00477_.png",
+            "Krea2_turbo_00502_.png",
+            "Krea2_turbo_00508_.png",
+            "Krea2_turbo_00514_.png",
+            "Krea2_turbo_00516_.png",
+            "Krea2_turbo_00519_.png",
+            "Krea2_turbo_00520_.png",
+            "Krea2_turbo_00522_.png",
+            "Krea2_turbo_00526_.png",
+            "Krea2_turbo_00529_.png",
+            "Krea2_turbo_00578_.png",
+            "Krea2_turbo_00589_.png",
+            "Krea2_turbo_00593_.png",
+            "Krea2_turbo_00598_.png",
+            "Krea2_turbo_00613_.png",
+            "Krea2_turbo_00614_.png",
+            "Krea2_turbo_00623_.png",
+            "Krea2_turbo_00627_.png",
+            "Krea2_turbo_00630_.png",
+            "Krea2_turbo_00631_.png",
+            "Krea2_turbo_00632_.png",
+            "Krea2_turbo_00633_.png",
+            "Krea2_turbo_00635_.png",
+            "Krea2_turbo_00644_.png",
+            "Krea2_turbo_00645_.png",
+            "Krea2_turbo_00651_.png",
+            "Krea2_turbo_00654_.png",
+            "Krea2_turbo_00657_.png",
+            "Krea2_turbo_00697_.png",
+            "Krea2_turbo_01012_.png",
+            "Krea2_turbo_01015_.png",
+            "Krea2_turbo_01019_.png",
+            "RDT_20260108_2205526796235667912423151.jpg",
+            "RunComfy_Krea2_Multi_Image_Reference_Edit_00007_.png",
+            "Schermafbeelding 2025-07-14 000224.png",
+            "Schermafbeelding 2025-07-18 002517.png",
+            "Schermafbeelding 2025-07-18 020700.png",
+            "Schermafbeelding 2025-08-06 023756.png",
+            "Schermafbeelding 2026-01-07 153415.png",
+            "Schermafbeelding 2026-09-28 035452.png",
+            "Schermafbeelding 2026-09-28 035518.png",
+            "Screenshot_20191111-184524_Reddit.jpg",
+            "Screenshot_20200308-181951_Reddit.jpg",
+            "Screenshot_20200326-003403_Reddit.jpg",
+            "Screenshot_20200407-231112_Reddit.jpg",
+            "Screenshot_20200606-064515_Reddit.jpg",
+            "Screenshot_20260813_024417_Gallery.jpg",
+            "T3_sdxl_inpaint_00001_.png",
+            "T3_sdxl_inpaint_00002_.png",
+            "T3_sdxl_inpaint_00003_.png",
+            "T3_sdxl_inpaint_00005_.png",
+            "Workflow_v6_Basic.png",
+            "__chiyo_ane_naru_mono_drawn_by_pochi_pochi_goya__905675c4c9de85a67a6247e2b7d0010b.jpg",
+            "a2r_01_beach_sunglasses_korean.jpg",
+            "a2r_02_crop_top_gingham_dutch.jpg",
+            "a2r_03_offshoulder_top_finnish.jpg",
+            "a2r_04_black_cami_forest_italian.jpg",
+            "a2r_05_black_vest_outfit_irish.jpg",
+            "a2r_06_cropped_hoodie_ruins_russian.jpg",
+            "a2r_07_glasses_ponytail_french.jpg",
+            "a2r_07_glasses_ponytail_turkish.jpg",
+            "a2r_08_striped_bikini_brazilian.jpg",
+            "a2r_09_black_sundress_lebanese.jpg",
+            "a2r_10_windbreaker_sportswear_british.webp",
+            "a2r_10_windbreaker_sportswear_czech.webp",
+            "a2r_11_fur_collar_coat_swordswoman_scottish.webp",
+            "a2r_12_black_turtleneck_butterflies_japanese.webp",
+            "a2r_13_shirt_and_tie_wink_american.jpg",
+            "a2r_13_shirt_and_tie_wink_la_girl.jpg",
+            "a2r_14_studded_jacket_scifi_greek.jpg",
+            "a2r_15_witch_hat_staff_polish.webp",
+            "ae6ce210c28b02a4e0fd9770d97d0ba3.jpg",
+            "are-my-panties-in-the-right-place-v0-18x5i4iz8veg1 - kopie.png",
+            "bathroom_00.png",
+            "bathroom_01.webp",
+            "bathroom_02.webp",
+            "bathroom_03.webp",
+            "bathroom_04.webp",
+            "bathroom_05.webp",
+            "bathroom_06.webp",
+            "candid_bedroom_portrait.webp",
+            "cckkmm_00099_00000.png",
+            "ced56b359fa9c899a2ef3161564f24d6d69c8bbc6aa726396f315f17b0640edc.webp",
+            "core_01_beach_sunglasses_korean.png",
+            "core_02_crop_top_gingham_dutch.png",
+            "core_02_crop_top_gingham_dutch_mask.png",
+            "core_03_offshoulder_top_finnish.png",
+            "core_04_black_cami_forest_italian.png",
+            "core_05_black_vest_outfit_irish.png",
+            "core_06_cropped_hoodie_ruins_russian.png",
+            "core_07_glasses_ponytail_french.png",
+            "core_08_striped_bikini_brazilian.png",
+            "core_08_striped_bikini_brazilian_mask.png",
+            "core_09_black_sundress_lebanese.png",
+            "core_10_windbreaker_sportswear_czech.png",
+            "core_11_fur_collar_coat_swordswoman_scottish.png",
+            "core_12_black_turtleneck_butterflies_japanese.png",
+            "core_14_studded_jacket_scifi_greek.png",
+            "core_15_witch_hat_staff_polish.png",
+            "core_hinata_irl2_00_00001_.png",
+            "core_hinata_irl2_01_00001_.png",
+            "core_hinata_irl2_02_00001_.png",
+            "core_hinata_irl_00_00001_.png",
+            "core_hinata_irl_00_00002_.png",
+            "core_hinata_irl_00_00003_.png",
+            "core_hinata_irl_01_00001_.png",
+            "core_hinata_irl_01_00002_.png",
+            "core_hinata_irl_01_00003_.png",
+            "core_hinata_irl_02_00001_.png",
+            "core_hinata_irl_02_00002_.png",
+            "core_hinata_irl_02_00003_.png",
+            "core_hinata_irl_03_00001_.png",
+            "core_hinata_irl_03_00003_.png",
+            "core_hinata_irl_04_00001_.png",
+            "core_hinata_irl_04_00002_.png",
+            "cxBbv (Gemiddeld).png",
+            "cxBbv.png",
+            "d52f09fd-f1c5-4129-b8e3-c6ca1e19ac09.png",
+            "dc9f70e5-acee-4ecf-a1d3-0144d1b5de1b.png",
+            "dfdfd.jpg",
+            "dfdsq.jpg",
+            "dfdsq.webp",
+            "ds_hinata_irl2_012_00001_.png",
+            "ds_hinata_irl2_013_00001_.png",
+            "ds_hinata_irl2_022_00001_.png",
+            "ds_hinata_irl2_023_00001_.png",
+            "ds_hinata_irl_000_00001_.png",
+            "ds_hinata_irl_001_00001_.png",
+            "ds_hinata_irl_002_00001_.png",
+            "dsqddsq.jpg",
+            "duo_h3_club_dance.png",
+            "duo_h3_pool_kiss.png",
+            "duo_person_frnv_green_bikini_00001_.png",
+            "duo_person_hntirl_red_dress_00001_.png",
+            "duo_person_hyg_lavender_bikini_00001_.png",
+            "duo_scene_frnv_beachbar_00001_.png",
+            "duo_scene_hntirl_poolparty_00001_.png",
+            "duo_scene_hyg_nightclub_00001_.png",
+            "e0d13b0e-b989-402e-846c-d0b8af2ab339.png",
+            "emilia-s3-sheet.png",
+            "emilia-s4-sheet.png",
+            "example.png",
+            "f6ebf611-6419-4bdd-9340-326305e7b751.png",
+            "f763831b-7a23-41a3-aadc-83644fa0383e.png",
+            "fansly-3n4tr51iqoa-PwTVRLSk.png",
+            "fb4082fc-ed3b-4b2c-b957-aeb2ce18bf56.jpg",
+            "fern_00001_00000.png",
+            "fern_00009_00000.png",
+            "fern_00020_00000.png",
+            "fern_00021_00000.png",
+            "fern_00025_00000.png",
+            "fern_00028_00000.png",
+            "fern_00029_00000.png",
+            "fern_00036_00000.png",
+            "fern_00052_00000.png",
+            "fern_00059_00000.png",
+            "fern_00065_00000.png",
+            "fern_00073_00000.png",
+            "fern_00074_00000.png",
+            "fern_00077_00000.png",
+            "golden_hour_garden_portrait.webp",
+            "h3_test_01.png",
+            "h3still_01_beach_sunglasses_korean.png",
+            "h3still_02_crop_top_gingham_dutch.png",
+            "hikari-ref-100girlfriends.jpg",
+            "hikari-ref-attackontitan.jpg",
+            "hikari-ref-rezero-poster.jpg",
+            "hikari-ref-rezero.jpg",
+            "hk-ai.jpg",
+            "hk-emilia-crop.png",
+            "hk-emilia-frame.png",
+            "hk-emilia-fullbody.png",
+            "hk-emilia-s4-close.png",
+            "hk-emilia-s4-full.png",
+            "hk-fern.jpg",
+            "hk-frieren-back.jpg",
+            "hk-hinata.png",
+            "hk-hinata2.jpg",
+            "hk-modernfamily-back.jpg",
+            "hk-modernfamily-poster.jpg",
+            "hk-mushoku-back.jpg",
+            "hk-mushoku-poster.jpg",
+            "hk-nami.png",
+            "hk-onepiece-back.jpg",
+            "hk-onepiece-lataction-poster.jpg",
+            "hk-onepiece-live-back.jpg",
+            "hk-onepiece-poster.jpg",
+            "hk-rias.jpg",
+            "hk-robin.png",
+            "hk-roxy.png",
+            "hk-shizuka.png",
+            "hk-shizuka2.png",
+            "hk-zom100-back.jpg",
+            "hntirl_ds_ds_01_cu_front_neutral.png",
+            "hntirl_ds_ds_02_cu_front_smile.png",
+            "hntirl_ds_ds_03_cu_front_laugh.png",
+            "hntirl_ds_ds_04_cu_34_left.png",
+            "hntirl_ds_ds_05_cu_34_right.png",
+            "hntirl_ds_ds_06_cu_profile_left.png",
+            "hntirl_ds_ds_07_cu_profile_right.png",
+            "hntirl_ds_ds_08_cu_look_up.png",
+            "hntirl_ds_ds_09_cu_look_down.png",
+            "hntirl_ds_ds_10_cu_surprised.png",
+            "hntirl_ds_ds_11_cu_serious_hard_light.png",
+            "hntirl_ds_ds_12_cu_golden_hour.png",
+            "hntirl_ds_ds_13_cu_noglasses_front.png",
+            "hntirl_ds_ds_14_cu_noglasses_smile.png",
+            "hntirl_ds_ds_15_cu_noglasses_34.png",
+            "hntirl_ds_ds_16_cu_noglasses_profile.png",
+            "hntirl_ds_ds_17_hb_tshirt_jeans.png",
+            "hntirl_ds_ds_18_hb_arms_crossed.png",
+            "hntirl_ds_ds_19_hb_hand_in_hair.png",
+            "hntirl_ds_ds_20_hb_coffee.png",
+            "hntirl_ds_ds_21_hb_back_over_shoulder.png",
+            "hntirl_ds_ds_22_hb_sundress_outdoor.png",
+            "hntirl_ds_ds_23_hb_gym.png",
+            "hntirl_ds_ds_24_hb_leather_night.png",
+            "hntirl_ds_ds_25_hb_bikini_beach.png",
+            "hntirl_ds_ds_26_hb_noglasses_dress.png",
+            "hntirl_ds_ds_27_hb_lingerie_black.png",
+            "hntirl_ds_ds_28_hb_lingerie_white_side.png",
+            "hntirl_ds_ds_29_hb_hoodie_sitting.png",
+            "hntirl_ds_ds_30_hb_rain_coat.png",
+            "hntirl_ds_ds_31_hb_hard_flash.png",
+            "hntirl_ds_ds_32_hb_noglasses_tank.png",
+            "hntirl_ds_ds_33_fb_front_studio.png",
+            "hntirl_ds_ds_34_fb_back_studio.png",
+            "hntirl_ds_ds_35_fb_side_studio.png",
+            "hntirl_ds_ds_36_fb_walking_street.png",
+            "hntirl_ds_ds_37_fb_sitting_stool.png",
+            "hntirl_ds_ds_38_fb_sitting_floor.png",
+            "hntirl_ds_ds_39_fb_dress_heels.png",
+            "hntirl_ds_ds_40_fb_bikini_pool.png",
+            "hntirl_ds_ds_41_fb_bikini_back_beach.png",
+            "hntirl_ds_ds_42_fb_lingerie_front.png",
+            "hntirl_ds_ds_43_fb_lingerie_kneeling.png",
+            "hntirl_ds_ds_44_fb_lying_bed.png",
+            "hntirl_ds_ds_45_fb_yoga.png",
+            "hntirl_ds_ds_46_fb_winter_coat.png",
+            "hntirl_ds_ds_47_fb_noglasses_front.png",
+            "hntirl_ds_ds_48_fb_low_angle.png",
+            "hntirl_ds_ds_49_nd_topless_front_hb.png",
+            "hntirl_ds_ds_50_nd_topless_34_hb.png",
+            "hntirl_ds_ds_51_nd_topless_side_hb.png",
+            "hntirl_ds_ds_52_nd_topless_jeans.png",
+            "hntirl_ds_ds_53_nd_topless_underwear_fb.png",
+            "hntirl_ds_ds_54_nd_nude_back_fb.png",
+            "hntirl_ds_ds_55_nd_nude_back_lookback.png",
+            "hntirl_ds_ds_56_nd_nude_side_fb.png",
+            "hntirl_ds_ds_57_nd_nude_stool.png",
+            "hntirl_ds_ds_58_nd_nude_floor_knees.png",
+            "hntirl_ds_ds_59_nd_nude_bed_stomach.png",
+            "hntirl_ds_ds_60_nd_nude_bed_side.png",
+            "hntirl_ds_ds_61_nd_topless_kneeling_bed.png",
+            "hntirl_ds_ds_62_nd_topless_outdoor.png",
+            "hntirl_ds_ds_63_nd_topless_noglasses.png",
+            "hntirl_ds_ds_64_nd_shower_wet.png",
+            "hntirl_orig_frwn_01_selfie_twintails_glasses.png",
+            "hntirl_orig_frwn_03_portrait_loose_noglasses.png",
+            "hntirl_orig_frwn_04_selfie_cardigan_glasses.png",
+            "hntirl_orig_frwn_05_selfie_cardigan_glasses2.png",
+            "hntirl_orig_frwn_06_bun_overshoulder_glance.png",
+            "hntirl_orig_frwn_07_bun_window_glasses.png",
+            "hntirl_orig_frwn_08_tennis_selfie_sports.png",
+            "hntirl_orig_frwn_09_rooftop_halter_selfie.png",
+            "hntirl_orig_frwn_10_street_jeans_glasses.png",
+            "hntirl_orig_frwn_11_cafe_braid_cardigan.png",
+            "hntirl_orig_frwn_12_bench_twinbraids_glasses.png",
+            "hntirl_orig_frwn_13_bench_twinbraids_noglasses.png",
+            "hntirl_orig_frwn_14_couch_striped_glasses.png",
+            "hntirl_orig_frwn_15_couch_whitetee.png",
+            "hntirl_orig_frwn_16_flowershop_bun_glasses.png",
+            "hntirl_orig_frwn_17_flowershop_bun_dress.png",
+            "hntirl_orig_frwn_18_night_balcony_offshoulder.png",
+            "hntirl_orig_frwn_19_skyline_whitesuit.png",
+            "hntirl_orig_frwn_20_graffiti_streetwear.png",
+            "hntirl_orig_frwn_21_rooftop_sunset_athletic.png",
+            "hntirl_orig_frwn_22_studio_brown_minidress.png",
+            "hntirl_orig_frwn_23_studio_beige_set.png",
+            "hntirl_orig_frwn_24_studio_rear_sports.png",
+            "hntirl_orig_frwn_25_wall_sports_ponytail.png",
+            "hntirl_orig_frwn_26_wall_sports_ponytail2.png",
+            "hntirl_orig_frwn_27_beach_shorts_glasses.png",
+            "hntirl_orig_frwn_28_sunset_boardwalk_dress.png",
+            "hntirl_orig_frwn_29_workout_sideponytail.png",
+            "hntirl_orig_frwn_30_capelet_signature.png",
+            "hntirl_pass1_ramen.png",
+            "ilr0cfbtzvoh1.jpeg",
+            "image (16).png",
+            "image (4).png",
+            "image (7).png",
+            "image_2026-05-09-170008__0.jpg",
+            "images (1).jpg",
+            "images (2).jpg",
+            "images.jpg",
+            "instareallarge_00364_.png",
+            "instareallarge_00404_.png",
+            "kira_00001_.png",
+            "kira_008_pool_night_sarong.png",
+            "kira_014_gym_ponytail.png",
+            "kira_bathroom_phone_mirror.png",
+            "kira_bathroom_sink_bra_cardigan.png",
+            "kira_bed_cardigan_frontal.png",
+            "kira_bed_frontal_clean.png",
+            "kira_couch_knit_mug.png",
+            "kira_doorway_cardigan_standing.png",
+            "kira_gamer_pink.png",
+            "kira_gym_tank_sweatshirt.png",
+            "kira_kitchen_fridge_night.png",
+            "kira_pov_balcony_black_dress_wine.png",
+            "kira_pov_bar_close_watching.png",
+            "kira_pov_bathroom_wet_shirt_lean.png",
+            "kira_pov_bedroom_kneel_cardigan.png",
+            "kira_pov_camp_kneel_nude_bright.png",
+            "kira_pov_doorway_bodice_open.png",
+            "kira_pov_hotel_mirror_topless.png",
+            "kira_pov_lake_nude_seated_open.png",
+            "kira_ref_loft_loungewear.png",
+            "kira_ref_street_daylight.png",
+            "kira_ref_window_sweater.png",
+            "kira_ribbon_pigtails.png",
+            "kira_study_red_lace.png",
+            "kira_swing_sarong.png",
+            "kira_travel_coat_platform.png",
+            "kira_travel_dinner_smile.png",
+            "korean_duo_bed.png",
+            "korean_duo_vanity.png",
+            "lab_duo_person_frnv_green_bikini_00001_.png",
+            "lab_duo_person_hntirl_red_dress_00001_.png",
+            "lab_duo_person_hyg_lavender_bikini_00001_.png",
+            "lab_duo_scene_frnv_beachbar_00001_.png",
+            "lab_duo_scene_hntirl_poolparty_00001_.png",
+            "lab_duo_scene_hyg_nightclub_00001_.png",
+            "lab_soft_person_morningbed_fr.png",
+            "lab_soft_person_onsen_hy.png",
+            "lab_soft_person_sauna_hn.png",
+            "lab_soft_scene_morningbed_fr.png",
+            "lab_soft_scene_onsen_hy.png",
+            "lab_soft_scene_sauna_hn.png",
+            "outdoor_shower_photoreal.webp",
+            "photo_2024-03-03_00-54-49.jpg",
+            "photo_2_2024-03-03_01-01-11.jpg",
+            "pinkman_00009_.png",
+            "pinkman_00013_.png",
+            "pinkman_00025_00000.png",
+            "pinkman_00028_00000.png",
+            "pinkman_00030_.png",
+            "pinkman_00032_00000.png",
+            "pinkman_00035_.png",
+            "pinkman_00038_00000.png",
+            "pinkman_00039_00000.png",
+            "pinkman_00040_00000.png",
+            "pinkman_00041_00000.png",
+            "pinkman_00042_00000.png",
+            "pinkman_00043_.png",
+            "pinkman_00048_.png",
+            "pinkman_00049_.png",
+            "pinkman_00050_00000.png",
+            "pinkman_00051_.png",
+            "pinkman_00054_00000.png",
+            "pinkman_00065_.png",
+            "pinkman_00085_.png",
+            "pinkman_00088_.png",
+            "pinkman_00090_.png",
+            "pinkman_00091_.png",
+            "pinkman_00112_.png",
+            "pinkman_00120_.png",
+            "pinkman_00135_.png",
+            "pinkman_00139_.png",
+            "pinkman_00145_.png",
+            "pinkman_00151_.png",
+            "pinkman_00156_.png",
+            "pinkman_00160_00000.png",
+            "pinkman_00163_.png",
+            "pinkman_00168_00000.png",
+            "pinkman_00175_.png",
+            "pinkman_00175_00000.png",
+            "pinkman_00193_00000.png",
+            "pinkman_00217_00000.png",
+            "prog_fern_1_reformer_pilates_studio.png",
+            "prog_fern_2_sunrise_beach_yoga.png",
+            "prog_fern_3_sunday_bath_ritual.png",
+            "prog_fern_4_pool_party.png",
+            "prog_fern_5_club_mirror.png",
+            "prog_frieren_1_rooftop_pool_hotel.png",
+            "prog_frieren_2_alpine_cabin_after_hike.png",
+            "prog_frieren_3_airport_to_suite.png",
+            "prog_frieren_4_pool_party.png",
+            "prog_frieren_5_club_mirror.png",
+            "prog_hinata_1_shy_streamer_night.png",
+            "prog_hinata_2_hotel_date_night_lbd.png",
+            "prog_hinata_3_onsen_ryokan_yukata.png",
+            "prog_hinata_4_pool_party.png",
+            "prog_hinata_5_club_mirror.png",
+            "prog_kira_1_lazy_sunday_bed_books.png",
+            "prog_kira_2_gamer_night_setup.png",
+            "prog_kira_3_rainy_window_nook.png",
+            "prog_kira_4_pool_party.png",
+            "prog_kira_5_club_mirror.png",
+            "qsdqdq.jpg",
+            "real_00002_.png",
+            "ref_emilia_irl_00_0_00001_.png",
+            "ref_emilia_irl_00_1_00001_.png",
+            "ref_hinata_irl2_00_0_00001_.png",
+            "ref_hinata_irl2_00_1_00001_.png",
+            "ref_hinata_irl2_00_2_00001_.png",
+            "ref_hinata_irl2_00_3_00001_.png",
+            "ref_hinata_irl_00_0_00001_.png",
+            "ref_hinata_irl_00_0_00002_.png",
+            "ref_hinata_irl_00_0_00003_.png",
+            "ref_hinata_irl_00_1_00001_.png",
+            "ref_hinata_irl_00_1_00002_.png",
+            "ref_hinata_irl_00_1_00003_.png",
+            "ref_hinata_irl_00_2_00001_.png",
+            "ref_hinata_irl_00_2_00002_.png",
+            "ref_hinata_irl_00_2_00003_.png",
+            "result_1771254001282.png",
+            "sample_e129e7bb47080824f3a2cdf9862de152.jpg",
+            "series_fern_bedroom_stretch_reddit.png",
+            "series_fern_yoga_studio_insta.png",
+            "series_frieren_hotel_reddit.png",
+            "series_frieren_summit_insta.png",
+            "series_hinata_bedroom_collar_reddit.png",
+            "series_hinata_cafe_date_insta.png",
+            "series_kira_bed_reading_insta.png",
+            "series_kira_gaming_chair_reddit.png",
+            "sexy-korean-girl-v0-6gx3ok4i3jbd1.jpg",
+            "sexy-korean-girl-v0-gjy9du3i3jbd1.webp",
+            "smElgt0.jpg",
+            "target_areola_closeup.png",
+            "target_chest.png",
+            "unnamed (32).jpg",
+            "unnamed (36).jpg",
+            "unnamed (4).jpg",
+            "unnamed (6).jpg",
+            "v6_Versions_Compare.png",
+            "valetf_01d7a6e7_A_showhome_aerial_s12.png",
+            "valetf_038e2c2d_front_apose.png",
+            "valetf_05029921_concept_main.png",
+            "valetf_08edadcf_concept_main.png",
+            "valetf_0c1a603f_concept_main.png",
+            "valetf_0ff9099e_head_crop_up.png",
+            "valetf_1cb0255d_PICK_front.png",
+            "valetf_1cb2bf83_garden_soil.png",
+            "valetf_226922c2_PICK_d_portapotty.png",
+            "valetf_24b102b3_v09.png",
+            "valetf_25876bd4_v06.png",
+            "valetf_28062f84_head_crop_up.png",
+            "valetf_2a9494fb_A_showhome_ground_s11.png",
+            "valetf_2c4d8861_00_source_concept_main.png",
+            "valetf_3173de54_PICK_a_duffel.png",
+            "valetf_362f744f_front_apose.png",
+            "valetf_36760525_00_source_concept_main.png",
+            "valetf_38014d2a_concept_main.png",
+            "valetf_3ed7ed2e_PICK_front.png",
+            "valetf_3f29a9e0_worksite_aerial_v1_t2i_s12.png",
+            "valetf_413050b5_front_fullbody.png",
+            "valetf_442d9ca3_PICK_b_armchair.png",
+            "valetf_4a346f05_KEY_showhome_layout.png",
+            "valetf_4fdba017_v06.png",
+            "valetf_5a9599ea_PICK_front.png",
+            "valetf_5c271ccd_grass_lawn.png",
+            "valetf_5cc4b0c0_PICK_a_duffel.png",
+            "valetf_5d408854_front_apose.png",
+            "valetf_608adbb7_A_showhome_ground_s12.png",
+            "valetf_66641b7d_painted_cladding_ref.png",
+            "valetf_777c6084_PICK_a_duffel.png",
+            "valetf_77e98226_highway_ground_v2_t2i_s12.png",
+            "valetf_7c6e5e16_painted_cladding_ref.png",
+            "valetf_8135651a_PICK_d_portapotty.png",
+            "valetf_8e4a82d3_PICK_a_duffel.png",
+            "valetf_9560a3c1_PICK_front.png",
+            "valetf_96628880_PICK_c_ammocan.png",
+            "valetf_971acb8e_PICK_a_duffel.png",
+            "valetf_975a788b_painted_cladding_ref.png",
+            "valetf_980dbd8b_PICK_c_ammocan.png",
+            "valetf_99e56e3e_front_fullbody.png",
+            "valetf_9d91efe0_A_showhome_ground_s11.png",
+            "valetf_a12a9d78_PICK_head.png",
+            "valetf_a1a75de9_PICK_front.png",
+            "valetf_a4fdffd0_00_source_concept_main.png",
+            "valetf_aa2c632d_PICK_front.png",
+            "valetf_ab257017_PICK_d_portapotty.png",
+            "valetf_ad9cb9d8_PICK_front.png",
+            "valetf_aec033ae_front_fullbody.png",
+            "valetf_b183a830_A_showhome_aerial_s12.png",
+            "valetf_b79fd491_head_crop_up.png",
+            "valetf_b95f303b_head_crop_up.png",
+            "valetf_b99ade20_concept_main.png",
+            "valetf_ba8365af_00_source_concept_main.png",
+            "valetf_c1f5bcc2_PICK_c_ammocan.png",
+            "valetf_c46eeff4_A_showhome_aerial_s11.png",
+            "valetf_c76d32ba_concept_main.png",
+            "valetf_d399c518_00_source_concept_main.png",
+            "valetf_d4c28670_head_crop_up.png",
+            "valetf_d59e9f63_concept_face.png",
+            "valetf_d850af24_front_apose.png",
+            "valetf_dccfe199_PICK_b_armchair.png",
+            "valetf_dfca4fa8_front_apose.png",
+            "valetf_e02ef817_front_apose.png",
+            "valetf_e2b21555_PICK_front.png",
+            "valetf_e847b811_front_fullbody.png",
+            "valetf_e8fcaa64_front_fullbody.png",
+            "valetf_e9eb6ccb_PICK_b_armchair.png",
+            "valetf_edd29b5a_PICK_d_portapotty.png",
+            "valetf_efbe4f09_gravel.png",
+            "valetf_f6c01da2_concept_main.png",
+            "valetf_f6ed6e95_00_source_concept_main.png",
+            "z-image_00035_.png",
+            "\ud83d\udc0d @SneakyLinksGate on [TELEGRAM] \ud83d\udc0d - 179.jpg"
+          ],
+          {
+            "image_upload": true
+          }
+        ]
+      }
+    },
+    "input_order": {
+      "required": [
+        "image"
+      ]
+    },
+    "output": [
+      "IMAGE",
+      "MASK"
+    ],
+    "output_name": [
+      "IMAGE",
+      "MASK"
+    ],
+    "output_node": false
+  },
+  "LoadMoGeModel": {
+    "input": {
+      "required": {
+        "model_name": [
+          "COMBO",
+          {
+            "multiselect": false,
+            "options": []
+          }
+        ]
+      }
+    },
+    "input_order": {
+      "required": [
+        "model_name"
+      ]
+    },
+    "output": [
+      "MOGE_MODEL"
+    ],
+    "output_name": [
+      "MOGE_MODEL"
+    ],
+    "output_node": false
+  },
+  "MaskPreview": {
+    "input": {
+      "required": {
+        "mask": [
+          "MASK",
+          {}
+        ]
+      },
+      "hidden": {
+        "prompt": [
+          "PROMPT"
+        ],
+        "extra_pnginfo": [
+          "EXTRA_PNGINFO"
+        ]
+      }
+    },
+    "input_order": {
+      "required": [
+        "mask"
+      ],
+      "hidden": [
+        "prompt",
+        "extra_pnginfo"
+      ]
+    },
+    "output": [
+      "MASK"
+    ],
+    "output_name": [
+      "mask"
+    ],
+    "output_node": true
+  },
+  "MeshSmoothNormals": {
+    "input": {
+      "required": {
+        "mesh": [
+          "MESH",
+          {}
+        ],
+        "crease_angle": [
+          "FLOAT",
+          {
+            "tooltip": "Edges whose dihedral angle exceeds this value (degrees) stay hard (vertices are split). 180 = fully smooth; lower preserves sharp edges (e.g. ~30-60 for hard-surface).",
+            "default": 180.0,
+            "min": 0.0,
+            "max": 180.0,
+            "step": 1.0
+          }
+        ]
+      }
+    },
+    "input_order": {
+      "required": [
+        "mesh",
+        "crease_angle"
+      ]
+    },
+    "output": [
+      "MESH"
+    ],
+    "output_name": [
+      "mesh"
+    ],
+    "output_node": false
+  },
+  "MeshToFile3D": {
+    "input": {
+      "required": {
+        "mesh": [
+          "MESH",
+          {}
+        ]
+      }
+    },
+    "input_order": {
+      "required": [
+        "mesh"
+      ]
+    },
+    "output": [
+      "FILE_3D_GLB"
+    ],
+    "output_name": [
+      "model_3d"
+    ],
+    "output_node": false
+  },
+  "MoGeGeometryToFOV": {
+    "input": {
+      "required": {
+        "moge_geometry": [
+          "MOGE_GEOMETRY",
+          {}
+        ],
+        "axis": [
+          "COMBO",
+          {
+            "tooltip": "'vertical' (fov_y), 'horizontal' (fov_x), or 'diagonal'.",
+            "default": "vertical",
+            "multiselect": false,
+            "options": [
+              "vertical",
+              "horizontal",
+              "diagonal"
+            ]
+          }
+        ],
+        "unit": [
+          "COMBO",
+          {
+            "tooltip": "Output unit for the FOV.",
+            "default": "degrees",
+            "multiselect": false,
+            "options": [
+              "degrees",
+              "radians"
+            ]
+          }
+        ]
+      }
+    },
+    "input_order": {
+      "required": [
+        "moge_geometry",
+        "axis",
+        "unit"
+      ]
+    },
+    "output": [
+      "FLOAT",
+      "FLOAT"
+    ],
+    "output_name": [
+      "fov",
+      "focal_pixels"
+    ],
+    "output_node": false
+  },
+  "MoGeInference": {
+    "input": {
+      "required": {
+        "moge_model": [
+          "MOGE_MODEL",
+          {}
+        ],
+        "image": [
+          "IMAGE",
+          {}
+        ],
+        "resolution_level": [
+          "INT",
+          {
+            "tooltip": "0 = fastest, 9 = most detail.",
+            "default": 9,
+            "min": 0,
+            "max": 9
+          }
+        ],
+        "fov_x_degrees": [
+          "FLOAT",
+          {
+            "tooltip": "Horizontal field of view of the source camera. Sets the focal length used to unproject the depth map into 3D. 0 = auto-recover from the predicted points.",
+            "advanced": true,
+            "default": 0.0,
+            "min": 0.0,
+            "max": 170.0,
+            "step": 0.1
+          }
+        ],
+        "batch_size": [
+          "INT",
+          {
+            "tooltip": "Images per inference call. Lower if you OOM on a long video / image set.",
+            "default": 4,
+            "min": 1,
+            "max": 64
+          }
+        ],
+        "force_projection": [
+          "BOOLEAN",
+          {
+            "advanced": true,
+            "default": true
+          }
+        ],
+        "apply_mask": [
+          "BOOLEAN",
+          {
+            "tooltip": "Set masked-out (sky / invalid) pixels to inf in points and depth so meshing culls them. Disable to keep the raw predicted geometry everywhere; the mask is still returned separately.",
+            "advanced": true,
+            "default": true
+          }
+        ],
+        "refine_steps": [
+          "INT",
+          {
+            "tooltip": "MoGe-3 only: sparse volumetric refinement passes over the predicted depth. More passes sharpen fine detail and edges at a roughly linear cost. 0 disables refinement. Ignored by MoGe-1 / MoGe-2.",
+            "advanced": true,
+            "default": 3,
+            "min": 0,
+            "max": 8
+          }
+        ]
+      }
+    },
+    "input_order": {
+      "required": [
+        "moge_model",
+        "image",
+        "resolution_level",
+        "fov_x_degrees",
+        "batch_size",
+        "force_projection",
+        "apply_mask",
+        "refine_steps"
+      ]
+    },
+    "output": [
+      "MOGE_GEOMETRY"
+    ],
+    "output_name": [
+      "moge_geometry"
+    ],
+    "output_node": false
+  },
+  "ModelSamplingSD3": {
+    "input": {
+      "required": {
+        "model": [
+          "MODEL"
+        ],
+        "shift": [
+          "FLOAT",
+          {
+            "default": 3.0,
+            "min": 0.0,
+            "max": 100.0,
+            "step": 0.01
+          }
+        ]
+      }
+    },
+    "input_order": {
+      "required": [
+        "model",
+        "shift"
+      ]
+    },
+    "output": [
+      "MODEL"
+    ],
+    "output_name": [
+      "MODEL"
+    ],
+    "output_node": false
+  },
+  "PaintMesh": {
+    "input": {
+      "required": {
+        "mesh": [
+          "MESH",
+          {}
+        ],
+        "voxel_colors": [
+          "VOXEL",
+          {}
+        ]
+      }
+    },
+    "input_order": {
+      "required": [
+        "mesh",
+        "voxel_colors"
+      ]
+    },
+    "output": [
+      "MESH"
+    ],
+    "output_name": [
+      "mesh"
+    ],
+    "output_node": false
+  },
+  "Pixal3DConditioning": {
+    "input": {
+      "required": {
+        "clip_vision_model": [
+          "CLIP_VISION",
+          {
+            "tooltip": "DINOv3 ViT-L/16 ClipVision."
+          }
+        ],
+        "image": [
+          "IMAGE",
+          {
+            "tooltip": "Preprocessed image from ImageCropToMask (pad_factor=1.1 for Pixal3D)."
+          }
+        ],
+        "camera_angle_x": [
+          "FLOAT",
+          {
+            "display_name": "fov",
+            "tooltip": "Horizontal FOV in degrees. Wire a MoGeGeometryToFOV (axis='horizontal', unit='degrees') for a per-image FoV (matches upstream default).",
+            "default": 49.13,
+            "min": 1.0,
+            "max": 170.0,
+            "step": 0.01
+          }
+        ]
+      }
+    },
+    "input_order": {
+      "required": [
+        "clip_vision_model",
+        "image",
+        "camera_angle_x"
+      ]
+    },
+    "output": [
+      "CONDITIONING",
+      "CONDITIONING"
+    ],
+    "output_name": [
+      "positive",
+      "negative"
+    ],
+    "output_node": false
+  },
+  "Preview3DAdvanced": {
+    "input": {
+      "required": {
+        "model_3d": [
+          "FILE_3D_GLB,FILE_3D_GLTF,FILE_3D_FBX,FILE_3D_OBJ,FILE_3D_STL,FILE_3D_USDZ,FILE_3D",
+          {
+            "tooltip": "3D model file from an upstream 3D node."
+          }
+        ],
+        "viewport_state": [
+          "LOAD_3D",
+          {}
+        ],
+        "width": [
+          "INT",
+          {
+            "tooltip": "Render width of the viewport in pixels.",
+            "default": 1024,
+            "min": 1,
+            "max": 4096,
+            "step": 1
+          }
+        ],
+        "height": [
+          "INT",
+          {
+            "tooltip": "Render height of the viewport in pixels.",
+            "default": 1024,
+            "min": 1,
+            "max": 4096,
+            "step": 1
+          }
+        ]
+      },
+      "optional": {
+        "model_3d_info": [
+          "LOAD3D_MODEL_INFO",
+          {
+            "advanced": true
+          }
+        ],
+        "camera_info": [
+          "LOAD3D_CAMERA",
+          {
+            "tooltip": "Viewport camera information: position, look-at target, zoom, and type.",
+            "advanced": true
+          }
+        ]
+      },
+      "hidden": {
+        "prompt": [
+          "PROMPT"
+        ],
+        "extra_pnginfo": [
+          "EXTRA_PNGINFO"
+        ]
+      }
+    },
+    "input_order": {
+      "required": [
+        "model_3d",
+        "viewport_state",
+        "width",
+        "height"
+      ],
+      "optional": [
+        "model_3d_info",
+        "camera_info"
+      ],
+      "hidden": [
+        "prompt",
+        "extra_pnginfo"
+      ]
+    },
+    "output": [
+      "FILE_3D",
+      "LOAD3D_MODEL_INFO",
+      "LOAD3D_CAMERA",
+      "INT",
+      "INT"
+    ],
+    "output_name": [
+      "model_3d",
+      "model_3d_info",
+      "camera_info",
+      "width",
+      "height"
+    ],
+    "output_node": true
+  },
+  "PreviewImage": {
+    "input": {
+      "required": {
+        "images": [
+          "IMAGE"
+        ]
+      },
+      "hidden": {
+        "prompt": "PROMPT",
+        "extra_pnginfo": "EXTRA_PNGINFO"
+      }
+    },
+    "input_order": {
+      "required": [
+        "images"
+      ],
+      "hidden": [
+        "prompt",
+        "extra_pnginfo"
+      ]
+    },
+    "output": [
+      "IMAGE"
+    ],
+    "output_name": [
+      "images"
+    ],
+    "output_node": true
+  },
+  "PrimitiveBoolean": {
+    "input": {
+      "required": {
+        "value": [
+          "BOOLEAN",
+          {}
+        ]
+      }
+    },
+    "input_order": {
+      "required": [
+        "value"
+      ]
+    },
+    "output": [
+      "BOOLEAN"
+    ],
+    "output_name": [
+      "BOOLEAN"
+    ],
+    "output_node": false
+  },
+  "PrimitiveInt": {
+    "input": {
+      "required": {
+        "value": [
+          "INT",
+          {
+            "min": -9223372036854775807,
+            "max": 9223372036854775807,
+            "control_after_generate": "fixed"
+          }
+        ]
+      }
+    },
+    "input_order": {
+      "required": [
+        "value"
+      ]
+    },
+    "output": [
+      "INT"
+    ],
+    "output_name": [
+      "INT"
+    ],
+    "output_node": false
+  },
+  "QwenImage21Cache": {
+    "input": {
+      "required": {
+        "model": [
+          "MODEL",
+          {}
+        ],
+        "device": [
+          "COMBO",
+          {
+            "tooltip": "auto uses spare VRAM, then RAM. cpu (RAM) is prefetched behind compute and costs little speed. off recomputes the prefix every step, which is slower but is the one way to rule the cache out.",
+            "default": "auto",
+            "multiselect": false,
+            "options": [
+              "auto",
+              "gpu",
+              "cpu",
+              "off"
+            ]
+          }
+        ],
+        "dtype": [
+          "COMBO",
+          {
+            "tooltip": "Storage precision. default is lossless. int8 halves the cache at about bf16 accuracy, int4 quarters it but roughly doubles the per-step error.",
+            "default": "default",
+            "multiselect": false,
+            "options": [
+              "default",
+              "int8",
+              "int4"
+            ]
+          }
+        ]
+      }
+    },
+    "input_order": {
+      "required": [
+        "model",
+        "device",
+        "dtype"
+      ]
+    },
+    "output": [
+      "MODEL"
+    ],
+    "output_name": [
+      "MODEL"
+    ],
+    "output_node": false
+  },
+  "QwenImageReferencePack": {
+    "input": {
+      "required": {},
+      "optional": {
+        "references_json": [
+          "STRING",
+          {
+            "multiline": true,
+            "dynamicPrompts": false,
+            "default": "",
+            "tooltip": "Reference list written by the image manager. Do not hand-edit."
+          }
+        ],
+        "max_reference_edge": [
+          "INT",
+          {
+            "default": 2048,
+            "min": 0,
+            "max": 8192,
+            "step": 64,
+            "tooltip": "Downscale references whose long edge exceeds this. 0 disables the cap."
+          }
+        ]
+      }
+    },
+    "input_order": {
+      "required": [],
+      "optional": [
+        "references_json",
+        "max_reference_edge"
+      ]
+    },
+    "output": [
+      "IMAGE",
+      "IMAGE",
+      "IMAGE",
+      "IMAGE",
+      "IMAGE",
+      "IMAGE",
+      "IMAGE",
+      "IMAGE",
+      "IMAGE",
+      "IMAGE"
+    ],
+    "output_name": [
+      "image_1",
+      "image_2",
+      "image_3",
+      "image_4",
+      "image_5",
+      "image_6",
+      "image_7",
+      "image_8",
+      "image_9",
+      "image_10"
+    ],
+    "output_node": false
+  },
+  "RemeshMesh": {
+    "input": {
+      "required": {
+        "mesh": [
+          "MESH",
+          {}
+        ],
+        "resolution": [
+          "INT",
+          {
+            "tooltip": "Voxel grid resolution (output density). 256 ~ 100k faces, 512 ~ 1M. For an exact face count, follow with Decimate Mesh.",
+            "default": 512,
+            "min": 32,
+            "max": 2048
+          }
+        ],
+        "sign_mode": [
+          "COMFY_DYNAMICCOMBO_V3",
+          {
+            "display_name": "sign_mode",
+            "tooltip": "udf: robust to messy/non-manifold input. sdf: clean single surface with QEF (Quadratic Error Function) sharp-feature recovery, but needs consistent winding.",
+            "options": [
+              {
+                "key": "udf",
+                "inputs": {
+                  "required": {
+                    "qef": [
+                      "BOOLEAN",
+                      {
+                        "tooltip": "QEF (Quadratic Error Function) dual-vertex placement for sharper edges.",
+                        "advanced": true,
+                        "default": false
+                      }
+                    ],
+                    "drop_inverted_components": [
+                      "BOOLEAN",
+                      {
+                        "tooltip": "Drop inward-normal (negative-volume) closed components \u2014 the UDF inner shell.",
+                        "advanced": true,
+                        "default": false
+                      }
+                    ],
+                    "drop_enclosed_components": [
+                      "BOOLEAN",
+                      {
+                        "tooltip": "Drop components inside the largest's bbox that fail a point-in-mesh raycast. Disable for legitimate nested parts.",
+                        "advanced": true,
+                        "default": false
+                      }
+                    ]
+                  }
+                }
+              },
+              {
+                "key": "sdf",
+                "inputs": {
+                  "required": {
+                    "qef": [
+                      "BOOLEAN",
+                      {
+                        "tooltip": "QEF (Quadratic Error Function) dual-vertex placement (recovers sharp features) vs edge-crossing centroid.",
+                        "default": true
+                      }
+                    ],
+                    "manifold": [
+                      "BOOLEAN",
+                      {
+                        "tooltip": "Manifold Dual Contouring: 1-4 dual verts/voxel for multi-sheet cases. Slower.",
+                        "default": false
+                      }
+                    ]
+                  }
+                }
+              }
+            ]
+          }
+        ],
+        "band": [
+          "FLOAT",
+          {
+            "tooltip": "Narrow-band width in voxel units. In UDF mode also offsets the surface.",
+            "advanced": true,
+            "default": 1.0,
+            "min": 0.5,
+            "max": 4.0,
+            "step": 0.1
+          }
+        ],
+        "project_back": [
+          "FLOAT",
+          {
+            "tooltip": "Linearly interpolate vertices toward the original surface (0 = pure DC, 1 = snapped).",
+            "advanced": true,
+            "default": 0.0,
+            "min": 0.0,
+            "max": 1.0,
+            "step": 0.05
+          }
+        ],
+        "fix_poles": [
+          "BOOLEAN",
+          {
+            "tooltip": "Collapse valence-3 vertex pairs (DC T-junction artifact).",
+            "advanced": true,
+            "default": false
+          }
+        ],
+        "smooth_iters": [
+          "INT",
+          {
+            "tooltip": "Taubin smoothing iterations (0 = off). 2-3 cleans DC staircase-like artifacts; higher over-smooth QEF edges.",
+            "default": 0,
+            "min": 0,
+            "max": 20
+          }
+        ],
+        "drop_small_components": [
+          "FLOAT",
+          {
+            "tooltip": "Drop components below this fraction of the largest's face count. 0 disables.",
+            "advanced": true,
+            "default": 0.01,
+            "min": 0.0,
+            "max": 0.5,
+            "step": 0.005
+          }
+        ],
+        "precluster_max_verts": [
+          "INT",
+          {
+            "tooltip": "Cap input vertex count before the field queries, inputs above this are cluster-decimated to it first. Prevents OOM on huge meshes.",
+            "advanced": true,
+            "default": 20000000,
+            "min": 0,
+            "max": 100000000
+          }
+        ]
+      },
+      "hidden": {
+        "unique_id": [
+          "UNIQUE_ID"
+        ]
+      }
+    },
+    "input_order": {
+      "required": [
+        "mesh",
+        "resolution",
+        "sign_mode",
+        "band",
+        "project_back",
+        "fix_poles",
+        "smooth_iters",
+        "drop_small_components",
+        "precluster_max_verts"
+      ],
+      "hidden": [
+        "unique_id"
+      ]
+    },
+    "output": [
+      "MESH"
+    ],
+    "output_name": [
+      "mesh"
+    ],
+    "output_node": false
+  },
+  "RemoveBackground": {
+    "input": {
+      "required": {
+        "bg_removal_model": [
+          "BACKGROUND_REMOVAL",
+          {
+            "tooltip": "Background removal model used to generate the mask"
+          }
+        ],
+        "image": [
+          "IMAGE",
+          {
+            "tooltip": "Input image to remove the background from"
+          }
+        ]
+      }
+    },
+    "input_order": {
+      "required": [
+        "bg_removal_model",
+        "image"
+      ]
+    },
+    "output": [
+      "MASK"
+    ],
+    "output_name": [
+      "mask"
+    ],
+    "output_node": false
+  },
+  "RenderUVAtlas": {
+    "input": {
+      "required": {
+        "mesh": [
+          "MESH",
+          {}
+        ],
+        "resolution": [
+          "INT",
+          {
+            "default": 1024,
+            "min": 64,
+            "max": 4096,
+            "step": 64
+          }
+        ]
+      }
+    },
+    "input_order": {
+      "required": [
+        "mesh",
+        "resolution"
+      ]
+    },
+    "output": [
+      "IMAGE"
+    ],
+    "output_name": [
+      "image"
+    ],
+    "output_node": false
+  },
+  "RescaleCFG": {
+    "input": {
+      "required": {
+        "model": [
+          "MODEL"
+        ],
+        "multiplier": [
+          "FLOAT",
+          {
+            "default": 0.7,
+            "min": 0.0,
+            "max": 1.0,
+            "step": 0.01
+          }
+        ]
+      }
+    },
+    "input_order": {
+      "required": [
+        "model",
+        "multiplier"
+      ]
+    },
+    "output": [
+      "MODEL"
+    ],
+    "output_name": [
+      "MODEL"
+    ],
+    "output_node": false
+  },
+  "Save3DAdvanced": {
+    "input": {
+      "required": {
+        "model_3d": [
+          "FILE_3D_GLB,FILE_3D_GLTF,FILE_3D_FBX,FILE_3D_OBJ,FILE_3D_STL,FILE_3D_USDZ,FILE_3D",
+          {
+            "tooltip": "3D model file from an upstream 3D node."
+          }
+        ],
+        "filename_prefix": [
+          "STRING",
+          {
+            "default": "3d/ComfyUI",
+            "multiline": false
+          }
+        ],
+        "viewport_state": [
+          "LOAD_3D",
+          {}
+        ],
+        "width": [
+          "INT",
+          {
+            "tooltip": "Render width of the viewport in pixels.",
+            "default": 1024,
+            "min": 1,
+            "max": 4096,
+            "step": 1
+          }
+        ],
+        "height": [
+          "INT",
+          {
+            "tooltip": "Render height of the viewport in pixels.",
+            "default": 1024,
+            "min": 1,
+            "max": 4096,
+            "step": 1
+          }
+        ]
+      },
+      "optional": {
+        "model_3d_info": [
+          "LOAD3D_MODEL_INFO",
+          {
+            "tooltip": "Placement of each model in the scene: position, rotation, and scale (Y-up world space).",
+            "advanced": true
+          }
+        ],
+        "camera_info": [
+          "LOAD3D_CAMERA",
+          {
+            "tooltip": "Viewport camera information: position, look-at target, zoom, and type.",
+            "advanced": true
+          }
+        ]
+      },
+      "hidden": {
+        "prompt": [
+          "PROMPT"
+        ],
+        "extra_pnginfo": [
+          "EXTRA_PNGINFO"
+        ]
+      }
+    },
+    "input_order": {
+      "required": [
+        "model_3d",
+        "filename_prefix",
+        "viewport_state",
+        "width",
+        "height"
+      ],
+      "optional": [
+        "model_3d_info",
+        "camera_info"
+      ],
+      "hidden": [
+        "prompt",
+        "extra_pnginfo"
+      ]
+    },
+    "output": [
+      "FILE_3D",
+      "LOAD3D_MODEL_INFO",
+      "LOAD3D_CAMERA",
+      "INT",
+      "INT"
+    ],
+    "output_name": [
+      "model_3d",
+      "model_3d_info",
+      "camera_info",
+      "width",
+      "height"
+    ],
+    "output_node": true
+  },
+  "SaveImage": {
+    "input": {
+      "required": {
+        "images": [
+          "IMAGE",
+          {
+            "tooltip": "The images to save."
+          }
+        ],
+        "filename_prefix": [
+          "STRING",
+          {
+            "default": "ComfyUI",
+            "tooltip": "The prefix for the file to save. This may include formatting information such as %date:yyyy-MM-dd% or %Empty Latent Image.width% to include values from nodes."
+          }
+        ]
+      },
+      "hidden": {
+        "prompt": "PROMPT",
+        "extra_pnginfo": "EXTRA_PNGINFO"
+      }
+    },
+    "input_order": {
+      "required": [
+        "images",
+        "filename_prefix"
+      ],
+      "hidden": [
+        "prompt",
+        "extra_pnginfo"
+      ]
+    },
+    "output": [
+      "IMAGE"
+    ],
+    "output_name": [
+      "images"
+    ],
+    "output_node": true
+  },
+  "TextEncodeQwenImage21": {
+    "input": {
+      "required": {
+        "clip": [
+          "CLIP",
+          {}
+        ],
+        "prompt": [
+          "STRING",
+          {
+            "multiline": true,
+            "dynamicPrompts": true
+          }
+        ],
+        "negative_prompt": [
+          "STRING",
+          {
+            "multiline": true,
+            "dynamicPrompts": true
+          }
+        ],
+        "resolution": [
+          "INT",
+          {
+            "tooltip": "Reference images are resized to about resolution x resolution pixels, at multiples of 32, preserving aspect ratio. 0 keeps each reference at its own size, rounded to a multiple of 32. ",
+            "default": 1024,
+            "min": 0,
+            "max": 4096,
+            "step": 32
+          }
+        ],
+        "images": [
+          "COMFY_AUTOGROW_V3",
+          {
+            "tooltip": "Reference images, seen by the text encoder and spliced into the sequence as VAE latents.",
+            "template": {
+              "input": {
+                "required": {
+                  "image": [
+                    "IMAGE",
+                    {}
+                  ]
+                }
+              },
+              "names": [
+                "image_1",
+                "image_2",
+                "image_3",
+                "image_4",
+                "image_5",
+                "image_6",
+                "image_7",
+                "image_8",
+                "image_9",
+                "image_10",
+                "image_11",
+                "image_12",
+                "image_13",
+                "image_14",
+                "image_15",
+                "image_16"
+              ],
+              "min": 0
+            }
+          }
+        ]
+      },
+      "optional": {
+        "vae": [
+          "VAE",
+          {}
+        ]
+      }
+    },
+    "input_order": {
+      "required": [
+        "clip",
+        "prompt",
+        "negative_prompt",
+        "resolution",
+        "images"
+      ],
+      "optional": [
+        "vae"
+      ]
+    },
+    "output": [
+      "CONDITIONING",
+      "CONDITIONING",
+      "LATENT"
+    ],
+    "output_name": [
+      "positive",
+      "negative",
+      "latent"
+    ],
+    "output_node": false
+  },
+  "Trellis2Conditioning": {
+    "input": {
+      "required": {
+        "clip_vision_model": [
+          "CLIP_VISION",
+          {}
+        ],
+        "image": [
+          "IMAGE",
+          {
+            "tooltip": "Preprocessed image from ImageCropToMask (pad_factor=1.0 for TRELLIS.2)."
+          }
+        ]
+      }
+    },
+    "input_order": {
+      "required": [
+        "clip_vision_model",
+        "image"
+      ]
+    },
+    "output": [
+      "CONDITIONING",
+      "CONDITIONING"
+    ],
+    "output_name": [
+      "positive",
+      "negative"
+    ],
+    "output_node": false
+  },
+  "Trellis2ShapeStage": {
+    "input": {
+      "required": {
+        "positive": [
+          "CONDITIONING",
+          {}
+        ],
+        "negative": [
+          "CONDITIONING",
+          {}
+        ],
+        "voxel": [
+          "VOXEL",
+          {
+            "tooltip": "Dense structure voxel from VaeDecodeStructureTrellis2."
+          }
+        ]
+      }
+    },
+    "input_order": {
+      "required": [
+        "positive",
+        "negative",
+        "voxel"
+      ]
+    },
+    "output": [
+      "CONDITIONING",
+      "CONDITIONING",
+      "LATENT"
+    ],
+    "output_name": [
+      "positive",
+      "negative",
+      "LATENT"
+    ],
+    "output_node": false
+  },
+  "Trellis2TextureStage": {
+    "input": {
+      "required": {
+        "positive": [
+          "CONDITIONING",
+          {}
+        ],
+        "negative": [
+          "CONDITIONING",
+          {}
+        ],
+        "shape_latent": [
+          "LATENT",
+          {}
+        ]
+      }
+    },
+    "input_order": {
+      "required": [
+        "positive",
+        "negative",
+        "shape_latent"
+      ]
+    },
+    "output": [
+      "CONDITIONING",
+      "CONDITIONING",
+      "LATENT"
+    ],
+    "output_name": [
+      "positive",
+      "negative",
+      "LATENT"
+    ],
+    "output_node": false
+  },
+  "Trellis2UpsampleStage": {
+    "input": {
+      "required": {
+        "positive": [
+          "CONDITIONING",
+          {}
+        ],
+        "negative": [
+          "CONDITIONING",
+          {}
+        ],
+        "shape_latent": [
+          "LATENT",
+          {
+            "tooltip": "The 512-resolution shape latent output from the first shape-stage KSampler."
+          }
+        ],
+        "vae": [
+          "VAE",
+          {}
+        ],
+        "target_resolution": [
+          "INT",
+          {
+            "tooltip": "Voxel resolution of the upsampled shape. Higher = more detail, more VRAM.",
+            "default": 1024,
+            "min": 1024,
+            "max": 2048,
+            "step": 128
+          }
+        ]
+      }
+    },
+    "input_order": {
+      "required": [
+        "positive",
+        "negative",
+        "shape_latent",
+        "vae",
+        "target_resolution"
+      ]
+    },
+    "output": [
+      "CONDITIONING",
+      "CONDITIONING",
+      "LATENT"
+    ],
+    "output_name": [
+      "positive",
+      "negative",
+      "LATENT"
+    ],
+    "output_node": false
+  },
+  "UNETLoader": {
+    "input": {
+      "required": {
+        "unet_name": [
+          [
+            "flux-2-klein-4b.safetensors",
+            "flux1-dev-kontext_fp8_scaled.safetensors",
+            "hunyuanvideo1.5_480p_i2v_step_distilled_fp8_scaled.safetensors",
+            "ideogram4_fp8_scaled.safetensors",
+            "ideogram4_unconditional_fp8_scaled.safetensors",
+            "krea2_turbo_fp8_scaled.safetensors",
+            "minimaxH3INT8INT4_fl2vaINT8Pruned.safetensors",
+            "minimaxH3INT8INT4_flREF2VAPruned_3257813.safetensors",
+            "minimax_h3_fl2va_pruned_int8_convrot.safetensors",
+            "minimax_h3_ref2va_pruned_int8_convrot.safetensors",
+            "qwen_image_2.1_int8_convrot.safetensors",
+            "raw.safetensors",
+            "seedvr2_7b_fp8_e4m3fn.safetensors",
+            "sickOllie_krea2_full_fp8.safetensors",
+            "trellis_2_int8_convrot.safetensors"
+          ]
+        ],
+        "weight_dtype": [
+          [
+            "default",
+            "fp8_e4m3fn",
+            "fp8_e4m3fn_fast",
+            "fp8_e5m2"
+          ],
+          {
+            "advanced": true
+          }
+        ]
+      }
+    },
+    "input_order": {
+      "required": [
+        "unet_name",
+        "weight_dtype"
+      ]
+    },
+    "output": [
+      "MODEL"
+    ],
+    "output_name": [
+      "MODEL"
+    ],
+    "output_node": false
+  },
+  "UnwrapMesh": {
+    "input": {
+      "required": {
+        "mesh": [
+          "MESH",
+          {}
+        ],
+        "segmenter": [
+          "COMBO",
+          {
+            "tooltip": "pec: fast parallel-edge-collapse charting on GPU. adaptive: CPU, slower.",
+            "default": "pec",
+            "multiselect": false,
+            "options": [
+              "pec",
+              "adaptive"
+            ]
+          }
+        ],
+        "resolution": [
+          "INT",
+          {
+            "tooltip": "Target atlas resolution for texel-density auto-scale (0 = fit-to-content).",
+            "default": 1024,
+            "min": 0,
+            "max": 8192,
+            "step": 256
+          }
+        ],
+        "padding": [
+          "INT",
+          {
+            "tooltip": "Texel padding between charts.",
+            "default": 1,
+            "min": 0,
+            "max": 16
+          }
+        ],
+        "weld_distance": [
+          "FLOAT",
+          {
+            "tooltip": "Coincident-vert merge radius as a fraction of mesh extent (0 = auto). Raise to ~0.001 if you get per-triangle charts (unwelded input).",
+            "default": 0.0,
+            "min": 0.0,
+            "max": 1.0,
+            "step": 0.0001
+          }
+        ]
+      },
+      "hidden": {
+        "unique_id": [
+          "UNIQUE_ID"
+        ]
+      }
+    },
+    "input_order": {
+      "required": [
+        "mesh",
+        "segmenter",
+        "resolution",
+        "padding",
+        "weld_distance"
+      ],
+      "hidden": [
+        "unique_id"
+      ]
+    },
+    "output": [
+      "MESH"
+    ],
+    "output_name": [
+      "mesh"
+    ],
+    "output_node": false
+  },
+  "VAEDecode": {
+    "input": {
+      "required": {
+        "samples": [
+          "LATENT",
+          {
+            "tooltip": "The latent to be decoded."
+          }
+        ],
+        "vae": [
+          "VAE",
+          {
+            "tooltip": "The VAE model used for decoding the latent."
+          }
+        ]
+      }
+    },
+    "input_order": {
+      "required": [
+        "samples",
+        "vae"
+      ]
+    },
+    "output": [
+      "IMAGE"
+    ],
+    "output_name": [
+      "IMAGE"
+    ],
+    "output_node": false
+  },
+  "VAELoader": {
+    "input": {
+      "required": {
+        "vae_name": [
+          [
+            "ae.safetensors",
+            "clearvaeSD15_v23.safetensors",
+            "ema_vae_fp16.safetensors",
+            "flux2-vae.safetensors",
+            "hunyuanvideo15_vae_fp16.safetensors",
+            "minimax_h3_audio_vae_fp32.safetensors",
+            "minimax_h3_video_vae_fp16.safetensors",
+            "minimax_h3_video_vae_int8_convrot.safetensors",
+            "qwen_image_2.1_vae_bf16.safetensors",
+            "qwen_image_vae.safetensors",
+            "trellis_2_shape_vae_bf16.safetensors",
+            "trellis_2_texture_vae_bf16.safetensors",
+            "wan_2.1_vae.safetensors",
+            "pixel_space"
+          ]
+        ]
+      }
+    },
+    "input_order": {
+      "required": [
+        "vae_name"
+      ]
+    },
+    "output": [
+      "VAE"
+    ],
+    "output_name": [
+      "VAE"
+    ],
+    "output_node": false
+  },
+  "VaeDecodeShapeTrellis": {
+    "input": {
+      "required": {
+        "samples": [
+          "LATENT",
+          {}
+        ],
+        "vae": [
+          "VAE",
+          {}
+        ]
+      }
+    },
+    "input_order": {
+      "required": [
+        "samples",
+        "vae"
+      ]
+    },
+    "output": [
+      "MESH",
+      "SHAPE_SUBDIVIDES"
+    ],
+    "output_name": [
+      "mesh",
+      "shape_subdivides"
+    ],
+    "output_node": false
+  },
+  "VaeDecodeStructureTrellis2": {
+    "input": {
+      "required": {
+        "samples": [
+          "LATENT",
+          {}
+        ],
+        "vae": [
+          "VAE",
+          {}
+        ],
+        "resolution": [
+          "COMBO",
+          {
+            "default": "32",
+            "multiselect": false,
+            "options": [
+              "32",
+              "64"
+            ]
+          }
+        ]
+      }
+    },
+    "input_order": {
+      "required": [
+        "samples",
+        "vae",
+        "resolution"
+      ]
+    },
+    "output": [
+      "VOXEL"
+    ],
+    "output_name": [
+      "voxel"
+    ],
+    "output_node": false
+  },
+  "VaeDecodeTextureTrellis": {
+    "input": {
+      "required": {
+        "samples": [
+          "LATENT",
+          {}
+        ],
+        "vae": [
+          "VAE",
+          {}
+        ],
+        "shape_subdivides": [
+          "SHAPE_SUBDIVIDES",
+          {
+            "tooltip": "Shape information used to guide higher-detail reconstruction during decoding. Helps preserve structure consistency at higher resolutions."
+          }
+        ]
+      }
+    },
+    "input_order": {
+      "required": [
+        "samples",
+        "vae",
+        "shape_subdivides"
+      ]
+    },
+    "output": [
+      "VOXEL"
+    ],
+    "output_name": [
+      "voxel_colors"
+    ],
+    "output_node": false
+  },
+  "VoxelToMesh": {
+    "input": {
+      "required": {
+        "voxel": [
+          "VOXEL",
+          {}
+        ],
+        "algorithm": [
+          "COMBO",
+          {
+            "multiselect": false,
+            "options": [
+              "surface net",
+              "basic"
+            ]
+          }
+        ],
+        "threshold": [
+          "FLOAT",
+          {
+            "default": 0.6,
+            "min": -1.0,
+            "max": 1.0,
+            "step": 0.01
+          }
+        ]
+      }
+    },
+    "input_order": {
+      "required": [
+        "voxel",
+        "algorithm",
+        "threshold"
+      ]
+    },
+    "output": [
+      "MESH"
+    ],
+    "output_name": [
+      "MESH"
+    ],
+    "output_node": false
+  },
+  "SaveGLB": {
+    "input": {
+      "required": {
+        "mesh": [
+          "MESH,FILE_3D_GLB,FILE_3D_GLTF,FILE_3D_OBJ,FILE_3D_FBX,FILE_3D_STL,FILE_3D_USDZ,FILE_3D_PLY,FILE_3D_SPLAT,FILE_3D_SPZ,FILE_3D_KSPLAT,FILE_3D_SPLAT_ANY,FILE_3D_POINT_CLOUD_ANY,FILE_3D",
+          {
+            "tooltip": "Mesh or 3D file to save"
+          }
+        ],
+        "filename_prefix": [
+          "STRING",
+          {
+            "default": "3d/ComfyUI",
+            "multiline": false
+          }
+        ]
+      },
+      "hidden": {
+        "prompt": [
+          "PROMPT"
+        ],
+        "extra_pnginfo": [
+          "EXTRA_PNGINFO"
+        ]
+      }
+    },
+    "input_order": {
+      "required": [
+        "mesh",
+        "filename_prefix"
+      ],
+      "hidden": [
+        "prompt",
+        "extra_pnginfo"
+      ]
+    },
+    "output": [],
+    "output_name": [],
+    "output_node": true
+  }
+}

@@ -1,0 +1,1 @@
+Latest user revision: three detached homes with equal gardens, pebble drives and tidy frontage; straight gravel access, far-east ramp, wider campus/communal space, material yard and multiple cabins/toilets. TDM entrance barrier remains a separate first delivery. User references guide original procedural work and are not shipped assets.

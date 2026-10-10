@@ -1,0 +1,1723 @@
+{
+ "frame": "design: metres, x east, y north, z up, origin SW corner; bevy = (x, z, -y)",
+ "playable": {
+  "x0": 0,
+  "y0": 0,
+  "x1": 1300.0,
+  "y1": 1100.0
+ },
+ "speeds": {
+  "walk": 2.6,
+  "jog": 4.8,
+  "sprint": 7.0
+ },
+ "route_factor": 1.12,
+ "river": {
+  "centre": [
+   [
+    611.0,
+    1148.9
+   ],
+   [
+    608.4,
+    1100.0
+   ],
+   [
+    595.4,
+    1038.9
+   ],
+   [
+    577.2,
+    977.8
+   ],
+   [
+    564.2,
+    916.7
+   ],
+   [
+    561.6,
+    855.6
+   ],
+   [
+    577.2,
+    794.4
+   ],
+   [
+    605.8,
+    733.3
+   ],
+   [
+    637.0,
+    672.2
+   ],
+   [
+    657.8,
+    611.1
+   ],
+   [
+    663.0,
+    562.2
+   ],
+   [
+    655.2,
+    501.1
+   ],
+   [
+    637.0,
+    440.0
+   ],
+   [
+    618.8,
+    378.9
+   ],
+   [
+    613.6,
+    317.8
+   ],
+   [
+    624.0,
+    256.7
+   ],
+   [
+    647.4,
+    195.6
+   ],
+   [
+    678.6,
+    134.4
+   ],
+   [
+    707.2,
+    73.3
+   ],
+   [
+    722.8,
+    0.0
+   ],
+   [
+    728.0,
+    -48.9
+   ]
+  ],
+  "half_width": 20.0,
+  "bank": 5.0
+ },
+ "highway": {
+  "centre": [
+   [
+    821.6,
+    1173.3
+   ],
+   [
+    839.8,
+    1075.6
+   ],
+   [
+    876.2,
+    977.8
+   ],
+   [
+    923.0,
+    880.0
+   ],
+   [
+    975.0,
+    782.2
+   ],
+   [
+    1033.5,
+    684.4
+   ],
+   [
+    1098.5,
+    586.7
+   ],
+   [
+    1167.4,
+    488.9
+   ],
+   [
+    1232.4,
+    403.3
+   ],
+   [
+    1300.0,
+    330.0
+   ],
+   [
+    1365.0,
+    262.8
+   ]
+  ],
+  "deck_half": 17.0,
+  "slope": 12.0,
+  "cutting_north_of_y": 794.4444444444445,
+  "embankment_south_of_y": 751.6666666666667
+ },
+ "crossings": {
+  "C1": {
+   "name": "Dirt Bridge",
+   "centre": [
+    563.6,
+    911.9
+   ],
+   "end_a": [
+    537.6,
+    907.0
+   ],
+   "end_b": [
+    589.6,
+    916.8
+   ],
+   "length": 53.0,
+   "note": "farm-track bridge, timber deck on old piers, 4 m wide; forest down to the water on both banks"
+  },
+  "C2": {
+   "name": "Road Bridge",
+   "centre": [
+    663.0,
+    564.9
+   ],
+   "end_a": [
+    636.5,
+    564.9
+   ],
+   "end_b": [
+    689.5,
+    564.8
+   ],
+   "length": 53.0,
+   "note": "concrete girder bridge, 13 m wide (2 lanes + footpaths), 1 m parapets, two wrecked cars; fully exposed"
+  },
+  "C3": {
+   "name": "Weir",
+   "centre": [
+    613.7,
+    315.0
+   ],
+   "end_a": [
+    587.3,
+    313.3
+   ],
+   "end_b": [
+    640.2,
+    316.7
+   ],
+   "length": 53.0,
+   "note": "weir with 7 sluice gates and a 1.4 m railed service catwalk; single file, loud water, no cover"
+  },
+  "U1": {
+   "name": "Underpass",
+   "centre": [
+    1115.5,
+    561.9
+   ],
+   "end_a": [
+    1080.9,
+    557.4
+   ],
+   "end_b": [
+    1150.2,
+    566.4
+   ],
+   "length": 69.8,
+   "note": "Old Road passes under the embankment: ~40 m box tunnel under the deck, 2 lanes, centre pillars, dark"
+  },
+  "O1": {
+   "name": "Overpass",
+   "centre": [
+    898.6,
+    928.9
+   ],
+   "end_a": [
+    864.1,
+    929.1
+   ],
+   "end_b": [
+    933.2,
+    928.7
+   ],
+   "length": 69.1,
+   "note": "farm-access bridge over the cutting, 5 m wide, 1.1 m parapets; looks straight down the deck"
+  }
+ },
+ "pois": [
+  {
+   "id": "SHOWHOME",
+   "name": "Showhome",
+   "tier": 4,
+   "kind": "hot",
+   "group": "WS",
+   "rect": [
+    330.0,
+    620.0,
+    410.0,
+    680.0
+   ],
+   "node": [
+    370.0,
+    648.0
+   ],
+   "label": "SHOWHOME",
+   "sub": "2 show homes · hot zone"
+  },
+  {
+   "id": "WORKSITE",
+   "name": "Worksite",
+   "tier": 3,
+   "kind": "hot",
+   "group": "WS",
+   "poly": [
+    [
+     248.0,
+     617.0
+    ],
+    [
+     480.0,
+     617.0
+    ],
+    [
+     516.0,
+     630.0
+    ],
+    [
+     518.0,
+     720.0
+    ],
+    [
+     510.0,
+     775.0
+    ],
+    [
+     380.0,
+     782.0
+    ],
+    [
+     262.0,
+     778.0
+    ],
+    [
+     246.0,
+     720.0
+    ]
+   ],
+   "node": [
+    380.0,
+    720.0
+   ],
+   "label": "WORKSITE",
+   "sub": "cranes · Shells · site office"
+  },
+  {
+   "id": "FARM",
+   "name": "Farm",
+   "tier": 2,
+   "kind": "small",
+   "group": "FARM",
+   "rect": [
+    184.0,
+    314.0,
+    292.0,
+    400.0
+   ],
+   "node": [
+    230.0,
+    355.0
+   ],
+   "label": "FARM",
+   "sub": "square farm · silo"
+  },
+  {
+   "id": "HUT",
+   "name": "Forester's Hut",
+   "tier": 2,
+   "kind": "micro",
+   "group": "HUT",
+   "circle": [
+    260.0,
+    975.0,
+    22
+   ],
+   "node": [
+    260.0,
+    975.0
+   ],
+   "label": "FORESTER'S HUT",
+   "sub": ""
+  },
+  {
+   "id": "CONTAINER",
+   "name": "Container Park",
+   "tier": 2,
+   "kind": "poi",
+   "group": "CP",
+   "rect": [
+    797.0,
+    586.0,
+    920.0,
+    680.0
+   ],
+   "node": [
+    857.0,
+    632.0
+   ],
+   "label": "CONTAINER PARK",
+   "sub": "ramp ring · skips"
+  },
+  {
+   "id": "PLANT",
+   "name": "Water Treatment Plant",
+   "tier": 3,
+   "kind": "poi",
+   "group": "PLANT",
+   "poly_east": [
+    [
+     902.0,
+     397.0
+    ],
+    [
+     902.0,
+     181.0
+    ],
+    [
+     690.0,
+     181.0
+    ]
+   ],
+   "bank": [
+    "E",
+    27.0
+   ],
+   "node": [
+    847.0,
+    373.0
+   ],
+   "label": "WATER TREATMENT PLANT",
+   "sub": "tanks · pump house · control bldg",
+   "poly": [
+    [
+     902.0,
+     397.0
+    ],
+    [
+     902.0,
+     181.0
+    ],
+    [
+     690.0,
+     181.0
+    ],
+    [
+     678.4543125668861,
+     193.17335547934874
+    ],
+    [
+     677.8140974564665,
+     194.4388615682776
+    ],
+    [
+     675.7771597556257,
+     198.58077489343592
+    ],
+    [
+     673.8652581093068,
+     202.60028067832755
+    ],
+    [
+     672.0130295027371,
+     206.6550500799649
+    ],
+    [
+     670.1453528486018,
+     210.85287533204942
+    ],
+    [
+     668.2673837943934,
+     215.11462034081794
+    ],
+    [
+     666.4255376486262,
+     219.34859601310785
+    ],
+    [
+     664.625218119912,
+     223.5542434416538
+    ],
+    [
+     662.8717531986241,
+     227.73089254440143
+    ],
+    [
+     661.1703851231943,
+     231.87776553028607
+    ],
+    [
+     659.5262585090996,
+     235.99398181419642
+    ],
+    [
+     657.944406643844,
+     240.07856482151897
+    ],
+    [
+     656.4297360007577,
+     244.13045120744073
+    ],
+    [
+     654.9870090993569,
+     248.14850310284731
+    ],
+    [
+     653.6208259463117,
+     252.1315240820608
+    ],
+    [
+     652.3356044349489,
+     256.07827961973817
+    ],
+    [
+     651.1355602682804,
+     259.9875228531427
+    ],
+    [
+     650.0090449891587,
+     263.91439588014566
+    ],
+    [
+     648.9257423020102,
+     267.9225361452567
+    ],
+    [
+     647.884396205356,
+     271.96556638682074
+    ],
+    [
+     646.9021459508733,
+     275.98939411626867
+    ],
+    [
+     645.9811578111394,
+     279.9936917209189
+    ],
+    [
+     645.1235401509445,
+     283.97815901663614
+    ],
+    [
+     644.3313421022973,
+     287.9425319543976
+    ],
+    [
+     643.6065529662977,
+     291.88659215027775
+    ],
+    [
+     642.9511025162808,
+     295.81017719790447
+    ],
+    [
+     642.3668623883278,
+     299.7131916861117
+    ],
+    [
+     641.8556487518214,
+     303.59561880160635
+    ],
+    [
+     641.41922645217,
+     307.457532347306
+    ],
+    [
+     641.0593148080023,
+     311.2991089526197
+    ],
+    [
+     640.7775952237539,
+     315.1206401941851
+    ],
+    [
+     640.5755965628073,
+     318.9254667951781
+    ],
+    [
+     640.453881734248,
+     322.7288044566811
+    ],
+    [
+     640.4104687514783,
+     326.5460320173263
+    ],
+    [
+     640.4434355112769,
+     330.3807860037932
+    ],
+    [
+     640.550989481523,
+     334.23365464543934
+    ],
+    [
+     640.7313313448335,
+     338.105107340621
+    ],
+    [
+     640.9826446646179,
+     341.9955028518383
+    ],
+    [
+     641.303087105334,
+     345.9050983507901
+    ],
+    [
+     641.6907831810568,
+     349.8340589964872
+    ],
+    [
+     642.1438184634404,
+     353.7824677664265
+    ],
+    [
+     642.6602351479276,
+     357.7503353014542
+    ],
+    [
+     643.2380288548816,
+     361.73760956660425
+    ],
+    [
+     643.8751465290306,
+     365.744185170767
+    ],
+    [
+     644.5694852948378,
+     369.7699122259385
+    ],
+    [
+     645.2974258567767,
+     373.7036769390623
+    ],
+    [
+     646.0708782978217,
+     377.4609138771472
+    ],
+    [
+     646.9411078016848,
+     381.18963845119276
+    ],
+    [
+     647.9235130289817,
+     385.0086834931413
+    ],
+    [
+     649.0525576361457,
+     389.06938039744995
+    ],
+    [
+     649.1404681814163,
+     389.35798386876246
+    ]
+   ]
+  },
+  {
+   "id": "SUBSTATION",
+   "name": "Substation",
+   "tier": 2,
+   "kind": "small",
+   "group": "SUB",
+   "rect": [
+    1113.0,
+    151.0,
+    1201.0,
+    235.0
+   ],
+   "node": [
+    1157.0,
+    193.0
+   ],
+   "label": "SUBSTATION",
+   "sub": ""
+  },
+  {
+   "id": "STORAGE",
+   "name": "Self-Storage",
+   "tier": 3,
+   "kind": "poi",
+   "group": "STO",
+   "rect": [
+    1077.0,
+    762.0,
+    1217.0,
+    890.0
+   ],
+   "node": [
+    1145.0,
+    826.0
+   ],
+   "label": "SELF-STORAGE",
+   "sub": "roll-up rows · office"
+  },
+  {
+   "id": "GAS",
+   "name": "Gas Station",
+   "tier": 2,
+   "kind": "poi",
+   "group": "GAS",
+   "rect": [
+    1193.0,
+    580.0,
+    1279.0,
+    648.0
+   ],
+   "node": [
+    1235.0,
+    611.0
+   ],
+   "label": "GAS STATION",
+   "sub": "abandoned"
+  },
+  {
+   "id": "SLUICE",
+   "name": "Sluice House",
+   "tier": 2,
+   "kind": "micro",
+   "group": "SLU",
+   "rect": [
+    736.0,
+    12.0,
+    778.0,
+    50.0
+   ],
+   "node": [
+    756.0,
+    32.0
+   ],
+   "label": "SLUICE HOUSE",
+   "sub": ""
+  }
+ ],
+ "tdm": {
+  "rect": [
+   330.0,
+   620.0,
+   410.0,
+   680.0
+  ],
+  "walls": [
+   {
+    "side": "S",
+    "what": "road side: player_clip along the front-street kerb (street visible, open)"
+   },
+   {
+    "side": "W",
+    "what": "field edge: clip above the Sage garden hedge (site office beyond)"
+   },
+   {
+    "side": "E",
+    "what": "field edge: clip above the Clay garden hedge (material yard beyond)"
+   },
+   {
+    "side": "N",
+    "what": "plot edge: clip on the mesh site fence behind the carports"
+   }
+  ]
+ },
+ "spawns": [
+  {
+   "id": "S1",
+   "name": "West Fields",
+   "side": "W",
+   "rect": [
+    0,
+    670,
+    16,
+    770
+   ]
+  },
+  {
+   "id": "S2",
+   "name": "Dike West",
+   "side": "W",
+   "rect": [
+    320,
+    0,
+    430,
+    16
+   ]
+  },
+  {
+   "id": "S3",
+   "name": "North Woods",
+   "side": "W",
+   "rect": [
+    350,
+    1084,
+    460,
+    1100
+   ]
+  },
+  {
+   "id": "S4",
+   "name": "NE Woods",
+   "side": "E",
+   "rect": [
+    1090,
+    1084,
+    1200,
+    1100
+   ]
+  },
+  {
+   "id": "S5",
+   "name": "East Field",
+   "side": "E",
+   "rect": [
+    1284,
+    690,
+    1300,
+    790
+   ]
+  },
+  {
+   "id": "S6",
+   "name": "Dike East",
+   "side": "E",
+   "rect": [
+    1030,
+    0,
+    1130,
+    16
+   ]
+  },
+  {
+   "id": "S7",
+   "name": "South-West Field",
+   "side": "W",
+   "rect": [
+    0,
+    250,
+    16,
+    350
+   ],
+   "only16": true
+  },
+  {
+   "id": "S8",
+   "name": "Riverside North",
+   "side": "E",
+   "rect": [
+    650,
+    1084,
+    750,
+    1100
+   ],
+   "only16": true
+  }
+ ],
+ "extracts": [
+  {
+   "id": "X1",
+   "name": "Logging Track",
+   "at": [
+    8.0,
+    1005.0
+   ],
+   "kind": "always",
+   "cond": "always open",
+   "for_side": "E",
+   "note": "logging track into the West Woods at the west edge",
+   "radius": 10.0
+  },
+  {
+   "id": "X2",
+   "name": "Cement Truck",
+   "at": [
+    264.0,
+    628.0
+   ],
+   "kind": "timed",
+   "cond": "opens at 20:00, one squad",
+   "for_side": "ALL",
+   "note": "the mixer truck at the West Gate leaves 60 s after the first squad boards (engine noise)",
+   "radius": 10.0
+  },
+  {
+   "id": "X3",
+   "name": "Sluice Boat",
+   "at": [
+    732.0,
+    22.0
+   ],
+   "kind": "paid",
+   "cond": "pay, boat comes in 40 s",
+   "for_side": "ALL",
+   "note": "call post on the sluice-house jetty (east bank); price: open question 6",
+   "radius": 10.0
+  },
+  {
+   "id": "X4",
+   "name": "Substation Gate",
+   "at": [
+    1290.0,
+    185.0
+   ],
+   "kind": "conditional",
+   "cond": "throw the kiosk breaker",
+   "for_side": "W",
+   "note": "the gate opens 60 s after the breaker is thrown, and an alarm sounds",
+   "radius": 10.0
+  },
+  {
+   "id": "X5",
+   "name": "Hard Shoulder",
+   "at": [
+    825.5,
+    1078.8
+   ],
+   "at_y": 1082.0,
+   "kind": "always",
+   "cond": "always open",
+   "for_side": "W",
+   "note": "hard shoulder in the highway cutting at the north edge, under the Overpass",
+   "radius": 10.0
+  },
+  {
+   "id": "X6",
+   "name": "Dike Culvert",
+   "at": [
+    125.0,
+    10.0
+   ],
+   "kind": "conditional",
+   "cond": "no backpack",
+   "for_side": "E",
+   "note": "a drainage culvert through the dike, too tight for a backpack",
+   "radius": 10.0
+  }
+ ],
+ "roads": [
+  {
+   "id": "OLD_ROAD",
+   "kind": "main",
+   "name": "Old Road (former national road)",
+   "pts": [
+    [
+     -52.0,
+     479.11111111111114
+    ],
+    [
+     0.0,
+     482.7777777777778
+    ],
+    [
+     130.0,
+     492.5555555555556
+    ],
+    [
+     260.0,
+     510.8888888888889
+    ],
+    [
+     390.0,
+     534.1111111111112
+    ],
+    [
+     520.0,
+     552.4444444444445
+    ],
+    [
+     598.0,
+     562.2222222222223
+    ],
+    [
+     629.2,
+     564.6666666666667
+    ],
+    [
+     696.8000000000001,
+     564.6666666666667
+    ],
+    [
+     780.0,
+     563.4444444444445
+    ],
+    [
+     884.0,
+     558.5555555555557
+    ],
+    [
+     988.0,
+     554.8888888888889
+    ],
+    [
+     1079.0,
+     557.3333333333334
+    ],
+    [
+     1118.0,
+     562.2222222222223
+    ],
+    [
+     1170.0,
+     567.1111111111112
+    ],
+    [
+     1248.0,
+     572.0
+    ],
+    [
+     1300.0,
+     575.6666666666667
+    ],
+    [
+     1352.0,
+     579.3333333333334
+    ]
+   ]
+  },
+  {
+   "id": "FRONT_ST",
+   "kind": "street",
+   "name": "Front street (Showhome, open in front)",
+   "pts": [
+    [
+     252.0,
+     612.0
+    ],
+    [
+     330.0,
+     612.0
+    ],
+    [
+     410.0,
+     612.0
+    ],
+    [
+     472.0,
+     610.0
+    ],
+    [
+     520,
+     603
+    ],
+    [
+     566,
+     584
+    ],
+    [
+     590,
+     568
+    ],
+    [
+     598.0,
+     562.2222222222223
+    ]
+   ]
+  },
+  {
+   "id": "CENTRAL_ST",
+   "kind": "street",
+   "name": "Central street (truck)",
+   "pts": [
+    [
+     370.0,
+     612.0
+    ],
+    [
+     370.0,
+     671.0
+    ]
+   ]
+  },
+  {
+   "id": "SITE_RD_W",
+   "kind": "gravel",
+   "name": "Site road (West Gate)",
+   "pts": [
+    [
+     252.0,
+     612.0
+    ],
+    [
+     251.0,
+     572.0
+    ],
+    [
+     251,
+     512
+    ]
+   ]
+  },
+  {
+   "id": "SITE_TRACK_W",
+   "kind": "gravel",
+   "name": "Site track",
+   "pts": [
+    [
+     252.0,
+     612.0
+    ],
+    [
+     258.0,
+     688.0
+    ]
+   ]
+  },
+  {
+   "id": "BACK_RD",
+   "kind": "gravel",
+   "name": "Back road (unfinished)",
+   "pts": [
+    [
+     258.0,
+     688.0
+    ],
+    [
+     508.0,
+     688.0
+    ]
+   ]
+  },
+  {
+   "id": "SITE_TRACK_N",
+   "kind": "gravel",
+   "name": "Track to the Shells",
+   "pts": [
+    [
+     370.0,
+     688.0
+    ],
+    [
+     370.0,
+     710.0
+    ]
+   ]
+  },
+  {
+   "id": "FOREST_TRACK",
+   "kind": "gravel",
+   "name": "Forest Track (Dirt Bridge + Overpass)",
+   "pts": [
+    [
+     448.5,
+     831.1111111111112
+    ],
+    [
+     491.40000000000003,
+     870.2222222222223
+    ],
+    [
+     525.2,
+     902.0000000000001
+    ],
+    [
+     562.9,
+     911.7777777777778
+    ],
+    [
+     605.8000000000001,
+     917.8888888888889
+    ],
+    [
+     689.0,
+     922.7777777777778
+    ],
+    [
+     780.0,
+     926.4444444444446
+    ],
+    [
+     858.0,
+     928.8888888888889
+    ],
+    [
+     902.2,
+     928.8888888888889
+    ],
+    [
+     949.0,
+     928.8888888888889
+    ],
+    [
+     1020.5,
+     919.1111111111112
+    ],
+    [
+     1083.0,
+     888.0
+    ]
+   ]
+  },
+  {
+   "id": "FARM_LANE",
+   "kind": "gravel",
+   "name": "Farm lane",
+   "pts": [
+    [
+     268,
+     512
+    ],
+    [
+     262,
+     455
+    ],
+    [
+     262.0,
+     392.0
+    ]
+   ]
+  },
+  {
+   "id": "CP_ACCESS",
+   "kind": "street",
+   "name": "Container park access",
+   "pts": [
+    [
+     857,
+     560
+    ],
+    [
+     857.0,
+     588.0
+    ]
+   ]
+  },
+  {
+   "id": "PLANT_RD",
+   "kind": "street",
+   "name": "Plant access road",
+   "pts": [
+    [
+     857,
+     556
+    ],
+    [
+     857.0,
+     398.0
+    ]
+   ]
+  },
+  {
+   "id": "STORAGE_RD",
+   "kind": "street",
+   "name": "Storage road",
+   "pts": [
+    [
+     1170,
+     568
+    ],
+    [
+     1158,
+     670
+    ],
+    [
+     1145.0,
+     763.0
+    ]
+   ]
+  },
+  {
+   "id": "SUB_TRACK",
+   "kind": "gravel",
+   "name": "Substation service track",
+   "pts": [
+    [
+     857.0,
+     422.0
+    ],
+    [
+     950,
+     385
+    ],
+    [
+     1060,
+     300
+    ],
+    [
+     1139.0,
+     235.0
+    ]
+   ]
+  },
+  {
+   "id": "PLANT_RING",
+   "kind": "gravel",
+   "name": "Plant internal road",
+   "pts": [
+    [
+     857.0,
+     398.0
+    ],
+    [
+     857.0,
+     257.0
+    ],
+    [
+     694.0,
+     257.0
+    ]
+   ]
+  },
+  {
+   "id": "FIELD_LANE_W",
+   "kind": "gravel",
+   "name": "Field lane (west fields)",
+   "pts": [
+    [
+     120,
+     497
+    ],
+    [
+     128,
+     600
+    ],
+    [
+     150,
+     700
+    ],
+    [
+     252.0,
+     682.0
+    ]
+   ]
+  },
+  {
+   "id": "PYLON_LANE",
+   "kind": "gravel",
+   "name": "Field lane (pylon field)",
+   "pts": [
+    [
+     990,
+     557
+    ],
+    [
+     1000,
+     470
+    ],
+    [
+     985,
+     330
+    ]
+   ]
+  }
+ ],
+ "sightlines": [
+  {
+   "id": "L1",
+   "a": [
+    663.0,
+    554.9
+   ],
+   "b": [
+    613.7,
+    323.0
+   ],
+   "note": "Road Bridge ↔ Weir, along the water",
+   "length": 237.1
+  },
+  {
+   "id": "L2",
+   "a": [
+    816.0,
+    658.0
+   ],
+   "b": [
+    675.0,
+    568.9
+   ],
+   "note": "Container-park ramp deck → Road Bridge",
+   "length": 166.8
+  },
+  {
+   "id": "L3",
+   "a": [
+    670.0,
+    353.0
+   ],
+   "b": [
+    594.0,
+    319.0
+   ],
+   "note": "Pump-house roof → Weir catwalk + west bank",
+   "length": 83.3
+  },
+  {
+   "id": "L4",
+   "a": [
+    901.6,
+    936.9
+   ],
+   "b": [
+    837.5,
+    1081.8
+   ],
+   "note": "Overpass → Hard Shoulder (X5), down the cutting",
+   "length": 158.5
+  },
+  {
+   "id": "L5",
+   "a": [
+    901.6,
+    920.9
+   ],
+   "b": [
+    1004.8,
+    731.0
+   ],
+   "note": "Overpass → highway deck south (gantry)",
+   "length": 216.1
+  },
+  {
+   "id": "L6",
+   "a": [
+    1103.5,
+    560.9
+   ],
+   "b": [
+    845.0,
+    558.0
+   ],
+   "note": "Underpass mouth → Old Road west (stalled lorry at x 960)",
+   "length": 258.6
+  },
+  {
+   "id": "L7",
+   "a": [
+    380.0,
+    736.0
+   ],
+   "b": [
+    366.0,
+    676.0
+   ],
+   "note": "Shells top floor → Showhome carports + street",
+   "length": 61.6
+  },
+  {
+   "id": "L8",
+   "a": [
+    637.0,
+    568.9
+   ],
+   "b": [
+    412.0,
+    652.0
+   ],
+   "note": "Road Bridge → Clay house front (break it)",
+   "length": 239.9
+  },
+  {
+   "id": "L9",
+   "a": [
+    274.0,
+    386.0
+   ],
+   "b": [
+    390.0,
+    232.0
+   ],
+   "note": "Farm hayloft → nursery + SW fields",
+   "length": 192.8
+  },
+  {
+   "id": "L10",
+   "a": [
+    562.6,
+    907.9
+   ],
+   "b": [
+    571.6,
+    955.9
+   ],
+   "note": "Dirt Bridge: forest keeps lines short",
+   "length": 48.8
+  },
+  {
+   "id": "L11",
+   "a": [
+    615.7,
+    307.0
+   ],
+   "b": [
+    726.0,
+    30.0
+   ],
+   "note": "Weir → Sluice House along the river",
+   "length": 298.1
+  }
+ ],
+ "chokepoints": [
+  {
+   "id": "K1",
+   "name": "Road Bridge",
+   "at": [
+    663.0,
+    564.9
+   ],
+   "r": 34
+  },
+  {
+   "id": "K2",
+   "name": "Dirt Bridge",
+   "at": [
+    563.6,
+    911.9
+   ],
+   "r": 30
+  },
+  {
+   "id": "K3",
+   "name": "Weir",
+   "at": [
+    613.7,
+    315.0
+   ],
+   "r": 30
+  },
+  {
+   "id": "K4",
+   "name": "Underpass",
+   "at": [
+    1115.5,
+    561.9
+   ],
+   "r": 30
+  },
+  {
+   "id": "K5",
+   "name": "Overpass",
+   "at": [
+    898.6,
+    928.9
+   ],
+   "r": 30
+  },
+  {
+   "id": "K6",
+   "name": "Showhome street",
+   "at": [
+    370.0,
+    636.0
+   ],
+   "r": 13
+  },
+  {
+   "id": "K7",
+   "name": "Plant gate",
+   "at": [
+    857.0,
+    401.0
+   ],
+   "r": 16
+  },
+  {
+   "id": "K8",
+   "name": "Storage front gate",
+   "at": [
+    1145.0,
+    764.0
+   ],
+   "r": 16
+  },
+  {
+   "id": "K9",
+   "name": "Container-park gate / plant crossroads",
+   "at": [
+    857.0,
+    588.0
+   ],
+   "r": 18
+  }
+ ],
+ "landmarks": [
+  {
+   "id": "CRANE1",
+   "name": "Crane 1",
+   "at": [
+    433.0,
+    707.0
+   ],
+   "jib_to": [
+    394.0,
+    670.0
+   ],
+   "counter": [
+    446.0,
+    720.0
+   ]
+  },
+  {
+   "id": "CRANE2",
+   "name": "Crane 2",
+   "at": [
+    305.0,
+    745.0
+   ],
+   "jib_to": [
+    342.0,
+    718.0
+   ],
+   "counter": [
+    294.0,
+    753.0
+   ]
+  },
+  {
+   "id": "EGGS",
+   "name": "Digester eggs",
+   "at": [
+    877.0,
+    311.0
+   ]
+  },
+  {
+   "id": "PYLON_SIGN",
+   "name": "Price pylon",
+   "at": [
+    1199.0,
+    592.0
+   ]
+  },
+  {
+   "id": "SILO",
+   "name": "Silo",
+   "at": [
+    282.0,
+    370.0
+   ]
+  },
+  {
+   "id": "CHAPEL",
+   "name": "Chapel",
+   "at": [
+    279,
+    525
+   ]
+  }
+ ],
+ "ziplines": [
+  {
+   "id": "Z1",
+   "a": [
+    398.0,
+    732.0
+   ],
+   "b": [
+    472.0,
+    668.0
+   ],
+   "note": "Shells roof (9 m) → material yard"
+  },
+  {
+   "id": "Z2",
+   "a": [
+    850.0,
+    385.0
+   ],
+   "b": [
+    672.0,
+    349.0
+   ],
+   "note": "control building roof (10 m) → pump house roof"
+  }
+ ],
+ "travel_s": {
+  "SHOWHOME": {
+   "SHOWHOME": 0.0,
+   "FARM": 52.0,
+   "CONTAINER": 81.1,
+   "PLANT": 91.9,
+   "STORAGE": 144.2,
+   "GAS": 140.2,
+   "SUBSTATION": 147.8,
+   "SLUICE": 120.6,
+   "HUT": 55.2
+  },
+  "FARM": {
+   "SHOWHOME": 52.0,
+   "FARM": 0.0,
+   "CONTAINER": 109.6,
+   "PLANT": 99.4,
+   "STORAGE": 172.8,
+   "GAS": 168.7,
+   "SUBSTATION": 150.2,
+   "SLUICE": 114.3,
+   "HUT": 99.3
+  },
+  "CONTAINER": {
+   "SHOWHOME": 81.1,
+   "FARM": 109.6,
+   "CONTAINER": 0.0,
+   "PLANT": 41.5,
+   "STORAGE": 63.6,
+   "GAS": 63.1,
+   "SUBSTATION": 85.1,
+   "SLUICE": 97.4,
+   "HUT": 115.8
+  },
+  "PLANT": {
+   "SHOWHOME": 91.9,
+   "FARM": 99.4,
+   "CONTAINER": 41.5,
+   "PLANT": 0.0,
+   "STORAGE": 94.8,
+   "GAS": 73.0,
+   "SUBSTATION": 57.4,
+   "SLUICE": 56.5,
+   "HUT": 136.4
+  },
+  "STORAGE": {
+   "SHOWHOME": 144.2,
+   "FARM": 172.8,
+   "CONTAINER": 63.6,
+   "PLANT": 94.8,
+   "STORAGE": 0.0,
+   "GAS": 37.3,
+   "SUBSTATION": 109.3,
+   "SLUICE": 149.5,
+   "HUT": 144.8
+  },
+  "GAS": {
+   "SHOWHOME": 140.2,
+   "FARM": 168.7,
+   "CONTAINER": 63.1,
+   "PLANT": 73.0,
+   "STORAGE": 37.3,
+   "GAS": 0.0,
+   "SUBSTATION": 76.0,
+   "SLUICE": 124.1,
+   "HUT": 175.6
+  },
+  "SUBSTATION": {
+   "SHOWHOME": 147.8,
+   "FARM": 150.2,
+   "CONTAINER": 85.1,
+   "PLANT": 57.4,
+   "STORAGE": 109.3,
+   "GAS": 76.0,
+   "SUBSTATION": 0.0,
+   "SLUICE": 69.1,
+   "HUT": 192.2
+  },
+  "SLUICE": {
+   "SHOWHOME": 120.6,
+   "FARM": 114.3,
+   "CONTAINER": 97.4,
+   "PLANT": 56.5,
+   "STORAGE": 149.5,
+   "GAS": 124.1,
+   "SUBSTATION": 69.1,
+   "SLUICE": 0.0,
+   "HUT": 174.9
+  },
+  "HUT": {
+   "SHOWHOME": 55.2,
+   "FARM": 99.3,
+   "CONTAINER": 115.8,
+   "PLANT": 136.4,
+   "STORAGE": 144.8,
+   "GAS": 175.6,
+   "SUBSTATION": 192.2,
+   "SLUICE": 174.9,
+   "HUT": 0.0
+  }
+ }
+}

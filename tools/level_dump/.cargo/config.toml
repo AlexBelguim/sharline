@@ -1,0 +1,3 @@
+[build]
+# Never share the game's target dir (another session may be building it).
+target-dir = "target"

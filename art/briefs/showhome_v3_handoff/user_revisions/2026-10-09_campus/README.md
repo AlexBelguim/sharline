@@ -1,0 +1,1 @@
+User-supplied visual references for the current campus revision. They guide layout, stairs, fencing and excavation character; they are not shipped game assets or third-party mesh sources. TDM changes are delivered before campus changes. Use original painted project textures and procedural geometry.

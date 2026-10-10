@@ -1,0 +1,13 @@
+{
+  "source": "C:\\Users\\alexw\\AppData\\Roaming\\StabilityMatrix\\Packages\\ComfyUI\\output\\valetf_hy_d_portapotty_T_full_prep_00001_.png",
+  "size": [
+    1024,
+    1024
+  ],
+  "sha256": "ad466bb98fff70a62a489989c182304c41a1b640487abfd868116847f8da637d",
+  "metadata_keys": [
+    "prompt"
+  ],
+  "has_workflow_ui": false,
+  "has_prompt_api": true
+}

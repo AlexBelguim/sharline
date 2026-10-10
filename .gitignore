@@ -19,3 +19,18 @@ assets/characters/*/trellis/*.glb
 !assets/characters/kestrel/trellis/kestrel_trellis_s123.glb
 !assets/characters/solace/trellis/solace_trellis_s42.glb
 !assets/characters/solace/trellis/solace_trellis_s2024.glb
+
+# agent worktrees
+.claude/worktrees/
+
+# scratch outputs, caches and third-party downloads (regenerable or not ours to redistribute)
+*.log
+*.bak
+**/_cache/
+**/_house_source_cache/
+*.zip
+assets/**/_source/
+assets/**/_tests/
+# local-only TRELLIS test props (test_props.ron says it is not committed)
+game/assets/props/_tests/
+game/assets/maps/showhome/test_props.ron

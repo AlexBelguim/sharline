@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#101616">
+  <meta name="description" content="SHARD/LINE is an in-development tactical shooter combining deliberate gear choices with fast movement. Explore the prototype and download the Windows installer when available.">
+  <title>SHARD/LINE — Make every move count.</title>
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="style.css">
+  <script src="download.js" defer></script>
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+  <header class="topbar wrap">
+    <a class="wordmark" href="#" aria-label="Shardline home">SHARD<span>/</span>LINE</a>
+    <nav aria-label="Main navigation"><a href="#game">The game</a><a href="#play">How to play</a><a class="nav-download" href="#download">Get the prototype <span aria-hidden="true">↗</span></a></nav>
+  </header>
+  <main id="main">
+    <section class="hero">
+      <img class="hero-art" src="assets/kestrel.jpg" alt="Concept artwork of Kestrel, a near-future operative with a teal eyepiece" fetchpriority="high">
+      <div class="hero-shade"></div>
+      <div class="hero-content wrap">
+        <p class="eyebrow"><span class="status-dot"></span> Independent shooter · In development</p>
+        <h1>COMMIT TO<br>THE <span>FIGHT.</span></h1>
+        <p class="hero-copy">Tactical gear. Fast feet. Every magazine matters.<br>Welcome to SHARD/LINE.</p>
+        <div class="hero-actions"><a class="button primary" href="#download">Get the prototype <span aria-hidden="true">↓</span></a><a class="text-link" href="#game">Explore the game <span aria-hidden="true">↗</span></a></div>
+      </div>
+      <div class="hero-caption wrap"><span>01 / KESTREL</span><span>Concept art · Visuals in development</span></div>
+    </section>
+    <div class="spec-strip"><div class="wrap"><span>TACTICAL FIRST-PERSON SHOOTER</span><span>HOST & JOIN MULTIPLAYER</span><span>WINDOWS PROTOTYPE</span></div></div>
+    <section id="game" class="intro wrap section">
+      <div><p class="eyebrow">THE IDEA /</p><h2>MOVE FAST.<br>CHOOSE CAREFULLY.</h2></div>
+      <div class="intro-copy"><p class="lead">The freedom to push.<br>The decisions that make it count.</p><p>SHARD/LINE brings extraction-inspired equipment decisions into a stylized shooter with slides, jetpacks and ziplines. Build your approach around weapons, magazines and halo shields.</p><p>We’re building toward that vision one playable slice at a time. The current prototype focuses on a gun range and team deathmatch with friends.</p></div>
+    </section>
+    <section class="features wrap" aria-label="Game features">
+      <article><span class="feature-number">01 / MOVEMENT</span><h3>Find a new angle.</h3><p>Sprint, slide, mantle and take to the air with a jetpack. Use ziplines to move through the fight.</p></article>
+      <article><span class="feature-number">02 / GUNPLAY</span><h3>Know your magazine.</h3><p>No exact ammo counters. Check your magazine for an estimate, manage reloads and make your shots matter.</p></article>
+      <article><span class="feature-number">03 / PROTECTION</span><h3>Read the halo.</h3><p>Energy shields protect different body zones. The halo above each player makes their equipment’s weight class visible.</p></article>
+    </section>
+    <section class="world wrap section">
+      <figure><img src="assets/showhome.jpg" alt="Concept view of the Showhome map, a near-future residential street" loading="lazy" width="1920" height="1080"><figcaption><span>02 / SHOWHOME</span><span>Map concept · Not a gameplay screenshot</span></figcaption></figure>
+      <div class="world-copy"><p class="eyebrow">THE PLAYABLE SLICE /</p><h2>A RANGE.<br>A RIVALRY.</h2><p>Get a feel for movement and weapons in the range, then host a team deathmatch on Showhome: a neighborhood still under construction.</p><p class="muted">This is an early prototype. Maps and visuals are still being built; expect rough edges and changes as development continues.</p></div>
+    </section>
+    <section id="play" class="play wrap section">
+      <div><p class="eyebrow">BETTER WITH FRIENDS /</p><h2>YOUR LOBBY.<br>YOUR NEXT MATCH.</h2><p>One player hosts the match from inside the game. Everyone else joins.</p></div>
+      <ol class="steps"><li><span>01</span><div><h3>Install the prototype</h3><p>Download the Windows installer below when a build is available.</p></div></li><li><span>02</span><div><h3>Host a game</h3><p>Open Play → Host Game, or jump into the gun range.</p></div></li><li><span>03</span><div><h3>Bring your friends</h3><p>Share your join code or IP address. Friends connect through Play → Join Game.</p></div></li></ol>
+    </section>
+    <section id="download" class="download-section">
+      <div class="wrap download-layout"><div><p class="eyebrow">EARLY ACCESS TO THE PROTOTYPE /</p><h2>SEE YOU<br>ON THE LINE.</h2><p>A work in progress. A fight worth joining.</p></div>
+        <div class="download-panel"><div class="platform"><span aria-hidden="true">⊞</span> WINDOWS <span class="build-tag">PROTOTYPE</span></div><h3>SHARD/LINE</h3><p>Windows installer · Early development build</p><a id="installer-download" class="button primary" aria-disabled="true" aria-describedby="download-status" tabindex="-1" download="SHARDLINE-Setup.exe">Checking for a build… <span aria-hidden="true">↓</span></a><p id="download-status" class="download-status" role="status">Checking installer availability.</p><noscript><p>JavaScript is disabled. <a href="downloads/SHARDLINE-Setup.exe" download>Try downloading the installer</a>; it may not be published yet.</p></noscript><p class="build-note">Prototype for playtesting with friends. Features, performance and visuals are still evolving.</p></div>
+      </div>
+    </section>
+    <section class="faq wrap section"><p class="eyebrow">BEFORE YOU DROP IN /</p><h2>GOOD TO KNOW.</h2>
+      <details><summary>Is this the finished game?</summary><p>No. This is a playable prototype centered on the range and team deathmatch. The broader extraction-shooter vision is still in development. The artwork on this page shows the intended visual direction.</p></details>
+      <details><summary>How do we connect over the internet?</summary><p>On the same local network, join the host’s local IP or join code. Over the internet, the host needs to forward UDP port 47820 to their gaming PC, or everyone can use a shared VPN mesh. Join codes contain an address and port; they are not a relay service.</p></details>
+      <details><summary>What are the system requirements?</summary><p>The download is for Windows. Minimum and recommended hardware specifications have not been established yet.</p></details>
+      <details><summary>Why is the download unavailable?</summary><p>A build may not have been published yet, or the download server may be temporarily unavailable. Check back when the next installer is ready.</p></details>
+    </section>
+  </main>
+  <footer class="wrap"><a class="wordmark" href="#">SHARD<span>/</span>LINE</a><span>Independent. In development.</span><a href="#main">Back to top ↑</a></footer>
+</body>
+</html>

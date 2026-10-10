@@ -50,3 +50,164 @@
     with a delivery truck in the street and a construction crane (`design/maps/tdm/concepts/_candidates/A_showhome_*`).
     Gun range / hub "The Yard" = **B: Nordic fjord** setting, with the HQ facility by a fjord, snowy mountains,
     cool light, and the long range running toward a tunnel in the cliff (`design/maps/range/concepts/themeB_*`).
+11. **TRELLIS is for placeholders only. NEVER use TRELLIS (or any image-to-3D) for maps.** The current TRELLIS
+    characters (Kestrel, Solace) are stand-ins. They don't look polished, so they get remade properly once the game
+    works. Maps are built procedurally in Blender as a modular kit, textured with Krea2-made stylized textures, and must
+    look like the concept art (Showhome = `design/maps/tdm/concepts/_candidates/A_showhome_*`).
+12. **Optic rules.** 1x sights (red dot, holo, projector) are looked THROUGH in 3D, so they need a large clear
+    aperture: front and rear windows about the same size, thin frames, no tunnel. Magnified optics (3x, 6/12x, thermal)
+    switch to a scope view in code, so their lens size is cosmetic. 1x sights keep a slight ADS zoom (red dot 1.15,
+    holo 1.25, projector about 1.2; values in `game/assets/data/attachments.ron`).
+    **New high-end optic `optic_projector`** (Valorant-style): a low-profile housing whose flaps fold open on ADS and
+    project a holographic reticle frame in mid-air, with no glass. Game side: flap animation on ADS, hologram above
+    about 80% ADS, a data entry in attachments.ron.
+13. **Warden follows `art/concepts/warden/concept_main.png` proportions.** The user found the first build bulky and
+    stumpy: slim handguard over a separate lower, more exposed fluted barrel, smaller mag, slim skeleton stock.
+14. **First launch asks for a player name** ("callsign"). It is saved to the profile and editable later. `--name` still
+    overrides it for automated runs.
+15. **Hosting always goes through a lobby, which is its OWN FULL SCREEN** (mockup `design/ui/mockups/png/06_lobby.png`, not a popup). Players join the lobby first; the host picks map and game mode (plus
+    score and time limit) there and starts the match. Today: TDM on Showhome plus the gun range. More modes and maps
+    plug into the same selectors later.
+16. **Playtest round 1 (2026-10-08): run-and-gun feel.**
+    - **Movement:**
+      - Sprint is the default and holding Shift walks.
+      - A slide starts from a normal run, not only from a full sprint.
+    - **Aiming:**
+      - Aiming never slows movement and works in every movement state (sprint, slide, air, jetpack, zipline).
+      - Aimed shots are accurate in every state. Hip fire keeps its movement penalties.
+      - Shooting while sprinting is allowed.
+      - Aiming down sights is much faster.
+    - **Guns:**
+      - Recoil is much stronger, the AR's most of all. Recoil control is the skill check.
+      - The AR's time to kill is lower.
+      - The SMG is weak at range.
+    - **Feel:**
+      - A slight camera wobble while sprinting and shooting.
+      - The gun sways a little.
+      - Tracers are more visible.
+      - Hit markers and shield cracks show on the player that was hit, not at the crosshair.
+      - The default crosshair is a small cross.
+      - An empty gun clicks when you pull the trigger.
+    - **Modes:** a free-for-all deathmatch mode next to TDM.
+    - **Keys:** Heal defaults to B, and fire mode moves to H.
+17. **Playtest round 2 (2026-10-08): gunplay and a simpler loadout.**
+    - **Recoil:**
+      - Standing still, every gun has a fixed recoil pattern with no randomness, so it can be learned.
+      - Moving adds random bloom on top of that pattern, Apex-style. Moving is never more accurate than standing still.
+      - Aimed shots stay accurate while moving (item 16): aimed bloom is small, hip fire takes most of it.
+    - **TDM and FFA loadout:**
+      - There is no LOADOUT button on the start screen for now.
+      - There is no agent pick, because these modes have no abilities. The jetpack stays.
+      - Armor is ONE tier pick (T1-T4). A tier is a fixed combination of the existing per-arc tiers (no new armor):
+        T1 = 1/1/1/1 (head/torso/arms/legs, Light), T2 = 2/2/2/2 (Medium), T3 = 3/3/1/1 (Medium), T4 = 4/4/3/2
+        (Heavy, the best combination the loadout allows). There is only one halo, so no halo pick.
+      - Everyone carries 6 magazines of the magazine type they pick, all loaded with the one ammo type they pick.
+      - Point costs and the point total are reset so the choice is a trade-off: T4 armor plus the best ammo does
+        not fit.
+    - **Agents in TDM and FFA:** once the agent models are done, every player gets a random agent at the start of
+      the match (there is no pick).
+    - **Telling friend from foe:** in team modes, teammates get a soft glow. Enemies get NO glow and no colour tell.
+      The way teammates are identified must carry over unchanged into the extraction mode (squad members glow,
+      everyone else looks plain).
+    - **Grass:** the lawn needs a new look. The hedges and the bullet holes are kept.
+    - **Performance:** 270 fps (4K borderless, HIGH) should be higher. Look for what holds the frame rate back.
+18. **Playtest round 3 (2026-10-08).**
+    - **Warden:** hip fire gets a penalty even standing still. It is not random: the barrel drifts on a fixed sway that
+      the crosshair shows.
+    - **AR recoil:** a T shape. It climbs straight up first, then swings left and right across the top.
+    - **Attachments:** stocks lower vertical recoil only; front grips lower horizontal recoil only.
+    - **Loadout:**
+      - A NO HALO armor option for 0 points.
+      - The MAG attachment is the magazine pick (you always carry 6), with no separate magazine row.
+      - Every pick shows its point cost at all times, and the total is always visible.
+    - **Bullet marks:** none on lawns.
+    - **Slide:** faster and longer.
+    - **Clipping:** fix seeing into walls while sliding, and getting stuck in the zipline pylon at the end of a ride.
+    - **Laser:** draws a visible beam, within 25 m.
+    - **AR damage falloff is gentler:** no sudden extra hit around 45 m (proposal: 46 to 35 m, 42 at 60 m, 38 at 90 m).
+    - **Bullet penetration:** glass, fences and thin bushes/hedges let bullets through, with a small damage loss. Walls,
+      concrete and vehicles stay solid. Guns stay hitscan. Penetration depends on how much material the bullet
+      crosses, so the corner of a thick bush can be shot through while its middle stops bullets. Bullet holes in
+      glass and thin materials are see-through where possible.
+    - **Physical materials:** every surface has a material id (glass, wood, sheet metal, foliage, concrete, ...). It
+      is authored in Blender on the art materials and on convex `COL_` collision volumes, then exported as
+      `collision.json`. The game builds collision from it and measures thickness itself. Spec:
+      `art/briefs/MAP_MATERIALS_SPEC.md`. The remade map follows it.
+      Bullets go through interior drywall with a big damage loss; house outer walls stop them. AP rounds lose less
+      damage through materials.
+    - **Loot containers** (for extraction): many kinds of container, each a reusable prop with type ids:
+      backpacks, duffels, weapon and ammo boxes, metal crates, toolboxes, cabinets, PC cases, electrical boxes,
+      safes, barrels, hidden stashes. **Lootable means slightly open** (a door ajar, a drawer out, a lid
+      cracked); decor stays closed. Brief: `art/briefs/showhome_rebuild/03_LOOT_CONTAINERS.md`.
+    - **Props** go into a reusable library shared by all maps. Free CC0/CC-BY models are allowed when they are
+      restyled to our look. Fences are open and thin. Each boundary between surfaces gets one edge treatment.
+    - **Build mode:** an in-game editor. The modelling agent builds the fixed kit and the main props as instances.
+      The user moves, deletes and adds library props and sets every loot spot, spawn, extract and invisible wall,
+      saved in `placements.ron`, which the agent never overwrites. Brief:
+      `art/briefs/showhome_rebuild/02_BUILD_MODE.md`. It comes before the map rebuild.
+    - **Death screen:** a death cam that turns to show where you were shot from (no replay of the fight), a LOADOUT
+      button, a RESPAWN button with the countdown, and a recap of damage taken and given, per zone, for that life.
+    - **Applying loadout changes:**
+      - From the death screen there is no CONFIRM: the RESPAWN button applies the changes.
+      - While alive, CONFIRM works, and Esc applies the changes too when they are within the points.
+    - **Test bot for solo testing:** a host-side bot that stands still and aims at your head when it sees you. The
+      host gets ADD BOT / REMOVE BOT in the lobby, plus `--bots N` on the command line.
+    - **Variable scopes:**
+      - The Warden's scope zooms smoothly from 6x to 12x with the scroll wheel.
+      - A NEW, more expensive 1x-3x variable optic next to the fixed 3x, which stays.
+      - The zoom is remembered per player and per optic.
+      - Both reticles are a thin line cross.
+    - **Recoil tune after testing:**
+      - The Mako's T has a 15-round stem, about 70 % more total climb over a 30-round mag, and a 60 % wider bar.
+      - The recoil reset is gradual: the pattern rewinds step by step after a pause, and a slow tap is always the
+        first bullet.
+    - **Air control:** you can steer sideways in the air. Strafe jumping is allowed up to 9 m/s, and past that you
+      only turn.
+    - **Mag check:**
+      - Pressing the key tilts the gun so you see the magazine and shows the estimate popup.
+      - The magazine window shows a coarse fill level that you cannot count.
+    - **Bots** give up their seat automatically when a real player joins.
+    - **Loadout screen:** shows the real gun model with its selected attachments, and you can drag to rotate it.
+    - **The SMG (Skink) is removed for now.** Its data stays so it can come back.
+    - **Death recap v2:**
+      - It covers your own life only.
+      - It shows kill icons (headshot or body) and "your last fight": the players you damaged in the last 5 s
+        but did not kill, as silhouettes with your total damage and shield damage. It never shows their remaining
+        health.
+      - There are no per-body-part columns.
+      - The Tab scoreboard shows assists and KDA.
+    - **Kill streaks** (TDM/FFA):
+      - Milestones appear in the kill feed.
+      - A map-wide banner and stinger play at 5; a voice line follows later.
+      - A golden ember aura shows from 5 (not the ally glow).
+      - The streak count sits left of health.
+      - At 3 you get full health and shield; at 5 your magazines refill. A grenade reward comes later.
+    - **Smoke and molotovs:**
+      - Throwables that use the painted card look of the hedges.
+      - Bullets carve a see-through tunnel through smoke for a moment.
+      - Smoke puts out molotov fire.
+    - **Exact ammo option** (an exception to "no exact ammo counters"): in TDM, FFA and the range, a setting (off by
+      default) shows a permanent exact ammo counter on the HUD (and in the mag-check popup). In TDM/FFA it is a host
+      match setting.
+    - **Assists:**
+      - The kill feed shows "KILLER + HELPER".
+      - The helper gets a small ASSIST popup with a sound; a voice line comes later.
+      - Deaths by fall, fire or (later) bleeding still give assists.
+    - **One player model for now: Solace** (from the user's AI-generated model, with the hip drone removed). Kestrel
+      is parked. **Agents as separate characters are dropped for now.** Everyone uses the same model, and abilities can
+      differ later as a loadout choice. Her robe and accents come in several colours (team or cosmetic variants).
+      Krea2 and Qwen Image may be used for her textures and depth.
+    - **Character system:** a test session after the current queue decides between a MODULAR system (base body plus
+      clothing and hair parts, colour masks, an editor, cosmetics later sold as items) and WHOLE-BODY SKINS (AI models
+      like Solace on one shared skeleton). The test: the Rain base in our style, rigged, one fitted outfit, two
+      hairstyles and a helmet, next to Solace.
+    - **Streak extras, free-for-all only:**
+      - From a 5 streak, each kill adds +5 % movement speed, up to a cap.
+      - The streaker is revealed to everyone through walls (a name marker with a bounty icon). This is a deliberate
+        bounty exception to "no enemy tells".
+      - After 10, the announcement repeats every 5 kills.
+    - **Laser:** V turns it on and off. Your own dot stays visible while scoped. When the gun is lowered or busy
+      (sprint, reload, heal, ...), the beam follows the barrel.
+    - **Planned modes:**
+      - Low-gravity snipers: Warden only, no armor, no loadout, one shot kills.
+      - Grenade launcher only: no jetpack, faster movement.

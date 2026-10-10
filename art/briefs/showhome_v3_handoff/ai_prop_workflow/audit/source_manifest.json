@@ -1,0 +1,81 @@
+{
+  "copies": [
+    {
+      "source": "F:\\git\\val etf\\tools\\comfy_gen.py",
+      "copy": "scripts/comfy_gen.py",
+      "source_sha256": "8da06a62e980a6da9069806f511c5d7793e0e683d4ff2b8cbc06240e302947de",
+      "copied_sha256": "37103ac8c00c73fa811377fb994724d16ee211240064b4be911f88558a432c5e",
+      "adapted": true
+    },
+    {
+      "source": "F:\\git\\val etf\\tools\\comfy_ui2api.py",
+      "copy": "scripts/comfy_ui2api.py",
+      "source_sha256": "c22e4989053f9ee2e4c7c29bbf72d59de6a18a05bfb39bf00e5c3034e41785da",
+      "copied_sha256": "c22e4989053f9ee2e4c7c29bbf72d59de6a18a05bfb39bf00e5c3034e41785da",
+      "adapted": false
+    },
+    {
+      "source": "F:\\git\\val etf\\tools\\trellis_gen.py",
+      "copy": "scripts/trellis_gen.py",
+      "source_sha256": "17cd799065b5ebf7cd8e2a3368ebd02e44f02439dab3bba1bc58d6c76dfca18e",
+      "copied_sha256": "dc7a116d0ac1c9d3787f606186bad29e224c4efe04ef5fd3cd55705968eb39a5",
+      "adapted": true
+    },
+    {
+      "source": "C:\\Users\\alexw\\AppData\\Local\\Temp\\claude\\F--git-val-etf\\2097aa01-5216-40bf-b3f2-abfa2a86e2fa\\scratchpad\\soltr\\htest\\scripts\\qwen_edit.py",
+      "copy": "scripts/qwen_edit.py",
+      "source_sha256": "3bf3a1f0209eaed9b7d4721fabf705d2e1d4ac94b213c3ad723ca64acfa280c0",
+      "copied_sha256": "c01e2c1709f67b45015064f31589667f8325027750e4556ea03f10d0d67950d6",
+      "adapted": true
+    },
+    {
+      "source": "F:\\git\\val etf\\assets\\props\\_tests\\trellis2\\scripts\\process_prop.py",
+      "copy": "scripts/process_prop.py",
+      "source_sha256": "dc5549b8df81f349aa5d29646bd3513febaa024107d4649c78fbdd951d9df6bd",
+      "copied_sha256": "dc5549b8df81f349aa5d29646bd3513febaa024107d4649c78fbdd951d9df6bd",
+      "adapted": false
+    },
+    {
+      "source": "F:\\git\\val etf\\assets\\props\\_tests\\trellis2\\inputs\\PICK_d_portapotty.png",
+      "copy": "inputs/portapotty_source_krea_s11.png",
+      "source_sha256": "2b74f6ce5066f10fab36fb485108660831e8cb0440efdd08e11abd771bdd7b98",
+      "copied_sha256": "2b74f6ce5066f10fab36fb485108660831e8cb0440efdd08e11abd771bdd7b98",
+      "adapted": false
+    },
+    {
+      "source": "C:\\Users\\alexw\\AppData\\Roaming\\StabilityMatrix\\Packages\\ComfyUI\\output\\valetf_hy_d_portapotty_T_full_prep_00001_.png",
+      "copy": "inputs/portapotty_hunyuan_prep.png",
+      "source_sha256": "ad466bb98fff70a62a489989c182304c41a1b640487abfd868116847f8da637d",
+      "copied_sha256": "ad466bb98fff70a62a489989c182304c41a1b640487abfd868116847f8da637d",
+      "adapted": false
+    },
+    {
+      "source": "C:\\Users\\alexw\\AppData\\Roaming\\StabilityMatrix\\Packages\\ComfyUI\\user\\default\\workflows\\Qwen 2.1\\00 Qwen 2.1 text to image (official template).json",
+      "copy": "workflows/qwen21_text_to_image.ui.json",
+      "source_sha256": "d33a6b36d530756e26ef4e25beb17d950daaea09d295475cd65f97f5d0af3b41",
+      "copied_sha256": "d33a6b36d530756e26ef4e25beb17d950daaea09d295475cd65f97f5d0af3b41",
+      "adapted": false
+    },
+    {
+      "source": "C:\\Users\\alexw\\AppData\\Roaming\\StabilityMatrix\\Packages\\ComfyUI\\user\\default\\workflows\\Qwen 2.1\\01 Qwen 2.1 image edit (official template).json",
+      "copy": "workflows/qwen21_image_edit.ui.json",
+      "source_sha256": "d6dd8695469c20ca5e77b4bddf981b898ee0e034f0cfc5840c86f15b812ca081",
+      "copied_sha256": "d6dd8695469c20ca5e77b4bddf981b898ee0e034f0cfc5840c86f15b812ca081",
+      "adapted": false
+    },
+    {
+      "source": "C:\\Users\\alexw\\AppData\\Roaming\\StabilityMatrix\\Packages\\ComfyUI\\venv\\Lib\\site-packages\\comfyui_workflow_templates_json\\templates\\3d_pixal3d_trellis2_image_to_model.json",
+      "copy": "workflows/trellis2_original_template.ui.json",
+      "source_sha256": "594295ae20490b4ed990655686f2d0c15ba06732df5553bc22bda98966c40a97",
+      "copied_sha256": "594295ae20490b4ed990655686f2d0c15ba06732df5553bc22bda98966c40a97",
+      "adapted": false
+    }
+  ],
+  "adaptations": [
+    "comfy_gen: reject endpoints other than 127.0.0.1:8188",
+    "trellis_gen: use bundled UI template",
+    "qwen_edit: import bundled helpers"
+  ],
+  "original_files_modified": false,
+  "weights_or_glbs_copied": false
+}

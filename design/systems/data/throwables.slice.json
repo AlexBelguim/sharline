@@ -1,0 +1,16 @@
+{
+  "note": "User-directed grenade selection, charged overhand and soft underhand throws. Full-charge level-aim range is checked against real fused/bouncing tap trajectories, about six times baseline; speed is calibrated with per-kind lift and sufficient smoke fuse.",
+  "throw": {
+    "charge_s": 1.2,
+    "charge_tap_s": 0.1,
+    "charged_speed_mult": 2.395,
+    "charged_smoke_lift_deg": 18.0,
+    "charged_molotov_lift_deg": 16.0,
+    "underhand_speed_mult": 0.4,
+    "underhand_lift_deg": -10.0
+  },
+  "smoke": {
+    "fuse_s": 2.0,
+    "charged_fuse_s": 3.5
+  }
+}

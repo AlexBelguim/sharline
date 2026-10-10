@@ -1,0 +1,167 @@
+{
+  "1": {
+    "class_type": "ImageOnlyCheckpointLoader",
+    "inputs": {
+      "ckpt_name": "hunyuan_3d_v2.1.safetensors"
+    }
+  },
+  "2": {
+    "class_type": "LoadImage",
+    "inputs": {
+      "image": "valetf_8135651a_PICK_d_portapotty.png"
+    },
+    "is_changed": [
+      "2b74f6ce5066f10fab36fb485108660831e8cb0440efdd08e11abd771bdd7b98"
+    ]
+  },
+  "3": {
+    "class_type": "ModelSamplingAuraFlow",
+    "inputs": {
+      "model": [
+        "1",
+        0
+      ],
+      "shift": 1.0
+    }
+  },
+  "7": {
+    "class_type": "KSampler",
+    "inputs": {
+      "model": [
+        "3",
+        0
+      ],
+      "seed": 42,
+      "steps": 30,
+      "cfg": 5.0,
+      "sampler_name": "euler",
+      "scheduler": "normal",
+      "positive": [
+        "6",
+        0
+      ],
+      "negative": [
+        "6",
+        1
+      ],
+      "latent_image": [
+        "4",
+        0
+      ],
+      "denoise": 1.0
+    }
+  },
+  "10": {
+    "class_type": "SaveGLB",
+    "inputs": {
+      "mesh": [
+        "9",
+        0
+      ],
+      "filename_prefix": "valetf_hy_d_portapotty_T_full"
+    }
+  },
+  "8": {
+    "class_type": "VAEDecodeHunyuan3D",
+    "inputs": {
+      "samples": [
+        "7",
+        0
+      ],
+      "vae": [
+        "1",
+        2
+      ],
+      "num_chunks": 8000,
+      "octree_resolution": 256
+    }
+  },
+  "9": {
+    "class_type": "VoxelToMesh",
+    "inputs": {
+      "voxel": [
+        "8",
+        0
+      ],
+      "algorithm": "surface net",
+      "threshold": 0.6
+    }
+  },
+  "13": {
+    "class_type": "CLIPVisionEncode",
+    "inputs": {
+      "clip_vision": [
+        "1",
+        1
+      ],
+      "image": [
+        "902",
+        0
+      ],
+      "crop": "center"
+    }
+  },
+  "6": {
+    "class_type": "Hunyuan3Dv2Conditioning",
+    "inputs": {
+      "clip_vision_output": [
+        "13",
+        0
+      ]
+    }
+  },
+  "4": {
+    "class_type": "EmptyLatentHunyuan3Dv2",
+    "inputs": {
+      "resolution": 4096,
+      "batch_size": 1
+    }
+  },
+  "900": {
+    "class_type": "LoadBackgroundRemovalModel",
+    "inputs": {
+      "bg_removal_name": "birefnet.safetensors"
+    }
+  },
+  "901": {
+    "class_type": "RemoveBackground",
+    "inputs": {
+      "bg_removal_model": [
+        "900",
+        0
+      ],
+      "image": [
+        "2",
+        0
+      ]
+    }
+  },
+  "902": {
+    "class_type": "ImageCropToMask",
+    "inputs": {
+      "images": [
+        "2",
+        0
+      ],
+      "masks": [
+        "901",
+        0
+      ],
+      "width": 1024,
+      "height": 1024,
+      "pad_factor": 1.18,
+      "grow_mask": 0,
+      "background": "#FFFFFF"
+    }
+  },
+  "903": {
+    "class_type": "SaveImage",
+    "inputs": {
+      "images": [
+        "902",
+        0
+      ],
+      "filename_prefix": "valetf_hy_d_portapotty_T_full_prep"
+    }
+  }
+}

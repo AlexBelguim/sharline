@@ -1,0 +1,592 @@
+{
+  "audio_playtest": [
+    {
+      "path": "game/DESIGN_DELTAS.md",
+      "status": "updated"
+    },
+    {
+      "path": "game/README.md",
+      "status": "updated"
+    },
+    {
+      "path": "game/assets/audio/ambient/range_loop.ogg",
+      "status": "added"
+    },
+    {
+      "path": "game/assets/audio/ambient/showhome_loop.ogg",
+      "status": "added"
+    },
+    {
+      "path": "game/assets/audio/combat/damage_taken.ogg",
+      "status": "added"
+    },
+    {
+      "path": "game/assets/audio/combat/hit_flesh.ogg",
+      "status": "added"
+    },
+    {
+      "path": "game/assets/audio/combat/hit_head.ogg",
+      "status": "added"
+    },
+    {
+      "path": "game/assets/audio/combat/kill.ogg",
+      "status": "added"
+    },
+    {
+      "path": "game/assets/audio/combat/shield_break.ogg",
+      "status": "added"
+    },
+    {
+      "path": "game/assets/audio/combat/shield_hit.ogg",
+      "status": "added"
+    },
+    {
+      "path": "game/assets/audio/items/heal.ogg",
+      "status": "added"
+    },
+    {
+      "path": "game/assets/audio/movement/jetpack.ogg",
+      "status": "added"
+    },
+    {
+      "path": "game/assets/audio/movement/jump.ogg",
+      "status": "added"
+    },
+    {
+      "path": "game/assets/audio/movement/land.ogg",
+      "status": "added"
+    },
+    {
+      "path": "game/assets/audio/movement/slide.ogg",
+      "status": "added"
+    },
+    {
+      "path": "game/assets/audio/movement/step_concrete_1.ogg",
+      "status": "added"
+    },
+    {
+      "path": "game/assets/audio/movement/step_concrete_2.ogg",
+      "status": "added"
+    },
+    {
+      "path": "game/assets/audio/movement/step_concrete_3.ogg",
+      "status": "added"
+    },
+    {
+      "path": "game/assets/audio/movement/step_grass_1.ogg",
+      "status": "added"
+    },
+    {
+      "path": "game/assets/audio/movement/step_grass_2.ogg",
+      "status": "added"
+    },
+    {
+      "path": "game/assets/audio/movement/step_grass_3.ogg",
+      "status": "added"
+    },
+    {
+      "path": "game/assets/audio/movement/step_gravel_1.ogg",
+      "status": "added"
+    },
+    {
+      "path": "game/assets/audio/movement/step_gravel_2.ogg",
+      "status": "added"
+    },
+    {
+      "path": "game/assets/audio/movement/step_gravel_3.ogg",
+      "status": "added"
+    },
+    {
+      "path": "game/assets/audio/movement/step_wood_1.ogg",
+      "status": "added"
+    },
+    {
+      "path": "game/assets/audio/movement/step_wood_2.ogg",
+      "status": "added"
+    },
+    {
+      "path": "game/assets/audio/movement/step_wood_3.ogg",
+      "status": "added"
+    },
+    {
+      "path": "game/assets/audio/movement/zipline.ogg",
+      "status": "added"
+    },
+    {
+      "path": "game/assets/audio/ui/back.ogg",
+      "status": "added"
+    },
+    {
+      "path": "game/assets/audio/ui/click.ogg",
+      "status": "added"
+    },
+    {
+      "path": "game/assets/audio/ui/confirm.ogg",
+      "status": "added"
+    },
+    {
+      "path": "game/assets/audio/ui/hover.ogg",
+      "status": "added"
+    },
+    {
+      "path": "game/assets/audio/weapons/bolt_cycle.ogg",
+      "status": "added"
+    },
+    {
+      "path": "game/assets/audio/weapons/dry_fire.ogg",
+      "status": "added"
+    },
+    {
+      "path": "game/assets/audio/weapons/equip.ogg",
+      "status": "added"
+    },
+    {
+      "path": "game/assets/audio/weapons/fire_mode.ogg",
+      "status": "added"
+    },
+    {
+      "path": "game/assets/audio/weapons/mag_check.ogg",
+      "status": "added"
+    },
+    {
+      "path": "game/assets/audio/weapons/mag_in.ogg",
+      "status": "added"
+    },
+    {
+      "path": "game/assets/audio/weapons/mag_out.ogg",
+      "status": "added"
+    },
+    {
+      "path": "game/assets/audio/weapons/mako_shot_1.ogg",
+      "status": "added"
+    },
+    {
+      "path": "game/assets/audio/weapons/mako_shot_2.ogg",
+      "status": "added"
+    },
+    {
+      "path": "game/assets/audio/weapons/mako_shot_3.ogg",
+      "status": "added"
+    },
+    {
+      "path": "game/assets/audio/weapons/shot_distant_1.ogg",
+      "status": "added"
+    },
+    {
+      "path": "game/assets/audio/weapons/shot_distant_2.ogg",
+      "status": "added"
+    },
+    {
+      "path": "game/assets/audio/weapons/skink_shot_1.ogg",
+      "status": "added"
+    },
+    {
+      "path": "game/assets/audio/weapons/skink_shot_2.ogg",
+      "status": "added"
+    },
+    {
+      "path": "game/assets/audio/weapons/skink_shot_3.ogg",
+      "status": "added"
+    },
+    {
+      "path": "game/assets/audio/weapons/warden_shot_1.ogg",
+      "status": "added"
+    },
+    {
+      "path": "game/assets/audio/weapons/warden_shot_2.ogg",
+      "status": "added"
+    },
+    {
+      "path": "game/assets/audio/weapons/warden_shot_3.ogg",
+      "status": "added"
+    },
+    {
+      "path": "game/assets/data/ammo.ron",
+      "status": "updated"
+    },
+    {
+      "path": "game/assets/data/feel.ron",
+      "status": "added"
+    },
+    {
+      "path": "game/assets/data/movement.ron",
+      "status": "updated"
+    },
+    {
+      "path": "game/assets/data/recoil_patterns.ron",
+      "status": "updated"
+    },
+    {
+      "path": "game/assets/data/rules.ron",
+      "status": "updated"
+    },
+    {
+      "path": "game/assets/data/settings.ron",
+      "status": "updated"
+    },
+    {
+      "path": "game/assets/data/sounds.ron",
+      "status": "added"
+    },
+    {
+      "path": "game/assets/data/weapon_models.ron",
+      "status": "updated"
+    },
+    {
+      "path": "game/assets/data/weapons.ron",
+      "status": "updated"
+    },
+    {
+      "path": "game/crates/val_etf/src/client.rs",
+      "status": "updated"
+    },
+    {
+      "path": "game/crates/val_etf/src/config.rs",
+      "status": "updated"
+    },
+    {
+      "path": "game/crates/val_etf/src/esc_menu.rs",
+      "status": "updated"
+    },
+    {
+      "path": "game/crates/val_etf/src/hud.rs",
+      "status": "updated"
+    },
+    {
+      "path": "game/crates/val_etf/src/loadout/model.rs",
+      "status": "updated"
+    },
+    {
+      "path": "game/crates/val_etf/src/loadout/text.rs",
+      "status": "updated"
+    },
+    {
+      "path": "game/crates/val_etf/src/lobby.rs",
+      "status": "updated"
+    },
+    {
+      "path": "game/crates/val_etf/src/main.rs",
+      "status": "updated"
+    },
+    {
+      "path": "game/crates/val_etf/src/menu/copy.rs",
+      "status": "updated"
+    },
+    {
+      "path": "game/crates/val_etf/src/menu/host.rs",
+      "status": "updated"
+    },
+    {
+      "path": "game/crates/val_etf/src/menu/mod.rs",
+      "status": "updated"
+    },
+    {
+      "path": "game/crates/val_etf/src/net.rs",
+      "status": "updated"
+    },
+    {
+      "path": "game/crates/val_etf/src/radial.rs",
+      "status": "updated"
+    },
+    {
+      "path": "game/crates/val_etf/src/render.rs",
+      "status": "updated"
+    },
+    {
+      "path": "game/crates/val_etf/src/render/camera_fx.rs",
+      "status": "added"
+    },
+    {
+      "path": "game/crates/val_etf/src/render/feel.rs",
+      "status": "added"
+    },
+    {
+      "path": "game/crates/val_etf/src/render/hit_fx.rs",
+      "status": "added"
+    },
+    {
+      "path": "game/crates/val_etf/src/render/tracer_fx.rs",
+      "status": "added"
+    },
+    {
+      "path": "game/crates/val_etf/src/scoreboard.rs",
+      "status": "updated"
+    },
+    {
+      "path": "game/crates/val_etf/src/server.rs",
+      "status": "updated"
+    },
+    {
+      "path": "game/crates/val_etf/src/settings/bindings.rs",
+      "status": "updated"
+    },
+    {
+      "path": "game/crates/val_etf/src/settings/keybinds.rs",
+      "status": "updated"
+    },
+    {
+      "path": "game/crates/val_etf/src/settings/mod.rs",
+      "status": "updated"
+    },
+    {
+      "path": "game/crates/val_etf/src/settings/model.rs",
+      "status": "updated"
+    },
+    {
+      "path": "game/crates/val_etf/src/settings/tabs/audio.rs",
+      "status": "updated"
+    },
+    {
+      "path": "game/crates/val_etf/src/settings/tabs/gameplay.rs",
+      "status": "updated"
+    },
+    {
+      "path": "game/crates/val_etf/src/shared.rs",
+      "status": "updated"
+    },
+    {
+      "path": "game/crates/val_etf/src/sound.rs",
+      "status": "added"
+    },
+    {
+      "path": "game/crates/val_etf/src/weapon_models.rs",
+      "status": "updated"
+    },
+    {
+      "path": "game/crates/vetf_net/src/protocol.rs",
+      "status": "updated"
+    },
+    {
+      "path": "game/crates/vetf_sim/src/combat.rs",
+      "status": "updated"
+    },
+    {
+      "path": "game/crates/vetf_sim/src/data.rs",
+      "status": "updated"
+    },
+    {
+      "path": "game/crates/vetf_sim/src/gear.rs",
+      "status": "updated"
+    },
+    {
+      "path": "game/crates/vetf_sim/src/items.rs",
+      "status": "updated"
+    },
+    {
+      "path": "game/crates/vetf_sim/src/maps/mod.rs",
+      "status": "updated"
+    },
+    {
+      "path": "game/crates/vetf_sim/src/maps/showhome.rs",
+      "status": "updated"
+    },
+    {
+      "path": "game/crates/vetf_sim/src/movement/mod.rs",
+      "status": "updated"
+    },
+    {
+      "path": "game/crates/vetf_sim/src/movement/tests.rs",
+      "status": "updated"
+    },
+    {
+      "path": "game/crates/vetf_sim/src/player.rs",
+      "status": "updated"
+    },
+    {
+      "path": "game/crates/vetf_sim/src/recoil.rs",
+      "status": "updated"
+    },
+    {
+      "path": "game/crates/vetf_sim/src/weapon.rs",
+      "status": "updated"
+    },
+    {
+      "path": "game/crates/vetf_sim/tests/balance.rs",
+      "status": "updated"
+    },
+    {
+      "path": "game/crates/vetf_sim/tests/design_sync.rs",
+      "status": "updated"
+    },
+    {
+      "path": "game/tools/make_placeholder_sounds.py",
+      "status": "added"
+    }
+  ],
+  "surface_depth": [
+    {
+      "path": "game/assets/data/surface_depth.ron",
+      "status": "added"
+    },
+    {
+      "path": "game/assets/textures/showhome/README.md",
+      "status": "updated"
+    },
+    {
+      "path": "game/assets/textures/showhome/asphalt_normal.png",
+      "status": "source_missing_retained"
+    },
+    {
+      "path": "game/assets/textures/showhome/asphalt_orm.png",
+      "status": "added"
+    },
+    {
+      "path": "game/assets/textures/showhome/fibercement_panel_joints_depth.png",
+      "status": "added"
+    },
+    {
+      "path": "game/assets/textures/showhome/fibercement_panel_joints_orm.png",
+      "status": "added"
+    },
+    {
+      "path": "game/assets/textures/showhome/grass_lawn_depth.png",
+      "status": "source_missing_retained"
+    },
+    {
+      "path": "game/assets/textures/showhome/grass_lawn_normal.png",
+      "status": "source_missing_retained"
+    },
+    {
+      "path": "game/assets/textures/showhome/grass_lawn_orm.png",
+      "status": "added"
+    },
+    {
+      "path": "game/assets/textures/showhome/gravel_depth.png",
+      "status": "added"
+    },
+    {
+      "path": "game/assets/textures/showhome/gravel_normal.png",
+      "status": "source_missing_retained"
+    },
+    {
+      "path": "game/assets/textures/showhome/gravel_orm.png",
+      "status": "added"
+    },
+    {
+      "path": "game/assets/textures/showhome/paving_slabs_depth.png",
+      "status": "added"
+    },
+    {
+      "path": "game/assets/textures/showhome/paving_slabs_orm.png",
+      "status": "added"
+    },
+    {
+      "path": "game/assets/textures/showhome/printed_concrete_layers_depth.png",
+      "status": "added"
+    },
+    {
+      "path": "game/assets/textures/showhome/printed_concrete_layers_orm.png",
+      "status": "added"
+    },
+    {
+      "path": "game/assets/textures/showhome/roof_shingle_dark_depth.png",
+      "status": "added"
+    },
+    {
+      "path": "game/assets/textures/showhome/roof_shingle_dark_orm.png",
+      "status": "added"
+    },
+    {
+      "path": "game/crates/val_etf/src/map_materials.rs",
+      "status": "updated"
+    },
+    {
+      "path": "game/crates/val_etf/src/video.rs",
+      "status": "updated"
+    }
+  ],
+  "decals": [
+    {
+      "path": "game/README.md",
+      "status": "merged"
+    },
+    {
+      "path": "game/assets/data/impacts.ron",
+      "status": "added"
+    },
+    {
+      "path": "game/assets/textures/fx/README.md",
+      "status": "updated"
+    },
+    {
+      "path": "game/assets/textures/fx/impact_decal.png",
+      "status": "source_missing_retained"
+    },
+    {
+      "path": "game/assets/textures/fx/impacts/README.md",
+      "status": "added"
+    },
+    {
+      "path": "game/assets/textures/fx/impacts/impacts_albedo.png",
+      "status": "added"
+    },
+    {
+      "path": "game/assets/textures/fx/impacts/impacts_atlas.ron",
+      "status": "added"
+    },
+    {
+      "path": "game/assets/textures/fx/impacts/impacts_depth_mr.png",
+      "status": "added"
+    },
+    {
+      "path": "game/assets/textures/fx/impacts/impacts_normal.png",
+      "status": "added"
+    },
+    {
+      "path": "game/assets/textures/fx/impacts/impacts_paint.png",
+      "status": "added"
+    },
+    {
+      "path": "game/crates/val_etf/src/client.rs",
+      "status": "merged"
+    },
+    {
+      "path": "game/crates/val_etf/src/config.rs",
+      "status": "merged"
+    },
+    {
+      "path": "game/crates/val_etf/src/impacts.rs",
+      "status": "added"
+    },
+    {
+      "path": "game/crates/val_etf/src/main.rs",
+      "status": "CONFLICT",
+      "review": "F:\\git\\val etf\\tools\\_showhome_merge\\decals\\game_crates_val_etf_src_main.rs\\conflict"
+    },
+    {
+      "path": "game/crates/val_etf/src/render.rs",
+      "status": "CONFLICT",
+      "review": "F:\\git\\val etf\\tools\\_showhome_merge\\decals\\game_crates_val_etf_src_render.rs\\conflict"
+    }
+  ],
+  "foliage": [
+    {
+      "path": "game/assets/data/foliage.ron",
+      "status": "added"
+    },
+    {
+      "path": "game/assets/shaders/foliage.wgsl",
+      "status": "added"
+    },
+    {
+      "path": "game/assets/textures/foliage/grass_cards.png",
+      "status": "added"
+    },
+    {
+      "path": "game/assets/textures/foliage/hedge_cards.png",
+      "status": "added"
+    },
+    {
+      "path": "game/assets/textures/foliage/hedge_cards_normal.png",
+      "status": "added"
+    },
+    {
+      "path": "game/crates/val_etf/src/foliage.rs",
+      "status": "added"
+    },
+    {
+      "path": "game/crates/val_etf/src/main.rs",
+      "status": "merged"
+    }
+  ]
+}

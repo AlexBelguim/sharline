@@ -16,7 +16,9 @@ small team deathmatch map. Multiplayer is host-and-join: the user hosts from ins
   for gameplay.
 
 ## Hard rules
-- **No exact ammo counters anywhere**, on guns or in the HUD. Players mag-check for an estimate.
+- **No exact ammo counters anywhere**, on guns or in the HUD. Players mag-check for an estimate. One user-approved
+  exception (DIRECTION_LOG 18): an optional setting (a host match setting in TDM/FFA, a personal toggle on the
+  range; off by default) shows a permanent exact ammo counter on the HUD and in the mag-check popup.
 - Armor is equipment any agent can wear (a halo). Characters have no built-in armor tiers.
 - Everyone can read an enemy's weight class (Light / Medium / Heavy) from their halo.
 - Original designs only. Never copy assets, code or maps from other games.

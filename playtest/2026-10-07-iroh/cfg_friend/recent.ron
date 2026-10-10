@@ -1,0 +1,18 @@
+(
+    servers: [
+        (
+            name: "HOST\'S GAME",
+            map: "range",
+            address: "SL1-9EEFC6E989E5E41A79823C6DE9A7FEAA80E51AA1ACBAA6A2D15C4F91573991CB",
+            by_ip: false,
+            last_joined: 1791388905,
+        ),
+        (
+            name: "HOST\'S GAME",
+            map: "showhome",
+            address: "SL1-3A3889C2DBCD9C08A7FEB1651D42649138964311710A40A2DF1297D81E6ADC49",
+            by_ip: false,
+            last_joined: 1791388795,
+        ),
+    ],
+)

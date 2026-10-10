@@ -1,0 +1,45 @@
+3 KSampler {"model": ["108", 0], "seed": 45, "steps": 12, "cfg": 7.5, "sampler_name": "euler", "scheduler": "normal", "positive": ["299", 0], "negative": ["299", 1], "latent_image": ["87", 0], "denoise": 1}
+12 KSampler {"model": ["40", 0], "seed": 54, "steps": 12, "cfg": 1, "sampler_name": "euler", "scheduler": "normal", "positive": ["98", 0], "negative": ["98", 1], "latent_image": ["98", 2], "denoise": 1}
+15 CLIPVisionLoader {"clip_name": "dino_v3_L_naf_fp32.safetensors"}
+18 KSampler {"model": ["126", 0], "seed": 60, "steps": 20, "cfg": 7.5, "sampler_name": "euler", "scheduler": "normal", "positive": ["91", 0], "negative": ["91", 1], "latent_image": ["91", 2], "denoise": 1}
+23 KSampler {"model": ["126", 0], "seed": 65, "steps": 12, "cfg": 7.5, "sampler_name": "euler", "scheduler": "simple", "positive": ["94", 0], "negative": ["94", 1], "latent_image": ["94", 2], "denoise": 1}
+40 UNETLoader {"unet_name": "trellis_2_int8_convrot.safetensors", "weight_dtype": "default"}
+87 EmptyTrellis2LatentStructure {"batch_size": 1}
+91 Trellis2ShapeStage {"positive": ["299", 0], "negative": ["299", 1], "voxel": ["119", 0]}
+92 VaeDecodeShapeTrellis {"samples": ["23", 0], "vae": ["117", 0]}
+93 VaeDecodeTextureTrellis {"samples": ["12", 0], "vae": ["118", 0], "shape_subdivides": ["92", 1]}
+94 Trellis2UpsampleStage {"positive": ["91", 0], "negative": ["91", 1], "shape_latent": ["18", 0], "vae": ["117", 0], "target_resolution": "1536"}
+98 Trellis2TextureStage {"positive": ["94", 0], "negative": ["94", 1], "shape_latent": ["23", 0]}
+108 ModelSamplingSD3 {"model": ["125", 0], "shift": 5}
+117 VAELoader {"vae_name": "trellis_2_shape_vae_bf16.safetensors"}
+118 VAELoader {"vae_name": "trellis_2_texture_vae_bf16.safetensors"}
+119 VaeDecodeStructureTrellis2 {"samples": ["3", 0], "vae": ["117", 0], "resolution": "32"}
+122 LoadImage {"image": "dry.png"}
+125 RescaleCFG {"model": ["199", 0], "multiplier": 0.7}
+126 RescaleCFG {"model": ["279", 0], "multiplier": 0.5}
+147 BakeTextureFromVoxel {"mesh": ["196", 0], "voxel_colors": ["93", 0], "texture_size": ["288", 0], "reference_mesh": ["92", 0]}
+164 PreviewImage {"images": ["147", 0]}
+186 DecimateMesh {"mesh": ["241", 0], "target_face_count": 700000, "placement_mode": "midpoint"}
+192 RemoveBackground {"bg_removal_model": ["193", 0], "image": ["122", 0]}
+193 LoadBackgroundRemovalModel {"bg_removal_name": "birefnet.safetensors"}
+196 UnwrapMesh {"mesh": ["238", 0], "segmenter": "pec", "resolution": ["288", 0], "padding": 1, "weld_distance": 0.0002}
+199 CFGOverride {"model": ["40", 0], "cfg": 1, "start_percent": 0.667, "end_percent": 1}
+202 GetMeshInfo {"mesh": ["92", 0]}
+207 PreviewImage {"images": ["147", 1]}
+208 PreviewImage {"images": ["147", 2]}
+210 ApplyTextureToMesh {"mesh": ["196", 0], "base_color": ["164", 0], "metallic": ["207", 0], "roughness": ["208", 0], "occlusion": ["235", 0], "normal_map": ["226", 0]}
+224 BakeNormalMapFromMesh {"low_poly": ["196", 0], "high_poly": ["241", 0], "resolution": 2048, "cage_distance": 0.05, "ignore_backfaces": true}
+226 PreviewImage {"images": ["224", 0]}
+233 BakeAmbientOcclusion {"low_poly": ["196", 0], "high_poly": ["241", 0], "resolution": 1024, "samples": 64, "max_distance": 0.71, "strength": 1, "bias": 0.01}
+235 PreviewImage {"images": ["233", 0]}
+238 MeshSmoothNormals {"mesh": ["186", 0], "crease_angle": 180}
+241 RemeshMesh {"mesh": ["202", 0], "resolution": 768, "sign_mode": "udf", "sign_mode.qef": false, "sign_mode.drop_inverted_components": false, "sign_mode.drop_enclosed_components": false, "band": 1, "project_back": 0, "fix_poles": fal
+260 MeshSmoothNormals {"mesh": ["210", 0], "crease_angle": 180}
+279 CFGOverride {"model": ["40", 0], "cfg": 1, "start_percent": 0.769, "end_percent": 1}
+285 MeshToFile3D {"mesh": ["260", 0]}
+288 PrimitiveInt {"value": 4096}
+299 Trellis2Conditioning {"clip_vision_model": ["15", 0], "image": ["302", 0]}
+302 PreviewImage {"images": ["312", 0]}
+303 MaskPreview {"mask": ["192", 0]}
+312 ImageCropToMask {"images": ["122", 0], "masks": ["303", 0], "width": 1024, "height": 1024, "pad_factor": 1.1, "grow_mask": 0, "background": "#000000"}
+322 SaveGLB {"mesh": ["285", 0], "filename_prefix": "valetf_dry"}

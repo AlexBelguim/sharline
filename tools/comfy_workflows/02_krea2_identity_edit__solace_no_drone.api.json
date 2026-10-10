@@ -1,0 +1,171 @@
+{
+ "10": {
+  "class_type": "UNETLoader",
+  "inputs": {
+   "unet_name": "krea2_turbo_fp8_scaled.safetensors",
+   "weight_dtype": "default"
+  }
+ },
+ "71": {
+  "class_type": "LoraLoaderModelOnly",
+  "inputs": {
+   "model": [
+    "10",
+    0
+   ],
+   "lora_name": "krea2_identity_edit_v1_2.safetensors",
+   "strength_model": 1.0
+  }
+ },
+ "11": {
+  "class_type": "CLIPLoader",
+  "inputs": {
+   "clip_name": "qwen3vl_4b_fp8_scaled.safetensors",
+   "type": "krea2",
+   "device": "default"
+  }
+ },
+ "12": {
+  "class_type": "VAELoader",
+  "inputs": {
+   "vae_name": "qwen_image_vae.safetensors"
+  }
+ },
+ "72": {
+  "class_type": "LoadImage",
+  "inputs": {
+   "image": "valetf_wf_solace_source.png"
+  }
+ },
+ "73": {
+  "class_type": "VAEEncode",
+  "inputs": {
+   "pixels": [
+    "72",
+    0
+   ],
+   "vae": [
+    "12",
+    0
+   ]
+  }
+ },
+ "82": {
+  "class_type": "EmptySD3LatentImage",
+  "inputs": {
+   "width": 1024,
+   "height": 1536,
+   "batch_size": 1
+  }
+ },
+ "79": {
+  "class_type": "Krea2EditModelPatch",
+  "inputs": {
+   "model": [
+    "71",
+    0
+   ],
+   "source_latent": [
+    "73",
+    0
+   ],
+   "ref_boost": 4.0,
+   "ref_boost_a": 1.0,
+   "fit_mode": "fit",
+   "vae": [
+    "12",
+    0
+   ],
+   "source_image": [
+    "72",
+    0
+   ],
+   "target_latent": [
+    "82",
+    0
+   ]
+  }
+ },
+ "84": {
+  "class_type": "Krea2EditGroundedEncode",
+  "inputs": {
+   "clip": [
+    "11",
+    0
+   ],
+   "prompt": "Remove the small round white drone with the coral eye from her hip. Keep this exact character unchanged: same face, hair, ponytail, ivory and coral outfit, colours, A-pose and painted art style, full body from head to boots, plain light grey background.",
+   "image": [
+    "72",
+    0
+   ],
+   "grounding_px": 768,
+   "system_prompt": ""
+  }
+ },
+ "85": {
+  "class_type": "Krea2EditGroundedEncode",
+  "inputs": {
+   "clip": [
+    "11",
+    0
+   ],
+   "prompt": "",
+   "image": [
+    "72",
+    0
+   ],
+   "grounding_px": 768,
+   "system_prompt": ""
+  }
+ },
+ "53": {
+  "class_type": "KSampler",
+  "inputs": {
+   "seed": 1,
+   "steps": 10,
+   "cfg": 1.0,
+   "sampler_name": "euler",
+   "scheduler": "simple",
+   "denoise": 1.0,
+   "model": [
+    "79",
+    0
+   ],
+   "positive": [
+    "84",
+    0
+   ],
+   "negative": [
+    "85",
+    0
+   ],
+   "latent_image": [
+    "82",
+    0
+   ]
+  }
+ },
+ "54": {
+  "class_type": "VAEDecode",
+  "inputs": {
+   "samples": [
+    "53",
+    0
+   ],
+   "vae": [
+    "12",
+    0
+   ]
+  }
+ },
+ "29": {
+  "class_type": "SaveImage",
+  "inputs": {
+   "filename_prefix": "valetf_wf_krea2_edit",
+   "images": [
+    "54",
+    0
+   ]
+  }
+ }
+}

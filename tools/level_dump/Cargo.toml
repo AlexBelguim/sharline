@@ -1,0 +1,20 @@
+# Standalone tool (NOT a member of the game workspace): dumps the exact collision levels the game builds
+# (vetf_sim::maps::showhome / range) to JSON for the art pipeline. Its own target dir lives in ./target.
+#
+#   export PATH="$USERPROFILE/.cargo/bin:$PATH"
+#   cargo run --release --manifest-path "F:/git/val etf/tools/level_dump/Cargo.toml" -- \
+#       --out "F:/git/val etf/assets/maps/showhome/layout"
+[package]
+name = "level_dump"
+version = "0.1.0"
+edition = "2024"
+publish = false
+description = "Dumps vetf_sim levels (brushes, spawns, ziplines, kill plane) as JSON for the Blender map kit."
+
+[dependencies]
+vetf_sim = { path = "../../game/crates/vetf_sim" }
+glam = { version = "0.32", features = ["serde"] }
+serde_json = { version = "1", features = ["preserve_order"] }
+
+# Empty table: keeps cargo from looking for a parent workspace.
+[workspace]

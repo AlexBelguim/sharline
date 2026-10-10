@@ -1,0 +1,13 @@
+{
+  "source": "F:\\git\\val etf\\assets\\props\\_tests\\trellis2\\inputs\\PICK_d_portapotty.png",
+  "size": [
+    1024,
+    1024
+  ],
+  "sha256": "2b74f6ce5066f10fab36fb485108660831e8cb0440efdd08e11abd771bdd7b98",
+  "metadata_keys": [
+    "prompt"
+  ],
+  "has_workflow_ui": false,
+  "has_prompt_api": true
+}
