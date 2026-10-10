@@ -1,0 +1,38 @@
+{
+  "id": "raised_green_bed",
+  "category": "garden",
+  "tags": [
+    "garden",
+    "showhome_v3"
+  ],
+  "glb": "props/garden/raised_green_bed/raised_green_bed.glb",
+  "lod1": "props/garden/raised_green_bed/raised_green_bed_lod1.glb",
+  "collision": "props/garden/raised_green_bed/collision.json",
+  "source": "original procedural communal kit; extension/build_communal_props.py",
+  "licence": "project original",
+  "openable_parts": [],
+  "size_m": [
+    4.0,
+    2.0,
+    0.44999998807907104
+  ],
+  "triangles": 396,
+  "collision_volumes": 9,
+  "loot_slots": [],
+  "pivot": "base-centre at Z=0",
+  "front": "design -Y",
+  "original_geometry": true,
+  "source_builder": "maps/showhome_v3/extension/build_communal_props.py",
+  "soil_top_m": 0.355,
+  "foliage_local_min": [
+    -1.8,
+    -0.8,
+    0.36
+  ],
+  "foliage_local_max": [
+    1.8,
+    0.8,
+    0.85
+  ],
+  "foliage_baked": false
+}

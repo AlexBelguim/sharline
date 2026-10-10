@@ -1,0 +1,23 @@
+{
+  "id": "rock_tall",
+  "category": "garden",
+  "tags": [
+    "garden",
+    "showhome_legacy"
+  ],
+  "glb": "props/garden/rock_tall/rock_tall.glb",
+  "lod1": "props/garden/rock_tall/rock_tall_lod1.glb",
+  "collision": "props/garden/rock_tall/collision.json",
+  "source": "original assets/maps/showhome procedural Rock_Tall",
+  "licence": "project original",
+  "openable_parts": [],
+  "size_m": [
+    0.7669969797134399,
+    0.8397865891456604,
+    0.8215374946594238
+  ],
+  "triangles": 20,
+  "collision_volumes": 1,
+  "loot_slots": [],
+  "legacy_root": "PROP_Rock_Tall"
+}

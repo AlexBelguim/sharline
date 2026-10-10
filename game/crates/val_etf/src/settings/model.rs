@@ -243,6 +243,8 @@ section!(GameplaySettings from defaults.gameplay {
     mag_card: MagCard,
     /// MAG CHECK in the gun range (matches use the host's setting).
     range_mag_check: RangeMagCheck,
+    /// THROW LINE: with a grenade in hand, draw the arc it would fly and where it goes off (a testing aid).
+    throw_line: bool,
     /// Seconds reload (or heal) must be held to open the ring.
     radial_hold_s: f32,
     radial_pick: RadialPick,

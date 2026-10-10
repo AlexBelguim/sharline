@@ -1,0 +1,100 @@
+{
+  "passed": true,
+  "failures": [],
+  "warnings": [],
+  "standing_route_samples": 816,
+  "radius_m": 0.32,
+  "player_height_m": 1.8,
+  "fixed_volumes": 2485,
+  "cabin_stacks": [
+    {
+      "stair": "ext_site_office_stairs_0",
+      "position": [
+        444,
+        880,
+        0
+      ],
+      "office_ids": [
+        "ext_site_office_2",
+        "ext_site_office_3"
+      ],
+      "upper_offset": [
+        0,
+        0,
+        2.8
+      ]
+    },
+    {
+      "stair": "ext_site_office_stairs_1",
+      "position": [
+        462,
+        889,
+        0
+      ],
+      "office_ids": [
+        "ext_site_office_4",
+        "ext_site_office_5"
+      ],
+      "upper_offset": [
+        -1.2,
+        0,
+        2.8
+      ]
+    },
+    {
+      "stair": "ext_site_office_stairs_2",
+      "position": [
+        456,
+        869,
+        0
+      ],
+      "office_ids": [
+        "ext_site_office_0",
+        "ext_site_office_1"
+      ],
+      "upper_offset": [
+        0,
+        0,
+        2.8
+      ]
+    }
+  ],
+  "instance_counts": {
+    "kitchen_base": 3,
+    "bookcase": 3,
+    "rebar_bundle": 8,
+    "tower_crane": 2,
+    "garden_gate": 3,
+    "picket_panel": 21,
+    "city_car": 7,
+    "dining_table": 6,
+    "temporary_guardrail": 108,
+    "site_office": 7,
+    "raised_planter": 3,
+    "scaffold_bay": 9,
+    "site_office_stairs": 3,
+    "portable_toilet": 4,
+    "playground_set": 1,
+    "toolbox": 5,
+    "gang_box": 2,
+    "sofa": 3,
+    "wardrobe": 3,
+    "moving_truck": 5,
+    "site_mesh_panel": 322,
+    "bed": 3,
+    "timber_pallet": 17,
+    "organic_planter_bench": 6,
+    "printed_blocks_pallet": 25
+  },
+  "road_support_vertices": 1260,
+  "ground_prop_support_samples": 82,
+  "inputs_sha256": {
+    "assets\\maps\\showhome_v3\\extension\\extension.glb": "099354dd0527823d4ec8fe8c0b72c293ba6ea9bd6ba173bdeca0f749ec12546e",
+    "assets\\maps\\showhome_v3\\extension\\collision.json": "22faaff30a9b96aa62309e4c6b21981243d71b6743b42efba758d830bc287dcf",
+    "assets\\maps\\showhome_v3\\extension\\report.json": "29b51d34d48e318e65f336812bcf776a36f4a338a97097dfbb561a9f6d704c3b",
+    "assets\\maps\\showhome_v3\\extension\\stairs_route.json": "41210b23c6e34fc7670188096f791227f61f587cf005871d1d135cc8f8318a86",
+    "assets\\maps\\showhome_v3\\kit\\collision_ground.json": "ceeb62308eb8ea7bcf21e1bdd3cd9536937d62deec22592ec6bb171b673f4661",
+    "assets\\maps\\showhome_v3\\extension\\placements.generated.json": "e09550f5d3f575fb6457578892c58c53a89528763a497d472896e82d4274fbeb",
+    "assets\\maps\\showhome_v3\\extension\\foliage.json": "c6056e0325d4053e110989cc62219e84e3da41c171dbe5b50a9d7391a5239049"
+  }
+}

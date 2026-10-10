@@ -1,0 +1,22 @@
+{
+  "id": "heat_pump",
+  "category": "utilities",
+  "tags": [
+    "utilities",
+    "showhome_v3"
+  ],
+  "glb": "props/utilities/heat_pump/heat_pump.glb",
+  "lod1": "props/utilities/heat_pump/heat_pump_lod1.glb",
+  "collision": "props/utilities/heat_pump/collision.json",
+  "source": "original assets/maps/showhome procedural HeatPump",
+  "licence": "project original",
+  "openable_parts": [],
+  "size_m": [
+    2.0,
+    1.0160000324249268,
+    1.2000000476837158
+  ],
+  "triangles": 952,
+  "collision_volumes": 1,
+  "loot_slots": []
+}

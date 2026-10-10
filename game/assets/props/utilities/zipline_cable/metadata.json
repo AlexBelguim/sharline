@@ -1,0 +1,23 @@
+{
+  "id": "zipline_cable",
+  "category": "utilities",
+  "tags": [
+    "utilities",
+    "showhome_legacy"
+  ],
+  "glb": "props/utilities/zipline_cable/zipline_cable.glb",
+  "lod1": "props/utilities/zipline_cable/zipline_cable_lod1.glb",
+  "collision": "props/utilities/zipline_cable/collision.json",
+  "source": "original assets/maps/showhome procedural Zipline_Cable",
+  "licence": "project original",
+  "openable_parts": [],
+  "size_m": [
+    21.60631561279297,
+    0.04399999976158142,
+    0.8437721729278564
+  ],
+  "triangles": 780,
+  "collision_volumes": 0,
+  "loot_slots": [],
+  "legacy_root": "PROP_Zipline_Cable"
+}

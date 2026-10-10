@@ -6,8 +6,8 @@
 // Placeholders until playtests tune them.
 (
     throw: (
-        // The key is pressed: the gun goes down and the arm winds up for windup_s, then the grenade leaves the
-        // hand; the gun comes back up recover_s later (plus the gun's usual raise from a lowered pose).
+        // 4/5 equip; LMB holds charge and releases into the overhand wind-up. RMB throws softly immediately.
+        // The same equip key or Esc cancels without consuming. The gun comes back after recovery.
         windup_s: 0.30,
         recover_s: 0.35,
         // Launch: speed along the aim, tilted lift_deg above it (a lob, so a level throw carries), plus a share
@@ -15,6 +15,15 @@
         speed_mps: 16.0,
         lift_deg: 8.0,
         inherit: 0.6,
+        charge_s: 1.2,
+        // A short tap keeps the original arc exactly. Full charge uses calibrated speed, tuned lift and
+        // a long enough smoke fuse; flat-ground measured burst range is about 6x the original.
+        charge_tap_s: 0.1,
+        charged_speed_mult: 2.395,
+        charged_smoke_lift_deg: 18.0,
+        charged_molotov_lift_deg: 16.0,
+        underhand_speed_mult: 0.4,
+        underhand_lift_deg: -10.0,
         // Where it leaves from, in view space from the eye: right, up, forward (the right hand, just ahead).
         // Out of a wall's way: a hand inside a wall throws from the eye instead.
         hand: (0.18, -0.12, 0.35),
@@ -33,8 +42,9 @@
         max_flight_s: 6.0,
     ),
     smoke: (
-        // Pops this long after the throw, or as soon as it lies still, whichever comes first.
+        // Tap fuse. Charged throws interpolate to charged_fuse_s so the longer arc can land first.
         fuse_s: 2.0,
+        charged_fuse_s: 3.5,
         // The cloud: grows to radius_m (across) and height_m (half its height, its centre lift_m over where it
         // popped) over grow_s, holds for hold_s, then thins out over fade_s.
         radius_m: 4.5,

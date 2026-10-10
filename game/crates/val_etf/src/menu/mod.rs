@@ -138,6 +138,7 @@ impl NavItem {
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub(crate) enum HostItem {
     Name,
+    Map,
     Mode,
     Access,
     MaxPlayers,
@@ -270,6 +271,18 @@ struct ModalLayer;
 #[derive(Component, Debug, Clone, Copy)]
 pub(crate) struct Flyout(pub Sub);
 
+/// HOST GAME's full-screen page over the menu (its own screen; JOIN stays a modal).
+#[derive(Component)]
+struct HostPage;
+
+/// Which of the two is up: the HOST GAME page, or the modal layer (JOIN GAME).
+fn host_page_open(state: &MenuState) -> bool {
+    state.open && state.sub == Sub::Host
+}
+fn modal_open(state: &MenuState) -> bool {
+    state.open && state.sub != Sub::Host
+}
+
 #[derive(Component)]
 struct NameText;
 
@@ -366,14 +379,14 @@ fn spawn_menu(
             player_card(r, &ctx, &session);
             agent_tag(r, &ctx);
             version(r, &fonts);
-            // HOST GAME / JOIN GAME: a modal over the dimmed menu; a click on the backdrop closes it.
+            // JOIN GAME: a modal over the dimmed menu; a click on the backdrop closes it.
             r.spawn((
                 ModalLayer,
                 Button,
                 Click(MenuAction::CloseModal),
                 ZIndex(10),
                 Node {
-                    display: if state.open { Display::Flex } else { Display::None },
+                    display: if modal_open(&state) { Display::Flex } else { Display::None },
                     width: percent(100),
                     height: percent(100),
                     justify_content: JustifyContent::Center,
@@ -383,9 +396,24 @@ fn spawn_menu(
                 BackgroundColor(MODAL_BACKDROP),
             ))
             .with_children(|m| {
-                host::spawn_flyout(m, &ctx, &host, &session, &state);
                 join::spawn_flyout(m, &ctx, &recent, &state);
             });
+            // HOST GAME: its own full screen (user, 2026-10-10), blocking the menu under it.
+            r.spawn((
+                HostPage,
+                ZIndex(12),
+                Interaction::None,
+                bevy::ui::FocusPolicy::Block,
+                Node {
+                    display: if host_page_open(&state) { Display::Flex } else { Display::None },
+                    width: percent(100),
+                    height: percent(100),
+                    overflow: Overflow::clip(),
+                    ..abs(Some(0.0), None, Some(0.0), None)
+                },
+                BackgroundColor(BG0),
+            ))
+            .with_children(|p| host::spawn_page(p, &ctx, &host, &session, &state));
             // The key hints stay readable over the backdrop.
             r.spawn((
                 HintRow(None),
@@ -950,6 +978,7 @@ fn nav_visuals(
     mut diamonds: Query<(&SubDiamond, &mut BackgroundColor, &mut BorderColor, &mut Node), Without<Flyout>>,
     mut flyouts: Query<(&Flyout, &mut Node), Without<ModalLayer>>,
     mut layer: Query<&mut Node, (With<ModalLayer>, Without<Flyout>, Without<SubDiamond>)>,
+    mut page: Query<&mut Node, (With<HostPage>, Without<ModalLayer>, Without<Flyout>, Without<SubDiamond>)>,
 ) {
     if !state.is_changed() {
         return;
@@ -985,7 +1014,10 @@ fn nav_visuals(
         node.display = if f.0 == state.sub { Display::Flex } else { Display::None };
     }
     for mut node in &mut layer {
-        node.display = if state.open { Display::Flex } else { Display::None };
+        node.display = if modal_open(&state) { Display::Flex } else { Display::None };
+    }
+    for mut node in &mut page {
+        node.display = if host_page_open(&state) { Display::Flex } else { Display::None };
     }
 }
 

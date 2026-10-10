@@ -211,7 +211,7 @@ fn probe_ground(
     let half = half_extents(m, stance);
     let c = center(pos, half);
     let tr = world.trace_box(c, c - Vec3::Y * reach, half);
-    (tr.hit() && !tr.start_solid && walkable(m, tr.normal)).then_some((tr.end.y - half.y, tr.normal))
+    (tr.hit() && !tr.start_solid && tr.walkable && walkable(m, tr.normal)).then_some((tr.end.y - half.y, tr.normal))
 }
 
 fn fits(world: &CollisionWorld, m: &MovementSpec, pos: Vec3, stance: Stance) -> bool {
@@ -351,7 +351,7 @@ fn step_slide_move(
         let (p2, v2, blocked2) = slide_move(world, raised, Vec3::new(vel.x, 0.0, vel.z), half, max_y, dt);
         let c2 = center(p2, half);
         let down = world.trace_box(c2, c2 - Vec3::Y * (lift + SKIN * 2.0), half);
-        if !(down.hit() && !walkable(m, down.normal)) {
+        if !(down.hit() && (!down.walkable || !walkable(m, down.normal))) {
             let p2 = down.end - Vec3::Y * half.y;
             if progress(p2) > best_progress {
                 best = (p2, Vec3::new(v2.x, v1.y, v2.z));
@@ -822,7 +822,7 @@ fn find_mantle(
     let probe = Vec3::new(c.x, top, c.z) + fwd * reach;
     let down =
         world.trace_box(probe, probe - Vec3::Y * (mt.max_ledge - mt.min_ledge + 0.05), Vec3::new(0.05, 0.0, 0.05));
-    if !down.hit() || down.start_solid || !walkable(m, down.normal) {
+    if !down.hit() || down.start_solid || !down.walkable || !walkable(m, down.normal) {
         return None;
     }
     let ledge = down.end.y;

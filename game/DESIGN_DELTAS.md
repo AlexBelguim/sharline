@@ -400,13 +400,14 @@ front grips will then each lower the vertical or horizontal recoil". Skipped in 
 
   | Part | design | now |
   | --- | --- | --- |
-  | Mako PRECISION stock | V 0.9, H 0.9 | V 0.8 (ADS x1.1, sway 0.8, move 0.98) |
-  | Mako LIGHT stock | V 1.12, H 1.12 | V 0.92 (ADS x0.88, sway 1.15, sprint-to-fire 0.85) |
-  | Warden FOLDING stock | V 1.1 | V 0.95 (ADS x0.9, sway 1.25, move 1.03) |
-  | VERTICAL GRIP, now **BRACE GRIP** | V 0.88 | H 0.78 (ADS x1.03, new sway 0.95) |
-  | ANGLED GRIP | H 0.94 | H 0.88 (ADS x0.92) |
-  | STUB GRIP | H 0.95 | H 0.94 (hip spread 0.88, sprint-to-fire 0.9) |
+  | Mako PRECISION stock | V 0.9, H 0.9 | V 0.6 (ADS x1.1, sway 0.8, move 0.98) |
+  | Mako LIGHT stock | V 1.12, H 1.12 | V 0.78 (ADS x0.88, sway 1.15, sprint-to-fire 0.85) |
+  | Warden FOLDING stock | V 1.1 | V 0.85 (ADS x0.9, sway 1.25, move 1.03) |
+  | VERTICAL GRIP, now **BRACE GRIP** | V 0.88 | H 0.55 (ADS x1.03, new sway 0.95) |
+  | ANGLED GRIP | H 0.94 | H 0.7 (ADS x0.92) |
+  | STUB GRIP | H 0.95 | H 0.82 (hip spread 0.88, sprint-to-fire 0.9) |
 
+  The "now" column is the 2026-10-10 strength (section 39); round 3 shipped V 0.8 / 0.92 / 0.95 and H 0.78 / 0.88 / 0.94.
   `grip_vertical` keeps its id (its model and saved loadouts); only its name and blurb changed. The front shield
   keeps its H 0.95 (it is not a grip). The Skink has no stocks or grips. The bipod's deployed bonus is unchanged.
 - **Balance tests:** the learned-pull test now runs 20 aimed rounds at 15 m and pulls against the sweep too (in
@@ -894,14 +895,26 @@ New (item 9c2, user direction; the design docs have no streaks). All numbers in 
   - **Scoped:** fully aimed through a magnified optic, our own dot still shows in the scope view where the aim
     lands. There is no beam.
 
-## 39. A gentler Mako damage falloff (2026-10-10)
+## 39. Stocks and grips bite harder; the visual kick follows them (2026-10-10)
+User: "currently stocks and grips have too little impact on the spray".
+- **Stronger multipliers** (`attachments.ron`, table in section 15): the Mako PRECISION stock takes the climb to 0.6
+  (was 0.8), LIGHT 0.78 (0.92), the Warden FOLDING 0.85 (0.95); the BRACE grip takes the sweep to 0.55 (0.78),
+  ANGLED 0.7 (0.88), STUB 0.82 (0.94). Their costs are unchanged. PRECISION + BRACE now sprays 60 % of the climb and
+  55 % of the bar.
+- **The visual kick follows them** (render only): the camera punch scales with `recoil_v`, and the per-shot shake
+  (`feel.ron` shots) scales per axis, pitch / push-back / gun kick by `recoil_v`, yaw / roll by `recoil_h`
+  (`ShotFeel::scaled`). Before, the screen shook the same with any stock or grip, so the change was hard to feel.
+- Pinned by `data.rs` (`attachment_modifiers_multiply`, `stocks_lower_the_climb_and_grips_the_sweep`) and
+  `render/feel.rs` (`the_shot_shake_follows_the_recoil_multipliers`).
+
+## 40. A gentler Mako damage falloff (2026-10-10)
 - **Before:** 46 to 25 m, 38.5 at 50 m, 33.5 from 80 m. A bare torso (120 HP) took 3 hits only while a hit did 40 or
   more, which ended around 45 m and felt like a cliff (user: "the damage drop from longer range is too severe on ar").
 - **Now:** 46 to 35 m, 42 at 60 m, 38 from 90 m (`weapons.ron`, `min_damage` 38). Three bare-torso hits hold to
   about 75 m, and it never takes more than four. Headshot multipliers and the SMG's steep drop are unchanged. The
   design JSON's falloff was already superseded (design_sync `gun_tuning_round_1`).
 
-## 40. A faster, longer slide (2026-10-10)
+## 41. A faster, longer slide (2026-10-10)
 - **Before:** a slide boost of 2.0 on top of the entry speed (armor.ron `weight_effects` `slide_boost`: None and Light
   2.0, Medium 1.7, Heavy 1.3) and friction 4.5: from a 7.0 sprint about 9 m/s, 1.2 s and 7.6 m on flat ground (user:
   "slide feels a little slow and short").

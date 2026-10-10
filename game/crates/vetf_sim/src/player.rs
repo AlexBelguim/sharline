@@ -166,16 +166,29 @@ pub fn step(
         && !reload_request
         && ms.mode != MoveMode::Mantle;
     let hand = items.throw.step(&data.throwables.throw, input.buttons, can_throw, data.net.tick_hz);
-    let launched = hand.released.map(|(kind, seq)| {
-        let (origin, vel) =
-            throwable::launch(&data.throwables.throw, &level.world, ms.eye_pos(), ms.vel, input.yaw, input.pitch);
-        Launch { kind, seq, origin, vel }
+    let launched = hand.released.map(|(kind, seq, style, charge)| {
+        let (origin, vel) = throwable::launch_charged(
+            &data.throwables.throw,
+            &level.world,
+            ms.eye_pos(),
+            ms.vel,
+            input.yaw,
+            input.pitch,
+            kind,
+            style,
+            charge,
+        );
+        Launch { kind, seq, origin, vel, style, charge, team: None }
     });
     env.hands_busy = items.using.is_some()
         || item_ev.finished.is_some()
         || (item_ev.cancelled && !reload_request)
         || items.throw.busy();
-    let weapon = ws.step(data, &loadout.weapon, &input, &env);
+    let mut weapon_input = input;
+    if items.throw.busy() || items.throw.block_mouse || hand.released.is_some() {
+        weapon_input.buttons.set(crate::input::Buttons::FIRE | crate::input::Buttons::ADS, false);
+    }
+    let weapon = ws.step(data, &loadout.weapon, &weapon_input, &env);
     wounds.tag_slow_s = (wounds.tag_slow_s - dt).max(0.0);
     wounds.volt_slow_s = (wounds.volt_slow_s - dt).max(0.0);
     PlayerEvents { movement, weapon, items: item_ev, throw: ThrowEvents { started: hand.started, launched } }
@@ -413,14 +426,15 @@ mod tests {
         assert!(!d.rules.rulesets.tdm.regional_items);
     }
 
-    /// Every life in team deathmatch and free-for-all starts with the rules' smokes and molotovs (1 and 1), the gun
+    /// Every life in team deathmatch and free-for-all starts with the rules' smokes and molotovs (10 and 10 while
+    /// testing), the gun
     /// range with its practice share; a fresh life's hand holds them.
     #[test]
     fn each_life_starts_with_the_modes_throwables() {
         let d = GameData::embedded();
         for mode in [Mode::Tdm, Mode::Ffa] {
             let l = Loadout::default_for(&d, mode);
-            assert_eq!(l.throws, ThrowKit { smoke: 1, molotov: 1 }, "{mode:?}");
+            assert_eq!(l.throws, ThrowKit { smoke: 10, molotov: 10 }, "{mode:?}");
             assert_eq!(l.throws, d.rules.throw_kit(mode));
             let items = ItemState::for_loadout(&l);
             assert_eq!(items.throw.left, l.throws);
@@ -440,7 +454,8 @@ mod tests {
     fn throwing_lowers_the_gun_and_launches_once() {
         let d = GameData::embedded();
         let level = flat();
-        let l = Loadout::default_for(&d, Mode::Tdm);
+        // One of each, whatever the mode carries (10 and 10 while testing).
+        let l = Loadout { throws: ThrowKit { smoke: 1, molotov: 1 }, ..Loadout::default_for(&d, Mode::Tdm) };
         let mut ms = MoveState::spawn(Vec3::ZERO, 1.6);
         let mut ws = WeaponState::new(&d, &l.weapon);
         let mut items = ItemState::for_loadout(&l);
@@ -449,42 +464,44 @@ mod tests {
         for _ in 0..120 {
             step(&d, &level, &l, &mut ms, &mut ws, &mut items, &mut wounds, &InputFrame::default());
         }
-        let throw_fire = InputFrame { buttons: Buttons(Buttons::THROW_SMOKE | Buttons::FIRE), ..Default::default() };
-        let ev = step(&d, &level, &l, &mut ms, &mut ws, &mut items, &mut wounds, &throw_fire);
-        assert_eq!(ev.throw.started, Some(ThrowKind::Smoke));
-        assert_eq!(items.throw.left.smoke, 0);
-        let mut launched = Vec::new();
-        let mut shots = 0;
-        let fire = InputFrame { buttons: Buttons(Buttons::FIRE), ..Default::default() };
-        let busy_ticks =
-            crate::weapon::secs_to_ticks(d.throwables.throw.windup_s + d.throwables.throw.recover_s, d.net.tick_hz);
-        for _ in 0..busy_ticks {
-            let ev = step(&d, &level, &l, &mut ms, &mut ws, &mut items, &mut wounds, &fire);
-            shots += ev.weapon.shot.is_some() as u32;
-            launched.extend(ev.throw.launched);
-        }
-        assert_eq!(shots, 0, "no shot while the arm is busy");
-        assert_eq!(launched.len(), 1);
-        let g = launched[0];
-        assert_eq!((g.kind, g.seq), (ThrowKind::Smoke, 1));
-        assert!(g.origin.distance(ms.eye_pos()) < 0.6 && g.vel.length() > 10.0, "{g:?}");
-        // The smoke key again: none left.
+        let select = InputFrame { buttons: Buttons(Buttons::THROW_SMOKE | Buttons::FIRE), ..Default::default() };
+        let ev = step(&d, &level, &l, &mut ms, &mut ws, &mut items, &mut wounds, &select);
+        assert!(ev.throw.launched.is_none() && ev.weapon.shot.is_none());
+        assert_eq!(items.throw.left.smoke, 1);
         let none = InputFrame::default();
         step(&d, &level, &l, &mut ms, &mut ws, &mut items, &mut wounds, &none);
-        let smoke = InputFrame { buttons: Buttons(Buttons::THROW_SMOKE), ..Default::default() };
-        assert_eq!(step(&d, &level, &l, &mut ms, &mut ws, &mut items, &mut wounds, &smoke).throw.started, None);
-        // The molotov still throws, numbered 2.
-        let molotov = InputFrame { buttons: Buttons(Buttons::THROW_MOLOTOV), ..Default::default() };
-        assert_eq!(
-            step(&d, &level, &l, &mut ms, &mut ws, &mut items, &mut wounds, &molotov).throw.started,
-            Some(ThrowKind::Molotov)
-        );
-        let mut seq = None;
-        for _ in 0..60 {
-            if let Some(g) = step(&d, &level, &l, &mut ms, &mut ws, &mut items, &mut wounds, &none).throw.launched {
-                seq = Some(g.seq);
-            }
+        let fire = InputFrame { buttons: Buttons(Buttons::FIRE), ..Default::default() };
+        for _ in 0..crate::weapon::secs_to_ticks(d.throwables.throw.charge_s, d.net.tick_hz) + 5 {
+            let ev = step(&d, &level, &l, &mut ms, &mut ws, &mut items, &mut wounds, &fire);
+            assert!(ev.weapon.shot.is_none() && ev.throw.launched.is_none());
+            assert_eq!(ws.ads, 0.0);
         }
-        assert_eq!(seq, Some(2));
+        step(&d, &level, &l, &mut ms, &mut ws, &mut items, &mut wounds, &none);
+        let mut launched = vec![];
+        for _ in 0..90 {
+            let ev = step(&d, &level, &l, &mut ms, &mut ws, &mut items, &mut wounds, &none);
+            assert!(ev.weapon.shot.is_none());
+            launched.extend(ev.throw.launched);
+        }
+        assert_eq!(launched.len(), 1);
+        assert_eq!(launched[0].charge, u16::MAX);
+        assert_eq!(items.throw.left.smoke, 0);
+        let mol = InputFrame { buttons: Buttons(Buttons::THROW_MOLOTOV), ..Default::default() };
+        step(&d, &level, &l, &mut ms, &mut ws, &mut items, &mut wounds, &mol);
+        let soft = InputFrame { buttons: Buttons(Buttons::ADS | Buttons::FIRE), ..Default::default() };
+        let ev = step(&d, &level, &l, &mut ms, &mut ws, &mut items, &mut wounds, &soft);
+        assert_eq!(ev.throw.launched.unwrap().style, crate::throwable::ThrowStyle::Underhand);
+        assert!(ev.weapon.shot.is_none());
+        for _ in 0..120 {
+            let ev = step(&d, &level, &l, &mut ms, &mut ws, &mut items, &mut wounds, &soft);
+            assert!(ev.weapon.shot.is_none(), "held grenade click must not shoot restored gun");
+            assert_eq!(ws.ads, 0.0);
+        }
+        step(&d, &level, &l, &mut ms, &mut ws, &mut items, &mut wounds, &none);
+        let mut shot = false;
+        for _ in 0..120 {
+            shot |= step(&d, &level, &l, &mut ms, &mut ws, &mut items, &mut wounds, &fire).weapon.shot.is_some();
+        }
+        assert!(shot, "fresh click fires restored weapon");
     }
 }

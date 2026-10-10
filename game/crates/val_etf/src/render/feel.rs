@@ -161,6 +161,17 @@ pub struct SprintPose {
     pub ease_s: f32,
 }
 
+/// The gun put away while a grenade is in hand (`render::holster`): shifted (view axes, metres) and pitched muzzle
+/// down (degrees, negative), down over `down_s`, back up over `up_s`, hidden once `hide_at` of the way down.
+#[derive(Debug, Clone, Copy, PartialEq, Deserialize)]
+pub struct HolsterPose {
+    pub shift: [f32; 3],
+    pub pitch_deg: f32,
+    pub down_s: f32,
+    pub up_s: f32,
+    pub hide_at: f32,
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Deserialize)]
 pub struct GunFeel {
     pub breath: Breath,
@@ -175,6 +186,7 @@ pub struct GunFeel {
     pub ads_shift_mult: f32,
     pub ads_kick_mult: f32,
     pub sprint_pose: SprintPose,
+    pub holster_pose: HolsterPose,
     pub mag_inspect: MagInspectFeel,
     pub dry_fire: DryFireFeel,
 }
@@ -343,6 +355,23 @@ impl FeelData {
     }
 }
 
+impl ShotFeel {
+    /// The shake as the build's recoil multipliers shape it (attachments.ron `recoil_v` / `recoil_h`): a stock
+    /// calms the vertical parts (the camera's pitch and push-back, the gun's kick up and back), a front grip the
+    /// sideways ones (yaw and roll), so a steadier build also looks steadier. The settle speeds stay.
+    pub fn scaled(self, recoil_v: f32, recoil_h: f32) -> ShotFeel {
+        ShotFeel {
+            pitch_deg: self.pitch_deg * recoil_v,
+            back_m: self.back_m * recoil_v,
+            gun_back_m: self.gun_back_m * recoil_v,
+            gun_pitch_deg: self.gun_pitch_deg * recoil_v,
+            yaw_deg: self.yaw_deg * recoil_h,
+            roll_deg: self.roll_deg * recoil_h,
+            ..self
+        }
+    }
+}
+
 // ---------------------------------------------------------------------------------------------- springs
 
 /// A damped spring pulled back to 0: kicks move it, and it settles at its own speed.
@@ -445,5 +474,19 @@ mod tests {
         let (soft, hard) = (l.kick(4.0).unwrap(), l.kick(9.0).unwrap());
         assert!(hard.0 > soft.0 && hard.1 > soft.1);
         assert_eq!(l.kick(100.0).unwrap(), (l.max_dip_m, l.max_pitch_deg));
+    }
+
+    /// A stock calms the vertical shake and a grip the sideways shake, by the build's own multipliers; the plain
+    /// build (1, 1) is the data's shake, and the settle speeds never change.
+    #[test]
+    fn the_shot_shake_follows_the_recoil_multipliers() {
+        let f = FeelData::embedded();
+        let base = *f.shot("ar7_mako");
+        assert_eq!(base.scaled(1.0, 1.0), base);
+        let s = base.scaled(0.6, 0.55);
+        assert!((s.pitch_deg - base.pitch_deg * 0.6).abs() < 1e-6 && (s.gun_pitch_deg - base.gun_pitch_deg * 0.6).abs() < 1e-6);
+        assert!((s.back_m - base.back_m * 0.6).abs() < 1e-6 && (s.gun_back_m - base.gun_back_m * 0.6).abs() < 1e-6);
+        assert!((s.yaw_deg - base.yaw_deg * 0.55).abs() < 1e-6 && (s.roll_deg - base.roll_deg * 0.55).abs() < 1e-6);
+        assert_eq!((s.settle_hz, s.gun_settle_hz), (base.settle_hz, base.gun_settle_hz));
     }
 }

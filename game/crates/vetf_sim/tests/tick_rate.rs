@@ -175,8 +175,13 @@ fn a_held_spray_fires_on_the_same_schedule_at_every_tick_rate() {
 #[test]
 fn throwable_arcs_are_the_same_at_every_tick_rate() {
     let level = flat();
-    let launch =
-        Launch { kind: ThrowKind::Molotov, seq: 1, origin: Vec3::new(0.0, 1.6, 0.0), vel: Vec3::new(0.0, 6.0, -14.0) };
+    let launch = Launch {
+        kind: ThrowKind::Molotov,
+        seq: 1,
+        origin: Vec3::new(0.0, 1.6, 0.0),
+        vel: Vec3::new(0.0, 6.0, -14.0),
+        ..Default::default()
+    };
     let (mut mid, mut burst, mut flight) = (vec![], vec![], vec![]);
     for d in rates() {
         let dt = d.tick_dt();

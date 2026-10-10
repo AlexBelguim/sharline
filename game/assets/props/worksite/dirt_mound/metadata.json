@@ -1,0 +1,23 @@
+{
+  "id": "dirt_mound",
+  "category": "worksite",
+  "tags": [
+    "worksite",
+    "showhome_legacy"
+  ],
+  "glb": "props/worksite/dirt_mound/dirt_mound.glb",
+  "lod1": "props/worksite/dirt_mound/dirt_mound_lod1.glb",
+  "collision": "props/worksite/dirt_mound/collision.json",
+  "source": "original assets/maps/showhome procedural DirtMound",
+  "licence": "project original",
+  "openable_parts": [],
+  "size_m": [
+    2.4724130630493164,
+    1.618224859237671,
+    0.49628764390945435
+  ],
+  "triangles": 80,
+  "collision_volumes": 1,
+  "loot_slots": [],
+  "legacy_root": "PROP_DirtMound"
+}

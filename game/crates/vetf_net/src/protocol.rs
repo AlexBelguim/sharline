@@ -20,7 +20,7 @@ use vetf_sim::throwable::{Launch, ThrowId, ThrowKind};
 use vetf_sim::weapon::WeaponState;
 
 /// Bumped whenever the protocol changes; part of the netcode protocol id, so old builds cannot connect.
-pub const PROTOCOL_VERSION: u64 = 18;
+pub const PROTOCOL_VERSION: u64 = 19;
 
 /// netcode.io protocol id shared by host and clients.
 pub fn protocol_id() -> u64 {
@@ -471,7 +471,7 @@ pub enum ThrowNews {
     /// A grenade left `id.owner`'s hand.
     Thrown { id: ThrowId, launch: Launch },
     /// It went off: a smoke cloud or a fire grows from the ground point `at`.
-    Burst { id: ThrowId, kind: ThrowKind, at: Vec3 },
+    Burst { id: ThrowId, kind: ThrowKind, at: Vec3, team: Option<Team> },
     /// Smoke put this fire out.
     Doused { id: ThrowId },
     /// Every grenade, cloud and fire is gone (a new match).
@@ -929,7 +929,7 @@ mod tests {
         roundtrip(&PlayerAgent(None));
         assert_eq!(PlayerAgent::default(), PlayerAgent(None));
         assert_eq!(
-            PROTOCOL_VERSION, 18,
+            PROTOCOL_VERSION, 19,
             "agent + deathmatch picks 6, no ADS MOVE 7, death screen 8, test bots (bot mark, ADD/REMOVE BOT) 9,              recap per opponent life + kills, assists 10, MAG CHECK match setting 11, kill feed cause 12,              kill streaks (Score::streak, StreakNews) 13, smoke and molotovs (ThrowNews, throw keys, the hand) 14,              tick and snapshot rates as host settings (TickRate, MatchState rates, SetSnapshotHz, rate in the id) 15,              lobby match settings (MatchState::settings, SetSetting) 16,              streak bounty speed (Wounds::bounty_speed) 17,              laser on / off (WeaponState::laser_on, WeaponLoadout laser, Buttons::LASER) 18"
         );
     }
@@ -1000,15 +1000,19 @@ mod tests {
         use vetf_sim::throwable::{ThrowHand, ThrowKit, Windup};
         let d = GameData::embedded();
         let loadout = Loadout::default_for(&d, MatchMode::Tdm);
-        assert_eq!(loadout.throws, ThrowKit { smoke: 1, molotov: 1 });
+        assert_eq!(loadout.throws, ThrowKit { smoke: 10, molotov: 10 });
         roundtrip(&PlayerLoadout(loadout.clone()));
         let mut items = ItemState::for_loadout(&loadout);
+        items.throw.selected = Some(ThrowKind::Smoke);
+        items.throw.charge_ticks = 30;
+        roundtrip(&PlayerItems(items.clone()));
         items.throw = ThrowHand {
             left: ThrowKit { smoke: 0, molotov: 1 },
-            windup: Some(Windup { kind: ThrowKind::Smoke, left: 7 }),
+            windup: Some(Windup { kind: ThrowKind::Smoke, left: 7, style: Default::default(), charge: 12345 }),
             recover: 3,
             seq: 65535,
             keys: Buttons::THROW_SMOKE,
+            ..Default::default()
         };
         roundtrip(&PlayerItems(items));
         let id = ThrowId { owner: 0x5eed_0001, seq: 3 };
@@ -1017,10 +1021,13 @@ mod tests {
             seq: 3,
             origin: Vec3::new(1.0, 1.5, -2.0),
             vel: Vec3::new(0.5, 4.0, -14.0),
+            style: vetf_sim::throwable::ThrowStyle::Underhand,
+            charge: 0,
+            team: Some(Team::B),
         };
         for news in [
             ThrowNews::Thrown { id, launch },
-            ThrowNews::Burst { id, kind: ThrowKind::Smoke, at: Vec3::new(3.0, 0.0, -9.5) },
+            ThrowNews::Burst { id, kind: ThrowKind::Smoke, at: Vec3::new(3.0, 0.0, -9.5), team: None },
             ThrowNews::Doused { id },
             ThrowNews::Clear,
         ] {

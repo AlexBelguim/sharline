@@ -19,11 +19,13 @@ impl Buttons {
     pub const MAG_CHECK: u16 = 1 << 7;
     pub const FIRE_MODE: u16 = 1 << 8;
     pub const INTERACT: u16 = 1 << 9;
-    /// Throw a smoke grenade / a molotov (a press starts the wind-up, see `throwable::ThrowHand`).
+    /// Equip a smoke grenade / molotov. Pressing its selected key again cancels.
     pub const THROW_SMOKE: u16 = 1 << 10;
     pub const THROW_MOLOTOV: u16 = 1 << 11;
     /// Turn the laser on or off (a press toggles it, see `weapon::WeaponState::laser_on`).
     pub const LASER: u16 = 1 << 12;
+    /// Put away a selected grenade without consuming it (also used by editor/pause guards).
+    pub const THROW_CANCEL: u16 = 1 << 13;
 
     pub fn held(self, bit: u16) -> bool {
         self.0 & bit != 0

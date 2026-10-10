@@ -1,0 +1,23 @@
+{
+  "id": "pebble_cluster",
+  "category": "garden",
+  "tags": [
+    "garden",
+    "showhome_legacy"
+  ],
+  "glb": "props/garden/pebble_cluster/pebble_cluster.glb",
+  "lod1": "props/garden/pebble_cluster/pebble_cluster_lod1.glb",
+  "collision": "props/garden/pebble_cluster/collision.json",
+  "source": "original assets/maps/showhome procedural PebbleCluster",
+  "licence": "project original",
+  "openable_parts": [],
+  "size_m": [
+    0.8153833150863647,
+    0.4570889174938202,
+    0.11101366579532623
+  ],
+  "triangles": 180,
+  "collision_volumes": 1,
+  "loot_slots": [],
+  "legacy_root": "PROP_PebbleCluster"
+}

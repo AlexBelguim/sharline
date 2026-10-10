@@ -1,0 +1,22 @@
+{
+  "id": "moving_truck",
+  "category": "vehicles",
+  "tags": [
+    "vehicles",
+    "showhome_v3"
+  ],
+  "glb": "props/vehicles/moving_truck/moving_truck.glb",
+  "lod1": "props/vehicles/moving_truck/moving_truck_lod1.glb",
+  "collision": "props/vehicles/moving_truck/collision.json",
+  "source": "original assets/maps/showhome procedural MoverTruck",
+  "licence": "project original",
+  "openable_parts": [],
+  "size_m": [
+    2.5139999389648438,
+    10.52400016784668,
+    3.200000047683716
+  ],
+  "triangles": 11676,
+  "collision_volumes": 36,
+  "loot_slots": []
+}

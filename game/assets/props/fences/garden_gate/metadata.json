@@ -1,0 +1,35 @@
+{
+  "id": "garden_gate",
+  "category": "fences",
+  "tags": [
+    "fences",
+    "showhome_v3"
+  ],
+  "glb": "props/fences/garden_gate/garden_gate.glb",
+  "lod1": "props/fences/garden_gate/garden_gate_lod1.glb",
+  "collision": "props/fences/garden_gate/collision.json",
+  "source": "original procedural v3",
+  "licence": "project original",
+  "openable_parts": [
+    {
+      "name": "OPEN_DOOR_Garden",
+      "properties": {
+        "axis": "Z",
+        "ajar": 12,
+        "pose": "open",
+        "pose_unit": "degrees",
+        "min_deg": 0,
+        "max_deg": 110,
+        "closed_rotation_deg": 0
+      }
+    }
+  ],
+  "size_m": [
+    2.2242543697357178,
+    2.0296554565429688,
+    1.2000000476837158
+  ],
+  "triangles": 836,
+  "collision_volumes": 19,
+  "loot_slots": []
+}

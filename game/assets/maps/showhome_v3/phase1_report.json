@@ -1,0 +1,1001 @@
+{
+  "houses": {
+    "triangles": {
+      "sage_south": 52897,
+      "sage_north": 64097,
+      "clay_south": 52897,
+      "clay_north": 64097
+    },
+    "total_triangles": 233988,
+    "collision_volumes": 336,
+    "openings": [
+      {
+        "home": "sage_south",
+        "id": "W_GF_FRONT",
+        "kind": "door2",
+        "floor": "GF",
+        "wall": "W_GF_E",
+        "width_m": 1.964,
+        "height_m": 2.382,
+        "sill_m": 0,
+        "head_m": 2.4,
+        "slide_only": false,
+        "role": "opening"
+      },
+      {
+        "home": "sage_south",
+        "id": "W_GF_LIVWIN",
+        "kind": "window",
+        "floor": "GF",
+        "wall": "W_GF_E",
+        "width_m": 1.564,
+        "height_m": 1.182,
+        "sill_m": 0.9,
+        "head_m": 2.1,
+        "slide_only": false,
+        "role": "opening"
+      },
+      {
+        "home": "sage_south",
+        "id": "W_GF_PATIO",
+        "kind": "door2",
+        "floor": "GF",
+        "wall": "W_GF_N",
+        "width_m": 1.964,
+        "height_m": 2.382,
+        "sill_m": 0,
+        "head_m": 2.4,
+        "slide_only": false,
+        "role": "driveway_entrance"
+      },
+      {
+        "home": "sage_south",
+        "id": "W_GF_KITWIN",
+        "kind": "window",
+        "floor": "GF",
+        "wall": "W_GF_N",
+        "width_m": 1.564,
+        "height_m": 1.182,
+        "sill_m": 0.9,
+        "head_m": 2.1,
+        "slide_only": false,
+        "role": "opening"
+      },
+      {
+        "home": "sage_south",
+        "id": "W_GF_GARDOOR",
+        "kind": "door",
+        "floor": "GF",
+        "wall": "W_GF_P",
+        "width_m": 1.064,
+        "height_m": 2.082,
+        "sill_m": 0,
+        "head_m": 2.1,
+        "slide_only": false,
+        "role": "garden_door"
+      },
+      {
+        "home": "sage_south",
+        "id": "W_UF_WIN_S",
+        "kind": "window",
+        "floor": "UF",
+        "wall": "W_UF_E",
+        "width_m": 1.564,
+        "height_m": 1.182,
+        "sill_m": 4.2,
+        "head_m": 5.4,
+        "slide_only": false,
+        "role": "opening"
+      },
+      {
+        "home": "sage_south",
+        "id": "W_UF_WIN_N",
+        "kind": "window",
+        "floor": "UF",
+        "wall": "W_UF_E",
+        "width_m": 1.564,
+        "height_m": 1.182,
+        "sill_m": 4.2,
+        "head_m": 5.4,
+        "slide_only": false,
+        "role": "opening"
+      },
+      {
+        "home": "sage_south",
+        "id": "W_UF_WIN_NF",
+        "kind": "window",
+        "floor": "UF",
+        "wall": "W_UF_N",
+        "width_m": 2.364,
+        "height_m": 1.832,
+        "sill_m": 3.85,
+        "head_m": 5.7,
+        "slide_only": false,
+        "role": "street_upper_window"
+      },
+      {
+        "home": "sage_south",
+        "id": "W_UF_WIN_T",
+        "kind": "window",
+        "floor": "UF",
+        "wall": "W_UF_S",
+        "width_m": 2.364,
+        "height_m": 1.832,
+        "sill_m": 3.85,
+        "head_m": 5.7,
+        "slide_only": false,
+        "role": "garden_window"
+      },
+      {
+        "home": "sage_south",
+        "id": "W_UF_CLR_N",
+        "kind": "window",
+        "floor": "UF",
+        "wall": "W_UF_N",
+        "width_m": 2.364,
+        "height_m": 1.832,
+        "sill_m": 3.85,
+        "head_m": 5.7,
+        "slide_only": false,
+        "role": "street_upper_window"
+      },
+      {
+        "home": "sage_south",
+        "id": "W_UF_PD1",
+        "kind": "door",
+        "floor": "UF",
+        "wall": "W_UF_P",
+        "width_m": 1.064,
+        "height_m": 2.082,
+        "sill_m": 3.2,
+        "head_m": 5.300000000000001,
+        "slide_only": false,
+        "role": "opening"
+      },
+      {
+        "home": "sage_south",
+        "id": "W_UF_PD2",
+        "kind": "door",
+        "floor": "UF",
+        "wall": "W_UF_P",
+        "width_m": 1.064,
+        "height_m": 2.082,
+        "sill_m": 3.2,
+        "head_m": 5.300000000000001,
+        "slide_only": false,
+        "role": "opening"
+      },
+      {
+        "home": "sage_south",
+        "id": "W_GF_WIN_GARDEN",
+        "kind": "window",
+        "floor": "GF",
+        "wall": "W_GF_P",
+        "width_m": 2.364,
+        "height_m": 1.832,
+        "sill_m": 0.75,
+        "head_m": 2.6,
+        "slide_only": false,
+        "role": "garden_window"
+      },
+      {
+        "home": "sage_north",
+        "id": "W_GF_PATIO",
+        "kind": "door2",
+        "floor": "GF",
+        "wall": "W_GF_N",
+        "width_m": 1.964,
+        "height_m": 2.382,
+        "sill_m": 0,
+        "head_m": 2.4,
+        "slide_only": false,
+        "role": "driveway_entrance"
+      },
+      {
+        "home": "sage_north",
+        "id": "W_GF_KITWIN",
+        "kind": "window",
+        "floor": "GF",
+        "wall": "W_GF_N",
+        "width_m": 1.564,
+        "height_m": 1.182,
+        "sill_m": 0.9,
+        "head_m": 2.1,
+        "slide_only": false,
+        "role": "opening"
+      },
+      {
+        "home": "sage_north",
+        "id": "W_GF_BACK",
+        "kind": "door2",
+        "floor": "GF",
+        "wall": "W_GF_W",
+        "width_m": 1.964,
+        "height_m": 2.382,
+        "sill_m": 0,
+        "head_m": 2.4,
+        "slide_only": false,
+        "role": "garage_connection"
+      },
+      {
+        "home": "sage_north",
+        "id": "W_GF_GARDOOR",
+        "kind": "door",
+        "floor": "GF",
+        "wall": "W_GF_P",
+        "width_m": 1.064,
+        "height_m": 2.082,
+        "sill_m": 0,
+        "head_m": 2.1,
+        "slide_only": false,
+        "role": "garden_door"
+      },
+      {
+        "home": "sage_north",
+        "id": "W_UF_WIN_NF",
+        "kind": "window",
+        "floor": "UF",
+        "wall": "W_UF_N",
+        "width_m": 2.364,
+        "height_m": 1.832,
+        "sill_m": 3.85,
+        "head_m": 5.7,
+        "slide_only": false,
+        "role": "street_upper_window"
+      },
+      {
+        "home": "sage_north",
+        "id": "W_UF_WIN_T",
+        "kind": "window",
+        "floor": "UF",
+        "wall": "W_UF_S",
+        "width_m": 2.364,
+        "height_m": 1.832,
+        "sill_m": 3.85,
+        "head_m": 5.7,
+        "slide_only": false,
+        "role": "garden_window"
+      },
+      {
+        "home": "sage_north",
+        "id": "W_UF_CLR_W1",
+        "kind": "door",
+        "floor": "UF",
+        "wall": "W_UF_W",
+        "width_m": 1.564,
+        "height_m": 2.182,
+        "sill_m": 3.2,
+        "head_m": 5.4,
+        "slide_only": false,
+        "role": "garage_deck_door"
+      },
+      {
+        "home": "sage_north",
+        "id": "W_UF_CLR_W2",
+        "kind": "clerestory",
+        "floor": "UF",
+        "wall": "W_UF_W",
+        "width_m": 1.564,
+        "height_m": 0.582,
+        "sill_m": 5.0,
+        "head_m": 5.6,
+        "slide_only": false,
+        "role": "opening"
+      },
+      {
+        "home": "sage_north",
+        "id": "W_UF_CLR_N",
+        "kind": "window",
+        "floor": "UF",
+        "wall": "W_UF_N",
+        "width_m": 2.364,
+        "height_m": 1.832,
+        "sill_m": 3.85,
+        "head_m": 5.7,
+        "slide_only": false,
+        "role": "street_upper_window"
+      },
+      {
+        "home": "sage_north",
+        "id": "W_UF_PD1",
+        "kind": "door",
+        "floor": "UF",
+        "wall": "W_UF_P",
+        "width_m": 1.064,
+        "height_m": 2.082,
+        "sill_m": 3.2,
+        "head_m": 5.300000000000001,
+        "slide_only": false,
+        "role": "opening"
+      },
+      {
+        "home": "sage_north",
+        "id": "W_UF_PD2",
+        "kind": "door",
+        "floor": "UF",
+        "wall": "W_UF_P",
+        "width_m": 1.064,
+        "height_m": 2.082,
+        "sill_m": 3.2,
+        "head_m": 5.300000000000001,
+        "slide_only": false,
+        "role": "opening"
+      },
+      {
+        "home": "sage_north",
+        "id": "W_GF_WIN_GARDEN",
+        "kind": "window",
+        "floor": "GF",
+        "wall": "W_GF_P",
+        "width_m": 2.364,
+        "height_m": 1.832,
+        "sill_m": 0.75,
+        "head_m": 2.6,
+        "slide_only": false,
+        "role": "garden_window"
+      },
+      {
+        "home": "sage_north",
+        "id": "ATTACHED_GARAGE_SHUTTER",
+        "kind": "roller",
+        "width_m": 3.95,
+        "height_m": 1.1,
+        "sill_m": 0,
+        "slide_only": true,
+        "role": "driveway_garage"
+      },
+      {
+        "home": "clay_south",
+        "id": "W_GF_FRONT",
+        "kind": "door2",
+        "floor": "GF",
+        "wall": "W_GF_E",
+        "width_m": 1.964,
+        "height_m": 2.382,
+        "sill_m": 0,
+        "head_m": 2.4,
+        "slide_only": false,
+        "role": "opening"
+      },
+      {
+        "home": "clay_south",
+        "id": "W_GF_LIVWIN",
+        "kind": "window",
+        "floor": "GF",
+        "wall": "W_GF_E",
+        "width_m": 1.564,
+        "height_m": 1.182,
+        "sill_m": 0.9,
+        "head_m": 2.1,
+        "slide_only": false,
+        "role": "opening"
+      },
+      {
+        "home": "clay_south",
+        "id": "W_GF_PATIO",
+        "kind": "door2",
+        "floor": "GF",
+        "wall": "W_GF_N",
+        "width_m": 1.964,
+        "height_m": 2.382,
+        "sill_m": 0,
+        "head_m": 2.4,
+        "slide_only": false,
+        "role": "driveway_entrance"
+      },
+      {
+        "home": "clay_south",
+        "id": "W_GF_KITWIN",
+        "kind": "window",
+        "floor": "GF",
+        "wall": "W_GF_N",
+        "width_m": 1.564,
+        "height_m": 1.182,
+        "sill_m": 0.9,
+        "head_m": 2.1,
+        "slide_only": false,
+        "role": "opening"
+      },
+      {
+        "home": "clay_south",
+        "id": "W_GF_GARDOOR",
+        "kind": "door",
+        "floor": "GF",
+        "wall": "W_GF_P",
+        "width_m": 1.064,
+        "height_m": 2.082,
+        "sill_m": 0,
+        "head_m": 2.1,
+        "slide_only": false,
+        "role": "garden_door"
+      },
+      {
+        "home": "clay_south",
+        "id": "W_UF_WIN_S",
+        "kind": "window",
+        "floor": "UF",
+        "wall": "W_UF_E",
+        "width_m": 1.564,
+        "height_m": 1.182,
+        "sill_m": 4.2,
+        "head_m": 5.4,
+        "slide_only": false,
+        "role": "opening"
+      },
+      {
+        "home": "clay_south",
+        "id": "W_UF_WIN_N",
+        "kind": "window",
+        "floor": "UF",
+        "wall": "W_UF_E",
+        "width_m": 1.564,
+        "height_m": 1.182,
+        "sill_m": 4.2,
+        "head_m": 5.4,
+        "slide_only": false,
+        "role": "opening"
+      },
+      {
+        "home": "clay_south",
+        "id": "W_UF_WIN_NF",
+        "kind": "window",
+        "floor": "UF",
+        "wall": "W_UF_N",
+        "width_m": 2.364,
+        "height_m": 1.832,
+        "sill_m": 3.85,
+        "head_m": 5.7,
+        "slide_only": false,
+        "role": "street_upper_window"
+      },
+      {
+        "home": "clay_south",
+        "id": "W_UF_WIN_T",
+        "kind": "window",
+        "floor": "UF",
+        "wall": "W_UF_S",
+        "width_m": 2.364,
+        "height_m": 1.832,
+        "sill_m": 3.85,
+        "head_m": 5.7,
+        "slide_only": false,
+        "role": "garden_window"
+      },
+      {
+        "home": "clay_south",
+        "id": "W_UF_CLR_N",
+        "kind": "window",
+        "floor": "UF",
+        "wall": "W_UF_N",
+        "width_m": 2.364,
+        "height_m": 1.832,
+        "sill_m": 3.85,
+        "head_m": 5.7,
+        "slide_only": false,
+        "role": "street_upper_window"
+      },
+      {
+        "home": "clay_south",
+        "id": "W_UF_PD1",
+        "kind": "door",
+        "floor": "UF",
+        "wall": "W_UF_P",
+        "width_m": 1.064,
+        "height_m": 2.082,
+        "sill_m": 3.2,
+        "head_m": 5.300000000000001,
+        "slide_only": false,
+        "role": "opening"
+      },
+      {
+        "home": "clay_south",
+        "id": "W_UF_PD2",
+        "kind": "door",
+        "floor": "UF",
+        "wall": "W_UF_P",
+        "width_m": 1.064,
+        "height_m": 2.082,
+        "sill_m": 3.2,
+        "head_m": 5.300000000000001,
+        "slide_only": false,
+        "role": "opening"
+      },
+      {
+        "home": "clay_south",
+        "id": "W_GF_WIN_GARDEN",
+        "kind": "window",
+        "floor": "GF",
+        "wall": "W_GF_P",
+        "width_m": 2.364,
+        "height_m": 1.832,
+        "sill_m": 0.75,
+        "head_m": 2.6,
+        "slide_only": false,
+        "role": "garden_window"
+      },
+      {
+        "home": "clay_north",
+        "id": "W_GF_PATIO",
+        "kind": "door2",
+        "floor": "GF",
+        "wall": "W_GF_N",
+        "width_m": 1.964,
+        "height_m": 2.382,
+        "sill_m": 0,
+        "head_m": 2.4,
+        "slide_only": false,
+        "role": "driveway_entrance"
+      },
+      {
+        "home": "clay_north",
+        "id": "W_GF_KITWIN",
+        "kind": "window",
+        "floor": "GF",
+        "wall": "W_GF_N",
+        "width_m": 1.564,
+        "height_m": 1.182,
+        "sill_m": 0.9,
+        "head_m": 2.1,
+        "slide_only": false,
+        "role": "opening"
+      },
+      {
+        "home": "clay_north",
+        "id": "W_GF_BACK",
+        "kind": "door2",
+        "floor": "GF",
+        "wall": "W_GF_W",
+        "width_m": 1.964,
+        "height_m": 2.382,
+        "sill_m": 0,
+        "head_m": 2.4,
+        "slide_only": false,
+        "role": "garage_connection"
+      },
+      {
+        "home": "clay_north",
+        "id": "W_GF_GARDOOR",
+        "kind": "door",
+        "floor": "GF",
+        "wall": "W_GF_P",
+        "width_m": 1.064,
+        "height_m": 2.082,
+        "sill_m": 0,
+        "head_m": 2.1,
+        "slide_only": false,
+        "role": "garden_door"
+      },
+      {
+        "home": "clay_north",
+        "id": "W_UF_WIN_NF",
+        "kind": "window",
+        "floor": "UF",
+        "wall": "W_UF_N",
+        "width_m": 2.364,
+        "height_m": 1.832,
+        "sill_m": 3.85,
+        "head_m": 5.7,
+        "slide_only": false,
+        "role": "street_upper_window"
+      },
+      {
+        "home": "clay_north",
+        "id": "W_UF_WIN_T",
+        "kind": "window",
+        "floor": "UF",
+        "wall": "W_UF_S",
+        "width_m": 2.364,
+        "height_m": 1.832,
+        "sill_m": 3.85,
+        "head_m": 5.7,
+        "slide_only": false,
+        "role": "garden_window"
+      },
+      {
+        "home": "clay_north",
+        "id": "W_UF_CLR_W1",
+        "kind": "door",
+        "floor": "UF",
+        "wall": "W_UF_W",
+        "width_m": 1.564,
+        "height_m": 2.182,
+        "sill_m": 3.2,
+        "head_m": 5.4,
+        "slide_only": false,
+        "role": "garage_deck_door"
+      },
+      {
+        "home": "clay_north",
+        "id": "W_UF_CLR_W2",
+        "kind": "clerestory",
+        "floor": "UF",
+        "wall": "W_UF_W",
+        "width_m": 1.564,
+        "height_m": 0.582,
+        "sill_m": 5.0,
+        "head_m": 5.6,
+        "slide_only": false,
+        "role": "opening"
+      },
+      {
+        "home": "clay_north",
+        "id": "W_UF_CLR_N",
+        "kind": "window",
+        "floor": "UF",
+        "wall": "W_UF_N",
+        "width_m": 2.364,
+        "height_m": 1.832,
+        "sill_m": 3.85,
+        "head_m": 5.7,
+        "slide_only": false,
+        "role": "street_upper_window"
+      },
+      {
+        "home": "clay_north",
+        "id": "W_UF_PD1",
+        "kind": "door",
+        "floor": "UF",
+        "wall": "W_UF_P",
+        "width_m": 1.064,
+        "height_m": 2.082,
+        "sill_m": 3.2,
+        "head_m": 5.300000000000001,
+        "slide_only": false,
+        "role": "opening"
+      },
+      {
+        "home": "clay_north",
+        "id": "W_UF_PD2",
+        "kind": "door",
+        "floor": "UF",
+        "wall": "W_UF_P",
+        "width_m": 1.064,
+        "height_m": 2.082,
+        "sill_m": 3.2,
+        "head_m": 5.300000000000001,
+        "slide_only": false,
+        "role": "opening"
+      },
+      {
+        "home": "clay_north",
+        "id": "W_GF_WIN_GARDEN",
+        "kind": "window",
+        "floor": "GF",
+        "wall": "W_GF_P",
+        "width_m": 2.364,
+        "height_m": 1.832,
+        "sill_m": 0.75,
+        "head_m": 2.6,
+        "slide_only": false,
+        "role": "garden_window"
+      },
+      {
+        "home": "clay_north",
+        "id": "ATTACHED_GARAGE_SHUTTER",
+        "kind": "roller",
+        "width_m": 3.95,
+        "height_m": 1.1,
+        "sill_m": 0,
+        "slide_only": true,
+        "role": "driveway_garage"
+      }
+    ],
+    "main_footprints": [
+      {
+        "home": "sage_south",
+        "colour": "sage",
+        "geometry_side": "west",
+        "main": [
+          350.35,
+          632.85,
+          360.65,
+          645.15
+        ],
+        "driveway_entrance_face": "+X"
+      },
+      {
+        "home": "sage_north",
+        "colour": "clay",
+        "geometry_side": "west",
+        "main": [
+          350.35,
+          644.85,
+          360.65,
+          657.15
+        ],
+        "driveway_entrance_face": "+X"
+      },
+      {
+        "home": "clay_south",
+        "colour": "clay",
+        "geometry_side": "east",
+        "main": [
+          379.35,
+          632.85,
+          389.65,
+          645.15
+        ],
+        "driveway_entrance_face": "-X"
+      },
+      {
+        "home": "clay_north",
+        "colour": "sage",
+        "geometry_side": "east",
+        "main": [
+          379.35,
+          644.85,
+          389.65,
+          657.15
+        ],
+        "driveway_entrance_face": "-X"
+      }
+    ],
+    "attached_garages": [
+      {
+        "home": "sage_north",
+        "colour": "clay",
+        "geometry_side": "west",
+        "attached_end": "north",
+        "centre_offset_m": [
+          -1.5,
+          15.0,
+          0.0
+        ],
+        "footprint": [
+          350.5,
+          656.849976,
+          360.649994,
+          663.0
+        ],
+        "shutter_face": "+X",
+        "shutter_plane_x": 360.649994,
+        "shutter_clear_width_m": 3.95,
+        "shutter_clear_height_m": 1.1,
+        "shutter_thickness_m": 0.01,
+        "slide_only": true,
+        "garage_house_connection_width_m": 1.964,
+        "garage_house_connection_height_m": 2.382,
+        "deck_height_m": 3.2,
+        "deck_door_clear_width_m": 1.564,
+        "deck_door_clear_height_m": 2.182,
+        "terrace_glass_thickness_m": 0.015,
+        "terrace_glass_alpha": 0.18,
+        "privacy_screen": {
+          "exception": "privacy_screen",
+          "thickness_m": 0.02,
+          "height_m": 2.2,
+          "phys": "wood_thin",
+          "edge": "west"
+        },
+        "triangles": 11476,
+        "collision_volumes": 68
+      },
+      {
+        "home": "clay_north",
+        "colour": "sage",
+        "geometry_side": "east",
+        "attached_end": "north",
+        "centre_offset_m": [
+          1.5,
+          15.0,
+          0.0
+        ],
+        "footprint": [
+          379.350006,
+          656.849976,
+          389.5,
+          663.0
+        ],
+        "shutter_face": "-X",
+        "shutter_plane_x": 379.350006,
+        "shutter_clear_width_m": 3.95,
+        "shutter_clear_height_m": 1.1,
+        "shutter_thickness_m": 0.01,
+        "slide_only": true,
+        "garage_house_connection_width_m": 1.964,
+        "garage_house_connection_height_m": 2.382,
+        "deck_height_m": 3.2,
+        "deck_door_clear_width_m": 1.564,
+        "deck_door_clear_height_m": 2.182,
+        "terrace_glass_thickness_m": 0.015,
+        "terrace_glass_alpha": 0.18,
+        "privacy_screen": {
+          "exception": "privacy_screen",
+          "thickness_m": 0.02,
+          "height_m": 2.2,
+          "phys": "wood_thin",
+          "edge": "east"
+        },
+        "triangles": 11476,
+        "collision_volumes": 68
+      }
+    ],
+    "exposed_gables": [
+      {
+        "home": "sage_south",
+        "name": "COL_sage_south_ExposedGable",
+        "thickness_m": 0.3,
+        "phys": "cladding",
+        "end": "south",
+        "aabb": {
+          "min": [
+            350.5,
+            633.0,
+            6.199999809265137
+          ],
+          "max": [
+            360.5,
+            633.2999877929688,
+            11.199999809265137
+          ]
+        }
+      },
+      {
+        "home": "sage_north",
+        "name": "COL_sage_north_ExposedGable",
+        "thickness_m": 0.3,
+        "phys": "cladding",
+        "end": "north",
+        "aabb": {
+          "min": [
+            350.5,
+            656.7000122070312,
+            6.199999809265137
+          ],
+          "max": [
+            360.5,
+            657.0,
+            11.199999809265137
+          ]
+        }
+      },
+      {
+        "home": "clay_south",
+        "name": "COL_clay_south_ExposedGable",
+        "thickness_m": 0.3,
+        "phys": "cladding",
+        "end": "south",
+        "aabb": {
+          "min": [
+            379.5,
+            633.0,
+            6.199999809265137
+          ],
+          "max": [
+            389.5,
+            633.2999877929688,
+            11.199999809265137
+          ]
+        }
+      },
+      {
+        "home": "clay_north",
+        "name": "COL_clay_north_ExposedGable",
+        "thickness_m": 0.3,
+        "phys": "cladding",
+        "end": "north",
+        "aabb": {
+          "min": [
+            379.5,
+            656.7000122070312,
+            6.199999809265137
+          ],
+          "max": [
+            389.5,
+            657.0,
+            11.199999809265137
+          ]
+        }
+      }
+    ],
+    "street_upper_window": {
+      "raw_width_m": 2.4,
+      "clear_width_m": 2.364,
+      "clear_height_m": 1.832,
+      "sill_m": 3.85,
+      "head_m": 5.7,
+      "count": 8,
+      "equality_verified": true
+    },
+    "garden_windows": {
+      "raw_width_m": 2.4,
+      "clear_width_m": 2.364,
+      "clear_height_m": 1.832,
+      "count": 8,
+      "per_home_per_floor": 1,
+      "GF": {
+        "sill_m": 0.75,
+        "head_m": 2.6
+      },
+      "UF": {
+        "sill_m": 3.85,
+        "head_m": 5.7
+      },
+      "garden_door_retained": true,
+      "equality_verified": true
+    },
+    "positive_negative_collision_samples": 150,
+    "upper_garages": "separate movable structures placed by build_core",
+    "source_clip_y": 21.85,
+    "party_wall_m": 0.3,
+    "interior_partition_m": 0.2,
+    "outer_wall_m": 0.3,
+    "garden_GF_wall_m": 0.2,
+    "roof_skin_m": 0.12,
+    "origin": [
+      330,
+      620,
+      0
+    ],
+    "closed_party_wall_y": 645,
+    "collision_by_material": {
+      "cladding": 14,
+      "concrete": 182,
+      "drywall": 20,
+      "glass": 4,
+      "metal_heavy": 26,
+      "sheet_metal": 2,
+      "wood_thick": 4,
+      "wood_thin": 84
+    },
+    "thinnest_volumes": [
+      {
+        "name": "COL_sage_north_GARAGE_Membrane",
+        "phys": "cladding",
+        "thickness_m": 0.01
+      },
+      {
+        "name": "COL_clay_north_GARAGE_Membrane",
+        "phys": "cladding",
+        "thickness_m": 0.01
+      },
+      {
+        "name": "COL_sage_north_GARAGE_HalfOpenShutter",
+        "phys": "sheet_metal",
+        "thickness_m": 0.01001
+      },
+      {
+        "name": "COL_clay_north_GARAGE_HalfOpenShutter",
+        "phys": "sheet_metal",
+        "thickness_m": 0.01001
+      },
+      {
+        "name": "COL_sage_north_GARAGE_DrivewayGlass",
+        "phys": "glass",
+        "thickness_m": 0.014984
+      },
+      {
+        "name": "COL_clay_north_GARAGE_DrivewayGlass",
+        "phys": "glass",
+        "thickness_m": 0.014984
+      },
+      {
+        "name": "COL_sage_north_GARAGE_SouthGlass",
+        "phys": "glass",
+        "thickness_m": 0.015015
+      },
+      {
+        "name": "COL_clay_north_GARAGE_SouthGlass",
+        "phys": "glass",
+        "thickness_m": 0.015015
+      },
+      {
+        "name": "COL_sage_north_GARAGE_PrivacyBoard_0",
+        "phys": "wood_thin",
+        "thickness_m": 0.019989
+      },
+      {
+        "name": "COL_sage_north_GARAGE_PrivacyBoard_1",
+        "phys": "wood_thin",
+        "thickness_m": 0.019989
+      }
+    ]
+  },
+  "fixed_collision_volumes": 982,
+  "assembled_collision_volumes": 3510,
+  "prop_instances": 147,
+  "ground_triangles": 135500,
+  "foliage_volumes": 24,
+  "kerb_steps": 396,
+  "runtime_integration": "build mode and loader follow; assets ready, not currently selectable as a game map"
+}

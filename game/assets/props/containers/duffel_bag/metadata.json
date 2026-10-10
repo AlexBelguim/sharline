@@ -1,0 +1,38 @@
+{
+  "id": "duffel_bag",
+  "category": "containers",
+  "tags": [
+    "containers",
+    "showhome_v3",
+    "duffel_bag"
+  ],
+  "glb": "props/containers/duffel_bag/duffel_bag.glb",
+  "lod1": "props/containers/duffel_bag/duffel_bag_lod1.glb",
+  "collision": "props/containers/duffel_bag/collision.json",
+  "source": "original procedural v3",
+  "licence": "project original",
+  "openable_parts": [
+    {
+      "name": "OPEN_LID_Flap",
+      "properties": {
+        "axis": "X",
+        "ajar": -28,
+        "pose": "ajar",
+        "pose_unit": "degrees",
+        "min_deg": -120,
+        "max_deg": 0,
+        "closed_rotation_deg": 0
+      }
+    }
+  ],
+  "size_m": [
+    0.6600000262260437,
+    0.3400000035762787,
+    0.39680156111717224
+  ],
+  "triangles": 668,
+  "collision_volumes": 5,
+  "loot_slots": [
+    "LOOT_SLOT_0"
+  ]
+}

@@ -18,7 +18,7 @@ use vetf_net::MatchMode;
 pub(super) fn plugin(app: &mut App) {
     app.add_systems(
         Update,
-        (follow_default_port, settings_from_widgets, follow_mode, follow_rates, visuals)
+        (follow_default_port, settings_from_widgets, follow_mode, follow_map, follow_rates, visuals)
             .chain()
             .run_if(in_state(AppState::MainMenu)),
     );
@@ -59,14 +59,28 @@ fn access_enabled(_: JoinAccess) -> bool {
 
 /// MODE's segments, in order.
 const MODES: [(MatchMode, &str); 2] = [(MatchMode::Tdm, "Team deathmatch"), (MatchMode::Ffa, "Free-for-all")];
+const MAPS: [(&str, &str); 4] = [
+    ("showhome", "Showhome"),
+    ("showhome_v3", "Showhome v3 Core"),
+    ("showhome_full", "ShowhomeFull"),
+    ("range", "Gun range"),
+];
+
+fn map_index(map: &str) -> usize {
+    MAPS.iter().position(|(id, _)| id.eq_ignore_ascii_case(map)).unwrap_or(0)
+}
+
+#[derive(Component)]
+pub(super) struct MapToggle;
 
 fn mode_index(mode: MatchMode) -> usize {
     MODES.iter().position(|(m, _)| *m == mode).unwrap_or(0)
 }
 
 /// Keyboard order (the disabled password is skipped).
-pub(super) const ORDER: [HostItem; 8] = [
+pub(super) const ORDER: [HostItem; 9] = [
     HostItem::Name,
+    HostItem::Map,
     HostItem::Mode,
     HostItem::Access,
     HostItem::MaxPlayers,
@@ -182,7 +196,11 @@ fn input_box(width: Option<f32>) -> impl Bundle {
     )
 }
 
-pub(super) fn spawn_flyout(
+/// HOST GAME, its own full screen over the main menu (user, 2026-10-10: "can you make the host model its own
+/// screen"; it was a 620 px modal). The page lives in the menu's tree so the menu's keyboard focus, fields and
+/// Esc keep driving it: a top bar with BACK [ESC], the settings in one wide panel, and CREATE LOBBY in the bottom
+/// bar. `MenuState.open` with `sub == Host` shows it (`nav_visuals`).
+pub(super) fn spawn_page(
     r: &mut ChildSpawnerCommands,
     ctx: &Ctx,
     host: &HostSettings,
@@ -190,34 +208,68 @@ pub(super) fn spawn_flyout(
     state: &MenuState,
 ) {
     let fonts = ctx.fonts;
+    r.spawn(page_background(40.0, 20.0, [(0x141B25, 0.0), (0x090C11, 60.0), (0x06080B, 100.0)]));
+    // Top bar: the title and BACK [ESC] (the same close as Esc).
+    r.spawn(top_bar(84.0, 24.0)).with_children(|t| {
+        t.spawn(fonts.role(TextRole::ScreenTitle, "Host game"));
+        t.spawn(spacer());
+        t.spawn((button_with_key(fonts, "Back", "Esc", BtnKind::Normal, BtnSize::M), Click(MenuAction::CloseModal)));
+    });
+    // The settings, centred under the bar; the page scrolls nothing, the panel fits 1080 p.
+    r.spawn(Node {
+        justify_content: JustifyContent::Center,
+        ..abs(Some(0.0), Some(0.0), Some(112.0), Some(112.0))
+    })
+    .with_children(|c| spawn_form(c, ctx, host, session, state));
+    // Bottom bar: why it could not host (if it failed), and CREATE LOBBY on the right.
+    r.spawn(bottom_bar(88.0)).with_children(|b| {
+        b.spawn((
+            HostError,
+            fonts.role_color(TextRole::Help, "", BAD),
+            Node { display: Display::None, max_width: px(640), ..default() },
+        ));
+        b.spawn(spacer());
+        b.spawn((
+            button(fonts, "Create lobby", BtnKind::Primary, BtnSize::L),
+            CreateBtn,
+            Click(MenuAction::CreateLobby),
+            FocusTarget(Focus::Host(HostItem::Create)),
+            FocusRing(Focus::Host(HostItem::Create)),
+            ring(),
+        ));
+    });
+}
+
+fn spawn_form(r: &mut ChildSpawnerCommands, ctx: &Ctx, host: &HostSettings, session: &Session, state: &MenuState) {
+    let fonts = ctx.fonts;
     let data = ctx.data;
     let cap = max_players_cap_for(data, host.mode);
     let access = ACCESS.iter().position(|(a, _)| *a == host.access).unwrap_or(0);
+    let _ = state;
     r.spawn((
         super::Flyout(Sub::Host),
         panel_of(
-            PanelKind::Flyout,
+            PanelKind::Base,
             Node {
-                display: if state.sub == Sub::Host { Display::Flex } else { Display::None },
-                width: px(620),
+                width: px(1040),
+                max_width: percent(94),
+                height: Val::Auto,
+                align_self: AlignSelf::FlexStart,
                 flex_direction: FlexDirection::Column,
-                padding: UiRect { left: px(28), right: px(28), top: px(26), bottom: px(24) },
+                padding: UiRect { left: px(40), right: px(40), top: px(30), bottom: px(30) },
                 ..default()
             },
         ),
-        // Clicks inside the modal stay in it (the backdrop around it closes it).
         bevy::ui::FocusPolicy::Block,
     ))
     .with_children(|p| {
-        p.spawn(fonts.role(TextRole::FlyoutTitle, "Host game"));
-        super::close_button(p, fonts);
-        p.spawn((fonts.role(TextRole::Help, copy::HOST_INTRO), Node { margin: UiRect::top(px(6)), ..default() }));
+        p.spawn(fonts.role(TextRole::Help, copy::HOST_INTRO));
         p.spawn(Node {
             display: Display::Grid,
-            grid_template_columns: vec![GridTrack::px(170.0), GridTrack::flex(1.0)],
-            row_gap: px(14),
+            grid_template_columns: vec![GridTrack::px(230.0), GridTrack::flex(1.0)],
+            row_gap: px(16),
             align_items: AlignItems::Center,
-            margin: UiRect::top(px(18)),
+            margin: UiRect::top(px(22)),
             ..default()
         })
         .with_children(|g| {
@@ -241,6 +293,28 @@ pub(super) fn spawn_flyout(
                 |_| {},
             );
 
+            g.spawn(fonts.lbl("Map"));
+            g.spawn((
+                MapToggle,
+                SegValue(map_index(&host.map)),
+                FocusRing(Focus::Host(HostItem::Map)),
+                ring(),
+                Node { height: px(36), border: UiRect::all(px(1)), align_self: AlignSelf::Start, ..default() },
+                BorderColor::all(STROKE_HI),
+            ))
+            .with_children(|t| {
+                for (i, (_, label)) in MAPS.iter().enumerate() {
+                    let mut seg = t.spawn((
+                        segment(fonts, label, TOGGLE, 34.0, false),
+                        SegOption(i),
+                        FocusTarget(Focus::Host(HostItem::Map)),
+                    ));
+                    if i == map_index(&host.map) {
+                        seg.insert(Active(true));
+                    }
+                }
+            });
+
             g.spawn(fonts.lbl("Mode"));
             g.spawn((
                 ModeToggle,
@@ -259,6 +333,9 @@ pub(super) fn spawn_flyout(
                     ));
                     if *m == host.mode {
                         seg.insert(Active(true));
+                    }
+                    if host.map.eq_ignore_ascii_case("range") {
+                        seg.insert(Disabled);
                     }
                 }
             });
@@ -402,22 +479,11 @@ pub(super) fn spawn_flyout(
                 )],
             ));
         });
-        p.spawn(Node { column_gap: px(12), align_items: AlignItems::Center, margin: UiRect::top(px(22)), ..default() })
-            .with_children(|a| {
-                a.spawn((
-                    button(fonts, "Create lobby", BtnKind::Primary, BtnSize::L),
-                    CreateBtn,
-                    Click(MenuAction::CreateLobby),
-                    FocusTarget(Focus::Host(HostItem::Create)),
-                    FocusRing(Focus::Host(HostItem::Create)),
-                    ring(),
-                ));
-                a.spawn((CreateHelp, fonts.role(TextRole::Help, create_help(data, host.mode))));
-            });
+        // What CREATE LOBBY (in the bottom bar) will start.
         p.spawn((
-            HostError,
-            fonts.role_color(TextRole::Help, "", BAD),
-            Node { display: Display::None, margin: UiRect::top(px(12)), ..default() },
+            CreateHelp,
+            fonts.role(TextRole::Help, create_help_map(data, host.mode, &host.map)),
+            Node { margin: UiRect::top(px(22)), ..default() },
         ));
     });
 }
@@ -447,6 +513,50 @@ fn create_help(data: &vetf_sim::GameData, mode: MatchMode) -> String {
     match mode {
         MatchMode::Ffa => copy::ffa_create_help(data.rules.ffa.score_limit),
         _ => copy::create_help(data.rules.tdm.score_limit),
+    }
+}
+
+fn create_help_map(data: &vetf_sim::GameData, mode: MatchMode, map: &str) -> String {
+    if map.eq_ignore_ascii_case("range") {
+        "Gun range · practice and targets.".into()
+    } else {
+        create_help(data, mode)
+    }
+}
+
+/// Follow map selection; all Showhome variants support TDM and free-for-all.
+#[allow(clippy::type_complexity)]
+fn follow_map(
+    host: Res<HostSettings>,
+    data: Res<crate::config::Data>,
+    mut maps: Query<&mut SegValue, With<MapToggle>>,
+    modes: Query<&Children, With<ModeToggle>>,
+    segs: Query<(&SegOption, Has<Disabled>)>,
+    mut help: Query<&mut Text, With<CreateHelp>>,
+    mut commands: Commands,
+) {
+    for mut value in &mut maps {
+        let next = map_index(&host.map);
+        if value.0 != next {
+            value.0 = next;
+        }
+    }
+    for children in &modes {
+        for child in children.iter() {
+            let Ok((_option, disabled)) = segs.get(child) else { continue };
+            let off = host.map.eq_ignore_ascii_case("range");
+            if off && !disabled {
+                commands.entity(child).insert(Disabled);
+            } else if !off && disabled {
+                commands.entity(child).remove::<Disabled>();
+            }
+        }
+    }
+    let text = create_help_map(&data, host.mode, &host.map);
+    for mut current in &mut help {
+        if current.0 != text {
+            current.0.clone_from(&text);
+        }
     }
 }
 
@@ -557,12 +667,13 @@ fn wanted_snapshots(data: &vetf_sim::GameData, tick_hz: u32, wanted: u32, shown:
 /// CREATE LOBBY: host the chosen mode on Showhome; it opens in the lobby.
 pub(super) fn actions(
     mut actions: MessageReader<MenuAction>,
+    host: Res<HostSettings>,
     create: Query<Has<Disabled>, With<CreateBtn>>,
     mut requests: MessageWriter<NetRequest>,
 ) {
     for action in actions.read() {
         if *action == MenuAction::CreateLobby && !create.iter().any(|disabled| disabled) {
-            requests.write(NetRequest::Host { map: "showhome".into(), lobby: true });
+            requests.write(NetRequest::Host { map: host.map.clone(), lobby: true });
         }
     }
 }
@@ -575,11 +686,15 @@ pub(super) fn keys(
     screens: Res<Screens>,
     host: Res<HostSettings>,
     data: Res<crate::config::Data>,
-    mut toggles: Query<&mut SegValue, (With<AccessToggle>, Without<ModeToggle>)>,
-    mut modes: Query<&mut SegValue, (With<ModeToggle>, Without<AccessToggle>)>,
+    mut toggles: Query<&mut SegValue, (With<AccessToggle>, Without<ModeToggle>, Without<MapToggle>)>,
+    mut modes: Query<&mut SegValue, (With<ModeToggle>, Without<AccessToggle>, Without<MapToggle>)>,
+    mut maps: Query<
+        &mut SegValue,
+        (With<MapToggle>, Without<ModeToggle>, Without<AccessToggle>, Without<TickToggle>, Without<SnapshotToggle>),
+    >,
     mut rates: ParamSet<(
-        Query<&mut SegValue, (With<TickToggle>, Without<ModeToggle>, Without<AccessToggle>)>,
-        Query<&mut SegValue, (With<SnapshotToggle>, Without<ModeToggle>, Without<AccessToggle>)>,
+        Query<&mut SegValue, (With<TickToggle>, Without<ModeToggle>, Without<AccessToggle>, Without<MapToggle>)>,
+        Query<&mut SegValue, (With<SnapshotToggle>, Without<ModeToggle>, Without<AccessToggle>, Without<MapToggle>)>,
     )>,
     mut steppers: Query<(Entity, &mut StepperValue), With<MaxStepper>>,
     step_buttons: Query<(&Interaction, &ChildOf), (Changed<Interaction>, With<StepperButton>)>,
@@ -601,7 +716,18 @@ pub(super) fn keys(
     }
     let delta = if more { 1 } else { -1 };
     match state.focus {
-        Focus::Host(HostItem::Mode) if !keys.any_just_pressed([KeyCode::Minus, KeyCode::Equal]) => {
+        Focus::Host(HostItem::Map) if !keys.any_just_pressed([KeyCode::Minus, KeyCode::Equal]) => {
+            for mut v in &mut maps {
+                let next = (v.0 as i32 + delta).clamp(0, MAPS.len() as i32 - 1) as usize;
+                if v.0 != next {
+                    v.0 = next;
+                }
+            }
+            state.focus_visible = true;
+        }
+        Focus::Host(HostItem::Mode)
+            if !host.map.eq_ignore_ascii_case("range") && !keys.any_just_pressed([KeyCode::Minus, KeyCode::Equal]) =>
+        {
             for mut v in &mut modes {
                 let next = (v.0 as i32 + delta).clamp(0, MODES.len() as i32 - 1) as usize;
                 if v.0 != next {
@@ -661,6 +787,7 @@ fn settings_from_widgets(
     fields: Query<&Field>,
     toggles: Query<&SegValue, (With<AccessToggle>, Changed<SegValue>)>,
     modes: Query<&SegValue, (With<ModeToggle>, Changed<SegValue>)>,
+    maps: Query<&SegValue, (With<MapToggle>, Changed<SegValue>)>,
     steppers: Query<&StepperValue, (With<MaxStepper>, Changed<StepperValue>)>,
     ticks: Query<&SegValue, (With<TickToggle>, Changed<SegValue>)>,
     snapshots: Query<&SegValue, (With<SnapshotToggle>, Changed<SegValue>)>,
@@ -706,6 +833,14 @@ fn settings_from_widgets(
         let mode = MODES.get(v.0).map_or(MatchMode::Tdm, |(m, _)| *m);
         if host.mode != mode {
             host.mode = mode;
+        }
+    }
+    for v in &maps {
+        let map = MAPS.get(v.0).map_or("showhome", |(id, _)| *id);
+        if host.map != map {
+            host.map = map.into();
+            session.host_error = false;
+            session.status = None;
         }
     }
     for s in &steppers {
@@ -832,7 +967,8 @@ mod tests {
 
     #[test]
     fn host_focus_wraps_and_lan_only_is_skipped() {
-        assert_eq!(step(HostItem::Name, 1), HostItem::Mode);
+        assert_eq!(step(HostItem::Name, 1), HostItem::Map);
+        assert_eq!(step(HostItem::Map, 1), HostItem::Mode);
         assert_eq!(step(HostItem::Mode, 1), HostItem::Access);
         assert_eq!(step(HostItem::Name, -1), HostItem::Create);
         assert_eq!(step(HostItem::Create, 1), HostItem::Name);
@@ -840,6 +976,39 @@ mod tests {
         assert_eq!(step_access(2, -1), 1);
         assert_eq!(step_access(2, 1), 2, "no wrap");
         assert_eq!(step_access(0, -1), 0);
+    }
+
+    #[test]
+    fn v3_map_selector_carries_the_choice_into_host_settings() {
+        let d = vetf_sim::GameData::embedded();
+        let mut app = App::new();
+        app.add_plugins(MinimalPlugins);
+        app.insert_resource(HostSettings::new(&d, None));
+        app.insert_resource(crate::config::Data(std::sync::Arc::new(d)));
+        app.init_resource::<Session>();
+        app.init_resource::<MenuState>();
+        app.init_resource::<Screens>();
+        app.init_resource::<ButtonInput<KeyCode>>();
+        app.add_systems(Update, (keys, settings_from_widgets, follow_mode, follow_map).chain());
+        let map = app.world_mut().spawn((MapToggle, SegValue(1))).id();
+        let mode = app.world_mut().spawn((ModeToggle, SegValue(1))).id();
+        app.world_mut().entity_mut(mode).with_children(|p| {
+            p.spawn(SegOption(1));
+        });
+        app.update();
+        let host = app.world().resource::<HostSettings>();
+        assert_eq!(host.map, "showhome_v3");
+        assert_eq!(host.mode, MatchMode::Ffa);
+        assert_eq!(app.world().get::<SegValue>(mode).unwrap().0, 1);
+        let child = app.world().get::<Children>(mode).unwrap()[0];
+        assert!(app.world().get::<Disabled>(child).is_none());
+        app.world_mut().get_mut::<SegValue>(map).unwrap().0 = 0;
+        app.update();
+        assert_eq!(app.world().resource::<HostSettings>().map, "showhome");
+        assert!(app.world().get::<Disabled>(child).is_none());
+        assert!(
+            create_help_map(&vetf_sim::GameData::embedded(), MatchMode::Tdm, "showhome_v3").contains("Team Deathmatch")
+        );
     }
 
     /// TICK RATE and SNAPSHOTS: 120 Hz and 60 snapshots by default; at 60 Hz the 120-snapshot option is shown as

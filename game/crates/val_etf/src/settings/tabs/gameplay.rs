@@ -32,6 +32,8 @@ const GAMEPLAY: &[Row] = &[
     ("MAG CHECK CARD", None, Ctl::Seg(Ch::MagCard, &[1])),
     // The exact count is an option, off by default; matches use the host's lobby setting (2026-10-09).
     ("RANGE MAG CHECK", Some("Gun range only · EXACT adds a round counter"), Ctl::Seg(Ch::RangeMagCheck, &[])),
+    // A testing aid (2026-10-10): the arc a held grenade would fly and where it goes off.
+    ("THROW LINE", Some("Grenade in hand · shows its arc and where it lands"), Ctl::Switch(Tg::ThrowLine)),
 ];
 
 const RADIAL: &[Row] = &[
@@ -185,6 +187,8 @@ mod tests {
             ("SLIDE", "CROUCH WHILE RUNNING"),
             ("MAG CHECK CARD", "3 S"),
             ("RANGE MAG CHECK", "ESTIMATE"),
+            // a testing aid, on while testing (2026-10-10)
+            ("THROW LINE", "ON"),
             ("RADIAL HOLD TIME", "0.20 s"),
             ("RADIAL PICK", "RELEASE"),
             // the game's port (net.ron), not the mockup's 7777

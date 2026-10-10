@@ -4,7 +4,7 @@
 //! The host's player uses an in-process link; direct IP and legacy LAN codes still use UDP.
 
 use crate::AppState;
-use crate::config::{Cli, CurrentLevel, Data, level_by_name};
+use crate::config::{Cli, CurrentLevel, Data};
 use crate::iroh_transport::{self, Bridge, Event as InternetEvent};
 use crate::user_config::{RecentServer, RecentServers};
 use bevy::prelude::*;
@@ -55,6 +55,8 @@ pub enum JoinAccess {
 pub struct HostSettings {
     /// Empty: "<PLAYER NAME>'S GAME" (see [`HostSettings::lobby_name_for`]). Not replicated yet.
     pub lobby_name: String,
+    /// The map selected before creating a lobby. The v3 entry is the TDM authored preview.
+    pub map: String,
     pub access: JoinAccess,
     /// Players including the host: even, 2 up to [`max_players_cap`] (free-for-all: up to its own cap,
     /// [`max_players_cap_for`]).
@@ -79,6 +81,7 @@ impl HostSettings {
     pub fn new(data: &GameData, cli_port: Option<u16>) -> Self {
         Self {
             lobby_name: String::new(),
+            map: "showhome".into(),
             access: JoinAccess::JoinCode,
             max_players: max_players_cap(data),
             mode: vetf_net::MatchMode::Tdm,
@@ -373,6 +376,7 @@ fn close_client(
         commands.entity(e).try_despawn();
     }
     commands.remove_resource::<CurrentLevel>();
+    commands.remove_resource::<crate::showhome_v3::CurrentV3Preview>();
     session.role = Role::Offline;
 }
 
@@ -476,6 +480,14 @@ fn handle_requests(
                 if session.role != Role::Offline {
                     continue;
                 }
+                let level = match crate::showhome_v3::load(map, &mut commands) {
+                    Ok(level) => level,
+                    Err(error) => {
+                        session.status = Some(format!("Cannot load Showhome v3: {error}"));
+                        session.host_error = true;
+                        continue;
+                    }
+                };
                 let port = host.port;
                 if let Err(e) = check_port_free(port) {
                     warn!("{e}");
@@ -496,7 +508,6 @@ fn handle_requests(
                         }
                     }
                 }
-                let level = level_by_name(map);
                 let (tick_hz, snapshot_hz) = (host.tick_hz, host.snapshot_hz_in_play(&data));
                 info!(
                     "hosting {} on UDP {port} for up to {max_players} players, {tick_hz} Hz, {snapshot_hz} snapshots/s",
@@ -604,6 +615,7 @@ fn handle_requests(
                         commands.entity(e).try_despawn();
                     }
                     commands.remove_resource::<CurrentLevel>();
+                    commands.remove_resource::<crate::showhome_v3::CurrentV3Preview>();
                 }
                 // A session's mode and seats never reach the next one.
                 commands.remove_resource::<crate::server::HostedMatch>();

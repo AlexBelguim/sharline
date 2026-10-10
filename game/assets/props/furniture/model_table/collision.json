@@ -1,0 +1,107 @@
+{
+  "schema": 1,
+  "frame": "prop-local design metres X/Y/Z; default exported pose; parent tracks moving part",
+  "plane_convention": "inside: dot(normal,point) <= d",
+  "volumes": [
+    {
+      "name": "COL_C_MODEL_solid_312",
+      "phys": "wood_thick",
+      "kind": "solid",
+      "walkable": true,
+      "planes": [
+        [
+          0.0,
+          0.0,
+          -1.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0,
+          1.0
+        ],
+        [
+          0.0,
+          -1.0,
+          0.0,
+          1.0
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          2.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          1.0
+        ],
+        [
+          -1.0,
+          0.0,
+          0.0,
+          2.0
+        ]
+      ],
+      "aabb": {
+        "min": [
+          -2.0,
+          -1.0,
+          0.0
+        ],
+        "max": [
+          2.0,
+          1.0,
+          1.0
+        ]
+      },
+      "thickness_m": 1.0,
+      "vertices": [
+        [
+          -2.0,
+          -1.0,
+          0.0
+        ],
+        [
+          2.0,
+          -1.0,
+          0.0
+        ],
+        [
+          2.0,
+          1.0,
+          0.0
+        ],
+        [
+          -2.0,
+          1.0,
+          0.0
+        ],
+        [
+          -2.0,
+          -1.0,
+          1.0
+        ],
+        [
+          2.0,
+          -1.0,
+          1.0
+        ],
+        [
+          2.0,
+          1.0,
+          1.0
+        ],
+        [
+          -2.0,
+          1.0,
+          1.0
+        ]
+      ],
+      "parent": "PROP_model_table"
+    }
+  ]
+}

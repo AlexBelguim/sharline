@@ -1,0 +1,23 @@
+{
+  "id": "hedge_block_2m",
+  "category": "garden",
+  "tags": [
+    "garden",
+    "showhome_legacy"
+  ],
+  "glb": "props/garden/hedge_block_2m/hedge_block_2m.glb",
+  "lod1": "props/garden/hedge_block_2m/hedge_block_2m_lod1.glb",
+  "collision": "props/garden/hedge_block_2m/collision.json",
+  "source": "original assets/maps/showhome procedural Hedge_Block_2m",
+  "licence": "project original",
+  "openable_parts": [],
+  "size_m": [
+    1.9913403987884521,
+    0.7915024161338806,
+    1.1913031339645386
+  ],
+  "triangles": 620,
+  "collision_volumes": 1,
+  "loot_slots": [],
+  "legacy_root": "PROP_Hedge_Block_2m"
+}

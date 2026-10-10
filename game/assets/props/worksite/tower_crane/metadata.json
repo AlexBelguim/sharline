@@ -1,0 +1,22 @@
+{
+  "id": "tower_crane",
+  "category": "worksite",
+  "tags": [
+    "worksite",
+    "showhome_v3"
+  ],
+  "glb": "props/worksite/tower_crane/tower_crane.glb",
+  "lod1": "props/worksite/tower_crane/tower_crane_lod1.glb",
+  "collision": "props/worksite/tower_crane/collision.json",
+  "source": "original procedural phase-2 worksite kit",
+  "licence": "project original",
+  "openable_parts": [],
+  "size_m": [
+    58.19524383544922,
+    4.800000190734863,
+    35.09519958496094
+  ],
+  "triangles": 3500,
+  "collision_volumes": 22,
+  "loot_slots": []
+}

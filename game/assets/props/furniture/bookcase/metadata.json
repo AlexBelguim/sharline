@@ -1,0 +1,22 @@
+{
+  "id": "bookcase",
+  "category": "furniture",
+  "tags": [
+    "furniture",
+    "showhome_v3"
+  ],
+  "glb": "props/furniture/bookcase/bookcase.glb",
+  "lod1": "props/furniture/bookcase/bookcase_lod1.glb",
+  "collision": "props/furniture/bookcase/collision.json",
+  "source": "original procedural v3",
+  "licence": "project original",
+  "openable_parts": [],
+  "size_m": [
+    1.2999999523162842,
+    0.36000001430511475,
+    1.9000000953674316
+  ],
+  "triangles": 3608,
+  "collision_volumes": 14,
+  "loot_slots": []
+}

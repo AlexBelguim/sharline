@@ -1,0 +1,23 @@
+{
+  "id": "rebar_bundle_6m",
+  "category": "worksite",
+  "tags": [
+    "worksite",
+    "showhome_legacy"
+  ],
+  "glb": "props/worksite/rebar_bundle_6m/rebar_bundle_6m.glb",
+  "lod1": "props/worksite/rebar_bundle_6m/rebar_bundle_6m_lod1.glb",
+  "collision": "props/worksite/rebar_bundle_6m/collision.json",
+  "source": "original assets/maps/showhome procedural RebarBundle",
+  "licence": "project original",
+  "openable_parts": [],
+  "size_m": [
+    6.0,
+    0.6499999761581421,
+    0.3471554219722748
+  ],
+  "triangles": 664,
+  "collision_volumes": 1,
+  "loot_slots": [],
+  "legacy_root": "PROP_RebarBundle"
+}

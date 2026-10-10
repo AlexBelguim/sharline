@@ -2047,8 +2047,8 @@ mod tests {
             d.attachment("mako_stock_precision").unwrap(),
             d.attachment("grip_vertical").unwrap(),
         ]);
-        assert!((t.recoil_v - 0.8).abs() < 1e-6);
-        assert!((t.recoil_h - 0.78).abs() < 1e-6);
+        assert!((t.recoil_v - 0.6).abs() < 1e-6);
+        assert!((t.recoil_h - 0.55).abs() < 1e-6);
         assert!((t.ads_time - 1.1 * 1.03).abs() < 1e-6);
         assert!((t.sway - 0.8 * 0.95).abs() < 1e-6);
         assert_eq!(t.hip_spread, 1.0);

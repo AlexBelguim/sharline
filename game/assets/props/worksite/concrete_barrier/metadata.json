@@ -1,0 +1,22 @@
+{
+  "id": "concrete_barrier",
+  "category": "worksite",
+  "tags": [
+    "worksite",
+    "showhome_v3"
+  ],
+  "glb": "props/worksite/concrete_barrier/concrete_barrier.glb",
+  "lod1": "props/worksite/concrete_barrier/concrete_barrier_lod1.glb",
+  "collision": "props/worksite/concrete_barrier/collision.json",
+  "source": "original procedural v3",
+  "licence": "project original",
+  "openable_parts": [],
+  "size_m": [
+    2.0,
+    0.6499999761581421,
+    1.0499999523162842
+  ],
+  "triangles": 108,
+  "collision_volumes": 2,
+  "loot_slots": []
+}

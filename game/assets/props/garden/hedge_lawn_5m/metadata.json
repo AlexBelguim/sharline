@@ -1,0 +1,23 @@
+{
+  "id": "hedge_lawn_5m",
+  "category": "garden",
+  "tags": [
+    "garden",
+    "showhome_legacy"
+  ],
+  "glb": "props/garden/hedge_lawn_5m/hedge_lawn_5m.glb",
+  "lod1": "props/garden/hedge_lawn_5m/hedge_lawn_5m_lod1.glb",
+  "collision": "props/garden/hedge_lawn_5m/collision.json",
+  "source": "original assets/maps/showhome procedural Hedge_Lawn",
+  "licence": "project original",
+  "openable_parts": [],
+  "size_m": [
+    5.190727233886719,
+    0.791658878326416,
+    1.9918420314788818
+  ],
+  "triangles": 1300,
+  "collision_volumes": 1,
+  "loot_slots": [],
+  "legacy_root": "PROP_Hedge_Lawn"
+}

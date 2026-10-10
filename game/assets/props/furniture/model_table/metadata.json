@@ -1,0 +1,23 @@
+{
+  "id": "model_table",
+  "category": "furniture",
+  "tags": [
+    "furniture",
+    "showhome_legacy"
+  ],
+  "glb": "props/furniture/model_table/model_table.glb",
+  "lod1": "props/furniture/model_table/model_table_lod1.glb",
+  "collision": "props/furniture/model_table/collision.json",
+  "source": "original assets/maps/showhome procedural ModelTable",
+  "licence": "project original",
+  "openable_parts": [],
+  "size_m": [
+    4.0,
+    2.0,
+    1.0099999904632568
+  ],
+  "triangles": 316,
+  "collision_volumes": 1,
+  "loot_slots": [],
+  "legacy_root": "PROP_ModelTable"
+}

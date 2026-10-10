@@ -1,0 +1,38 @@
+{
+  "id": "weapon_case",
+  "category": "containers",
+  "tags": [
+    "containers",
+    "showhome_v3",
+    "weapon_case"
+  ],
+  "glb": "props/containers/weapon_case/weapon_case.glb",
+  "lod1": "props/containers/weapon_case/weapon_case_lod1.glb",
+  "collision": "props/containers/weapon_case/collision.json",
+  "source": "original procedural v3",
+  "licence": "project original",
+  "openable_parts": [
+    {
+      "name": "OPEN_LID_0",
+      "properties": {
+        "axis": "X",
+        "ajar": -7,
+        "pose": "ajar",
+        "pose_unit": "degrees",
+        "min_deg": -105,
+        "max_deg": 0,
+        "closed_rotation_deg": 0
+      }
+    }
+  ],
+  "size_m": [
+    1.1399999856948853,
+    0.3780348300933838,
+    0.21258145570755005
+  ],
+  "triangles": 572,
+  "collision_volumes": 6,
+  "loot_slots": [
+    "LOOT_SLOT_0"
+  ]
+}

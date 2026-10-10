@@ -1,0 +1,23 @@
+{
+  "id": "outdoor_kitchen",
+  "category": "garden",
+  "tags": [
+    "garden",
+    "showhome_legacy"
+  ],
+  "glb": "props/garden/outdoor_kitchen/outdoor_kitchen.glb",
+  "lod1": "props/garden/outdoor_kitchen/outdoor_kitchen_lod1.glb",
+  "collision": "props/garden/outdoor_kitchen/collision.json",
+  "source": "original assets/maps/showhome procedural OutdoorKitchen",
+  "licence": "project original",
+  "openable_parts": [],
+  "size_m": [
+    3.0,
+    1.0190000534057617,
+    2.200000047683716
+  ],
+  "triangles": 972,
+  "collision_volumes": 1,
+  "loot_slots": [],
+  "legacy_root": "PROP_OutdoorKitchen"
+}

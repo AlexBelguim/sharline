@@ -87,6 +87,7 @@ pub enum Ch {
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum Tg {
     AutoSprint,
+    ThrowLine,
     NetGraph,
     InvertY,
     Outlines,
@@ -431,6 +432,7 @@ pub fn get_toggle(s: &Settings, t: Tg) -> bool {
     let v = &s.video;
     match t {
         Tg::AutoSprint => s.gameplay.auto_sprint,
+        Tg::ThrowLine => s.gameplay.throw_line,
         Tg::NetGraph => v.overlay == Overlay::Network,
         Tg::InvertY => s.mouse.invert_y,
         Tg::Outlines => v.outlines,
@@ -449,6 +451,7 @@ pub fn set_toggle(s: &mut Settings, t: Tg, on: bool) {
     let v = &mut s.video;
     match t {
         Tg::AutoSprint => s.gameplay.auto_sprint = on,
+        Tg::ThrowLine => s.gameplay.throw_line = on,
         // The same value as Video ▸ Performance overlay '+ NETWORK'.
         Tg::NetGraph => {
             v.overlay = match (on, v.overlay) {

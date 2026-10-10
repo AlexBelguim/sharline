@@ -409,14 +409,26 @@ fn buttons(
 /// mode, so a refused switch, e.g. too many players for free-for-all, springs back).
 fn mode_toggle(
     presses: Query<(&Interaction, &SegOption, &ChildOf), Changed<Interaction>>,
-    toggles: Query<(), With<ModeToggle>>,
+    toggles: Query<&Children, With<ModeToggle>>,
     screens: Res<Screens>,
     time: Res<Time>,
     mut asked: Local<f32>,
     mut groups: Query<&mut SegValue, With<ModeToggle>>,
     matches: Query<&MatchState>,
     mut senders: Query<&mut MessageSender<LobbyAction>, With<Client>>,
+    options: Query<&SegOption>,
+    mut commands: Commands,
 ) {
+    if matches.iter().next().is_none() {
+        return;
+    };
+    for children in &toggles {
+        for child in children.iter() {
+            if options.get(child).is_ok() {
+                commands.entity(child).remove::<Disabled>();
+            }
+        }
+    }
     if screens.top() == Some(Screen::Lobby) {
         for (i, opt, parent) in &presses {
             if *i != Interaction::Pressed || !toggles.contains(parent.parent()) {
@@ -708,7 +720,12 @@ fn refresh(
     }
     for mut t in &mut texts.p1() {
         let mode = mode_title(m.mode);
-        t.0 = format!("{mode} · {} · {}/{} PLAYERS", m.map.to_uppercase(), seats.len(), m.max_players);
+        t.0 = format!(
+            "{mode} · {} · {}/{} PLAYERS",
+            crate::showhome_v3::map_title(&m.map).to_uppercase(),
+            seats.len(),
+            m.max_players
+        );
     }
     // No teams to switch between in free-for-all; ADD BOT while a seat is free, REMOVE BOT while there is a bot.
     let bots = seats.iter().filter(|s| s.bot).count();

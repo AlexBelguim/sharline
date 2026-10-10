@@ -1,0 +1,23 @@
+{
+  "id": "rain_tank",
+  "category": "utilities",
+  "tags": [
+    "utilities",
+    "showhome_legacy"
+  ],
+  "glb": "props/utilities/rain_tank/rain_tank.glb",
+  "lod1": "props/utilities/rain_tank/rain_tank_lod1.glb",
+  "collision": "props/utilities/rain_tank/collision.json",
+  "source": "original assets/maps/showhome procedural RainTank",
+  "licence": "project original",
+  "openable_parts": [],
+  "size_m": [
+    3.2139999866485596,
+    3.2209999561309814,
+    2.808000087738037
+  ],
+  "triangles": 808,
+  "collision_volumes": 1,
+  "loot_slots": [],
+  "legacy_root": "PROP_RainTank"
+}

@@ -20,10 +20,13 @@ After mockups 04 / 04b (`design/ui/mockups`). The left nav has **PLAY** (with **
 **GUN RANGE**, **SETTINGS** and **QUIT**; the PLAY flyout opens to its right. There is no **LOADOUT** entry for now
 (user direction 2026-10-08): the loadout is picked in the lobby (**LOADOUT**) and from the ESC menu.
 
-- **PLAY > HOST GAME:** lobby name, **MODE** (team deathmatch or free-for-all), who can join, max players
+- **PLAY > HOST GAME:** lobby name, **MAP** (Showhome or Showhome v3 · four homes), **MODE**, who can join, max players
   (team deathmatch: even, 2-10; free-for-all: 2-8), port (default **UDP 47820**, or `--port`) and password
-  (shown, not available yet). **CREATE LOBBY** opens the lobby on Showhome, where the host can still switch the
-  mode under MATCH SETTINGS. A busy port is reported in the panel.
+  (shown, not available yet). **CREATE LOBBY** opens the selected map. Original Showhome offers team deathmatch
+  and free-for-all, including mode changes under MATCH SETTINGS. Showhome v3 is a read-only current-kit TDM
+  preview: four homes, catalog props, convex collision and existing foliage/material systems. It loads the
+  authored reference placements without changing user placements; the construction extension is excluded.
+  A busy port or an invalid v3 kit is reported in the panel.
 - **Free-for-all:** everyone against everyone, first to 25 kills (`ffa` in `rules.ron`). No teams and no SWITCH
   TEAM; every other player is an enemy (enemy colour on bodies and in the kill feed). You spawn on either side, at
   a point far from living enemies (with a little randomness). The HUD shows your kills against the leader's; the
@@ -138,7 +141,7 @@ folder).
 | Space / Enter (dead) | Death screen: RESPAWN once the timer is out. L opens LOADOUT; Esc the match menu |
 
 ### Command line (automation and testing)
-`val_etf [--host showhome|range [--live] [--mode tdm|ffa]] [--join CODE|IP[:PORT]] [--name NAME] [--port PORT] [--width W --height H]
+`val_etf [--host showhome|showhome_v3|range [--live] [--mode tdm|ffa]] [--join CODE|IP[:PORT]] [--name NAME] [--port PORT] [--width W --height H]
 [--screenshot PATH --screenshot-after S] [--exit-after S] [--bot] [--yaw DEG] [--bots N]
 [--weapon ID] [--ammo AMMO | --mags std,ap2,..] [--armor PRESET] [--attach A,B]
 [--demo-ui reload|heal|heal-region|hud|menu-join|menu-join-ip|menu-host]`
@@ -152,6 +155,9 @@ folder).
   `--demo-ui lobby-ready|lobby-switch|lobby-start` presses READY, SWITCH TEAM then READY, or READY then START MATCH
   a few seconds in, to test the lobby over the network; `lobby-ffa` (host) switches the lobby to free-for-all,
   readies and starts it.
+- `--host showhome_v3 --live` starts the current four-home TDM preview. Use the same staged kit on host and
+  joiners; asset-hash enforcement is pending. Reference placements are read fresh each session and user RONs
+  remain untouched. The construction campus is excluded from this preview.
 - `--demo-ui settings-gameplay|settings-mouse|settings-keybinds|settings-video|settings-audio|settings-hud` opens
   that Settings tab from the main menu. `--demo-ui esc|esc-stop|esc-restart` opens the ESC menu or one of its
   confirms over a hosted match. `ads` holds aim down sights (`sprint` / `sprint-ads` hold sprint, and aim, for a

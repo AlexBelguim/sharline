@@ -1,0 +1,23 @@
+{
+  "id": "arbour",
+  "category": "garden",
+  "tags": [
+    "garden",
+    "showhome_legacy"
+  ],
+  "glb": "props/garden/arbour/arbour.glb",
+  "lod1": "props/garden/arbour/arbour_lod1.glb",
+  "collision": "props/garden/arbour/collision.json",
+  "source": "original assets/maps/showhome procedural Arbour",
+  "licence": "project original",
+  "openable_parts": [],
+  "size_m": [
+    3.0264549255371094,
+    6.020316123962402,
+    2.4085581302642822
+  ],
+  "triangles": 5668,
+  "collision_volumes": 1,
+  "loot_slots": [],
+  "legacy_root": "PROP_Arbour"
+}

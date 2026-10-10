@@ -1,0 +1,22 @@
+{
+  "id": "armchair",
+  "category": "furniture",
+  "tags": [
+    "furniture",
+    "showhome_v3"
+  ],
+  "glb": "props/furniture/armchair/armchair.glb",
+  "lod1": "props/furniture/armchair/armchair_lod1.glb",
+  "collision": "props/furniture/armchair/collision.json",
+  "source": "original assets/props/armchair_procedural",
+  "licence": "project original",
+  "openable_parts": [],
+  "size_m": [
+    0.8799999952316284,
+    0.7599999904632568,
+    0.949999988079071
+  ],
+  "triangles": 4496,
+  "collision_volumes": 1,
+  "loot_slots": []
+}

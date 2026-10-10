@@ -1,0 +1,23 @@
+{
+  "id": "pallet_empty",
+  "category": "worksite",
+  "tags": [
+    "worksite",
+    "showhome_legacy"
+  ],
+  "glb": "props/worksite/pallet_empty/pallet_empty.glb",
+  "lod1": "props/worksite/pallet_empty/pallet_empty_lod1.glb",
+  "collision": "props/worksite/pallet_empty/collision.json",
+  "source": "original assets/maps/showhome procedural Pallet",
+  "licence": "project original",
+  "openable_parts": [],
+  "size_m": [
+    1.2000000476837158,
+    0.800000011920929,
+    0.16600000858306885
+  ],
+  "triangles": 352,
+  "collision_volumes": 1,
+  "loot_slots": [],
+  "legacy_root": "PROP_Pallet"
+}

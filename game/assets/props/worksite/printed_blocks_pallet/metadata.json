@@ -1,0 +1,22 @@
+{
+  "id": "printed_blocks_pallet",
+  "category": "worksite",
+  "tags": [
+    "worksite",
+    "showhome_v3"
+  ],
+  "glb": "props/worksite/printed_blocks_pallet/printed_blocks_pallet.glb",
+  "lod1": "props/worksite/printed_blocks_pallet/printed_blocks_pallet_lod1.glb",
+  "collision": "props/worksite/printed_blocks_pallet/collision.json",
+  "source": "original procedural phase-2 worksite kit",
+  "licence": "project original",
+  "openable_parts": [],
+  "size_m": [
+    1.25,
+    1.0199999809265137,
+    0.6499999761581421
+  ],
+  "triangles": 552,
+  "collision_volumes": 12,
+  "loot_slots": []
+}

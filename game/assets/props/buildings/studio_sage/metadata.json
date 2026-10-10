@@ -1,0 +1,23 @@
+{
+  "id": "studio_sage",
+  "category": "buildings",
+  "tags": [
+    "buildings",
+    "showhome_legacy"
+  ],
+  "glb": "props/buildings/studio_sage/studio_sage.glb",
+  "lod1": "props/buildings/studio_sage/studio_sage_lod1.glb",
+  "collision": "props/buildings/studio_sage/collision.json",
+  "source": "original assets/maps/showhome procedural Studio_Sage",
+  "licence": "project original",
+  "openable_parts": [],
+  "size_m": [
+    6.206000328063965,
+    5.2079997062683105,
+    2.799999952316284
+  ],
+  "triangles": 23644,
+  "collision_volumes": 12,
+  "loot_slots": [],
+  "legacy_root": "PROP_Studio_Sage"
+}

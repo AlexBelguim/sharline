@@ -1,0 +1,23 @@
+{
+  "id": "traffic_cone",
+  "category": "worksite",
+  "tags": [
+    "worksite",
+    "showhome_legacy"
+  ],
+  "glb": "props/worksite/traffic_cone/traffic_cone.glb",
+  "lod1": "props/worksite/traffic_cone/traffic_cone_lod1.glb",
+  "collision": "props/worksite/traffic_cone/collision.json",
+  "source": "original assets/maps/showhome procedural TrafficCone",
+  "licence": "project original",
+  "openable_parts": [],
+  "size_m": [
+    0.47999998927116394,
+    0.47999998927116394,
+    0.75
+  ],
+  "triangles": 264,
+  "collision_volumes": 1,
+  "loot_slots": [],
+  "legacy_root": "PROP_TrafficCone"
+}

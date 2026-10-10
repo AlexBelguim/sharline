@@ -1,0 +1,3081 @@
+{
+  "schema": 1,
+  "props": [
+    {
+      "id": "kitchen_base",
+      "category": "containers",
+      "tags": [
+        "containers",
+        "showhome_v3",
+        "kitchen_cabinet"
+      ],
+      "glb": "props/containers/kitchen_base/kitchen_base.glb",
+      "lod1": "props/containers/kitchen_base/kitchen_base_lod1.glb",
+      "collision": "props/containers/kitchen_base/collision.json",
+      "source": "original procedural v3",
+      "licence": "project original",
+      "openable_parts": [
+        {
+          "name": "OPEN_DOOR_0",
+          "properties": {
+            "axis": "Z",
+            "ajar": 12,
+            "pose": "ajar",
+            "pose_unit": "degrees",
+            "min_deg": 0,
+            "max_deg": 100,
+            "closed_rotation_deg": 0
+          }
+        },
+        {
+          "name": "OPEN_DOOR_1",
+          "properties": {
+            "axis": "Z",
+            "ajar": 12,
+            "pose": "ajar",
+            "pose_unit": "degrees",
+            "min_deg": 0,
+            "max_deg": 100,
+            "closed_rotation_deg": 0
+          }
+        }
+      ],
+      "size_m": [
+        0.8999999761581421,
+        0.6282268762588501,
+        0.8999999761581421
+      ],
+      "triangles": 836,
+      "collision_volumes": 13,
+      "loot_slots": [
+        "LOOT_SLOT_0",
+        "LOOT_SLOT_1"
+      ]
+    },
+    {
+      "id": "kitchen_wall",
+      "category": "containers",
+      "tags": [
+        "containers",
+        "showhome_v3",
+        "kitchen_cabinet"
+      ],
+      "glb": "props/containers/kitchen_wall/kitchen_wall.glb",
+      "lod1": "props/containers/kitchen_wall/kitchen_wall_lod1.glb",
+      "collision": "props/containers/kitchen_wall/collision.json",
+      "source": "original procedural v3",
+      "licence": "project original",
+      "openable_parts": [
+        {
+          "name": "OPEN_DOOR_0",
+          "properties": {
+            "axis": "Z",
+            "ajar": 12,
+            "pose": "ajar",
+            "pose_unit": "degrees",
+            "min_deg": 0,
+            "max_deg": 100,
+            "closed_rotation_deg": 0
+          }
+        },
+        {
+          "name": "OPEN_DOOR_1",
+          "properties": {
+            "axis": "Z",
+            "ajar": 12,
+            "pose": "ajar",
+            "pose_unit": "degrees",
+            "min_deg": 0,
+            "max_deg": 100,
+            "closed_rotation_deg": 0
+          }
+        }
+      ],
+      "size_m": [
+        0.8999999761581421,
+        0.3682268559932709,
+        0.75
+      ],
+      "triangles": 836,
+      "collision_volumes": 13,
+      "loot_slots": [
+        "LOOT_SLOT_0",
+        "LOOT_SLOT_1"
+      ]
+    },
+    {
+      "id": "kitchen_drawer",
+      "category": "containers",
+      "tags": [
+        "containers",
+        "showhome_v3",
+        "kitchen_cabinet"
+      ],
+      "glb": "props/containers/kitchen_drawer/kitchen_drawer.glb",
+      "lod1": "props/containers/kitchen_drawer/kitchen_drawer_lod1.glb",
+      "collision": "props/containers/kitchen_drawer/collision.json",
+      "source": "original procedural v3",
+      "licence": "project original",
+      "openable_parts": [
+        {
+          "name": "OPEN_DRAWER_0",
+          "properties": {
+            "axis": "-Y",
+            "ajar": 0.04,
+            "pose": "ajar",
+            "pose_unit": "metres",
+            "travel_m": 0.42400000000000004,
+            "closed_location": [
+              0.0,
+              0.0,
+              0.0
+            ]
+          }
+        },
+        {
+          "name": "OPEN_DRAWER_1",
+          "properties": {
+            "axis": "-Y",
+            "ajar": 0.04,
+            "pose": "ajar",
+            "pose_unit": "metres",
+            "travel_m": 0.42400000000000004,
+            "closed_location": [
+              0.0,
+              0.0,
+              0.0
+            ]
+          }
+        },
+        {
+          "name": "OPEN_DRAWER_2",
+          "properties": {
+            "axis": "-Y",
+            "ajar": 0.04,
+            "pose": "ajar",
+            "pose_unit": "metres",
+            "travel_m": 0.42400000000000004,
+            "closed_location": [
+              0.0,
+              0.0,
+              0.0
+            ]
+          }
+        }
+      ],
+      "size_m": [
+        0.6000000238418579,
+        0.6890000104904175,
+        0.8999999761581421
+      ],
+      "triangles": 1188,
+      "collision_volumes": 24,
+      "loot_slots": [
+        "LOOT_SLOT_0",
+        "LOOT_SLOT_1",
+        "LOOT_SLOT_2"
+      ]
+    },
+    {
+      "id": "dresser",
+      "category": "containers",
+      "tags": [
+        "containers",
+        "showhome_v3",
+        "dresser"
+      ],
+      "glb": "props/containers/dresser/dresser.glb",
+      "lod1": "props/containers/dresser/dresser_lod1.glb",
+      "collision": "props/containers/dresser/collision.json",
+      "source": "original procedural v3",
+      "licence": "project original",
+      "openable_parts": [
+        {
+          "name": "OPEN_DRAWER_0",
+          "properties": {
+            "axis": "-Y",
+            "ajar": 0.04,
+            "pose": "ajar",
+            "pose_unit": "metres",
+            "travel_m": 0.34400000000000003,
+            "closed_location": [
+              0.0,
+              0.0,
+              0.0
+            ]
+          }
+        },
+        {
+          "name": "OPEN_DRAWER_1",
+          "properties": {
+            "axis": "-Y",
+            "ajar": 0.04,
+            "pose": "ajar",
+            "pose_unit": "metres",
+            "travel_m": 0.34400000000000003,
+            "closed_location": [
+              0.0,
+              0.0,
+              0.0
+            ]
+          }
+        },
+        {
+          "name": "OPEN_DRAWER_2",
+          "properties": {
+            "axis": "-Y",
+            "ajar": 0.04,
+            "pose": "ajar",
+            "pose_unit": "metres",
+            "travel_m": 0.34400000000000003,
+            "closed_location": [
+              0.0,
+              0.0,
+              0.0
+            ]
+          }
+        }
+      ],
+      "size_m": [
+        1.25,
+        0.5889999866485596,
+        1.0
+      ],
+      "triangles": 1188,
+      "collision_volumes": 24,
+      "loot_slots": [
+        "LOOT_SLOT_0",
+        "LOOT_SLOT_1",
+        "LOOT_SLOT_2"
+      ]
+    },
+    {
+      "id": "nightstand",
+      "category": "containers",
+      "tags": [
+        "containers",
+        "showhome_v3",
+        "dresser"
+      ],
+      "glb": "props/containers/nightstand/nightstand.glb",
+      "lod1": "props/containers/nightstand/nightstand_lod1.glb",
+      "collision": "props/containers/nightstand/collision.json",
+      "source": "original procedural v3",
+      "licence": "project original",
+      "openable_parts": [
+        {
+          "name": "OPEN_DRAWER_0",
+          "properties": {
+            "axis": "-Y",
+            "ajar": 0.04,
+            "pose": "ajar",
+            "pose_unit": "metres",
+            "travel_m": 0.264,
+            "closed_location": [
+              0.0,
+              0.0,
+              0.0
+            ]
+          }
+        },
+        {
+          "name": "OPEN_DRAWER_1",
+          "properties": {
+            "axis": "-Y",
+            "ajar": 0.04,
+            "pose": "ajar",
+            "pose_unit": "metres",
+            "travel_m": 0.264,
+            "closed_location": [
+              0.0,
+              0.0,
+              0.0
+            ]
+          }
+        },
+        {
+          "name": "OPEN_DRAWER_2",
+          "properties": {
+            "axis": "-Y",
+            "ajar": 0.04,
+            "pose": "ajar",
+            "pose_unit": "metres",
+            "travel_m": 0.264,
+            "closed_location": [
+              0.0,
+              0.0,
+              0.0
+            ]
+          }
+        }
+      ],
+      "size_m": [
+        0.5,
+        0.48900002241134644,
+        0.550000011920929
+      ],
+      "triangles": 1188,
+      "collision_volumes": 24,
+      "loot_slots": [
+        "LOOT_SLOT_0",
+        "LOOT_SLOT_1",
+        "LOOT_SLOT_2"
+      ]
+    },
+    {
+      "id": "wardrobe",
+      "category": "containers",
+      "tags": [
+        "containers",
+        "showhome_v3",
+        "dresser"
+      ],
+      "glb": "props/containers/wardrobe/wardrobe.glb",
+      "lod1": "props/containers/wardrobe/wardrobe_lod1.glb",
+      "collision": "props/containers/wardrobe/collision.json",
+      "source": "original procedural v3",
+      "licence": "project original",
+      "openable_parts": [
+        {
+          "name": "OPEN_DOOR_0",
+          "properties": {
+            "axis": "Z",
+            "ajar": 12,
+            "pose": "ajar",
+            "pose_unit": "degrees",
+            "min_deg": 0,
+            "max_deg": 100,
+            "closed_rotation_deg": 0
+          }
+        },
+        {
+          "name": "OPEN_DOOR_1",
+          "properties": {
+            "axis": "Z",
+            "ajar": 12,
+            "pose": "ajar",
+            "pose_unit": "degrees",
+            "min_deg": 0,
+            "max_deg": 100,
+            "closed_rotation_deg": 0
+          }
+        }
+      ],
+      "size_m": [
+        1.399999976158142,
+        0.6282268762588501,
+        2.0500001907348633
+      ],
+      "triangles": 836,
+      "collision_volumes": 13,
+      "loot_slots": [
+        "LOOT_SLOT_0",
+        "LOOT_SLOT_1"
+      ]
+    },
+    {
+      "id": "garage_cabinet",
+      "category": "containers",
+      "tags": [
+        "containers",
+        "showhome_v3",
+        "toolbox"
+      ],
+      "glb": "props/containers/garage_cabinet/garage_cabinet.glb",
+      "lod1": "props/containers/garage_cabinet/garage_cabinet_lod1.glb",
+      "collision": "props/containers/garage_cabinet/collision.json",
+      "source": "original procedural v3",
+      "licence": "project original",
+      "openable_parts": [
+        {
+          "name": "OPEN_DRAWER_0",
+          "properties": {
+            "axis": "-Y",
+            "ajar": 0.04,
+            "pose": "ajar",
+            "pose_unit": "metres",
+            "travel_m": 0.42400000000000004,
+            "closed_location": [
+              0.0,
+              0.0,
+              0.0
+            ]
+          }
+        },
+        {
+          "name": "OPEN_DRAWER_1",
+          "properties": {
+            "axis": "-Y",
+            "ajar": 0.04,
+            "pose": "ajar",
+            "pose_unit": "metres",
+            "travel_m": 0.42400000000000004,
+            "closed_location": [
+              0.0,
+              0.0,
+              0.0
+            ]
+          }
+        },
+        {
+          "name": "OPEN_DRAWER_2",
+          "properties": {
+            "axis": "-Y",
+            "ajar": 0.04,
+            "pose": "ajar",
+            "pose_unit": "metres",
+            "travel_m": 0.42400000000000004,
+            "closed_location": [
+              0.0,
+              0.0,
+              0.0
+            ]
+          }
+        }
+      ],
+      "size_m": [
+        1.399999976158142,
+        0.6890000104904175,
+        0.9200000166893005
+      ],
+      "triangles": 1188,
+      "collision_volumes": 24,
+      "loot_slots": [
+        "LOOT_SLOT_0",
+        "LOOT_SLOT_1",
+        "LOOT_SLOT_2"
+      ]
+    },
+    {
+      "id": "ammo_box",
+      "category": "containers",
+      "tags": [
+        "containers",
+        "showhome_v3",
+        "ammo_box"
+      ],
+      "glb": "props/containers/ammo_box/ammo_box.glb",
+      "lod1": "props/containers/ammo_box/ammo_box_lod1.glb",
+      "collision": "props/containers/ammo_box/collision.json",
+      "source": "original procedural v3",
+      "licence": "project original",
+      "openable_parts": [
+        {
+          "name": "OPEN_LID_0",
+          "properties": {
+            "axis": "X",
+            "ajar": -7,
+            "pose": "ajar",
+            "pose_unit": "degrees",
+            "min_deg": -105,
+            "max_deg": 0,
+            "closed_rotation_deg": 0
+          }
+        }
+      ],
+      "size_m": [
+        0.5400000214576721,
+        0.2880347967147827,
+        0.427645742893219
+      ],
+      "triangles": 572,
+      "collision_volumes": 6,
+      "loot_slots": [
+        "LOOT_SLOT_0"
+      ]
+    },
+    {
+      "id": "ammo_crate",
+      "category": "containers",
+      "tags": [
+        "containers",
+        "showhome_v3",
+        "ammo_box"
+      ],
+      "glb": "props/containers/ammo_crate/ammo_crate.glb",
+      "lod1": "props/containers/ammo_crate/ammo_crate_lod1.glb",
+      "collision": "props/containers/ammo_crate/collision.json",
+      "source": "original procedural v3",
+      "licence": "project original",
+      "openable_parts": [
+        {
+          "name": "OPEN_LID_0",
+          "properties": {
+            "axis": "X",
+            "ajar": -7,
+            "pose": "ajar",
+            "pose_unit": "degrees",
+            "min_deg": -105,
+            "max_deg": 0,
+            "closed_rotation_deg": 0
+          }
+        }
+      ],
+      "size_m": [
+        0.6700000166893005,
+        0.5,
+        0.43231064081192017
+      ],
+      "triangles": 748,
+      "collision_volumes": 10,
+      "loot_slots": [
+        "LOOT_SLOT_0"
+      ]
+    },
+    {
+      "id": "weapon_case",
+      "category": "containers",
+      "tags": [
+        "containers",
+        "showhome_v3",
+        "weapon_case"
+      ],
+      "glb": "props/containers/weapon_case/weapon_case.glb",
+      "lod1": "props/containers/weapon_case/weapon_case_lod1.glb",
+      "collision": "props/containers/weapon_case/collision.json",
+      "source": "original procedural v3",
+      "licence": "project original",
+      "openable_parts": [
+        {
+          "name": "OPEN_LID_0",
+          "properties": {
+            "axis": "X",
+            "ajar": -7,
+            "pose": "ajar",
+            "pose_unit": "degrees",
+            "min_deg": -105,
+            "max_deg": 0,
+            "closed_rotation_deg": 0
+          }
+        }
+      ],
+      "size_m": [
+        1.1399999856948853,
+        0.3780348300933838,
+        0.21258145570755005
+      ],
+      "triangles": 572,
+      "collision_volumes": 6,
+      "loot_slots": [
+        "LOOT_SLOT_0"
+      ]
+    },
+    {
+      "id": "weapon_crate",
+      "category": "containers",
+      "tags": [
+        "containers",
+        "showhome_v3",
+        "weapon_case"
+      ],
+      "glb": "props/containers/weapon_crate/weapon_crate.glb",
+      "lod1": "props/containers/weapon_crate/weapon_crate_lod1.glb",
+      "collision": "props/containers/weapon_crate/collision.json",
+      "source": "original procedural v3",
+      "licence": "project original",
+      "openable_parts": [
+        {
+          "name": "OPEN_LID_0",
+          "properties": {
+            "axis": "X",
+            "ajar": -7,
+            "pose": "ajar",
+            "pose_unit": "degrees",
+            "min_deg": -105,
+            "max_deg": 0,
+            "closed_rotation_deg": 0
+          }
+        }
+      ],
+      "size_m": [
+        1.2699999809265137,
+        0.5199999809265137,
+        0.37474802136421204
+      ],
+      "triangles": 748,
+      "collision_volumes": 10,
+      "loot_slots": [
+        "LOOT_SLOT_0"
+      ]
+    },
+    {
+      "id": "metal_crate",
+      "category": "containers",
+      "tags": [
+        "containers",
+        "showhome_v3",
+        "metal_crate"
+      ],
+      "glb": "props/containers/metal_crate/metal_crate.glb",
+      "lod1": "props/containers/metal_crate/metal_crate_lod1.glb",
+      "collision": "props/containers/metal_crate/collision.json",
+      "source": "original procedural v3",
+      "licence": "project original",
+      "openable_parts": [
+        {
+          "name": "OPEN_LID_0",
+          "properties": {
+            "axis": "X",
+            "ajar": -7,
+            "pose": "ajar",
+            "pose_unit": "degrees",
+            "min_deg": -105,
+            "max_deg": 0,
+            "closed_rotation_deg": 0
+          }
+        }
+      ],
+      "size_m": [
+        0.8700000047683716,
+        0.5880347490310669,
+        0.6182096004486084
+      ],
+      "triangles": 572,
+      "collision_volumes": 6,
+      "loot_slots": [
+        "LOOT_SLOT_0"
+      ]
+    },
+    {
+      "id": "toolbox",
+      "category": "containers",
+      "tags": [
+        "containers",
+        "showhome_v3",
+        "toolbox"
+      ],
+      "glb": "props/containers/toolbox/toolbox.glb",
+      "lod1": "props/containers/toolbox/toolbox_lod1.glb",
+      "collision": "props/containers/toolbox/collision.json",
+      "source": "original procedural v3",
+      "licence": "project original",
+      "openable_parts": [
+        {
+          "name": "OPEN_LID_0",
+          "properties": {
+            "axis": "X",
+            "ajar": -7,
+            "pose": "ajar",
+            "pose_unit": "degrees",
+            "min_deg": -105,
+            "max_deg": 0,
+            "closed_rotation_deg": 0
+          }
+        }
+      ],
+      "size_m": [
+        0.5,
+        0.2780348062515259,
+        0.30709734559059143
+      ],
+      "triangles": 572,
+      "collision_volumes": 6,
+      "loot_slots": [
+        "LOOT_SLOT_0"
+      ]
+    },
+    {
+      "id": "gang_box",
+      "category": "containers",
+      "tags": [
+        "containers",
+        "showhome_v3",
+        "toolbox"
+      ],
+      "glb": "props/containers/gang_box/gang_box.glb",
+      "lod1": "props/containers/gang_box/gang_box_lod1.glb",
+      "collision": "props/containers/gang_box/collision.json",
+      "source": "original procedural v3",
+      "licence": "project original",
+      "openable_parts": [
+        {
+          "name": "OPEN_LID_0",
+          "properties": {
+            "axis": "X",
+            "ajar": -7,
+            "pose": "ajar",
+            "pose_unit": "degrees",
+            "min_deg": -105,
+            "max_deg": 0,
+            "closed_rotation_deg": 0
+          }
+        }
+      ],
+      "size_m": [
+        1.2200000286102295,
+        0.6880347728729248,
+        0.8003964424133301
+      ],
+      "triangles": 572,
+      "collision_volumes": 6,
+      "loot_slots": [
+        "LOOT_SLOT_0"
+      ]
+    },
+    {
+      "id": "backpack",
+      "category": "containers",
+      "tags": [
+        "containers",
+        "showhome_v3",
+        "backpack"
+      ],
+      "glb": "props/containers/backpack/backpack.glb",
+      "lod1": "props/containers/backpack/backpack_lod1.glb",
+      "collision": "props/containers/backpack/collision.json",
+      "source": "original procedural v3",
+      "licence": "project original",
+      "openable_parts": [
+        {
+          "name": "OPEN_LID_Flap",
+          "properties": {
+            "axis": "X",
+            "ajar": -28,
+            "pose": "ajar",
+            "pose_unit": "degrees",
+            "min_deg": -120,
+            "max_deg": 0,
+            "closed_rotation_deg": 0
+          }
+        }
+      ],
+      "size_m": [
+        0.3400000035762787,
+        0.2199999988079071,
+        0.5520000457763672
+      ],
+      "triangles": 668,
+      "collision_volumes": 5,
+      "loot_slots": [
+        "LOOT_SLOT_0"
+      ]
+    },
+    {
+      "id": "duffel_bag",
+      "category": "containers",
+      "tags": [
+        "containers",
+        "showhome_v3",
+        "duffel_bag"
+      ],
+      "glb": "props/containers/duffel_bag/duffel_bag.glb",
+      "lod1": "props/containers/duffel_bag/duffel_bag_lod1.glb",
+      "collision": "props/containers/duffel_bag/collision.json",
+      "source": "original procedural v3",
+      "licence": "project original",
+      "openable_parts": [
+        {
+          "name": "OPEN_LID_Flap",
+          "properties": {
+            "axis": "X",
+            "ajar": -28,
+            "pose": "ajar",
+            "pose_unit": "degrees",
+            "min_deg": -120,
+            "max_deg": 0,
+            "closed_rotation_deg": 0
+          }
+        }
+      ],
+      "size_m": [
+        0.6600000262260437,
+        0.3400000035762787,
+        0.39680156111717224
+      ],
+      "triangles": 668,
+      "collision_volumes": 5,
+      "loot_slots": [
+        "LOOT_SLOT_0"
+      ]
+    },
+    {
+      "id": "privacy_panel",
+      "category": "fences",
+      "tags": [
+        "fences",
+        "showhome_v3"
+      ],
+      "glb": "props/fences/privacy_panel/privacy_panel.glb",
+      "lod1": "props/fences/privacy_panel/privacy_panel_lod1.glb",
+      "collision": "props/fences/privacy_panel/collision.json",
+      "source": "original procedural v3",
+      "licence": "project original",
+      "openable_parts": [],
+      "size_m": [
+        2.0899999141693115,
+        0.09950000047683716,
+        2.200000047683716
+      ],
+      "triangles": 1056,
+      "collision_volumes": 24,
+      "loot_slots": []
+    },
+    {
+      "id": "privacy_gate",
+      "category": "fences",
+      "tags": [
+        "fences",
+        "showhome_v3"
+      ],
+      "glb": "props/fences/privacy_gate/privacy_gate.glb",
+      "lod1": "props/fences/privacy_gate/privacy_gate_lod1.glb",
+      "collision": "props/fences/privacy_gate/collision.json",
+      "source": "original procedural v3",
+      "licence": "project original",
+      "openable_parts": [
+        {
+          "name": "OPEN_DOOR_Privacy",
+          "properties": {
+            "axis": "Z",
+            "ajar": 12,
+            "pose": "open",
+            "pose_unit": "degrees",
+            "min_deg": 0,
+            "max_deg": 110,
+            "closed_rotation_deg": 0
+          }
+        }
+      ],
+      "size_m": [
+        2.273604154586792,
+        2.040004014968872,
+        2.200000047683716
+      ],
+      "triangles": 1100,
+      "collision_volumes": 24,
+      "loot_slots": []
+    },
+    {
+      "id": "rear_garage",
+      "category": "garden",
+      "tags": [
+        "garden",
+        "showhome_v3"
+      ],
+      "glb": "props/garden/rear_garage/rear_garage.glb",
+      "lod1": "props/garden/rear_garage/rear_garage_lod1.glb",
+      "collision": "props/garden/rear_garage/collision.json",
+      "source": "original procedural v3",
+      "licence": "project original",
+      "openable_parts": [],
+      "size_m": [
+        4.739999771118164,
+        5.739999771118164,
+        3.200000047683716
+      ],
+      "triangles": 308,
+      "collision_volumes": 7,
+      "loot_slots": []
+    },
+    {
+      "id": "greenhouse",
+      "category": "garden",
+      "tags": [
+        "garden",
+        "showhome_v3"
+      ],
+      "glb": "props/garden/greenhouse/greenhouse.glb",
+      "lod1": "props/garden/greenhouse/greenhouse_lod1.glb",
+      "collision": "props/garden/greenhouse/collision.json",
+      "source": "original procedural v3",
+      "licence": "project original",
+      "openable_parts": [
+        {
+          "name": "OPEN_DOOR_Greenhouse",
+          "properties": {
+            "axis": "Z",
+            "ajar": 12,
+            "pose": "open",
+            "pose_unit": "degrees",
+            "min_deg": 0,
+            "max_deg": 110,
+            "closed_rotation_deg": 0
+          }
+        }
+      ],
+      "size_m": [
+        4.079999923706055,
+        5.670000076293945,
+        2.8370983600616455
+      ],
+      "triangles": 3972,
+      "collision_volumes": 34,
+      "loot_slots": []
+    },
+    {
+      "id": "shed",
+      "category": "garden",
+      "tags": [
+        "garden",
+        "showhome_v3"
+      ],
+      "glb": "props/garden/shed/shed.glb",
+      "lod1": "props/garden/shed/shed_lod1.glb",
+      "collision": "props/garden/shed/collision.json",
+      "source": "original procedural v3",
+      "licence": "project original",
+      "openable_parts": [
+        {
+          "name": "OPEN_DOOR_Shed",
+          "properties": {
+            "axis": "Z",
+            "ajar": 12,
+            "pose": "open",
+            "pose_unit": "degrees",
+            "min_deg": 0,
+            "max_deg": 110,
+            "closed_rotation_deg": 0
+          }
+        }
+      ],
+      "size_m": [
+        3.01840877532959,
+        3.640000104904175,
+        2.702338933944702
+      ],
+      "triangles": 948,
+      "collision_volumes": 10,
+      "loot_slots": []
+    },
+    {
+      "id": "carport",
+      "category": "garden",
+      "tags": [
+        "garden",
+        "showhome_v3"
+      ],
+      "glb": "props/garden/carport/carport.glb",
+      "lod1": "props/garden/carport/carport_lod1.glb",
+      "collision": "props/garden/carport/collision.json",
+      "source": "original procedural v3",
+      "licence": "project original",
+      "openable_parts": [],
+      "size_m": [
+        7.78000020980835,
+        5.78000020980835,
+        3.1999998092651367
+      ],
+      "triangles": 484,
+      "collision_volumes": 11,
+      "loot_slots": []
+    },
+    {
+      "id": "pergola",
+      "category": "garden",
+      "tags": [
+        "garden",
+        "showhome_v3"
+      ],
+      "glb": "props/garden/pergola/pergola.glb",
+      "lod1": "props/garden/pergola/pergola_lod1.glb",
+      "collision": "props/garden/pergola/collision.json",
+      "source": "original procedural v3",
+      "licence": "project original",
+      "openable_parts": [],
+      "size_m": [
+        5.119999885559082,
+        4.300000190734863,
+        2.759999990463257
+      ],
+      "triangles": 748,
+      "collision_volumes": 17,
+      "loot_slots": []
+    },
+    {
+      "id": "picket_panel",
+      "category": "fences",
+      "tags": [
+        "fences",
+        "showhome_v3"
+      ],
+      "glb": "props/fences/picket_panel/picket_panel.glb",
+      "lod1": "props/fences/picket_panel/picket_panel_lod1.glb",
+      "collision": "props/fences/picket_panel/collision.json",
+      "source": "original procedural v3",
+      "licence": "project original",
+      "openable_parts": [],
+      "size_m": [
+        2.069999933242798,
+        0.07000000029802322,
+        1.2000000476837158
+      ],
+      "triangles": 836,
+      "collision_volumes": 19,
+      "loot_slots": []
+    },
+    {
+      "id": "garden_gate",
+      "category": "fences",
+      "tags": [
+        "fences",
+        "showhome_v3"
+      ],
+      "glb": "props/fences/garden_gate/garden_gate.glb",
+      "lod1": "props/fences/garden_gate/garden_gate_lod1.glb",
+      "collision": "props/fences/garden_gate/collision.json",
+      "source": "original procedural v3",
+      "licence": "project original",
+      "openable_parts": [
+        {
+          "name": "OPEN_DOOR_Garden",
+          "properties": {
+            "axis": "Z",
+            "ajar": 12,
+            "pose": "open",
+            "pose_unit": "degrees",
+            "min_deg": 0,
+            "max_deg": 110,
+            "closed_rotation_deg": 0
+          }
+        }
+      ],
+      "size_m": [
+        2.2242543697357178,
+        2.0296554565429688,
+        1.2000000476837158
+      ],
+      "triangles": 836,
+      "collision_volumes": 19,
+      "loot_slots": []
+    },
+    {
+      "id": "site_mesh_panel",
+      "category": "fences",
+      "tags": [
+        "fences",
+        "showhome_v3"
+      ],
+      "glb": "props/fences/site_mesh_panel/site_mesh_panel.glb",
+      "lod1": "props/fences/site_mesh_panel/site_mesh_panel_lod1.glb",
+      "collision": "props/fences/site_mesh_panel/collision.json",
+      "source": "original procedural v3",
+      "licence": "project original",
+      "openable_parts": [],
+      "size_m": [
+        2.569999933242798,
+        0.07000000029802322,
+        2.0
+      ],
+      "triangles": 1188,
+      "collision_volumes": 4,
+      "loot_slots": []
+    },
+    {
+      "id": "hedge_frame",
+      "category": "garden",
+      "tags": [
+        "garden",
+        "showhome_v3"
+      ],
+      "glb": "props/garden/hedge_frame/hedge_frame.glb",
+      "lod1": "props/garden/hedge_frame/hedge_frame_lod1.glb",
+      "collision": "props/garden/hedge_frame/collision.json",
+      "source": "original procedural v3",
+      "licence": "project original",
+      "openable_parts": [],
+      "size_m": [
+        4.159999847412109,
+        0.1599999964237213,
+        2.9099998474121094
+      ],
+      "triangles": 220,
+      "collision_volumes": 5,
+      "loot_slots": []
+    },
+    {
+      "id": "raised_planter",
+      "category": "garden",
+      "tags": [
+        "garden",
+        "showhome_v3"
+      ],
+      "glb": "props/garden/raised_planter/raised_planter.glb",
+      "lod1": "props/garden/raised_planter/raised_planter_lod1.glb",
+      "collision": "props/garden/raised_planter/collision.json",
+      "source": "original procedural v3",
+      "licence": "project original",
+      "openable_parts": [],
+      "size_m": [
+        2.3999998569488525,
+        1.2000000476837158,
+        0.47999998927116394
+      ],
+      "triangles": 220,
+      "collision_volumes": 5,
+      "loot_slots": []
+    },
+    {
+      "id": "bookcase",
+      "category": "furniture",
+      "tags": [
+        "furniture",
+        "showhome_v3"
+      ],
+      "glb": "props/furniture/bookcase/bookcase.glb",
+      "lod1": "props/furniture/bookcase/bookcase_lod1.glb",
+      "collision": "props/furniture/bookcase/collision.json",
+      "source": "original procedural v3",
+      "licence": "project original",
+      "openable_parts": [],
+      "size_m": [
+        1.2999999523162842,
+        0.36000001430511475,
+        1.9000000953674316
+      ],
+      "triangles": 3608,
+      "collision_volumes": 14,
+      "loot_slots": []
+    },
+    {
+      "id": "dining_table",
+      "category": "furniture",
+      "tags": [
+        "furniture",
+        "showhome_v3"
+      ],
+      "glb": "props/furniture/dining_table/dining_table.glb",
+      "lod1": "props/furniture/dining_table/dining_table_lod1.glb",
+      "collision": "props/furniture/dining_table/collision.json",
+      "source": "original procedural v3",
+      "licence": "project original",
+      "openable_parts": [],
+      "size_m": [
+        1.7999999523162842,
+        0.8999999761581421,
+        0.7924999594688416
+      ],
+      "triangles": 220,
+      "collision_volumes": 5,
+      "loot_slots": []
+    },
+    {
+      "id": "bed",
+      "category": "furniture",
+      "tags": [
+        "furniture",
+        "showhome_v3"
+      ],
+      "glb": "props/furniture/bed/bed.glb",
+      "lod1": "props/furniture/bed/bed_lod1.glb",
+      "collision": "props/furniture/bed/collision.json",
+      "source": "original procedural v3",
+      "licence": "project original",
+      "openable_parts": [],
+      "size_m": [
+        1.7000000476837158,
+        2.0999999046325684,
+        0.800000011920929
+      ],
+      "triangles": 264,
+      "collision_volumes": 3,
+      "loot_slots": []
+    },
+    {
+      "id": "utility_pole",
+      "category": "utilities",
+      "tags": [
+        "utilities",
+        "showhome_v3"
+      ],
+      "glb": "props/utilities/utility_pole/utility_pole.glb",
+      "lod1": "props/utilities/utility_pole/utility_pole_lod1.glb",
+      "collision": "props/utilities/utility_pole/collision.json",
+      "source": "original procedural v3",
+      "licence": "project original",
+      "openable_parts": [],
+      "size_m": [
+        1.399999976158142,
+        0.4399999976158142,
+        6.400000095367432
+      ],
+      "triangles": 264,
+      "collision_volumes": 3,
+      "loot_slots": []
+    },
+    {
+      "id": "moving_truck",
+      "category": "vehicles",
+      "tags": [
+        "vehicles",
+        "showhome_v3"
+      ],
+      "glb": "props/vehicles/moving_truck/moving_truck.glb",
+      "lod1": "props/vehicles/moving_truck/moving_truck_lod1.glb",
+      "collision": "props/vehicles/moving_truck/collision.json",
+      "source": "original assets/maps/showhome procedural MoverTruck",
+      "licence": "project original",
+      "openable_parts": [],
+      "size_m": [
+        2.5139999389648438,
+        10.52400016784668,
+        3.200000047683716
+      ],
+      "triangles": 11676,
+      "collision_volumes": 36,
+      "loot_slots": []
+    },
+    {
+      "id": "city_car",
+      "category": "vehicles",
+      "tags": [
+        "vehicles",
+        "showhome_v3"
+      ],
+      "glb": "props/vehicles/city_car/city_car.glb",
+      "lod1": "props/vehicles/city_car/city_car_lod1.glb",
+      "collision": "props/vehicles/city_car/collision.json",
+      "source": "original assets/maps/showhome procedural GarageCar",
+      "licence": "project original",
+      "openable_parts": [],
+      "size_m": [
+        1.930999994277954,
+        4.4120001792907715,
+        1.5
+      ],
+      "triangles": 1028,
+      "collision_volumes": 67,
+      "loot_slots": []
+    },
+    {
+      "id": "hot_tub",
+      "category": "garden",
+      "tags": [
+        "garden",
+        "showhome_v3"
+      ],
+      "glb": "props/garden/hot_tub/hot_tub.glb",
+      "lod1": "props/garden/hot_tub/hot_tub_lod1.glb",
+      "collision": "props/garden/hot_tub/collision.json",
+      "source": "original assets/maps/showhome procedural HotTub",
+      "licence": "project original",
+      "openable_parts": [],
+      "size_m": [
+        2.5,
+        2.504000186920166,
+        1.003999948501587
+      ],
+      "triangles": 284,
+      "collision_volumes": 5,
+      "loot_slots": []
+    },
+    {
+      "id": "sofa",
+      "category": "furniture",
+      "tags": [
+        "furniture",
+        "showhome_v3"
+      ],
+      "glb": "props/furniture/sofa/sofa.glb",
+      "lod1": "props/furniture/sofa/sofa_lod1.glb",
+      "collision": "props/furniture/sofa/collision.json",
+      "source": "original assets/maps/showhome procedural Sofa",
+      "licence": "project original",
+      "openable_parts": [],
+      "size_m": [
+        2.5,
+        0.8999999761581421,
+        0.8009999990463257
+      ],
+      "triangles": 1024,
+      "collision_volumes": 1,
+      "loot_slots": []
+    },
+    {
+      "id": "heat_pump",
+      "category": "utilities",
+      "tags": [
+        "utilities",
+        "showhome_v3"
+      ],
+      "glb": "props/utilities/heat_pump/heat_pump.glb",
+      "lod1": "props/utilities/heat_pump/heat_pump_lod1.glb",
+      "collision": "props/utilities/heat_pump/collision.json",
+      "source": "original assets/maps/showhome procedural HeatPump",
+      "licence": "project original",
+      "openable_parts": [],
+      "size_m": [
+        2.0,
+        1.0160000324249268,
+        1.2000000476837158
+      ],
+      "triangles": 952,
+      "collision_volumes": 1,
+      "loot_slots": []
+    },
+    {
+      "id": "armchair",
+      "category": "furniture",
+      "tags": [
+        "furniture",
+        "showhome_v3"
+      ],
+      "glb": "props/furniture/armchair/armchair.glb",
+      "lod1": "props/furniture/armchair/armchair_lod1.glb",
+      "collision": "props/furniture/armchair/collision.json",
+      "source": "original assets/props/armchair_procedural",
+      "licence": "project original",
+      "openable_parts": [],
+      "size_m": [
+        0.8799999952316284,
+        0.7599999904632568,
+        0.949999988079071
+      ],
+      "triangles": 4496,
+      "collision_volumes": 1,
+      "loot_slots": []
+    },
+    {
+      "id": "concrete_barrier",
+      "category": "worksite",
+      "tags": [
+        "worksite",
+        "showhome_v3"
+      ],
+      "glb": "props/worksite/concrete_barrier/concrete_barrier.glb",
+      "lod1": "props/worksite/concrete_barrier/concrete_barrier_lod1.glb",
+      "collision": "props/worksite/concrete_barrier/collision.json",
+      "source": "original procedural v3",
+      "licence": "project original",
+      "openable_parts": [],
+      "size_m": [
+        2.0,
+        0.6499999761581421,
+        1.0499999523162842
+      ],
+      "triangles": 108,
+      "collision_volumes": 2,
+      "loot_slots": []
+    },
+    {
+      "id": "tower_crane",
+      "category": "worksite",
+      "tags": [
+        "worksite",
+        "showhome_v3"
+      ],
+      "glb": "props/worksite/tower_crane/tower_crane.glb",
+      "lod1": "props/worksite/tower_crane/tower_crane_lod1.glb",
+      "collision": "props/worksite/tower_crane/collision.json",
+      "source": "original procedural phase-2 worksite kit",
+      "licence": "project original",
+      "openable_parts": [],
+      "size_m": [
+        58.19524383544922,
+        4.800000190734863,
+        35.09519958496094
+      ],
+      "triangles": 3500,
+      "collision_volumes": 22,
+      "loot_slots": []
+    },
+    {
+      "id": "scaffold_bay",
+      "category": "worksite",
+      "tags": [
+        "worksite",
+        "showhome_v3"
+      ],
+      "glb": "props/worksite/scaffold_bay/scaffold_bay.glb",
+      "lod1": "props/worksite/scaffold_bay/scaffold_bay_lod1.glb",
+      "collision": "props/worksite/scaffold_bay/collision.json",
+      "source": "original procedural phase-2 worksite kit",
+      "licence": "project original",
+      "openable_parts": [],
+      "size_m": [
+        4.199999809265137,
+        1.3450000286102295,
+        10.699999809265137
+      ],
+      "triangles": 2004,
+      "collision_volumes": 64,
+      "loot_slots": []
+    },
+    {
+      "id": "site_office",
+      "category": "worksite",
+      "tags": [
+        "worksite",
+        "showhome_v3"
+      ],
+      "glb": "props/worksite/site_office/site_office.glb",
+      "lod1": "props/worksite/site_office/site_office_lod1.glb",
+      "collision": "props/worksite/site_office/collision.json",
+      "source": "original procedural phase-2 worksite kit",
+      "licence": "project original",
+      "openable_parts": [
+        {
+          "name": "OPEN_DOOR_Office",
+          "properties": {
+            "part": "orange",
+            "axis": "Z",
+            "ajar": 8,
+            "pose": "ajar",
+            "pose_unit": "degrees",
+            "min_deg": 0,
+            "max_deg": 110,
+            "closed_rotation_deg": 0
+          }
+        }
+      ],
+      "size_m": [
+        6.0,
+        2.8425002098083496,
+        2.799999952316284
+      ],
+      "triangles": 2068,
+      "collision_volumes": 24,
+      "loot_slots": []
+    },
+    {
+      "id": "portable_toilet",
+      "category": "worksite",
+      "tags": [
+        "worksite",
+        "showhome_v3"
+      ],
+      "glb": "props/worksite/portable_toilet/portable_toilet.glb",
+      "lod1": "props/worksite/portable_toilet/portable_toilet_lod1.glb",
+      "collision": "props/worksite/portable_toilet/collision.json",
+      "source": "original procedural phase-2 worksite kit",
+      "licence": "project original",
+      "openable_parts": [
+        {
+          "name": "OPEN_DOOR_Toilet",
+          "properties": {
+            "part": "plastic",
+            "axis": "Z",
+            "ajar": 4,
+            "pose": "ajar",
+            "pose_unit": "degrees",
+            "min_deg": 0,
+            "max_deg": 105,
+            "closed_rotation_deg": 0
+          }
+        }
+      ],
+      "size_m": [
+        1.2200000286102295,
+        1.2899999618530273,
+        2.359999895095825
+      ],
+      "triangles": 660,
+      "collision_volumes": 10,
+      "loot_slots": []
+    },
+    {
+      "id": "printed_blocks_pallet",
+      "category": "worksite",
+      "tags": [
+        "worksite",
+        "showhome_v3"
+      ],
+      "glb": "props/worksite/printed_blocks_pallet/printed_blocks_pallet.glb",
+      "lod1": "props/worksite/printed_blocks_pallet/printed_blocks_pallet_lod1.glb",
+      "collision": "props/worksite/printed_blocks_pallet/collision.json",
+      "source": "original procedural phase-2 worksite kit",
+      "licence": "project original",
+      "openable_parts": [],
+      "size_m": [
+        1.25,
+        1.0199999809265137,
+        0.6499999761581421
+      ],
+      "triangles": 552,
+      "collision_volumes": 12,
+      "loot_slots": []
+    },
+    {
+      "id": "timber_pallet",
+      "category": "worksite",
+      "tags": [
+        "worksite",
+        "showhome_v3"
+      ],
+      "glb": "props/worksite/timber_pallet/timber_pallet.glb",
+      "lod1": "props/worksite/timber_pallet/timber_pallet_lod1.glb",
+      "collision": "props/worksite/timber_pallet/collision.json",
+      "source": "original procedural phase-2 worksite kit",
+      "licence": "project original",
+      "openable_parts": [],
+      "size_m": [
+        1.25,
+        0.9599999785423279,
+        0.16999998688697815
+      ],
+      "triangles": 96,
+      "collision_volumes": 4,
+      "loot_slots": []
+    },
+    {
+      "id": "rebar_bundle",
+      "category": "worksite",
+      "tags": [
+        "worksite",
+        "showhome_v3"
+      ],
+      "glb": "props/worksite/rebar_bundle/rebar_bundle.glb",
+      "lod1": "props/worksite/rebar_bundle/rebar_bundle_lod1.glb",
+      "collision": "props/worksite/rebar_bundle/collision.json",
+      "source": "original procedural phase-2 worksite kit",
+      "licence": "project original",
+      "openable_parts": [],
+      "size_m": [
+        3.999999523162842,
+        0.44999998807907104,
+        0.18000000715255737
+      ],
+      "triangles": 268,
+      "collision_volumes": 1,
+      "loot_slots": []
+    },
+    {
+      "id": "temporary_guardrail",
+      "category": "worksite",
+      "tags": [
+        "worksite",
+        "showhome_v3"
+      ],
+      "glb": "props/worksite/temporary_guardrail/temporary_guardrail.glb",
+      "lod1": "props/worksite/temporary_guardrail/temporary_guardrail_lod1.glb",
+      "collision": "props/worksite/temporary_guardrail/collision.json",
+      "source": "original procedural phase-2 worksite kit",
+      "licence": "project original",
+      "openable_parts": [],
+      "size_m": [
+        4.5,
+        0.08500000089406967,
+        1.100000023841858
+      ],
+      "triangles": 264,
+      "collision_volumes": 6,
+      "loot_slots": []
+    },
+    {
+      "id": "site_office_stairs",
+      "category": "worksite",
+      "tags": [
+        "worksite",
+        "showhome_v3"
+      ],
+      "glb": "props/worksite/site_office_stairs/site_office_stairs.glb",
+      "lod1": "props/worksite/site_office_stairs/site_office_stairs_lod1.glb",
+      "collision": "props/worksite/site_office_stairs/collision.json",
+      "source": "original procedural office stair attachment; extension/build_office_stairs.py",
+      "licence": "project original",
+      "openable_parts": [],
+      "size_m": [
+        5.100000381469727,
+        6.150000095367432,
+        3.903120756149292
+      ],
+      "triangles": 5592,
+      "collision_volumes": 78,
+      "loot_slots": [],
+      "mount": "site_office",
+      "pivot": "lower office ground-centre mounting datum",
+      "pivot_exception": "attachment origin, not base-bbox centre",
+      "placement_offset_m": [
+        0,
+        0,
+        0
+      ],
+      "upper_office_offset_m": [
+        0,
+        0,
+        2.8
+      ],
+      "flight_entry_offset_m": [
+        -3.65,
+        -7,
+        0
+      ],
+      "flight_top_offset_m": [
+        -3.65,
+        -2.2,
+        2.8
+      ],
+      "upper_door_offset_m": [
+        0,
+        -1.4,
+        2.8
+      ],
+      "finished_floor_m": 2.9,
+      "landing_top_m": 2.8,
+      "clear_width_m": 1.2,
+      "rail_height_m": 1.05,
+      "landing_sheet_thickness_m": 0.008,
+      "original_geometry": true,
+      "source_builder": "maps/showhome_v3/extension/build_office_stairs.py",
+      "landing_notch_bounds_m": [
+        -4.3,
+        -2.7,
+        -3.05,
+        -2.2
+      ],
+      "turn_pocket_bounds_m": [
+        -4.4,
+        -2.2,
+        -3.05,
+        -0.98
+      ]
+    },
+    {
+      "id": "garden_bench",
+      "category": "garden",
+      "tags": [
+        "garden",
+        "showhome_v3"
+      ],
+      "glb": "props/garden/garden_bench/garden_bench.glb",
+      "lod1": "props/garden/garden_bench/garden_bench_lod1.glb",
+      "collision": "props/garden/garden_bench/collision.json",
+      "source": "original procedural communal kit; extension/build_communal_props.py",
+      "licence": "project original",
+      "openable_parts": [],
+      "size_m": [
+        1.7999999523162842,
+        0.7132359743118286,
+        0.878000020980835
+      ],
+      "triangles": 1056,
+      "collision_volumes": 24,
+      "loot_slots": [],
+      "pivot": "base-centre at Z=0",
+      "front": "design -Y",
+      "original_geometry": true,
+      "source_builder": "maps/showhome_v3/extension/build_communal_props.py"
+    },
+    {
+      "id": "raised_green_bed",
+      "category": "garden",
+      "tags": [
+        "garden",
+        "showhome_v3"
+      ],
+      "glb": "props/garden/raised_green_bed/raised_green_bed.glb",
+      "lod1": "props/garden/raised_green_bed/raised_green_bed_lod1.glb",
+      "collision": "props/garden/raised_green_bed/collision.json",
+      "source": "original procedural communal kit; extension/build_communal_props.py",
+      "licence": "project original",
+      "openable_parts": [],
+      "size_m": [
+        4.0,
+        2.0,
+        0.44999998807907104
+      ],
+      "triangles": 396,
+      "collision_volumes": 9,
+      "loot_slots": [],
+      "pivot": "base-centre at Z=0",
+      "front": "design -Y",
+      "original_geometry": true,
+      "source_builder": "maps/showhome_v3/extension/build_communal_props.py",
+      "soil_top_m": 0.355,
+      "foliage_local_min": [
+        -1.8,
+        -0.8,
+        0.36
+      ],
+      "foliage_local_max": [
+        1.8,
+        0.8,
+        0.85
+      ],
+      "foliage_baked": false
+    },
+    {
+      "id": "playground_set",
+      "category": "garden",
+      "tags": [
+        "garden",
+        "showhome_v3"
+      ],
+      "glb": "props/garden/playground_set/playground_set.glb",
+      "lod1": "props/garden/playground_set/playground_set_lod1.glb",
+      "collision": "props/garden/playground_set/collision.json",
+      "source": "original procedural communal kit; extension/build_communal_props.py",
+      "licence": "project original",
+      "openable_parts": [],
+      "size_m": [
+        8.0,
+        6.0,
+        2.700000047683716
+      ],
+      "triangles": 5664,
+      "collision_volumes": 76,
+      "loot_slots": [],
+      "pivot": "base-centre at Z=0",
+      "front": "design -Y",
+      "original_geometry": true,
+      "source_builder": "maps/showhome_v3/extension/build_communal_props.py"
+    },
+    {
+      "id": "organic_planter_bench",
+      "category": "garden",
+      "tags": [
+        "garden",
+        "showhome_v3"
+      ],
+      "glb": "props/garden/organic_planter_bench/organic_planter_bench.glb",
+      "lod1": "props/garden/organic_planter_bench/organic_planter_bench_lod1.glb",
+      "collision": "props/garden/organic_planter_bench/collision.json",
+      "source": "original procedural organic planter/bench; extension/build_organic_planter.py",
+      "licence": "project original",
+      "openable_parts": [],
+      "size_m": [
+        7.142146110534668,
+        3.7175726890563965,
+        0.6499999761581421
+      ],
+      "triangles": 16608,
+      "collision_volumes": 270,
+      "loot_slots": [],
+      "bounds_m": {
+        "min": [
+          -3.571073055267334,
+          -1.8587863445281982,
+          0.0
+        ],
+        "max": [
+          3.571073055267334,
+          1.8587863445281982,
+          0.6499999761581421
+        ]
+      },
+      "seat_top_m": 0.45,
+      "soil_top_m": 0.53,
+      "bed_bounds_m": {
+        "min": [
+          -3.571073055267334,
+          -1.346671462059021,
+          0.0
+        ],
+        "max": [
+          3.4649267196655273,
+          1.3427371978759766,
+          0.6499999761581421
+        ]
+      },
+      "wall_thickness_m": 0.22,
+      "printed_course_pitch_m": 0.04,
+      "printed_relief_m": 0.009,
+      "bench_run_lengths_m": [
+        6.305202245277158,
+        2.4344379743102453
+      ],
+      "foliage_baked": false,
+      "foliage_local_volumes": [
+        {
+          "name": "GREENFOL_OrganicPlanter_0",
+          "foliage": "hedge",
+          "density": 1.15,
+          "tint": "sage_hedge",
+          "aabb": {
+            "min": [
+              -2.843966007232666,
+              -0.18035686016082764,
+              0.5350000262260437
+            ],
+            "max": [
+              -2.2221803665161133,
+              0.39359939098358154,
+              1.350000023841858
+            ]
+          },
+          "source_prop": "organic_planter_bench",
+          "render_proxy": "existing game foliage system; no leaves baked"
+        },
+        {
+          "name": "GREENFOL_OrganicPlanter_1",
+          "foliage": "hedge",
+          "density": 1.15,
+          "tint": "sage_hedge",
+          "aabb": {
+            "min": [
+              -1.6835732460021973,
+              -0.6673787236213684,
+              0.5350000262260437
+            ],
+            "max": [
+              0.017426729202270508,
+              -0.01937873661518097,
+              1.350000023841858
+            ]
+          },
+          "source_prop": "organic_planter_bench",
+          "render_proxy": "existing game foliage system; no leaves baked"
+        },
+        {
+          "name": "GREENFOL_OrganicPlanter_2",
+          "foliage": "hedge",
+          "density": 1.15,
+          "tint": "sage_hedge",
+          "aabb": {
+            "min": [
+              0.924426794052124,
+              -0.2608787417411804,
+              0.5350000262260437
+            ],
+            "max": [
+              2.409426689147949,
+              0.7741212844848633,
+              1.350000023841858
+            ]
+          },
+          "source_prop": "organic_planter_bench",
+          "render_proxy": "existing game foliage system; no leaves baked"
+        }
+      ],
+      "base_centre_offset_m": [
+        -0.3330732583999634,
+        0.10662126541137695,
+        -0.0
+      ],
+      "pivot": "base-centre at Z=0",
+      "front": "design -Y",
+      "original_geometry": true,
+      "source_builder": "maps/showhome_v3/extension/build_organic_planter.py"
+    },
+    {
+      "id": "picket_panel_short",
+      "category": "fences",
+      "tags": [
+        "fences",
+        "showhome_v3"
+      ],
+      "glb": "props/fences/picket_panel_short/picket_panel_short.glb",
+      "lod1": "props/fences/picket_panel_short/picket_panel_short_lod1.glb",
+      "collision": "props/fences/picket_panel_short/collision.json",
+      "source": "original procedural v3",
+      "licence": "project original",
+      "openable_parts": [],
+      "size_m": [
+        1.8200000524520874,
+        0.07000000029802322,
+        1.2000000476837158
+      ],
+      "triangles": 836,
+      "collision_volumes": 19,
+      "loot_slots": []
+    },
+    {
+      "id": "arbour",
+      "category": "garden",
+      "tags": [
+        "garden",
+        "showhome_legacy"
+      ],
+      "glb": "props/garden/arbour/arbour.glb",
+      "lod1": "props/garden/arbour/arbour_lod1.glb",
+      "collision": "props/garden/arbour/collision.json",
+      "source": "original assets/maps/showhome procedural Arbour",
+      "licence": "project original",
+      "openable_parts": [],
+      "size_m": [
+        3.0264549255371094,
+        6.020316123962402,
+        2.4085581302642822
+      ],
+      "triangles": 5668,
+      "collision_volumes": 1,
+      "loot_slots": [],
+      "legacy_root": "PROP_Arbour"
+    },
+    {
+      "id": "armchair_boxed",
+      "category": "furniture",
+      "tags": [
+        "furniture",
+        "showhome_legacy"
+      ],
+      "glb": "props/furniture/armchair_boxed/armchair_boxed.glb",
+      "lod1": "props/furniture/armchair_boxed/armchair_boxed_lod1.glb",
+      "collision": "props/furniture/armchair_boxed/collision.json",
+      "source": "original assets/maps/showhome procedural Armchair",
+      "licence": "project original",
+      "openable_parts": [],
+      "size_m": [
+        1.2000000476837158,
+        1.2000000476837158,
+        0.8009999990463257
+      ],
+      "triangles": 880,
+      "collision_volumes": 1,
+      "loot_slots": [],
+      "legacy_root": "PROP_Armchair"
+    },
+    {
+      "id": "bin_store",
+      "category": "utilities",
+      "tags": [
+        "utilities",
+        "showhome_legacy"
+      ],
+      "glb": "props/utilities/bin_store/bin_store.glb",
+      "lod1": "props/utilities/bin_store/bin_store_lod1.glb",
+      "collision": "props/utilities/bin_store/collision.json",
+      "source": "original assets/maps/showhome procedural BinStore",
+      "licence": "project original",
+      "openable_parts": [],
+      "size_m": [
+        3.0159997940063477,
+        6.0,
+        2.200000047683716
+      ],
+      "triangles": 388,
+      "collision_volumes": 1,
+      "loot_slots": [],
+      "legacy_root": "PROP_BinStore"
+    },
+    {
+      "id": "box_small",
+      "category": "clutter",
+      "tags": [
+        "clutter",
+        "showhome_legacy"
+      ],
+      "glb": "props/clutter/box_small/box_small.glb",
+      "lod1": "props/clutter/box_small/box_small_lod1.glb",
+      "collision": "props/clutter/box_small/collision.json",
+      "source": "original assets/maps/showhome procedural Box_S",
+      "licence": "project original",
+      "openable_parts": [],
+      "size_m": [
+        0.4000000059604645,
+        0.3020000159740448,
+        0.3009999990463257
+      ],
+      "triangles": 144,
+      "collision_volumes": 1,
+      "loot_slots": [],
+      "legacy_root": "PROP_Box_S"
+    },
+    {
+      "id": "box_medium",
+      "category": "clutter",
+      "tags": [
+        "clutter",
+        "showhome_legacy"
+      ],
+      "glb": "props/clutter/box_medium/box_medium.glb",
+      "lod1": "props/clutter/box_medium/box_medium_lod1.glb",
+      "collision": "props/clutter/box_medium/collision.json",
+      "source": "original assets/maps/showhome procedural Box_M",
+      "licence": "project original",
+      "openable_parts": [],
+      "size_m": [
+        0.6000000238418579,
+        0.4020000100135803,
+        0.42100000381469727
+      ],
+      "triangles": 144,
+      "collision_volumes": 1,
+      "loot_slots": [],
+      "legacy_root": "PROP_Box_M"
+    },
+    {
+      "id": "box_large",
+      "category": "clutter",
+      "tags": [
+        "clutter",
+        "showhome_legacy"
+      ],
+      "glb": "props/clutter/box_large/box_large.glb",
+      "lod1": "props/clutter/box_large/box_large_lod1.glb",
+      "collision": "props/clutter/box_large/collision.json",
+      "source": "original assets/maps/showhome procedural Box_L",
+      "licence": "project original",
+      "openable_parts": [],
+      "size_m": [
+        0.800000011920929,
+        0.5519999861717224,
+        0.5509999990463257
+      ],
+      "triangles": 144,
+      "collision_volumes": 1,
+      "loot_slots": [],
+      "legacy_root": "PROP_Box_L"
+    },
+    {
+      "id": "box_medium_open",
+      "category": "clutter",
+      "tags": [
+        "clutter",
+        "showhome_legacy"
+      ],
+      "glb": "props/clutter/box_medium_open/box_medium_open.glb",
+      "lod1": "props/clutter/box_medium_open/box_medium_open_lod1.glb",
+      "collision": "props/clutter/box_medium_open/collision.json",
+      "source": "original assets/maps/showhome procedural Box_M_Open",
+      "licence": "project original",
+      "openable_parts": [],
+      "size_m": [
+        0.8399999737739563,
+        0.7400000095367432,
+        0.5699999928474426
+      ],
+      "triangles": 88,
+      "collision_volumes": 1,
+      "loot_slots": [],
+      "legacy_root": "PROP_Box_M_Open"
+    },
+    {
+      "id": "box_stack",
+      "category": "clutter",
+      "tags": [
+        "clutter",
+        "showhome_legacy"
+      ],
+      "glb": "props/clutter/box_stack/box_stack.glb",
+      "lod1": "props/clutter/box_stack/box_stack_lod1.glb",
+      "collision": "props/clutter/box_stack/collision.json",
+      "source": "original assets/maps/showhome procedural BoxStack_1m",
+      "licence": "project original",
+      "openable_parts": [],
+      "size_m": [
+        1.0056524276733398,
+        1.0019999742507935,
+        1.000999927520752
+      ],
+      "triangles": 476,
+      "collision_volumes": 1,
+      "loot_slots": [],
+      "legacy_root": "PROP_BoxStack_1m"
+    },
+    {
+      "id": "wood_crate",
+      "category": "clutter",
+      "tags": [
+        "clutter",
+        "showhome_legacy"
+      ],
+      "glb": "props/clutter/wood_crate/wood_crate.glb",
+      "lod1": "props/clutter/wood_crate/wood_crate_lod1.glb",
+      "collision": "props/clutter/wood_crate/collision.json",
+      "source": "original assets/maps/showhome procedural Crate_Wood_1m",
+      "licence": "project original",
+      "openable_parts": [],
+      "size_m": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "triangles": 2148,
+      "collision_volumes": 1,
+      "loot_slots": [],
+      "legacy_root": "PROP_Crate_Wood_1m"
+    },
+    {
+      "id": "cement_bag",
+      "category": "worksite",
+      "tags": [
+        "worksite",
+        "showhome_legacy"
+      ],
+      "glb": "props/worksite/cement_bag/cement_bag.glb",
+      "lod1": "props/worksite/cement_bag/cement_bag_lod1.glb",
+      "collision": "props/worksite/cement_bag/collision.json",
+      "source": "original assets/maps/showhome procedural CementBag",
+      "licence": "project original",
+      "openable_parts": [],
+      "size_m": [
+        0.6200000047683716,
+        0.36000001430511475,
+        0.15700000524520874
+      ],
+      "triangles": 284,
+      "collision_volumes": 1,
+      "loot_slots": [],
+      "legacy_root": "PROP_CementBag"
+    },
+    {
+      "id": "cement_bag_pallet",
+      "category": "worksite",
+      "tags": [
+        "worksite",
+        "showhome_legacy"
+      ],
+      "glb": "props/worksite/cement_bag_pallet/cement_bag_pallet.glb",
+      "lod1": "props/worksite/cement_bag_pallet/cement_bag_pallet_lod1.glb",
+      "collision": "props/worksite/cement_bag_pallet/collision.json",
+      "source": "original assets/maps/showhome procedural CementBagPallet",
+      "licence": "project original",
+      "openable_parts": [],
+      "size_m": [
+        1.2000000476837158,
+        0.800000011920929,
+        0.777999997138977
+      ],
+      "triangles": 4896,
+      "collision_volumes": 1,
+      "loot_slots": [],
+      "legacy_root": "PROP_CementBagPallet"
+    },
+    {
+      "id": "charger_island",
+      "category": "utilities",
+      "tags": [
+        "utilities",
+        "showhome_legacy"
+      ],
+      "glb": "props/utilities/charger_island/charger_island.glb",
+      "lod1": "props/utilities/charger_island/charger_island_lod1.glb",
+      "collision": "props/utilities/charger_island/collision.json",
+      "source": "original assets/maps/showhome procedural ChargerIsland",
+      "licence": "project original",
+      "openable_parts": [],
+      "size_m": [
+        2.0303988456726074,
+        4.0,
+        2.4000000953674316
+      ],
+      "triangles": 1192,
+      "collision_volumes": 1,
+      "loot_slots": [],
+      "legacy_root": "PROP_ChargerIsland"
+    },
+    {
+      "id": "dirt_mound",
+      "category": "worksite",
+      "tags": [
+        "worksite",
+        "showhome_legacy"
+      ],
+      "glb": "props/worksite/dirt_mound/dirt_mound.glb",
+      "lod1": "props/worksite/dirt_mound/dirt_mound_lod1.glb",
+      "collision": "props/worksite/dirt_mound/collision.json",
+      "source": "original assets/maps/showhome procedural DirtMound",
+      "licence": "project original",
+      "openable_parts": [],
+      "size_m": [
+        2.4724130630493164,
+        1.618224859237671,
+        0.49628764390945435
+      ],
+      "triangles": 80,
+      "collision_volumes": 1,
+      "loot_slots": [],
+      "legacy_root": "PROP_DirtMound"
+    },
+    {
+      "id": "sand_mound",
+      "category": "worksite",
+      "tags": [
+        "worksite",
+        "showhome_legacy"
+      ],
+      "glb": "props/worksite/sand_mound/sand_mound.glb",
+      "lod1": "props/worksite/sand_mound/sand_mound_lod1.glb",
+      "collision": "props/worksite/sand_mound/collision.json",
+      "source": "original assets/maps/showhome procedural SandMound",
+      "licence": "project original",
+      "openable_parts": [],
+      "size_m": [
+        2.4830808639526367,
+        2.5144028663635254,
+        0.650428295135498
+      ],
+      "triangles": 80,
+      "collision_volumes": 1,
+      "loot_slots": [],
+      "legacy_root": "PROP_SandMound"
+    },
+    {
+      "id": "chest_of_drawers",
+      "category": "furniture",
+      "tags": [
+        "furniture",
+        "showhome_legacy"
+      ],
+      "glb": "props/furniture/chest_of_drawers/chest_of_drawers.glb",
+      "lod1": "props/furniture/chest_of_drawers/chest_of_drawers_lod1.glb",
+      "collision": "props/furniture/chest_of_drawers/collision.json",
+      "source": "original assets/maps/showhome procedural Dresser",
+      "licence": "project original",
+      "openable_parts": [],
+      "size_m": [
+        0.6150000095367432,
+        2.0,
+        1.2000000476837158
+      ],
+      "triangles": 652,
+      "collision_volumes": 1,
+      "loot_slots": [],
+      "legacy_root": "PROP_Dresser"
+    },
+    {
+      "id": "picket_gate_1m",
+      "category": "fences",
+      "tags": [
+        "fences",
+        "showhome_legacy"
+      ],
+      "glb": "props/fences/picket_gate_1m/picket_gate_1m.glb",
+      "lod1": "props/fences/picket_gate_1m/picket_gate_1m_lod1.glb",
+      "collision": "props/fences/picket_gate_1m/collision.json",
+      "source": "original assets/maps/showhome procedural Fence_Gate_1m",
+      "licence": "project original",
+      "openable_parts": [],
+      "size_m": [
+        0.06199999898672104,
+        0.9500000476837158,
+        1.056495189666748
+      ],
+      "triangles": 688,
+      "collision_volumes": 1,
+      "loot_slots": [],
+      "legacy_root": "PROP_Fence_Gate_1m"
+    },
+    {
+      "id": "picket_fence_1m",
+      "category": "fences",
+      "tags": [
+        "fences",
+        "showhome_legacy"
+      ],
+      "glb": "props/fences/picket_fence_1m/picket_fence_1m.glb",
+      "lod1": "props/fences/picket_fence_1m/picket_fence_1m_lod1.glb",
+      "collision": "props/fences/picket_fence_1m/collision.json",
+      "source": "original assets/maps/showhome procedural Fence_Picket_1m",
+      "licence": "project original",
+      "openable_parts": [],
+      "size_m": [
+        0.30000001192092896,
+        1.0,
+        1.2000000476837158
+      ],
+      "triangles": 1020,
+      "collision_volumes": 1,
+      "loot_slots": [],
+      "legacy_root": "PROP_Fence_Picket_1m"
+    },
+    {
+      "id": "picket_fence_2m",
+      "category": "fences",
+      "tags": [
+        "fences",
+        "showhome_legacy"
+      ],
+      "glb": "props/fences/picket_fence_2m/picket_fence_2m.glb",
+      "lod1": "props/fences/picket_fence_2m/picket_fence_2m_lod1.glb",
+      "collision": "props/fences/picket_fence_2m/collision.json",
+      "source": "original assets/maps/showhome procedural Fence_Picket_2m",
+      "licence": "project original",
+      "openable_parts": [],
+      "size_m": [
+        0.30000001192092896,
+        2.0,
+        1.2000000476837158
+      ],
+      "triangles": 1916,
+      "collision_volumes": 1,
+      "loot_slots": [],
+      "legacy_root": "PROP_Fence_Picket_2m"
+    },
+    {
+      "id": "picket_post",
+      "category": "fences",
+      "tags": [
+        "fences",
+        "showhome_legacy"
+      ],
+      "glb": "props/fences/picket_post/picket_post.glb",
+      "lod1": "props/fences/picket_post/picket_post_lod1.glb",
+      "collision": "props/fences/picket_post/collision.json",
+      "source": "original assets/maps/showhome procedural Fence_Post",
+      "licence": "project original",
+      "openable_parts": [],
+      "size_m": [
+        0.30000001192092896,
+        0.14000000059604645,
+        1.2000000476837158
+      ],
+      "triangles": 152,
+      "collision_volumes": 1,
+      "loot_slots": [],
+      "legacy_root": "PROP_Fence_Post"
+    },
+    {
+      "id": "picket_run_5m",
+      "category": "fences",
+      "tags": [
+        "fences",
+        "showhome_legacy"
+      ],
+      "glb": "props/fences/picket_run_5m/picket_run_5m.glb",
+      "lod1": "props/fences/picket_run_5m/picket_run_5m_lod1.glb",
+      "collision": "props/fences/picket_run_5m/collision.json",
+      "source": "original assets/maps/showhome procedural Fence_Run_N",
+      "licence": "project original",
+      "openable_parts": [],
+      "size_m": [
+        0.30000001192092896,
+        5.0,
+        1.2000000476837158
+      ],
+      "triangles": 4644,
+      "collision_volumes": 1,
+      "loot_slots": [],
+      "legacy_root": "PROP_Fence_Run_N"
+    },
+    {
+      "id": "picket_run_10m",
+      "category": "fences",
+      "tags": [
+        "fences",
+        "showhome_legacy"
+      ],
+      "glb": "props/fences/picket_run_10m/picket_run_10m.glb",
+      "lod1": "props/fences/picket_run_10m/picket_run_10m_lod1.glb",
+      "collision": "props/fences/picket_run_10m/collision.json",
+      "source": "original assets/maps/showhome procedural Fence_Run_S",
+      "licence": "project original",
+      "openable_parts": [],
+      "size_m": [
+        0.30000001192092896,
+        10.600000381469727,
+        1.2000000476837158
+      ],
+      "triangles": 9744,
+      "collision_volumes": 1,
+      "loot_slots": [],
+      "legacy_root": "PROP_Fence_Run_S"
+    },
+    {
+      "id": "greenhouse_clay",
+      "category": "buildings",
+      "tags": [
+        "buildings",
+        "showhome_legacy"
+      ],
+      "glb": "props/buildings/greenhouse_clay/greenhouse_clay.glb",
+      "lod1": "props/buildings/greenhouse_clay/greenhouse_clay_lod1.glb",
+      "collision": "props/buildings/greenhouse_clay/collision.json",
+      "source": "original assets/maps/showhome procedural Greenhouse_Clay",
+      "licence": "project original",
+      "openable_parts": [],
+      "size_m": [
+        5.711998462677002,
+        4.212000370025635,
+        2.799999952316284
+      ],
+      "triangles": 1840,
+      "collision_volumes": 11,
+      "loot_slots": [],
+      "legacy_root": "PROP_Greenhouse_Clay"
+    },
+    {
+      "id": "greenhouse_sage",
+      "category": "buildings",
+      "tags": [
+        "buildings",
+        "showhome_legacy"
+      ],
+      "glb": "props/buildings/greenhouse_sage/greenhouse_sage.glb",
+      "lod1": "props/buildings/greenhouse_sage/greenhouse_sage_lod1.glb",
+      "collision": "props/buildings/greenhouse_sage/collision.json",
+      "source": "original assets/maps/showhome procedural Greenhouse_Sage",
+      "licence": "project original",
+      "openable_parts": [],
+      "size_m": [
+        5.712000846862793,
+        4.212000370025635,
+        2.799999952316284
+      ],
+      "triangles": 1840,
+      "collision_volumes": 11,
+      "loot_slots": [],
+      "legacy_root": "PROP_Greenhouse_Sage"
+    },
+    {
+      "id": "hedge_block_2m",
+      "category": "garden",
+      "tags": [
+        "garden",
+        "showhome_legacy"
+      ],
+      "glb": "props/garden/hedge_block_2m/hedge_block_2m.glb",
+      "lod1": "props/garden/hedge_block_2m/hedge_block_2m_lod1.glb",
+      "collision": "props/garden/hedge_block_2m/collision.json",
+      "source": "original assets/maps/showhome procedural Hedge_Block_2m",
+      "licence": "project original",
+      "openable_parts": [],
+      "size_m": [
+        1.9913403987884521,
+        0.7915024161338806,
+        1.1913031339645386
+      ],
+      "triangles": 620,
+      "collision_volumes": 1,
+      "loot_slots": [],
+      "legacy_root": "PROP_Hedge_Block_2m"
+    },
+    {
+      "id": "hedge_block_4m_tall",
+      "category": "garden",
+      "tags": [
+        "garden",
+        "showhome_legacy"
+      ],
+      "glb": "props/garden/hedge_block_4m_tall/hedge_block_4m_tall.glb",
+      "lod1": "props/garden/hedge_block_4m_tall/hedge_block_4m_tall_lod1.glb",
+      "collision": "props/garden/hedge_block_4m_tall/collision.json",
+      "source": "original assets/maps/showhome procedural Hedge_Block_4m_Tall",
+      "licence": "project original",
+      "openable_parts": [],
+      "size_m": [
+        3.9900026321411133,
+        0.9912543296813965,
+        2.3904199600219727
+      ],
+      "triangles": 1200,
+      "collision_volumes": 1,
+      "loot_slots": [],
+      "legacy_root": "PROP_Hedge_Block_4m_Tall"
+    },
+    {
+      "id": "hedge_boundary_46m",
+      "category": "garden",
+      "tags": [
+        "garden",
+        "showhome_legacy"
+      ],
+      "glb": "props/garden/hedge_boundary_46m/hedge_boundary_46m.glb",
+      "lod1": "props/garden/hedge_boundary_46m/hedge_boundary_46m_lod1.glb",
+      "collision": "props/garden/hedge_boundary_46m/collision.json",
+      "source": "original assets/maps/showhome procedural Hedge_Boundary",
+      "licence": "project original",
+      "openable_parts": [],
+      "size_m": [
+        0.9935691356658936,
+        45.99214172363281,
+        2.9926443099975586
+      ],
+      "triangles": 8540,
+      "collision_volumes": 1,
+      "loot_slots": [],
+      "legacy_root": "PROP_Hedge_Boundary"
+    },
+    {
+      "id": "hedge_lawn_5m",
+      "category": "garden",
+      "tags": [
+        "garden",
+        "showhome_legacy"
+      ],
+      "glb": "props/garden/hedge_lawn_5m/hedge_lawn_5m.glb",
+      "lod1": "props/garden/hedge_lawn_5m/hedge_lawn_5m_lod1.glb",
+      "collision": "props/garden/hedge_lawn_5m/collision.json",
+      "source": "original assets/maps/showhome procedural Hedge_Lawn",
+      "licence": "project original",
+      "openable_parts": [],
+      "size_m": [
+        5.190727233886719,
+        0.791658878326416,
+        1.9918420314788818
+      ],
+      "triangles": 1300,
+      "collision_volumes": 1,
+      "loot_slots": [],
+      "legacy_root": "PROP_Hedge_Lawn"
+    },
+    {
+      "id": "kerb_pod",
+      "category": "vehicles",
+      "tags": [
+        "vehicles",
+        "showhome_legacy"
+      ],
+      "glb": "props/vehicles/kerb_pod/kerb_pod.glb",
+      "lod1": "props/vehicles/kerb_pod/kerb_pod_lod1.glb",
+      "collision": "props/vehicles/kerb_pod/collision.json",
+      "source": "original assets/maps/showhome procedural KerbPod",
+      "licence": "project original",
+      "openable_parts": [],
+      "size_m": [
+        2.0160000324249268,
+        3.611999988555908,
+        2.200000047683716
+      ],
+      "triangles": 6752,
+      "collision_volumes": 1,
+      "loot_slots": [],
+      "legacy_root": "PROP_KerbPod"
+    },
+    {
+      "id": "kitchen_island",
+      "category": "furniture",
+      "tags": [
+        "furniture",
+        "showhome_legacy"
+      ],
+      "glb": "props/furniture/kitchen_island/kitchen_island.glb",
+      "lod1": "props/furniture/kitchen_island/kitchen_island_lod1.glb",
+      "collision": "props/furniture/kitchen_island/collision.json",
+      "source": "original assets/maps/showhome procedural KitchenIsland",
+      "licence": "project original",
+      "openable_parts": [],
+      "size_m": [
+        2.0139999389648438,
+        2.5,
+        1.0
+      ],
+      "triangles": 324,
+      "collision_volumes": 1,
+      "loot_slots": [],
+      "legacy_root": "PROP_KitchenIsland"
+    },
+    {
+      "id": "model_table",
+      "category": "furniture",
+      "tags": [
+        "furniture",
+        "showhome_legacy"
+      ],
+      "glb": "props/furniture/model_table/model_table.glb",
+      "lod1": "props/furniture/model_table/model_table_lod1.glb",
+      "collision": "props/furniture/model_table/collision.json",
+      "source": "original assets/maps/showhome procedural ModelTable",
+      "licence": "project original",
+      "openable_parts": [],
+      "size_m": [
+        4.0,
+        2.0,
+        1.0099999904632568
+      ],
+      "triangles": 316,
+      "collision_volumes": 1,
+      "loot_slots": [],
+      "legacy_root": "PROP_ModelTable"
+    },
+    {
+      "id": "outdoor_kitchen",
+      "category": "garden",
+      "tags": [
+        "garden",
+        "showhome_legacy"
+      ],
+      "glb": "props/garden/outdoor_kitchen/outdoor_kitchen.glb",
+      "lod1": "props/garden/outdoor_kitchen/outdoor_kitchen_lod1.glb",
+      "collision": "props/garden/outdoor_kitchen/collision.json",
+      "source": "original assets/maps/showhome procedural OutdoorKitchen",
+      "licence": "project original",
+      "openable_parts": [],
+      "size_m": [
+        3.0,
+        1.0190000534057617,
+        2.200000047683716
+      ],
+      "triangles": 972,
+      "collision_volumes": 1,
+      "loot_slots": [],
+      "legacy_root": "PROP_OutdoorKitchen"
+    },
+    {
+      "id": "pallet_empty",
+      "category": "worksite",
+      "tags": [
+        "worksite",
+        "showhome_legacy"
+      ],
+      "glb": "props/worksite/pallet_empty/pallet_empty.glb",
+      "lod1": "props/worksite/pallet_empty/pallet_empty_lod1.glb",
+      "collision": "props/worksite/pallet_empty/collision.json",
+      "source": "original assets/maps/showhome procedural Pallet",
+      "licence": "project original",
+      "openable_parts": [],
+      "size_m": [
+        1.2000000476837158,
+        0.800000011920929,
+        0.16600000858306885
+      ],
+      "triangles": 352,
+      "collision_volumes": 1,
+      "loot_slots": [],
+      "legacy_root": "PROP_Pallet"
+    },
+    {
+      "id": "parcel_hub",
+      "category": "buildings",
+      "tags": [
+        "buildings",
+        "showhome_legacy"
+      ],
+      "glb": "props/buildings/parcel_hub/parcel_hub.glb",
+      "lod1": "props/buildings/parcel_hub/parcel_hub_lod1.glb",
+      "collision": "props/buildings/parcel_hub/collision.json",
+      "source": "original assets/maps/showhome procedural ParcelHub",
+      "licence": "project original",
+      "openable_parts": [],
+      "size_m": [
+        4.0,
+        5.0,
+        3.0
+      ],
+      "triangles": 3536,
+      "collision_volumes": 2,
+      "loot_slots": [],
+      "legacy_root": "PROP_ParcelHub"
+    },
+    {
+      "id": "parcel_lockers",
+      "category": "utilities",
+      "tags": [
+        "utilities",
+        "showhome_legacy"
+      ],
+      "glb": "props/utilities/parcel_lockers/parcel_lockers.glb",
+      "lod1": "props/utilities/parcel_lockers/parcel_lockers_lod1.glb",
+      "collision": "props/utilities/parcel_lockers/collision.json",
+      "source": "original assets/maps/showhome procedural ParcelLockers",
+      "licence": "project original",
+      "openable_parts": [],
+      "size_m": [
+        2.0160000324249268,
+        8.0,
+        2.200000047683716
+      ],
+      "triangles": 3812,
+      "collision_volumes": 1,
+      "loot_slots": [],
+      "legacy_root": "PROP_ParcelLockers"
+    },
+    {
+      "id": "pebble_cluster",
+      "category": "garden",
+      "tags": [
+        "garden",
+        "showhome_legacy"
+      ],
+      "glb": "props/garden/pebble_cluster/pebble_cluster.glb",
+      "lod1": "props/garden/pebble_cluster/pebble_cluster_lod1.glb",
+      "collision": "props/garden/pebble_cluster/collision.json",
+      "source": "original assets/maps/showhome procedural PebbleCluster",
+      "licence": "project original",
+      "openable_parts": [],
+      "size_m": [
+        0.8153833150863647,
+        0.4570889174938202,
+        0.11101366579532623
+      ],
+      "triangles": 180,
+      "collision_volumes": 1,
+      "loot_slots": [],
+      "legacy_root": "PROP_PebbleCluster"
+    },
+    {
+      "id": "water_barrier",
+      "category": "worksite",
+      "tags": [
+        "worksite",
+        "showhome_legacy"
+      ],
+      "glb": "props/worksite/water_barrier/water_barrier.glb",
+      "lod1": "props/worksite/water_barrier/water_barrier_lod1.glb",
+      "collision": "props/worksite/water_barrier/collision.json",
+      "source": "original assets/maps/showhome procedural PlasticBarrier",
+      "licence": "project original",
+      "openable_parts": [],
+      "size_m": [
+        2.0,
+        0.7599999904632568,
+        0.9800000190734863
+      ],
+      "triangles": 544,
+      "collision_volumes": 1,
+      "loot_slots": [],
+      "legacy_root": "PROP_PlasticBarrier"
+    },
+    {
+      "id": "printed_block_stack",
+      "category": "worksite",
+      "tags": [
+        "worksite",
+        "showhome_legacy"
+      ],
+      "glb": "props/worksite/printed_block_stack/printed_block_stack.glb",
+      "lod1": "props/worksite/printed_block_stack/printed_block_stack_lod1.glb",
+      "collision": "props/worksite/printed_block_stack/collision.json",
+      "source": "original assets/maps/showhome procedural PrintedBlockStack",
+      "licence": "project original",
+      "openable_parts": [],
+      "size_m": [
+        1.2000000476837158,
+        0.800000011920929,
+        0.9660000205039978
+      ],
+      "triangles": 3592,
+      "collision_volumes": 1,
+      "loot_slots": [],
+      "legacy_root": "PROP_PrintedBlockStack"
+    },
+    {
+      "id": "utility_pylon",
+      "category": "utilities",
+      "tags": [
+        "utilities",
+        "showhome_legacy"
+      ],
+      "glb": "props/utilities/utility_pylon/utility_pylon.glb",
+      "lod1": "props/utilities/utility_pylon/utility_pylon_lod1.glb",
+      "collision": "props/utilities/utility_pylon/collision.json",
+      "source": "original assets/maps/showhome procedural Pylon",
+      "licence": "project original",
+      "openable_parts": [],
+      "size_m": [
+        2.0,
+        2.0,
+        6.600000381469727
+      ],
+      "triangles": 2004,
+      "collision_volumes": 2,
+      "loot_slots": [],
+      "legacy_root": "PROP_Pylon"
+    },
+    {
+      "id": "rain_tank",
+      "category": "utilities",
+      "tags": [
+        "utilities",
+        "showhome_legacy"
+      ],
+      "glb": "props/utilities/rain_tank/rain_tank.glb",
+      "lod1": "props/utilities/rain_tank/rain_tank_lod1.glb",
+      "collision": "props/utilities/rain_tank/collision.json",
+      "source": "original assets/maps/showhome procedural RainTank",
+      "licence": "project original",
+      "openable_parts": [],
+      "size_m": [
+        3.2139999866485596,
+        3.2209999561309814,
+        2.808000087738037
+      ],
+      "triangles": 808,
+      "collision_volumes": 1,
+      "loot_slots": [],
+      "legacy_root": "PROP_RainTank"
+    },
+    {
+      "id": "rebar_bundle_6m",
+      "category": "worksite",
+      "tags": [
+        "worksite",
+        "showhome_legacy"
+      ],
+      "glb": "props/worksite/rebar_bundle_6m/rebar_bundle_6m.glb",
+      "lod1": "props/worksite/rebar_bundle_6m/rebar_bundle_6m_lod1.glb",
+      "collision": "props/worksite/rebar_bundle_6m/collision.json",
+      "source": "original assets/maps/showhome procedural RebarBundle",
+      "licence": "project original",
+      "openable_parts": [],
+      "size_m": [
+        6.0,
+        0.6499999761581421,
+        0.3471554219722748
+      ],
+      "triangles": 664,
+      "collision_volumes": 1,
+      "loot_slots": [],
+      "legacy_root": "PROP_RebarBundle"
+    },
+    {
+      "id": "rock_low",
+      "category": "garden",
+      "tags": [
+        "garden",
+        "showhome_legacy"
+      ],
+      "glb": "props/garden/rock_low/rock_low.glb",
+      "lod1": "props/garden/rock_low/rock_low_lod1.glb",
+      "collision": "props/garden/rock_low/collision.json",
+      "source": "original assets/maps/showhome procedural Rock_Low",
+      "licence": "project original",
+      "openable_parts": [],
+      "size_m": [
+        1.1892423629760742,
+        0.8817976713180542,
+        0.545954704284668
+      ],
+      "triangles": 20,
+      "collision_volumes": 1,
+      "loot_slots": [],
+      "legacy_root": "PROP_Rock_Low"
+    },
+    {
+      "id": "rock_tall",
+      "category": "garden",
+      "tags": [
+        "garden",
+        "showhome_legacy"
+      ],
+      "glb": "props/garden/rock_tall/rock_tall.glb",
+      "lod1": "props/garden/rock_tall/rock_tall_lod1.glb",
+      "collision": "props/garden/rock_tall/collision.json",
+      "source": "original assets/maps/showhome procedural Rock_Tall",
+      "licence": "project original",
+      "openable_parts": [],
+      "size_m": [
+        0.7669969797134399,
+        0.8397865891456604,
+        0.8215374946594238
+      ],
+      "triangles": 20,
+      "collision_volumes": 1,
+      "loot_slots": [],
+      "legacy_root": "PROP_Rock_Tall"
+    },
+    {
+      "id": "sales_office",
+      "category": "buildings",
+      "tags": [
+        "buildings",
+        "showhome_legacy"
+      ],
+      "glb": "props/buildings/sales_office/sales_office.glb",
+      "lod1": "props/buildings/sales_office/sales_office_lod1.glb",
+      "collision": "props/buildings/sales_office/collision.json",
+      "source": "original assets/maps/showhome procedural SalesOffice",
+      "licence": "project original",
+      "openable_parts": [],
+      "size_m": [
+        12.26200008392334,
+        7.257999897003174,
+        3.0
+      ],
+      "triangles": 33104,
+      "collision_volumes": 15,
+      "loot_slots": [],
+      "legacy_root": "PROP_SalesOffice"
+    },
+    {
+      "id": "shed_clay",
+      "category": "buildings",
+      "tags": [
+        "buildings",
+        "showhome_legacy"
+      ],
+      "glb": "props/buildings/shed_clay/shed_clay.glb",
+      "lod1": "props/buildings/shed_clay/shed_clay_lod1.glb",
+      "collision": "props/buildings/shed_clay/collision.json",
+      "source": "original assets/maps/showhome procedural Shed_Clay",
+      "licence": "project original",
+      "openable_parts": [],
+      "size_m": [
+        4.0,
+        4.0,
+        2.5999999046325684
+      ],
+      "triangles": 500,
+      "collision_volumes": 2,
+      "loot_slots": [],
+      "legacy_root": "PROP_Shed_Clay"
+    },
+    {
+      "id": "shed_sage",
+      "category": "buildings",
+      "tags": [
+        "buildings",
+        "showhome_legacy"
+      ],
+      "glb": "props/buildings/shed_sage/shed_sage.glb",
+      "lod1": "props/buildings/shed_sage/shed_sage_lod1.glb",
+      "collision": "props/buildings/shed_sage/collision.json",
+      "source": "original assets/maps/showhome procedural Shed_Sage",
+      "licence": "project original",
+      "openable_parts": [],
+      "size_m": [
+        4.0,
+        4.0,
+        2.5999999046325684
+      ],
+      "triangles": 500,
+      "collision_volumes": 2,
+      "loot_slots": [],
+      "legacy_root": "PROP_Shed_Sage"
+    },
+    {
+      "id": "garage_shelving",
+      "category": "furniture",
+      "tags": [
+        "furniture",
+        "showhome_legacy"
+      ],
+      "glb": "props/furniture/garage_shelving/garage_shelving.glb",
+      "lod1": "props/furniture/garage_shelving/garage_shelving_lod1.glb",
+      "collision": "props/furniture/garage_shelving/collision.json",
+      "source": "original assets/maps/showhome procedural Shelving",
+      "licence": "project original",
+      "openable_parts": [],
+      "size_m": [
+        4.010000228881836,
+        0.5640000104904175,
+        2.200000047683716
+      ],
+      "triangles": 2744,
+      "collision_volumes": 1,
+      "loot_slots": [],
+      "legacy_root": "PROP_Shelving"
+    },
+    {
+      "id": "shuttle_stop",
+      "category": "utilities",
+      "tags": [
+        "utilities",
+        "showhome_legacy"
+      ],
+      "glb": "props/utilities/shuttle_stop/shuttle_stop.glb",
+      "lod1": "props/utilities/shuttle_stop/shuttle_stop_lod1.glb",
+      "collision": "props/utilities/shuttle_stop/collision.json",
+      "source": "original assets/maps/showhome procedural ShuttleStop",
+      "licence": "project original",
+      "openable_parts": [],
+      "size_m": [
+        4.0,
+        2.0160000324249268,
+        2.5999999046325684
+      ],
+      "triangles": 276,
+      "collision_volumes": 1,
+      "loot_slots": [],
+      "legacy_root": "PROP_ShuttleStop"
+    },
+    {
+      "id": "studio_clay",
+      "category": "buildings",
+      "tags": [
+        "buildings",
+        "showhome_legacy"
+      ],
+      "glb": "props/buildings/studio_clay/studio_clay.glb",
+      "lod1": "props/buildings/studio_clay/studio_clay_lod1.glb",
+      "collision": "props/buildings/studio_clay/collision.json",
+      "source": "original assets/maps/showhome procedural Studio_Clay",
+      "licence": "project original",
+      "openable_parts": [],
+      "size_m": [
+        6.205998420715332,
+        5.2079997062683105,
+        2.799999952316284
+      ],
+      "triangles": 23644,
+      "collision_volumes": 12,
+      "loot_slots": [],
+      "legacy_root": "PROP_Studio_Clay"
+    },
+    {
+      "id": "studio_sage",
+      "category": "buildings",
+      "tags": [
+        "buildings",
+        "showhome_legacy"
+      ],
+      "glb": "props/buildings/studio_sage/studio_sage.glb",
+      "lod1": "props/buildings/studio_sage/studio_sage_lod1.glb",
+      "collision": "props/buildings/studio_sage/collision.json",
+      "source": "original assets/maps/showhome procedural Studio_Sage",
+      "licence": "project original",
+      "openable_parts": [],
+      "size_m": [
+        6.206000328063965,
+        5.2079997062683105,
+        2.799999952316284
+      ],
+      "triangles": 23644,
+      "collision_volumes": 12,
+      "loot_slots": [],
+      "legacy_root": "PROP_Studio_Sage"
+    },
+    {
+      "id": "traffic_cone",
+      "category": "worksite",
+      "tags": [
+        "worksite",
+        "showhome_legacy"
+      ],
+      "glb": "props/worksite/traffic_cone/traffic_cone.glb",
+      "lod1": "props/worksite/traffic_cone/traffic_cone_lod1.glb",
+      "collision": "props/worksite/traffic_cone/collision.json",
+      "source": "original assets/maps/showhome procedural TrafficCone",
+      "licence": "project original",
+      "openable_parts": [],
+      "size_m": [
+        0.47999998927116394,
+        0.47999998927116394,
+        0.75
+      ],
+      "triangles": 264,
+      "collision_volumes": 1,
+      "loot_slots": [],
+      "legacy_root": "PROP_TrafficCone"
+    },
+    {
+      "id": "wire_span_20m",
+      "category": "utilities",
+      "tags": [
+        "utilities",
+        "showhome_legacy"
+      ],
+      "glb": "props/utilities/wire_span_20m/wire_span_20m.glb",
+      "lod1": "props/utilities/wire_span_20m/wire_span_20m_lod1.glb",
+      "collision": "props/utilities/wire_span_20m/collision.json",
+      "source": "original assets/maps/showhome procedural Wire_Span_20m",
+      "licence": "project original",
+      "openable_parts": [],
+      "size_m": [
+        20.002769470214844,
+        0.029999999329447746,
+        0.5759066939353943
+      ],
+      "triangles": 488,
+      "collision_volumes": 0,
+      "loot_slots": [],
+      "legacy_root": "PROP_Wire_Span_20m"
+    },
+    {
+      "id": "workbench",
+      "category": "furniture",
+      "tags": [
+        "furniture",
+        "showhome_legacy"
+      ],
+      "glb": "props/furniture/workbench/workbench.glb",
+      "lod1": "props/furniture/workbench/workbench_lod1.glb",
+      "collision": "props/furniture/workbench/collision.json",
+      "source": "original assets/maps/showhome procedural Workbench",
+      "licence": "project original",
+      "openable_parts": [],
+      "size_m": [
+        0.7139999866485596,
+        4.0,
+        1.0
+      ],
+      "triangles": 324,
+      "collision_volumes": 1,
+      "loot_slots": [],
+      "legacy_root": "PROP_Workbench"
+    },
+    {
+      "id": "zipline_cable",
+      "category": "utilities",
+      "tags": [
+        "utilities",
+        "showhome_legacy"
+      ],
+      "glb": "props/utilities/zipline_cable/zipline_cable.glb",
+      "lod1": "props/utilities/zipline_cable/zipline_cable_lod1.glb",
+      "collision": "props/utilities/zipline_cable/collision.json",
+      "source": "original assets/maps/showhome procedural Zipline_Cable",
+      "licence": "project original",
+      "openable_parts": [],
+      "size_m": [
+        21.60631561279297,
+        0.04399999976158142,
+        0.8437721729278564
+      ],
+      "triangles": 780,
+      "collision_volumes": 0,
+      "loot_slots": [],
+      "legacy_root": "PROP_Zipline_Cable"
+    }
+  ]
+}

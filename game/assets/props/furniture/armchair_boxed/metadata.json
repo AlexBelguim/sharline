@@ -1,0 +1,23 @@
+{
+  "id": "armchair_boxed",
+  "category": "furniture",
+  "tags": [
+    "furniture",
+    "showhome_legacy"
+  ],
+  "glb": "props/furniture/armchair_boxed/armchair_boxed.glb",
+  "lod1": "props/furniture/armchair_boxed/armchair_boxed_lod1.glb",
+  "collision": "props/furniture/armchair_boxed/collision.json",
+  "source": "original assets/maps/showhome procedural Armchair",
+  "licence": "project original",
+  "openable_parts": [],
+  "size_m": [
+    1.2000000476837158,
+    1.2000000476837158,
+    0.8009999990463257
+  ],
+  "triangles": 880,
+  "collision_volumes": 1,
+  "loot_slots": [],
+  "legacy_root": "PROP_Armchair"
+}

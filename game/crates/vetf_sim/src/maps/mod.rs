@@ -7,6 +7,7 @@
 
 pub mod range;
 pub mod showhome;
+pub mod showhome_v3;
 
 pub use range::{RangeTarget, RangeTargetKind, range, range_targets};
 pub use showhome::showhome;

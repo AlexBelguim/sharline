@@ -58,7 +58,7 @@ fn superseded(path: &str) -> bool {
         // The tick rate is a host setting, 60 or 120 Hz, default 120 (net.ron; DESIGN_DELTAS.md, '120 Hz').
         || path == "weapons.slice.json.tick_hz"
         || path == "movement.slice.json.tick_hz"
-        // Playtest round 4: a faster, longer slide (DESIGN_DELTAS.md section 40).
+        // Playtest round 4: a faster, longer slide (DESIGN_DELTAS.md section 41).
         || path == "movement.slice.json.movement.slide.boost"
         || path == "movement.slice.json.movement.slide.friction"
         || path.ends_with("slide_boost") && path.contains(".weight_effects.")
@@ -236,4 +236,9 @@ fn attachments_match_design() {
     let mut game = to_value(&d.attachments);
     game["attachments"] = by_design_ids(&design, "attachments", game["attachments"].clone());
     check("attachments_stats.slice.json", game);
+}
+
+#[test]
+fn throwable_charge_matches_design() {
+    check("throwables.slice.json", to_value(&GameData::embedded().throwables));
 }

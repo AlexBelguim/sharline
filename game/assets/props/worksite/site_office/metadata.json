@@ -1,0 +1,36 @@
+{
+  "id": "site_office",
+  "category": "worksite",
+  "tags": [
+    "worksite",
+    "showhome_v3"
+  ],
+  "glb": "props/worksite/site_office/site_office.glb",
+  "lod1": "props/worksite/site_office/site_office_lod1.glb",
+  "collision": "props/worksite/site_office/collision.json",
+  "source": "original procedural phase-2 worksite kit",
+  "licence": "project original",
+  "openable_parts": [
+    {
+      "name": "OPEN_DOOR_Office",
+      "properties": {
+        "part": "orange",
+        "axis": "Z",
+        "ajar": 8,
+        "pose": "ajar",
+        "pose_unit": "degrees",
+        "min_deg": 0,
+        "max_deg": 110,
+        "closed_rotation_deg": 0
+      }
+    }
+  ],
+  "size_m": [
+    6.0,
+    2.8425002098083496,
+    2.799999952316284
+  ],
+  "triangles": 2068,
+  "collision_volumes": 24,
+  "loot_slots": []
+}

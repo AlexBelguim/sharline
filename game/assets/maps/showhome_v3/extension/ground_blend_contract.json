@@ -1,0 +1,791 @@
+{
+  "version": 2,
+  "axes": {
+    "design": "x=east,y=north,z=up",
+    "glTF_Bevy": "(x,z,-y)",
+    "Bevy_world_to_design_xy": "(world_position.x,-world_position.z)",
+    "design_normal_to_Bevy": "(normal.x,normal.z,-normal.y)"
+  },
+  "colour0": {
+    "R": "worn dirt",
+    "G": "gravel spill",
+    "B": "moss on hard/lawn, wet mud on earth",
+    "A": "sand on hard, mud on lawn/earth"
+  },
+  "formula": {
+    "order": [
+      "R",
+      "G",
+      "B",
+      "A"
+    ],
+    "height_unit": "metres",
+    "height_scale": 0.18,
+    "height_reference_m": 0.02,
+    "d": "mask + 0.18 * (next_height_m - current_height_m) / 0.020",
+    "t": "clamp((d - 0.25) / 0.50, 0, 1)",
+    "w": "t * t * (3 - 2 * t)",
+    "endpoint_guards": "mask <= 0: w=0; mask >= 1: w=1",
+    "state": "colour=mix(colour,next_colour,w); height=mix(height,next_height,w); ORM=mix(ORM,next_ORM,w); normal=normalize(mix(normal,next_normal,w))",
+    "roughness_contrast": 1.0,
+    "transition_contrast": 2.0
+  },
+  "macro": {
+    "texture": "macro_ground.png",
+    "repeat_m": 32,
+    "colour_space": "linear",
+    "formula": "final_albedo *= 1 + 0.12 * (macro - 0.5)",
+    "affects": [
+      "albedo"
+    ]
+  },
+  "maps_root": "maps/showhome_v3",
+  "sampler": {
+    "wrap_u": "REPEAT",
+    "wrap_v": "REPEAT",
+    "albedo_sRGB": true,
+    "normal_sRGB": false,
+    "orm_sRGB": false,
+    "height_sRGB": false,
+    "height_bits": 16
+  },
+  "export": {
+    "custom_shader_required": true,
+    "portable_shader": "Simple canonical PBR base texture; custom preview node graph is not a glTF shader",
+    "COLOR_0": "Export named Col with export_vertex_color=NAME, export_vertex_color_name=Col, export_all_vertex_colors=False. Set active_color_index and render_color_index after bmesh.to_mesh. This retains actual linear RGBA masks as COLOR_0 instead of a fake white COLOR_0 and real COLOR_1. A never connects to opacity.",
+    "standard_viewer": "glTF normally multiplies COLOR_0 into albedo. A viewer using standard vertex-colour semantics will tint/darken these meshes. The game custom ground shader must interpret all four channels as masks.",
+    "extras": "Canonical material extras showhome_ground_blend contain material contract JSON; showhome_ground_colour0=blend_masks"
+  },
+  "materials": {
+    "M_GND_Ext_HaulGravel": {
+      "version": 2,
+      "base_material": "M_GND_Ext_HaulGravel",
+      "base_texture": "gravel",
+      "base_repeat_m": 1.0,
+      "base_height_range_m": 0.028,
+      "base_uv": "UVMap",
+      "base_uv_role": "Provided UV0: metre UVs, paving origin and east mirror already applied",
+      "base_tint_linear": [
+        0.58,
+        0.76,
+        0.98
+      ],
+      "surface_class": "earth",
+      "colour_attribute": "Col",
+      "colour_attribute_glTF": "COLOR_0",
+      "colour_attribute_encoding": "linear RGBA independent blend masks",
+      "opacity": 1,
+      "vertex_colour_is_albedo": false,
+      "channels": {
+        "R": {
+          "texture": "worn_dirt",
+          "repeat_m": 1,
+          "height_range_m": 0.01,
+          "maps": {
+            "albedo": "maps/showhome_v3/textures/dce040f079e8855548aca168.png",
+            "normal": "maps/showhome_v3/textures/e941bb0ee80d86f21bada633.png",
+            "orm": "maps/showhome_v3/textures/1ebd7d6418f0ea5856a03946.png",
+            "height": "maps/showhome_v3/height/worn_dirt_height.png"
+          }
+        },
+        "G": {
+          "texture": "gravel",
+          "repeat_m": 1,
+          "height_range_m": 0.028,
+          "maps": {
+            "albedo": "maps/showhome_v3/textures/ad486e6bd3d2bac810bafe87.png",
+            "normal": "maps/showhome_v3/textures/8cb3dc8c8425127f7d8c56bf.png",
+            "orm": "maps/showhome_v3/textures/794ef3dc63f323c22e6e8bbe.png",
+            "height": "maps/showhome_v3/height/gravel_height.png"
+          }
+        },
+        "B": {
+          "texture": "worksite_mud_tracks",
+          "repeat_m": 6,
+          "height_range_m": 0.032,
+          "maps": {
+            "albedo": "maps/showhome_v3/textures/7e5d71643a687e3a59d34354.png",
+            "normal": "maps/showhome_v3/textures/a7beed54035ddf072645f5fd.png",
+            "orm": "maps/showhome_v3/textures/c04b41c0eb0bd30b907ff81f.png",
+            "height": "maps/showhome_v3/height/worksite_mud_tracks_height.png"
+          }
+        },
+        "A": {
+          "texture": "worksite_mud_tracks",
+          "repeat_m": 6,
+          "height_range_m": 0.032,
+          "maps": {
+            "albedo": "maps/showhome_v3/textures/7e5d71643a687e3a59d34354.png",
+            "normal": "maps/showhome_v3/textures/a7beed54035ddf072645f5fd.png",
+            "orm": "maps/showhome_v3/textures/c04b41c0eb0bd30b907ff81f.png",
+            "height": "maps/showhome_v3/height/worksite_mud_tracks_height.png"
+          }
+        }
+      },
+      "order": [
+        "R",
+        "G",
+        "B",
+        "A"
+      ],
+      "uv_overlays": "design_world.xy / repeat_m",
+      "normal_space": "Base normal: UV0 tangent frame to world. Overlay normals: design world XYZ. Normalize after each mix.",
+      "contract": "maps/showhome_v3/extension/ground_blend_contract.json",
+      "base_maps": {
+        "albedo": "maps/showhome_v3/textures/ad486e6bd3d2bac810bafe87.png",
+        "normal": "maps/showhome_v3/textures/8cb3dc8c8425127f7d8c56bf.png",
+        "orm": "maps/showhome_v3/textures/794ef3dc63f323c22e6e8bbe.png",
+        "height": "maps/showhome_v3/height/gravel_height.png"
+      }
+    },
+    "M_GND_Ext_Grass": {
+      "version": 2,
+      "base_material": "M_GND_Ext_Grass",
+      "base_texture": "grass_lawn",
+      "base_repeat_m": 2.0,
+      "base_height_range_m": 0.014,
+      "base_uv": "UVMap",
+      "base_uv_role": "Provided UV0: metre UVs, paving origin and east mirror already applied",
+      "base_tint_linear": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "surface_class": "lawn",
+      "colour_attribute": "Col",
+      "colour_attribute_glTF": "COLOR_0",
+      "colour_attribute_encoding": "linear RGBA independent blend masks",
+      "opacity": 1,
+      "vertex_colour_is_albedo": false,
+      "channels": {
+        "R": {
+          "texture": "worn_dirt",
+          "repeat_m": 1,
+          "height_range_m": 0.01,
+          "maps": {
+            "albedo": "maps/showhome_v3/textures/dce040f079e8855548aca168.png",
+            "normal": "maps/showhome_v3/textures/e941bb0ee80d86f21bada633.png",
+            "orm": "maps/showhome_v3/textures/1ebd7d6418f0ea5856a03946.png",
+            "height": "maps/showhome_v3/height/worn_dirt_height.png"
+          }
+        },
+        "G": {
+          "texture": "gravel",
+          "repeat_m": 1,
+          "height_range_m": 0.028,
+          "maps": {
+            "albedo": "maps/showhome_v3/textures/ad486e6bd3d2bac810bafe87.png",
+            "normal": "maps/showhome_v3/textures/8cb3dc8c8425127f7d8c56bf.png",
+            "orm": "maps/showhome_v3/textures/794ef3dc63f323c22e6e8bbe.png",
+            "height": "maps/showhome_v3/height/gravel_height.png"
+          }
+        },
+        "B": {
+          "texture": "grass_verge_weeds",
+          "repeat_m": 2,
+          "height_range_m": 0.016,
+          "maps": {
+            "albedo": "maps/showhome_v3/textures/d7ea7f312e25268fe1462bb8.png",
+            "normal": "maps/showhome_v3/textures/6955f4cc73e4bdd361bf0d4b.png",
+            "orm": "maps/showhome_v3/textures/1fb27a060ee04f0462d13710.png",
+            "height": "maps/showhome_v3/height/grass_verge_weeds_height.png"
+          }
+        },
+        "A": {
+          "texture": "worksite_mud_tracks",
+          "repeat_m": 6,
+          "height_range_m": 0.032,
+          "maps": {
+            "albedo": "maps/showhome_v3/textures/7e5d71643a687e3a59d34354.png",
+            "normal": "maps/showhome_v3/textures/a7beed54035ddf072645f5fd.png",
+            "orm": "maps/showhome_v3/textures/c04b41c0eb0bd30b907ff81f.png",
+            "height": "maps/showhome_v3/height/worksite_mud_tracks_height.png"
+          }
+        }
+      },
+      "order": [
+        "R",
+        "G",
+        "B",
+        "A"
+      ],
+      "uv_overlays": "design_world.xy / repeat_m",
+      "normal_space": "Base normal: UV0 tangent frame to world. Overlay normals: design world XYZ. Normalize after each mix.",
+      "contract": "maps/showhome_v3/extension/ground_blend_contract.json",
+      "base_maps": {
+        "albedo": "maps/showhome_v3/textures/de2a1bff16e21a8cd76af9b4.png",
+        "normal": "maps/showhome_v3/textures/992e85398d0707af579146c1.png",
+        "orm": "maps/showhome_v3/textures/8ed70086beb3af768e18b80b.png",
+        "height": "maps/showhome_v3/height/grass_lawn_height.png"
+      }
+    },
+    "M_GND_Ext_Gravel": {
+      "version": 2,
+      "base_material": "M_GND_Ext_Gravel",
+      "base_texture": "gravel",
+      "base_repeat_m": 1.0,
+      "base_height_range_m": 0.028,
+      "base_uv": "UVMap",
+      "base_uv_role": "Provided UV0: metre UVs, paving origin and east mirror already applied",
+      "base_tint_linear": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "surface_class": "hard",
+      "colour_attribute": "Col",
+      "colour_attribute_glTF": "COLOR_0",
+      "colour_attribute_encoding": "linear RGBA independent blend masks",
+      "opacity": 1,
+      "vertex_colour_is_albedo": false,
+      "channels": {
+        "R": {
+          "texture": "worn_dirt",
+          "repeat_m": 1,
+          "height_range_m": 0.01,
+          "maps": {
+            "albedo": "maps/showhome_v3/textures/dce040f079e8855548aca168.png",
+            "normal": "maps/showhome_v3/textures/e941bb0ee80d86f21bada633.png",
+            "orm": "maps/showhome_v3/textures/1ebd7d6418f0ea5856a03946.png",
+            "height": "maps/showhome_v3/height/worn_dirt_height.png"
+          }
+        },
+        "G": {
+          "texture": "gravel",
+          "repeat_m": 1,
+          "height_range_m": 0.028,
+          "maps": {
+            "albedo": "maps/showhome_v3/textures/ad486e6bd3d2bac810bafe87.png",
+            "normal": "maps/showhome_v3/textures/8cb3dc8c8425127f7d8c56bf.png",
+            "orm": "maps/showhome_v3/textures/794ef3dc63f323c22e6e8bbe.png",
+            "height": "maps/showhome_v3/height/gravel_height.png"
+          }
+        },
+        "B": {
+          "texture": "grass_verge_weeds",
+          "repeat_m": 2,
+          "height_range_m": 0.016,
+          "maps": {
+            "albedo": "maps/showhome_v3/textures/d7ea7f312e25268fe1462bb8.png",
+            "normal": "maps/showhome_v3/textures/6955f4cc73e4bdd361bf0d4b.png",
+            "orm": "maps/showhome_v3/textures/1fb27a060ee04f0462d13710.png",
+            "height": "maps/showhome_v3/height/grass_verge_weeds_height.png"
+          }
+        },
+        "A": {
+          "texture": "construction_sand",
+          "repeat_m": 6,
+          "height_range_m": 0.022,
+          "maps": {
+            "albedo": "maps/showhome_v3/textures/028e6914a89ca571af9cfaef.png",
+            "normal": "maps/showhome_v3/textures/a6ae2b46a86d3e052608d249.png",
+            "orm": "maps/showhome_v3/textures/4ee33c0e3e69d96b0bfca54d.png",
+            "height": "maps/showhome_v3/height/construction_sand_height.png"
+          }
+        }
+      },
+      "order": [
+        "R",
+        "G",
+        "B",
+        "A"
+      ],
+      "uv_overlays": "design_world.xy / repeat_m",
+      "normal_space": "Base normal: UV0 tangent frame to world. Overlay normals: design world XYZ. Normalize after each mix.",
+      "contract": "maps/showhome_v3/extension/ground_blend_contract.json",
+      "base_maps": {
+        "albedo": "maps/showhome_v3/textures/ad486e6bd3d2bac810bafe87.png",
+        "normal": "maps/showhome_v3/textures/8cb3dc8c8425127f7d8c56bf.png",
+        "orm": "maps/showhome_v3/textures/794ef3dc63f323c22e6e8bbe.png",
+        "height": "maps/showhome_v3/height/gravel_height.png"
+      }
+    },
+    "M_GND_Ext_Paving": {
+      "version": 2,
+      "base_material": "M_GND_Ext_Paving",
+      "base_texture": "paving_slabs",
+      "base_repeat_m": 2.4,
+      "base_height_range_m": 0.01,
+      "base_uv": "UVMap",
+      "base_uv_role": "Provided UV0: metre UVs, paving origin and east mirror already applied",
+      "base_tint_linear": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "surface_class": "hard",
+      "colour_attribute": "Col",
+      "colour_attribute_glTF": "COLOR_0",
+      "colour_attribute_encoding": "linear RGBA independent blend masks",
+      "opacity": 1,
+      "vertex_colour_is_albedo": false,
+      "channels": {
+        "R": {
+          "texture": "worn_dirt",
+          "repeat_m": 1,
+          "height_range_m": 0.01,
+          "maps": {
+            "albedo": "maps/showhome_v3/textures/dce040f079e8855548aca168.png",
+            "normal": "maps/showhome_v3/textures/e941bb0ee80d86f21bada633.png",
+            "orm": "maps/showhome_v3/textures/1ebd7d6418f0ea5856a03946.png",
+            "height": "maps/showhome_v3/height/worn_dirt_height.png"
+          }
+        },
+        "G": {
+          "texture": "gravel",
+          "repeat_m": 1,
+          "height_range_m": 0.028,
+          "maps": {
+            "albedo": "maps/showhome_v3/textures/ad486e6bd3d2bac810bafe87.png",
+            "normal": "maps/showhome_v3/textures/8cb3dc8c8425127f7d8c56bf.png",
+            "orm": "maps/showhome_v3/textures/794ef3dc63f323c22e6e8bbe.png",
+            "height": "maps/showhome_v3/height/gravel_height.png"
+          }
+        },
+        "B": {
+          "texture": "grass_verge_weeds",
+          "repeat_m": 2,
+          "height_range_m": 0.016,
+          "maps": {
+            "albedo": "maps/showhome_v3/textures/d7ea7f312e25268fe1462bb8.png",
+            "normal": "maps/showhome_v3/textures/6955f4cc73e4bdd361bf0d4b.png",
+            "orm": "maps/showhome_v3/textures/1fb27a060ee04f0462d13710.png",
+            "height": "maps/showhome_v3/height/grass_verge_weeds_height.png"
+          }
+        },
+        "A": {
+          "texture": "construction_sand",
+          "repeat_m": 6,
+          "height_range_m": 0.022,
+          "maps": {
+            "albedo": "maps/showhome_v3/textures/028e6914a89ca571af9cfaef.png",
+            "normal": "maps/showhome_v3/textures/a6ae2b46a86d3e052608d249.png",
+            "orm": "maps/showhome_v3/textures/4ee33c0e3e69d96b0bfca54d.png",
+            "height": "maps/showhome_v3/height/construction_sand_height.png"
+          }
+        }
+      },
+      "order": [
+        "R",
+        "G",
+        "B",
+        "A"
+      ],
+      "uv_overlays": "design_world.xy / repeat_m",
+      "normal_space": "Base normal: UV0 tangent frame to world. Overlay normals: design world XYZ. Normalize after each mix.",
+      "contract": "maps/showhome_v3/extension/ground_blend_contract.json",
+      "base_maps": {
+        "albedo": "maps/showhome_v3/textures/00a82e1ea00bed7a146d4e1e.png",
+        "normal": "maps/showhome_v3/textures/d1f09ddb717b128b3d41d46a.png",
+        "orm": "maps/showhome_v3/textures/704b8ed19b45c747ee852d9a.png",
+        "height": "maps/showhome_v3/height/paving_slabs_height.png"
+      }
+    },
+    "M_GND_Ext_Soil": {
+      "version": 2,
+      "base_material": "M_GND_Ext_Soil",
+      "base_texture": "worksite_packed_dirt",
+      "base_repeat_m": 6.0,
+      "base_height_range_m": 0.022,
+      "base_uv": "UVMap",
+      "base_uv_role": "Provided UV0: metre UVs, paving origin and east mirror already applied",
+      "base_tint_linear": [
+        0.9300000071525574,
+        0.9100000262260437,
+        0.8600000143051147
+      ],
+      "surface_class": "earth",
+      "colour_attribute": "Col",
+      "colour_attribute_glTF": "COLOR_0",
+      "colour_attribute_encoding": "linear RGBA independent blend masks",
+      "opacity": 1,
+      "vertex_colour_is_albedo": false,
+      "channels": {
+        "R": {
+          "texture": "worn_dirt",
+          "repeat_m": 1,
+          "height_range_m": 0.01,
+          "maps": {
+            "albedo": "maps/showhome_v3/textures/dce040f079e8855548aca168.png",
+            "normal": "maps/showhome_v3/textures/e941bb0ee80d86f21bada633.png",
+            "orm": "maps/showhome_v3/textures/1ebd7d6418f0ea5856a03946.png",
+            "height": "maps/showhome_v3/height/worn_dirt_height.png"
+          }
+        },
+        "G": {
+          "texture": "gravel",
+          "repeat_m": 1,
+          "height_range_m": 0.028,
+          "maps": {
+            "albedo": "maps/showhome_v3/textures/ad486e6bd3d2bac810bafe87.png",
+            "normal": "maps/showhome_v3/textures/8cb3dc8c8425127f7d8c56bf.png",
+            "orm": "maps/showhome_v3/textures/794ef3dc63f323c22e6e8bbe.png",
+            "height": "maps/showhome_v3/height/gravel_height.png"
+          }
+        },
+        "B": {
+          "texture": "worksite_mud_tracks",
+          "repeat_m": 6,
+          "height_range_m": 0.032,
+          "maps": {
+            "albedo": "maps/showhome_v3/textures/7e5d71643a687e3a59d34354.png",
+            "normal": "maps/showhome_v3/textures/a7beed54035ddf072645f5fd.png",
+            "orm": "maps/showhome_v3/textures/c04b41c0eb0bd30b907ff81f.png",
+            "height": "maps/showhome_v3/height/worksite_mud_tracks_height.png"
+          }
+        },
+        "A": {
+          "texture": "worksite_mud_tracks",
+          "repeat_m": 6,
+          "height_range_m": 0.032,
+          "maps": {
+            "albedo": "maps/showhome_v3/textures/7e5d71643a687e3a59d34354.png",
+            "normal": "maps/showhome_v3/textures/a7beed54035ddf072645f5fd.png",
+            "orm": "maps/showhome_v3/textures/c04b41c0eb0bd30b907ff81f.png",
+            "height": "maps/showhome_v3/height/worksite_mud_tracks_height.png"
+          }
+        }
+      },
+      "order": [
+        "R",
+        "G",
+        "B",
+        "A"
+      ],
+      "uv_overlays": "design_world.xy / repeat_m",
+      "normal_space": "Base normal: UV0 tangent frame to world. Overlay normals: design world XYZ. Normalize after each mix.",
+      "contract": "maps/showhome_v3/extension/ground_blend_contract.json",
+      "base_maps": {
+        "albedo": "maps/showhome_v3/textures/19723bbff146d96c7639b271.png",
+        "normal": "maps/showhome_v3/textures/5cee594f5c2a1df1ed88a9d9.png",
+        "orm": "maps/showhome_v3/textures/b8ef1800f169fb0967df221e.png",
+        "height": "maps/showhome_v3/height/worksite_packed_dirt_height.png"
+      }
+    },
+    "M_GND_Ext_TrackedEarth": {
+      "version": 2,
+      "base_material": "M_GND_Ext_TrackedEarth",
+      "base_texture": "worksite_mud_tracks",
+      "base_repeat_m": 6.0,
+      "base_height_range_m": 0.032,
+      "base_uv": "UVMap",
+      "base_uv_role": "Provided UV0: metre UVs, paving origin and east mirror already applied",
+      "base_tint_linear": [
+        1.0,
+        0.99,
+        0.97
+      ],
+      "surface_class": "earth",
+      "colour_attribute": "Col",
+      "colour_attribute_glTF": "COLOR_0",
+      "colour_attribute_encoding": "linear RGBA independent blend masks",
+      "opacity": 1,
+      "vertex_colour_is_albedo": false,
+      "channels": {
+        "R": {
+          "texture": "worn_dirt",
+          "repeat_m": 1,
+          "height_range_m": 0.01,
+          "maps": {
+            "albedo": "maps/showhome_v3/textures/dce040f079e8855548aca168.png",
+            "normal": "maps/showhome_v3/textures/e941bb0ee80d86f21bada633.png",
+            "orm": "maps/showhome_v3/textures/1ebd7d6418f0ea5856a03946.png",
+            "height": "maps/showhome_v3/height/worn_dirt_height.png"
+          }
+        },
+        "G": {
+          "texture": "gravel",
+          "repeat_m": 1,
+          "height_range_m": 0.028,
+          "maps": {
+            "albedo": "maps/showhome_v3/textures/ad486e6bd3d2bac810bafe87.png",
+            "normal": "maps/showhome_v3/textures/8cb3dc8c8425127f7d8c56bf.png",
+            "orm": "maps/showhome_v3/textures/794ef3dc63f323c22e6e8bbe.png",
+            "height": "maps/showhome_v3/height/gravel_height.png"
+          }
+        },
+        "B": {
+          "texture": "worksite_mud_tracks",
+          "repeat_m": 6,
+          "height_range_m": 0.032,
+          "maps": {
+            "albedo": "maps/showhome_v3/textures/7e5d71643a687e3a59d34354.png",
+            "normal": "maps/showhome_v3/textures/a7beed54035ddf072645f5fd.png",
+            "orm": "maps/showhome_v3/textures/c04b41c0eb0bd30b907ff81f.png",
+            "height": "maps/showhome_v3/height/worksite_mud_tracks_height.png"
+          }
+        },
+        "A": {
+          "texture": "worksite_mud_tracks",
+          "repeat_m": 6,
+          "height_range_m": 0.032,
+          "maps": {
+            "albedo": "maps/showhome_v3/textures/7e5d71643a687e3a59d34354.png",
+            "normal": "maps/showhome_v3/textures/a7beed54035ddf072645f5fd.png",
+            "orm": "maps/showhome_v3/textures/c04b41c0eb0bd30b907ff81f.png",
+            "height": "maps/showhome_v3/height/worksite_mud_tracks_height.png"
+          }
+        }
+      },
+      "order": [
+        "R",
+        "G",
+        "B",
+        "A"
+      ],
+      "uv_overlays": "design_world.xy / repeat_m",
+      "normal_space": "Base normal: UV0 tangent frame to world. Overlay normals: design world XYZ. Normalize after each mix.",
+      "contract": "maps/showhome_v3/extension/ground_blend_contract.json",
+      "base_maps": {
+        "albedo": "maps/showhome_v3/textures/7e5d71643a687e3a59d34354.png",
+        "normal": "maps/showhome_v3/textures/a7beed54035ddf072645f5fd.png",
+        "orm": "maps/showhome_v3/textures/c04b41c0eb0bd30b907ff81f.png",
+        "height": "maps/showhome_v3/height/worksite_mud_tracks_height.png"
+      }
+    }
+  },
+  "preview": {
+    "shader": "Blender exact sequential height blend, no geometric displacement",
+    "alpha": 1,
+    "AO": "Blended ORM.R is retained. Blender occlusion export socket has no direct light multiply; no baked directional light.",
+    "surface": "Top ground normal sampling; kerb geometry uses its own standard material."
+  },
+  "sampled_textures": {
+    "construction_sand": {
+      "use": "Soft construction sand; no stamped round blotches",
+      "repeat_m": 6,
+      "tint_linear": [
+        1,
+        1,
+        1
+      ],
+      "palette": "construction_sand",
+      "target_linear": [
+        0.5596,
+        0.3909,
+        0.2658
+      ],
+      "roughness": 0.95,
+      "metalness": 0,
+      "height_min_m": 0,
+      "height_max_m": 0.022,
+      "height_range_m": 0.022,
+      "structure": "sand",
+      "brush": "painted_ground",
+      "variant": "clean",
+      "maps": {
+        "albedo": "maps/showhome_v3/textures/028e6914a89ca571af9cfaef.png",
+        "normal": "maps/showhome_v3/textures/a6ae2b46a86d3e052608d249.png",
+        "orm": "maps/showhome_v3/textures/4ee33c0e3e69d96b0bfca54d.png",
+        "height": "maps/showhome_v3/height/construction_sand_height.png"
+      }
+    },
+    "grass_lawn": {
+      "use": "Lush lawn ground; foliage cards intentionally on hold",
+      "repeat_m": 2,
+      "tint_linear": [
+        1,
+        1,
+        1
+      ],
+      "palette": "grass",
+      "target_linear": [
+        0.2086,
+        0.2623,
+        0.0423
+      ],
+      "roughness": 0.9,
+      "metalness": 0,
+      "height_min_m": 0,
+      "height_max_m": 0.014,
+      "height_range_m": 0.014,
+      "structure": "grass",
+      "brush": "painted_ground",
+      "variant": "clean",
+      "maps": {
+        "albedo": "maps/showhome_v3/textures/de2a1bff16e21a8cd76af9b4.png",
+        "normal": "maps/showhome_v3/textures/992e85398d0707af579146c1.png",
+        "orm": "maps/showhome_v3/textures/8ed70086beb3af768e18b80b.png",
+        "height": "maps/showhome_v3/height/grass_lawn_height.png"
+      }
+    },
+    "grass_verge_weeds": {
+      "use": "Verge with simple broad painted weed marks",
+      "repeat_m": 2,
+      "tint_linear": [
+        1,
+        1,
+        1
+      ],
+      "palette": "grass",
+      "target_linear": [
+        0.2086,
+        0.2623,
+        0.0423
+      ],
+      "roughness": 0.9,
+      "metalness": 0,
+      "height_min_m": 0,
+      "height_max_m": 0.016,
+      "height_range_m": 0.016,
+      "structure": "grass",
+      "brush": "painted_ground",
+      "variant": "weeds",
+      "maps": {
+        "albedo": "maps/showhome_v3/textures/d7ea7f312e25268fe1462bb8.png",
+        "normal": "maps/showhome_v3/textures/6955f4cc73e4bdd361bf0d4b.png",
+        "orm": "maps/showhome_v3/textures/1fb27a060ee04f0462d13710.png",
+        "height": "maps/showhome_v3/height/grass_verge_weeds_height.png"
+      }
+    },
+    "gravel": {
+      "use": "Loose stylized pebbles",
+      "repeat_m": 1,
+      "tint_linear": [
+        1,
+        1,
+        1
+      ],
+      "palette": "gravel",
+      "target_linear": [
+        0.4204,
+        0.3191,
+        0.2511
+      ],
+      "roughness": 0.9,
+      "metalness": 0,
+      "height_min_m": 0,
+      "height_max_m": 0.028,
+      "height_range_m": 0.028,
+      "structure": "gravel",
+      "brush": "painted_ground",
+      "variant": "clean",
+      "maps": {
+        "albedo": "maps/showhome_v3/textures/ad486e6bd3d2bac810bafe87.png",
+        "normal": "maps/showhome_v3/textures/8cb3dc8c8425127f7d8c56bf.png",
+        "orm": "maps/showhome_v3/textures/794ef3dc63f323c22e6e8bbe.png",
+        "height": "maps/showhome_v3/height/gravel_height.png"
+      }
+    },
+    "paving_slabs": {
+      "use": "600 mm paving slabs, 10 mm recessed joints",
+      "repeat_m": 2.4,
+      "tint_linear": [
+        1,
+        1,
+        1
+      ],
+      "palette": "paving",
+      "target_linear": [
+        0.4296,
+        0.3599,
+        0.3251
+      ],
+      "roughness": 0.8,
+      "metalness": 0,
+      "height_min_m": 0,
+      "height_max_m": 0.01,
+      "height_range_m": 0.01,
+      "structure": "slabs",
+      "brush": "painted_ground",
+      "variant": "clean",
+      "maps": {
+        "albedo": "maps/showhome_v3/textures/00a82e1ea00bed7a146d4e1e.png",
+        "normal": "maps/showhome_v3/textures/d1f09ddb717b128b3d41d46a.png",
+        "orm": "maps/showhome_v3/textures/704b8ed19b45c747ee852d9a.png",
+        "height": "maps/showhome_v3/height/paving_slabs_height.png"
+      }
+    },
+    "worksite_mud_tracks": {
+      "use": "Two repeating tyre track lanes in painted mud",
+      "repeat_m": 6,
+      "tint_linear": [
+        1,
+        1,
+        1
+      ],
+      "palette": "construction_sand",
+      "target_linear": [
+        0.5596,
+        0.3909,
+        0.2658
+      ],
+      "roughness": 0.8,
+      "metalness": 0,
+      "height_min_m": 0,
+      "height_max_m": 0.032,
+      "height_range_m": 0.032,
+      "structure": "tracks",
+      "brush": "painted_ground",
+      "variant": "clean",
+      "maps": {
+        "albedo": "maps/showhome_v3/textures/7e5d71643a687e3a59d34354.png",
+        "normal": "maps/showhome_v3/textures/a7beed54035ddf072645f5fd.png",
+        "orm": "maps/showhome_v3/textures/c04b41c0eb0bd30b907ff81f.png",
+        "height": "maps/showhome_v3/height/worksite_mud_tracks_height.png"
+      }
+    },
+    "worksite_packed_dirt": {
+      "use": "Packed worksite dirt",
+      "repeat_m": 6,
+      "tint_linear": [
+        1,
+        1,
+        1
+      ],
+      "palette": "construction_sand",
+      "target_linear": [
+        0.5596,
+        0.3909,
+        0.2658
+      ],
+      "roughness": 0.95,
+      "metalness": 0,
+      "height_min_m": 0,
+      "height_max_m": 0.022,
+      "height_range_m": 0.022,
+      "structure": "soil",
+      "brush": "painted_ground",
+      "variant": "packed",
+      "maps": {
+        "albedo": "maps/showhome_v3/textures/19723bbff146d96c7639b271.png",
+        "normal": "maps/showhome_v3/textures/5cee594f5c2a1df1ed88a9d9.png",
+        "orm": "maps/showhome_v3/textures/b8ef1800f169fb0967df221e.png",
+        "height": "maps/showhome_v3/height/worksite_packed_dirt_height.png"
+      }
+    },
+    "worn_dirt": {
+      "use": "Trodden garden dirt without photographic grit",
+      "repeat_m": 1,
+      "tint_linear": [
+        1,
+        1,
+        1
+      ],
+      "palette": "garden_soil",
+      "target_linear": [
+        0.117,
+        0.0685,
+        0.0395
+      ],
+      "roughness": 0.93,
+      "metalness": 0,
+      "height_min_m": 0,
+      "height_max_m": 0.01,
+      "height_range_m": 0.01,
+      "structure": "soil",
+      "brush": "painted_ground",
+      "variant": "worn",
+      "maps": {
+        "albedo": "maps/showhome_v3/textures/dce040f079e8855548aca168.png",
+        "normal": "maps/showhome_v3/textures/e941bb0ee80d86f21bada633.png",
+        "orm": "maps/showhome_v3/textures/1ebd7d6418f0ea5856a03946.png",
+        "height": "maps/showhome_v3/height/worn_dirt_height.png"
+      }
+    }
+  },
+  "macro_maps": {
+    "ground": "maps/showhome_v3/textures/macro_ground.png",
+    "walls": "maps/showhome_v3/textures/macro_walls.png"
+  }
+}

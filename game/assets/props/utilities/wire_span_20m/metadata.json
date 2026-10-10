@@ -1,0 +1,23 @@
+{
+  "id": "wire_span_20m",
+  "category": "utilities",
+  "tags": [
+    "utilities",
+    "showhome_legacy"
+  ],
+  "glb": "props/utilities/wire_span_20m/wire_span_20m.glb",
+  "lod1": "props/utilities/wire_span_20m/wire_span_20m_lod1.glb",
+  "collision": "props/utilities/wire_span_20m/collision.json",
+  "source": "original assets/maps/showhome procedural Wire_Span_20m",
+  "licence": "project original",
+  "openable_parts": [],
+  "size_m": [
+    20.002769470214844,
+    0.029999999329447746,
+    0.5759066939353943
+  ],
+  "triangles": 488,
+  "collision_volumes": 0,
+  "loot_slots": [],
+  "legacy_root": "PROP_Wire_Span_20m"
+}

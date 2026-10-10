@@ -1,0 +1,22 @@
+{
+  "id": "bed",
+  "category": "furniture",
+  "tags": [
+    "furniture",
+    "showhome_v3"
+  ],
+  "glb": "props/furniture/bed/bed.glb",
+  "lod1": "props/furniture/bed/bed_lod1.glb",
+  "collision": "props/furniture/bed/collision.json",
+  "source": "original procedural v3",
+  "licence": "project original",
+  "openable_parts": [],
+  "size_m": [
+    1.7000000476837158,
+    2.0999999046325684,
+    0.800000011920929
+  ],
+  "triangles": 264,
+  "collision_volumes": 3,
+  "loot_slots": []
+}

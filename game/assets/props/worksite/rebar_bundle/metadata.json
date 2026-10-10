@@ -1,0 +1,22 @@
+{
+  "id": "rebar_bundle",
+  "category": "worksite",
+  "tags": [
+    "worksite",
+    "showhome_v3"
+  ],
+  "glb": "props/worksite/rebar_bundle/rebar_bundle.glb",
+  "lod1": "props/worksite/rebar_bundle/rebar_bundle_lod1.glb",
+  "collision": "props/worksite/rebar_bundle/collision.json",
+  "source": "original procedural phase-2 worksite kit",
+  "licence": "project original",
+  "openable_parts": [],
+  "size_m": [
+    3.999999523162842,
+    0.44999998807907104,
+    0.18000000715255737
+  ],
+  "triangles": 268,
+  "collision_volumes": 1,
+  "loot_slots": []
+}

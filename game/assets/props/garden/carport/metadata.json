@@ -1,0 +1,22 @@
+{
+  "id": "carport",
+  "category": "garden",
+  "tags": [
+    "garden",
+    "showhome_v3"
+  ],
+  "glb": "props/garden/carport/carport.glb",
+  "lod1": "props/garden/carport/carport_lod1.glb",
+  "collision": "props/garden/carport/collision.json",
+  "source": "original procedural v3",
+  "licence": "project original",
+  "openable_parts": [],
+  "size_m": [
+    7.78000020980835,
+    5.78000020980835,
+    3.1999998092651367
+  ],
+  "triangles": 484,
+  "collision_volumes": 11,
+  "loot_slots": []
+}

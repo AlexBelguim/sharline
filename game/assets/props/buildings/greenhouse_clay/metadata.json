@@ -1,0 +1,23 @@
+{
+  "id": "greenhouse_clay",
+  "category": "buildings",
+  "tags": [
+    "buildings",
+    "showhome_legacy"
+  ],
+  "glb": "props/buildings/greenhouse_clay/greenhouse_clay.glb",
+  "lod1": "props/buildings/greenhouse_clay/greenhouse_clay_lod1.glb",
+  "collision": "props/buildings/greenhouse_clay/collision.json",
+  "source": "original assets/maps/showhome procedural Greenhouse_Clay",
+  "licence": "project original",
+  "openable_parts": [],
+  "size_m": [
+    5.711998462677002,
+    4.212000370025635,
+    2.799999952316284
+  ],
+  "triangles": 1840,
+  "collision_volumes": 11,
+  "loot_slots": [],
+  "legacy_root": "PROP_Greenhouse_Clay"
+}

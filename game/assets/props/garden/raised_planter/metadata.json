@@ -1,0 +1,22 @@
+{
+  "id": "raised_planter",
+  "category": "garden",
+  "tags": [
+    "garden",
+    "showhome_v3"
+  ],
+  "glb": "props/garden/raised_planter/raised_planter.glb",
+  "lod1": "props/garden/raised_planter/raised_planter_lod1.glb",
+  "collision": "props/garden/raised_planter/collision.json",
+  "source": "original procedural v3",
+  "licence": "project original",
+  "openable_parts": [],
+  "size_m": [
+    2.3999998569488525,
+    1.2000000476837158,
+    0.47999998927116394
+  ],
+  "triangles": 220,
+  "collision_volumes": 5,
+  "loot_slots": []
+}

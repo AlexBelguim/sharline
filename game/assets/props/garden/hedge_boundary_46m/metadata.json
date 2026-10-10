@@ -1,0 +1,23 @@
+{
+  "id": "hedge_boundary_46m",
+  "category": "garden",
+  "tags": [
+    "garden",
+    "showhome_legacy"
+  ],
+  "glb": "props/garden/hedge_boundary_46m/hedge_boundary_46m.glb",
+  "lod1": "props/garden/hedge_boundary_46m/hedge_boundary_46m_lod1.glb",
+  "collision": "props/garden/hedge_boundary_46m/collision.json",
+  "source": "original assets/maps/showhome procedural Hedge_Boundary",
+  "licence": "project original",
+  "openable_parts": [],
+  "size_m": [
+    0.9935691356658936,
+    45.99214172363281,
+    2.9926443099975586
+  ],
+  "triangles": 8540,
+  "collision_volumes": 1,
+  "loot_slots": [],
+  "legacy_root": "PROP_Hedge_Boundary"
+}

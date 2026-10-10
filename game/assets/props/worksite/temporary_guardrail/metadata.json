@@ -1,0 +1,22 @@
+{
+  "id": "temporary_guardrail",
+  "category": "worksite",
+  "tags": [
+    "worksite",
+    "showhome_v3"
+  ],
+  "glb": "props/worksite/temporary_guardrail/temporary_guardrail.glb",
+  "lod1": "props/worksite/temporary_guardrail/temporary_guardrail_lod1.glb",
+  "collision": "props/worksite/temporary_guardrail/collision.json",
+  "source": "original procedural phase-2 worksite kit",
+  "licence": "project original",
+  "openable_parts": [],
+  "size_m": [
+    4.5,
+    0.08500000089406967,
+    1.100000023841858
+  ],
+  "triangles": 264,
+  "collision_volumes": 6,
+  "loot_slots": []
+}

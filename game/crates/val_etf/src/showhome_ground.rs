@@ -51,9 +51,9 @@ pub struct GroundParams {
     /// A repeat, A height range, macro repeat, macro strength.
     pub extra: Vec4,
     pub tint: Vec4,
-    /// Relief on (0 = off), most relief steps (the preset's layers), base normal repeat correction, unused.
+    /// Relief on, layer limit, normal repeat correction, design-origin X offset.
     pub parallax: Vec4,
-    /// Relief steps per pixel of its whole shift on screen, no relief below this many pixels, unused, unused.
+    /// Relief steps per pixel, minimum pixel shift, reserved, negative design-origin Y offset.
     pub relief: Vec4,
 }
 
@@ -180,10 +180,15 @@ fn fallback(name: &str) -> Option<(&'static str, f32, &'static str)> {
         .filter(|(_, suffix)| suffix.chars().all(|c| c.is_ascii_digit()))
         .map_or(name, |(base, _)| base);
     Some(match canonical {
-        "M_GND_Asphalt" => ("asphalt", 4., "hard"),
+        "M_GND_Asphalt" | "M_GND_Ext_Asphalt" => ("asphalt", 4., "hard"),
         "M_GND_AsphaltOld" => ("asphalt_cracked", 4., "hard"),
         "M_GND_Paving" | "M_GND_PavingSage" | "M_GND_PavingClay" => ("paving_slabs", 2.4, "hard"),
-        "M_GND_Grass" => ("grass_lawn", 2., "lawn"),
+        "M_GND_Grass" | "M_GND_Ext_Grass" => ("grass_lawn", 2., "lawn"),
+        "M_GND_Ext_Paving" => ("paving_slabs", 2.4, "hard"),
+        "M_GND_Ext_Soil" => ("worksite_packed_dirt", 6., "earth"),
+        "M_GND_Ext_Tracks" | "M_GND_Ext_TrackedEarth" => ("worksite_mud_tracks", 6., "earth"),
+        "M_GND_Ext_Gravel" => ("gravel", 1., "hard"),
+        "M_GND_Ext_HaulGravel" => ("gravel", 1., "earth"),
         "M_GND_GrassFar" => ("grass_lawn", 5., "lawn"),
         "M_GND_Soil" => ("garden_soil", 1., "earth"),
         "M_GND_SoilFar" => ("garden_soil", 3., "earth"),
@@ -268,6 +273,7 @@ fn apply_ground_depth(
     let (on, layers, relief) = depth_params(data.quality.of(level.0), data.ground);
     for (_, m) in materials.iter_mut() {
         let p = &mut m.extension.params;
+        let relief = Vec4::new(relief.x, relief.y, p.relief.z, p.relief.w);
         if p.parallax.x != on || p.parallax.y != layers || p.relief != relief {
             (p.parallax.x, p.parallax.y, p.relief) = (on, layers, relief);
         }
@@ -283,6 +289,7 @@ fn install_ground_materials(
     standards: Res<Assets<StandardMaterial>>,
     mut materials: ResMut<Assets<ShowhomeGroundMaterial>>,
     mut cache: ResMut<GroundMaterialCache>,
+    preview: Option<Res<crate::showhome_v3::CurrentV3Preview>>,
     primitives: Query<
         (Entity, &MeshMaterial3d<StandardMaterial>, &GltfMaterialName, Option<&GltfMaterialExtras>),
         Without<GroundBlendInstalled>,
@@ -306,26 +313,32 @@ fn install_ground_materials(
         info!("Showhome ground arrays ready: {} surfaces, native16-bit height masks", array_manifest().colour_rows);
     }
     for (entity, source, name, extras) in &primitives {
-        let Some((fallback_texture, fallback_repeat, fallback_class)) = fallback(&name.0) else {
+        let contract = contract(extras);
+        if contract.is_none() && fallback(&name.0).is_none() {
             continue;
-        };
+        }
         let Some(standard) = standards.get(&source.0) else {
             continue;
         };
         let handle = if let Some(handle) = cache.0.get(&source.0.id()) {
             handle.clone()
         } else {
-            let contract = contract(extras);
-            let (texture, repeat, class) =
-                contract.as_ref().map_or((fallback_texture, fallback_repeat, fallback_class), |c| {
-                    (c.base_texture.as_str(), c.base_repeat_m, c.surface_class.as_str())
-                });
+            let (texture, repeat, class) = if let Some(c) = contract.as_ref() {
+                (c.base_texture.as_str(), c.base_repeat_m, c.surface_class.as_str())
+            } else {
+                fallback(&name.0).expect("validated fallback")
+            };
             let depth = depth_params(depth.quality.of(level.0), depth.ground);
             let tint = ground_tint(contract.as_ref(), standard.base_color);
-            let Some(params) = params(texture, repeat, class, tint, depth) else {
+            let Some(mut params) = params(texture, repeat, class, tint, depth) else {
                 error!("Showhome ground surface {texture} is missing from the packed arrays");
                 continue;
             };
+            // UV and blend noise stay in the authored design frame after moving the v3 kit to local origin.
+            if let Some(preview) = preview.as_ref() {
+                params.parallax.w = preview.0.origin[0] as f32;
+                params.relief.w = -preview.0.origin[1] as f32;
+            }
             let mut base = standard.clone();
             base.alpha_mode = AlphaMode::Opaque;
             base.base_color = Color::WHITE;

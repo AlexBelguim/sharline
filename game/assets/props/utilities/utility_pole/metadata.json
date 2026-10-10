@@ -1,0 +1,22 @@
+{
+  "id": "utility_pole",
+  "category": "utilities",
+  "tags": [
+    "utilities",
+    "showhome_v3"
+  ],
+  "glb": "props/utilities/utility_pole/utility_pole.glb",
+  "lod1": "props/utilities/utility_pole/utility_pole_lod1.glb",
+  "collision": "props/utilities/utility_pole/collision.json",
+  "source": "original procedural v3",
+  "licence": "project original",
+  "openable_parts": [],
+  "size_m": [
+    1.399999976158142,
+    0.4399999976158142,
+    6.400000095367432
+  ],
+  "triangles": 264,
+  "collision_volumes": 3,
+  "loot_slots": []
+}

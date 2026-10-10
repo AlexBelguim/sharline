@@ -1,0 +1,38 @@
+{
+  "id": "metal_crate",
+  "category": "containers",
+  "tags": [
+    "containers",
+    "showhome_v3",
+    "metal_crate"
+  ],
+  "glb": "props/containers/metal_crate/metal_crate.glb",
+  "lod1": "props/containers/metal_crate/metal_crate_lod1.glb",
+  "collision": "props/containers/metal_crate/collision.json",
+  "source": "original procedural v3",
+  "licence": "project original",
+  "openable_parts": [
+    {
+      "name": "OPEN_LID_0",
+      "properties": {
+        "axis": "X",
+        "ajar": -7,
+        "pose": "ajar",
+        "pose_unit": "degrees",
+        "min_deg": -105,
+        "max_deg": 0,
+        "closed_rotation_deg": 0
+      }
+    }
+  ],
+  "size_m": [
+    0.8700000047683716,
+    0.5880347490310669,
+    0.6182096004486084
+  ],
+  "triangles": 572,
+  "collision_volumes": 6,
+  "loot_slots": [
+    "LOOT_SLOT_0"
+  ]
+}

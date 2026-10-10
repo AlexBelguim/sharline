@@ -1112,6 +1112,7 @@ fn receive_claims(
 
 #[allow(clippy::type_complexity, clippy::too_many_arguments)]
 pub(crate) fn simulate_authoritative(
+    editor: Option<Res<crate::build_editor::EditorActive>>,
     data: Res<Data>,
     level: Option<Res<CurrentLevel>>,
     timeline: Res<LocalTimeline>,
@@ -1143,6 +1144,7 @@ pub(crate) fn simulate_authoritative(
     infos: Query<&PlayerInfo>,
     mut launches: MessageWriter<crate::throwables::ThrowLaunched>,
 ) {
+    if editor.is_some_and(|e|e.0) {return;}
     let Some(level) = level else { return };
     let rules = match_rules(&matches);
     let tick = timeline.tick().0;
@@ -1219,7 +1221,8 @@ pub(crate) fn simulate_authoritative(
 
         sp.history.push(tick, Pose { pos: mv.0.pos, yaw: look.yaw, stance: mv.0.stance }, keep);
         // A grenade left the hand: the host flies it (`throwables::host_step`).
-        if let Some(launch) = ev.throw.launched {
+        if let Some(mut launch) = ev.throw.launched {
+            launch.team = infos.get(entity).ok().and_then(|info| info.team);
             vitals.protected_s = 0.0;
             launches.write(crate::throwables::ThrowLaunched { owner: id.0, launch });
         }
@@ -2842,11 +2845,13 @@ pub fn match_result(m: &MatchState, standings: &[Standing]) -> Option<MatchPhase
 
 #[allow(clippy::type_complexity)]
 fn run_match(
+    editor: Option<Res<crate::build_editor::EditorActive>>,
     data: Res<Data>,
     mut matches: Query<&mut MatchState>,
     mut players: Query<(&PlayerId, &mut PlayerNet, &mut Vitals, &mut Score, &ServerPlayer)>,
     mut intermission: Local<f32>,
 ) {
+    if editor.is_some_and(|e|e.0) {return;}
     let Some(mut m) = matches.iter_mut().next() else { return };
     if !m.mode.is_deathmatch() {
         return;
@@ -3100,6 +3105,10 @@ mod tests {
     fn the_host_switches_the_lobby_between_the_deathmatch_modes() {
         let d = GameData::embedded();
         let lobby = MatchState { phase: MatchPhase::Lobby, max_players: 10, ..live(MatchMode::Tdm) };
+        let v3 = MatchState { map: "showhome_v3".into(), ..lobby.clone() };
+        assert_eq!(mode_for_map("showhome_v3", MatchMode::Ffa), MatchMode::Ffa);
+        assert_eq!(mode_for_map("showhome_full", MatchMode::Ffa), MatchMode::Ffa);
+        assert_eq!(lobby_mode_change(&d, &v3, MatchMode::Ffa, 10, true), Some(8));
         // Free-for-all seats at most 8 (rules.ron), team deathmatch 10 and even.
         // (Whether the players fit is `bots::bots_to_trim`'s: bots leave, players alone over it refuse.)
         assert_eq!(lobby_mode_change(&d, &lobby, MatchMode::Ffa, 10, true), Some(8));

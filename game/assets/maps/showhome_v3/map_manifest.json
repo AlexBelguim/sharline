@@ -1,0 +1,116 @@
+{
+  "map_id": "showhome_v3",
+  "phase": 1,
+  "frame": "design world metres, Bevy=(x,z,-y)",
+  "tdm_scene_offset_bevy": [
+    -330,
+    0,
+    620
+  ],
+  "kit_scenes": [
+    "houses.glb",
+    "ground.glb"
+  ],
+  "collision": "collision.json",
+  "foliage": "foliage.json",
+  "placements": "placements.ron",
+  "catalog": "props/catalog.json",
+  "runtime_integration": "pending game build-mode and penetration loader",
+  "props": [
+    "kitchen_base",
+    "kitchen_wall",
+    "kitchen_drawer",
+    "dresser",
+    "nightstand",
+    "wardrobe",
+    "garage_cabinet",
+    "ammo_box",
+    "ammo_crate",
+    "weapon_case",
+    "weapon_crate",
+    "metal_crate",
+    "toolbox",
+    "gang_box",
+    "backpack",
+    "duffel_bag",
+    "privacy_panel",
+    "privacy_gate",
+    "rear_garage",
+    "greenhouse",
+    "shed",
+    "carport",
+    "pergola",
+    "picket_panel",
+    "garden_gate",
+    "site_mesh_panel",
+    "hedge_frame",
+    "raised_planter",
+    "bookcase",
+    "dining_table",
+    "bed",
+    "utility_pole",
+    "moving_truck",
+    "city_car",
+    "hot_tub",
+    "sofa",
+    "heat_pump",
+    "armchair",
+    "concrete_barrier",
+    "tower_crane",
+    "scaffold_bay",
+    "site_office",
+    "portable_toilet",
+    "printed_blocks_pallet",
+    "timber_pallet",
+    "rebar_bundle",
+    "temporary_guardrail",
+    "site_office_stairs",
+    "garden_bench",
+    "raised_green_bed",
+    "playground_set",
+    "organic_planter_bench",
+    "picket_panel_short"
+  ],
+  "sun": {
+    "azimuth_deg": 188,
+    "elevation_deg": 54,
+    "linear_rgb": [
+      1,
+      0.84,
+      0.66
+    ]
+  },
+  "fog": {
+    "start_m": 80,
+    "end_m": 420,
+    "srgb": [
+      0.66,
+      0.76,
+      0.86
+    ]
+  },
+  "extension": {
+    "kit_scenes": [
+      "extension/extension.glb"
+    ],
+    "collision": "extension/collision.json",
+    "foliage": "extension/foliage.json",
+    "placements": "extension/placements.ron",
+    "latest_placements_proposal": "extension/placements.proposed.ron",
+    "mode": "extraction"
+  },
+  "core_bounds_design": [
+    330,
+    620,
+    410,
+    685
+  ],
+  "tdm_play_bounds_design": [
+    330,
+    620,
+    410,
+    670.35
+  ],
+  "latest_placements_proposal": "placements.proposed.ron",
+  "existing_user_placements_preserved": true
+}

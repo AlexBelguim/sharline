@@ -1,0 +1,23 @@
+{
+  "id": "shed_clay",
+  "category": "buildings",
+  "tags": [
+    "buildings",
+    "showhome_legacy"
+  ],
+  "glb": "props/buildings/shed_clay/shed_clay.glb",
+  "lod1": "props/buildings/shed_clay/shed_clay_lod1.glb",
+  "collision": "props/buildings/shed_clay/collision.json",
+  "source": "original assets/maps/showhome procedural Shed_Clay",
+  "licence": "project original",
+  "openable_parts": [],
+  "size_m": [
+    4.0,
+    4.0,
+    2.5999999046325684
+  ],
+  "triangles": 500,
+  "collision_volumes": 2,
+  "loot_slots": [],
+  "legacy_root": "PROP_Shed_Clay"
+}
