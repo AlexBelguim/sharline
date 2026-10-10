@@ -1,0 +1,314 @@
+{
+ "WARDEN_Barrel": {
+  "boundary": 0,
+  "nonmanifold": 0,
+  "zero_area": 0,
+  "tiny_lt_0_01mm2": 0,
+  "ngons": 0,
+  "examples": []
+ },
+ "WARDEN_Bolt": {
+  "boundary": 0,
+  "nonmanifold": 0,
+  "zero_area": 0,
+  "tiny_lt_0_01mm2": 0,
+  "ngons": 0,
+  "examples": []
+ },
+ "WARDEN_BoltRelease": {
+  "boundary": 0,
+  "nonmanifold": 0,
+  "zero_area": 0,
+  "tiny_lt_0_01mm2": 0,
+  "ngons": 0,
+  "examples": []
+ },
+ "WARDEN_Brake": {
+  "boundary": 0,
+  "nonmanifold": 0,
+  "zero_area": 0,
+  "tiny_lt_0_01mm2": 0,
+  "ngons": 0,
+  "examples": []
+ },
+ "WARDEN_BrakeCollar": {
+  "boundary": 0,
+  "nonmanifold": 0,
+  "zero_area": 0,
+  "tiny_lt_0_01mm2": 0,
+  "ngons": 0,
+  "examples": []
+ },
+ "WARDEN_Chassis": {
+  "boundary": 0,
+  "nonmanifold": 0,
+  "zero_area": 0,
+  "tiny_lt_0_01mm2": 0,
+  "ngons": 0,
+  "examples": []
+ },
+ "WARDEN_Grip": {
+  "boundary": 0,
+  "nonmanifold": 0,
+  "zero_area": 0,
+  "tiny_lt_0_01mm2": 0,
+  "ngons": 0,
+  "examples": []
+ },
+ "WARDEN_Handguard": {
+  "boundary": 0,
+  "nonmanifold": 0,
+  "zero_area": 0,
+  "tiny_lt_0_01mm2": 0,
+  "ngons": 0,
+  "examples": []
+ },
+ "WARDEN_Mag5": {
+  "boundary": 0,
+  "nonmanifold": 0,
+  "zero_area": 0,
+  "tiny_lt_0_01mm2": 0,
+  "ngons": 0,
+  "examples": []
+ },
+ "WARDEN_Mag5_Follower": {
+  "boundary": 0,
+  "nonmanifold": 0,
+  "zero_area": 0,
+  "tiny_lt_0_01mm2": 0,
+  "ngons": 0,
+  "examples": []
+ },
+ "WARDEN_Mag5_Round": {
+  "boundary": 0,
+  "nonmanifold": 0,
+  "zero_area": 0,
+  "tiny_lt_0_01mm2": 0,
+  "ngons": 0,
+  "examples": []
+ },
+ "WARDEN_Mag5_Round_02": {
+  "boundary": 0,
+  "nonmanifold": 0,
+  "zero_area": 0,
+  "tiny_lt_0_01mm2": 0,
+  "ngons": 0,
+  "examples": []
+ },
+ "WARDEN_Mag5_Round_03": {
+  "boundary": 0,
+  "nonmanifold": 0,
+  "zero_area": 0,
+  "tiny_lt_0_01mm2": 0,
+  "ngons": 0,
+  "examples": []
+ },
+ "WARDEN_Mag5_Round_04": {
+  "boundary": 0,
+  "nonmanifold": 0,
+  "zero_area": 0,
+  "tiny_lt_0_01mm2": 0,
+  "ngons": 0,
+  "examples": []
+ },
+ "WARDEN_Mag5_Round_05": {
+  "boundary": 0,
+  "nonmanifold": 0,
+  "zero_area": 0,
+  "tiny_lt_0_01mm2": 0,
+  "ngons": 0,
+  "examples": []
+ },
+ "WARDEN_Mag8": {
+  "boundary": 0,
+  "nonmanifold": 0,
+  "zero_area": 0,
+  "tiny_lt_0_01mm2": 0,
+  "ngons": 0,
+  "examples": []
+ },
+ "WARDEN_Mag8_Follower": {
+  "boundary": 0,
+  "nonmanifold": 0,
+  "zero_area": 0,
+  "tiny_lt_0_01mm2": 0,
+  "ngons": 0,
+  "examples": []
+ },
+ "WARDEN_Mag8_Round": {
+  "boundary": 0,
+  "nonmanifold": 0,
+  "zero_area": 0,
+  "tiny_lt_0_01mm2": 0,
+  "ngons": 0,
+  "examples": []
+ },
+ "WARDEN_Mag8_Round_02": {
+  "boundary": 0,
+  "nonmanifold": 0,
+  "zero_area": 0,
+  "tiny_lt_0_01mm2": 0,
+  "ngons": 0,
+  "examples": []
+ },
+ "WARDEN_Mag8_Round_03": {
+  "boundary": 0,
+  "nonmanifold": 0,
+  "zero_area": 0,
+  "tiny_lt_0_01mm2": 0,
+  "ngons": 0,
+  "examples": []
+ },
+ "WARDEN_Mag8_Round_04": {
+  "boundary": 0,
+  "nonmanifold": 0,
+  "zero_area": 0,
+  "tiny_lt_0_01mm2": 0,
+  "ngons": 0,
+  "examples": []
+ },
+ "WARDEN_Mag8_Round_05": {
+  "boundary": 0,
+  "nonmanifold": 0,
+  "zero_area": 0,
+  "tiny_lt_0_01mm2": 0,
+  "ngons": 0,
+  "examples": []
+ },
+ "WARDEN_Mag8_Round_06": {
+  "boundary": 0,
+  "nonmanifold": 0,
+  "zero_area": 0,
+  "tiny_lt_0_01mm2": 0,
+  "ngons": 0,
+  "examples": []
+ },
+ "WARDEN_Mag8_Round_07": {
+  "boundary": 0,
+  "nonmanifold": 0,
+  "zero_area": 0,
+  "tiny_lt_0_01mm2": 0,
+  "ngons": 0,
+  "examples": []
+ },
+ "WARDEN_Mag8_Round_08": {
+  "boundary": 0,
+  "nonmanifold": 0,
+  "zero_area": 0,
+  "tiny_lt_0_01mm2": 0,
+  "ngons": 0,
+  "examples": []
+ },
+ "WARDEN_MagRelease": {
+  "boundary": 0,
+  "nonmanifold": 0,
+  "zero_area": 0,
+  "tiny_lt_0_01mm2": 0,
+  "ngons": 0,
+  "examples": []
+ },
+ "WARDEN_RailBottom": {
+  "boundary": 0,
+  "nonmanifold": 0,
+  "zero_area": 0,
+  "tiny_lt_0_01mm2": 0,
+  "ngons": 0,
+  "examples": []
+ },
+ "WARDEN_RailSide_L": {
+  "boundary": 0,
+  "nonmanifold": 0,
+  "zero_area": 0,
+  "tiny_lt_0_01mm2": 0,
+  "ngons": 0,
+  "examples": []
+ },
+ "WARDEN_RailSide_R": {
+  "boundary": 0,
+  "nonmanifold": 0,
+  "zero_area": 0,
+  "tiny_lt_0_01mm2": 0,
+  "ngons": 0,
+  "examples": []
+ },
+ "WARDEN_RailTop": {
+  "boundary": 0,
+  "nonmanifold": 0,
+  "zero_area": 0,
+  "tiny_lt_0_01mm2": 0,
+  "ngons": 0,
+  "examples": []
+ },
+ "WARDEN_Receiver": {
+  "boundary": 0,
+  "nonmanifold": 0,
+  "zero_area": 0,
+  "tiny_lt_0_01mm2": 52,
+  "ngons": 0,
+  "examples": []
+ },
+ "WARDEN_Safety": {
+  "boundary": 0,
+  "nonmanifold": 0,
+  "zero_area": 0,
+  "tiny_lt_0_01mm2": 0,
+  "ngons": 0,
+  "examples": []
+ },
+ "WARDEN_StockFolding": {
+  "boundary": 0,
+  "nonmanifold": 0,
+  "zero_area": 0,
+  "tiny_lt_0_01mm2": 0,
+  "ngons": 0,
+  "examples": []
+ },
+ "WARDEN_StockFolding_Arm": {
+  "boundary": 0,
+  "nonmanifold": 0,
+  "zero_area": 0,
+  "tiny_lt_0_01mm2": 24,
+  "ngons": 0,
+  "examples": []
+ },
+ "WARDEN_StockStandard": {
+  "boundary": 0,
+  "nonmanifold": 0,
+  "zero_area": 0,
+  "tiny_lt_0_01mm2": 139,
+  "ngons": 0,
+  "examples": []
+ },
+ "WARDEN_StockStandard_CheekRiser": {
+  "boundary": 0,
+  "nonmanifold": 0,
+  "zero_area": 0,
+  "tiny_lt_0_01mm2": 0,
+  "ngons": 0,
+  "examples": []
+ },
+ "WARDEN_StockStandard_Monopod": {
+  "boundary": 0,
+  "nonmanifold": 0,
+  "zero_area": 0,
+  "tiny_lt_0_01mm2": 0,
+  "ngons": 0,
+  "examples": []
+ },
+ "WARDEN_Trigger": {
+  "boundary": 0,
+  "nonmanifold": 0,
+  "zero_area": 0,
+  "tiny_lt_0_01mm2": 0,
+  "ngons": 0,
+  "examples": []
+ },
+ "WARDEN_TriggerGuard": {
+  "boundary": 0,
+  "nonmanifold": 0,
+  "zero_area": 0,
+  "tiny_lt_0_01mm2": 0,
+  "ngons": 0,
+  "examples": []
+ }
+}

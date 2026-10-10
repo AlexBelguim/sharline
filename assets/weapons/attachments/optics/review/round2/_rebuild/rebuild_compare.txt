@@ -1,0 +1,12 @@
+IDENTICAL ATT_optic_reddot.glb
+IDENTICAL ATT_optic_holo.glb
+IDENTICAL ATT_optic_3x.glb
+IDENTICAL ATT_optic_sniper.glb
+IDENTICAL ATT_optic_thermal.glb
+IDENTICAL catalog.json
+IDENTICAL fitcheck.json
+IDENTICAL textures/M_ATT_Bone.png
+IDENTICAL textures/M_ATT_Graphite.png
+IDENTICAL textures/M_ATT_Gunmetal.png
+fbx ATT_optic_reddot.fbx sizes: 428108 vs 428252 (FBX embeds a timestamp, byte-compare not meaningful)
+fbx ATT_optic_holo.fbx sizes: 646364 vs 646572 (FBX embeds a timestamp, byte-compare not meaningful)

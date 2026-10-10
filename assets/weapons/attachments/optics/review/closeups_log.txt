@@ -1,0 +1,165 @@
+09:03:00 | INFO: Data are loaded, start creating Blender stuff
+09:03:00 | INFO: Blender create Mesh node ATT_optic_holo_Body
+09:03:00 | INFO: Blender create Mesh node ATT_optic_holo_Glass
+09:03:00 | INFO: Blender create Mesh node ATT_optic_holo_Glow
+09:03:00 | INFO: glTF import finished in 0.02s
+00:01.953  cycles           | WARNING HIPEW initialization failed: Error opening HIP dynamic library
+00:04.765  render           | Saved: 'F:\git\val etf\assets\weapons\attachments\optics\review\renders\_tmp_v-0.35_-0.8_0.9.png'
+00:08.359  render           | Saved: 'F:\git\val etf\assets\weapons\attachments\optics\review\renders\_tmp_v-1.0_-0.15_0.25.png'
+00:12.140  render           | Saved: 'F:\git\val etf\assets\weapons\attachments\optics\review\renders\_tmp_v0.0_-0.25_1.0.png'
+rendered F:\git\val etf\assets\weapons\attachments\optics\review\renders\_tmp_v-0.35_-0.8_0.9.png
+rendered F:\git\val etf\assets\weapons\attachments\optics\review\renders\_tmp_v-1.0_-0.15_0.25.png
+rendered F:\git\val etf\assets\weapons\attachments\optics\review\renders\_tmp_v0.0_-0.25_1.0.png
+09:03:10 | INFO: Data are loaded, start creating Blender stuff
+09:03:10 | INFO: Blender create Mesh node ATT_optic_reddot_Body
+09:03:10 | INFO: Blender create Mesh node ATT_optic_reddot_Glass
+09:03:10 | INFO: Blender create Mesh node ATT_optic_reddot_Glow
+09:03:10 | INFO: glTF import finished in 0.02s
+00:15.937  render           | Saved: 'F:\git\val etf\assets\weapons\attachments\optics\review\renders\_tmp_v0.25_-1.0_0.15.png'
+00:19.687  render           | Saved: 'F:\git\val etf\assets\weapons\attachments\optics\review\renders\_tmp_v-0.4_-0.6_0.8.png'
+rendered F:\git\val etf\assets\weapons\attachments\optics\review\renders\_tmp_v0.25_-1.0_0.15.png
+rendered F:\git\val etf\assets\weapons\attachments\optics\review\renders\_tmp_v-0.4_-0.6_0.8.png
+09:03:18 | INFO: Data are loaded, start creating Blender stuff
+09:03:18 | INFO: Blender create Mesh node WARDEN_Barrel
+09:03:18 | INFO: Blender create Mesh node WARDEN_Bolt
+09:03:18 | INFO: Blender create Mesh node WARDEN_BoltRelease
+09:03:18 | INFO: Blender create Mesh node WARDEN_Brake
+09:03:18 | INFO: Blender create Mesh node WARDEN_BrakeCollar
+09:03:18 | INFO: Blender create Mesh node WARDEN_Chassis
+09:03:18 | INFO: Blender create Mesh node WARDEN_Grip
+09:03:18 | INFO: Blender create Mesh node WARDEN_Handguard
+09:03:18 | INFO: Blender create Mesh node WARDEN_MagRelease
+09:03:18 | INFO: Blender create Mesh node WARDEN_RailBottom
+09:03:18 | INFO: Blender create Mesh node WARDEN_RailSide_L
+09:03:18 | INFO: Blender create Mesh node WARDEN_RailSide_R
+09:03:18 | INFO: Blender create Mesh node WARDEN_RailTop
+09:03:18 | INFO: Blender create Mesh node WARDEN_Receiver
+09:03:18 | INFO: Blender create Mesh node WARDEN_Safety
+09:03:18 | INFO: Blender create Mesh node WARDEN_Mag5
+09:03:18 | INFO: Blender create Mesh node WARDEN_Mag5_Round
+09:03:18 | INFO: Blender create Mesh node WARDEN_Mag5_Round_02
+09:03:18 | INFO: Blender create Mesh node WARDEN_Mag5_Round_03
+09:03:18 | INFO: Blender create Mesh node WARDEN_Mag5_Round_04
+09:03:18 | INFO: Blender create Mesh node WARDEN_Mag5_Round_05
+09:03:18 | INFO: Blender create Mesh node WARDEN_StockStandard
+09:03:18 | INFO: Blender create Mesh node WARDEN_StockStandard_CheekRiser
+09:03:18 | INFO: Blender create Mesh node WARDEN_StockStandard_Monopod
+09:03:18 | INFO: Blender create Mesh node WARDEN_Trigger
+09:03:18 | INFO: Blender create Mesh node WARDEN_TriggerGuard
+09:03:18 | INFO: glTF import finished in 0.11s
+09:03:18 | INFO: Data are loaded, start creating Blender stuff
+09:03:18 | INFO: Blender create Mesh node ATT_optic_reddot_Body
+09:03:18 | INFO: Blender create Mesh node ATT_optic_reddot_Glass
+09:03:18 | INFO: Blender create Mesh node ATT_optic_reddot_Glow
+09:03:18 | INFO: glTF import finished in 0.02s
+00:24.343  render           | Saved: 'F:\git\val etf\assets\weapons\attachments\optics\review\renders\_tmp_v0.12_-1.0_-0.05.png'
+rendered F:\git\val etf\assets\weapons\attachments\optics\review\renders\_tmp_v0.12_-1.0_-0.05.png
+09:03:22 | INFO: Data are loaded, start creating Blender stuff
+09:03:22 | INFO: Blender create Mesh node MAKO_mag_30.002
+09:03:22 | INFO: Blender create Mesh node MAKO_mag_30_Round
+09:03:22 | INFO: Blender create Mesh node MAKO_mag_30_Stack
+09:03:22 | INFO: Blender create Mesh node MAKO_Barrel
+09:03:22 | INFO: Blender create Mesh node MAKO_BoltCatch.001
+09:03:22 | INFO: Blender create Mesh node MAKO_BufferTube
+09:03:22 | INFO: Blender create Mesh node MAKO_ChargingHandle.001
+09:03:22 | INFO: Blender create Mesh node MAKO_DustCover.001
+09:03:22 | INFO: Blender create Mesh node MAKO_FlashHider.001
+09:03:22 | INFO: Blender create Mesh node MAKO_ForwardAssist.001
+09:03:22 | INFO: Blender create Mesh node MAKO_Grip.001
+09:03:22 | INFO: Blender create Mesh node MAKO_Handguard.001
+09:03:22 | INFO: Blender create Mesh node MAKO_Lower.002
+09:03:22 | INFO: Blender create Mesh node MAKO_MagRelease
+09:03:22 | INFO: Blender create Mesh node MAKO_Pins
+09:03:22 | INFO: Blender create Mesh node MAKO_Rail.001
+09:03:22 | INFO: Blender create Mesh node MAKO_RailBottom.001
+09:03:22 | INFO: Blender create Mesh node MAKO_RailSide_L.001
+09:03:22 | INFO: Blender create Mesh node MAKO_RailSide_R.001
+09:03:22 | INFO: Blender create Mesh node MAKO_Selector.001
+09:03:22 | INFO: Blender create Mesh node MAKO_Trigger
+09:03:22 | INFO: Blender create Mesh node MAKO_Upper.001
+09:03:22 | INFO: Blender create Mesh node MAKO_stock_standard.002
+09:03:22 | INFO: Blender create Mesh node MAKO_stock_standard_ButtPad.002
+09:03:22 | INFO: Blender create Mesh node MAKO_stock_standard_Lever
+09:03:22 | INFO: Blender create Mesh node MAKO_stock_standard_Sling
+09:03:22 | INFO: glTF import finished in 0.11s
+09:03:22 | INFO: Data are loaded, start creating Blender stuff
+09:03:22 | INFO: Blender create Mesh node ATT_optic_holo_Body
+09:03:22 | INFO: Blender create Mesh node ATT_optic_holo_Glass
+09:03:22 | INFO: Blender create Mesh node ATT_optic_holo_Glow
+09:03:22 | INFO: glTF import finished in 0.02s
+00:29.109  render           | Saved: 'F:\git\val etf\assets\weapons\attachments\optics\review\renders\_tmp_v0.12_-1.0_-0.05.png'
+rendered F:\git\val etf\assets\weapons\attachments\optics\review\renders\_tmp_v0.12_-1.0_-0.05.png
+09:03:27 | INFO: Data are loaded, start creating Blender stuff
+09:03:27 | INFO: Blender create Mesh node MAKO_mag_30.002
+09:03:27 | INFO: Blender create Mesh node MAKO_mag_30_Round
+09:03:27 | INFO: Blender create Mesh node MAKO_mag_30_Stack
+09:03:27 | INFO: Blender create Mesh node MAKO_Barrel
+09:03:27 | INFO: Blender create Mesh node MAKO_BoltCatch.001
+09:03:27 | INFO: Blender create Mesh node MAKO_BufferTube
+09:03:27 | INFO: Blender create Mesh node MAKO_ChargingHandle.001
+09:03:27 | INFO: Blender create Mesh node MAKO_DustCover.001
+09:03:27 | INFO: Blender create Mesh node MAKO_FlashHider.001
+09:03:27 | INFO: Blender create Mesh node MAKO_ForwardAssist.001
+09:03:27 | INFO: Blender create Mesh node MAKO_Grip.001
+09:03:27 | INFO: Blender create Mesh node MAKO_Handguard.001
+09:03:27 | INFO: Blender create Mesh node MAKO_Lower.002
+09:03:27 | INFO: Blender create Mesh node MAKO_MagRelease
+09:03:27 | INFO: Blender create Mesh node MAKO_Pins
+09:03:27 | INFO: Blender create Mesh node MAKO_Rail.001
+09:03:27 | INFO: Blender create Mesh node MAKO_RailBottom.001
+09:03:27 | INFO: Blender create Mesh node MAKO_RailSide_L.001
+09:03:27 | INFO: Blender create Mesh node MAKO_RailSide_R.001
+09:03:27 | INFO: Blender create Mesh node MAKO_Selector.001
+09:03:27 | INFO: Blender create Mesh node MAKO_Trigger
+09:03:27 | INFO: Blender create Mesh node MAKO_Upper.001
+09:03:27 | INFO: Blender create Mesh node MAKO_stock_standard.002
+09:03:27 | INFO: Blender create Mesh node MAKO_stock_standard_ButtPad.002
+09:03:27 | INFO: Blender create Mesh node MAKO_stock_standard_Lever
+09:03:27 | INFO: Blender create Mesh node MAKO_stock_standard_Sling
+09:03:27 | INFO: glTF import finished in 0.38s
+09:03:27 | INFO: Data are loaded, start creating Blender stuff
+09:03:27 | INFO: Blender create Mesh node ATT_optic_reddot_Body
+09:03:27 | INFO: Blender create Mesh node ATT_optic_reddot_Glass
+09:03:27 | INFO: Blender create Mesh node ATT_optic_reddot_Glow
+09:03:28 | INFO: glTF import finished in 0.06s
+00:34.922  render           | Saved: 'F:\git\val etf\assets\weapons\attachments\optics\review\renders\_tmp_v0.12_-1.0_-0.05.png'
+rendered F:\git\val etf\assets\weapons\attachments\optics\review\renders\_tmp_v0.12_-1.0_-0.05.png
+09:03:33 | INFO: Data are loaded, start creating Blender stuff
+09:03:33 | INFO: Blender create Mesh node WARDEN_Barrel
+09:03:33 | INFO: Blender create Mesh node WARDEN_Bolt
+09:03:33 | INFO: Blender create Mesh node WARDEN_BoltRelease
+09:03:33 | INFO: Blender create Mesh node WARDEN_Brake
+09:03:33 | INFO: Blender create Mesh node WARDEN_BrakeCollar
+09:03:33 | INFO: Blender create Mesh node WARDEN_Chassis
+09:03:33 | INFO: Blender create Mesh node WARDEN_Grip
+09:03:33 | INFO: Blender create Mesh node WARDEN_Handguard
+09:03:33 | INFO: Blender create Mesh node WARDEN_MagRelease
+09:03:33 | INFO: Blender create Mesh node WARDEN_RailBottom
+09:03:33 | INFO: Blender create Mesh node WARDEN_RailSide_L
+09:03:33 | INFO: Blender create Mesh node WARDEN_RailSide_R
+09:03:33 | INFO: Blender create Mesh node WARDEN_RailTop
+09:03:33 | INFO: Blender create Mesh node WARDEN_Receiver
+09:03:33 | INFO: Blender create Mesh node WARDEN_Safety
+09:03:33 | INFO: Blender create Mesh node WARDEN_Mag5
+09:03:33 | INFO: Blender create Mesh node WARDEN_Mag5_Round
+09:03:33 | INFO: Blender create Mesh node WARDEN_Mag5_Round_02
+09:03:33 | INFO: Blender create Mesh node WARDEN_Mag5_Round_03
+09:03:33 | INFO: Blender create Mesh node WARDEN_Mag5_Round_04
+09:03:33 | INFO: Blender create Mesh node WARDEN_Mag5_Round_05
+09:03:33 | INFO: Blender create Mesh node WARDEN_StockStandard
+09:03:33 | INFO: Blender create Mesh node WARDEN_StockStandard_CheekRiser
+09:03:33 | INFO: Blender create Mesh node WARDEN_StockStandard_Monopod
+09:03:33 | INFO: Blender create Mesh node WARDEN_Trigger
+09:03:33 | INFO: Blender create Mesh node WARDEN_TriggerGuard
+09:03:33 | INFO: glTF import finished in 0.56s
+09:03:33 | INFO: Data are loaded, start creating Blender stuff
+09:03:33 | INFO: Blender create Mesh node ATT_optic_sniper_Body
+09:03:34 | INFO: Blender create Mesh node ATT_optic_sniper_Glass
+09:03:34 | INFO: glTF import finished in 0.10s
+00:40.453  render           | Saved: 'F:\git\val etf\assets\weapons\attachments\optics\review\renders\_tmp_v0.15_1.0_-0.02.png'
+00:45.609  render           | Saved: 'F:\git\val etf\assets\weapons\attachments\optics\review\renders\_tmp_v0.9_0.35_0.12.png'
+rendered F:\git\val etf\assets\weapons\attachments\optics\review\renders\_tmp_v0.15_1.0_-0.02.png
+rendered F:\git\val etf\assets\weapons\attachments\optics\review\renders\_tmp_v0.9_0.35_0.12.png
+Blender 5.2.0 LTS (hash fbe6228777e7 built 2026-07-14 01:35:40)
+
+Blender quit

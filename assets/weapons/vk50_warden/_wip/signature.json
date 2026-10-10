@@ -1,0 +1,197 @@
+{
+ "WARDEN_Barrel": [
+  720,
+  362,
+  317.658054
+ ],
+ "WARDEN_Bolt": [
+  860,
+  440,
+  41.330401
+ ],
+ "WARDEN_BoltRelease": [
+  100,
+  52,
+  11.525965
+ ],
+ "WARDEN_Brake": [
+  1520,
+  748,
+  853.260706
+ ],
+ "WARDEN_BrakeCollar": [
+  160,
+  82,
+  87.875791
+ ],
+ "WARDEN_Chassis": [
+  1680,
+  848,
+  191.987928
+ ],
+ "WARDEN_Grip": [
+  936,
+  478,
+  54.61671
+ ],
+ "WARDEN_Handguard": [
+  2288,
+  1124,
+  652.348987
+ ],
+ "WARDEN_Mag5": [
+  924,
+  466,
+  71.518722
+ ],
+ "WARDEN_Mag5_Follower": [
+  52,
+  28,
+  2.26206
+ ],
+ "WARDEN_Mag5_Round": [
+  384,
+  194,
+  11.000257
+ ],
+ "WARDEN_Mag5_Round_02": [
+  112,
+  58,
+  3.527068
+ ],
+ "WARDEN_Mag5_Round_03": [
+  112,
+  58,
+  3.527068
+ ],
+ "WARDEN_Mag5_Round_04": [
+  112,
+  58,
+  3.527068
+ ],
+ "WARDEN_Mag5_Round_05": [
+  112,
+  58,
+  3.527068
+ ],
+ "WARDEN_Mag8": [
+  924,
+  466,
+  83.346185
+ ],
+ "WARDEN_Mag8_Follower": [
+  52,
+  28,
+  2.26206
+ ],
+ "WARDEN_Mag8_Round": [
+  384,
+  194,
+  11.000257
+ ],
+ "WARDEN_Mag8_Round_02": [
+  112,
+  58,
+  3.527068
+ ],
+ "WARDEN_Mag8_Round_03": [
+  112,
+  58,
+  3.527068
+ ],
+ "WARDEN_Mag8_Round_04": [
+  112,
+  58,
+  3.527068
+ ],
+ "WARDEN_Mag8_Round_05": [
+  112,
+  58,
+  3.527068
+ ],
+ "WARDEN_Mag8_Round_06": [
+  112,
+  58,
+  3.527068
+ ],
+ "WARDEN_Mag8_Round_07": [
+  112,
+  58,
+  3.527068
+ ],
+ "WARDEN_Mag8_Round_08": [
+  112,
+  58,
+  3.527068
+ ],
+ "WARDEN_MagRelease": [
+  56,
+  30,
+  5.244277
+ ],
+ "WARDEN_RailBottom": [
+  204,
+  104,
+  66.565803
+ ],
+ "WARDEN_RailSide_L": [
+  92,
+  48,
+  35.6722
+ ],
+ "WARDEN_RailSide_R": [
+  92,
+  48,
+  35.6722
+ ],
+ "WARDEN_RailTop": [
+  876,
+  440,
+  220.322199
+ ],
+ "WARDEN_Receiver": [
+  830,
+  413,
+  127.899204
+ ],
+ "WARDEN_Safety": [
+  216,
+  112,
+  1.21574
+ ],
+ "WARDEN_StockFolding": [
+  768,
+  394,
+  28.092378
+ ],
+ "WARDEN_StockFolding_Arm": [
+  2190,
+  1099,
+  232.45462
+ ],
+ "WARDEN_StockStandard": [
+  3324,
+  1680,
+  463.355681
+ ],
+ "WARDEN_StockStandard_CheekRiser": [
+  432,
+  222,
+  18.409506
+ ],
+ "WARDEN_StockStandard_Monopod": [
+  200,
+  104,
+  2.662008
+ ],
+ "WARDEN_Trigger": [
+  92,
+  48,
+  1.370063
+ ],
+ "WARDEN_TriggerGuard": [
+  408,
+  206,
+  26.069317
+ ]
+}

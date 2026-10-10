@@ -1,0 +1,22 @@
+{
+ "optic_reddot Reticle->Glass": [
+  50.0,
+  50.0
+ ],
+ "optic_reddot Glint->Glass": [
+  50.0,
+  50.0
+ ],
+ "optic_holo Reticle->Glass": [
+  50.0,
+  50.0
+ ],
+ "optic_holo Glint->Glass": [
+  50.0,
+  50.0
+ ],
+ "optic_3x Reticle->Ocular": [
+  100.0,
+  118.7
+ ]
+}

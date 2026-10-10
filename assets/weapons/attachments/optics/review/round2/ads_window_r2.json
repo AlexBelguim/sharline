@@ -1,0 +1,282 @@
+{
+ "optic_reddot": {
+  "0.040": {
+   "up": 12.7,
+   "down": 11.7,
+   "left": 11.0,
+   "right": 11.1,
+   "frac_h_at_game_vfov_67.8": 0.36,
+   "frac_w_at_game_hfov_100.2": 0.221,
+   "eye_to_nearest_body_mm": 13.8,
+   "clipped_by_near_0.03": true
+  },
+  "0.050": {
+   "up": 10.5,
+   "down": 9.8,
+   "left": 9.2,
+   "right": 9.2,
+   "frac_h_at_game_vfov_67.8": 0.299,
+   "frac_w_at_game_hfov_100.2": 0.184,
+   "eye_to_nearest_body_mm": 21.1,
+   "clipped_by_near_0.03": true
+  },
+  "0.065": {
+   "up": 8.4,
+   "down": 7.9,
+   "left": 7.4,
+   "right": 7.4,
+   "frac_h_at_game_vfov_67.8": 0.24,
+   "frac_w_at_game_hfov_100.2": 0.148,
+   "eye_to_nearest_body_mm": 33.8,
+   "clipped_by_near_0.03": false
+  },
+  "0.080": {
+   "up": 6.9,
+   "down": 6.6,
+   "left": 6.2,
+   "right": 6.2,
+   "frac_h_at_game_vfov_67.8": 0.199,
+   "frac_w_at_game_hfov_100.2": 0.124,
+   "eye_to_nearest_body_mm": 47.6,
+   "clipped_by_near_0.03": false
+  },
+  "0.100": {
+   "up": 5.7,
+   "down": 5.5,
+   "left": 5.0,
+   "right": 5.0,
+   "frac_h_at_game_vfov_67.8": 0.165,
+   "frac_w_at_game_hfov_100.2": 0.1,
+   "eye_to_nearest_body_mm": 66.8,
+   "clipped_by_near_0.03": false
+  }
+ },
+ "optic_holo": {
+  "0.040": {
+   "up": 15.9,
+   "down": 13.3,
+   "left": 18.2,
+   "right": 18.2,
+   "frac_h_at_game_vfov_62.4": 0.468,
+   "frac_w_at_game_hfov_94.2": 0.386,
+   "eye_to_nearest_body_mm": 14.0,
+   "clipped_by_near_0.03": true
+  },
+  "0.050": {
+   "up": 13.3,
+   "down": 11.8,
+   "left": 15.3,
+   "right": 15.3,
+   "frac_h_at_game_vfov_62.4": 0.402,
+   "frac_w_at_game_hfov_94.2": 0.325,
+   "eye_to_nearest_body_mm": 17.0,
+   "clipped_by_near_0.03": true
+  },
+  "0.065": {
+   "up": 10.7,
+   "down": 10.1,
+   "left": 12.3,
+   "right": 12.3,
+   "frac_h_at_game_vfov_62.4": 0.333,
+   "frac_w_at_game_hfov_94.2": 0.261,
+   "eye_to_nearest_body_mm": 27.6,
+   "clipped_by_near_0.03": true
+  },
+  "0.080": {
+   "up": 8.9,
+   "down": 8.8,
+   "left": 10.3,
+   "right": 10.3,
+   "frac_h_at_game_vfov_62.4": 0.284,
+   "frac_w_at_game_hfov_94.2": 0.219,
+   "eye_to_nearest_body_mm": 40.4,
+   "clipped_by_near_0.03": false
+  },
+  "0.100": {
+   "up": 7.3,
+   "down": 7.6,
+   "left": 8.4,
+   "right": 8.4,
+   "frac_h_at_game_vfov_62.4": 0.239,
+   "frac_w_at_game_hfov_94.2": 0.178,
+   "eye_to_nearest_body_mm": 59.1,
+   "clipped_by_near_0.03": false
+  }
+ },
+ "optic_3x": {
+  "0.040": {
+   "up": 0.0,
+   "down": 0.0,
+   "left": 0.0,
+   "right": 0.0,
+   "frac_h_at_game_vfov_26.0": 0.0,
+   "frac_w_at_game_hfov_44.6": 0.0,
+   "eye_to_nearest_body_mm": 42.0,
+   "clipped_by_near_0.03": false
+  },
+  "0.050": {
+   "up": 0.0,
+   "down": 0.0,
+   "left": 0.0,
+   "right": 0.0,
+   "frac_h_at_game_vfov_26.0": 0.0,
+   "frac_w_at_game_hfov_44.6": 0.0,
+   "eye_to_nearest_body_mm": 51.6,
+   "clipped_by_near_0.03": false
+  },
+  "0.065": {
+   "up": 0.0,
+   "down": 0.0,
+   "left": 0.0,
+   "right": 0.0,
+   "frac_h_at_game_vfov_26.0": 0.0,
+   "frac_w_at_game_hfov_44.6": 0.0,
+   "eye_to_nearest_body_mm": 66.3,
+   "clipped_by_near_0.03": false
+  },
+  "0.080": {
+   "up": 0.0,
+   "down": 0.0,
+   "left": 0.0,
+   "right": 0.0,
+   "frac_h_at_game_vfov_26.0": 0.0,
+   "frac_w_at_game_hfov_44.6": 0.0,
+   "eye_to_nearest_body_mm": 81.0,
+   "clipped_by_near_0.03": false
+  },
+  "0.100": {
+   "up": 0.0,
+   "down": 0.0,
+   "left": 0.0,
+   "right": 0.0,
+   "frac_h_at_game_vfov_26.0": 0.0,
+   "frac_w_at_game_hfov_44.6": 0.0,
+   "eye_to_nearest_body_mm": 100.8,
+   "clipped_by_near_0.03": false
+  }
+ },
+ "optic_sniper": {
+  "0.040": {
+   "up": 0.0,
+   "down": 0.0,
+   "left": 0.0,
+   "right": 0.0,
+   "frac_h_at_game_vfov_13.0": 0.0,
+   "frac_w_at_game_hfov_22.9": 0.0,
+   "eye_to_nearest_body_mm": 44.6,
+   "clipped_by_near_0.03": false
+  },
+  "0.050": {
+   "up": 0.0,
+   "down": 0.0,
+   "left": 0.0,
+   "right": 0.0,
+   "frac_h_at_game_vfov_13.0": 0.0,
+   "frac_w_at_game_hfov_22.9": 0.0,
+   "eye_to_nearest_body_mm": 53.7,
+   "clipped_by_near_0.03": false
+  },
+  "0.065": {
+   "up": 0.0,
+   "down": 0.0,
+   "left": 0.0,
+   "right": 0.0,
+   "frac_h_at_game_vfov_13.0": 0.0,
+   "frac_w_at_game_hfov_22.9": 0.0,
+   "eye_to_nearest_body_mm": 67.9,
+   "clipped_by_near_0.03": false
+  },
+  "0.080": {
+   "up": 0.0,
+   "down": 0.0,
+   "left": 0.0,
+   "right": 0.0,
+   "frac_h_at_game_vfov_13.0": 0.0,
+   "frac_w_at_game_hfov_22.9": 0.0,
+   "eye_to_nearest_body_mm": 82.4,
+   "clipped_by_near_0.03": false
+  },
+  "0.100": {
+   "up": 0.0,
+   "down": 0.0,
+   "left": 0.0,
+   "right": 0.0,
+   "frac_h_at_game_vfov_13.0": 0.0,
+   "frac_w_at_game_hfov_22.9": 0.0,
+   "eye_to_nearest_body_mm": 101.9,
+   "clipped_by_near_0.03": false
+  },
+  "0.085": {
+   "up": 0.0,
+   "down": 0.0,
+   "left": 0.0,
+   "right": 0.0,
+   "frac_h_at_game_vfov_13.0": 0.0,
+   "frac_w_at_game_hfov_22.9": 0.0,
+   "eye_to_nearest_body_mm": 87.3,
+   "clipped_by_near_0.03": false
+  }
+ },
+ "optic_thermal": {
+  "0.040": {
+   "up": 0.0,
+   "down": 0.0,
+   "left": 0.0,
+   "right": 0.0,
+   "frac_h_at_game_vfov_19.5": 0.0,
+   "frac_w_at_game_hfov_34.0": 0.0,
+   "eye_to_nearest_body_mm": 44.1,
+   "clipped_by_near_0.03": false
+  },
+  "0.050": {
+   "up": 0.0,
+   "down": 0.0,
+   "left": 0.0,
+   "right": 0.0,
+   "frac_h_at_game_vfov_19.5": 0.0,
+   "frac_w_at_game_hfov_34.0": 0.0,
+   "eye_to_nearest_body_mm": 53.3,
+   "clipped_by_near_0.03": false
+  },
+  "0.065": {
+   "up": 0.0,
+   "down": 0.0,
+   "left": 0.0,
+   "right": 0.0,
+   "frac_h_at_game_vfov_19.5": 0.0,
+   "frac_w_at_game_hfov_34.0": 0.0,
+   "eye_to_nearest_body_mm": 67.6,
+   "clipped_by_near_0.03": false
+  },
+  "0.080": {
+   "up": 0.0,
+   "down": 0.0,
+   "left": 0.0,
+   "right": 0.0,
+   "frac_h_at_game_vfov_19.5": 0.0,
+   "frac_w_at_game_hfov_34.0": 0.0,
+   "eye_to_nearest_body_mm": 82.1,
+   "clipped_by_near_0.03": false
+  },
+  "0.100": {
+   "up": 0.0,
+   "down": 0.0,
+   "left": 0.0,
+   "right": 0.0,
+   "frac_h_at_game_vfov_19.5": 0.0,
+   "frac_w_at_game_hfov_34.0": 0.0,
+   "eye_to_nearest_body_mm": 101.7,
+   "clipped_by_near_0.03": false
+  },
+  "0.025": {
+   "up": 0.0,
+   "down": 0.0,
+   "left": 0.0,
+   "right": 0.0,
+   "frac_h_at_game_vfov_19.5": 0.0,
+   "frac_w_at_game_hfov_34.0": 0.0,
+   "eye_to_nearest_body_mm": 31.1,
+   "clipped_by_near_0.03": false
+  }
+ }
+}

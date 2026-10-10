@@ -1,0 +1,2171 @@
+{
+ "collections": {
+  "_Lights": [
+   "L_Fill",
+   "L_Key",
+   "L_Rim",
+   "L_RimL"
+  ],
+  "MAKO_Base": [
+   "MAKO_Barrel",
+   "MAKO_BoltCatch",
+   "MAKO_BufferTube",
+   "MAKO_ChargingHandle",
+   "MAKO_DustCover",
+   "MAKO_FlashHider",
+   "MAKO_ForwardAssist",
+   "MAKO_Grip",
+   "MAKO_Handguard",
+   "MAKO_Lower",
+   "MAKO_MagRelease",
+   "MAKO_Pins",
+   "MAKO_Rail",
+   "MAKO_RailBottom",
+   "MAKO_RailSide_L",
+   "MAKO_RailSide_R",
+   "MAKO_Root",
+   "MAKO_SOCKET_LeftHand",
+   "MAKO_SOCKET_Mag",
+   "MAKO_SOCKET_Muzzle",
+   "MAKO_SOCKET_Optic",
+   "MAKO_SOCKET_Shield",
+   "MAKO_SOCKET_Side_L",
+   "MAKO_SOCKET_Side_R",
+   "MAKO_SOCKET_Stock",
+   "MAKO_SOCKET_Under",
+   "MAKO_Selector",
+   "MAKO_Trigger",
+   "MAKO_Upper"
+  ],
+  "MAKO_mag_30": [
+   "MAKO_mag_30",
+   "MAKO_mag_30_Round",
+   "MAKO_mag_30_Stack"
+  ],
+  "MAKO_mag_45": [
+   "MAKO_mag_45",
+   "MAKO_mag_45_Round",
+   "MAKO_mag_45_Stack"
+  ],
+  "MAKO_mag_drum60": [
+   "MAKO_mag_drum60",
+   "MAKO_mag_drum60_Round",
+   "MAKO_mag_drum60_Stack"
+  ],
+  "MAKO_stock_light": [
+   "MAKO_stock_light",
+   "MAKO_stock_light_ButtPad",
+   "MAKO_stock_light_Lever"
+  ],
+  "MAKO_stock_precision": [
+   "MAKO_stock_precision",
+   "MAKO_stock_precision_ButtPad",
+   "MAKO_stock_precision_Cheek",
+   "MAKO_stock_precision_Posts"
+  ],
+  "MAKO_stock_standard": [
+   "MAKO_stock_standard",
+   "MAKO_stock_standard_ButtPad",
+   "MAKO_stock_standard_Lever",
+   "MAKO_stock_standard_Sling"
+  ]
+ },
+ "modifiers_left": {
+  "MAKO_BoltCatch": [
+   "BEVEL"
+  ],
+  "MAKO_ChargingHandle": [
+   "BEVEL"
+  ],
+  "MAKO_DustCover": [
+   "BEVEL"
+  ],
+  "MAKO_FlashHider": [
+   "BEVEL"
+  ],
+  "MAKO_ForwardAssist": [
+   "BEVEL"
+  ],
+  "MAKO_Grip": [
+   "BEVEL"
+  ],
+  "MAKO_Handguard": [
+   "BEVEL"
+  ],
+  "MAKO_Lower": [
+   "BEVEL"
+  ],
+  "MAKO_mag_30": [
+   "BEVEL"
+  ],
+  "MAKO_mag_45": [
+   "BEVEL"
+  ],
+  "MAKO_mag_drum60": [
+   "BEVEL"
+  ],
+  "MAKO_MagRelease": [
+   "BEVEL"
+  ],
+  "MAKO_Pins": [
+   "BEVEL"
+  ],
+  "MAKO_Rail": [
+   "BEVEL"
+  ],
+  "MAKO_RailBottom": [
+   "BEVEL"
+  ],
+  "MAKO_RailSide_L": [
+   "BEVEL"
+  ],
+  "MAKO_RailSide_R": [
+   "BEVEL"
+  ],
+  "MAKO_Selector": [
+   "BEVEL"
+  ],
+  "MAKO_stock_light": [
+   "BEVEL"
+  ],
+  "MAKO_stock_light_ButtPad": [
+   "BEVEL"
+  ],
+  "MAKO_stock_light_Lever": [
+   "BEVEL"
+  ],
+  "MAKO_stock_precision": [
+   "BEVEL"
+  ],
+  "MAKO_stock_precision_ButtPad": [
+   "BEVEL"
+  ],
+  "MAKO_stock_precision_Cheek": [
+   "BEVEL"
+  ],
+  "MAKO_stock_precision_Posts": [
+   "BEVEL"
+  ],
+  "MAKO_stock_standard": [
+   "BEVEL"
+  ],
+  "MAKO_stock_standard_ButtPad": [
+   "BEVEL"
+  ],
+  "MAKO_stock_standard_Lever": [
+   "BEVEL"
+  ],
+  "MAKO_Trigger": [
+   "BEVEL"
+  ],
+  "MAKO_Upper": [
+   "BEVEL"
+  ]
+ },
+ "pivots": {
+  "MAKO_Trigger": {
+   "origin": [
+    0.0,
+    -0.04,
+    0.012
+   ],
+   "brief": [
+    0,
+    -0.04,
+    0.012
+   ],
+   "parent": "MAKO_Root",
+   "custom_props": {}
+  },
+  "MAKO_ChargingHandle": {
+   "origin": [
+    0.0,
+    0.03,
+    0.068
+   ],
+   "brief": [
+    0,
+    0.03,
+    0.068
+   ],
+   "parent": "MAKO_Root",
+   "custom_props": {}
+  },
+  "MAKO_DustCover": {
+   "origin": [
+    -0.016,
+    -0.06,
+    0.041
+   ],
+   "brief": [
+    -0.0175,
+    -0.06,
+    0.041
+   ],
+   "parent": "MAKO_Root",
+   "custom_props": {}
+  },
+  "MAKO_BoltCatch": {
+   "origin": [
+    0.017,
+    -0.07,
+    0.006
+   ],
+   "brief": null,
+   "parent": "MAKO_Root",
+   "custom_props": {}
+  },
+  "MAKO_MagRelease": {
+   "origin": [
+    -0.0152,
+    -0.072,
+    0.009
+   ],
+   "brief": null,
+   "parent": "MAKO_Root",
+   "custom_props": {}
+  },
+  "MAKO_Selector": {
+   "origin": [
+    0.0164,
+    0.006,
+    0.0125
+   ],
+   "brief": [
+    0.016,
+    -0.006,
+    0.013
+   ],
+   "parent": "MAKO_Root",
+   "custom_props": {}
+  },
+  "MAKO_ForwardAssist": {
+   "origin": [
+    -0.0172,
+    0.0195,
+    0.0585
+   ],
+   "brief": null,
+   "parent": "MAKO_Root",
+   "custom_props": {}
+  }
+ },
+ "parts_origin": {
+  "MAKO_stock_standard": {
+   "origin": [
+    0.0,
+    0.215,
+    0.05
+   ],
+   "children": [
+    "MAKO_stock_standard_ButtPad",
+    "MAKO_stock_standard_Lever",
+    "MAKO_stock_standard_Sling"
+   ]
+  },
+  "MAKO_stock_precision": {
+   "origin": [
+    0.0,
+    0.215,
+    0.05
+   ],
+   "children": [
+    "MAKO_stock_precision_ButtPad",
+    "MAKO_stock_precision_Cheek",
+    "MAKO_stock_precision_Posts"
+   ]
+  },
+  "MAKO_stock_light": {
+   "origin": [
+    0.0,
+    0.215,
+    0.05
+   ],
+   "children": [
+    "MAKO_stock_light_ButtPad",
+    "MAKO_stock_light_Lever"
+   ]
+  },
+  "MAKO_mag_30": {
+   "origin": [
+    0.0,
+    -0.152,
+    0.012
+   ],
+   "children": [
+    "MAKO_mag_30_Round",
+    "MAKO_mag_30_Stack"
+   ]
+  },
+  "MAKO_mag_45": {
+   "origin": [
+    0.0,
+    -0.152,
+    0.012
+   ],
+   "children": [
+    "MAKO_mag_45_Round",
+    "MAKO_mag_45_Stack"
+   ]
+  },
+  "MAKO_mag_drum60": {
+   "origin": [
+    0.0,
+    -0.152,
+    0.012
+   ],
+   "children": [
+    "MAKO_mag_drum60_Round",
+    "MAKO_mag_drum60_Stack"
+   ]
+  }
+ },
+ "health": {
+  "MAKO_Barrel": {
+   "tris": 148,
+   "non_manifold": 0,
+   "loose_v": 0,
+   "loose_e": 0,
+   "zero_area": 0,
+   "signed_vol_cm3": 114.44,
+   "bad_winding_edges": 0,
+   "ngons": 4,
+   "ngons_gt8": 2,
+   "islands": 3,
+   "uv_layers": 1,
+   "uv_zero_area_faces": 0,
+   "mats": [
+    "M_MAKO_Gunmetal"
+   ],
+   "bounds": [
+    [
+     -0.0105,
+     -0.513,
+     0.0395
+    ],
+    [
+     0.0105,
+     -0.15,
+     0.0668
+    ]
+   ],
+   "coll": "MAKO_Base"
+  },
+  "MAKO_BoltCatch": {
+   "tris": 280,
+   "non_manifold": 0,
+   "loose_v": 0,
+   "loose_e": 0,
+   "zero_area": 0,
+   "signed_vol_cm3": 0.776,
+   "bad_winding_edges": 0,
+   "ngons": 4,
+   "ngons_gt8": 3,
+   "islands": 1,
+   "uv_layers": 1,
+   "uv_zero_area_faces": 0,
+   "mats": [
+    "M_MAKO_Graphite"
+   ],
+   "bounds": [
+    [
+     0.0153,
+     -0.0742,
+     0.002
+    ],
+    [
+     0.0198,
+     -0.0643,
+     0.0258
+    ]
+   ],
+   "coll": "MAKO_Base"
+  },
+  "MAKO_BufferTube": {
+   "tris": 744,
+   "non_manifold": 0,
+   "loose_v": 0,
+   "loose_e": 0,
+   "zero_area": 0,
+   "signed_vol_cm3": 164.547,
+   "bad_winding_edges": 0,
+   "ngons": 10,
+   "ngons_gt8": 2,
+   "islands": 2,
+   "uv_layers": 1,
+   "uv_zero_area_faces": 0,
+   "mats": [
+    "M_MAKO_Graphite",
+    "M_MAKO_Gunmetal"
+   ],
+   "bounds": [
+    [
+     -0.0197,
+     0.026,
+     0.0304
+    ],
+    [
+     0.0197,
+     0.215,
+     0.0696
+    ]
+   ],
+   "coll": "MAKO_Base"
+  },
+  "MAKO_ChargingHandle": {
+   "tris": 332,
+   "non_manifold": 0,
+   "loose_v": 0,
+   "loose_e": 0,
+   "zero_area": 0,
+   "signed_vol_cm3": 8.666,
+   "bad_winding_edges": 0,
+   "ngons": 10,
+   "ngons_gt8": 2,
+   "islands": 1,
+   "uv_layers": 1,
+   "uv_zero_area_faces": 0,
+   "mats": [
+    "M_MAKO_Graphite"
+   ],
+   "bounds": [
+    [
+     -0.0232,
+     0.0,
+     0.0624
+    ],
+    [
+     0.021,
+     0.0425,
+     0.0745
+    ]
+   ],
+   "coll": "MAKO_Base"
+  },
+  "MAKO_DustCover": {
+   "tris": 332,
+   "non_manifold": 0,
+   "loose_v": 0,
+   "loose_e": 0,
+   "zero_area": 48,
+   "signed_vol_cm3": 2.887,
+   "bad_winding_edges": 0,
+   "ngons": 9,
+   "ngons_gt8": 4,
+   "islands": 1,
+   "uv_layers": 1,
+   "uv_zero_area_faces": 0,
+   "mats": [
+    "M_MAKO_Graphite"
+   ],
+   "bounds": [
+    [
+     -0.0181,
+     -0.0925,
+     0.0393
+    ],
+    [
+     -0.0144,
+     -0.0275,
+     0.0624
+    ]
+   ],
+   "coll": "MAKO_Base"
+  },
+  "MAKO_FlashHider": {
+   "tris": 1528,
+   "non_manifold": 0,
+   "loose_v": 0,
+   "loose_e": 0,
+   "zero_area": 0,
+   "signed_vol_cm3": 15.056,
+   "bad_winding_edges": 0,
+   "ngons": 64,
+   "ngons_gt8": 23,
+   "islands": 1,
+   "uv_layers": 1,
+   "uv_zero_area_faces": 0,
+   "mats": [
+    "M_MAKO_Gunmetal",
+    "M_MAKO_Dark"
+   ],
+   "bounds": [
+    [
+     -0.0124,
+     -0.565,
+     0.0376
+    ],
+    [
+     0.0124,
+     -0.509,
+     0.0624
+    ]
+   ],
+   "coll": "MAKO_Base"
+  },
+  "MAKO_ForwardAssist": {
+   "tris": 454,
+   "non_manifold": 0,
+   "loose_v": 0,
+   "loose_e": 0,
+   "zero_area": 4,
+   "signed_vol_cm3": 1.128,
+   "bad_winding_edges": 0,
+   "ngons": 4,
+   "ngons_gt8": 2,
+   "islands": 1,
+   "uv_layers": 1,
+   "uv_zero_area_faces": 0,
+   "mats": [
+    "M_MAKO_Gunmetal"
+   ],
+   "bounds": [
+    [
+     -0.0232,
+     0.0195,
+     0.0525
+    ],
+    [
+     -0.0112,
+     0.0313,
+     0.0645
+    ]
+   ],
+   "coll": "MAKO_Base"
+  },
+  "MAKO_Grip": {
+   "tris": 1216,
+   "non_manifold": 0,
+   "loose_v": 0,
+   "loose_e": 0,
+   "zero_area": 0,
+   "signed_vol_cm3": 156.616,
+   "bad_winding_edges": 0,
+   "ngons": 58,
+   "ngons_gt8": 9,
+   "islands": 1,
+   "uv_layers": 1,
+   "uv_zero_area_faces": 0,
+   "mats": [
+    "M_MAKO_Bone",
+    "M_MAKO_BoneStipple"
+   ],
+   "bounds": [
+    [
+     -0.0158,
+     -0.0174,
+     -0.1136
+    ],
+    [
+     0.0158,
+     0.0691,
+     0.005
+    ]
+   ],
+   "coll": "MAKO_Base"
+  },
+  "MAKO_Handguard": {
+   "tris": 3542,
+   "non_manifold": 0,
+   "loose_v": 0,
+   "loose_e": 0,
+   "zero_area": 0,
+   "signed_vol_cm3": 127.788,
+   "bad_winding_edges": 0,
+   "ngons": 118,
+   "ngons_gt8": 20,
+   "islands": 1,
+   "uv_layers": 1,
+   "uv_zero_area_faces": 0,
+   "mats": [
+    "M_MAKO_Graphite",
+    "M_MAKO_Dark"
+   ],
+   "bounds": [
+    [
+     -0.023,
+     -0.495,
+     0.025
+    ],
+    [
+     0.023,
+     -0.168,
+     0.0745
+    ]
+   ],
+   "coll": "MAKO_Base"
+  },
+  "MAKO_Lower": {
+   "tris": 3178,
+   "non_manifold": 0,
+   "loose_v": 0,
+   "loose_e": 0,
+   "zero_area": 2,
+   "signed_vol_cm3": 179.638,
+   "bad_winding_edges": 0,
+   "ngons": 52,
+   "ngons_gt8": 27,
+   "islands": 1,
+   "uv_layers": 1,
+   "uv_zero_area_faces": 0,
+   "mats": [
+    "M_MAKO_Graphite",
+    "M_MAKO_Dark"
+   ],
+   "bounds": [
+    [
+     -0.0192,
+     -0.1662,
+     -0.04
+    ],
+    [
+     0.0192,
+     0.036,
+     0.046
+    ]
+   ],
+   "coll": "MAKO_Base"
+  },
+  "MAKO_mag_30": {
+   "tris": 1208,
+   "non_manifold": 0,
+   "loose_v": 0,
+   "loose_e": 0,
+   "zero_area": 1,
+   "signed_vol_cm3": 278.996,
+   "bad_winding_edges": 0,
+   "ngons": 24,
+   "ngons_gt8": 10,
+   "islands": 1,
+   "uv_layers": 1,
+   "uv_zero_area_faces": 0,
+   "mats": [
+    "M_MAKO_Bone",
+    "M_MAKO_Graphite",
+    "M_MAKO_Dark"
+   ],
+   "bounds": [
+    [
+     -0.0146,
+     -0.1734,
+     -0.1723
+    ],
+    [
+     0.0146,
+     -0.088,
+     0.012
+    ]
+   ],
+   "coll": "MAKO_mag_30"
+  },
+  "MAKO_mag_30_Round": {
+   "tris": 216,
+   "non_manifold": 0,
+   "loose_v": 0,
+   "loose_e": 0,
+   "zero_area": 0,
+   "signed_vol_cm3": 2.99,
+   "bad_winding_edges": 0,
+   "ngons": 0,
+   "ngons_gt8": 0,
+   "islands": 1,
+   "uv_layers": 1,
+   "uv_zero_area_faces": 0,
+   "mats": [
+    "M_MAKO_Brass",
+    "M_MAKO_Gunmetal"
+   ],
+   "bounds": [
+    [
+     -0.0028,
+     -0.1485,
+     0.0057
+    ],
+    [
+     0.0064,
+     -0.0915,
+     0.0149
+    ]
+   ],
+   "coll": "MAKO_mag_30"
+  },
+  "MAKO_mag_30_Stack": {
+   "tris": 392,
+   "non_manifold": 0,
+   "loose_v": 0,
+   "loose_e": 0,
+   "zero_area": 0,
+   "signed_vol_cm3": 14.597,
+   "bad_winding_edges": 0,
+   "ngons": 28,
+   "ngons_gt8": 0,
+   "islands": 14,
+   "uv_layers": 1,
+   "uv_zero_area_faces": 0,
+   "mats": [
+    "M_MAKO_Brass"
+   ],
+   "bounds": [
+    [
+     -0.0096,
+     -0.1355,
+     -0.1303
+    ],
+    [
+     0.0096,
+     -0.1091,
+     -0.0513
+    ]
+   ],
+   "coll": "MAKO_mag_30"
+  },
+  "MAKO_mag_45": {
+   "tris": 1204,
+   "non_manifold": 0,
+   "loose_v": 0,
+   "loose_e": 0,
+   "zero_area": 0,
+   "signed_vol_cm3": 390.809,
+   "bad_winding_edges": 0,
+   "ngons": 25,
+   "ngons_gt8": 10,
+   "islands": 1,
+   "uv_layers": 1,
+   "uv_zero_area_faces": 0,
+   "mats": [
+    "M_MAKO_Bone",
+    "M_MAKO_Graphite",
+    "M_MAKO_Dark"
+   ],
+   "bounds": [
+    [
+     -0.0146,
+     -0.1978,
+     -0.2442
+    ],
+    [
+     0.0146,
+     -0.088,
+     0.012
+    ]
+   ],
+   "coll": "MAKO_mag_45"
+  },
+  "MAKO_mag_45_Round": {
+   "tris": 216,
+   "non_manifold": 0,
+   "loose_v": 0,
+   "loose_e": 0,
+   "zero_area": 0,
+   "signed_vol_cm3": 2.99,
+   "bad_winding_edges": 0,
+   "ngons": 0,
+   "ngons_gt8": 0,
+   "islands": 1,
+   "uv_layers": 1,
+   "uv_zero_area_faces": 0,
+   "mats": [
+    "M_MAKO_Brass",
+    "M_MAKO_Gunmetal"
+   ],
+   "bounds": [
+    [
+     -0.0028,
+     -0.1485,
+     0.0057
+    ],
+    [
+     0.0064,
+     -0.0915,
+     0.0149
+    ]
+   ],
+   "coll": "MAKO_mag_45"
+  },
+  "MAKO_mag_45_Stack": {
+   "tris": 728,
+   "non_manifold": 0,
+   "loose_v": 0,
+   "loose_e": 0,
+   "zero_area": 0,
+   "signed_vol_cm3": 27.109,
+   "bad_winding_edges": 0,
+   "ngons": 52,
+   "ngons_gt8": 0,
+   "islands": 26,
+   "uv_layers": 1,
+   "uv_zero_area_faces": 0,
+   "mats": [
+    "M_MAKO_Brass"
+   ],
+   "bounds": [
+    [
+     -0.0096,
+     -0.1542,
+     -0.1941
+    ],
+    [
+     0.0096,
+     -0.1093,
+     -0.0532
+    ]
+   ],
+   "coll": "MAKO_mag_45"
+  },
+  "MAKO_mag_drum60": {
+   "tris": 3282,
+   "non_manifold": 0,
+   "loose_v": 0,
+   "loose_e": 0,
+   "zero_area": 0,
+   "signed_vol_cm3": 602.227,
+   "bad_winding_edges": 0,
+   "ngons": 34,
+   "ngons_gt8": 15,
+   "islands": 1,
+   "uv_layers": 1,
+   "uv_zero_area_faces": 0,
+   "mats": [
+    "M_MAKO_Bone",
+    "M_MAKO_Dark",
+    "M_MAKO_Graphite",
+    "M_MAKO_Gunmetal"
+   ],
+   "bounds": [
+    [
+     -0.0345,
+     -0.1742,
+     -0.1462
+    ],
+    [
+     0.04,
+     -0.0678,
+     0.012
+    ]
+   ],
+   "coll": "MAKO_mag_drum60"
+  },
+  "MAKO_mag_drum60_Round": {
+   "tris": 216,
+   "non_manifold": 0,
+   "loose_v": 0,
+   "loose_e": 0,
+   "zero_area": 0,
+   "signed_vol_cm3": 2.99,
+   "bad_winding_edges": 0,
+   "ngons": 0,
+   "ngons_gt8": 0,
+   "islands": 1,
+   "uv_layers": 1,
+   "uv_zero_area_faces": 0,
+   "mats": [
+    "M_MAKO_Brass",
+    "M_MAKO_Gunmetal"
+   ],
+   "bounds": [
+    [
+     -0.0028,
+     -0.1485,
+     0.0057
+    ],
+    [
+     0.0064,
+     -0.0915,
+     0.0149
+    ]
+   ],
+   "coll": "MAKO_mag_drum60"
+  },
+  "MAKO_mag_drum60_Stack": {
+   "tris": 1440,
+   "non_manifold": 0,
+   "loose_v": 0,
+   "loose_e": 0,
+   "zero_area": 0,
+   "signed_vol_cm3": 23.433,
+   "bad_winding_edges": 0,
+   "ngons": 0,
+   "ngons_gt8": 0,
+   "islands": 8,
+   "uv_layers": 1,
+   "uv_zero_area_faces": 0,
+   "mats": [
+    "M_MAKO_Brass",
+    "M_MAKO_Gunmetal"
+   ],
+   "bounds": [
+    [
+     -0.0285,
+     -0.1549,
+     -0.1309
+    ],
+    [
+     0.0285,
+     -0.0871,
+     -0.1043
+    ]
+   ],
+   "coll": "MAKO_mag_drum60"
+  },
+  "MAKO_MagRelease": {
+   "tris": 160,
+   "non_manifold": 0,
+   "loose_v": 0,
+   "loose_e": 0,
+   "zero_area": 0,
+   "signed_vol_cm3": 0.338,
+   "bad_winding_edges": 0,
+   "ngons": 0,
+   "ngons_gt8": 0,
+   "islands": 1,
+   "uv_layers": 1,
+   "uv_zero_area_faces": 0,
+   "mats": [
+    "M_MAKO_Gunmetal"
+   ],
+   "bounds": [
+    [
+     -0.019,
+     -0.0767,
+     0.0043
+    ],
+    [
+     -0.014,
+     -0.0673,
+     0.0137
+    ]
+   ],
+   "coll": "MAKO_Base"
+  },
+  "MAKO_Pins": {
+   "tris": 368,
+   "non_manifold": 0,
+   "loose_v": 0,
+   "loose_e": 0,
+   "zero_area": 0,
+   "signed_vol_cm3": 4.092,
+   "bad_winding_edges": 0,
+   "ngons": 8,
+   "ngons_gt8": 8,
+   "islands": 4,
+   "uv_layers": 1,
+   "uv_zero_area_faces": 0,
+   "mats": [
+    "M_MAKO_Gunmetal"
+   ],
+   "bounds": [
+    [
+     -0.0163,
+     -0.1566,
+     0.0094
+    ],
+    [
+     0.0163,
+     0.0291,
+     0.0366
+    ]
+   ],
+   "coll": "MAKO_Base"
+  },
+  "MAKO_Rail": {
+   "tris": 1692,
+   "non_manifold": 0,
+   "loose_v": 0,
+   "loose_e": 0,
+   "zero_area": 0,
+   "signed_vol_cm3": 80.632,
+   "bad_winding_edges": 0,
+   "ngons": 54,
+   "ngons_gt8": 2,
+   "islands": 1,
+   "uv_layers": 1,
+   "uv_zero_area_faces": 0,
+   "mats": [
+    "M_MAKO_Graphite"
+   ],
+   "bounds": [
+    [
+     -0.0105,
+     -0.493,
+     0.0745
+    ],
+    [
+     0.0105,
+     0.022,
+     0.084
+    ]
+   ],
+   "coll": "MAKO_Base"
+  },
+  "MAKO_RailBottom": {
+   "tris": 476,
+   "non_manifold": 0,
+   "loose_v": 0,
+   "loose_e": 0,
+   "zero_area": 0,
+   "signed_vol_cm3": 20.297,
+   "bad_winding_edges": 0,
+   "ngons": 16,
+   "ngons_gt8": 2,
+   "islands": 1,
+   "uv_layers": 1,
+   "uv_zero_area_faces": 0,
+   "mats": [
+    "M_MAKO_Graphite"
+   ],
+   "bounds": [
+    [
+     -0.0105,
+     -0.4,
+     0.0155
+    ],
+    [
+     0.0105,
+     -0.27,
+     0.025
+    ]
+   ],
+   "coll": "MAKO_Base"
+  },
+  "MAKO_RailSide_L": {
+   "tris": 220,
+   "non_manifold": 0,
+   "loose_v": 0,
+   "loose_e": 0,
+   "zero_area": 0,
+   "signed_vol_cm3": 7.795,
+   "bad_winding_edges": 0,
+   "ngons": 8,
+   "ngons_gt8": 2,
+   "islands": 1,
+   "uv_layers": 1,
+   "uv_zero_area_faces": 0,
+   "mats": [
+    "M_MAKO_Graphite"
+   ],
+   "bounds": [
+    [
+     0.023,
+     -0.474,
+     0.0395
+    ],
+    [
+     0.0325,
+     -0.424,
+     0.0605
+    ]
+   ],
+   "coll": "MAKO_Base"
+  },
+  "MAKO_RailSide_R": {
+   "tris": 220,
+   "non_manifold": 0,
+   "loose_v": 0,
+   "loose_e": 0,
+   "zero_area": 0,
+   "signed_vol_cm3": 7.795,
+   "bad_winding_edges": 0,
+   "ngons": 8,
+   "ngons_gt8": 2,
+   "islands": 1,
+   "uv_layers": 1,
+   "uv_zero_area_faces": 0,
+   "mats": [
+    "M_MAKO_Graphite"
+   ],
+   "bounds": [
+    [
+     -0.0325,
+     -0.474,
+     0.0395
+    ],
+    [
+     -0.023,
+     -0.424,
+     0.0605
+    ]
+   ],
+   "coll": "MAKO_Base"
+  },
+  "MAKO_Selector": {
+   "tris": 252,
+   "non_manifold": 0,
+   "loose_v": 0,
+   "loose_e": 0,
+   "zero_area": 0,
+   "signed_vol_cm3": 0.502,
+   "bad_winding_edges": 0,
+   "ngons": 8,
+   "ngons_gt8": 4,
+   "islands": 1,
+   "uv_layers": 1,
+   "uv_zero_area_faces": 0,
+   "mats": [
+    "M_MAKO_Gunmetal"
+   ],
+   "bounds": [
+    [
+     0.015,
+     -0.0136,
+     0.007
+    ],
+    [
+     0.02,
+     0.0115,
+     0.018
+    ]
+   ],
+   "coll": "MAKO_Base"
+  },
+  "MAKO_stock_light": {
+   "tris": 1238,
+   "non_manifold": 0,
+   "loose_v": 0,
+   "loose_e": 0,
+   "zero_area": 0,
+   "signed_vol_cm3": 163.065,
+   "bad_winding_edges": 0,
+   "ngons": 15,
+   "ngons_gt8": 10,
+   "islands": 1,
+   "uv_layers": 1,
+   "uv_zero_area_faces": 0,
+   "mats": [
+    "M_MAKO_Bone",
+    "M_MAKO_Dark"
+   ],
+   "bounds": [
+    [
+     -0.0195,
+     0.128,
+     -0.056
+    ],
+    [
+     0.0195,
+     0.2615,
+     0.076
+    ]
+   ],
+   "coll": "MAKO_stock_light"
+  },
+  "MAKO_stock_light_ButtPad": {
+   "tris": 260,
+   "non_manifold": 0,
+   "loose_v": 0,
+   "loose_e": 0,
+   "zero_area": 2,
+   "signed_vol_cm3": 54.379,
+   "bad_winding_edges": 0,
+   "ngons": 2,
+   "ngons_gt8": 2,
+   "islands": 1,
+   "uv_layers": 1,
+   "uv_zero_area_faces": 0,
+   "mats": [
+    "M_MAKO_Rubber"
+   ],
+   "bounds": [
+    [
+     -0.017,
+     0.261,
+     -0.059
+    ],
+    [
+     0.017,
+     0.2735,
+     0.074
+    ]
+   ],
+   "coll": "MAKO_stock_light"
+  },
+  "MAKO_stock_light_Lever": {
+   "tris": 44,
+   "non_manifold": 0,
+   "loose_v": 0,
+   "loose_e": 0,
+   "zero_area": 0,
+   "signed_vol_cm3": 1.328,
+   "bad_winding_edges": 0,
+   "ngons": 0,
+   "ngons_gt8": 0,
+   "islands": 1,
+   "uv_layers": 1,
+   "uv_zero_area_faces": 0,
+   "mats": [
+    "M_MAKO_Graphite"
+   ],
+   "bounds": [
+    [
+     -0.0045,
+     0.15,
+     0.024
+    ],
+    [
+     0.0045,
+     0.172,
+     0.031
+    ]
+   ],
+   "coll": "MAKO_stock_light"
+  },
+  "MAKO_stock_precision": {
+   "tris": 2080,
+   "non_manifold": 0,
+   "loose_v": 0,
+   "loose_e": 0,
+   "zero_area": 4,
+   "signed_vol_cm3": 633.179,
+   "bad_winding_edges": 0,
+   "ngons": 40,
+   "ngons_gt8": 13,
+   "islands": 1,
+   "uv_layers": 1,
+   "uv_zero_area_faces": 0,
+   "mats": [
+    "M_MAKO_Bone",
+    "M_MAKO_Dark"
+   ],
+   "bounds": [
+    [
+     -0.022,
+     0.048,
+     -0.066
+    ],
+    [
+     0.022,
+     0.252,
+     0.0745
+    ]
+   ],
+   "coll": "MAKO_stock_precision"
+  },
+  "MAKO_stock_precision_ButtPad": {
+   "tris": 936,
+   "non_manifold": 0,
+   "loose_v": 0,
+   "loose_e": 0,
+   "zero_area": 0,
+   "signed_vol_cm3": 224.343,
+   "bad_winding_edges": 0,
+   "ngons": 9,
+   "ngons_gt8": 2,
+   "islands": 1,
+   "uv_layers": 1,
+   "uv_zero_area_faces": 0,
+   "mats": [
+    "M_MAKO_Rubber"
+   ],
+   "bounds": [
+    [
+     -0.0235,
+     0.2515,
+     -0.071
+    ],
+    [
+     0.0235,
+     0.285,
+     0.079
+    ]
+   ],
+   "coll": "MAKO_stock_precision"
+  },
+  "MAKO_stock_precision_Cheek": {
+   "tris": 316,
+   "non_manifold": 0,
+   "loose_v": 0,
+   "loose_e": 0,
+   "zero_area": 24,
+   "signed_vol_cm3": 79.992,
+   "bad_winding_edges": 0,
+   "ngons": 6,
+   "ngons_gt8": 4,
+   "islands": 1,
+   "uv_layers": 1,
+   "uv_zero_area_faces": 0,
+   "mats": [
+    "M_MAKO_Bone"
+   ],
+   "bounds": [
+    [
+     -0.0185,
+     0.1129,
+     0.076
+    ],
+    [
+     0.0185,
+     0.238,
+     0.0945
+    ]
+   ],
+   "coll": "MAKO_stock_precision"
+  },
+  "MAKO_stock_precision_Posts": {
+   "tris": 184,
+   "non_manifold": 0,
+   "loose_v": 0,
+   "loose_e": 0,
+   "zero_area": 0,
+   "signed_vol_cm3": 0.997,
+   "bad_winding_edges": 0,
+   "ngons": 4,
+   "ngons_gt8": 4,
+   "islands": 2,
+   "uv_layers": 1,
+   "uv_zero_area_faces": 0,
+   "mats": [
+    "M_MAKO_Gunmetal"
+   ],
+   "bounds": [
+    [
+     -0.0041,
+     0.1359,
+     0.068
+    ],
+    [
+     0.0041,
+     0.2161,
+     0.0775
+    ]
+   ],
+   "coll": "MAKO_stock_precision"
+  },
+  "MAKO_stock_standard": {
+   "tris": 1268,
+   "non_manifold": 0,
+   "loose_v": 0,
+   "loose_e": 0,
+   "zero_area": 0,
+   "signed_vol_cm3": 329.238,
+   "bad_winding_edges": 0,
+   "ngons": 18,
+   "ngons_gt8": 12,
+   "islands": 1,
+   "uv_layers": 1,
+   "uv_zero_area_faces": 0,
+   "mats": [
+    "M_MAKO_Bone",
+    "M_MAKO_Dark"
+   ],
+   "bounds": [
+    [
+     -0.0205,
+     0.098,
+     -0.054
+    ],
+    [
+     0.0205,
+     0.262,
+     0.0809
+    ]
+   ],
+   "coll": "MAKO_stock_standard"
+  },
+  "MAKO_stock_standard_ButtPad": {
+   "tris": 312,
+   "non_manifold": 0,
+   "loose_v": 0,
+   "loose_e": 0,
+   "zero_area": 0,
+   "signed_vol_cm3": 105.6,
+   "bad_winding_edges": 0,
+   "ngons": 6,
+   "ngons_gt8": 2,
+   "islands": 1,
+   "uv_layers": 1,
+   "uv_zero_area_faces": 0,
+   "mats": [
+    "M_MAKO_Rubber"
+   ],
+   "bounds": [
+    [
+     -0.0225,
+     0.2615,
+     -0.0599
+    ],
+    [
+     0.0225,
+     0.279,
+     0.0845
+    ]
+   ],
+   "coll": "MAKO_stock_standard"
+  },
+  "MAKO_stock_standard_Lever": {
+   "tris": 88,
+   "non_manifold": 0,
+   "loose_v": 0,
+   "loose_e": 0,
+   "zero_area": 0,
+   "signed_vol_cm3": 3.576,
+   "bad_winding_edges": 0,
+   "ngons": 0,
+   "ngons_gt8": 0,
+   "islands": 2,
+   "uv_layers": 1,
+   "uv_zero_area_faces": 0,
+   "mats": [
+    "M_MAKO_Graphite"
+   ],
+   "bounds": [
+    [
+     -0.0065,
+     0.127,
+     0.0015
+    ],
+    [
+     0.0065,
+     0.226,
+     0.029
+    ]
+   ],
+   "coll": "MAKO_stock_standard"
+  },
+  "MAKO_stock_standard_Sling": {
+   "tris": 332,
+   "non_manifold": 0,
+   "loose_v": 0,
+   "loose_e": 0,
+   "zero_area": 0,
+   "signed_vol_cm3": 1.32,
+   "bad_winding_edges": 0,
+   "ngons": 2,
+   "ngons_gt8": 2,
+   "islands": 2,
+   "uv_layers": 1,
+   "uv_zero_area_faces": 0,
+   "mats": [
+    "M_MAKO_Gunmetal"
+   ],
+   "bounds": [
+    [
+     -0.0041,
+     0.19,
+     -0.038
+    ],
+    [
+     0.0041,
+     0.208,
+     -0.005
+    ]
+   ],
+   "coll": "MAKO_stock_standard"
+  },
+  "MAKO_Trigger": {
+   "tris": 164,
+   "non_manifold": 0,
+   "loose_v": 0,
+   "loose_e": 0,
+   "zero_area": 0,
+   "signed_vol_cm3": 1.334,
+   "bad_winding_edges": 0,
+   "ngons": 2,
+   "ngons_gt8": 2,
+   "islands": 1,
+   "uv_layers": 1,
+   "uv_zero_area_faces": 0,
+   "mats": [
+    "M_MAKO_Gunmetal"
+   ],
+   "bounds": [
+    [
+     -0.0032,
+     -0.0496,
+     -0.0228
+    ],
+    [
+     0.0032,
+     -0.0355,
+     0.01
+    ]
+   ],
+   "coll": "MAKO_Base"
+  },
+  "MAKO_Upper": {
+   "tris": 1876,
+   "non_manifold": 0,
+   "loose_v": 0,
+   "loose_e": 0,
+   "zero_area": 1,
+   "signed_vol_cm3": 292.707,
+   "bad_winding_edges": 0,
+   "ngons": 32,
+   "ngons_gt8": 14,
+   "islands": 1,
+   "uv_layers": 1,
+   "uv_zero_area_faces": 0,
+   "mats": [
+    "M_MAKO_Graphite",
+    "M_MAKO_Gunmetal",
+    "M_MAKO_Dark"
+   ],
+   "bounds": [
+    [
+     -0.025,
+     -0.168,
+     0.024
+    ],
+    [
+     0.019,
+     0.03,
+     0.0745
+    ]
+   ],
+   "coll": "MAKO_Base"
+  }
+ },
+ "default_bounds": [
+  [
+   -0.0325,
+   -0.565,
+   -0.1723
+  ],
+  [
+   0.0325,
+   0.279,
+   0.0845
+  ]
+ ],
+ "default_tris": 20998,
+ "group_tris": {
+  "_Lights": 0,
+  "MAKO_Base": 17182,
+  "MAKO_mag_30": 1816,
+  "MAKO_mag_45": 2148,
+  "MAKO_mag_drum60": 4938,
+  "MAKO_stock_light": 1542,
+  "MAKO_stock_precision": 3516,
+  "MAKO_stock_standard": 2000
+ },
+ "rail_top": {
+  "top_z": 0.084,
+  "base_z": 0.0745,
+  "height": 0.0095,
+  "top_face_width": 0.0198,
+  "max_width": 0.021,
+  "slot_floor_z": [
+   0.081
+  ],
+  "n_slots": 51,
+  "pitch_set": [
+   0.0091,
+   0.01
+  ],
+  "y_range": [
+   -0.493,
+   0.022
+  ]
+ },
+ "MAKO_RailBottom": [
+  [
+   -0.0105,
+   -0.4,
+   0.0155
+  ],
+  [
+   0.0105,
+   -0.27,
+   0.025
+  ]
+ ],
+ "MAKO_RailSide_R": [
+  [
+   -0.0325,
+   -0.474,
+   0.0395
+  ],
+  [
+   -0.023,
+   -0.424,
+   0.0605
+  ]
+ ],
+ "MAKO_RailSide_L": [
+  [
+   0.023,
+   -0.474,
+   0.0395
+  ],
+  [
+   0.0325,
+   -0.424,
+   0.0605
+  ]
+ ],
+ "intersections": {
+  "MAKO_Barrel x MAKO_FlashHider": 20,
+  "MAKO_Barrel x MAKO_Upper": 28,
+  "MAKO_BoltCatch x MAKO_Lower": 30,
+  "MAKO_BoltCatch x MAKO_Upper": 16,
+  "MAKO_BufferTube x MAKO_ChargingHandle": 52,
+  "MAKO_BufferTube x MAKO_ForwardAssist": 20,
+  "MAKO_BufferTube x MAKO_Lower": 59,
+  "MAKO_BufferTube x MAKO_Pins": 16,
+  "MAKO_BufferTube x MAKO_Upper": 64,
+  "MAKO_BufferTube x MAKO_stock_standard": 24,
+  "MAKO_ChargingHandle x MAKO_Upper": 8,
+  "MAKO_DustCover x MAKO_Upper": 51,
+  "MAKO_ForwardAssist x MAKO_Upper": 62,
+  "MAKO_Grip x MAKO_Lower": 35,
+  "MAKO_Handguard x MAKO_Rail": 6,
+  "MAKO_Handguard x MAKO_RailBottom": 8,
+  "MAKO_Handguard x MAKO_RailSide_L": 8,
+  "MAKO_Handguard x MAKO_RailSide_R": 8,
+  "MAKO_Handguard x MAKO_Upper": 11,
+  "MAKO_Lower x MAKO_MagRelease": 16,
+  "MAKO_Lower x MAKO_Pins": 104,
+  "MAKO_Lower x MAKO_Selector": 16,
+  "MAKO_Lower x MAKO_Trigger": 8,
+  "MAKO_Lower x MAKO_Upper": 53,
+  "MAKO_Pins x MAKO_Trigger": 8,
+  "MAKO_Rail x MAKO_Upper": 12,
+  "MAKO_mag_30 x MAKO_mag_30_Stack": 187,
+  "MAKO_stock_standard x MAKO_stock_standard_ButtPad": 26,
+  "MAKO_stock_standard x MAKO_stock_standard_Lever": 26,
+  "MAKO_stock_standard x MAKO_stock_standard_Sling": 12,
+  "MAKO_stock_precision x MAKO_BufferTube": 18,
+  "MAKO_stock_light x MAKO_BufferTube": 22
+ },
+ "penetration": {
+  "MAKO_Barrel x MAKO_FlashHider": {
+   "a_in_b_verts": 20,
+   "a_in_b_max_mm": 2.42,
+   "b_in_a_verts": 0,
+   "b_in_a_max_mm": 0.0
+  },
+  "MAKO_Barrel x MAKO_Upper": {
+   "a_in_b_verts": 20,
+   "a_in_b_max_mm": 15.31,
+   "b_in_a_verts": 0,
+   "b_in_a_max_mm": 0.0
+  },
+  "MAKO_BoltCatch x MAKO_Lower": {
+   "a_in_b_verts": 6,
+   "a_in_b_max_mm": 1.02,
+   "b_in_a_verts": 0,
+   "b_in_a_max_mm": 0.0
+  },
+  "MAKO_BoltCatch x MAKO_Upper": {
+   "a_in_b_verts": 7,
+   "a_in_b_max_mm": 1.5,
+   "b_in_a_verts": 0,
+   "b_in_a_max_mm": 0.0
+  },
+  "MAKO_BufferTube x MAKO_ChargingHandle": {
+   "a_in_b_verts": 32,
+   "a_in_b_max_mm": 5.33,
+   "b_in_a_verts": 6,
+   "b_in_a_max_mm": 2.33
+  },
+  "MAKO_BufferTube x MAKO_ForwardAssist": {
+   "a_in_b_verts": 2,
+   "a_in_b_max_mm": 2.82,
+   "b_in_a_verts": 9,
+   "b_in_a_max_mm": 2.68
+  },
+  "MAKO_BufferTube x MAKO_Lower": {
+   "a_in_b_verts": 16,
+   "a_in_b_max_mm": 10.0,
+   "b_in_a_verts": 0,
+   "b_in_a_max_mm": 0.0
+  },
+  "MAKO_BufferTube x MAKO_Pins": {
+   "a_in_b_verts": 8,
+   "a_in_b_max_mm": 1.95,
+   "b_in_a_verts": 0,
+   "b_in_a_max_mm": 0.0
+  },
+  "MAKO_BufferTube x MAKO_Upper": {
+   "a_in_b_verts": 17,
+   "a_in_b_max_mm": 4.0,
+   "b_in_a_verts": 30,
+   "b_in_a_max_mm": 2.77
+  },
+  "MAKO_BufferTube x MAKO_stock_standard": {
+   "a_in_b_verts": 6,
+   "a_in_b_max_mm": 2.24,
+   "b_in_a_verts": 6,
+   "b_in_a_max_mm": 1.33
+  },
+  "MAKO_ChargingHandle x MAKO_Upper": {
+   "a_in_b_verts": 12,
+   "a_in_b_max_mm": 4.0,
+   "b_in_a_verts": 0,
+   "b_in_a_max_mm": 0.0
+  },
+  "MAKO_DustCover x MAKO_Upper": {
+   "a_in_b_verts": 36,
+   "a_in_b_max_mm": 1.8,
+   "b_in_a_verts": 24,
+   "b_in_a_max_mm": 0.69
+  },
+  "MAKO_ForwardAssist x MAKO_Upper": {
+   "a_in_b_verts": 12,
+   "a_in_b_max_mm": 1.3,
+   "b_in_a_verts": 38,
+   "b_in_a_max_mm": 0.96
+  },
+  "MAKO_Grip x MAKO_Lower": {
+   "a_in_b_verts": 30,
+   "a_in_b_max_mm": 5.0,
+   "b_in_a_verts": 18,
+   "b_in_a_max_mm": 3.61
+  },
+  "MAKO_Handguard x MAKO_Rail": {
+   "a_in_b_verts": 0,
+   "a_in_b_max_mm": 0.0,
+   "b_in_a_verts": 0,
+   "b_in_a_max_mm": 0.0
+  },
+  "MAKO_Handguard x MAKO_RailBottom": {
+   "a_in_b_verts": 0,
+   "a_in_b_max_mm": 0.0,
+   "b_in_a_verts": 0,
+   "b_in_a_max_mm": 0.0
+  },
+  "MAKO_Handguard x MAKO_RailSide_L": {
+   "a_in_b_verts": 0,
+   "a_in_b_max_mm": 0.0,
+   "b_in_a_verts": 0,
+   "b_in_a_max_mm": 0.0
+  },
+  "MAKO_Handguard x MAKO_RailSide_R": {
+   "a_in_b_verts": 0,
+   "a_in_b_max_mm": 0.0,
+   "b_in_a_verts": 0,
+   "b_in_a_max_mm": 0.0
+  },
+  "MAKO_Handguard x MAKO_Upper": {
+   "a_in_b_verts": 0,
+   "a_in_b_max_mm": 0.0,
+   "b_in_a_verts": 0,
+   "b_in_a_max_mm": 0.0
+  },
+  "MAKO_Lower x MAKO_MagRelease": {
+   "a_in_b_verts": 0,
+   "a_in_b_max_mm": 0.0,
+   "b_in_a_verts": 0,
+   "b_in_a_max_mm": 0.0
+  },
+  "MAKO_Lower x MAKO_Pins": {
+   "a_in_b_verts": 2,
+   "a_in_b_max_mm": 2.46,
+   "b_in_a_verts": 0,
+   "b_in_a_max_mm": 0.0
+  },
+  "MAKO_Lower x MAKO_Selector": {
+   "a_in_b_verts": 0,
+   "a_in_b_max_mm": 0.0,
+   "b_in_a_verts": 16,
+   "b_in_a_max_mm": 0.2
+  },
+  "MAKO_Lower x MAKO_Trigger": {
+   "a_in_b_verts": 0,
+   "a_in_b_max_mm": 0.0,
+   "b_in_a_verts": 4,
+   "b_in_a_max_mm": 1.0
+  },
+  "MAKO_Lower x MAKO_Upper": {
+   "a_in_b_verts": 0,
+   "a_in_b_max_mm": 0.0,
+   "b_in_a_verts": 0,
+   "b_in_a_max_mm": 0.0
+  },
+  "MAKO_Pins x MAKO_Trigger": {
+   "a_in_b_verts": 0,
+   "a_in_b_max_mm": 0.0,
+   "b_in_a_verts": 0,
+   "b_in_a_max_mm": 0.0
+  },
+  "MAKO_Rail x MAKO_Upper": {
+   "a_in_b_verts": 0,
+   "a_in_b_max_mm": 0.0,
+   "b_in_a_verts": 0,
+   "b_in_a_max_mm": 0.0
+  },
+  "MAKO_mag_30 x MAKO_mag_30_Stack": {
+   "a_in_b_verts": 50,
+   "a_in_b_max_mm": 1.43,
+   "b_in_a_verts": 224,
+   "b_in_a_max_mm": 9.67
+  },
+  "MAKO_stock_standard x MAKO_stock_standard_ButtPad": {
+   "a_in_b_verts": 32,
+   "a_in_b_max_mm": 0.5,
+   "b_in_a_verts": 0,
+   "b_in_a_max_mm": 0.0
+  },
+  "MAKO_stock_standard x MAKO_stock_standard_Lever": {
+   "a_in_b_verts": 0,
+   "a_in_b_max_mm": 0.0,
+   "b_in_a_verts": 12,
+   "b_in_a_max_mm": 1.5
+  },
+  "MAKO_stock_standard x MAKO_stock_standard_Sling": {
+   "a_in_b_verts": 0,
+   "a_in_b_max_mm": 0.0,
+   "b_in_a_verts": 12,
+   "b_in_a_max_mm": 5.64
+  },
+  "MAKO_stock_precision x MAKO_BufferTube": {
+   "a_in_b_verts": 0,
+   "a_in_b_max_mm": 0.0,
+   "b_in_a_verts": 12,
+   "b_in_a_max_mm": 2.24
+  },
+  "MAKO_stock_light x MAKO_BufferTube": {
+   "a_in_b_verts": 6,
+   "a_in_b_max_mm": 1.33,
+   "b_in_a_verts": 6,
+   "b_in_a_max_mm": 2.24
+  }
+ },
+ "ch_pull_sweep": {
+  "0.0": {
+   "MAKO_BufferTube": 52,
+   "MAKO_Upper": 8
+  },
+  "0.01": {
+   "MAKO_BufferTube": 58
+  },
+  "0.02": {
+   "MAKO_BufferTube": 48
+  },
+  "0.03": {
+   "MAKO_BufferTube": 44
+  },
+  "0.04": {
+   "MAKO_BufferTube": 46
+  },
+  "0.05": {
+   "MAKO_BufferTube": 24
+  },
+  "0.06": {
+   "MAKO_BufferTube": 24,
+   "MAKO_stock_standard": 37
+  }
+ },
+ "mag_drop_overlaps_with_lower": {
+  "MAKO_mag_30": {
+   "0.0": 0,
+   "-0.01": 0,
+   "-0.02": 0,
+   "-0.04": 0,
+   "-0.06": 0
+  },
+  "MAKO_mag_45": {
+   "0.0": 0,
+   "-0.01": 0,
+   "-0.02": 0,
+   "-0.04": 0,
+   "-0.06": 0
+  },
+  "MAKO_mag_drum60": {
+   "0.0": 0,
+   "-0.01": 0,
+   "-0.02": 0,
+   "-0.04": 0,
+   "-0.06": 0
+  }
+ },
+ "mag30_side_clearance_mm": {
+  "+X": 13.5,
+  "mag_half_width_at_z-0.03": null
+ },
+ "sockets": {
+  "MAKO_SOCKET_LeftHand": [
+   0.0,
+   -0.33,
+   0.0155
+  ],
+  "MAKO_SOCKET_Mag": [
+   0.0,
+   -0.152,
+   0.012
+  ],
+  "MAKO_SOCKET_Muzzle": [
+   0.0,
+   -0.565,
+   0.05
+  ],
+  "MAKO_SOCKET_Optic": [
+   0.0,
+   -0.0855,
+   0.084
+  ],
+  "MAKO_SOCKET_Shield": [
+   0.0,
+   -0.4755,
+   0.084
+  ],
+  "MAKO_SOCKET_Side_L": [
+   0.0325,
+   -0.449,
+   0.05
+  ],
+  "MAKO_SOCKET_Side_R": [
+   -0.0325,
+   -0.449,
+   0.05
+  ],
+  "MAKO_SOCKET_Stock": [
+   0.0,
+   0.215,
+   0.05
+  ],
+  "MAKO_SOCKET_Under": [
+   0.0,
+   -0.335,
+   0.0155
+  ]
+ },
+ "sockets_rot": {
+  "MAKO_SOCKET_LeftHand": [
+   0.0,
+   -0.0,
+   0.0
+  ],
+  "MAKO_SOCKET_Mag": [
+   0.0,
+   -0.0,
+   0.0
+  ],
+  "MAKO_SOCKET_Muzzle": [
+   0.0,
+   -0.0,
+   0.0
+  ],
+  "MAKO_SOCKET_Optic": [
+   0.0,
+   -0.0,
+   0.0
+  ],
+  "MAKO_SOCKET_Shield": [
+   0.0,
+   -0.0,
+   0.0
+  ],
+  "MAKO_SOCKET_Side_L": [
+   0.0,
+   -0.0,
+   0.0
+  ],
+  "MAKO_SOCKET_Side_R": [
+   0.0,
+   -0.0,
+   0.0
+  ],
+  "MAKO_SOCKET_Stock": [
+   0.0,
+   -0.0,
+   0.0
+  ],
+  "MAKO_SOCKET_Under": [
+   0.0,
+   -0.0,
+   0.0
+  ]
+ },
+ "attachment_fit": {
+  "optics/ATT_optic_holo.glb": {
+   "socket": "MAKO_SOCKET_Optic",
+   "overlap_tri_pairs": 0,
+   "verts_inside_gun": 0,
+   "max_penetration_mm": 0.0,
+   "min_gap_mm": 0.1
+  },
+  "optics/ATT_optic_3x.glb": {
+   "socket": "MAKO_SOCKET_Optic",
+   "overlap_tri_pairs": 0,
+   "verts_inside_gun": 0,
+   "max_penetration_mm": 0.0,
+   "min_gap_mm": 0.1
+  },
+  "optics/ATT_optic_reddot.glb": {
+   "socket": "MAKO_SOCKET_Optic",
+   "overlap_tri_pairs": 0,
+   "verts_inside_gun": 0,
+   "max_penetration_mm": 0.0,
+   "min_gap_mm": 0.1
+  },
+  "tactical/ATT_grip_vertical.glb": {
+   "socket": "MAKO_SOCKET_Under",
+   "overlap_tri_pairs": 132,
+   "verts_inside_gun": 0,
+   "max_penetration_mm": 0.0,
+   "min_gap_mm": 0.0
+  },
+  "tactical/ATT_grip_angled.glb": {
+   "socket": "MAKO_SOCKET_Under",
+   "overlap_tri_pairs": 156,
+   "verts_inside_gun": 0,
+   "max_penetration_mm": 0.0,
+   "min_gap_mm": 0.21
+  },
+  "tactical/ATT_grip_stub.glb": {
+   "socket": "MAKO_SOCKET_Under",
+   "overlap_tri_pairs": 102,
+   "verts_inside_gun": 0,
+   "max_penetration_mm": 0.0,
+   "min_gap_mm": 0.0
+  },
+  "tactical/ATT_ugl_launcher.glb": {
+   "socket": "MAKO_SOCKET_Under",
+   "overlap_tri_pairs": 186,
+   "verts_inside_gun": 0,
+   "max_penetration_mm": 0.0,
+   "min_gap_mm": 0.21
+  },
+  "tactical/ATT_laser_R.glb": {
+   "socket": "MAKO_SOCKET_Side_R",
+   "overlap_tri_pairs": 102,
+   "verts_inside_gun": 0,
+   "max_penetration_mm": 0.0,
+   "min_gap_mm": 0.0
+  },
+  "tactical/ATT_flashlight_L.glb": {
+   "socket": "MAKO_SOCKET_Side_L",
+   "overlap_tri_pairs": 60,
+   "verts_inside_gun": 0,
+   "max_penetration_mm": 0.0,
+   "min_gap_mm": 0.21
+  },
+  "tactical/ATT_flashlight_R.glb": {
+   "socket": "MAKO_SOCKET_Side_R",
+   "overlap_tri_pairs": 62,
+   "verts_inside_gun": 0,
+   "max_penetration_mm": 0.0,
+   "min_gap_mm": 0.21
+  },
+  "tactical/ATT_laser_L.glb": {
+   "socket": "MAKO_SOCKET_Side_L",
+   "overlap_tri_pairs": 105,
+   "verts_inside_gun": 0,
+   "max_penetration_mm": 0.0,
+   "min_gap_mm": 0.0
+  },
+  "tactical/ATT_shield_front.glb": {
+   "socket": "MAKO_SOCKET_Shield",
+   "overlap_tri_pairs": 98,
+   "verts_inside_gun": 0,
+   "max_penetration_mm": 0.0,
+   "min_gap_mm": 0.0
+  }
+ },
+ "fbx": {
+  "mako_base.fbx": {
+   "objects": 29,
+   "root_scale": {
+    "MAKO_Root.001": [
+     1.0,
+     1.0,
+     1.0
+    ]
+   },
+   "sockets": {
+    "MAKO_SOCKET_LeftHand.001": [
+     0.0,
+     -0.33,
+     0.0155
+    ],
+    "MAKO_SOCKET_Mag.001": [
+     0.0,
+     -0.152,
+     0.012
+    ],
+    "MAKO_SOCKET_Muzzle.001": [
+     0.0,
+     -0.565,
+     0.05
+    ],
+    "MAKO_SOCKET_Optic.001": [
+     0.0,
+     -0.0855,
+     0.084
+    ],
+    "MAKO_SOCKET_Shield.001": [
+     0.0,
+     -0.4755,
+     0.084
+    ],
+    "MAKO_SOCKET_Side_L.001": [
+     0.0325,
+     -0.449,
+     0.05
+    ],
+    "MAKO_SOCKET_Side_R.001": [
+     -0.0325,
+     -0.449,
+     0.05
+    ],
+    "MAKO_SOCKET_Stock.001": [
+     0.0,
+     0.215,
+     0.05
+    ],
+    "MAKO_SOCKET_Under.001": [
+     0.0,
+     -0.335,
+     0.0155
+    ]
+   },
+   "bounds": [
+    [
+     -0.0325,
+     -0.565,
+     -0.1136
+    ],
+    [
+     0.0325,
+     0.215,
+     0.084
+    ]
+   ]
+  },
+  "MAKO_mag_30.fbx": {
+   "objects": 3,
+   "root_scale": {
+    "MAKO_mag_30.001": [
+     1.0,
+     1.0,
+     1.0
+    ]
+   },
+   "sockets": {},
+   "bounds": [
+    [
+     -0.0146,
+     -0.0214,
+     -0.1843
+    ],
+    [
+     0.0146,
+     0.064,
+     0.0029
+    ]
+   ]
+  },
+  "MAKO_stock_standard.fbx": {
+   "objects": 4,
+   "root_scale": {
+    "MAKO_stock_standard.001": [
+     1.0,
+     1.0,
+     1.0
+    ]
+   },
+   "sockets": {},
+   "bounds": [
+    [
+     -0.0225,
+     -0.117,
+     -0.1099
+    ],
+    [
+     0.0225,
+     0.064,
+     0.0345
+    ]
+   ]
+  }
+ }
+}

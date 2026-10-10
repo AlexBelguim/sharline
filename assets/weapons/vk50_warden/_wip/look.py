@@ -1,5 +1,5 @@
 """Quick look renders while iterating (writes _wip/look_*.png). Builds with --no-export in this session.
-Run: blender -b --factory-startup -P _wip/look.py -- <group> [<group> ...]   groups: stock, bolt, mag, hg, all
+Run: blender -b --factory-startup -P _wip/look.py -- <group> [<group> ...]   groups: stock, bolt, mag, hg, rec, gun, under, all
 """
 import math
 import os
@@ -10,7 +10,7 @@ import bpy
 from mathutils import Matrix, Vector
 
 groups = sys.argv[sys.argv.index("--") + 1:] if "--" in sys.argv else ["all"]
-sys.argv = [sys.argv[0], "--", "--no-export"]
+sys.argv = [sys.argv[0], "--", "--no-export", "--no-det-check", "--no-gate"]
 ns = runpy.run_path(r"F:/git/val etf/assets/weapons/vk50_warden/build_warden.py", run_name="warden_build")
 sys.path.insert(0, r"F:/git/val etf/tools")
 import blender_common as bc  # noqa: E402
@@ -81,7 +81,7 @@ if "mag" in groups or "all" in groups:
     R("mag5_full", tree(m), ("right",), res=(900, 1000), margin=1.25)
     for o in rounds[2:]:
         o.hide_render = True
-    fol.location.z += 3 * fol["travel_per_round_m"]
+    fol.location.z += float(fol["offset_by_rounds_left_m"].split(",")[2])   # 2 rounds left
     bpy.context.view_layer.update()
     show([m, fol] + rounds[:2])
     bc.render_views(OUTD, "look_mag5_two", objs=[m], views=("right", (0.6, -0.5, 0.25)), res=(900, 1000),
@@ -89,4 +89,18 @@ if "mag" in groups or "all" in groups:
 if "hg" in groups or "all" in groups:
     R("hg", default, ((0.9, -0.35, 0.25),), focus=((0, -0.50, 0.08), 0.13))
     R("hg", default, ((-0.9, -0.35, 0.25),), focus=((0, -0.50, 0.08), 0.13))
+if "rec" in groups or "all" in groups:
+    R("rec", default, ((1.0, -0.35, 0.3), (-1.0, -0.25, 0.25)), focus=((0, -0.20, 0.05), 0.17))
+if "gun" in groups:
+    R("gun", default, ("right", "left"), res=(1600, 800), margin=1.04)
+    R("gun", default, ("three_quarter", "three_quarter_back"), res=(1600, 800), margin=0.86,
+      focus=((0, -0.40, 0.0), 0.70))
+if "under" in groups:
+    R("under", default, ((0.5, 0.45, -1.0),), focus=((0, 0.20, -0.07), 0.10))
+    mono = next(o for o in B["ss"].children if o.name.endswith("Monopod"))
+    mono.location.z += mono["travel_min_m"]
+    bpy.context.view_layer.update()
+    R("under_mono_out", default, ("left",), focus=((0, 0.20, -0.08), 0.16))
+    mono.location.z -= mono["travel_min_m"]
+    bpy.context.view_layer.update()
 print("LOOK DONE")

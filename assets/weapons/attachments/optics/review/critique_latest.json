@@ -1,0 +1,73 @@
+{
+ "asset": "ATT optics set (optic_reddot, optic_holo, optic_3x, optic_sniper, optic_thermal) in F:/git/val etf/assets/weapons/attachments/optics/. This is review round 2, after the builder's round-1 fixes. Evidence is in F:/git/val etf/assets/weapons/attachments/optics/review/round2/; review_r2.json there holds this same review.",
+ "scores": {
+  "silhouette": 7,
+  "style_consistency": 7.5,
+  "craftsmanship": 7.5,
+  "fidelity_to_brief_and_user_decisions": 7,
+  "game_readiness": 6.5
+ },
+ "issues": [
+  {
+   "severity": "major",
+   "issue": "The 1x reticles are geometry smaller than a pixel, and they render white. Holo: the 10 MOA dot is 2x2 px at 1080p at the game ADS FOV (62.4 deg vFOV), and the 68 MOA ring's 4 MOA line is 1 px wide and stair-steps without AA. Reddot: a 0.19 mm, 10 MOA disc that renders 2x2 px. Emission 1.6 x ice (0.45,0.85,1.0) clips to about (225,255,255), so the aim point is a near-white speck with almost no contrast against bright ground or sky.",
+   "evidence": "F:/git/val etf/assets/weapons/attachments/optics/review/round2/sheets/reticle_zoom_x4.png (x4 crops of review/round2/renders/r2_ads_optic_holo_onmako_1080p.png, *_noAA.png, r2_ads_optic_reddot_onmako_1080p*.png). review/round2/checks_r2.json: reticle_diam_mm 0.19 (reddot), 1.68 (holo). Measured centre pixels (225,255,255).",
+   "fix": "Size the reticles for the screen, not for real MOA. Dot about 18-20 MOA (5-6 px at 1080p); ring line at least 8 MOA (2+ px); keep the ~68 MOA ring. Better still, make one reticle quad per sight with an emissive, alpha-masked 128 px mipmapped texture, so it filters instead of aliasing, plus a thin dark outline ring for contrast. Use emissive strength ~1.0 with a deeper ice such as (0.15,0.75,1.0) so the core stays ice-blue after tonemapping. Re-check on 1080p ADS renders: dot at least 5 px, ring line at least 2 px, readable on both sky and pale ground."
+  },
+  {
+   "severity": "major",
+   "issue": "The holo's ADS sight picture (Mako default) is a tunnel. At eye relief 0.08 the clear window is 28% of screen height x 22% of width, and the bone hood covers about half the screen (fitcheck screen_clear_frac 0.508). Eye relief cannot simply be lowered: the hood runs 45.5 mm behind the reticle, so at 0.065 the hood rear is 27.6 mm from the eye and the game's 0.03 near plane clips it. The reddot is similar, at 24% x 15%.",
+   "evidence": "F:/git/val etf/assets/weapons/attachments/optics/review/round2/renders/r2_ads_optic_holo_onmako_1080p.png and r2_ads_optic_reddot_onmako_1080p.png. review/round2/ads_window_r2.json (eye-relief sweep 0.04-0.10 with a near-plane check). fitcheck.json ads_aperture.",
+   "fix": "First agree a target with the game session, e.g. a clear window of at least 40% of screen height for 1x sights. Then pick one route. (a) Add ads_viewmodel_vfov_deg (~44 deg for holo and reddot) to catalog.json and the ADS socket extras, so the engine renders the viewmodel with its own FOV and near plane during ADS (standard FPS practice). (b) Shorten the holo tunnel behind the glass by ~10-12 mm, flare the rear opening to match the view cone so the lining walls stop showing, and set eye relief to 0.065 (about 33% of screen height) while staying outside the 0.03 near plane. Re-render the 1080p ADS views afterwards."
+  },
+  {
+   "severity": "minor",
+   "issue": "optic_holo's face details drift from v09, the user's master reference. In v09 the window sits in a thick black inner bezel inside an inward-chamfered bone frame; the model has a thin 1.2 mm dark lip on a flat bone face, so it reads as a white box with a hole. v09's large dark rubber guard wrapping the +X front corner of the deck is a small square boss with a hole on the model. v09's flat deck with one proud round button became a recessed tray that reads as a hollow tub at 3/4. There is also no split line where the hood meets the base.",
+   "evidence": "F:/git/val etf/assets/weapons/attachments/optics/renders/sheets/compare_holo_v085_-075_05_vs_v09.png and compare_holo_three_quarter_vs_v09.png. renders/ATT_optic_holo_front.png. review/round2/renders/r2_close_optic_holo_deck_tray_top_v0.3_-0.5_1.0.png",
+   "fix": "Front: add a 2.5-3 mm black bezel step between the bone frame and the glass, and a 45 deg inward chamfer on the bone frame (keep the brow at least 3 mm solid; the build already asserts this). Deck: replace the tray pit with a 0.8-1 mm inset panel and stand the big round button proud, as in v09. Make the +X front-corner rubber guard a wrap-around angular piece of about 12 x 10 mm. Add a 0.6 mm seam where the hood shell meets the base. Re-check against the v09-angle comparison sheet."
+  },
+  {
+   "severity": "minor",
+   "issue": "The third-person holo/reddot glint (emissive strength 2.2) also clips to white. In v09 the glint is a clearly saturated cyan oval, and it is the Mako's only emissive identity.",
+   "evidence": "F:/git/val etf/assets/weapons/attachments/optics/renders/sheets/compare_holo_three_quarter_vs_v09.png (white dot vs cyan oval). review/round2/gltf_json_r2.json: M_ATT_IceGlint emissiveStrength 2.2.",
+   "fix": "Lower the glint to about 1.0-1.2 with a deeper ice emissive (0.15,0.75,1.0), and/or add a faint low-strength ice halo disc (r ~2.5 mm) behind the core, so it reads cyan under both AgX and Bevy's TonyMcMapface."
+  },
+  {
+   "severity": "minor",
+   "issue": "The bone reads cool white-grey instead of v09's warm beige. The baked M_ATT_Bone albedo averages sRGB (184,180,170) and is bit-identical to the Mako's bone, so consistency is correct. But the rendered hood measures about (198,200,200) with B >= R, while v09's lit bone is (216,209,202) and its shade (185,177,162), where R exceeds B by 14-23.",
+   "evidence": "Pixel samples: F:/git/val etf/assets/weapons/attachments/optics/renders/ATT_optic_holo_three_quarter.png median (198,200,200). art/concepts/mako/v09.png at (950,190) = (216,209,202) and (980,250) = (185,177,162). review/round2/gltf_json_r2.json image means.",
+   "fix": "Do not change the optic alone. The palette owner and the Mako owner should change the shared bone token together (e.g. linear (0.52,0.47,0.38)) and judge it under the game's tonemapper; the optic picks it up through its one M_ATT_Bone line. Until then, render the comparison sheets with the Standard view transform rather than 'AgX - Medium High Contrast' so reviewers see the real hue."
+  },
+  {
+   "severity": "minor",
+   "issue": "From the front and front-3/4, which is what enemies see, the optic_sniper objective reads as an empty black tube. The lens sits 57 mm down the sunshade, which is lined with near-black M_ATT_Dark (0.016). The strong blue objective that sells 'sniper' in Warden concept_34 is lost, and only the ice ring carries the read.",
+   "evidence": "F:/git/val etf/assets/weapons/attachments/optics/renders/ATT_optic_sniper_close_objective_v0.45_-1.0_0.25.png vs _ref/warden_scope_34_crop.png, side by side in review/round2/sheets/REVIEW_key_evidence.png. renders/ATT_optic_sniper_front.png",
+   "fix": "Keep the brief's geometry. Line the sunshade and bell interior with graphite or a dark slate (~0.06) instead of M_ATT_Dark. Push M_ATT_LensObjectiveDeep to a saturated blue around (0.03,0.10,0.32), roughness 0.08, clearcoat 1, so the lens shows as a blue disc at 3/4 like concept_34. Add no emissive: the sniper must stay non-emissive."
+  },
+  {
+   "severity": "minor",
+   "issue": "The faces a right-handed player actually sees at hip, the holo hood's top and rear, are large blank bone planes. Under bright light they go nearly pure white with no rhythm of detail.",
+   "evidence": "F:/git/val etf/assets/weapons/attachments/optics/review/round2/renders/r2_optic_holo_v0.55_1.0_0.75.png (+X rear-high hip angle) and r2_hip_optic_holo_onmako.png",
+   "fix": "Add one or two readable secondary forms on the top and rear: the hood/base seam from the face-detail fix above, a shallow 1 mm chamfered frame around the rear eye window, and a low raised rib or recessed cap on the hood top. Keep it to a few crisp cuts, per the style guide's big forms and few details."
+  },
+  {
+   "severity": "minor",
+   "issue": "optic_thermal's eye_relief_m of 0.025 leaves only 1.1 mm of margin. The nearest body point (the eyecup rim) is 31.1 mm from the eye point, and the game camera's near plane is 0.03 m, so any forward ADS sway or recoil push will clip the eyecup.",
+   "evidence": "F:/git/val etf/assets/weapons/attachments/optics/review/round2/ads_window_r2.json, optic_thermal at 0.025: eye_to_nearest_body_mm 31.1. game/crates/val_etf/src/render.rs: PerspectiveProjection near 0.03.",
+   "fix": "Set eye_relief_m to about 0.040 (the engine draws the thermal view on _Display anyway), or document that the viewmodel needs its own near plane of 0.01 or less (the same request as for the holo ADS view)."
+  },
+  {
+   "severity": "minor",
+   "issue": "optic_3x is ambiguous front-to-back in profile because the objective bell and the rubber eyepiece have nearly the same mass. At 64 px its side silhouette (a block with a tube at each end) is close to optic_thermal's.",
+   "evidence": "F:/git/val etf/assets/weapons/attachments/optics/review/round2/sheets/sil64.png (r2_sil64_optic_3x_right vs r2_sil64_optic_thermal_right). renders/ATT_optic_3x_right.png",
+   "fix": "Make the read directional. Lengthen and flare the objective bell (~+8 mm, +2 mm radius), shorten the eyepiece to a stubby rubber cup (~-6 mm), and give the housing a sloped top so it visibly tapers toward the shooter. Re-check the 64 px silhouettes."
+  },
+  {
+   "severity": "minor",
+   "issue": "The hand-off summary is stale. It reports 2452/4002/4180/4644 tris, but the delivered files, NOTES.md and catalog.json all say 2436/4454/4546/4696 (thermal 4286).",
+   "evidence": "F:/git/val etf/assets/weapons/attachments/optics/review/round2/gltf_json_r2.json tris_total; catalog.json tris",
+   "fix": "Correct the summary passed to the orchestrator and the user. The asset needs no change."
+  }
+ ],
+ "verdict": "Accept as a prototype set, with two required gameplay fixes before it ships as the Mako default.\n\n**Technically solid:**\n- **Re-runnable:** a sandboxed `--render none` rebuild of `build_optics.py` reproduced all five .glb files, `catalog.json`, `fitcheck.json` and the baked textures bit-identically (`review/round2/_rebuild/rebuild_compare.txt`).\n- **Exports:**\n  - The .glb and .fbx files load cleanly. Each has one root at the mount origin, one child node per role and a zero-rotation `ATT_<optic>_SOCKET_ADS`.\n  - ADS heights are 0.049 / 0.045 / 0.050 / 0.0405 / 0.052, all inside the band, and tri counts are 2.4k\u20134.7k, all inside budget.\n  - Bodies, glass and lenses are closed and manifold, with no z-fighting candidates.\n  - Textures are embedded and every material is single-sided, with no `KHR_texture_transform`. Only the reticle, glint and status light are emissive.\n- **Fit on the real guns:** each gun's `sockets.json` matches the socket node in its .glb exactly, there are no clashes on the Mako or Warden, and the rail tops sit exactly at socket z.\n- **Sniper:** matches Warden BRIEF 4.4 to the millimetre.\n\n**Blocking for gameplay readability:**\n1. **1x reticles:** they are smaller than a pixel (about 2 px dots and a 1 px ring line at 1080p) and clip to white.\n2. **Holo ADS view:** it is a tunnel. The clear window is 28% x 22% of the screen, the hood covers about half of it, and the hood depth versus the 0.03 near plane prevents lowering the eye relief. Agree a viewmodel FOV or eye-relief target with the game session.\n\n**Polish:** the holo's face details versus v09, the white-clipping glint, the sniper's black-hole objective, the blank hip-view faces, the thermal's near-plane margin and the 3x's directionality. The cool bone colour is a shared-palette question for the palette owner, not an optic fix."
+}

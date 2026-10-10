@@ -1,0 +1,1049 @@
+{
+ "collections": {
+  "_Lights": [
+   "L_Fill",
+   "L_Key",
+   "L_Rim",
+   "L_RimL"
+  ],
+  "_TestFit": [
+   "_Rail_optic_3x",
+   "_Rail_optic_3xBase",
+   "_Rail_optic_holo",
+   "_Rail_optic_holoBase",
+   "_Rail_optic_reddot",
+   "_Rail_optic_reddotBase",
+   "_Rail_optic_sniper",
+   "_Rail_optic_sniperBase",
+   "_Rail_optic_thermal",
+   "_Rail_optic_thermalBase"
+  ],
+  "ATT_optic_3x": [
+   "ATT_optic_3x",
+   "ATT_optic_3x_Body",
+   "ATT_optic_3x_Glass",
+   "ATT_optic_3x_Glow",
+   "ATT_optic_3x_SOCKET_ADS"
+  ],
+  "ATT_optic_holo": [
+   "ATT_optic_holo",
+   "ATT_optic_holo_Body",
+   "ATT_optic_holo_Glass",
+   "ATT_optic_holo_Glow",
+   "ATT_optic_holo_SOCKET_ADS"
+  ],
+  "ATT_optic_reddot": [
+   "ATT_optic_reddot",
+   "ATT_optic_reddot_Body",
+   "ATT_optic_reddot_Glass",
+   "ATT_optic_reddot_Glow",
+   "ATT_optic_reddot_SOCKET_ADS"
+  ],
+  "ATT_optic_sniper": [
+   "ATT_optic_sniper",
+   "ATT_optic_sniper_Body",
+   "ATT_optic_sniper_Glass",
+   "ATT_optic_sniper_SOCKET_ADS"
+  ],
+  "ATT_optic_thermal": [
+   "ATT_optic_thermal",
+   "ATT_optic_thermal_Body",
+   "ATT_optic_thermal_Glass",
+   "ATT_optic_thermal_Glow",
+   "ATT_optic_thermal_SOCKET_ADS"
+  ]
+ },
+ "scene_objects": 39,
+ "materials": [
+  "M_ATT_AmberGlow",
+  "M_ATT_Bone",
+  "M_ATT_Dark",
+  "M_ATT_Display",
+  "M_ATT_Germanium",
+  "M_ATT_Graphite",
+  "M_ATT_Gunmetal",
+  "M_ATT_IceGlow",
+  "M_ATT_IcePaint",
+  "M_ATT_Lens",
+  "M_ATT_LensDeep",
+  "M_ATT_ReflexGlass",
+  "M_ATT_Rubber",
+  "M_MAKO_Bone",
+  "M_MAKO_BoneStipple",
+  "M_MAKO_Brass",
+  "M_MAKO_Dark",
+  "M_MAKO_Graphite",
+  "M_MAKO_Gunmetal",
+  "M_MAKO_Rubber",
+  "M_Warden_Cartridge",
+  "M_Warden_Graphite",
+  "M_Warden_Gunmetal",
+  "M_Warden_Rubber",
+  "M_Warden_Sand",
+  "M_Warden_SandStipple",
+  "_M_TestBase",
+  "_M_TestRail"
+ ],
+ "images": [
+  [
+   "M_MAKO_Bone",
+   "",
+   true
+  ],
+  [
+   "M_MAKO_BoneStipple",
+   "",
+   true
+  ],
+  [
+   "M_MAKO_Graphite",
+   "",
+   true
+  ],
+  [
+   "M_MAKO_Gunmetal",
+   "",
+   true
+  ],
+  [
+   "Render Result",
+   "",
+   false
+  ],
+  [
+   "att_brushed_metal_25",
+   "//textures\\att_brushed_metal_25.png",
+   true
+  ],
+  [
+   "att_worn_paint_25",
+   "//textures\\att_worn_paint_25.png",
+   true
+  ],
+  [
+   "att_worn_paint_30",
+   "//textures\\att_worn_paint_30.png",
+   true
+  ],
+  [
+   "warden_brushed_metal_30",
+   "",
+   true
+  ],
+  [
+   "warden_polymer_stipple_50",
+   "",
+   true
+  ],
+  [
+   "warden_worn_paint_30",
+   "",
+   true
+  ],
+  [
+   "warden_worn_paint_35",
+   "",
+   true
+  ]
+ ],
+ "meshes": {
+  "ATT_optic_reddot_Body": {
+   "tris": 2328,
+   "islands": 11,
+   "non_manifold_edges": 0,
+   "open_islands": [],
+   "open_island_count": 0,
+   "inverted_islands": [],
+   "ngons_gt4": 44,
+   "max_ngon": 29,
+   "degenerate": 0,
+   "modifiers": [],
+   "has_custom_normals": true,
+   "parent": "ATT_optic_reddot",
+   "collection": [
+    "ATT_optic_reddot"
+   ]
+  },
+  "ATT_optic_reddot_Glass": {
+   "tris": 76,
+   "islands": 1,
+   "non_manifold_edges": 0,
+   "open_islands": [],
+   "open_island_count": 0,
+   "inverted_islands": [],
+   "ngons_gt4": 2,
+   "max_ngon": 20,
+   "degenerate": 0,
+   "modifiers": [],
+   "has_custom_normals": false,
+   "parent": "ATT_optic_reddot",
+   "collection": [
+    "ATT_optic_reddot"
+   ]
+  },
+  "ATT_optic_reddot_Glow": {
+   "tris": 48,
+   "islands": 1,
+   "non_manifold_edges": 0,
+   "open_islands": [],
+   "open_island_count": 0,
+   "inverted_islands": [],
+   "ngons_gt4": 0,
+   "max_ngon": 4,
+   "degenerate": 0,
+   "modifiers": [],
+   "has_custom_normals": false,
+   "parent": "ATT_optic_reddot",
+   "collection": [
+    "ATT_optic_reddot"
+   ]
+  },
+  "ATT_optic_holo_Body": {
+   "tris": 3686,
+   "islands": 15,
+   "non_manifold_edges": 0,
+   "open_islands": [],
+   "open_island_count": 0,
+   "inverted_islands": [],
+   "ngons_gt4": 49,
+   "max_ngon": 34,
+   "degenerate": 36,
+   "modifiers": [],
+   "has_custom_normals": true,
+   "parent": "ATT_optic_holo",
+   "collection": [
+    "ATT_optic_holo"
+   ]
+  },
+  "ATT_optic_holo_Glass": {
+   "tris": 76,
+   "islands": 1,
+   "non_manifold_edges": 0,
+   "open_islands": [],
+   "open_island_count": 0,
+   "inverted_islands": [],
+   "ngons_gt4": 2,
+   "max_ngon": 20,
+   "degenerate": 0,
+   "modifiers": [],
+   "has_custom_normals": false,
+   "parent": "ATT_optic_holo",
+   "collection": [
+    "ATT_optic_holo"
+   ]
+  },
+  "ATT_optic_holo_Glow": {
+   "tris": 240,
+   "islands": 2,
+   "non_manifold_edges": 0,
+   "open_islands": [],
+   "open_island_count": 0,
+   "inverted_islands": [],
+   "ngons_gt4": 0,
+   "max_ngon": 4,
+   "degenerate": 0,
+   "modifiers": [],
+   "has_custom_normals": false,
+   "parent": "ATT_optic_holo",
+   "collection": [
+    "ATT_optic_holo"
+   ]
+  },
+  "ATT_optic_3x_Body": {
+   "tris": 3748,
+   "islands": 11,
+   "non_manifold_edges": 76,
+   "open_islands": [
+    {
+     "centre": [
+      0.0,
+      0.006,
+      0.0798
+     ],
+     "faces": 168,
+     "boundary_edge_refs": 24
+    },
+    {
+     "centre": [
+      -0.0261,
+      0.004,
+      0.05
+     ],
+     "faces": 168,
+     "boundary_edge_refs": 24
+    },
+    {
+     "centre": [
+      0.0249,
+      0.004,
+      0.05
+     ],
+     "faces": 196,
+     "boundary_edge_refs": 28
+    }
+   ],
+   "open_island_count": 3,
+   "inverted_islands": [],
+   "ngons_gt4": 25,
+   "max_ngon": 19,
+   "degenerate": 0,
+   "modifiers": [],
+   "has_custom_normals": true,
+   "parent": "ATT_optic_3x",
+   "collection": [
+    "ATT_optic_3x"
+   ]
+  },
+  "ATT_optic_3x_Glass": {
+   "tris": 384,
+   "islands": 2,
+   "non_manifold_edges": 0,
+   "open_islands": [],
+   "open_island_count": 0,
+   "inverted_islands": [],
+   "ngons_gt4": 0,
+   "max_ngon": 4,
+   "degenerate": 0,
+   "modifiers": [],
+   "has_custom_normals": false,
+   "parent": "ATT_optic_3x",
+   "collection": [
+    "ATT_optic_3x"
+   ]
+  },
+  "ATT_optic_3x_Glow": {
+   "tris": 48,
+   "islands": 1,
+   "non_manifold_edges": 0,
+   "open_islands": [],
+   "open_island_count": 0,
+   "inverted_islands": [],
+   "ngons_gt4": 0,
+   "max_ngon": 4,
+   "degenerate": 0,
+   "modifiers": [],
+   "has_custom_normals": false,
+   "parent": "ATT_optic_3x",
+   "collection": [
+    "ATT_optic_3x"
+   ]
+  },
+  "ATT_optic_sniper_Body": {
+   "tris": 4324,
+   "islands": 18,
+   "non_manifold_edges": 84,
+   "open_islands": [
+    {
+     "centre": [
+      -0.0,
+      -0.0,
+      0.0797
+     ],
+     "faces": 196,
+     "boundary_edge_refs": 28
+    },
+    {
+     "centre": [
+      -0.0378,
+      0.0,
+      0.0405
+     ],
+     "faces": 196,
+     "boundary_edge_refs": 28
+    },
+    {
+     "centre": [
+      0.0321,
+      0.0,
+      0.0405
+     ],
+     "faces": 196,
+     "boundary_edge_refs": 28
+    }
+   ],
+   "open_island_count": 3,
+   "inverted_islands": [],
+   "ngons_gt4": 8,
+   "max_ngon": 25,
+   "degenerate": 8,
+   "modifiers": [],
+   "has_custom_normals": true,
+   "parent": "ATT_optic_sniper",
+   "collection": [
+    "ATT_optic_sniper"
+   ]
+  },
+  "ATT_optic_sniper_Glass": {
+   "tris": 320,
+   "islands": 2,
+   "non_manifold_edges": 0,
+   "open_islands": [],
+   "open_island_count": 0,
+   "inverted_islands": [],
+   "ngons_gt4": 0,
+   "max_ngon": 4,
+   "degenerate": 0,
+   "modifiers": [],
+   "has_custom_normals": false,
+   "parent": "ATT_optic_sniper",
+   "collection": [
+    "ATT_optic_sniper"
+   ]
+  },
+  "ATT_optic_thermal_Body": {
+   "tris": 3894,
+   "islands": 18,
+   "non_manifold_edges": 0,
+   "open_islands": [],
+   "open_island_count": 0,
+   "inverted_islands": [],
+   "ngons_gt4": 58,
+   "max_ngon": 28,
+   "degenerate": 0,
+   "modifiers": [],
+   "has_custom_normals": true,
+   "parent": "ATT_optic_thermal",
+   "collection": [
+    "ATT_optic_thermal"
+   ]
+  },
+  "ATT_optic_thermal_Glass": {
+   "tris": 320,
+   "islands": 2,
+   "non_manifold_edges": 0,
+   "open_islands": [],
+   "open_island_count": 0,
+   "inverted_islands": [],
+   "ngons_gt4": 0,
+   "max_ngon": 4,
+   "degenerate": 0,
+   "modifiers": [],
+   "has_custom_normals": false,
+   "parent": "ATT_optic_thermal",
+   "collection": [
+    "ATT_optic_thermal"
+   ]
+  },
+  "ATT_optic_thermal_Glow": {
+   "tris": 72,
+   "islands": 1,
+   "non_manifold_edges": 0,
+   "open_islands": [],
+   "open_island_count": 0,
+   "inverted_islands": [],
+   "ngons_gt4": 0,
+   "max_ngon": 4,
+   "degenerate": 0,
+   "modifiers": [],
+   "has_custom_normals": false,
+   "parent": "ATT_optic_thermal",
+   "collection": [
+    "ATT_optic_thermal"
+   ]
+  }
+ },
+ "rails": {
+  "MAKO": {
+   "socket": [
+    0.0,
+    -0.08550000190734863,
+    0.08399999886751175
+   ],
+   "rail_top_max_rel": 0.0,
+   "rail_slot_bottom_rel": -0.003,
+   "profile_dy_z": [
+    [
+     -0.03,
+     -0.003
+    ],
+    [
+     -0.028,
+     -0.003
+    ],
+    [
+     -0.026,
+     0.0
+    ],
+    [
+     -0.024,
+     0.0
+    ],
+    [
+     -0.022,
+     -0.003
+    ],
+    [
+     -0.02,
+     -0.003
+    ],
+    [
+     -0.018,
+     -0.003
+    ],
+    [
+     -0.016,
+     0.0
+    ],
+    [
+     -0.014,
+     0.0
+    ],
+    [
+     -0.012,
+     -0.003
+    ],
+    [
+     -0.01,
+     -0.003
+    ],
+    [
+     -0.008,
+     -0.003
+    ],
+    [
+     -0.006,
+     0.0
+    ],
+    [
+     -0.004,
+     0.0
+    ],
+    [
+     -0.002,
+     -0.003
+    ],
+    [
+     0.0,
+     -0.003
+    ],
+    [
+     0.002,
+     -0.003
+    ],
+    [
+     0.004,
+     0.0
+    ],
+    [
+     0.006,
+     0.0
+    ],
+    [
+     0.008,
+     -0.003
+    ],
+    [
+     0.01,
+     -0.003
+    ],
+    [
+     0.012,
+     -0.003
+    ],
+    [
+     0.014,
+     0.0
+    ],
+    [
+     0.016,
+     0.0
+    ],
+    [
+     0.018,
+     -0.003
+    ],
+    [
+     0.02,
+     -0.003
+    ],
+    [
+     0.022,
+     -0.003
+    ],
+    [
+     0.024,
+     -0.0
+    ],
+    [
+     0.026,
+     0.0
+    ],
+    [
+     0.028,
+     -0.003
+    ],
+    [
+     0.03,
+     -0.003
+    ]
+   ],
+   "top_along_y": [
+    [
+     -0.486,
+     0.081
+    ],
+    [
+     -0.466,
+     0.081
+    ],
+    [
+     -0.446,
+     0.081
+    ],
+    [
+     -0.426,
+     0.081
+    ],
+    [
+     -0.406,
+     0.081
+    ],
+    [
+     -0.386,
+     0.081
+    ],
+    [
+     -0.366,
+     0.081
+    ],
+    [
+     -0.346,
+     0.081
+    ],
+    [
+     -0.326,
+     0.081
+    ],
+    [
+     -0.306,
+     0.081
+    ],
+    [
+     -0.286,
+     0.081
+    ],
+    [
+     -0.266,
+     0.081
+    ],
+    [
+     -0.246,
+     0.081
+    ],
+    [
+     -0.226,
+     0.081
+    ],
+    [
+     -0.206,
+     0.081
+    ],
+    [
+     -0.186,
+     0.081
+    ],
+    [
+     -0.166,
+     0.081
+    ],
+    [
+     -0.146,
+     0.081
+    ],
+    [
+     -0.126,
+     0.081
+    ],
+    [
+     -0.106,
+     0.081
+    ],
+    [
+     -0.086,
+     0.081
+    ],
+    [
+     -0.066,
+     0.081
+    ],
+    [
+     -0.046,
+     0.081
+    ],
+    [
+     -0.026,
+     0.081
+    ],
+    [
+     -0.006,
+     0.081
+    ],
+    [
+     0.014,
+     0.081
+    ],
+    [
+     0.034,
+     0.0731
+    ],
+    [
+     0.054,
+     0.0658
+    ],
+    [
+     0.074,
+     0.0658
+    ],
+    [
+     0.094,
+     0.0658
+    ],
+    [
+     0.114,
+     0.0658
+    ],
+    [
+     0.134,
+     0.0658
+    ],
+    [
+     0.154,
+     0.0658
+    ],
+    [
+     0.174,
+     0.0658
+    ],
+    [
+     0.194,
+     0.0658
+    ],
+    [
+     0.214,
+     0.0647
+    ],
+    [
+     0.234,
+     null
+    ],
+    [
+     0.254,
+     null
+    ],
+    [
+     0.274,
+     null
+    ],
+    [
+     0.294,
+     null
+    ],
+    [
+     0.314,
+     null
+    ]
+   ]
+  },
+  "WARDEN": {
+   "socket": [
+    0.0,
+    -0.07999999821186066,
+    0.13750000298023224
+   ],
+   "rail_top_max_rel": 0.0,
+   "rail_slot_bottom_rel": -0.003,
+   "profile_dy_z": [
+    [
+     -0.03,
+     0.0
+    ],
+    [
+     -0.028,
+     0.0
+    ],
+    [
+     -0.026,
+     -0.003
+    ],
+    [
+     -0.024,
+     -0.003
+    ],
+    [
+     -0.022,
+     -0.003
+    ],
+    [
+     -0.02,
+     0.0
+    ],
+    [
+     -0.018,
+     0.0
+    ],
+    [
+     -0.016,
+     -0.003
+    ],
+    [
+     -0.014,
+     -0.003
+    ],
+    [
+     -0.012,
+     -0.003
+    ],
+    [
+     -0.01,
+     0.0
+    ],
+    [
+     -0.008,
+     0.0
+    ],
+    [
+     -0.006,
+     -0.003
+    ],
+    [
+     -0.004,
+     -0.003
+    ],
+    [
+     -0.002,
+     -0.003
+    ],
+    [
+     0.0,
+     0.0
+    ],
+    [
+     0.002,
+     0.0
+    ],
+    [
+     0.004,
+     -0.003
+    ],
+    [
+     0.006,
+     -0.003
+    ],
+    [
+     0.008,
+     -0.003
+    ],
+    [
+     0.01,
+     0.0
+    ],
+    [
+     0.012,
+     0.0
+    ],
+    [
+     0.014,
+     -0.003
+    ],
+    [
+     0.016,
+     -0.003
+    ],
+    [
+     0.018,
+     -0.003
+    ],
+    [
+     0.02,
+     0.0
+    ],
+    [
+     0.022,
+     0.0
+    ],
+    [
+     0.024,
+     -0.003
+    ],
+    [
+     0.026,
+     -0.003
+    ],
+    [
+     0.028,
+     -0.003
+    ],
+    [
+     0.03,
+     0.0
+    ]
+   ],
+   "top_along_y": [
+    [
+     -0.48,
+     0.1375
+    ],
+    [
+     -0.46,
+     0.1375
+    ],
+    [
+     -0.44,
+     0.1375
+    ],
+    [
+     -0.42,
+     0.1375
+    ],
+    [
+     -0.4,
+     0.1375
+    ],
+    [
+     -0.38,
+     0.1375
+    ],
+    [
+     -0.36,
+     0.1375
+    ],
+    [
+     -0.34,
+     0.1375
+    ],
+    [
+     -0.32,
+     0.1375
+    ],
+    [
+     -0.3,
+     0.1375
+    ],
+    [
+     -0.28,
+     0.1375
+    ],
+    [
+     -0.26,
+     0.1375
+    ],
+    [
+     -0.24,
+     0.1375
+    ],
+    [
+     -0.22,
+     0.1375
+    ],
+    [
+     -0.2,
+     0.1375
+    ],
+    [
+     -0.18,
+     0.1375
+    ],
+    [
+     -0.16,
+     0.1375
+    ],
+    [
+     -0.14,
+     0.1375
+    ],
+    [
+     -0.12,
+     0.1375
+    ],
+    [
+     -0.1,
+     0.1375
+    ],
+    [
+     -0.08,
+     0.1375
+    ],
+    [
+     -0.06,
+     0.1375
+    ],
+    [
+     -0.04,
+     0.1375
+    ],
+    [
+     -0.02,
+     0.1375
+    ],
+    [
+     0.0,
+     0.1375
+    ],
+    [
+     0.02,
+     0.1375
+    ],
+    [
+     0.04,
+     0.1375
+    ],
+    [
+     0.06,
+     0.1375
+    ],
+    [
+     0.08,
+     0.1119
+    ],
+    [
+     0.1,
+     0.099
+    ],
+    [
+     0.12,
+     null
+    ],
+    [
+     0.14,
+     null
+    ],
+    [
+     0.16,
+     null
+    ],
+    [
+     0.18,
+     null
+    ],
+    [
+     0.2,
+     null
+    ],
+    [
+     0.22,
+     null
+    ],
+    [
+     0.24,
+     null
+    ],
+    [
+     0.26,
+     null
+    ],
+    [
+     0.28,
+     null
+    ],
+    [
+     0.3,
+     null
+    ],
+    [
+     0.32,
+     null
+    ]
+   ]
+  }
+ }
+}

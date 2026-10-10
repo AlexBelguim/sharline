@@ -1,0 +1,369 @@
+{
+ "fbx": {
+  "grip_vertical": {
+   "objects": [
+    "ATT_grip_vertical<MESH>",
+    "ATT_grip_vertical_SOCKET_LeftHand<EMPTY>^ATT_grip_vertical"
+   ],
+   "tris": 1338,
+   "bounds": [
+    [
+     -0.0171,
+     -0.0397,
+     -0.108
+    ],
+    [
+     0.0175,
+     0.034,
+     0.0083
+    ]
+   ],
+   "uv": true,
+   "props": {},
+   "root_scale": [
+    1.0,
+    1.0,
+    1.0
+   ]
+  },
+  "grip_angled": {
+   "objects": [
+    "ATT_grip_angled<MESH>",
+    "ATT_grip_angled_SOCKET_LeftHand<EMPTY>^ATT_grip_angled"
+   ],
+   "tris": 1348,
+   "bounds": [
+    [
+     -0.0171,
+     -0.0545,
+     -0.0619
+    ],
+    [
+     0.0175,
+     0.05,
+     0.0083
+    ]
+   ],
+   "uv": true,
+   "props": {},
+   "root_scale": [
+    1.0,
+    1.0,
+    1.0
+   ]
+  },
+  "grip_stub": {
+   "objects": [
+    "ATT_grip_stub<MESH>",
+    "ATT_grip_stub_SOCKET_LeftHand<EMPTY>^ATT_grip_stub"
+   ],
+   "tris": 832,
+   "bounds": [
+    [
+     -0.0171,
+     -0.0257,
+     -0.0365
+    ],
+    [
+     0.0175,
+     0.024,
+     0.0083
+    ]
+   ],
+   "uv": true,
+   "props": {},
+   "root_scale": [
+    1.0,
+    1.0,
+    1.0
+   ]
+  },
+  "ugl_launcher": {
+   "objects": [
+    "ATT_ugl_launcher<MESH>",
+    "ATT_ugl_launcher_Breech<MESH>^ATT_ugl_launcher",
+    "ATT_ugl_launcher_SOCKET_LeftHand<EMPTY>^ATT_ugl_launcher",
+    "ATT_ugl_launcher_SOCKET_Muzzle<EMPTY>^ATT_ugl_launcher_Breech",
+    "ATT_ugl_launcher_Trigger<MESH>^ATT_ugl_launcher"
+   ],
+   "tris": 5060,
+   "bounds": [
+    [
+     -0.0425,
+     -0.1705,
+     -0.1669
+    ],
+    [
+     0.0345,
+     0.1514,
+     0.0083
+    ]
+   ],
+   "uv": true,
+   "props": {
+    "ATT_ugl_launcher_Breech": [
+     "hinge_axis",
+     "open_angle_deg",
+     "closed_angle_deg",
+     "note"
+    ],
+    "ATT_ugl_launcher_Trigger": [
+     "pivot_axis",
+     "pull_angle_deg"
+    ]
+   },
+   "root_scale": [
+    1.0,
+    1.0,
+    1.0
+   ]
+  },
+  "bipod": {
+   "objects": [
+    "ATT_bipod<MESH>",
+    "ATT_bipod_LegLower_L<MESH>^ATT_bipod_Leg_L",
+    "ATT_bipod_LegLower_R<MESH>^ATT_bipod_Leg_R",
+    "ATT_bipod_Leg_L<MESH>^ATT_bipod",
+    "ATT_bipod_Leg_R<MESH>^ATT_bipod"
+   ],
+   "tris": 3820,
+   "bounds": [
+    [
+     -0.0991,
+     -0.1775,
+     -0.2155
+    ],
+    [
+     0.0991,
+     0.03,
+     0.0083
+    ]
+   ],
+   "uv": true,
+   "props": {
+    "ATT_bipod_Leg_L": [
+     "hinge_axis",
+     "deploy_angle_deg",
+     "fold_angle_deg",
+     "hinge_euler_x_deployed_deg",
+     "hinge_euler_x_folded_deg",
+     "splay_deg",
+     "note"
+    ],
+    "ATT_bipod_Leg_R": [
+     "hinge_axis",
+     "deploy_angle_deg",
+     "fold_angle_deg",
+     "hinge_euler_x_deployed_deg",
+     "hinge_euler_x_folded_deg",
+     "splay_deg",
+     "note"
+    ],
+    "ATT_bipod_LegLower_L": [
+     "slide_axis",
+     "telescope_min_m",
+     "telescope_max_m",
+     "telescope_m"
+    ],
+    "ATT_bipod_LegLower_R": [
+     "slide_axis",
+     "telescope_min_m",
+     "telescope_max_m",
+     "telescope_m"
+    ]
+   },
+   "root_scale": [
+    1.0,
+    1.0,
+    1.0
+   ]
+  },
+  "laser_R": {
+   "objects": [
+    "ATT_laser_R<MESH>",
+    "ATT_laser_R_Emitter<MESH>^ATT_laser_R",
+    "ATT_laser_R_SOCKET_Beam<EMPTY>^ATT_laser_R"
+   ],
+   "tris": 1256,
+   "bounds": [
+    [
+     -0.0371,
+     -0.0355,
+     -0.0175
+    ],
+    [
+     0.0083,
+     0.029,
+     0.0186
+    ]
+   ],
+   "uv": true,
+   "props": {},
+   "root_scale": [
+    1.0,
+    1.0,
+    1.0
+   ]
+  },
+  "laser_L": {
+   "objects": [
+    "ATT_laser_L<MESH>",
+    "ATT_laser_L_Emitter<MESH>^ATT_laser_L",
+    "ATT_laser_L_SOCKET_Beam<EMPTY>^ATT_laser_L"
+   ],
+   "tris": 1256,
+   "bounds": [
+    [
+     -0.0083,
+     -0.0355,
+     -0.0175
+    ],
+    [
+     0.0371,
+     0.029,
+     0.0186
+    ]
+   ],
+   "uv": true,
+   "props": {},
+   "root_scale": [
+    1.0,
+    1.0,
+    1.0
+   ]
+  },
+  "flashlight_R": {
+   "objects": [
+    "ATT_flashlight_R<MESH>",
+    "ATT_flashlight_R_Lens<MESH>^ATT_flashlight_R",
+    "ATT_flashlight_R_SOCKET_Beam<EMPTY>^ATT_flashlight_R"
+   ],
+   "tris": 1480,
+   "bounds": [
+    [
+     -0.0451,
+     -0.0622,
+     -0.0186
+    ],
+    [
+     0.0083,
+     0.0595,
+     0.0186
+    ]
+   ],
+   "uv": true,
+   "props": {},
+   "root_scale": [
+    1.0,
+    1.0,
+    1.0
+   ]
+  },
+  "flashlight_L": {
+   "objects": [
+    "ATT_flashlight_L<MESH>",
+    "ATT_flashlight_L_Lens<MESH>^ATT_flashlight_L",
+    "ATT_flashlight_L_SOCKET_Beam<EMPTY>^ATT_flashlight_L"
+   ],
+   "tris": 1480,
+   "bounds": [
+    [
+     -0.0083,
+     -0.0622,
+     -0.0186
+    ],
+    [
+     0.0451,
+     0.0595,
+     0.0186
+    ]
+   ],
+   "uv": true,
+   "props": {},
+   "root_scale": [
+    1.0,
+    1.0,
+    1.0
+   ]
+  },
+  "shield_front": {
+   "objects": [
+    "ATT_shield_front<MESH>",
+    "ATT_shield_front_Glass<MESH>^ATT_shield_front"
+   ],
+   "tris": 2840,
+   "bounds": [
+    [
+     -0.1568,
+     -0.0458,
+     -0.1
+    ],
+    [
+     0.1568,
+     0.034,
+     0.16
+    ]
+   ],
+   "uv": true,
+   "props": {},
+   "root_scale": [
+    1.0,
+    1.0,
+    1.0
+   ]
+  }
+ },
+ "sight": {
+  "reddot": {
+   "ads_above_rail_m": 0.049,
+   "ads_world": [
+    0.0,
+    -0.0987,
+    0.133
+   ],
+   "vertical_clear_deg": [
+    -2.7,
+    7.2
+   ],
+   "horizontal_clear_deg": [
+    -12.7,
+    12.7
+   ],
+   "centre_ray": "open"
+  },
+  "holo": {
+   "ads_above_rail_m": 0.045,
+   "ads_world": [
+    0.0,
+    -0.0979,
+    0.129
+   ],
+   "vertical_clear_deg": [
+    -2.2,
+    7.7
+   ],
+   "horizontal_clear_deg": [
+    -12.1,
+    12.1
+   ],
+   "centre_ray": "open"
+  },
+  "3x": {
+   "ads_above_rail_m": 0.05,
+   "ads_world": [
+    0.0,
+    -0.0287,
+    0.134
+   ],
+   "vertical_clear_deg": [
+    -2.5,
+    6.0
+   ],
+   "horizontal_clear_deg": [
+    -11.0,
+    11.0
+   ],
+   "centre_ray": "open"
+  }
+ }
+}

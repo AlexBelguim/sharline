@@ -1,0 +1,771 @@
+{
+  "source": {
+    "optic_reddot": {
+      "tris": 2044,
+      "catalog_tris": 2044,
+      "meshes": {
+        "ATT_optic_reddot_Body": {
+          "tris": 1964,
+          "uv_layers": 1,
+          "degenerate_faces": 0,
+          "wire_edges": 0,
+          "loose_verts": 0,
+          "non_manifold_edges": 0,
+          "invalid_material_faces": 0,
+          "require_closed": true,
+          "islands": 11,
+          "inverted_closed_islands": 0,
+          "failures": []
+        },
+        "ATT_optic_reddot_Glass": {
+          "tris": 76,
+          "uv_layers": 1,
+          "degenerate_faces": 0,
+          "wire_edges": 0,
+          "loose_verts": 0,
+          "non_manifold_edges": 0,
+          "invalid_material_faces": 0,
+          "require_closed": true,
+          "islands": 1,
+          "inverted_closed_islands": 0,
+          "failures": []
+        },
+        "ATT_optic_reddot_Reticle": {
+          "tris": 2,
+          "uv_layers": 1,
+          "degenerate_faces": 0,
+          "wire_edges": 0,
+          "loose_verts": 0,
+          "non_manifold_edges": 4,
+          "invalid_material_faces": 0,
+          "require_closed": false,
+          "islands": 1,
+          "inverted_closed_islands": 0,
+          "failures": []
+        },
+        "ATT_optic_reddot_Glint": {
+          "tris": 2,
+          "uv_layers": 1,
+          "degenerate_faces": 0,
+          "wire_edges": 0,
+          "loose_verts": 0,
+          "non_manifold_edges": 4,
+          "invalid_material_faces": 0,
+          "require_closed": false,
+          "islands": 1,
+          "inverted_closed_islands": 0,
+          "failures": []
+        }
+      }
+    },
+    "optic_holo": {
+      "tris": 3300,
+      "catalog_tris": 3300,
+      "meshes": {
+        "ATT_optic_holo_Body": {
+          "tris": 3220,
+          "uv_layers": 1,
+          "degenerate_faces": 0,
+          "wire_edges": 0,
+          "loose_verts": 0,
+          "non_manifold_edges": 0,
+          "invalid_material_faces": 0,
+          "require_closed": true,
+          "islands": 18,
+          "inverted_closed_islands": 0,
+          "failures": []
+        },
+        "ATT_optic_holo_Glass": {
+          "tris": 76,
+          "uv_layers": 1,
+          "degenerate_faces": 0,
+          "wire_edges": 0,
+          "loose_verts": 0,
+          "non_manifold_edges": 0,
+          "invalid_material_faces": 0,
+          "require_closed": true,
+          "islands": 1,
+          "inverted_closed_islands": 0,
+          "failures": []
+        },
+        "ATT_optic_holo_Reticle": {
+          "tris": 2,
+          "uv_layers": 1,
+          "degenerate_faces": 0,
+          "wire_edges": 0,
+          "loose_verts": 0,
+          "non_manifold_edges": 4,
+          "invalid_material_faces": 0,
+          "require_closed": false,
+          "islands": 1,
+          "inverted_closed_islands": 0,
+          "failures": []
+        },
+        "ATT_optic_holo_Glint": {
+          "tris": 2,
+          "uv_layers": 1,
+          "degenerate_faces": 0,
+          "wire_edges": 0,
+          "loose_verts": 0,
+          "non_manifold_edges": 4,
+          "invalid_material_faces": 0,
+          "require_closed": false,
+          "islands": 1,
+          "inverted_closed_islands": 0,
+          "failures": []
+        }
+      }
+    },
+    "optic_projector": {
+      "tris": 2624,
+      "catalog_tris": 2624,
+      "meshes": {
+        "ATT_optic_projector_Body": {
+          "tris": 1606,
+          "uv_layers": 1,
+          "degenerate_faces": 0,
+          "wire_edges": 0,
+          "loose_verts": 0,
+          "non_manifold_edges": 0,
+          "invalid_material_faces": 0,
+          "require_closed": true,
+          "islands": 11,
+          "inverted_closed_islands": 0,
+          "failures": []
+        },
+        "ATT_optic_projector_Flap_L": {
+          "tris": 528,
+          "uv_layers": 1,
+          "degenerate_faces": 0,
+          "wire_edges": 0,
+          "loose_verts": 0,
+          "non_manifold_edges": 0,
+          "invalid_material_faces": 0,
+          "require_closed": true,
+          "islands": 5,
+          "inverted_closed_islands": 0,
+          "failures": []
+        },
+        "ATT_optic_projector_Flap_R": {
+          "tris": 488,
+          "uv_layers": 1,
+          "degenerate_faces": 0,
+          "wire_edges": 0,
+          "loose_verts": 0,
+          "non_manifold_edges": 0,
+          "invalid_material_faces": 0,
+          "require_closed": true,
+          "islands": 5,
+          "inverted_closed_islands": 0,
+          "failures": []
+        },
+        "ATT_optic_projector_Hologram": {
+          "tris": 2,
+          "uv_layers": 1,
+          "degenerate_faces": 0,
+          "wire_edges": 0,
+          "loose_verts": 0,
+          "non_manifold_edges": 4,
+          "invalid_material_faces": 0,
+          "require_closed": false,
+          "islands": 1,
+          "inverted_closed_islands": 0,
+          "failures": []
+        }
+      }
+    },
+    "optic_3x": {
+      "tris": 4542,
+      "catalog_tris": 4542,
+      "meshes": {
+        "ATT_optic_3x_Body": {
+          "tris": 4146,
+          "uv_layers": 1,
+          "degenerate_faces": 0,
+          "wire_edges": 0,
+          "loose_verts": 0,
+          "non_manifold_edges": 0,
+          "invalid_material_faces": 0,
+          "require_closed": true,
+          "islands": 15,
+          "inverted_closed_islands": 0,
+          "failures": []
+        },
+        "ATT_optic_3x_Objective": {
+          "tris": 192,
+          "uv_layers": 1,
+          "degenerate_faces": 0,
+          "wire_edges": 0,
+          "loose_verts": 0,
+          "non_manifold_edges": 0,
+          "invalid_material_faces": 0,
+          "require_closed": true,
+          "islands": 1,
+          "inverted_closed_islands": 0,
+          "failures": []
+        },
+        "ATT_optic_3x_Ocular": {
+          "tris": 192,
+          "uv_layers": 1,
+          "degenerate_faces": 0,
+          "wire_edges": 0,
+          "loose_verts": 0,
+          "non_manifold_edges": 0,
+          "invalid_material_faces": 0,
+          "require_closed": true,
+          "islands": 1,
+          "inverted_closed_islands": 0,
+          "failures": []
+        },
+        "ATT_optic_3x_Reticle": {
+          "tris": 12,
+          "uv_layers": 1,
+          "degenerate_faces": 0,
+          "wire_edges": 0,
+          "loose_verts": 0,
+          "non_manifold_edges": 12,
+          "invalid_material_faces": 0,
+          "require_closed": false,
+          "islands": 1,
+          "inverted_closed_islands": 0,
+          "failures": []
+        }
+      }
+    },
+    "optic_sniper": {
+      "tris": 4696,
+      "catalog_tris": 4696,
+      "meshes": {
+        "ATT_optic_sniper_Body": {
+          "tris": 4376,
+          "uv_layers": 1,
+          "degenerate_faces": 0,
+          "wire_edges": 0,
+          "loose_verts": 0,
+          "non_manifold_edges": 0,
+          "invalid_material_faces": 0,
+          "require_closed": true,
+          "islands": 18,
+          "inverted_closed_islands": 0,
+          "failures": []
+        },
+        "ATT_optic_sniper_Objective": {
+          "tris": 192,
+          "uv_layers": 1,
+          "degenerate_faces": 0,
+          "wire_edges": 0,
+          "loose_verts": 0,
+          "non_manifold_edges": 0,
+          "invalid_material_faces": 0,
+          "require_closed": true,
+          "islands": 1,
+          "inverted_closed_islands": 0,
+          "failures": []
+        },
+        "ATT_optic_sniper_Ocular": {
+          "tris": 128,
+          "uv_layers": 1,
+          "degenerate_faces": 0,
+          "wire_edges": 0,
+          "loose_verts": 0,
+          "non_manifold_edges": 0,
+          "invalid_material_faces": 0,
+          "require_closed": true,
+          "islands": 1,
+          "inverted_closed_islands": 0,
+          "failures": []
+        }
+      }
+    },
+    "optic_thermal": {
+      "tris": 4276,
+      "catalog_tris": 4276,
+      "meshes": {
+        "ATT_optic_thermal_Body": {
+          "tris": 3884,
+          "uv_layers": 1,
+          "degenerate_faces": 0,
+          "wire_edges": 0,
+          "loose_verts": 0,
+          "non_manifold_edges": 0,
+          "invalid_material_faces": 0,
+          "require_closed": true,
+          "islands": 18,
+          "inverted_closed_islands": 0,
+          "failures": []
+        },
+        "ATT_optic_thermal_Objective": {
+          "tris": 192,
+          "uv_layers": 1,
+          "degenerate_faces": 0,
+          "wire_edges": 0,
+          "loose_verts": 0,
+          "non_manifold_edges": 0,
+          "invalid_material_faces": 0,
+          "require_closed": true,
+          "islands": 1,
+          "inverted_closed_islands": 0,
+          "failures": []
+        },
+        "ATT_optic_thermal_Display": {
+          "tris": 128,
+          "uv_layers": 1,
+          "degenerate_faces": 0,
+          "wire_edges": 0,
+          "loose_verts": 0,
+          "non_manifold_edges": 0,
+          "invalid_material_faces": 0,
+          "require_closed": true,
+          "islands": 1,
+          "inverted_closed_islands": 0,
+          "failures": []
+        },
+        "ATT_optic_thermal_StatusLight": {
+          "tris": 72,
+          "uv_layers": 1,
+          "degenerate_faces": 0,
+          "wire_edges": 0,
+          "loose_verts": 0,
+          "non_manifold_edges": 0,
+          "invalid_material_faces": 0,
+          "require_closed": true,
+          "islands": 1,
+          "inverted_closed_islands": 0,
+          "failures": []
+        }
+      }
+    }
+  },
+  "exports": {
+    "optic_reddot": {
+      "tris": 2044,
+      "meshes": {
+        "ATT_optic_reddot_Body": {
+          "tris": 1964,
+          "uv_layers": 1,
+          "degenerate_faces": 0,
+          "wire_edges": 0,
+          "loose_verts": 0,
+          "non_manifold_edges": 2394,
+          "invalid_material_faces": 0,
+          "require_closed": false,
+          "islands": 289,
+          "inverted_closed_islands": 0,
+          "failures": []
+        },
+        "ATT_optic_reddot_Glass": {
+          "tris": 76,
+          "uv_layers": 1,
+          "degenerate_faces": 0,
+          "wire_edges": 0,
+          "loose_verts": 0,
+          "non_manifold_edges": 88,
+          "invalid_material_faces": 0,
+          "require_closed": false,
+          "islands": 6,
+          "inverted_closed_islands": 0,
+          "failures": []
+        },
+        "ATT_optic_reddot_Reticle": {
+          "tris": 2,
+          "uv_layers": 1,
+          "degenerate_faces": 0,
+          "wire_edges": 0,
+          "loose_verts": 0,
+          "non_manifold_edges": 4,
+          "invalid_material_faces": 0,
+          "require_closed": false,
+          "islands": 1,
+          "inverted_closed_islands": 0,
+          "failures": []
+        },
+        "ATT_optic_reddot_Glint": {
+          "tris": 2,
+          "uv_layers": 1,
+          "degenerate_faces": 0,
+          "wire_edges": 0,
+          "loose_verts": 0,
+          "non_manifold_edges": 4,
+          "invalid_material_faces": 0,
+          "require_closed": false,
+          "islands": 1,
+          "inverted_closed_islands": 0,
+          "failures": []
+        }
+      }
+    },
+    "optic_holo": {
+      "tris": 3300,
+      "meshes": {
+        "ATT_optic_holo_Body": {
+          "tris": 3220,
+          "uv_layers": 1,
+          "degenerate_faces": 0,
+          "wire_edges": 0,
+          "loose_verts": 0,
+          "non_manifold_edges": 3924,
+          "invalid_material_faces": 0,
+          "require_closed": false,
+          "islands": 471,
+          "inverted_closed_islands": 0,
+          "failures": []
+        },
+        "ATT_optic_holo_Glass": {
+          "tris": 76,
+          "uv_layers": 1,
+          "degenerate_faces": 0,
+          "wire_edges": 0,
+          "loose_verts": 0,
+          "non_manifold_edges": 88,
+          "invalid_material_faces": 0,
+          "require_closed": false,
+          "islands": 6,
+          "inverted_closed_islands": 0,
+          "failures": []
+        },
+        "ATT_optic_holo_Reticle": {
+          "tris": 2,
+          "uv_layers": 1,
+          "degenerate_faces": 0,
+          "wire_edges": 0,
+          "loose_verts": 0,
+          "non_manifold_edges": 4,
+          "invalid_material_faces": 0,
+          "require_closed": false,
+          "islands": 1,
+          "inverted_closed_islands": 0,
+          "failures": []
+        },
+        "ATT_optic_holo_Glint": {
+          "tris": 2,
+          "uv_layers": 1,
+          "degenerate_faces": 0,
+          "wire_edges": 0,
+          "loose_verts": 0,
+          "non_manifold_edges": 4,
+          "invalid_material_faces": 0,
+          "require_closed": false,
+          "islands": 1,
+          "inverted_closed_islands": 0,
+          "failures": []
+        }
+      }
+    },
+    "optic_projector": {
+      "tris": 2624,
+      "meshes": {
+        "ATT_optic_projector_Body": {
+          "tris": 1606,
+          "uv_layers": 1,
+          "degenerate_faces": 0,
+          "wire_edges": 0,
+          "loose_verts": 0,
+          "non_manifold_edges": 1986,
+          "invalid_material_faces": 0,
+          "require_closed": false,
+          "islands": 279,
+          "inverted_closed_islands": 0,
+          "failures": []
+        },
+        "ATT_optic_projector_Flap_L": {
+          "tris": 528,
+          "uv_layers": 1,
+          "degenerate_faces": 0,
+          "wire_edges": 0,
+          "loose_verts": 0,
+          "non_manifold_edges": 750,
+          "invalid_material_faces": 0,
+          "require_closed": false,
+          "islands": 115,
+          "inverted_closed_islands": 0,
+          "failures": []
+        },
+        "ATT_optic_projector_Flap_R": {
+          "tris": 488,
+          "uv_layers": 1,
+          "degenerate_faces": 0,
+          "wire_edges": 0,
+          "loose_verts": 0,
+          "non_manifold_edges": 700,
+          "invalid_material_faces": 0,
+          "require_closed": false,
+          "islands": 110,
+          "inverted_closed_islands": 0,
+          "failures": []
+        },
+        "ATT_optic_projector_Hologram": {
+          "tris": 2,
+          "uv_layers": 1,
+          "degenerate_faces": 0,
+          "wire_edges": 0,
+          "loose_verts": 0,
+          "non_manifold_edges": 4,
+          "invalid_material_faces": 0,
+          "require_closed": false,
+          "islands": 1,
+          "inverted_closed_islands": 0,
+          "failures": []
+        }
+      }
+    },
+    "optic_3x": {
+      "tris": 4542,
+      "meshes": {
+        "ATT_optic_3x_Body": {
+          "tris": 4146,
+          "uv_layers": 1,
+          "degenerate_faces": 0,
+          "wire_edges": 0,
+          "loose_verts": 0,
+          "non_manifold_edges": 4200,
+          "invalid_material_faces": 0,
+          "require_closed": false,
+          "islands": 339,
+          "inverted_closed_islands": 0,
+          "failures": []
+        },
+        "ATT_optic_3x_Objective": {
+          "tris": 192,
+          "uv_layers": 1,
+          "degenerate_faces": 0,
+          "wire_edges": 0,
+          "loose_verts": 0,
+          "non_manifold_edges": 136,
+          "invalid_material_faces": 0,
+          "require_closed": false,
+          "islands": 6,
+          "inverted_closed_islands": 0,
+          "failures": []
+        },
+        "ATT_optic_3x_Ocular": {
+          "tris": 192,
+          "uv_layers": 1,
+          "degenerate_faces": 0,
+          "wire_edges": 0,
+          "loose_verts": 0,
+          "non_manifold_edges": 136,
+          "invalid_material_faces": 0,
+          "require_closed": false,
+          "islands": 6,
+          "inverted_closed_islands": 0,
+          "failures": []
+        },
+        "ATT_optic_3x_Reticle": {
+          "tris": 12,
+          "uv_layers": 1,
+          "degenerate_faces": 0,
+          "wire_edges": 0,
+          "loose_verts": 0,
+          "non_manifold_edges": 12,
+          "invalid_material_faces": 0,
+          "require_closed": false,
+          "islands": 1,
+          "inverted_closed_islands": 0,
+          "failures": []
+        }
+      }
+    },
+    "optic_sniper": {
+      "tris": 4696,
+      "meshes": {
+        "ATT_optic_sniper_Body": {
+          "tris": 4376,
+          "uv_layers": 1,
+          "degenerate_faces": 0,
+          "wire_edges": 0,
+          "loose_verts": 0,
+          "non_manifold_edges": 5204,
+          "invalid_material_faces": 0,
+          "require_closed": false,
+          "islands": 593,
+          "inverted_closed_islands": 0,
+          "failures": []
+        },
+        "ATT_optic_sniper_Objective": {
+          "tris": 192,
+          "uv_layers": 1,
+          "degenerate_faces": 0,
+          "wire_edges": 0,
+          "loose_verts": 0,
+          "non_manifold_edges": 136,
+          "invalid_material_faces": 0,
+          "require_closed": false,
+          "islands": 6,
+          "inverted_closed_islands": 0,
+          "failures": []
+        },
+        "ATT_optic_sniper_Ocular": {
+          "tris": 128,
+          "uv_layers": 1,
+          "degenerate_faces": 0,
+          "wire_edges": 0,
+          "loose_verts": 0,
+          "non_manifold_edges": 136,
+          "invalid_material_faces": 0,
+          "require_closed": false,
+          "islands": 6,
+          "inverted_closed_islands": 0,
+          "failures": []
+        }
+      }
+    },
+    "optic_thermal": {
+      "tris": 4276,
+      "meshes": {
+        "ATT_optic_thermal_Body": {
+          "tris": 3884,
+          "uv_layers": 1,
+          "degenerate_faces": 0,
+          "wire_edges": 0,
+          "loose_verts": 0,
+          "non_manifold_edges": 4462,
+          "invalid_material_faces": 0,
+          "require_closed": false,
+          "islands": 453,
+          "inverted_closed_islands": 0,
+          "failures": []
+        },
+        "ATT_optic_thermal_Objective": {
+          "tris": 192,
+          "uv_layers": 1,
+          "degenerate_faces": 0,
+          "wire_edges": 0,
+          "loose_verts": 0,
+          "non_manifold_edges": 136,
+          "invalid_material_faces": 0,
+          "require_closed": false,
+          "islands": 6,
+          "inverted_closed_islands": 0,
+          "failures": []
+        },
+        "ATT_optic_thermal_Display": {
+          "tris": 128,
+          "uv_layers": 1,
+          "degenerate_faces": 0,
+          "wire_edges": 0,
+          "loose_verts": 0,
+          "non_manifold_edges": 136,
+          "invalid_material_faces": 0,
+          "require_closed": false,
+          "islands": 6,
+          "inverted_closed_islands": 0,
+          "failures": []
+        },
+        "ATT_optic_thermal_StatusLight": {
+          "tris": 72,
+          "uv_layers": 1,
+          "degenerate_faces": 0,
+          "wire_edges": 0,
+          "loose_verts": 0,
+          "non_manifold_edges": 64,
+          "invalid_material_faces": 0,
+          "require_closed": false,
+          "islands": 6,
+          "inverted_closed_islands": 0,
+          "failures": []
+        }
+      }
+    }
+  },
+  "raw_exports": {
+    "optic_reddot": {
+      "degenerate_triangles": 0,
+      "opposing_normal_triangles": 0,
+      "min_triangle_area_m2": 2.537211831982679e-11
+    },
+    "optic_holo": {
+      "degenerate_triangles": 0,
+      "opposing_normal_triangles": 0,
+      "min_triangle_area_m2": 2.1204082527253084e-11
+    },
+    "optic_projector": {
+      "degenerate_triangles": 0,
+      "opposing_normal_triangles": 0,
+      "min_triangle_area_m2": 2.271602938738737e-09
+    },
+    "optic_3x": {
+      "degenerate_triangles": 0,
+      "opposing_normal_triangles": 0,
+      "min_triangle_area_m2": 5.54567140681971e-09
+    },
+    "optic_sniper": {
+      "degenerate_triangles": 0,
+      "opposing_normal_triangles": 0,
+      "min_triangle_area_m2": 7.849841609532388e-08
+    },
+    "optic_thermal": {
+      "degenerate_triangles": 0,
+      "opposing_normal_triangles": 0,
+      "min_triangle_area_m2": 1.9211166060739693e-09
+    }
+  },
+  "flap_sweep": {
+    "0": {
+      "left_body": 0,
+      "right_body": 0,
+      "left_right": 0
+    },
+    "1": {
+      "left_body": 0,
+      "right_body": 0,
+      "left_right": 0
+    },
+    "2": {
+      "left_body": 0,
+      "right_body": 0,
+      "left_right": 0
+    },
+    "3": {
+      "left_body": 0,
+      "right_body": 0,
+      "left_right": 0
+    },
+    "4": {
+      "left_body": 0,
+      "right_body": 0,
+      "left_right": 0
+    },
+    "5": {
+      "left_body": 0,
+      "right_body": 0,
+      "left_right": 0
+    },
+    "6": {
+      "left_body": 0,
+      "right_body": 0,
+      "left_right": 0
+    },
+    "7": {
+      "left_body": 0,
+      "right_body": 0,
+      "left_right": 0
+    },
+    "8": {
+      "left_body": 0,
+      "right_body": 0,
+      "left_right": 0
+    },
+    "9": {
+      "left_body": 0,
+      "right_body": 0,
+      "left_right": 0
+    },
+    "10": {
+      "left_body": 0,
+      "right_body": 0,
+      "left_right": 0
+    },
+    "11": {
+      "left_body": 0,
+      "right_body": 0,
+      "left_right": 0
+    },
+    "12": {
+      "left_body": 0,
+      "right_body": 0,
+      "left_right": 0
+    }
+  },
+  "failures": [],
+  "ok": true
+}

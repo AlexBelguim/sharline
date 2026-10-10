@@ -1,0 +1,1086 @@
+{
+ "mako_rail_bottom_section_at_under": [
+  [
+   -0.0105,
+   0.0161
+  ],
+  [
+   -0.0105,
+   0.0185
+  ],
+  [
+   -0.0099,
+   0.0155
+  ],
+  [
+   0.0099,
+   0.0155
+  ],
+  [
+   0.0105,
+   0.0161
+  ],
+  [
+   0.0105,
+   0.0185
+  ]
+ ],
+ "mako_rail_top_section_at_shield": [
+  [
+   -0.0105,
+   0.081
+  ],
+  [
+   -0.0105,
+   0.0834
+  ],
+  [
+   -0.0099,
+   0.081
+  ],
+  [
+   -0.0099,
+   0.0834
+  ],
+  [
+   -0.0099,
+   0.084
+  ],
+  [
+   0.0099,
+   0.081
+  ],
+  [
+   0.0099,
+   0.0834
+  ],
+  [
+   0.0099,
+   0.084
+  ],
+  [
+   0.0105,
+   0.081
+  ],
+  [
+   0.0105,
+   0.0834
+  ]
+ ],
+ "mako_rail_side_R_section": [
+  [
+   -0.0325,
+   0.0401
+  ],
+  [
+   -0.0325,
+   0.0599
+  ],
+  [
+   -0.0319,
+   0.0395
+  ],
+  [
+   -0.0319,
+   0.0605
+  ],
+  [
+   -0.0295,
+   0.0395
+  ],
+  [
+   -0.0295,
+   0.0605
+  ]
+ ],
+ "MAKO_Rail_bounds": [
+  [
+   -0.0105,
+   -0.493,
+   0.0745
+  ],
+  [
+   0.0105,
+   0.022,
+   0.084
+  ]
+ ],
+ "MAKO_RailBottom_bounds": [
+  [
+   -0.0105,
+   -0.4,
+   0.0155
+  ],
+  [
+   0.0105,
+   -0.27,
+   0.025
+  ]
+ ],
+ "MAKO_RailSide_R_bounds": [
+  [
+   -0.0325,
+   -0.474,
+   0.0395
+  ],
+  [
+   -0.023,
+   -0.424,
+   0.0605
+  ]
+ ],
+ "MAKO_RailSide_L_bounds": [
+  [
+   0.023,
+   -0.474,
+   0.0395
+  ],
+  [
+   0.0325,
+   -0.424,
+   0.0605
+  ]
+ ],
+ "MAKO_Handguard_bounds": [
+  [
+   -0.023,
+   -0.495,
+   0.025
+  ],
+  [
+   0.023,
+   -0.168,
+   0.0745
+  ]
+ ],
+ "MAKO_Barrel_bounds": [
+  [
+   -0.0105,
+   -0.513,
+   0.0395
+  ],
+  [
+   0.0105,
+   -0.15,
+   0.0668
+  ]
+ ],
+ "MAKO_FlashHider_bounds": [
+  [
+   -0.0124,
+   -0.565,
+   0.0376
+  ],
+  [
+   0.0124,
+   -0.509,
+   0.0624
+  ]
+ ],
+ "mako_grip_vertical": {
+  "pairs": 214,
+  "coplanar_contact_pairs": 0,
+  "crossing_pairs": 214,
+  "crossing_part_tri_centres_xz_rel_socket": [
+   [
+    0.01,
+    0.001,
+    93
+   ],
+   [
+    -0.01,
+    0.001,
+    91
+   ],
+   [
+    0.01,
+    0.0,
+    9
+   ],
+   [
+    -0.01,
+    0.0,
+    9
+   ],
+   [
+    -0.011,
+    0.001,
+    6
+   ],
+   [
+    0.011,
+    0.001,
+    6
+   ]
+  ],
+  "part_verts_inside_rail": 0,
+  "max_penetration_m": 0.0,
+  "inside_samples": []
+ },
+ "mako_grip_angled": {
+  "pairs": 262,
+  "coplanar_contact_pairs": 0,
+  "crossing_pairs": 262,
+  "crossing_part_tri_centres_xz_rel_socket": [
+   [
+    0.01,
+    0.001,
+    132
+   ],
+   [
+    -0.01,
+    0.001,
+    130
+   ]
+  ],
+  "part_verts_inside_rail": 0,
+  "max_penetration_m": 0.0,
+  "inside_samples": []
+ },
+ "mako_grip_stub": {
+  "pairs": 164,
+  "coplanar_contact_pairs": 0,
+  "crossing_pairs": 164,
+  "crossing_part_tri_centres_xz_rel_socket": [
+   [
+    0.01,
+    0.001,
+    68
+   ],
+   [
+    -0.01,
+    0.001,
+    66
+   ],
+   [
+    0.01,
+    0.0,
+    9
+   ],
+   [
+    -0.01,
+    0.0,
+    9
+   ],
+   [
+    0.011,
+    0.001,
+    6
+   ],
+   [
+    -0.011,
+    0.001,
+    6
+   ]
+  ],
+  "part_verts_inside_rail": 0,
+  "max_penetration_m": 0.0,
+  "inside_samples": []
+ },
+ "mako_ugl_launcher": {
+  "pairs": 316,
+  "coplanar_contact_pairs": 0,
+  "crossing_pairs": 316,
+  "crossing_part_tri_centres_xz_rel_socket": [
+   [
+    0.01,
+    0.001,
+    159
+   ],
+   [
+    -0.01,
+    0.001,
+    157
+   ]
+  ],
+  "part_verts_inside_rail": 0,
+  "max_penetration_m": 0.0,
+  "inside_samples": []
+ },
+ "mako_laser_R": {
+  "pairs": 161,
+  "coplanar_contact_pairs": 0,
+  "crossing_pairs": 161,
+  "crossing_part_tri_centres_xz_rel_socket": [
+   [
+    0.0,
+    0.01,
+    43
+   ],
+   [
+    0.0,
+    -0.01,
+    41
+   ],
+   [
+    0.001,
+    -0.01,
+    33
+   ],
+   [
+    0.001,
+    0.01,
+    30
+   ],
+   [
+    0.001,
+    -0.011,
+    5
+   ],
+   [
+    0.001,
+    0.011,
+    5
+   ],
+   [
+    -0.0,
+    0.003,
+    2
+   ],
+   [
+    -0.0,
+    -0.003,
+    2
+   ]
+  ],
+  "part_verts_inside_rail": 0,
+  "max_penetration_m": 0.0,
+  "inside_samples": []
+ },
+ "mako_flashlight_L": {
+  "pairs": 102,
+  "coplanar_contact_pairs": 0,
+  "crossing_pairs": 102,
+  "crossing_part_tri_centres_xz_rel_socket": [
+   [
+    -0.0,
+    0.01,
+    35
+   ],
+   [
+    -0.0,
+    -0.01,
+    25
+   ],
+   [
+    -0.001,
+    0.01,
+    23
+   ],
+   [
+    -0.001,
+    -0.01,
+    19
+   ]
+  ],
+  "part_verts_inside_rail": 0,
+  "max_penetration_m": 0.0,
+  "inside_samples": []
+ },
+ "mako_shield_front": {
+  "pairs": 147,
+  "coplanar_contact_pairs": 0,
+  "crossing_pairs": 147,
+  "crossing_part_tri_centres_xz_rel_socket": [
+   [
+    0.01,
+    -0.001,
+    62
+   ],
+   [
+    -0.01,
+    -0.001,
+    56
+   ],
+   [
+    0.01,
+    -0.0,
+    8
+   ],
+   [
+    -0.01,
+    -0.0,
+    8
+   ],
+   [
+    0.011,
+    -0.001,
+    5
+   ],
+   [
+    -0.011,
+    -0.001,
+    4
+   ],
+   [
+    0.003,
+    0.0,
+    2
+   ],
+   [
+    -0.003,
+    0.0,
+    2
+   ]
+  ],
+  "part_verts_inside_rail": 0,
+  "max_penetration_m": 0.0,
+  "inside_samples": []
+ },
+ "ugl_closed_breech_vs_body": {
+  "pairs": 84,
+  "coplanar_contact_pairs": 0,
+  "crossing_pairs": 84,
+  "crossing_part_tri_centres_xz_rel_socket": [
+   [
+    -0.036,
+    -0.042,
+    30
+   ],
+   [
+    -0.036,
+    -0.056,
+    29
+   ],
+   [
+    -0.031,
+    -0.056,
+    13
+   ],
+   [
+    -0.031,
+    -0.042,
+    12
+   ]
+  ],
+  "breech_verts_inside_body": 0,
+  "max_penetration_m": 0.0,
+  "inside_samples_rel_world": []
+ },
+ "ugl_vs_shield": {
+  "pairs": 16,
+  "coplanar_contact_pairs": 0,
+  "crossing_pairs": 16,
+  "crossing_part_tri_centres_xz_rel_socket": [
+   [
+    0.011,
+    -0.033,
+    4
+   ],
+   [
+    -0.008,
+    -0.032,
+    4
+   ],
+   [
+    0.008,
+    -0.032,
+    2
+   ],
+   [
+    -0.002,
+    -0.031,
+    2
+   ],
+   [
+    0.002,
+    -0.031,
+    1
+   ],
+   [
+    0.002,
+    -0.032,
+    1
+   ],
+   [
+    -0.008,
+    -0.033,
+    1
+   ],
+   [
+    -0.011,
+    -0.033,
+    1
+   ]
+  ],
+  "shield_verts_inside_ugl_tube": 0,
+  "max_penetration_m": 0.0,
+  "samples": []
+ },
+ "ugl_open": {
+  "open_muzzle_world": [
+   -0.0667,
+   -0.5078,
+   -0.046
+  ],
+  "vs_body": {
+   "pairs": 84,
+   "coplanar_contact_pairs": 0,
+   "crossing_pairs": 84,
+   "crossing_part_tri_centres_xz_rel_socket": [
+    [
+     -0.037,
+     -0.056,
+     31
+    ],
+    [
+     -0.035,
+     -0.042,
+     30
+    ],
+    [
+     -0.033,
+     -0.042,
+     12
+    ],
+    [
+     -0.031,
+     -0.056,
+     11
+    ]
+   ]
+  },
+  "vs_shield": {
+   "pairs": 24,
+   "coplanar_contact_pairs": 0,
+   "crossing_pairs": 24,
+   "crossing_part_tri_centres_xz_rel_socket": [
+    [
+     -0.054,
+     -0.033,
+     5
+    ],
+    [
+     -0.053,
+     -0.032,
+     4
+    ],
+    [
+     -0.06,
+     -0.032,
+     4
+    ],
+    [
+     -0.074,
+     -0.033,
+     3
+    ],
+    [
+     -0.065,
+     -0.032,
+     2
+    ],
+    [
+     -0.072,
+     -0.033,
+     2
+    ],
+    [
+     -0.06,
+     -0.031,
+     1
+    ],
+    [
+     -0.061,
+     -0.031,
+     1
+    ],
+    [
+     -0.068,
+     -0.032,
+     1
+    ],
+    [
+     -0.067,
+     -0.031,
+     1
+    ]
+   ]
+  },
+  "vs_mako": {
+   "pairs": 0,
+   "coplanar_contact_pairs": 0,
+   "crossing_pairs": 0,
+   "crossing_part_tri_centres_xz_rel_socket": []
+  },
+  "open_bounds": [
+   [
+    -0.0894,
+    -0.5267,
+    -0.0768
+   ],
+   [
+    0.0772,
+    -0.3438,
+    -0.0152
+   ]
+  ]
+ },
+ "ugl_trigger_12": {
+  "pairs": 19,
+  "coplanar_contact_pairs": 0,
+  "crossing_pairs": 19,
+  "crossing_part_tri_centres_xz_rel_socket": [
+   [
+    0.002,
+    -0.057,
+    2
+   ],
+   [
+    0.003,
+    -0.061,
+    2
+   ],
+   [
+    0.001,
+    -0.057,
+    1
+   ],
+   [
+    -0.002,
+    -0.061,
+    1
+   ],
+   [
+    -0.001,
+    -0.061,
+    1
+   ],
+   [
+    -0.003,
+    -0.058,
+    1
+   ],
+   [
+    -0.003,
+    -0.056,
+    1
+   ],
+   [
+    0.003,
+    -0.058,
+    1
+   ],
+   [
+    -0.003,
+    -0.065,
+    1
+   ],
+   [
+    -0.003,
+    -0.064,
+    1
+   ],
+   [
+    -0.003,
+    -0.059,
+    1
+   ],
+   [
+    0.003,
+    -0.057,
+    1
+   ]
+  ]
+ },
+ "ugl_trigger_-12": {
+  "pairs": 19,
+  "coplanar_contact_pairs": 0,
+  "crossing_pairs": 19,
+  "crossing_part_tri_centres_xz_rel_socket": [
+   [
+    -0.003,
+    -0.056,
+    2
+   ],
+   [
+    -0.003,
+    -0.066,
+    2
+   ],
+   [
+    0.003,
+    -0.062,
+    2
+   ],
+   [
+    -0.003,
+    -0.059,
+    2
+   ],
+   [
+    0.002,
+    -0.056,
+    1
+   ],
+   [
+    0.003,
+    -0.055,
+    1
+   ],
+   [
+    -0.002,
+    -0.055,
+    1
+   ],
+   [
+    -0.001,
+    -0.055,
+    1
+   ],
+   [
+    0.001,
+    -0.056,
+    1
+   ],
+   [
+    0.003,
+    -0.058,
+    1
+   ],
+   [
+    0.003,
+    -0.059,
+    1
+   ],
+   [
+    0.002,
+    -0.059,
+    1
+   ]
+  ]
+ },
+ "ugl_trigger_0": {
+  "pairs": 19,
+  "coplanar_contact_pairs": 0,
+  "crossing_pairs": 19,
+  "crossing_part_tri_centres_xz_rel_socket": [
+   [
+    0.003,
+    -0.062,
+    2
+   ],
+   [
+    -0.003,
+    -0.065,
+    2
+   ],
+   [
+    0.003,
+    -0.056,
+    1
+   ],
+   [
+    -0.002,
+    -0.056,
+    1
+   ],
+   [
+    0.002,
+    -0.057,
+    1
+   ],
+   [
+    0.001,
+    -0.057,
+    1
+   ],
+   [
+    -0.001,
+    -0.056,
+    1
+   ],
+   [
+    -0.001,
+    -0.062,
+    1
+   ],
+   [
+    0.002,
+    -0.058,
+    1
+   ],
+   [
+    0.001,
+    -0.058,
+    1
+   ],
+   [
+    -0.002,
+    -0.062,
+    1
+   ],
+   [
+    -0.003,
+    -0.058,
+    1
+   ]
+  ]
+ },
+ "warden_lowest_meshes": [
+  [
+   -0.199,
+   "WARDEN_StockStandard_Monopod"
+  ],
+  [
+   -0.168,
+   "WARDEN_Mag5"
+  ],
+  [
+   -0.132,
+   "WARDEN_Grip"
+  ],
+  [
+   -0.1298,
+   "WARDEN_StockStandard"
+  ],
+  [
+   -0.1015,
+   "WARDEN_Mag5_Round_05"
+  ]
+ ],
+ "warden_rail_bottom_section": [
+  [
+   -0.0105,
+   0.0205
+  ],
+  [
+   -0.0105,
+   0.0235
+  ],
+  [
+   0.0105,
+   0.0205
+  ],
+  [
+   0.0105,
+   0.0235
+  ]
+ ],
+ "warden_bipod_rail": {
+  "pairs": 76,
+  "coplanar_contact_pairs": 0,
+  "crossing_pairs": 76,
+  "crossing_part_tri_centres_xz_rel_socket": [
+   [
+    0.01,
+    0.001,
+    38
+   ],
+   [
+    -0.01,
+    0.001,
+    28
+   ],
+   [
+    -0.003,
+    0.0,
+    5
+   ],
+   [
+    0.003,
+    0.0,
+    5
+   ]
+  ],
+  "verts_inside": 0,
+  "max_penetration_m": 0.0
+ },
+ "bipod_folded": {
+  "leg_euler_deg": [
+   [
+    -90.0,
+    0.0,
+    0.0
+   ],
+   [
+    -90.0,
+    0.0,
+    0.0
+   ]
+  ],
+  "vs_warden": {
+   "WARDEN_RailBottom": 76
+  },
+  "legs_vs_clamp": {
+   "pairs": 352,
+   "coplanar_contact_pairs": 0,
+   "crossing_pairs": 352,
+   "crossing_part_tri_centres_xz_rel_socket": [
+    [
+     -0.044,
+     -0.032,
+     40
+    ],
+    [
+     0.044,
+     -0.036,
+     34
+    ],
+    [
+     -0.043,
+     -0.029,
+     31
+    ],
+    [
+     -0.043,
+     -0.039,
+     31
+    ],
+    [
+     0.043,
+     -0.03,
+     30
+    ],
+    [
+     0.043,
+     -0.038,
+     30
+    ],
+    [
+     0.023,
+     -0.03,
+     17
+    ],
+    [
+     0.023,
+     -0.038,
+     17
+    ],
+    [
+     -0.023,
+     -0.029,
+     17
+    ],
+    [
+     -0.023,
+     -0.039,
+     17
+    ],
+    [
+     0.046,
+     -0.03,
+     8
+    ],
+    [
+     -0.046,
+     -0.038,
+     8
+    ]
+   ]
+  },
+  "leg_vs_leg": {
+   "pairs": 0,
+   "coplanar_contact_pairs": 0,
+   "crossing_pairs": 0,
+   "crossing_part_tri_centres_xz_rel_socket": []
+  },
+  "bounds": [
+   [
+    -0.0991,
+    -0.8526,
+    -0.0428
+   ],
+   [
+    0.0991,
+    -0.57,
+    0.0288
+   ]
+  ],
+  "clear_vs_barrel": 0.05392,
+  "clear_vs_handguard": 0.03267
+ },
+ "bipod_deployed_legs_vs_clamp": {
+  "pairs": 345,
+  "coplanar_contact_pairs": 0,
+  "crossing_pairs": 345,
+  "crossing_part_tri_centres_xz_rel_socket": [
+   [
+    -0.044,
+    -0.04,
+    37
+   ],
+   [
+    -0.043,
+    -0.032,
+    31
+   ],
+   [
+    -0.043,
+    -0.036,
+    31
+   ],
+   [
+    0.044,
+    -0.042,
+    31
+   ],
+   [
+    0.043,
+    -0.029,
+    30
+   ],
+   [
+    0.043,
+    -0.039,
+    30
+   ],
+   [
+    0.023,
+    -0.033,
+    17
+   ],
+   [
+    0.023,
+    -0.035,
+    17
+   ],
+   [
+    -0.023,
+    -0.03,
+    17
+   ],
+   [
+    -0.023,
+    -0.038,
+    17
+   ],
+   [
+    0.031,
+    -0.033,
+    8
+   ],
+   [
+    0.031,
+    -0.061,
+    8
+   ]
+  ]
+ },
+ "bipod_fold_sweep": {
+  "-40": {
+   "vs_clamp_crossing": 345,
+   "vs_warden_crossing": 0
+  },
+  "-50": {
+   "vs_clamp_crossing": 350,
+   "vs_warden_crossing": 0
+  },
+  "-60": {
+   "vs_clamp_crossing": 345,
+   "vs_warden_crossing": 0
+  },
+  "-70": {
+   "vs_clamp_crossing": 350,
+   "vs_warden_crossing": 0
+  },
+  "-80": {
+   "vs_clamp_crossing": 350,
+   "vs_warden_crossing": 0
+  },
+  "-90": {
+   "vs_clamp_crossing": 352,
+   "vs_warden_crossing": 0
+  }
+ }
+}

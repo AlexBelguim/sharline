@@ -1,0 +1,2637 @@
+{
+ "default_bounds": {
+  "min": [
+   -0.0795,
+   -1.1,
+   -0.1185
+  ],
+  "max": [
+   0.0375,
+   0.32,
+   0.117
+  ],
+  "size": [
+   0.117,
+   1.42,
+   0.2355
+  ]
+ },
+ "objects": {
+  "WARDEN_Barrel": {
+   "tris": 720,
+   "verts": 746,
+   "nonmanifold": 704,
+   "boundary": 704,
+   "loose_v": 0,
+   "loose_e": 0,
+   "degenerate": 0,
+   "ngons": 0,
+   "bad_winding_edges": 0,
+   "components": 41,
+   "flipped_components": 22,
+   "uv_layers": 1,
+   "materials": [
+    "M_Warden_Gunmetal"
+   ],
+   "bmin": [
+    -0.0185,
+    -1.004,
+    0.0565
+   ],
+   "bmax": [
+    0.0185,
+    -0.295,
+    0.0935
+   ]
+  },
+  "WARDEN_Bolt": {
+   "tris": 860,
+   "verts": 1021,
+   "nonmanifold": 970,
+   "boundary": 970,
+   "loose_v": 0,
+   "loose_e": 0,
+   "degenerate": 0,
+   "ngons": 0,
+   "bad_winding_edges": 0,
+   "components": 128,
+   "flipped_components": 60,
+   "uv_layers": 1,
+   "materials": [
+    "M_Warden_Gunmetal",
+    "M_Warden_Graphite"
+   ],
+   "bmin": [
+    -0.0795,
+    -0.275,
+    0.006
+   ],
+   "bmax": [
+    0.015,
+    -0.04,
+    0.09
+   ]
+  },
+  "WARDEN_BoltRelease": {
+   "tris": 100,
+   "verts": 126,
+   "nonmanifold": 134,
+   "boundary": 134,
+   "loose_v": 0,
+   "loose_e": 0,
+   "degenerate": 0,
+   "ngons": 0,
+   "bad_winding_edges": 0,
+   "components": 17,
+   "flipped_components": 10,
+   "uv_layers": 1,
+   "materials": [
+    "M_Warden_Gunmetal"
+   ],
+   "bmin": [
+    0.029,
+    -0.1265,
+    0.0635
+   ],
+   "bmax": [
+    0.034,
+    -0.1175,
+    0.0725
+   ]
+  },
+  "WARDEN_Brake": {
+   "tris": 1520,
+   "verts": 1763,
+   "nonmanifold": 1824,
+   "boundary": 1824,
+   "loose_v": 0,
+   "loose_e": 0,
+   "degenerate": 0,
+   "ngons": 0,
+   "bad_winding_edges": 0,
+   "components": 178,
+   "flipped_components": 90,
+   "uv_layers": 1,
+   "materials": [
+    "M_Warden_Gunmetal"
+   ],
+   "bmin": [
+    -0.026,
+    -1.1,
+    0.0515
+   ],
+   "bmax": [
+    0.026,
+    -0.992,
+    0.0985
+   ]
+  },
+  "WARDEN_BrakeCollar": {
+   "tris": 160,
+   "verts": 203,
+   "nonmanifold": 222,
+   "boundary": 222,
+   "loose_v": 0,
+   "loose_e": 0,
+   "degenerate": 0,
+   "ngons": 0,
+   "bad_winding_edges": 0,
+   "components": 34,
+   "flipped_components": 22,
+   "uv_layers": 1,
+   "materials": [
+    "M_Warden_Gunmetal"
+   ],
+   "bmin": [
+    -0.0197,
+    -0.9925,
+    0.0553
+   ],
+   "bmax": [
+    0.0197,
+    -0.981,
+    0.0947
+   ]
+  },
+  "WARDEN_Chassis": {
+   "tris": 1680,
+   "verts": 2150,
+   "nonmanifold": 2342,
+   "boundary": 2342,
+   "loose_v": 0,
+   "loose_e": 0,
+   "degenerate": 0,
+   "ngons": 0,
+   "bad_winding_edges": 0,
+   "components": 343,
+   "flipped_components": 139,
+   "uv_layers": 1,
+   "materials": [
+    "M_Warden_Graphite",
+    "M_Warden_Gunmetal"
+   ],
+   "bmin": [
+    -0.0295,
+    -0.4046,
+    -0.0055
+   ],
+   "bmax": [
+    0.0295,
+    0.036,
+    0.063
+   ]
+  },
+  "WARDEN_Grip": {
+   "tris": 936,
+   "verts": 991,
+   "nonmanifold": 974,
+   "boundary": 974,
+   "loose_v": 0,
+   "loose_e": 0,
+   "degenerate": 0,
+   "ngons": 0,
+   "bad_winding_edges": 0,
+   "components": 92,
+   "flipped_components": 33,
+   "uv_layers": 1,
+   "materials": [
+    "M_Warden_Sand",
+    "M_Warden_SandStipple",
+    "M_Warden_Gunmetal"
+   ],
+   "bmin": [
+    -0.0177,
+    -0.059,
+    -0.1185
+   ],
+   "bmax": [
+    0.0177,
+    0.0395,
+    0.012
+   ]
+  },
+  "WARDEN_Handguard": {
+   "tris": 2288,
+   "verts": 2681,
+   "nonmanifold": 2630,
+   "boundary": 2630,
+   "loose_v": 0,
+   "loose_e": 0,
+   "degenerate": 0,
+   "ngons": 0,
+   "bad_winding_edges": 0,
+   "components": 246,
+   "flipped_components": 123,
+   "uv_layers": 1,
+   "materials": [
+    "M_Warden_Graphite",
+    "M_Warden_Gunmetal"
+   ],
+   "bmin": [
+    -0.03,
+    -0.6768,
+    0.037
+   ],
+   "bmax": [
+    0.03,
+    -0.336,
+    0.1075
+   ]
+  },
+  "WARDEN_Mag5": {
+   "tris": 924,
+   "verts": 1239,
+   "nonmanifold": 1282,
+   "boundary": 1282,
+   "loose_v": 0,
+   "loose_e": 0,
+   "degenerate": 0,
+   "ngons": 0,
+   "bad_winding_edges": 0,
+   "components": 192,
+   "flipped_components": 90,
+   "uv_layers": 1,
+   "materials": [
+    "M_Warden_Graphite"
+   ],
+   "bmin": [
+    -0.0221,
+    -0.3025,
+    -0.0755
+   ],
+   "bmax": [
+    0.0221,
+    -0.1505,
+    0.046
+   ]
+  },
+  "WARDEN_Mag5_Follower": {
+   "tris": 52,
+   "verts": 77,
+   "nonmanifold": 82,
+   "boundary": 82,
+   "loose_v": 0,
+   "loose_e": 0,
+   "degenerate": 0,
+   "ngons": 0,
+   "bad_winding_edges": 0,
+   "components": 15,
+   "flipped_components": 6,
+   "uv_layers": 1,
+   "materials": [
+    "M_Warden_Graphite"
+   ],
+   "bmin": [
+    -0.0166,
+    -0.2915,
+    -0.0497
+   ],
+   "bmax": [
+    0.0166,
+    -0.1615,
+    -0.0427
+   ]
+  },
+  "WARDEN_Mag5_Round": {
+   "tris": 384,
+   "verts": 359,
+   "nonmanifold": 290,
+   "boundary": 290,
+   "loose_v": 0,
+   "loose_e": 0,
+   "degenerate": 0,
+   "ngons": 0,
+   "bad_winding_edges": 0,
+   "components": 25,
+   "flipped_components": 9,
+   "uv_layers": 1,
+   "materials": [
+    "M_Warden_Gunmetal",
+    "M_Warden_Cartridge"
+   ],
+   "bmin": [
+    -0.0103,
+    -0.2955,
+    0.0282
+   ],
+   "bmax": [
+    0.0103,
+    -0.1575,
+    0.0488
+   ]
+  },
+  "WARDEN_Mag5_Round_02": {
+   "tris": 112,
+   "verts": 190,
+   "nonmanifold": 190,
+   "boundary": 190,
+   "loose_v": 0,
+   "loose_e": 0,
+   "degenerate": 0,
+   "ngons": 0,
+   "bad_winding_edges": 0,
+   "components": 40,
+   "flipped_components": 8,
+   "uv_layers": 1,
+   "materials": [
+    "M_Warden_Gunmetal",
+    "M_Warden_Cartridge"
+   ],
+   "bmin": [
+    -0.0163,
+    -0.2955,
+    0.0084
+   ],
+   "bmax": [
+    0.0043,
+    -0.1575,
+    0.029
+   ]
+  },
+  "WARDEN_Mag5_Round_03": {
+   "tris": 112,
+   "verts": 187,
+   "nonmanifold": 188,
+   "boundary": 188,
+   "loose_v": 0,
+   "loose_e": 0,
+   "degenerate": 0,
+   "ngons": 0,
+   "bad_winding_edges": 0,
+   "components": 39,
+   "flipped_components": 3,
+   "uv_layers": 1,
+   "materials": [
+    "M_Warden_Gunmetal",
+    "M_Warden_Cartridge"
+   ],
+   "bmin": [
+    -0.0043,
+    -0.2955,
+    -0.0086
+   ],
+   "bmax": [
+    0.0163,
+    -0.1575,
+    0.012
+   ]
+  },
+  "WARDEN_Mag5_Round_04": {
+   "tris": 112,
+   "verts": 178,
+   "nonmanifold": 178,
+   "boundary": 178,
+   "loose_v": 0,
+   "loose_e": 0,
+   "degenerate": 0,
+   "ngons": 0,
+   "bad_winding_edges": 0,
+   "components": 34,
+   "flipped_components": 4,
+   "uv_layers": 1,
+   "materials": [
+    "M_Warden_Gunmetal",
+    "M_Warden_Cartridge"
+   ],
+   "bmin": [
+    -0.0163,
+    -0.2955,
+    -0.0256
+   ],
+   "bmax": [
+    0.0043,
+    -0.1575,
+    -0.005
+   ]
+  },
+  "WARDEN_Mag5_Round_05": {
+   "tris": 112,
+   "verts": 180,
+   "nonmanifold": 180,
+   "boundary": 180,
+   "loose_v": 0,
+   "loose_e": 0,
+   "degenerate": 0,
+   "ngons": 0,
+   "bad_winding_edges": 0,
+   "components": 35,
+   "flipped_components": 7,
+   "uv_layers": 1,
+   "materials": [
+    "M_Warden_Gunmetal",
+    "M_Warden_Cartridge"
+   ],
+   "bmin": [
+    -0.0043,
+    -0.2955,
+    -0.0426
+   ],
+   "bmax": [
+    0.0163,
+    -0.1575,
+    -0.022
+   ]
+  },
+  "WARDEN_MagRelease": {
+   "tris": 56,
+   "verts": 82,
+   "nonmanifold": 90,
+   "boundary": 90,
+   "loose_v": 0,
+   "loose_e": 0,
+   "degenerate": 0,
+   "ngons": 0,
+   "bad_winding_edges": 0,
+   "components": 18,
+   "flipped_components": 7,
+   "uv_layers": 1,
+   "materials": [
+    "M_Warden_Gunmetal"
+   ],
+   "bmin": [
+    -0.008,
+    -0.151,
+    -0.0346
+   ],
+   "bmax": [
+    0.008,
+    -0.143,
+    0.004
+   ]
+  },
+  "WARDEN_RailBottom": {
+   "tris": 204,
+   "verts": 312,
+   "nonmanifold": 312,
+   "boundary": 312,
+   "loose_v": 0,
+   "loose_e": 0,
+   "degenerate": 0,
+   "ngons": 0,
+   "bad_winding_edges": 0,
+   "components": 54,
+   "flipped_components": 34,
+   "uv_layers": 1,
+   "materials": [
+    "M_Warden_Graphite"
+   ],
+   "bmin": [
+    -0.0105,
+    -0.655,
+    0.0275
+   ],
+   "bmax": [
+    0.0105,
+    -0.545,
+    0.0382
+   ]
+  },
+  "WARDEN_RailSide_L": {
+   "tris": 92,
+   "verts": 148,
+   "nonmanifold": 148,
+   "boundary": 148,
+   "loose_v": 0,
+   "loose_e": 0,
+   "degenerate": 0,
+   "ngons": 0,
+   "bad_winding_edges": 0,
+   "components": 28,
+   "flipped_components": 10,
+   "uv_layers": 1,
+   "materials": [
+    "M_Warden_Graphite"
+   ],
+   "bmin": [
+    0.0268,
+    -0.663,
+    0.0555
+   ],
+   "bmax": [
+    0.0375,
+    -0.623,
+    0.0765
+   ]
+  },
+  "WARDEN_RailSide_R": {
+   "tris": 92,
+   "verts": 148,
+   "nonmanifold": 148,
+   "boundary": 148,
+   "loose_v": 0,
+   "loose_e": 0,
+   "degenerate": 0,
+   "ngons": 0,
+   "bad_winding_edges": 0,
+   "components": 28,
+   "flipped_components": 10,
+   "uv_layers": 1,
+   "materials": [
+    "M_Warden_Graphite"
+   ],
+   "bmin": [
+    -0.0375,
+    -0.663,
+    0.0555
+   ],
+   "bmax": [
+    -0.0268,
+    -0.623,
+    0.0765
+   ]
+  },
+  "WARDEN_RailTop": {
+   "tris": 876,
+   "verts": 1328,
+   "nonmanifold": 1328,
+   "boundary": 1328,
+   "loose_v": 0,
+   "loose_e": 0,
+   "degenerate": 0,
+   "ngons": 0,
+   "bad_winding_edges": 0,
+   "components": 226,
+   "flipped_components": 61,
+   "uv_layers": 1,
+   "materials": [
+    "M_Warden_Graphite"
+   ],
+   "bmin": [
+    -0.0105,
+    -0.64,
+    0.1063
+   ],
+   "bmax": [
+    0.0105,
+    -0.11,
+    0.117
+   ]
+  },
+  "WARDEN_Receiver": {
+   "tris": 830,
+   "verts": 935,
+   "nonmanifold": 968,
+   "boundary": 968,
+   "loose_v": 0,
+   "loose_e": 0,
+   "degenerate": 0,
+   "ngons": 0,
+   "bad_winding_edges": 0,
+   "components": 72,
+   "flipped_components": 32,
+   "uv_layers": 1,
+   "materials": [
+    "M_Warden_Graphite"
+   ],
+   "bmin": [
+    -0.03,
+    -0.336,
+    0.054
+   ],
+   "bmax": [
+    0.03,
+    -0.1,
+    0.1075
+   ]
+  },
+  "WARDEN_Safety": {
+   "tris": 216,
+   "verts": 256,
+   "nonmanifold": 272,
+   "boundary": 272,
+   "loose_v": 0,
+   "loose_e": 0,
+   "degenerate": 0,
+   "ngons": 0,
+   "bad_winding_edges": 0,
+   "components": 30,
+   "flipped_components": 14,
+   "uv_layers": 1,
+   "materials": [
+    "M_Warden_Gunmetal"
+   ],
+   "bmin": [
+    0.028,
+    -0.0415,
+    0.0185
+   ],
+   "bmax": [
+    0.032,
+    -0.027,
+    0.0394
+   ]
+  },
+  "WARDEN_StockStandard": {
+   "tris": 3324,
+   "verts": 3767,
+   "nonmanifold": 3832,
+   "boundary": 3832,
+   "loose_v": 0,
+   "loose_e": 0,
+   "degenerate": 0,
+   "ngons": 0,
+   "bad_winding_edges": 0,
+   "components": 351,
+   "flipped_components": 141,
+   "uv_layers": 1,
+   "materials": [
+    "M_Warden_Sand",
+    "M_Warden_Gunmetal",
+    "M_Warden_Graphite",
+    "M_Warden_Rubber"
+   ],
+   "bmin": [
+    -0.023,
+    0.0218,
+    -0.086
+   ],
+   "bmax": [
+    0.023,
+    0.32,
+    0.09
+   ]
+  },
+  "WARDEN_StockStandard_CheekRiser": {
+   "tris": 432,
+   "verts": 477,
+   "nonmanifold": 466,
+   "boundary": 466,
+   "loose_v": 0,
+   "loose_e": 0,
+   "degenerate": 0,
+   "ngons": 0,
+   "bad_winding_edges": 0,
+   "components": 51,
+   "flipped_components": 20,
+   "uv_layers": 1,
+   "materials": [
+    "M_Warden_Graphite",
+    "M_Warden_Gunmetal"
+   ],
+   "bmin": [
+    -0.02,
+    0.0877,
+    0.038
+   ],
+   "bmax": [
+    0.02,
+    0.2475,
+    0.1025
+   ]
+  },
+  "WARDEN_StockStandard_Monopod": {
+   "tris": 200,
+   "verts": 246,
+   "nonmanifold": 268,
+   "boundary": 268,
+   "loose_v": 0,
+   "loose_e": 0,
+   "degenerate": 0,
+   "ngons": 0,
+   "bad_winding_edges": 0,
+   "components": 34,
+   "flipped_components": 15,
+   "uv_layers": 1,
+   "materials": [
+    "M_Warden_Gunmetal"
+   ],
+   "bmin": [
+    -0.0087,
+    0.2248,
+    -0.0795
+   ],
+   "bmax": [
+    0.0087,
+    0.2422,
+    0.0425
+   ]
+  },
+  "WARDEN_Trigger": {
+   "tris": 92,
+   "verts": 119,
+   "nonmanifold": 126,
+   "boundary": 126,
+   "loose_v": 0,
+   "loose_e": 0,
+   "degenerate": 0,
+   "ngons": 0,
+   "bad_winding_edges": 0,
+   "components": 17,
+   "flipped_components": 5,
+   "uv_layers": 1,
+   "materials": [
+    "M_Warden_Gunmetal"
+   ],
+   "bmin": [
+    -0.0035,
+    -0.1038,
+    -0.0235
+   ],
+   "bmax": [
+    0.0035,
+    -0.086,
+    0.018
+   ]
+  },
+  "WARDEN_TriggerGuard": {
+   "tris": 408,
+   "verts": 423,
+   "nonmanifold": 428,
+   "boundary": 428,
+   "loose_v": 0,
+   "loose_e": 0,
+   "degenerate": 0,
+   "ngons": 0,
+   "bad_winding_edges": 0,
+   "components": 20,
+   "flipped_components": 8,
+   "uv_layers": 1,
+   "materials": [
+    "M_Warden_Graphite"
+   ],
+   "bmin": [
+    -0.0095,
+    -0.14,
+    -0.037
+   ],
+   "bmax": [
+    0.0095,
+    -0.056,
+    0.012
+   ]
+  }
+ },
+ "default_tris": 16894,
+ "sockets": {
+  "Optic": {
+   "got": [
+    0.0,
+    -0.19,
+    0.117
+   ],
+   "err_mm": 0.0,
+   "rot": [
+    0.0,
+    -0.0,
+    0.0
+   ],
+   "parent": "WARDEN_Root",
+   "type": "EMPTY"
+  },
+  "Stock": {
+   "got": [
+    0.0,
+    0.022,
+    0.075
+   ],
+   "err_mm": 0.0,
+   "rot": [
+    0.0,
+    -0.0,
+    0.0
+   ],
+   "parent": "WARDEN_Root",
+   "type": "EMPTY"
+  },
+  "Mag": {
+   "got": [
+    0.0,
+    -0.299,
+    0.046
+   ],
+   "err_mm": 0.0,
+   "rot": [
+    0.0,
+    -0.0,
+    0.0
+   ],
+   "parent": "WARDEN_Root",
+   "type": "EMPTY"
+  },
+  "Under": {
+   "got": [
+    0.0,
+    -0.6,
+    0.0275
+   ],
+   "err_mm": 0.0,
+   "rot": [
+    0.0,
+    -0.0,
+    0.0
+   ],
+   "parent": "WARDEN_Root",
+   "type": "EMPTY"
+  },
+  "Side_R": {
+   "got": [
+    -0.0375,
+    -0.643,
+    0.066
+   ],
+   "err_mm": 0.0,
+   "rot": [
+    0.0,
+    -0.0,
+    0.0
+   ],
+   "parent": "WARDEN_Root",
+   "type": "EMPTY"
+  },
+  "Side_L": {
+   "got": [
+    0.0375,
+    -0.643,
+    0.066
+   ],
+   "err_mm": 0.0,
+   "rot": [
+    0.0,
+    -0.0,
+    0.0
+   ],
+   "parent": "WARDEN_Root",
+   "type": "EMPTY"
+  },
+  "Muzzle": {
+   "got": [
+    0.0,
+    -1.1,
+    0.075
+   ],
+   "err_mm": 0.0,
+   "rot": [
+    0.0,
+    -0.0,
+    0.0
+   ],
+   "parent": "WARDEN_Root",
+   "type": "EMPTY"
+  },
+  "LeftHand": {
+   "got": [
+    0.0,
+    -0.45,
+    0.037
+   ],
+   "err_mm": 0.0,
+   "rot": [
+    0.0,
+    -0.0,
+    0.0
+   ],
+   "parent": "WARDEN_Root",
+   "type": "EMPTY"
+  }
+ },
+ "railtop": {
+  "top_faces": 104,
+  "top_x": [
+   -0.0105,
+   0.0105
+  ],
+  "top_y": [
+   -0.6328,
+   -0.1172
+  ],
+  "bounds": [
+   [
+    -0.0105,
+    -0.64,
+    0.1063
+   ],
+   [
+    0.0105,
+    -0.11,
+    0.117
+   ]
+  ],
+  "slot_floor_count": 106,
+  "slot_pitch_set": [
+   0.0014,
+   0.0015,
+   0.0016,
+   0.0084,
+   0.0085,
+   0.0086
+  ]
+ },
+ "WARDEN_RailBottom": {
+  "contact_faces": 20,
+  "contact_extent": {
+   "x": [
+    -0.0105,
+    0.0105
+   ],
+   "y": [
+    -0.6478,
+    -0.5523
+   ]
+  },
+  "bounds": [
+   [
+    -0.0105,
+    -0.655,
+    0.0275
+   ],
+   [
+    0.0105,
+    -0.545,
+    0.0382
+   ]
+  ]
+ },
+ "WARDEN_RailSide_R": {
+  "contact_faces": 6,
+  "contact_extent": {
+   "y": [
+    -0.6558,
+    -0.6302
+   ],
+   "z": [
+    0.0555,
+    0.0765
+   ]
+  },
+  "bounds": [
+   [
+    -0.0375,
+    -0.663,
+    0.0555
+   ],
+   [
+    -0.0268,
+    -0.623,
+    0.0765
+   ]
+  ]
+ },
+ "WARDEN_RailSide_L": {
+  "contact_faces": 6,
+  "contact_extent": {
+   "y": [
+    -0.6558,
+    -0.6302
+   ],
+   "z": [
+    0.0555,
+    0.0765
+   ]
+  },
+  "bounds": [
+   [
+    0.0268,
+    -0.663,
+    0.0555
+   ],
+   [
+    0.0375,
+    -0.623,
+    0.0765
+   ]
+  ]
+ },
+ "stations": {
+  "WARDEN_Brake": {
+   "x": [
+    -0.026,
+    0.026
+   ],
+   "y": [
+    -1.1,
+    -0.992
+   ],
+   "z": [
+    0.0515,
+    0.0985
+   ],
+   "origin": [
+    0.0,
+    0.0,
+    0.0
+   ]
+  },
+  "WARDEN_Barrel": {
+   "x": [
+    -0.0185,
+    0.0185
+   ],
+   "y": [
+    -1.004,
+    -0.295
+   ],
+   "z": [
+    0.0565,
+    0.0935
+   ],
+   "origin": [
+    0.0,
+    0.0,
+    0.0
+   ]
+  },
+  "WARDEN_Handguard": {
+   "x": [
+    -0.03,
+    0.03
+   ],
+   "y": [
+    -0.6768,
+    -0.336
+   ],
+   "z": [
+    0.037,
+    0.1075
+   ],
+   "origin": [
+    0.0,
+    0.0,
+    0.0
+   ]
+  },
+  "WARDEN_Receiver": {
+   "x": [
+    -0.03,
+    0.03
+   ],
+   "y": [
+    -0.336,
+    -0.1
+   ],
+   "z": [
+    0.054,
+    0.1075
+   ],
+   "origin": [
+    0.0,
+    0.0,
+    0.0
+   ]
+  },
+  "WARDEN_Chassis": {
+   "x": [
+    -0.0295,
+    0.0295
+   ],
+   "y": [
+    -0.4046,
+    0.036
+   ],
+   "z": [
+    -0.0055,
+    0.063
+   ],
+   "origin": [
+    0.0,
+    0.0,
+    0.0
+   ]
+  },
+  "WARDEN_Grip": {
+   "x": [
+    -0.0177,
+    0.0177
+   ],
+   "y": [
+    -0.059,
+    0.0395
+   ],
+   "z": [
+    -0.1185,
+    0.012
+   ],
+   "origin": [
+    0.0,
+    0.0,
+    0.0
+   ]
+  },
+  "WARDEN_TriggerGuard": {
+   "x": [
+    -0.0095,
+    0.0095
+   ],
+   "y": [
+    -0.14,
+    -0.056
+   ],
+   "z": [
+    -0.037,
+    0.012
+   ],
+   "origin": [
+    0.0,
+    0.0,
+    0.0
+   ]
+  },
+  "WARDEN_Trigger": {
+   "x": [
+    -0.0035,
+    0.0035
+   ],
+   "y": [
+    -0.1038,
+    -0.086
+   ],
+   "z": [
+    -0.0235,
+    0.018
+   ],
+   "origin": [
+    0.0,
+    -0.09,
+    0.012
+   ]
+  },
+  "WARDEN_Bolt": {
+   "x": [
+    -0.0795,
+    0.015
+   ],
+   "y": [
+    -0.275,
+    -0.04
+   ],
+   "z": [
+    0.006,
+    0.09
+   ],
+   "origin": [
+    0.0,
+    -0.045,
+    0.075
+   ]
+  },
+  "WARDEN_Mag5": {
+   "x": [
+    -0.0221,
+    0.0221
+   ],
+   "y": [
+    -0.3025,
+    -0.1505
+   ],
+   "z": [
+    -0.0755,
+    0.046
+   ],
+   "origin": [
+    0.0,
+    -0.299,
+    0.046
+   ]
+  },
+  "WARDEN_StockStandard": {
+   "x": [
+    -0.023,
+    0.023
+   ],
+   "y": [
+    0.0218,
+    0.32
+   ],
+   "z": [
+    -0.086,
+    0.09
+   ],
+   "origin": [
+    0.0,
+    0.022,
+    0.075
+   ]
+  },
+  "WARDEN_StockStandard_CheekRiser": {
+   "x": [
+    -0.02,
+    0.02
+   ],
+   "y": [
+    0.0877,
+    0.2475
+   ],
+   "z": [
+    0.038,
+    0.1025
+   ],
+   "origin": [
+    0.0,
+    0.165,
+    0.063
+   ]
+  },
+  "WARDEN_StockStandard_Monopod": {
+   "x": [
+    -0.0087,
+    0.0087
+   ],
+   "y": [
+    0.2248,
+    0.2422
+   ],
+   "z": [
+    -0.0795,
+    0.0425
+   ],
+   "origin": [
+    0.0,
+    0.2335,
+    -0.0795
+   ]
+  },
+  "WARDEN_Safety": {
+   "x": [
+    0.028,
+    0.032
+   ],
+   "y": [
+    -0.0415,
+    -0.027
+   ],
+   "z": [
+    0.0185,
+    0.0394
+   ],
+   "origin": [
+    0.028,
+    -0.036,
+    0.034
+   ]
+  },
+  "WARDEN_BoltRelease": {
+   "x": [
+    0.029,
+    0.034
+   ],
+   "y": [
+    -0.1265,
+    -0.1175
+   ],
+   "z": [
+    0.0635,
+    0.0725
+   ],
+   "origin": [
+    0.0,
+    0.0,
+    0.0
+   ]
+  },
+  "WARDEN_MagRelease": {
+   "x": [
+    -0.008,
+    0.008
+   ],
+   "y": [
+    -0.151,
+    -0.143
+   ],
+   "z": [
+    -0.0346,
+    0.004
+   ],
+   "origin": [
+    0.0,
+    0.0,
+    0.0
+   ]
+  },
+  "WARDEN_BrakeCollar": {
+   "x": [
+    -0.0197,
+    0.0197
+   ],
+   "y": [
+    -0.9925,
+    -0.981
+   ],
+   "z": [
+    0.0553,
+    0.0947
+   ],
+   "origin": [
+    0.0,
+    0.0,
+    0.0
+   ]
+  }
+ },
+ "barrel_radius": {
+  "-0.3": [
+   0.0,
+   0.0185
+  ]
+ },
+ "mag_visible_below_well_m": 0.07,
+ "intersections_default": [
+  {
+   "a": "WARDEN_Barrel",
+   "b": "WARDEN_BrakeCollar",
+   "face_pairs": 196,
+   "depth_mm": 15.69
+  },
+  {
+   "a": "WARDEN_StockStandard",
+   "b": "WARDEN_StockStandard_Monopod",
+   "face_pairs": 26,
+   "depth_mm": 15.37
+  },
+  {
+   "a": "WARDEN_StockStandard",
+   "b": "WARDEN_StockStandard_CheekRiser",
+   "face_pairs": 238,
+   "depth_mm": 11.63
+  },
+  {
+   "a": "WARDEN_Chassis",
+   "b": "WARDEN_StockStandard",
+   "face_pairs": 95,
+   "depth_mm": 8.53
+  },
+  {
+   "a": "WARDEN_Barrel",
+   "b": "WARDEN_Chassis",
+   "face_pairs": 35,
+   "depth_mm": 6.5
+  },
+  {
+   "a": "WARDEN_Barrel",
+   "b": "WARDEN_Receiver",
+   "face_pairs": 50,
+   "depth_mm": 5.59
+  },
+  {
+   "a": "WARDEN_Chassis",
+   "b": "WARDEN_Receiver",
+   "face_pairs": 140,
+   "depth_mm": 4.0
+  },
+  {
+   "a": "WARDEN_Barrel",
+   "b": "WARDEN_Brake",
+   "face_pairs": 185,
+   "depth_mm": 3.61
+  },
+  {
+   "a": "WARDEN_Chassis",
+   "b": "WARDEN_MagRelease",
+   "face_pairs": 34,
+   "depth_mm": 3.5
+  },
+  {
+   "a": "WARDEN_Grip",
+   "b": "WARDEN_TriggerGuard",
+   "face_pairs": 56,
+   "depth_mm": 3.0
+  },
+  {
+   "a": "WARDEN_Chassis",
+   "b": "WARDEN_Handguard",
+   "face_pairs": 178,
+   "depth_mm": 2.81
+  },
+  {
+   "a": "WARDEN_Chassis",
+   "b": "WARDEN_Grip",
+   "face_pairs": 46,
+   "depth_mm": 2.0
+  },
+  {
+   "a": "WARDEN_Chassis",
+   "b": "WARDEN_TriggerGuard",
+   "face_pairs": 64,
+   "depth_mm": 2.0
+  },
+  {
+   "a": "WARDEN_Handguard",
+   "b": "WARDEN_RailBottom",
+   "face_pairs": 16,
+   "depth_mm": 1.2
+  },
+  {
+   "a": "WARDEN_Handguard",
+   "b": "WARDEN_RailSide_L",
+   "face_pairs": 20,
+   "depth_mm": 1.2
+  },
+  {
+   "a": "WARDEN_Handguard",
+   "b": "WARDEN_RailSide_R",
+   "face_pairs": 20,
+   "depth_mm": 1.2
+  },
+  {
+   "a": "WARDEN_Handguard",
+   "b": "WARDEN_RailTop",
+   "face_pairs": 15,
+   "depth_mm": 1.2
+  },
+  {
+   "a": "WARDEN_RailTop",
+   "b": "WARDEN_Receiver",
+   "face_pairs": 15,
+   "depth_mm": 1.2
+  },
+  {
+   "a": "WARDEN_BoltRelease",
+   "b": "WARDEN_Receiver",
+   "face_pairs": 32,
+   "depth_mm": 1.0
+  },
+  {
+   "a": "WARDEN_Brake",
+   "b": "WARDEN_BrakeCollar",
+   "face_pairs": 102,
+   "depth_mm": 0.5
+  },
+  {
+   "a": "WARDEN_Handguard",
+   "b": "WARDEN_Receiver",
+   "face_pairs": 73,
+   "depth_mm": 0.0
+  }
+ ],
+ "zfight_default": [],
+ "mag_to_chassis_min_gap_mm": 1.0,
+ "mag_insertion_path": [
+  {
+   "dz": -0.0,
+   "face_pairs": 0,
+   "depth_mm": 0.0
+  },
+  {
+   "dz": -0.01,
+   "face_pairs": 0,
+   "depth_mm": 0.0
+  },
+  {
+   "dz": -0.02,
+   "face_pairs": 0,
+   "depth_mm": 0.0
+  },
+  {
+   "dz": -0.03,
+   "face_pairs": 0,
+   "depth_mm": 0.0
+  },
+  {
+   "dz": -0.04,
+   "face_pairs": 0,
+   "depth_mm": 0.0
+  },
+  {
+   "dz": -0.05,
+   "face_pairs": 0,
+   "depth_mm": 0.0
+  },
+  {
+   "dz": -0.06,
+   "face_pairs": 0,
+   "depth_mm": 0.0
+  },
+  {
+   "dz": -0.07,
+   "face_pairs": 0,
+   "depth_mm": 0.0
+  },
+  {
+   "dz": -0.08,
+   "face_pairs": 0,
+   "depth_mm": 0.0
+  },
+  {
+   "dz": -0.09,
+   "face_pairs": 0,
+   "depth_mm": 0.0
+  },
+  {
+   "dz": -0.1,
+   "face_pairs": 0,
+   "depth_mm": 0.0
+  },
+  {
+   "dz": -0.11,
+   "face_pairs": 0,
+   "depth_mm": 0.0
+  },
+  {
+   "dz": -0.12,
+   "face_pairs": 0,
+   "depth_mm": 0.0
+  }
+ ],
+ "trigger_pulled": [],
+ "safety_fire": [],
+ "riser_raised_30mm": [],
+ "monopod_extended_45mm": [
+  {
+   "other": "WARDEN_StockStandard",
+   "face_pairs": 26,
+   "depth_mm": 14.0
+  }
+ ],
+ "bolt_sweep_gun_only": {},
+ "bolt_lifted_bounds": [
+  [
+   -0.0995,
+   -0.275,
+   0.0275
+  ],
+  [
+   0.0205,
+   -0.04,
+   0.1513
+  ]
+ ],
+ "bolt_lifted_knob_top_z": 0.1179,
+ "attachments": {
+  "ATT_optic_sniper.glb": {
+   "hits": [],
+   "min_gap_to_gun_mm": null,
+   "min_gap_to_rails_mm": 1.38,
+   "bolt_sweep_hits": {},
+   "bolt_open_min_gap_mm": 23.41,
+   "bolt_lifted_min_gap_mm": 23.56,
+   "ADS_world": [
+    0.0,
+    -0.045,
+    0.1575
+   ],
+   "ADS_above_rail_top_m": 0.0405,
+   "riser_top_z": 0.1025
+  },
+  "ATT_optic_thermal.glb": {
+   "hits": [],
+   "min_gap_to_gun_mm": null,
+   "min_gap_to_rails_mm": 0.426,
+   "bolt_sweep_hits": {},
+   "bolt_open_min_gap_mm": 28.03,
+   "bolt_lifted_min_gap_mm": 28.97,
+   "ADS_world": [
+    0.0,
+    -0.0982,
+    0.169
+   ],
+   "ADS_above_rail_top_m": 0.052,
+   "riser_top_z": 0.1025
+  },
+  "ATT_bipod.glb": {
+   "hits": [
+    {
+     "att": "ATT_bipod",
+     "gun": "WARDEN_RailBottom",
+     "face_pairs": 36,
+     "depth_mm": 0.0
+    }
+   ],
+   "min_gap_to_gun_mm": null,
+   "min_gap_to_rails_mm": 0.3
+  },
+  "ATT_laser_R.glb": {
+   "hits": [
+    {
+     "att": "ATT_laser_R",
+     "gun": "WARDEN_RailSide_R",
+     "face_pairs": 27,
+     "depth_mm": 0.0
+    }
+   ],
+   "min_gap_to_gun_mm": null,
+   "min_gap_to_rails_mm": 3.853
+  },
+  "ATT_flashlight_L.glb": {
+   "hits": [
+    {
+     "att": "ATT_flashlight_L",
+     "gun": "WARDEN_RailSide_L",
+     "face_pairs": 27,
+     "depth_mm": 0.0
+    }
+   ],
+   "min_gap_to_gun_mm": null,
+   "min_gap_to_rails_mm": 2.0
+  },
+  "ATT_laser_L.glb": {
+   "hits": [
+    {
+     "att": "ATT_laser_L",
+     "gun": "WARDEN_RailSide_L",
+     "face_pairs": 27,
+     "depth_mm": 0.0
+    }
+   ],
+   "min_gap_to_gun_mm": null,
+   "min_gap_to_rails_mm": 3.853
+  },
+  "ATT_flashlight_R.glb": {
+   "hits": [
+    {
+     "att": "ATT_flashlight_R",
+     "gun": "WARDEN_RailSide_R",
+     "face_pairs": 27,
+     "depth_mm": 0.0
+    }
+   ],
+   "min_gap_to_gun_mm": null,
+   "min_gap_to_rails_mm": 2.0
+  }
+ },
+ "files": {
+  "warden_base.glb": {
+   "roots": [
+    [
+     "WARDEN_Root",
+     [
+      0.0,
+      0.0,
+      0.0
+     ],
+     [
+      0.0,
+      0.0,
+      0.0
+     ]
+    ]
+   ],
+   "meshes": 17,
+   "tris": 11130,
+   "bounds": [
+    [
+     -0.0795,
+     -1.1,
+     -0.1185
+    ],
+    [
+     0.0375,
+     0.0395,
+     0.117
+    ]
+   ],
+   "bad": {
+    "WARDEN_Barrel": {
+     "tris": 720,
+     "verts": 746,
+     "nonmanifold": 704,
+     "boundary": 704,
+     "loose_v": 0,
+     "loose_e": 0,
+     "degenerate": 0,
+     "ngons": 0,
+     "bad_winding_edges": 0,
+     "components": 41,
+     "flipped_components": 22,
+     "uv_layers": 1,
+     "materials": [
+      "M_Warden_Gunmetal"
+     ]
+    },
+    "WARDEN_Bolt": {
+     "tris": 860,
+     "verts": 1021,
+     "nonmanifold": 970,
+     "boundary": 970,
+     "loose_v": 0,
+     "loose_e": 0,
+     "degenerate": 0,
+     "ngons": 0,
+     "bad_winding_edges": 0,
+     "components": 128,
+     "flipped_components": 60,
+     "uv_layers": 1,
+     "materials": [
+      "M_Warden_Gunmetal",
+      "M_Warden_Graphite"
+     ]
+    },
+    "WARDEN_BoltRelease": {
+     "tris": 100,
+     "verts": 126,
+     "nonmanifold": 134,
+     "boundary": 134,
+     "loose_v": 0,
+     "loose_e": 0,
+     "degenerate": 0,
+     "ngons": 0,
+     "bad_winding_edges": 0,
+     "components": 17,
+     "flipped_components": 10,
+     "uv_layers": 1,
+     "materials": [
+      "M_Warden_Gunmetal"
+     ]
+    },
+    "WARDEN_Brake": {
+     "tris": 1520,
+     "verts": 1763,
+     "nonmanifold": 1824,
+     "boundary": 1824,
+     "loose_v": 0,
+     "loose_e": 0,
+     "degenerate": 0,
+     "ngons": 0,
+     "bad_winding_edges": 0,
+     "components": 178,
+     "flipped_components": 90,
+     "uv_layers": 1,
+     "materials": [
+      "M_Warden_Gunmetal"
+     ]
+    },
+    "WARDEN_BrakeCollar": {
+     "tris": 160,
+     "verts": 203,
+     "nonmanifold": 222,
+     "boundary": 222,
+     "loose_v": 0,
+     "loose_e": 0,
+     "degenerate": 0,
+     "ngons": 0,
+     "bad_winding_edges": 0,
+     "components": 34,
+     "flipped_components": 22,
+     "uv_layers": 1,
+     "materials": [
+      "M_Warden_Gunmetal"
+     ]
+    },
+    "WARDEN_Chassis": {
+     "tris": 1680,
+     "verts": 2150,
+     "nonmanifold": 2342,
+     "boundary": 2342,
+     "loose_v": 0,
+     "loose_e": 0,
+     "degenerate": 0,
+     "ngons": 0,
+     "bad_winding_edges": 0,
+     "components": 343,
+     "flipped_components": 139,
+     "uv_layers": 1,
+     "materials": [
+      "M_Warden_Graphite",
+      "M_Warden_Gunmetal"
+     ]
+    },
+    "WARDEN_Grip": {
+     "tris": 936,
+     "verts": 991,
+     "nonmanifold": 974,
+     "boundary": 974,
+     "loose_v": 0,
+     "loose_e": 0,
+     "degenerate": 0,
+     "ngons": 0,
+     "bad_winding_edges": 0,
+     "components": 92,
+     "flipped_components": 33,
+     "uv_layers": 1,
+     "materials": [
+      "M_Warden_Sand",
+      "M_Warden_SandStipple",
+      "M_Warden_Gunmetal"
+     ]
+    },
+    "WARDEN_Handguard": {
+     "tris": 2288,
+     "verts": 2681,
+     "nonmanifold": 2630,
+     "boundary": 2630,
+     "loose_v": 0,
+     "loose_e": 0,
+     "degenerate": 0,
+     "ngons": 0,
+     "bad_winding_edges": 0,
+     "components": 246,
+     "flipped_components": 123,
+     "uv_layers": 1,
+     "materials": [
+      "M_Warden_Graphite",
+      "M_Warden_Gunmetal"
+     ]
+    },
+    "WARDEN_MagRelease": {
+     "tris": 56,
+     "verts": 82,
+     "nonmanifold": 90,
+     "boundary": 90,
+     "loose_v": 0,
+     "loose_e": 0,
+     "degenerate": 0,
+     "ngons": 0,
+     "bad_winding_edges": 0,
+     "components": 18,
+     "flipped_components": 7,
+     "uv_layers": 1,
+     "materials": [
+      "M_Warden_Gunmetal"
+     ]
+    },
+    "WARDEN_RailBottom": {
+     "tris": 204,
+     "verts": 312,
+     "nonmanifold": 312,
+     "boundary": 312,
+     "loose_v": 0,
+     "loose_e": 0,
+     "degenerate": 0,
+     "ngons": 0,
+     "bad_winding_edges": 0,
+     "components": 54,
+     "flipped_components": 34,
+     "uv_layers": 1,
+     "materials": [
+      "M_Warden_Graphite"
+     ]
+    },
+    "WARDEN_RailSide_L": {
+     "tris": 92,
+     "verts": 148,
+     "nonmanifold": 148,
+     "boundary": 148,
+     "loose_v": 0,
+     "loose_e": 0,
+     "degenerate": 0,
+     "ngons": 0,
+     "bad_winding_edges": 0,
+     "components": 28,
+     "flipped_components": 10,
+     "uv_layers": 1,
+     "materials": [
+      "M_Warden_Graphite"
+     ]
+    },
+    "WARDEN_RailSide_R": {
+     "tris": 92,
+     "verts": 148,
+     "nonmanifold": 148,
+     "boundary": 148,
+     "loose_v": 0,
+     "loose_e": 0,
+     "degenerate": 0,
+     "ngons": 0,
+     "bad_winding_edges": 0,
+     "components": 28,
+     "flipped_components": 10,
+     "uv_layers": 1,
+     "materials": [
+      "M_Warden_Graphite"
+     ]
+    },
+    "WARDEN_RailTop": {
+     "tris": 876,
+     "verts": 1328,
+     "nonmanifold": 1328,
+     "boundary": 1328,
+     "loose_v": 0,
+     "loose_e": 0,
+     "degenerate": 0,
+     "ngons": 0,
+     "bad_winding_edges": 0,
+     "components": 226,
+     "flipped_components": 61,
+     "uv_layers": 1,
+     "materials": [
+      "M_Warden_Graphite"
+     ]
+    },
+    "WARDEN_Receiver": {
+     "tris": 830,
+     "verts": 935,
+     "nonmanifold": 968,
+     "boundary": 968,
+     "loose_v": 0,
+     "loose_e": 0,
+     "degenerate": 0,
+     "ngons": 0,
+     "bad_winding_edges": 0,
+     "components": 72,
+     "flipped_components": 32,
+     "uv_layers": 1,
+     "materials": [
+      "M_Warden_Graphite"
+     ]
+    },
+    "WARDEN_Safety": {
+     "tris": 216,
+     "verts": 256,
+     "nonmanifold": 272,
+     "boundary": 272,
+     "loose_v": 0,
+     "loose_e": 0,
+     "degenerate": 0,
+     "ngons": 0,
+     "bad_winding_edges": 0,
+     "components": 30,
+     "flipped_components": 14,
+     "uv_layers": 1,
+     "materials": [
+      "M_Warden_Gunmetal"
+     ]
+    },
+    "WARDEN_Trigger": {
+     "tris": 92,
+     "verts": 119,
+     "nonmanifold": 126,
+     "boundary": 126,
+     "loose_v": 0,
+     "loose_e": 0,
+     "degenerate": 0,
+     "ngons": 0,
+     "bad_winding_edges": 0,
+     "components": 17,
+     "flipped_components": 5,
+     "uv_layers": 1,
+     "materials": [
+      "M_Warden_Gunmetal"
+     ]
+    },
+    "WARDEN_TriggerGuard": {
+     "tris": 408,
+     "verts": 423,
+     "nonmanifold": 428,
+     "boundary": 428,
+     "loose_v": 0,
+     "loose_e": 0,
+     "degenerate": 0,
+     "ngons": 0,
+     "bad_winding_edges": 0,
+     "components": 20,
+     "flipped_components": 8,
+     "uv_layers": 1,
+     "materials": [
+      "M_Warden_Graphite"
+     ]
+    }
+   }
+  },
+  "WARDEN_stock_standard.glb": {
+   "roots": [
+    [
+     "WARDEN_StockStandard",
+     [
+      0.0,
+      0.0,
+      0.0
+     ],
+     [
+      0.0,
+      0.0,
+      0.0
+     ]
+    ]
+   ],
+   "meshes": 3,
+   "tris": 3956,
+   "bounds": [
+    [
+     -0.023,
+     -0.0002,
+     -0.161
+    ],
+    [
+     0.023,
+     0.298,
+     0.0275
+    ]
+   ],
+   "bad": {
+    "WARDEN_StockStandard": {
+     "tris": 3324,
+     "verts": 3767,
+     "nonmanifold": 3832,
+     "boundary": 3832,
+     "loose_v": 0,
+     "loose_e": 0,
+     "degenerate": 0,
+     "ngons": 0,
+     "bad_winding_edges": 0,
+     "components": 351,
+     "flipped_components": 133,
+     "uv_layers": 1,
+     "materials": [
+      "M_Warden_Sand",
+      "M_Warden_Gunmetal",
+      "M_Warden_Graphite",
+      "M_Warden_Rubber"
+     ]
+    },
+    "WARDEN_StockStandard_CheekRiser": {
+     "tris": 432,
+     "verts": 477,
+     "nonmanifold": 466,
+     "boundary": 466,
+     "loose_v": 0,
+     "loose_e": 0,
+     "degenerate": 0,
+     "ngons": 0,
+     "bad_winding_edges": 0,
+     "components": 51,
+     "flipped_components": 14,
+     "uv_layers": 1,
+     "materials": [
+      "M_Warden_Graphite",
+      "M_Warden_Gunmetal"
+     ]
+    },
+    "WARDEN_StockStandard_Monopod": {
+     "tris": 200,
+     "verts": 246,
+     "nonmanifold": 268,
+     "boundary": 268,
+     "loose_v": 0,
+     "loose_e": 0,
+     "degenerate": 0,
+     "ngons": 0,
+     "bad_winding_edges": 0,
+     "components": 34,
+     "flipped_components": 16,
+     "uv_layers": 1,
+     "materials": [
+      "M_Warden_Gunmetal"
+     ]
+    }
+   }
+  },
+  "WARDEN_stock_folding.glb": {
+   "roots": [
+    [
+     "WARDEN_StockFolding",
+     [
+      0.0,
+      0.0,
+      0.0
+     ],
+     [
+      0.0,
+      0.0,
+      0.0
+     ]
+    ]
+   ],
+   "meshes": 2,
+   "tris": 2958,
+   "bounds": [
+    [
+     -0.02,
+     -0.0002,
+     -0.157
+    ],
+    [
+     0.0385,
+     0.282,
+     0.003
+    ]
+   ],
+   "bad": {
+    "WARDEN_StockFolding": {
+     "tris": 768,
+     "verts": 861,
+     "nonmanifold": 860,
+     "boundary": 860,
+     "loose_v": 0,
+     "loose_e": 0,
+     "degenerate": 0,
+     "ngons": 0,
+     "bad_winding_edges": 0,
+     "components": 75,
+     "flipped_components": 35,
+     "uv_layers": 1,
+     "materials": [
+      "M_Warden_Graphite",
+      "M_Warden_Gunmetal"
+     ]
+    },
+    "WARDEN_StockFolding_Arm": {
+     "tris": 2190,
+     "verts": 2142,
+     "nonmanifold": 1984,
+     "boundary": 1984,
+     "loose_v": 0,
+     "loose_e": 0,
+     "degenerate": 0,
+     "ngons": 0,
+     "bad_winding_edges": 0,
+     "components": 119,
+     "flipped_components": 49,
+     "uv_layers": 1,
+     "materials": [
+      "M_Warden_Sand",
+      "M_Warden_Rubber",
+      "M_Warden_Gunmetal",
+      "M_Warden_Graphite"
+     ]
+    }
+   }
+  },
+  "WARDEN_mag_5.glb": {
+   "roots": [
+    [
+     "WARDEN_Mag5",
+     [
+      0.0,
+      0.0,
+      0.0
+     ],
+     [
+      0.0,
+      0.0,
+      0.0
+     ]
+    ]
+   ],
+   "meshes": 7,
+   "tris": 1808,
+   "bounds": [
+    [
+     -0.0221,
+     -0.0035,
+     -0.1215
+    ],
+    [
+     0.0221,
+     0.1485,
+     0.0028
+    ]
+   ],
+   "bad": {
+    "WARDEN_Mag5": {
+     "tris": 924,
+     "verts": 1239,
+     "nonmanifold": 1282,
+     "boundary": 1282,
+     "loose_v": 0,
+     "loose_e": 0,
+     "degenerate": 0,
+     "ngons": 0,
+     "bad_winding_edges": 0,
+     "components": 192,
+     "flipped_components": 85,
+     "uv_layers": 1,
+     "materials": [
+      "M_Warden_Graphite"
+     ]
+    },
+    "WARDEN_Mag5_Follower": {
+     "tris": 52,
+     "verts": 77,
+     "nonmanifold": 82,
+     "boundary": 82,
+     "loose_v": 0,
+     "loose_e": 0,
+     "degenerate": 0,
+     "ngons": 0,
+     "bad_winding_edges": 0,
+     "components": 15,
+     "flipped_components": 6,
+     "uv_layers": 1,
+     "materials": [
+      "M_Warden_Graphite"
+     ]
+    },
+    "WARDEN_Mag5_Round": {
+     "tris": 384,
+     "verts": 359,
+     "nonmanifold": 290,
+     "boundary": 290,
+     "loose_v": 0,
+     "loose_e": 0,
+     "degenerate": 0,
+     "ngons": 0,
+     "bad_winding_edges": 0,
+     "components": 25,
+     "flipped_components": 3,
+     "uv_layers": 1,
+     "materials": [
+      "M_Warden_Gunmetal",
+      "M_Warden_Cartridge"
+     ]
+    },
+    "WARDEN_Mag5_Round_02": {
+     "tris": 112,
+     "verts": 190,
+     "nonmanifold": 190,
+     "boundary": 190,
+     "loose_v": 0,
+     "loose_e": 0,
+     "degenerate": 0,
+     "ngons": 0,
+     "bad_winding_edges": 0,
+     "components": 40,
+     "flipped_components": 18,
+     "uv_layers": 1,
+     "materials": [
+      "M_Warden_Gunmetal",
+      "M_Warden_Cartridge"
+     ]
+    },
+    "WARDEN_Mag5_Round_03": {
+     "tris": 112,
+     "verts": 187,
+     "nonmanifold": 188,
+     "boundary": 188,
+     "loose_v": 0,
+     "loose_e": 0,
+     "degenerate": 0,
+     "ngons": 0,
+     "bad_winding_edges": 0,
+     "components": 39,
+     "flipped_components": 19,
+     "uv_layers": 1,
+     "materials": [
+      "M_Warden_Gunmetal",
+      "M_Warden_Cartridge"
+     ]
+    },
+    "WARDEN_Mag5_Round_04": {
+     "tris": 112,
+     "verts": 178,
+     "nonmanifold": 178,
+     "boundary": 178,
+     "loose_v": 0,
+     "loose_e": 0,
+     "degenerate": 0,
+     "ngons": 0,
+     "bad_winding_edges": 0,
+     "components": 34,
+     "flipped_components": 17,
+     "uv_layers": 1,
+     "materials": [
+      "M_Warden_Gunmetal",
+      "M_Warden_Cartridge"
+     ]
+    },
+    "WARDEN_Mag5_Round_05": {
+     "tris": 112,
+     "verts": 180,
+     "nonmanifold": 180,
+     "boundary": 180,
+     "loose_v": 0,
+     "loose_e": 0,
+     "degenerate": 0,
+     "ngons": 0,
+     "bad_winding_edges": 0,
+     "components": 35,
+     "flipped_components": 17,
+     "uv_layers": 1,
+     "materials": [
+      "M_Warden_Gunmetal",
+      "M_Warden_Cartridge"
+     ]
+    }
+   }
+  },
+  "WARDEN_mag_8.glb": {
+   "roots": [
+    [
+     "WARDEN_Mag8",
+     [
+      0.0,
+      0.0,
+      0.0
+     ],
+     [
+      0.0,
+      0.0,
+      0.0
+     ]
+    ]
+   ],
+   "meshes": 10,
+   "tris": 2144,
+   "bounds": [
+    [
+     -0.0221,
+     -0.0035,
+     -0.1725
+    ],
+    [
+     0.0221,
+     0.1485,
+     0.0028
+    ]
+   ],
+   "bad": {
+    "WARDEN_Mag8": {
+     "tris": 924,
+     "verts": 1254,
+     "nonmanifold": 1320,
+     "boundary": 1320,
+     "loose_v": 0,
+     "loose_e": 0,
+     "degenerate": 0,
+     "ngons": 0,
+     "bad_winding_edges": 0,
+     "components": 210,
+     "flipped_components": 95,
+     "uv_layers": 1,
+     "materials": [
+      "M_Warden_Graphite"
+     ]
+    },
+    "WARDEN_Mag8_Follower": {
+     "tris": 52,
+     "verts": 77,
+     "nonmanifold": 82,
+     "boundary": 82,
+     "loose_v": 0,
+     "loose_e": 0,
+     "degenerate": 0,
+     "ngons": 0,
+     "bad_winding_edges": 0,
+     "components": 15,
+     "flipped_components": 6,
+     "uv_layers": 1,
+     "materials": [
+      "M_Warden_Graphite"
+     ]
+    },
+    "WARDEN_Mag8_Round": {
+     "tris": 384,
+     "verts": 359,
+     "nonmanifold": 290,
+     "boundary": 290,
+     "loose_v": 0,
+     "loose_e": 0,
+     "degenerate": 0,
+     "ngons": 0,
+     "bad_winding_edges": 0,
+     "components": 25,
+     "flipped_components": 3,
+     "uv_layers": 1,
+     "materials": [
+      "M_Warden_Gunmetal",
+      "M_Warden_Cartridge"
+     ]
+    },
+    "WARDEN_Mag8_Round_02": {
+     "tris": 112,
+     "verts": 190,
+     "nonmanifold": 190,
+     "boundary": 190,
+     "loose_v": 0,
+     "loose_e": 0,
+     "degenerate": 0,
+     "ngons": 0,
+     "bad_winding_edges": 0,
+     "components": 40,
+     "flipped_components": 18,
+     "uv_layers": 1,
+     "materials": [
+      "M_Warden_Gunmetal",
+      "M_Warden_Cartridge"
+     ]
+    },
+    "WARDEN_Mag8_Round_03": {
+     "tris": 112,
+     "verts": 187,
+     "nonmanifold": 188,
+     "boundary": 188,
+     "loose_v": 0,
+     "loose_e": 0,
+     "degenerate": 0,
+     "ngons": 0,
+     "bad_winding_edges": 0,
+     "components": 39,
+     "flipped_components": 19,
+     "uv_layers": 1,
+     "materials": [
+      "M_Warden_Gunmetal",
+      "M_Warden_Cartridge"
+     ]
+    },
+    "WARDEN_Mag8_Round_04": {
+     "tris": 112,
+     "verts": 178,
+     "nonmanifold": 178,
+     "boundary": 178,
+     "loose_v": 0,
+     "loose_e": 0,
+     "degenerate": 0,
+     "ngons": 0,
+     "bad_winding_edges": 0,
+     "components": 34,
+     "flipped_components": 17,
+     "uv_layers": 1,
+     "materials": [
+      "M_Warden_Gunmetal",
+      "M_Warden_Cartridge"
+     ]
+    },
+    "WARDEN_Mag8_Round_05": {
+     "tris": 112,
+     "verts": 180,
+     "nonmanifold": 180,
+     "boundary": 180,
+     "loose_v": 0,
+     "loose_e": 0,
+     "degenerate": 0,
+     "ngons": 0,
+     "bad_winding_edges": 0,
+     "components": 35,
+     "flipped_components": 17,
+     "uv_layers": 1,
+     "materials": [
+      "M_Warden_Gunmetal",
+      "M_Warden_Cartridge"
+     ]
+    },
+    "WARDEN_Mag8_Round_06": {
+     "tris": 112,
+     "verts": 181,
+     "nonmanifold": 180,
+     "boundary": 180,
+     "loose_v": 0,
+     "loose_e": 0,
+     "degenerate": 0,
+     "ngons": 0,
+     "bad_winding_edges": 0,
+     "components": 35,
+     "flipped_components": 19,
+     "uv_layers": 1,
+     "materials": [
+      "M_Warden_Gunmetal",
+      "M_Warden_Cartridge"
+     ]
+    },
+    "WARDEN_Mag8_Round_07": {
+     "tris": 112,
+     "verts": 180,
+     "nonmanifold": 180,
+     "boundary": 180,
+     "loose_v": 0,
+     "loose_e": 0,
+     "degenerate": 0,
+     "ngons": 0,
+     "bad_winding_edges": 0,
+     "components": 35,
+     "flipped_components": 22,
+     "uv_layers": 1,
+     "materials": [
+      "M_Warden_Gunmetal",
+      "M_Warden_Cartridge"
+     ]
+    },
+    "WARDEN_Mag8_Round_08": {
+     "tris": 112,
+     "verts": 177,
+     "nonmanifold": 176,
+     "boundary": 176,
+     "loose_v": 0,
+     "loose_e": 0,
+     "degenerate": 0,
+     "ngons": 0,
+     "bad_winding_edges": 0,
+     "components": 33,
+     "flipped_components": 19,
+     "uv_layers": 1,
+     "materials": [
+      "M_Warden_Gunmetal",
+      "M_Warden_Cartridge"
+     ]
+    }
+   }
+  }
+ },
+ "intersections_alt_unfolded": [
+  {
+   "a": "WARDEN_Barrel",
+   "b": "WARDEN_BrakeCollar",
+   "face_pairs": 196,
+   "depth_mm": 15.69
+  },
+  {
+   "a": "WARDEN_Chassis",
+   "b": "WARDEN_StockFolding",
+   "face_pairs": 107,
+   "depth_mm": 8.53
+  },
+  {
+   "a": "WARDEN_Barrel",
+   "b": "WARDEN_Chassis",
+   "face_pairs": 35,
+   "depth_mm": 6.5
+  },
+  {
+   "a": "WARDEN_Barrel",
+   "b": "WARDEN_Receiver",
+   "face_pairs": 50,
+   "depth_mm": 5.59
+  },
+  {
+   "a": "WARDEN_Chassis",
+   "b": "WARDEN_Receiver",
+   "face_pairs": 140,
+   "depth_mm": 4.0
+  },
+  {
+   "a": "WARDEN_Barrel",
+   "b": "WARDEN_Brake",
+   "face_pairs": 185,
+   "depth_mm": 3.61
+  },
+  {
+   "a": "WARDEN_Chassis",
+   "b": "WARDEN_MagRelease",
+   "face_pairs": 34,
+   "depth_mm": 3.5
+  },
+  {
+   "a": "WARDEN_Grip",
+   "b": "WARDEN_TriggerGuard",
+   "face_pairs": 56,
+   "depth_mm": 3.0
+  },
+  {
+   "a": "WARDEN_Chassis",
+   "b": "WARDEN_Handguard",
+   "face_pairs": 178,
+   "depth_mm": 2.81
+  },
+  {
+   "a": "WARDEN_Chassis",
+   "b": "WARDEN_Grip",
+   "face_pairs": 46,
+   "depth_mm": 2.0
+  },
+  {
+   "a": "WARDEN_Chassis",
+   "b": "WARDEN_TriggerGuard",
+   "face_pairs": 64,
+   "depth_mm": 2.0
+  },
+  {
+   "a": "WARDEN_Handguard",
+   "b": "WARDEN_RailBottom",
+   "face_pairs": 16,
+   "depth_mm": 1.2
+  },
+  {
+   "a": "WARDEN_Handguard",
+   "b": "WARDEN_RailSide_L",
+   "face_pairs": 20,
+   "depth_mm": 1.2
+  },
+  {
+   "a": "WARDEN_Handguard",
+   "b": "WARDEN_RailSide_R",
+   "face_pairs": 20,
+   "depth_mm": 1.2
+  },
+  {
+   "a": "WARDEN_Handguard",
+   "b": "WARDEN_RailTop",
+   "face_pairs": 15,
+   "depth_mm": 1.2
+  },
+  {
+   "a": "WARDEN_RailTop",
+   "b": "WARDEN_Receiver",
+   "face_pairs": 15,
+   "depth_mm": 1.2
+  },
+  {
+   "a": "WARDEN_BoltRelease",
+   "b": "WARDEN_Receiver",
+   "face_pairs": 32,
+   "depth_mm": 1.0
+  },
+  {
+   "a": "WARDEN_Brake",
+   "b": "WARDEN_BrakeCollar",
+   "face_pairs": 102,
+   "depth_mm": 0.5
+  },
+  {
+   "a": "WARDEN_Handguard",
+   "b": "WARDEN_Receiver",
+   "face_pairs": 73,
+   "depth_mm": 0.0
+  }
+ ],
+ "fold_sweep_hits": {},
+ "folded_arm_bounds": [
+  [
+   0.0215,
+   -0.236,
+   -0.082
+  ],
+  [
+   0.078,
+   0.0425,
+   0.078
+  ]
+ ],
+ "alt_bounds": [
+  [
+   -0.0795,
+   -1.1,
+   -0.1265
+  ],
+  [
+   0.0385,
+   0.304,
+   0.117
+  ]
+ ],
+ "mag8_visible_below_well_m": 0.121
+}

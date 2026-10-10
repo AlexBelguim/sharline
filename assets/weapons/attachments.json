@@ -1,0 +1,1479 @@
+{
+  "schema_version": 1,
+  "prefix": "ATT",
+  "units": "metres; Blender Z up, muzzle -Y, shooter's right -X",
+  "path_base": "repository root",
+  "sources": [
+    "assets/weapons/attachments/optics/catalog.json",
+    "assets/weapons/attachments/tactical/catalog.json"
+  ],
+  "game_data": "game/assets/data/attachments.ron",
+  "attachments": [
+    {
+      "id": "optic_reddot",
+      "category": "optic",
+      "file": "assets/weapons/attachments/optics/ATT_optic_reddot.glb",
+      "file_fbx": "assets/weapons/attachments/optics/ATT_optic_reddot.fbx",
+      "root_node": "ATT_optic_reddot",
+      "ads_socket": "ATT_optic_reddot_SOCKET_ADS",
+      "ads_height_m": 0.049,
+      "ads_location_m": [
+        0.0,
+        -0.0078,
+        0.049
+      ],
+      "eye_relief_m": 0.0463,
+      "ads_zoom": 1.15,
+      "ads_zoom_note": "mirrors game/assets/data/attachments.ron zoom",
+      "nodes": {
+        "body": "ATT_optic_reddot_Body",
+        "window_glass": "ATT_optic_reddot_Glass",
+        "objective": null,
+        "ocular": null,
+        "display": null,
+        "reticle": "ATT_optic_reddot_Reticle",
+        "glint": "ATT_optic_reddot_Glint",
+        "status_light": null,
+        "flap_l": null,
+        "flap_r": null,
+        "hologram": null
+      },
+      "ocular_node": null,
+      "objective_node": null,
+      "reticle_node": "ATT_optic_reddot_Reticle",
+      "glint_node": "ATT_optic_reddot_Glint",
+      "hologram_node": null,
+      "reticle": "24 MOA ice dot with a 4 MOA dark outline (one alpha-blended textured quad)",
+      "length_m": 0.034,
+      "width_m": 0.0456,
+      "height_m": 0.0737,
+      "size_note": "",
+      "magnification": "1.0",
+      "kind": "mini reflex",
+      "sockets_accepted": [
+        "_SOCKET_Optic"
+      ],
+      "compatible_weapons": [
+        "MAKO",
+        "WARDEN"
+      ],
+      "recommended_for": [
+        "MAKO"
+      ],
+      "default_for": [],
+      "tris": 2044,
+      "rail_fit_ok": true,
+      "near_plane_ok": true,
+      "nearest_in_view_m": 0.0327,
+      "aperture": {
+        "rear_window_mm": [
+          33.0,
+          26.0
+        ],
+        "front_window_mm": [
+          41.3,
+          32.5
+        ],
+        "window_above_below_sight_line_mm": null,
+        "frame_mm": 2.1,
+        "eye_to_rear_face_m": 0.044,
+        "note": "window walls and hood flanks lie on the eye's view cone: the front window looks exactly as big as the rear one from the eye point and no wall shows",
+        "ads": {
+          "measured_on": "MAKO",
+          "res_px": [
+            1920,
+            1080
+          ],
+          "effective_vfov_deg": 63.18,
+          "fov_source": "settings.ron fov_h 103 (= 70.5 deg vertical) through zoom 1.15 (settings/model.rs zoomed_fov)",
+          "clear_window_px": [
+            660,
+            357
+          ],
+          "clear_window_frac_screen": [
+            0.344,
+            0.331
+          ],
+          "clear_window_note": "on the Mako: the lower edge is the gun's own rail / handguard",
+          "optic_window_px": [
+            660,
+            520
+          ],
+          "optic_window_frac_screen": [
+            0.344,
+            0.481
+          ],
+          "frame_edge_px": {
+            "left": 41,
+            "right": 41,
+            "top": 41,
+            "bottom_body": 443
+          },
+          "frame_edge_frac_screen_w": {
+            "left": 0.0214,
+            "right": 0.0214,
+            "top": 0.0214
+          },
+          "screen_clear_frac": 0.832,
+          "at_render_rs_78deg": {
+            "effective_vfov_deg": 70.3,
+            "clear_window_frac_screen": [
+              0.3,
+              0.288
+            ],
+            "frame_edge_frac_screen_w": {
+              "left": 0.0187,
+              "right": 0.0187,
+              "top": 0.0187
+            }
+          },
+          "targets": {
+            "window_frac_w_min": 0.24,
+            "window_frac_h_min": 0.0,
+            "frame_frac_w_max": 0.025,
+            "window_ok": true,
+            "frame_ok": true
+          }
+        }
+      },
+      "source_catalog": "assets/weapons/attachments/optics/catalog.json",
+      "game_attachment_id": "optic_reddot",
+      "compatible_weapon_ids": [
+        "ar7_mako",
+        "vk50_warden",
+        "sk9_skink"
+      ],
+      "game_data_status": "registered",
+      "tested_weapon_prefixes": [
+        "MAKO",
+        "WARDEN"
+      ]
+    },
+    {
+      "id": "optic_holo",
+      "category": "optic",
+      "file": "assets/weapons/attachments/optics/ATT_optic_holo.glb",
+      "file_fbx": "assets/weapons/attachments/optics/ATT_optic_holo.fbx",
+      "root_node": "ATT_optic_holo",
+      "ads_socket": "ATT_optic_holo_SOCKET_ADS",
+      "ads_height_m": 0.045,
+      "ads_location_m": [
+        0.0,
+        0.0294,
+        0.045
+      ],
+      "eye_relief_m": 0.0541,
+      "ads_zoom": 1.25,
+      "ads_zoom_note": "mirrors game/assets/data/attachments.ron zoom",
+      "nodes": {
+        "body": "ATT_optic_holo_Body",
+        "window_glass": "ATT_optic_holo_Glass",
+        "objective": null,
+        "ocular": null,
+        "display": null,
+        "reticle": "ATT_optic_holo_Reticle",
+        "glint": "ATT_optic_holo_Glint",
+        "status_light": null,
+        "flap_l": null,
+        "flap_r": null,
+        "hologram": null
+      },
+      "ocular_node": null,
+      "objective_node": null,
+      "reticle_node": "ATT_optic_holo_Reticle",
+      "glint_node": "ATT_optic_holo_Glint",
+      "hologram_node": null,
+      "reticle": "22 MOA ice dot + 68 MOA ring (9 MOA line), 4 MOA dark outline (one alpha-blended textured quad)",
+      "length_m": 0.0702,
+      "width_m": 0.0643,
+      "height_m": 0.0735,
+      "size_note": "",
+      "magnification": "1.0",
+      "kind": "box holographic",
+      "sockets_accepted": [
+        "_SOCKET_Optic"
+      ],
+      "compatible_weapons": [
+        "MAKO",
+        "WARDEN"
+      ],
+      "recommended_for": [
+        "MAKO"
+      ],
+      "default_for": [
+        "MAKO"
+      ],
+      "tris": 3300,
+      "rail_fit_ok": true,
+      "near_plane_ok": true,
+      "nearest_in_view_m": 0.0488,
+      "aperture": {
+        "rear_window_mm": [
+          35.0,
+          24.5
+        ],
+        "front_window_mm": [
+          46.4,
+          32.5
+        ],
+        "window_above_below_sight_line_mm": [
+          15.0,
+          9.5
+        ],
+        "frame_mm": 2.4,
+        "eye_to_rear_face_m": 0.05,
+        "note": "window walls and hood flanks lie on the eye's view cone: the front window looks exactly as big as the rear one from the eye point and no wall shows",
+        "ads": {
+          "measured_on": "MAKO",
+          "res_px": [
+            1920,
+            1080
+          ],
+          "effective_vfov_deg": 59.0,
+          "fov_source": "settings.ron fov_h 103 (= 70.5 deg vertical) through zoom 1.25 (settings/model.rs zoomed_fov)",
+          "clear_window_px": [
+            668,
+            375
+          ],
+          "clear_window_frac_screen": [
+            0.348,
+            0.347
+          ],
+          "clear_window_note": "on the Mako: the lower edge is the gun's own rail / handguard",
+          "optic_window_px": [
+            668,
+            469
+          ],
+          "optic_window_frac_screen": [
+            0.348,
+            0.434
+          ],
+          "frame_edge_px": {
+            "left": 46,
+            "right": 46,
+            "top": 45,
+            "bottom_body": 452
+          },
+          "frame_edge_frac_screen_w": {
+            "left": 0.024,
+            "right": 0.024,
+            "top": 0.0234
+          },
+          "screen_clear_frac": 0.823,
+          "at_render_rs_78deg": {
+            "effective_vfov_deg": 65.87,
+            "clear_window_frac_screen": [
+              0.304,
+              0.302
+            ],
+            "frame_edge_frac_screen_w": {
+              "left": 0.0208,
+              "right": 0.0208,
+              "top": 0.0208
+            }
+          },
+          "targets": {
+            "window_frac_w_min": 0.3,
+            "window_frac_h_min": 0.24,
+            "frame_frac_w_max": 0.025,
+            "window_ok": true,
+            "frame_ok": true
+          }
+        }
+      },
+      "source_catalog": "assets/weapons/attachments/optics/catalog.json",
+      "game_attachment_id": "optic_holo",
+      "compatible_weapon_ids": [
+        "ar7_mako",
+        "vk50_warden",
+        "sk9_skink"
+      ],
+      "game_data_status": "registered",
+      "tested_weapon_prefixes": [
+        "MAKO",
+        "WARDEN"
+      ]
+    },
+    {
+      "id": "optic_projector",
+      "category": "optic",
+      "file": "assets/weapons/attachments/optics/ATT_optic_projector.glb",
+      "file_fbx": "assets/weapons/attachments/optics/ATT_optic_projector.fbx",
+      "root_node": "ATT_optic_projector",
+      "ads_socket": "ATT_optic_projector_SOCKET_ADS",
+      "ads_height_m": 0.047,
+      "ads_location_m": [
+        0.0,
+        0.03,
+        0.047
+      ],
+      "eye_relief_m": 0.045,
+      "ads_zoom": 1.2,
+      "ads_zoom_note": "mirrors game/assets/data/attachments.ron zoom (projector: suggested, not in the game data yet)",
+      "nodes": {
+        "body": "ATT_optic_projector_Body",
+        "window_glass": null,
+        "objective": null,
+        "ocular": null,
+        "display": null,
+        "reticle": null,
+        "glint": null,
+        "status_light": null,
+        "flap_l": "ATT_optic_projector_Flap_L",
+        "flap_r": "ATT_optic_projector_Flap_R",
+        "hologram": "ATT_optic_projector_Hologram"
+      },
+      "ocular_node": null,
+      "objective_node": null,
+      "reticle_node": null,
+      "glint_node": null,
+      "hologram_node": "ATT_optic_projector_Hologram",
+      "reticle": "projected hologram, no glass: corner-bracket frame 65 x 49 mm at 0.13 m from the eye (24 % x 32 % of the screen), centre dot in a gapped ring, three range ticks (white-on-transparent texture tinted ice)",
+      "length_m": 0.0642,
+      "width_m": 0.0375,
+      "height_m": 0.0313,
+      "size_note": "folded, without the floating hologram",
+      "magnification": "1.0",
+      "kind": "flip-up projected holographic (no glass)",
+      "sockets_accepted": [
+        "_SOCKET_Optic"
+      ],
+      "compatible_weapons": [
+        "MAKO",
+        "WARDEN"
+      ],
+      "recommended_for": [
+        "MAKO"
+      ],
+      "default_for": [],
+      "tris": 2624,
+      "rail_fit_ok": true,
+      "near_plane_ok": true,
+      "nearest_in_view_m": 0.045,
+      "aperture": {
+        "note": "no glass and no window: the view is open; the reticle frame is projected",
+        "ads": {
+          "measured_on": "MAKO",
+          "res_px": [
+            1920,
+            1080
+          ],
+          "effective_vfov_deg": 61.02,
+          "fov_source": "settings.ron fov_h 103 (= 70.5 deg vertical) through zoom 1.2 (settings/model.rs zoomed_fov)",
+          "clear_window_px": [
+            1920,
+            629
+          ],
+          "clear_window_frac_screen": [
+            1.0,
+            0.582
+          ],
+          "clear_window_note": "on the Mako: the lower edge is the gun's own rail / handguard",
+          "optic_window_px": [
+            1920,
+            755
+          ],
+          "optic_window_frac_screen": [
+            1.0,
+            0.699
+          ],
+          "frame_edge_px": {
+            "left": 0,
+            "right": 0,
+            "top": 0,
+            "bottom_body": 451
+          },
+          "frame_edge_frac_screen_w": {
+            "left": 0.0,
+            "right": 0.0,
+            "top": 0.0
+          },
+          "screen_clear_frac": 0.904,
+          "at_render_rs_78deg": {
+            "effective_vfov_deg": 68.02,
+            "clear_window_frac_screen": [
+              1.0,
+              0.572
+            ],
+            "frame_edge_frac_screen_w": {
+              "left": 0.0,
+              "right": 0.0,
+              "top": 0.0
+            }
+          },
+          "hologram_frame_frac_screen": [
+            0.24,
+            0.32
+          ],
+          "hologram_frame_px": {
+            "width": 461.0,
+            "height": 345.4
+          }
+        }
+      },
+      "projector": {
+        "hologram_node": "ATT_optic_projector_Hologram",
+        "hologram_texture": "textures/T_ATT_ProjectorHologram.png (copy: ATT_optic_projector_Hologram.png)",
+        "hologram_material": "M_ATT_ProjectorHologram: white texture x tint (baseColorFactor / emissiveFactor = ice), alpha BLEND, double-sided",
+        "hologram_distance_from_eye_m": 0.13,
+        "hologram_quad_m": 0.0761,
+        "hologram_frame_mm": [
+          65.4,
+          49.0
+        ],
+        "hologram_frame_frac_screen": [
+          0.24,
+          0.32
+        ],
+        "hologram_show_from_ads": 0.8,
+        "hologram_fade_in_s": 0.08,
+        "suggested_zoom": 1.2,
+        "folded_height_m": 0.0313,
+        "folded_height_above_rail_m": 0.0251,
+        "animation": {
+          "clip": "ADS_Open",
+          "duration_s": 0.12,
+          "rest_pose": "folded",
+          "play": "forward on ADS, reverse on release"
+        },
+        "flaps": [
+          {
+            "node": "ATT_optic_projector_Flap_L",
+            "hinge_origin_m": [
+              0.0135,
+              0.0,
+              0.0235
+            ],
+            "hinge_axis_blender": [
+              0,
+              1,
+              0
+            ],
+            "hinge_axis_gltf": [
+              0,
+              0,
+              -1
+            ],
+            "fold_angle_deg": 0.0,
+            "open_angle_deg": 100.0,
+            "open_rotation_gltf_xyzw": [
+              0.0,
+              0.0,
+              -0.766044,
+              0.642788
+            ]
+          },
+          {
+            "node": "ATT_optic_projector_Flap_R",
+            "hinge_origin_m": [
+              -0.0135,
+              0.0,
+              0.0235
+            ],
+            "hinge_axis_blender": [
+              0,
+              1,
+              0
+            ],
+            "hinge_axis_gltf": [
+              0,
+              0,
+              -1
+            ],
+            "fold_angle_deg": 0.0,
+            "open_angle_deg": -100.0,
+            "open_rotation_gltf_xyzw": [
+              -0.0,
+              -0.0,
+              0.766044,
+              0.642788
+            ]
+          }
+        ]
+      },
+      "source_catalog": "assets/weapons/attachments/optics/catalog.json",
+      "game_attachment_id": "optic_projector",
+      "compatible_weapon_ids": [
+        "ar7_mako",
+        "vk50_warden"
+      ],
+      "game_data_status": "pending",
+      "tested_weapon_prefixes": [
+        "MAKO",
+        "WARDEN"
+      ]
+    },
+    {
+      "id": "optic_3x",
+      "category": "optic",
+      "file": "assets/weapons/attachments/optics/ATT_optic_3x.glb",
+      "file_fbx": "assets/weapons/attachments/optics/ATT_optic_3x.fbx",
+      "root_node": "ATT_optic_3x",
+      "ads_socket": "ATT_optic_3x_SOCKET_ADS",
+      "ads_height_m": 0.05,
+      "ads_location_m": [
+        0.0,
+        0.0508,
+        0.05
+      ],
+      "eye_relief_m": 0.065,
+      "ads_zoom": 3.0,
+      "ads_zoom_note": "mirrors game/assets/data/attachments.ron zoom",
+      "nodes": {
+        "body": "ATT_optic_3x_Body",
+        "window_glass": null,
+        "objective": "ATT_optic_3x_Objective",
+        "ocular": "ATT_optic_3x_Ocular",
+        "display": null,
+        "reticle": "ATT_optic_3x_Reticle",
+        "glint": null,
+        "status_light": null,
+        "flap_l": null,
+        "flap_r": null,
+        "hologram": null
+      },
+      "ocular_node": "ATT_optic_3x_Ocular",
+      "objective_node": "ATT_optic_3x_Objective",
+      "reticle_node": "ATT_optic_3x_Reticle",
+      "glint_node": null,
+      "hologram_node": null,
+      "reticle": "engine scope overlay on the Ocular node; the Reticle node is the illuminated centre for third-person views",
+      "length_m": 0.1256,
+      "width_m": 0.0586,
+      "height_m": 0.0902,
+      "size_note": "",
+      "magnification": "3.0",
+      "kind": "compact prism 3x",
+      "sockets_accepted": [
+        "_SOCKET_Optic"
+      ],
+      "compatible_weapons": [
+        "MAKO",
+        "WARDEN"
+      ],
+      "recommended_for": [
+        "MAKO",
+        "WARDEN"
+      ],
+      "default_for": [],
+      "tris": 4542,
+      "rail_fit_ok": true,
+      "near_plane_ok": true,
+      "nearest_in_view_m": 0.065,
+      "source_catalog": "assets/weapons/attachments/optics/catalog.json",
+      "game_attachment_id": "optic_3x",
+      "compatible_weapon_ids": [
+        "ar7_mako",
+        "vk50_warden"
+      ],
+      "game_data_status": "registered",
+      "tested_weapon_prefixes": [
+        "MAKO",
+        "WARDEN"
+      ]
+    },
+    {
+      "id": "optic_sniper",
+      "category": "optic",
+      "file": "assets/weapons/attachments/optics/ATT_optic_sniper.glb",
+      "file_fbx": "assets/weapons/attachments/optics/ATT_optic_sniper.fbx",
+      "root_node": "ATT_optic_sniper",
+      "ads_socket": "ATT_optic_sniper_SOCKET_ADS",
+      "ads_height_m": 0.0405,
+      "ads_location_m": [
+        0.0,
+        0.145,
+        0.0405
+      ],
+      "eye_relief_m": 0.085,
+      "ads_zoom": 6.0,
+      "ads_zoom_note": "mirrors game/assets/data/attachments.ron zoom",
+      "nodes": {
+        "body": "ATT_optic_sniper_Body",
+        "window_glass": null,
+        "objective": "ATT_optic_sniper_Objective",
+        "ocular": "ATT_optic_sniper_Ocular",
+        "display": null,
+        "reticle": null,
+        "glint": null,
+        "status_light": null,
+        "flap_l": null,
+        "flap_r": null,
+        "hologram": null
+      },
+      "ocular_node": "ATT_optic_sniper_Ocular",
+      "objective_node": "ATT_optic_sniper_Objective",
+      "reticle_node": null,
+      "glint_node": null,
+      "hologram_node": null,
+      "reticle": "engine scope overlay on the Ocular node (no emissive: the ice ring is paint)",
+      "length_m": 0.38,
+      "width_m": 0.0878,
+      "height_m": 0.0967,
+      "size_note": "",
+      "magnification": "5-25",
+      "kind": "5-25x long-range scope",
+      "sockets_accepted": [
+        "_SOCKET_Optic"
+      ],
+      "compatible_weapons": [
+        "WARDEN"
+      ],
+      "recommended_for": [
+        "WARDEN"
+      ],
+      "default_for": [
+        "WARDEN"
+      ],
+      "tris": 4696,
+      "rail_fit_ok": true,
+      "near_plane_ok": true,
+      "nearest_in_view_m": 0.085,
+      "source_catalog": "assets/weapons/attachments/optics/catalog.json",
+      "game_attachment_id": "optic_sniper",
+      "compatible_weapon_ids": [
+        "vk50_warden"
+      ],
+      "game_data_status": "registered",
+      "tested_weapon_prefixes": [
+        "WARDEN"
+      ]
+    },
+    {
+      "id": "optic_thermal",
+      "category": "optic",
+      "file": "assets/weapons/attachments/optics/ATT_optic_thermal.glb",
+      "file_fbx": "assets/weapons/attachments/optics/ATT_optic_thermal.fbx",
+      "root_node": "ATT_optic_thermal",
+      "ads_socket": "ATT_optic_thermal_SOCKET_ADS",
+      "ads_height_m": 0.052,
+      "ads_location_m": [
+        0.0,
+        0.0918,
+        0.052
+      ],
+      "eye_relief_m": 0.04,
+      "ads_zoom": 4.0,
+      "ads_zoom_note": "mirrors game/assets/data/attachments.ron zoom",
+      "nodes": {
+        "body": "ATT_optic_thermal_Body",
+        "window_glass": null,
+        "objective": "ATT_optic_thermal_Objective",
+        "ocular": null,
+        "display": "ATT_optic_thermal_Display",
+        "reticle": null,
+        "glint": null,
+        "status_light": "ATT_optic_thermal_StatusLight",
+        "flap_l": null,
+        "flap_r": null,
+        "hologram": null
+      },
+      "ocular_node": "ATT_optic_thermal_Display",
+      "objective_node": "ATT_optic_thermal_Objective",
+      "reticle_node": null,
+      "glint_node": null,
+      "hologram_node": null,
+      "reticle": "engine thermal view + reticle on the Display node",
+      "length_m": 0.1844,
+      "width_m": 0.0712,
+      "height_m": 0.1042,
+      "size_note": "",
+      "magnification": "2-8 thermal",
+      "kind": "thermal scope",
+      "sockets_accepted": [
+        "_SOCKET_Optic"
+      ],
+      "compatible_weapons": [
+        "WARDEN"
+      ],
+      "recommended_for": [
+        "WARDEN"
+      ],
+      "default_for": [],
+      "tris": 4276,
+      "rail_fit_ok": true,
+      "near_plane_ok": true,
+      "nearest_in_view_m": 0.0468,
+      "source_catalog": "assets/weapons/attachments/optics/catalog.json",
+      "game_attachment_id": "optic_thermal",
+      "compatible_weapon_ids": [
+        "vk50_warden"
+      ],
+      "game_data_status": "registered",
+      "tested_weapon_prefixes": [
+        "WARDEN"
+      ]
+    },
+    {
+      "id": "ATT_grip_vertical",
+      "category": "foregrip",
+      "mount": "under",
+      "file": "assets/weapons/attachments/tactical/ATT_grip_vertical.glb",
+      "sockets_accepted": [
+        "_SOCKET_Under"
+      ],
+      "socket_names": {
+        "MAKO": "MAKO_SOCKET_Under"
+      },
+      "compatible_weapons": [
+        "MAKO"
+      ],
+      "compatible_weapon_ids": [
+        "ar7_mako"
+      ],
+      "game_attachment_id": "grip_vertical",
+      "tris": 1226,
+      "objects": [
+        "ATT_grip_vertical",
+        "ATT_grip_vertical_SOCKET_LeftHand"
+      ],
+      "child_sockets": [
+        "ATT_grip_vertical_SOCKET_LeftHand"
+      ],
+      "moving_parts": {},
+      "origin": "centre of clamp contact on the rail BOTTOM surface (part hangs -Z)",
+      "bounds_min": [
+        -0.0171,
+        -0.0397,
+        -0.108
+      ],
+      "bounds_max": [
+        0.0175,
+        0.034,
+        0.0083
+      ],
+      "source_catalog": "assets/weapons/attachments/tactical/catalog.json",
+      "file_fbx": "assets/weapons/attachments/tactical/ATT_grip_vertical.fbx",
+      "root_node": "ATT_grip_vertical",
+      "game_data_status": "registered",
+      "tested_weapon_prefixes": [
+        "MAKO"
+      ]
+    },
+    {
+      "id": "ATT_grip_angled",
+      "category": "foregrip",
+      "mount": "under",
+      "file": "assets/weapons/attachments/tactical/ATT_grip_angled.glb",
+      "sockets_accepted": [
+        "_SOCKET_Under"
+      ],
+      "socket_names": {
+        "MAKO": "MAKO_SOCKET_Under"
+      },
+      "compatible_weapons": [
+        "MAKO"
+      ],
+      "compatible_weapon_ids": [
+        "ar7_mako"
+      ],
+      "game_attachment_id": "grip_angled",
+      "tris": 1236,
+      "objects": [
+        "ATT_grip_angled",
+        "ATT_grip_angled_SOCKET_LeftHand"
+      ],
+      "child_sockets": [
+        "ATT_grip_angled_SOCKET_LeftHand"
+      ],
+      "moving_parts": {},
+      "origin": "centre of clamp contact on the rail BOTTOM surface (part hangs -Z)",
+      "bounds_min": [
+        -0.0171,
+        -0.0545,
+        -0.0619
+      ],
+      "bounds_max": [
+        0.0175,
+        0.05,
+        0.0083
+      ],
+      "source_catalog": "assets/weapons/attachments/tactical/catalog.json",
+      "file_fbx": "assets/weapons/attachments/tactical/ATT_grip_angled.fbx",
+      "root_node": "ATT_grip_angled",
+      "game_data_status": "registered",
+      "tested_weapon_prefixes": [
+        "MAKO"
+      ]
+    },
+    {
+      "id": "ATT_grip_stub",
+      "category": "foregrip",
+      "mount": "under",
+      "file": "assets/weapons/attachments/tactical/ATT_grip_stub.glb",
+      "sockets_accepted": [
+        "_SOCKET_Under"
+      ],
+      "socket_names": {
+        "MAKO": "MAKO_SOCKET_Under"
+      },
+      "compatible_weapons": [
+        "MAKO"
+      ],
+      "compatible_weapon_ids": [
+        "ar7_mako"
+      ],
+      "game_attachment_id": "grip_stub",
+      "tris": 784,
+      "objects": [
+        "ATT_grip_stub",
+        "ATT_grip_stub_SOCKET_LeftHand"
+      ],
+      "child_sockets": [
+        "ATT_grip_stub_SOCKET_LeftHand"
+      ],
+      "moving_parts": {},
+      "origin": "centre of clamp contact on the rail BOTTOM surface (part hangs -Z)",
+      "bounds_min": [
+        -0.0171,
+        -0.0257,
+        -0.0365
+      ],
+      "bounds_max": [
+        0.0175,
+        0.024,
+        0.0083
+      ],
+      "source_catalog": "assets/weapons/attachments/tactical/catalog.json",
+      "file_fbx": "assets/weapons/attachments/tactical/ATT_grip_stub.fbx",
+      "root_node": "ATT_grip_stub",
+      "game_data_status": "registered",
+      "tested_weapon_prefixes": [
+        "MAKO"
+      ]
+    },
+    {
+      "id": "ATT_ugl_launcher",
+      "category": "underbarrel",
+      "mount": "under",
+      "file": "assets/weapons/attachments/tactical/ATT_ugl_launcher.glb",
+      "sockets_accepted": [
+        "_SOCKET_Under"
+      ],
+      "socket_names": {
+        "MAKO": "MAKO_SOCKET_Under"
+      },
+      "compatible_weapons": [
+        "MAKO"
+      ],
+      "compatible_weapon_ids": [
+        "ar7_mako"
+      ],
+      "game_attachment_id": "ugl_launcher",
+      "tris": 5822,
+      "objects": [
+        "ATT_ugl_launcher",
+        "ATT_ugl_launcher_Breech",
+        "ATT_ugl_launcher_Trigger",
+        "ATT_ugl_launcher_SOCKET_LeftHand",
+        "ATT_ugl_launcher_SOCKET_Muzzle"
+      ],
+      "child_sockets": [
+        "ATT_ugl_launcher_SOCKET_LeftHand",
+        "ATT_ugl_launcher_SOCKET_Muzzle"
+      ],
+      "moving_parts": {
+        "ATT_ugl_launcher_Breech": {
+          "hinge_axis": "Blender local +Z (vertical pin at the shooter's right front) = glTF local +Y",
+          "hinge_axis_blender": [
+            0.0,
+            0.0,
+            1.0
+          ],
+          "hinge_axis_gltf": [
+            0.0,
+            1.0,
+            0.0
+          ],
+          "open_angle_deg": -40.0,
+          "closed_angle_deg": 0.0,
+          "pose_open_quat_gltf_xyzw": [
+            -0.0,
+            -0.34202,
+            0.0,
+            0.939693
+          ],
+          "pose_closed_quat_gltf_xyzw": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "note": "rotate about the hinge axis by open_angle_deg (right-hand rule): the breech end swings out to the shooter's LEFT (+X); every point of the tube moves forward, away from the breech face"
+        },
+        "ATT_ugl_launcher_Trigger": {
+          "pivot_axis": "Blender local +X = glTF local +X",
+          "pivot_axis_gltf": [
+            1.0,
+            0.0,
+            0.0
+          ],
+          "pull_angle_deg": 12.0,
+          "pose_pulled_quat_gltf_xyzw": [
+            0.104528,
+            0.0,
+            -0.0,
+            0.994522
+          ]
+        }
+      },
+      "origin": "centre of clamp contact on the rail BOTTOM surface (part hangs -Z)",
+      "bounds_min": [
+        -0.0425,
+        -0.15,
+        -0.1685
+      ],
+      "bounds_max": [
+        0.0345,
+        0.1358,
+        0.0083
+      ],
+      "source_catalog": "assets/weapons/attachments/tactical/catalog.json",
+      "file_fbx": "assets/weapons/attachments/tactical/ATT_ugl_launcher.fbx",
+      "root_node": "ATT_ugl_launcher",
+      "game_data_status": "registered",
+      "tested_weapon_prefixes": [
+        "MAKO"
+      ]
+    },
+    {
+      "id": "ATT_bipod",
+      "category": "underbarrel",
+      "mount": "under",
+      "file": "assets/weapons/attachments/tactical/ATT_bipod.glb",
+      "sockets_accepted": [
+        "_SOCKET_Under"
+      ],
+      "socket_names": {
+        "WARDEN": "WARDEN_SOCKET_Under"
+      },
+      "compatible_weapons": [
+        "WARDEN"
+      ],
+      "compatible_weapon_ids": [
+        "vk50_warden"
+      ],
+      "game_attachment_id": "bipod",
+      "tris": 3792,
+      "objects": [
+        "ATT_bipod",
+        "ATT_bipod_Leg_L",
+        "ATT_bipod_LegSplay_L",
+        "ATT_bipod_LegLower_L",
+        "ATT_bipod_Foot_L",
+        "ATT_bipod_Leg_R",
+        "ATT_bipod_LegSplay_R",
+        "ATT_bipod_LegLower_R",
+        "ATT_bipod_Foot_R"
+      ],
+      "child_sockets": [],
+      "moving_parts": {
+        "ATT_bipod_Leg_L": {
+          "hinge_axis": "local X (world X): the leg folds forward about it",
+          "hinge_axis_gltf": [
+            1.0,
+            0.0,
+            0.0
+          ],
+          "deploy_angle_deg": 50.0,
+          "fold_angle_deg": -55.0,
+          "hinge_euler_x_deployed_deg": -40.0,
+          "hinge_euler_x_folded_deg": -95.0,
+          "pose_deployed_quat_gltf_xyzw": [
+            -0.34202,
+            -0.0,
+            0.0,
+            0.939693
+          ],
+          "pose_folded_quat_gltf_xyzw": [
+            -0.737277,
+            -0.0,
+            0.0,
+            0.67559
+          ],
+          "note": "delivered DEPLOYED (leg 50 deg below the rail, pointing forward). To fold: hinge euler X -40 -> -95 (fold_angle_deg), child LegSplay splay -> 0, grandchild Foot swivel -> swivel_folded_deg. All three are plain local rotations."
+        },
+        "ATT_bipod_LegSplay_L": {
+          "splay_axis": "local Y (along the rail when the leg hangs straight down)",
+          "splay_axis_gltf": [
+            0.0,
+            0.0,
+            -1.0
+          ],
+          "splay_deg": 12.0,
+          "splay_deployed_deg": 12.0,
+          "splay_folded_deg": 0.0,
+          "splay_euler_y_deployed_deg": -12.0,
+          "splay_euler_y_folded_deg": 0.0,
+          "pose_deployed_quat_gltf_xyzw": [
+            -0.0,
+            -0.0,
+            0.104528,
+            0.994522
+          ],
+          "pose_folded_quat_gltf_xyzw": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "note": "outward splay of the leg; blend splay_deployed_deg -> 0 while folding so the legs end parallel"
+        },
+        "ATT_bipod_LegLower_L": {
+          "slide_axis": "local -Z (along the leg)",
+          "telescope_min_m": 0.0,
+          "telescope_max_m": 0.05,
+          "telescope_m": 0.0
+        },
+        "ATT_bipod_Foot_L": {
+          "swivel_axis": "local X (ankle pin)",
+          "swivel_axis_gltf": [
+            1.0,
+            0.0,
+            0.0
+          ],
+          "swivel_deployed_deg": 0.0,
+          "swivel_folded_deg": 54.4,
+          "pose_deployed_quat_gltf_xyzw": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "pose_folded_quat_gltf_xyzw": [
+            0.457098,
+            0.0,
+            -0.0,
+            0.889416
+          ],
+          "note": "rubber foot on the ankle pin: level on the ground deployed, flat along the leg folded"
+        },
+        "ATT_bipod_Leg_R": {
+          "hinge_axis": "local X (world X): the leg folds forward about it",
+          "hinge_axis_gltf": [
+            1.0,
+            0.0,
+            0.0
+          ],
+          "deploy_angle_deg": 50.0,
+          "fold_angle_deg": -55.0,
+          "hinge_euler_x_deployed_deg": -40.0,
+          "hinge_euler_x_folded_deg": -95.0,
+          "pose_deployed_quat_gltf_xyzw": [
+            -0.34202,
+            -0.0,
+            0.0,
+            0.939693
+          ],
+          "pose_folded_quat_gltf_xyzw": [
+            -0.737277,
+            -0.0,
+            0.0,
+            0.67559
+          ],
+          "note": "delivered DEPLOYED (leg 50 deg below the rail, pointing forward). To fold: hinge euler X -40 -> -95 (fold_angle_deg), child LegSplay splay -> 0, grandchild Foot swivel -> swivel_folded_deg. All three are plain local rotations."
+        },
+        "ATT_bipod_LegSplay_R": {
+          "splay_axis": "local Y (along the rail when the leg hangs straight down)",
+          "splay_axis_gltf": [
+            0.0,
+            0.0,
+            -1.0
+          ],
+          "splay_deg": 12.0,
+          "splay_deployed_deg": 12.0,
+          "splay_folded_deg": 0.0,
+          "splay_euler_y_deployed_deg": 12.0,
+          "splay_euler_y_folded_deg": 0.0,
+          "pose_deployed_quat_gltf_xyzw": [
+            0.0,
+            0.0,
+            -0.104528,
+            0.994522
+          ],
+          "pose_folded_quat_gltf_xyzw": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "note": "outward splay of the leg; blend splay_deployed_deg -> 0 while folding so the legs end parallel"
+        },
+        "ATT_bipod_LegLower_R": {
+          "slide_axis": "local -Z (along the leg)",
+          "telescope_min_m": 0.0,
+          "telescope_max_m": 0.05,
+          "telescope_m": 0.0
+        },
+        "ATT_bipod_Foot_R": {
+          "swivel_axis": "local X (ankle pin)",
+          "swivel_axis_gltf": [
+            1.0,
+            0.0,
+            0.0
+          ],
+          "swivel_deployed_deg": 0.0,
+          "swivel_folded_deg": 54.4,
+          "pose_deployed_quat_gltf_xyzw": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "pose_folded_quat_gltf_xyzw": [
+            0.457098,
+            0.0,
+            -0.0,
+            0.889416
+          ],
+          "note": "rubber foot on the ankle pin: level on the ground deployed, flat along the leg folded"
+        }
+      },
+      "origin": "centre of clamp contact on the rail BOTTOM surface (part hangs -Z)",
+      "bounds_min": [
+        -0.0991,
+        -0.1775,
+        -0.2155
+      ],
+      "bounds_max": [
+        0.0991,
+        0.03,
+        0.0083
+      ],
+      "foot_sole_z": -0.2155,
+      "deployed_bounds": [
+        [
+          -0.0991,
+          -0.1775,
+          -0.2155
+        ],
+        [
+          0.0991,
+          0.03,
+          0.0083
+        ]
+      ],
+      "folded_bounds": [
+        [
+          -0.0534,
+          -0.2592,
+          -0.0523
+        ],
+        [
+          0.0534,
+          0.03,
+          0.0083
+        ]
+      ],
+      "folded_pose": {
+        "hinge_euler_x_deg": -95.0,
+        "splay_deg": 0.0,
+        "foot_swivel_deg": 54.4,
+        "foot_sole_tilt_deg": 9.2
+      },
+      "source_catalog": "assets/weapons/attachments/tactical/catalog.json",
+      "file_fbx": "assets/weapons/attachments/tactical/ATT_bipod.fbx",
+      "root_node": "ATT_bipod",
+      "game_data_status": "registered",
+      "tested_weapon_prefixes": [
+        "WARDEN"
+      ]
+    },
+    {
+      "id": "ATT_laser_R",
+      "category": "side_rail",
+      "mount": "side",
+      "file": "assets/weapons/attachments/tactical/ATT_laser_R.glb",
+      "sockets_accepted": [
+        "_SOCKET_Side_R"
+      ],
+      "socket_names": {
+        "MAKO": "MAKO_SOCKET_Side_R",
+        "WARDEN": "WARDEN_SOCKET_Side_R",
+        "SKINK": "SKINK_SOCKET_Side_R"
+      },
+      "compatible_weapons": [
+        "MAKO",
+        "WARDEN",
+        "SKINK"
+      ],
+      "compatible_weapon_ids": [
+        "ar7_mako",
+        "vk50_warden",
+        "sk9_skink"
+      ],
+      "game_attachment_id": "laser",
+      "tris": 1024,
+      "objects": [
+        "ATT_laser_R",
+        "ATT_laser_R_Emitter",
+        "ATT_laser_R_SOCKET_Beam"
+      ],
+      "child_sockets": [
+        "ATT_laser_R_SOCKET_Beam"
+      ],
+      "moving_parts": {},
+      "origin": "centre of clamp contact on the rail outer face (part sticks out sideways)",
+      "bounds_min": [
+        -0.0371,
+        -0.0355,
+        -0.0175
+      ],
+      "bounds_max": [
+        0.0083,
+        0.029,
+        0.0186
+      ],
+      "mirror_of": "ATT_laser_L",
+      "source_catalog": "assets/weapons/attachments/tactical/catalog.json",
+      "file_fbx": "assets/weapons/attachments/tactical/ATT_laser_R.fbx",
+      "root_node": "ATT_laser_R",
+      "game_data_status": "registered",
+      "tested_weapon_prefixes": [
+        "MAKO",
+        "WARDEN"
+      ]
+    },
+    {
+      "id": "ATT_laser_L",
+      "category": "side_rail",
+      "mount": "side",
+      "file": "assets/weapons/attachments/tactical/ATT_laser_L.glb",
+      "sockets_accepted": [
+        "_SOCKET_Side_L"
+      ],
+      "socket_names": {
+        "MAKO": "MAKO_SOCKET_Side_L",
+        "WARDEN": "WARDEN_SOCKET_Side_L",
+        "SKINK": "SKINK_SOCKET_Side_L"
+      },
+      "compatible_weapons": [
+        "MAKO",
+        "WARDEN",
+        "SKINK"
+      ],
+      "compatible_weapon_ids": [
+        "ar7_mako",
+        "vk50_warden",
+        "sk9_skink"
+      ],
+      "game_attachment_id": "laser",
+      "tris": 1024,
+      "objects": [
+        "ATT_laser_L",
+        "ATT_laser_L_Emitter",
+        "ATT_laser_L_SOCKET_Beam"
+      ],
+      "child_sockets": [
+        "ATT_laser_L_SOCKET_Beam"
+      ],
+      "moving_parts": {},
+      "origin": "centre of clamp contact on the rail outer face (part sticks out sideways)",
+      "bounds_min": [
+        -0.0083,
+        -0.0355,
+        -0.0175
+      ],
+      "bounds_max": [
+        0.0371,
+        0.029,
+        0.0186
+      ],
+      "mirror_of": "ATT_laser_R",
+      "source_catalog": "assets/weapons/attachments/tactical/catalog.json",
+      "file_fbx": "assets/weapons/attachments/tactical/ATT_laser_L.fbx",
+      "root_node": "ATT_laser_L",
+      "game_data_status": "registered",
+      "tested_weapon_prefixes": [
+        "MAKO",
+        "WARDEN"
+      ]
+    },
+    {
+      "id": "ATT_flashlight_R",
+      "category": "side_rail",
+      "mount": "side",
+      "file": "assets/weapons/attachments/tactical/ATT_flashlight_R.glb",
+      "sockets_accepted": [
+        "_SOCKET_Side_R"
+      ],
+      "socket_names": {
+        "MAKO": "MAKO_SOCKET_Side_R",
+        "WARDEN": "WARDEN_SOCKET_Side_R",
+        "SKINK": "SKINK_SOCKET_Side_R"
+      },
+      "compatible_weapons": [
+        "MAKO",
+        "WARDEN",
+        "SKINK"
+      ],
+      "compatible_weapon_ids": [
+        "ar7_mako",
+        "vk50_warden",
+        "sk9_skink"
+      ],
+      "game_attachment_id": "flashlight",
+      "tris": 1432,
+      "objects": [
+        "ATT_flashlight_R",
+        "ATT_flashlight_R_Lens",
+        "ATT_flashlight_R_SOCKET_Beam"
+      ],
+      "child_sockets": [
+        "ATT_flashlight_R_SOCKET_Beam"
+      ],
+      "moving_parts": {},
+      "origin": "centre of clamp contact on the rail outer face (part sticks out sideways)",
+      "bounds_min": [
+        -0.0451,
+        -0.0622,
+        -0.0186
+      ],
+      "bounds_max": [
+        0.0083,
+        0.0595,
+        0.0186
+      ],
+      "mirror_of": "ATT_flashlight_L",
+      "source_catalog": "assets/weapons/attachments/tactical/catalog.json",
+      "file_fbx": "assets/weapons/attachments/tactical/ATT_flashlight_R.fbx",
+      "root_node": "ATT_flashlight_R",
+      "game_data_status": "registered",
+      "tested_weapon_prefixes": [
+        "MAKO",
+        "WARDEN"
+      ]
+    },
+    {
+      "id": "ATT_flashlight_L",
+      "category": "side_rail",
+      "mount": "side",
+      "file": "assets/weapons/attachments/tactical/ATT_flashlight_L.glb",
+      "sockets_accepted": [
+        "_SOCKET_Side_L"
+      ],
+      "socket_names": {
+        "MAKO": "MAKO_SOCKET_Side_L",
+        "WARDEN": "WARDEN_SOCKET_Side_L",
+        "SKINK": "SKINK_SOCKET_Side_L"
+      },
+      "compatible_weapons": [
+        "MAKO",
+        "WARDEN",
+        "SKINK"
+      ],
+      "compatible_weapon_ids": [
+        "ar7_mako",
+        "vk50_warden",
+        "sk9_skink"
+      ],
+      "game_attachment_id": "flashlight",
+      "tris": 1432,
+      "objects": [
+        "ATT_flashlight_L",
+        "ATT_flashlight_L_Lens",
+        "ATT_flashlight_L_SOCKET_Beam"
+      ],
+      "child_sockets": [
+        "ATT_flashlight_L_SOCKET_Beam"
+      ],
+      "moving_parts": {},
+      "origin": "centre of clamp contact on the rail outer face (part sticks out sideways)",
+      "bounds_min": [
+        -0.0083,
+        -0.0622,
+        -0.0186
+      ],
+      "bounds_max": [
+        0.0451,
+        0.0595,
+        0.0186
+      ],
+      "mirror_of": "ATT_flashlight_R",
+      "source_catalog": "assets/weapons/attachments/tactical/catalog.json",
+      "file_fbx": "assets/weapons/attachments/tactical/ATT_flashlight_L.fbx",
+      "root_node": "ATT_flashlight_L",
+      "game_data_status": "registered",
+      "tested_weapon_prefixes": [
+        "MAKO",
+        "WARDEN"
+      ]
+    },
+    {
+      "id": "ATT_shield_front",
+      "category": "shield",
+      "mount": "top",
+      "file": "assets/weapons/attachments/tactical/ATT_shield_front.glb",
+      "sockets_accepted": [
+        "_SOCKET_Shield"
+      ],
+      "socket_names": {
+        "MAKO": "MAKO_SOCKET_Shield"
+      },
+      "compatible_weapons": [
+        "MAKO"
+      ],
+      "compatible_weapon_ids": [
+        "ar7_mako"
+      ],
+      "game_attachment_id": "shield_front",
+      "tris": 2720,
+      "objects": [
+        "ATT_shield_front",
+        "ATT_shield_front_Glass"
+      ],
+      "child_sockets": [],
+      "moving_parts": {},
+      "origin": "centre of clamp contact on the rail TOP surface",
+      "bounds_min": [
+        -0.1568,
+        -0.0458,
+        -0.1
+      ],
+      "bounds_max": [
+        0.1568,
+        0.034,
+        0.16
+      ],
+      "glass_z": [
+        0.03,
+        0.1
+      ],
+      "plate_z": [
+        -0.1,
+        0.16
+      ],
+      "plate_x": [
+        -0.16,
+        0.16
+      ],
+      "port": {
+        "x": [
+          -0.08,
+          0.08
+        ],
+        "z": [
+          -0.066,
+          -0.008
+        ]
+      },
+      "glass_material": {
+        "base_color": [
+          0.02,
+          0.045,
+          0.08
+        ],
+        "alpha": 0.38,
+        "roughness": 0.08,
+        "alpha_mode": "BLEND"
+      },
+      "source_catalog": "assets/weapons/attachments/tactical/catalog.json",
+      "file_fbx": "assets/weapons/attachments/tactical/ATT_shield_front.fbx",
+      "root_node": "ATT_shield_front",
+      "game_data_status": "registered",
+      "tested_weapon_prefixes": [
+        "MAKO"
+      ]
+    }
+  ]
+}

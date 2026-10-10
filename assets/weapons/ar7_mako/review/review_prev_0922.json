@@ -1,0 +1,24 @@
+{
+  "asset": "AR-7 MAKO (assets/weapons/ar7_mako): base + stock_standard/precision/light + mag_30/45/drum60",
+  "reviewer": "independent art-director / tech-art review, 2026-10-07",
+  "scores": {
+    "silhouette": 7,
+    "craftsmanship": 6,
+    "style_consistency": 7,
+    "fidelity_to_brief_and_user_decisions": 7,
+    "game_readiness": 7
+  },
+  "verified_ok": [
+    "No iron sights, no ammo counter, no emissive material in any GLB (glb_scan.json)",
+    "All 9 sockets present, children of MAKO_Root, zero rotation, match sockets.json in .blend, GLB and FBX re-imports (tech_report.json, rv_fbx.py)",
+    "Side_R at -X, Side_L at +X; ejection port / dust cover / FA / mag release on -X; bolt catch / selector on +X",
+    "Rail: top width 0.021, height 0.0095, 51 cross slots at exactly 0.010 pitch, y -0.493..+0.022",
+    "0 non-manifold edges, 0 loose geometry, all signed volumes positive (no flipped meshes), UVs on every mesh, no faces without material",
+    "Default loadout 0.844 m x 0.257 m, 20,998 tris",
+    "Mag_30/45/drum can drop 5 cm straight out of the well with 0 overlap; seated mags do not touch the lower",
+    "Shared attachments (holo, 3x, grip, UGL, laser_R, flashlight_L, shield) mounted on the CURRENT export: 0 vertices penetrating >0.3 mm (fit_depth.json)",
+    "build_mako.py re-run from scratch in a scratch copy: identical tri counts and sockets, check_glb OK (deterministic, ~9 s)",
+    "64 px silhouette reads clearly as an M4 (renders/sil_64px_test.png)"
+  ],
+  "see": "review_sheet.png (annotated evidence), renders/, tech_report.json, motion_report.json, glb_scan.json, fit_depth.json"
+}

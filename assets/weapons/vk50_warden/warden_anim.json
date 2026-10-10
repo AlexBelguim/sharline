@@ -5,13 +5,13 @@
     "origin": {
       "blender": [
         0.0,
-        0.112,
+        -0.045,
         0.075
       ],
       "gltf": [
         0.0,
         0.075,
-        -0.112
+        0.045
       ]
     },
     "lift_deg": 60.0,
@@ -30,13 +30,13 @@
     "origin": {
       "blender": [
         0.0,
-        -0.054,
-        0.0
+        -0.09,
+        0.012
       ],
       "gltf": [
         0.0,
-        0.0,
-        0.054
+        0.012,
+        0.09
       ]
     },
     "pull_deg": 12.0,
@@ -58,22 +58,22 @@
       "gltf": "+Y"
     },
     "travel_min_m": 0.0,
-    "travel_max_m": 0.03
+    "travel_max_m": 0.012
   },
   "WARDEN_StockStandard_Monopod": {
     "slide": {
       "blender": "+Z",
       "gltf": "+Y"
     },
-    "travel_min_m": -0.045,
+    "travel_min_m": -0.105,
     "travel_max_m": 0.0
   },
   "WARDEN_StockFolding_Arm": {
     "origin_rel_stock_mount": {
       "blender": [
-        0.0315,
-        0.031,
-        -0.06
+        0.03,
+        0.012,
+        -0.043
       ]
     },
     "fold_angle_deg": -180.0,
@@ -99,9 +99,17 @@
         "blender": "+Z",
         "gltf": "+Y"
       },
-      "follower_travel_per_round_m": 0.021,
-      "follower_travel_max_m": 0.094,
-      "follower_rule": "offset = min((capacity - rounds_left) * travel_per_round_m, travel_max_m)"
+      "follower_travel_per_round_m": 0.017,
+      "follower_travel_max_m": 0.0797,
+      "follower_offset_by_rounds_left_m": [
+        0.0797,
+        0.0708,
+        0.051,
+        0.034,
+        0.017,
+        0.0
+      ],
+      "follower_rule": "raise the follower along local +Z by follower_offset_by_rounds_left_m[rounds_left] (index 0 = empty: right under the feed lips). The step under the centred top round is larger than travel_per_round_m, so use the table rather than n * travel_per_round_m"
     },
     "WARDEN_Mag8": {
       "capacity": 8,
@@ -121,9 +129,20 @@
         "blender": "+Z",
         "gltf": "+Y"
       },
-      "follower_travel_per_round_m": 0.021,
-      "follower_travel_max_m": 0.157,
-      "follower_rule": "offset = min((capacity - rounds_left) * travel_per_round_m, travel_max_m)"
+      "follower_travel_per_round_m": 0.017,
+      "follower_travel_max_m": 0.1307,
+      "follower_offset_by_rounds_left_m": [
+        0.1307,
+        0.1218,
+        0.102,
+        0.085,
+        0.068,
+        0.051,
+        0.034,
+        0.017,
+        0.0
+      ],
+      "follower_rule": "raise the follower along local +Z by follower_offset_by_rounds_left_m[rounds_left] (index 0 = empty: right under the feed lips). The step under the centred top round is larger than travel_per_round_m, so use the table rather than n * travel_per_round_m"
     }
   }
 }

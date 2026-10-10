@@ -1,0 +1,195 @@
+{
+ "grip_vertical": {
+  "ATT_grip_vertical": {
+   "flipped": 0,
+   "flipped_area_mm2": 0,
+   "zero_area": 2,
+   "samples": []
+  }
+ },
+ "grip_angled": {
+  "ATT_grip_angled": {
+   "flipped": 0,
+   "flipped_area_mm2": 0,
+   "zero_area": 3,
+   "samples": []
+  }
+ },
+ "grip_stub": {
+  "ATT_grip_stub": {
+   "flipped": 0,
+   "flipped_area_mm2": 0,
+   "zero_area": 0,
+   "samples": []
+  }
+ },
+ "ugl_launcher": {
+  "ATT_ugl_launcher": {
+   "flipped": 2,
+   "flipped_area_mm2": 466.45,
+   "zero_area": 3,
+   "samples": [
+    {
+     "poly": 942,
+     "center": [
+      0.0315,
+      0.0296,
+      -0.0399
+     ],
+     "area_mm2": 461.36,
+     "mat": "M_ATT_Graphite",
+     "angle": 180.0
+    },
+    {
+     "poly": 943,
+     "center": [
+      0.0315,
+      0.0384,
+      -0.051
+     ],
+     "area_mm2": 5.09,
+     "mat": "M_ATT_Graphite",
+     "angle": 180.0
+    }
+   ]
+  },
+  "ATT_ugl_launcher_Breech": {
+   "flipped": 0,
+   "flipped_area_mm2": 0,
+   "zero_area": 0,
+   "samples": []
+  },
+  "ATT_ugl_launcher_Trigger": {
+   "flipped": 0,
+   "flipped_area_mm2": 0,
+   "zero_area": 0,
+   "samples": []
+  }
+ },
+ "bipod": {
+  "ATT_bipod": {
+   "flipped": 0,
+   "flipped_area_mm2": 0,
+   "zero_area": 0,
+   "samples": []
+  },
+  "ATT_bipod_Leg_L": {
+   "flipped": 0,
+   "flipped_area_mm2": 0,
+   "zero_area": 0,
+   "samples": []
+  },
+  "ATT_bipod_Leg_R": {
+   "flipped": 0,
+   "flipped_area_mm2": 0,
+   "zero_area": 0,
+   "samples": []
+  },
+  "ATT_bipod_LegLower_L": {
+   "flipped": 0,
+   "flipped_area_mm2": 0,
+   "zero_area": 1,
+   "samples": []
+  },
+  "ATT_bipod_LegLower_R": {
+   "flipped": 0,
+   "flipped_area_mm2": 0,
+   "zero_area": 1,
+   "samples": []
+  }
+ },
+ "laser_R": {
+  "ATT_laser_R": {
+   "flipped": 1,
+   "flipped_area_mm2": 205.0,
+   "zero_area": 1,
+   "samples": [
+    {
+     "poly": 353,
+     "center": [
+      -0.0156,
+      -0.0008,
+      0.017
+     ],
+     "area_mm2": 205.0,
+     "mat": "M_ATT_Graphite",
+     "angle": 180.0
+    }
+   ]
+  },
+  "ATT_laser_R_Emitter": {
+   "flipped": 0,
+   "flipped_area_mm2": 0,
+   "zero_area": 0,
+   "samples": []
+  }
+ },
+ "laser_L": {
+  "ATT_laser_L": {
+   "flipped": 1,
+   "flipped_area_mm2": 422.3,
+   "zero_area": 1,
+   "samples": [
+    {
+     "poly": 357,
+     "center": [
+      0.0156,
+      -0.0002,
+      0.017
+     ],
+     "area_mm2": 422.3,
+     "mat": "M_ATT_Graphite",
+     "angle": 180.0
+    }
+   ]
+  },
+  "ATT_laser_L_Emitter": {
+   "flipped": 0,
+   "flipped_area_mm2": 0,
+   "zero_area": 0,
+   "samples": []
+  }
+ },
+ "flashlight_R": {
+  "ATT_flashlight_R": {
+   "flipped": 0,
+   "flipped_area_mm2": 0,
+   "zero_area": 0,
+   "samples": []
+  },
+  "ATT_flashlight_R_Lens": {
+   "flipped": 0,
+   "flipped_area_mm2": 0,
+   "zero_area": 0,
+   "samples": []
+  }
+ },
+ "flashlight_L": {
+  "ATT_flashlight_L": {
+   "flipped": 0,
+   "flipped_area_mm2": 0,
+   "zero_area": 0,
+   "samples": []
+  },
+  "ATT_flashlight_L_Lens": {
+   "flipped": 0,
+   "flipped_area_mm2": 0,
+   "zero_area": 0,
+   "samples": []
+  }
+ },
+ "shield_front": {
+  "ATT_shield_front": {
+   "flipped": 0,
+   "flipped_area_mm2": 0,
+   "zero_area": 0,
+   "samples": []
+  },
+  "ATT_shield_front_Glass": {
+   "flipped": 0,
+   "flipped_area_mm2": 0,
+   "zero_area": 0,
+   "samples": []
+  }
+ }
+}

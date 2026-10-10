@@ -1,0 +1,2770 @@
+{
+ "ATT_bipod.glb": {
+  "bytes": 663792,
+  "gltf_version": "2.0",
+  "generator": "Khronos glTF Blender I/O v5.2.39",
+  "nodes": [
+   {
+    "name": "ATT_bipod_LegLower_L",
+    "parent": "ATT_bipod_Leg_L",
+    "mesh": "ATT_bipod_LegLower_L",
+    "t": [
+     0.02495,
+     -0.11738,
+     0
+    ],
+    "r": [
+     0,
+     0,
+     0.10453,
+     0.99452
+    ],
+    "s": [
+     1,
+     1,
+     1
+    ],
+    "extras": {
+     "slide_axis": "local -Z (along the leg)",
+     "telescope_min_m": 0.0,
+     "telescope_max_m": 0.05,
+     "telescope_m": 0.0
+    }
+   },
+   {
+    "name": "ATT_bipod_Leg_L",
+    "parent": "ATT_bipod",
+    "mesh": "ATT_bipod_Leg_L",
+    "t": [
+     0.0325,
+     -0.034,
+     0
+    ],
+    "r": [
+     -0.34202,
+     0,
+     0,
+     0.93969
+    ],
+    "s": [
+     1,
+     1,
+     1
+    ],
+    "extras": {
+     "hinge_axis": "local X (world X): the leg folds forward/back about it",
+     "deploy_angle_deg": 50.0,
+     "fold_angle_deg": -50.0,
+     "hinge_euler_x_deployed_deg": -40.0,
+     "hinge_euler_x_folded_deg": -90.0,
+     "splay_deg": 12.0,
+     "note": "delivered DEPLOYED: leg 50 deg below the rail, pointing forward (deploy_angle_deg). fold_angle_deg = extra rotation about local X that folds the leg forward under the rail (euler X -40 -> -90)."
+    }
+   },
+   {
+    "name": "ATT_bipod_LegLower_R",
+    "parent": "ATT_bipod_Leg_R",
+    "mesh": "ATT_bipod_LegLower_R",
+    "t": [
+     -0.02495,
+     -0.11738,
+     0
+    ],
+    "r": [
+     0,
+     0,
+     -0.10453,
+     0.99452
+    ],
+    "s": [
+     1,
+     1,
+     1
+    ],
+    "extras": {
+     "slide_axis": "local -Z (along the leg)",
+     "telescope_min_m": 0.0,
+     "telescope_max_m": 0.05,
+     "telescope_m": 0.0
+    }
+   },
+   {
+    "name": "ATT_bipod_Leg_R",
+    "parent": "ATT_bipod",
+    "mesh": "ATT_bipod_Leg_R",
+    "t": [
+     -0.0325,
+     -0.034,
+     0
+    ],
+    "r": [
+     -0.34202,
+     0,
+     0,
+     0.93969
+    ],
+    "s": [
+     1,
+     1,
+     1
+    ],
+    "extras": {
+     "hinge_axis": "local X (world X): the leg folds forward/back about it",
+     "deploy_angle_deg": 50.0,
+     "fold_angle_deg": -50.0,
+     "hinge_euler_x_deployed_deg": -40.0,
+     "hinge_euler_x_folded_deg": -90.0,
+     "splay_deg": 12.0,
+     "note": "delivered DEPLOYED: leg 50 deg below the rail, pointing forward (deploy_angle_deg). fold_angle_deg = extra rotation about local X that folds the leg forward under the rail (euler X -40 -> -90)."
+    }
+   },
+   {
+    "name": "ATT_bipod",
+    "parent": null,
+    "mesh": "ATT_bipod",
+    "t": [
+     0,
+     0,
+     0
+    ],
+    "r": [
+     0,
+     0,
+     0,
+     1
+    ],
+    "s": [
+     1,
+     1,
+     1
+    ],
+    "extras": null
+   }
+  ],
+  "scene_roots": [
+   "ATT_bipod"
+  ],
+  "materials": [
+   {
+    "name": "M_ATT_Gunmetal",
+    "alphaMode": "OPAQUE",
+    "doubleSided": false,
+    "baseColorFactor": [
+     0.11,
+     0.115,
+     0.12,
+     1
+    ],
+    "baseColorTexture": 0,
+    "mr_tex": null,
+    "metallic": 0.8500000238418579,
+    "roughness": 0.3499999940395355,
+    "emissive": null,
+    "ext": [],
+    "normalTexture": null
+   },
+   {
+    "name": "M_ATT_Graphite",
+    "alphaMode": "OPAQUE",
+    "doubleSided": false,
+    "baseColorFactor": [
+     0.03,
+     0.033,
+     0.04,
+     1
+    ],
+    "baseColorTexture": 1,
+    "mr_tex": null,
+    "metallic": 0.20000000298023224,
+    "roughness": 0.5199999809265137,
+    "emissive": null,
+    "ext": [],
+    "normalTexture": null
+   },
+   {
+    "name": "M_ATT_Rubber",
+    "alphaMode": "OPAQUE",
+    "doubleSided": false,
+    "baseColorFactor": [
+     0.022,
+     0.024,
+     0.028,
+     1
+    ],
+    "baseColorTexture": null,
+    "mr_tex": null,
+    "metallic": 0,
+    "roughness": 0.8799999952316284,
+    "emissive": null,
+    "ext": [],
+    "normalTexture": null
+   },
+   {
+    "name": "M_ATT_Bone",
+    "alphaMode": "OPAQUE",
+    "doubleSided": false,
+    "baseColorFactor": [
+     0.55,
+     0.52,
+     0.46,
+     1
+    ],
+    "baseColorTexture": 2,
+    "mr_tex": null,
+    "metallic": 0,
+    "roughness": 0.6000000238418579,
+    "emissive": null,
+    "ext": [],
+    "normalTexture": null
+   }
+  ],
+  "images": [
+   {
+    "name": "att_brushed_metal_30",
+    "embedded": true,
+    "uri": null,
+    "mime": "image/png"
+   },
+   {
+    "name": "att_worn_paint_50",
+    "embedded": true,
+    "uri": null,
+    "mime": "image/png"
+   },
+   {
+    "name": "att_worn_paint_30",
+    "embedded": true,
+    "uri": null,
+    "mime": "image/png"
+   }
+  ],
+  "textures": [
+   {
+    "sampler": 0,
+    "source": 0
+   },
+   {
+    "sampler": 0,
+    "source": 1
+   },
+   {
+    "sampler": 0,
+    "source": 2
+   }
+  ],
+  "samplers": [
+   {
+    "magFilter": 9729,
+    "minFilter": 9987
+   }
+  ],
+  "meshes": [
+   {
+    "name": "ATT_bipod_LegLower_L",
+    "prims": [
+     {
+      "attrs": [
+       "NORMAL",
+       "POSITION",
+       "TEXCOORD_0"
+      ],
+      "material": "M_ATT_Gunmetal",
+      "tris": 328,
+      "mode": 4
+     },
+     {
+      "attrs": [
+       "NORMAL",
+       "POSITION",
+       "TEXCOORD_0"
+      ],
+      "material": "M_ATT_Graphite",
+      "tris": 92,
+      "mode": 4
+     },
+     {
+      "attrs": [
+       "NORMAL",
+       "POSITION",
+       "TEXCOORD_0"
+      ],
+      "material": "M_ATT_Rubber",
+      "tris": 300,
+      "mode": 4
+     }
+    ],
+    "tris": 720
+   },
+   {
+    "name": "ATT_bipod_Leg_L",
+    "prims": [
+     {
+      "attrs": [
+       "NORMAL",
+       "POSITION",
+       "TEXCOORD_0"
+      ],
+      "material": "M_ATT_Graphite",
+      "tris": 352,
+      "mode": 4
+     },
+     {
+      "attrs": [
+       "NORMAL",
+       "POSITION",
+       "TEXCOORD_0"
+      ],
+      "material": "M_ATT_Gunmetal",
+      "tris": 92,
+      "mode": 4
+     }
+    ],
+    "tris": 444
+   },
+   {
+    "name": "ATT_bipod_LegLower_R",
+    "prims": [
+     {
+      "attrs": [
+       "NORMAL",
+       "POSITION",
+       "TEXCOORD_0"
+      ],
+      "material": "M_ATT_Gunmetal",
+      "tris": 328,
+      "mode": 4
+     },
+     {
+      "attrs": [
+       "NORMAL",
+       "POSITION",
+       "TEXCOORD_0"
+      ],
+      "material": "M_ATT_Graphite",
+      "tris": 92,
+      "mode": 4
+     },
+     {
+      "attrs": [
+       "NORMAL",
+       "POSITION",
+       "TEXCOORD_0"
+      ],
+      "material": "M_ATT_Rubber",
+      "tris": 300,
+      "mode": 4
+     }
+    ],
+    "tris": 720
+   },
+   {
+    "name": "ATT_bipod_Leg_R",
+    "prims": [
+     {
+      "attrs": [
+       "NORMAL",
+       "POSITION",
+       "TEXCOORD_0"
+      ],
+      "material": "M_ATT_Graphite",
+      "tris": 352,
+      "mode": 4
+     },
+     {
+      "attrs": [
+       "NORMAL",
+       "POSITION",
+       "TEXCOORD_0"
+      ],
+      "material": "M_ATT_Gunmetal",
+      "tris": 92,
+      "mode": 4
+     }
+    ],
+    "tris": 444
+   },
+   {
+    "name": "ATT_bipod",
+    "prims": [
+     {
+      "attrs": [
+       "NORMAL",
+       "POSITION",
+       "TEXCOORD_0"
+      ],
+      "material": "M_ATT_Graphite",
+      "tris": 836,
+      "mode": 4
+     },
+     {
+      "attrs": [
+       "NORMAL",
+       "POSITION",
+       "TEXCOORD_0"
+      ],
+      "material": "M_ATT_Gunmetal",
+      "tris": 444,
+      "mode": 4
+     },
+     {
+      "attrs": [
+       "NORMAL",
+       "POSITION",
+       "TEXCOORD_0"
+      ],
+      "material": "M_ATT_Bone",
+      "tris": 212,
+      "mode": 4
+     }
+    ],
+    "tris": 1492
+   }
+  ],
+  "total_tris": 3820,
+  "extensionsUsed": []
+ },
+ "ATT_flashlight_L.glb": {
+  "bytes": 417740,
+  "gltf_version": "2.0",
+  "generator": "Khronos glTF Blender I/O v5.2.39",
+  "nodes": [
+   {
+    "name": "ATT_flashlight_L_Lens",
+    "parent": "ATT_flashlight_L",
+    "mesh": "ATT_flashlight_L_Lens",
+    "t": [
+     0,
+     0,
+     0
+    ],
+    "r": [
+     0,
+     0,
+     0,
+     1
+    ],
+    "s": [
+     1,
+     1,
+     1
+    ],
+    "extras": null
+   },
+   {
+    "name": "ATT_flashlight_L_SOCKET_Beam",
+    "parent": "ATT_flashlight_L",
+    "mesh": null,
+    "t": [
+     0.0265,
+     0,
+     0.0625
+    ],
+    "r": [
+     0,
+     0,
+     0,
+     1
+    ],
+    "s": [
+     1,
+     1,
+     1
+    ],
+    "extras": null
+   },
+   {
+    "name": "ATT_flashlight_L",
+    "parent": null,
+    "mesh": "ATT_flashlight_L",
+    "t": [
+     0,
+     0,
+     0
+    ],
+    "r": [
+     0,
+     0,
+     0,
+     1
+    ],
+    "s": [
+     1,
+     1,
+     1
+    ],
+    "extras": null
+   }
+  ],
+  "scene_roots": [
+   "ATT_flashlight_L"
+  ],
+  "materials": [
+   {
+    "name": "M_ATT_LightLens",
+    "alphaMode": "OPAQUE",
+    "doubleSided": false,
+    "baseColorFactor": [
+     0.2,
+     0.22,
+     0.25,
+     1
+    ],
+    "baseColorTexture": null,
+    "mr_tex": null,
+    "metallic": 0,
+    "roughness": 0.03999999910593033,
+    "emissive": [
+     0.20000000298023224,
+     0.18600000420212748,
+     0.16000000476837162
+    ],
+    "ext": [],
+    "normalTexture": null
+   },
+   {
+    "name": "M_ATT_LightLED",
+    "alphaMode": "OPAQUE",
+    "doubleSided": false,
+    "baseColorFactor": [
+     0.9,
+     0.88,
+     0.82,
+     1
+    ],
+    "baseColorTexture": null,
+    "mr_tex": null,
+    "metallic": 0,
+    "roughness": 0.30000001192092896,
+    "emissive": [
+     1,
+     0.9399999976158142,
+     0.8199999928474426
+    ],
+    "ext": [
+     "KHR_materials_emissive_strength"
+    ],
+    "normalTexture": null
+   },
+   {
+    "name": "M_ATT_Graphite",
+    "alphaMode": "OPAQUE",
+    "doubleSided": false,
+    "baseColorFactor": [
+     0.03,
+     0.033,
+     0.04,
+     1
+    ],
+    "baseColorTexture": 0,
+    "mr_tex": null,
+    "metallic": 0.20000000298023224,
+    "roughness": 0.5199999809265137,
+    "emissive": null,
+    "ext": [],
+    "normalTexture": null
+   },
+   {
+    "name": "M_ATT_Gunmetal",
+    "alphaMode": "OPAQUE",
+    "doubleSided": false,
+    "baseColorFactor": [
+     0.11,
+     0.115,
+     0.12,
+     1
+    ],
+    "baseColorTexture": 1,
+    "mr_tex": null,
+    "metallic": 0.8500000238418579,
+    "roughness": 0.3499999940395355,
+    "emissive": null,
+    "ext": [],
+    "normalTexture": null
+   },
+   {
+    "name": "M_ATT_Rubber",
+    "alphaMode": "OPAQUE",
+    "doubleSided": false,
+    "baseColorFactor": [
+     0.022,
+     0.024,
+     0.028,
+     1
+    ],
+    "baseColorTexture": null,
+    "mr_tex": null,
+    "metallic": 0,
+    "roughness": 0.8799999952316284,
+    "emissive": null,
+    "ext": [],
+    "normalTexture": null
+   }
+  ],
+  "images": [
+   {
+    "name": "att_worn_paint_50",
+    "embedded": true,
+    "uri": null,
+    "mime": "image/png"
+   },
+   {
+    "name": "att_brushed_metal_30",
+    "embedded": true,
+    "uri": null,
+    "mime": "image/png"
+   }
+  ],
+  "textures": [
+   {
+    "sampler": 0,
+    "source": 0
+   },
+   {
+    "sampler": 0,
+    "source": 1
+   }
+  ],
+  "samplers": [
+   {
+    "magFilter": 9729,
+    "minFilter": 9987
+   }
+  ],
+  "meshes": [
+   {
+    "name": "ATT_flashlight_L_Lens",
+    "prims": [
+     {
+      "attrs": [
+       "NORMAL",
+       "POSITION",
+       "TEXCOORD_0"
+      ],
+      "material": "M_ATT_LightLens",
+      "tris": 188,
+      "mode": 4
+     },
+     {
+      "attrs": [
+       "NORMAL",
+       "POSITION",
+       "TEXCOORD_0"
+      ],
+      "material": "M_ATT_LightLED",
+      "tris": 48,
+      "mode": 4
+     }
+    ],
+    "tris": 236
+   },
+   {
+    "name": "ATT_flashlight_L",
+    "prims": [
+     {
+      "attrs": [
+       "NORMAL",
+       "POSITION",
+       "TEXCOORD_0"
+      ],
+      "material": "M_ATT_Graphite",
+      "tris": 464,
+      "mode": 4
+     },
+     {
+      "attrs": [
+       "NORMAL",
+       "POSITION",
+       "TEXCOORD_0"
+      ],
+      "material": "M_ATT_Gunmetal",
+      "tris": 708,
+      "mode": 4
+     },
+     {
+      "attrs": [
+       "NORMAL",
+       "POSITION",
+       "TEXCOORD_0"
+      ],
+      "material": "M_ATT_Rubber",
+      "tris": 72,
+      "mode": 4
+     }
+    ],
+    "tris": 1244
+   }
+  ],
+  "total_tris": 1480,
+  "extensionsUsed": [
+   "KHR_materials_emissive_strength"
+  ]
+ },
+ "ATT_flashlight_R.glb": {
+  "bytes": 417844,
+  "gltf_version": "2.0",
+  "generator": "Khronos glTF Blender I/O v5.2.39",
+  "nodes": [
+   {
+    "name": "ATT_flashlight_R_Lens",
+    "parent": "ATT_flashlight_R",
+    "mesh": "ATT_flashlight_R_Lens",
+    "t": [
+     0,
+     0,
+     0
+    ],
+    "r": [
+     0,
+     0,
+     0,
+     1
+    ],
+    "s": [
+     1,
+     1,
+     1
+    ],
+    "extras": null
+   },
+   {
+    "name": "ATT_flashlight_R_SOCKET_Beam",
+    "parent": "ATT_flashlight_R",
+    "mesh": null,
+    "t": [
+     -0.0265,
+     0,
+     0.0625
+    ],
+    "r": [
+     0,
+     0,
+     0,
+     1
+    ],
+    "s": [
+     1,
+     1,
+     1
+    ],
+    "extras": null
+   },
+   {
+    "name": "ATT_flashlight_R",
+    "parent": null,
+    "mesh": "ATT_flashlight_R",
+    "t": [
+     0,
+     0,
+     0
+    ],
+    "r": [
+     0,
+     0,
+     0,
+     1
+    ],
+    "s": [
+     1,
+     1,
+     1
+    ],
+    "extras": null
+   }
+  ],
+  "scene_roots": [
+   "ATT_flashlight_R"
+  ],
+  "materials": [
+   {
+    "name": "M_ATT_LightLens",
+    "alphaMode": "OPAQUE",
+    "doubleSided": false,
+    "baseColorFactor": [
+     0.2,
+     0.22,
+     0.25,
+     1
+    ],
+    "baseColorTexture": null,
+    "mr_tex": null,
+    "metallic": 0,
+    "roughness": 0.03999999910593033,
+    "emissive": [
+     0.20000000298023224,
+     0.18600000420212748,
+     0.16000000476837162
+    ],
+    "ext": [],
+    "normalTexture": null
+   },
+   {
+    "name": "M_ATT_LightLED",
+    "alphaMode": "OPAQUE",
+    "doubleSided": false,
+    "baseColorFactor": [
+     0.9,
+     0.88,
+     0.82,
+     1
+    ],
+    "baseColorTexture": null,
+    "mr_tex": null,
+    "metallic": 0,
+    "roughness": 0.30000001192092896,
+    "emissive": [
+     1,
+     0.9399999976158142,
+     0.8199999928474426
+    ],
+    "ext": [
+     "KHR_materials_emissive_strength"
+    ],
+    "normalTexture": null
+   },
+   {
+    "name": "M_ATT_Graphite",
+    "alphaMode": "OPAQUE",
+    "doubleSided": false,
+    "baseColorFactor": [
+     0.03,
+     0.033,
+     0.04,
+     1
+    ],
+    "baseColorTexture": 0,
+    "mr_tex": null,
+    "metallic": 0.20000000298023224,
+    "roughness": 0.5199999809265137,
+    "emissive": null,
+    "ext": [],
+    "normalTexture": null
+   },
+   {
+    "name": "M_ATT_Gunmetal",
+    "alphaMode": "OPAQUE",
+    "doubleSided": false,
+    "baseColorFactor": [
+     0.11,
+     0.115,
+     0.12,
+     1
+    ],
+    "baseColorTexture": 1,
+    "mr_tex": null,
+    "metallic": 0.8500000238418579,
+    "roughness": 0.3499999940395355,
+    "emissive": null,
+    "ext": [],
+    "normalTexture": null
+   },
+   {
+    "name": "M_ATT_Rubber",
+    "alphaMode": "OPAQUE",
+    "doubleSided": false,
+    "baseColorFactor": [
+     0.022,
+     0.024,
+     0.028,
+     1
+    ],
+    "baseColorTexture": null,
+    "mr_tex": null,
+    "metallic": 0,
+    "roughness": 0.8799999952316284,
+    "emissive": null,
+    "ext": [],
+    "normalTexture": null
+   }
+  ],
+  "images": [
+   {
+    "name": "att_worn_paint_50",
+    "embedded": true,
+    "uri": null,
+    "mime": "image/png"
+   },
+   {
+    "name": "att_brushed_metal_30",
+    "embedded": true,
+    "uri": null,
+    "mime": "image/png"
+   }
+  ],
+  "textures": [
+   {
+    "sampler": 0,
+    "source": 0
+   },
+   {
+    "sampler": 0,
+    "source": 1
+   }
+  ],
+  "samplers": [
+   {
+    "magFilter": 9729,
+    "minFilter": 9987
+   }
+  ],
+  "meshes": [
+   {
+    "name": "ATT_flashlight_R_Lens",
+    "prims": [
+     {
+      "attrs": [
+       "NORMAL",
+       "POSITION",
+       "TEXCOORD_0"
+      ],
+      "material": "M_ATT_LightLens",
+      "tris": 188,
+      "mode": 4
+     },
+     {
+      "attrs": [
+       "NORMAL",
+       "POSITION",
+       "TEXCOORD_0"
+      ],
+      "material": "M_ATT_LightLED",
+      "tris": 48,
+      "mode": 4
+     }
+    ],
+    "tris": 236
+   },
+   {
+    "name": "ATT_flashlight_R",
+    "prims": [
+     {
+      "attrs": [
+       "NORMAL",
+       "POSITION",
+       "TEXCOORD_0"
+      ],
+      "material": "M_ATT_Graphite",
+      "tris": 464,
+      "mode": 4
+     },
+     {
+      "attrs": [
+       "NORMAL",
+       "POSITION",
+       "TEXCOORD_0"
+      ],
+      "material": "M_ATT_Gunmetal",
+      "tris": 708,
+      "mode": 4
+     },
+     {
+      "attrs": [
+       "NORMAL",
+       "POSITION",
+       "TEXCOORD_0"
+      ],
+      "material": "M_ATT_Rubber",
+      "tris": 72,
+      "mode": 4
+     }
+    ],
+    "tris": 1244
+   }
+  ],
+  "total_tris": 1480,
+  "extensionsUsed": [
+   "KHR_materials_emissive_strength"
+  ]
+ },
+ "ATT_grip_angled.glb": {
+  "bytes": 835768,
+  "gltf_version": "2.0",
+  "generator": "Khronos glTF Blender I/O v5.2.39",
+  "nodes": [
+   {
+    "name": "ATT_grip_angled_SOCKET_LeftHand",
+    "parent": "ATT_grip_angled",
+    "mesh": null,
+    "t": [
+     0,
+     -0.03,
+     0.005
+    ],
+    "r": [
+     0,
+     0,
+     0,
+     1
+    ],
+    "s": [
+     1,
+     1,
+     1
+    ],
+    "extras": null
+   },
+   {
+    "name": "ATT_grip_angled",
+    "parent": null,
+    "mesh": "ATT_grip_angled",
+    "t": [
+     0,
+     0,
+     0
+    ],
+    "r": [
+     0,
+     0,
+     0,
+     1
+    ],
+    "s": [
+     1,
+     1,
+     1
+    ],
+    "extras": null
+   }
+  ],
+  "scene_roots": [
+   "ATT_grip_angled"
+  ],
+  "materials": [
+   {
+    "name": "M_ATT_Graphite",
+    "alphaMode": "OPAQUE",
+    "doubleSided": false,
+    "baseColorFactor": [
+     0.03,
+     0.033,
+     0.04,
+     1
+    ],
+    "baseColorTexture": 0,
+    "mr_tex": null,
+    "metallic": 0.20000000298023224,
+    "roughness": 0.5199999809265137,
+    "emissive": null,
+    "ext": [],
+    "normalTexture": null
+   },
+   {
+    "name": "M_ATT_Gunmetal",
+    "alphaMode": "OPAQUE",
+    "doubleSided": false,
+    "baseColorFactor": [
+     0.11,
+     0.115,
+     0.12,
+     1
+    ],
+    "baseColorTexture": 1,
+    "mr_tex": null,
+    "metallic": 0.8500000238418579,
+    "roughness": 0.3499999940395355,
+    "emissive": null,
+    "ext": [],
+    "normalTexture": null
+   },
+   {
+    "name": "M_ATT_Bone",
+    "alphaMode": "OPAQUE",
+    "doubleSided": false,
+    "baseColorFactor": [
+     0.55,
+     0.52,
+     0.46,
+     1
+    ],
+    "baseColorTexture": 2,
+    "mr_tex": null,
+    "metallic": 0,
+    "roughness": 0.6000000238418579,
+    "emissive": null,
+    "ext": [],
+    "normalTexture": null
+   },
+   {
+    "name": "M_ATT_BoneStipple",
+    "alphaMode": "OPAQUE",
+    "doubleSided": false,
+    "baseColorFactor": [
+     0.44,
+     0.415,
+     0.365,
+     1
+    ],
+    "baseColorTexture": 3,
+    "mr_tex": null,
+    "metallic": 0,
+    "roughness": 0.7799999713897705,
+    "emissive": null,
+    "ext": [],
+    "normalTexture": null
+   }
+  ],
+  "images": [
+   {
+    "name": "att_worn_paint_50",
+    "embedded": true,
+    "uri": null,
+    "mime": "image/png"
+   },
+   {
+    "name": "att_brushed_metal_30",
+    "embedded": true,
+    "uri": null,
+    "mime": "image/png"
+   },
+   {
+    "name": "att_worn_paint_30",
+    "embedded": true,
+    "uri": null,
+    "mime": "image/png"
+   },
+   {
+    "name": "att_polymer_stipple_60",
+    "embedded": true,
+    "uri": null,
+    "mime": "image/png"
+   }
+  ],
+  "textures": [
+   {
+    "sampler": 0,
+    "source": 0
+   },
+   {
+    "sampler": 0,
+    "source": 1
+   },
+   {
+    "sampler": 0,
+    "source": 2
+   },
+   {
+    "sampler": 0,
+    "source": 3
+   }
+  ],
+  "samplers": [
+   {
+    "magFilter": 9729,
+    "minFilter": 9987
+   }
+  ],
+  "meshes": [
+   {
+    "name": "ATT_grip_angled",
+    "prims": [
+     {
+      "attrs": [
+       "NORMAL",
+       "POSITION",
+       "TEXCOORD_0"
+      ],
+      "material": "M_ATT_Graphite",
+      "tris": 328,
+      "mode": 4
+     },
+     {
+      "attrs": [
+       "NORMAL",
+       "POSITION",
+       "TEXCOORD_0"
+      ],
+      "material": "M_ATT_Gunmetal",
+      "tris": 344,
+      "mode": 4
+     },
+     {
+      "attrs": [
+       "NORMAL",
+       "POSITION",
+       "TEXCOORD_0"
+      ],
+      "material": "M_ATT_Bone",
+      "tris": 514,
+      "mode": 4
+     },
+     {
+      "attrs": [
+       "NORMAL",
+       "POSITION",
+       "TEXCOORD_0"
+      ],
+      "material": "M_ATT_BoneStipple",
+      "tris": 162,
+      "mode": 4
+     }
+    ],
+    "tris": 1348
+   }
+  ],
+  "total_tris": 1348,
+  "extensionsUsed": []
+ },
+ "ATT_grip_stub.glb": {
+  "bytes": 816688,
+  "gltf_version": "2.0",
+  "generator": "Khronos glTF Blender I/O v5.2.39",
+  "nodes": [
+   {
+    "name": "ATT_grip_stub_SOCKET_LeftHand",
+    "parent": "ATT_grip_stub",
+    "mesh": null,
+    "t": [
+     0,
+     0.004,
+     -0.045
+    ],
+    "r": [
+     0,
+     0,
+     0,
+     1
+    ],
+    "s": [
+     1,
+     1,
+     1
+    ],
+    "extras": null
+   },
+   {
+    "name": "ATT_grip_stub",
+    "parent": null,
+    "mesh": "ATT_grip_stub",
+    "t": [
+     0,
+     0,
+     0
+    ],
+    "r": [
+     0,
+     0,
+     0,
+     1
+    ],
+    "s": [
+     1,
+     1,
+     1
+    ],
+    "extras": null
+   }
+  ],
+  "scene_roots": [
+   "ATT_grip_stub"
+  ],
+  "materials": [
+   {
+    "name": "M_ATT_Graphite",
+    "alphaMode": "OPAQUE",
+    "doubleSided": false,
+    "baseColorFactor": [
+     0.03,
+     0.033,
+     0.04,
+     1
+    ],
+    "baseColorTexture": 0,
+    "mr_tex": null,
+    "metallic": 0.20000000298023224,
+    "roughness": 0.5199999809265137,
+    "emissive": null,
+    "ext": [],
+    "normalTexture": null
+   },
+   {
+    "name": "M_ATT_Gunmetal",
+    "alphaMode": "OPAQUE",
+    "doubleSided": false,
+    "baseColorFactor": [
+     0.11,
+     0.115,
+     0.12,
+     1
+    ],
+    "baseColorTexture": 1,
+    "mr_tex": null,
+    "metallic": 0.8500000238418579,
+    "roughness": 0.3499999940395355,
+    "emissive": null,
+    "ext": [],
+    "normalTexture": null
+   },
+   {
+    "name": "M_ATT_Bone",
+    "alphaMode": "OPAQUE",
+    "doubleSided": false,
+    "baseColorFactor": [
+     0.55,
+     0.52,
+     0.46,
+     1
+    ],
+    "baseColorTexture": 2,
+    "mr_tex": null,
+    "metallic": 0,
+    "roughness": 0.6000000238418579,
+    "emissive": null,
+    "ext": [],
+    "normalTexture": null
+   },
+   {
+    "name": "M_ATT_BoneStipple",
+    "alphaMode": "OPAQUE",
+    "doubleSided": false,
+    "baseColorFactor": [
+     0.44,
+     0.415,
+     0.365,
+     1
+    ],
+    "baseColorTexture": 3,
+    "mr_tex": null,
+    "metallic": 0,
+    "roughness": 0.7799999713897705,
+    "emissive": null,
+    "ext": [],
+    "normalTexture": null
+   }
+  ],
+  "images": [
+   {
+    "name": "att_worn_paint_50",
+    "embedded": true,
+    "uri": null,
+    "mime": "image/png"
+   },
+   {
+    "name": "att_brushed_metal_30",
+    "embedded": true,
+    "uri": null,
+    "mime": "image/png"
+   },
+   {
+    "name": "att_worn_paint_30",
+    "embedded": true,
+    "uri": null,
+    "mime": "image/png"
+   },
+   {
+    "name": "att_polymer_stipple_60",
+    "embedded": true,
+    "uri": null,
+    "mime": "image/png"
+   }
+  ],
+  "textures": [
+   {
+    "sampler": 0,
+    "source": 0
+   },
+   {
+    "sampler": 0,
+    "source": 1
+   },
+   {
+    "sampler": 0,
+    "source": 2
+   },
+   {
+    "sampler": 0,
+    "source": 3
+   }
+  ],
+  "samplers": [
+   {
+    "magFilter": 9729,
+    "minFilter": 9987
+   }
+  ],
+  "meshes": [
+   {
+    "name": "ATT_grip_stub",
+    "prims": [
+     {
+      "attrs": [
+       "NORMAL",
+       "POSITION",
+       "TEXCOORD_0"
+      ],
+      "material": "M_ATT_Graphite",
+      "tris": 180,
+      "mode": 4
+     },
+     {
+      "attrs": [
+       "NORMAL",
+       "POSITION",
+       "TEXCOORD_0"
+      ],
+      "material": "M_ATT_Gunmetal",
+      "tris": 160,
+      "mode": 4
+     },
+     {
+      "attrs": [
+       "NORMAL",
+       "POSITION",
+       "TEXCOORD_0"
+      ],
+      "material": "M_ATT_Bone",
+      "tris": 436,
+      "mode": 4
+     },
+     {
+      "attrs": [
+       "NORMAL",
+       "POSITION",
+       "TEXCOORD_0"
+      ],
+      "material": "M_ATT_BoneStipple",
+      "tris": 56,
+      "mode": 4
+     }
+    ],
+    "tris": 832
+   }
+  ],
+  "total_tris": 832,
+  "extensionsUsed": []
+ },
+ "ATT_grip_vertical.glb": {
+  "bytes": 837348,
+  "gltf_version": "2.0",
+  "generator": "Khronos glTF Blender I/O v5.2.39",
+  "nodes": [
+   {
+    "name": "ATT_grip_vertical_SOCKET_LeftHand",
+    "parent": "ATT_grip_vertical",
+    "mesh": null,
+    "t": [
+     0,
+     -0.058,
+     0.022
+    ],
+    "r": [
+     0,
+     0,
+     0,
+     1
+    ],
+    "s": [
+     1,
+     1,
+     1
+    ],
+    "extras": null
+   },
+   {
+    "name": "ATT_grip_vertical",
+    "parent": null,
+    "mesh": "ATT_grip_vertical",
+    "t": [
+     0,
+     0,
+     0
+    ],
+    "r": [
+     0,
+     0,
+     0,
+     1
+    ],
+    "s": [
+     1,
+     1,
+     1
+    ],
+    "extras": null
+   }
+  ],
+  "scene_roots": [
+   "ATT_grip_vertical"
+  ],
+  "materials": [
+   {
+    "name": "M_ATT_Graphite",
+    "alphaMode": "OPAQUE",
+    "doubleSided": false,
+    "baseColorFactor": [
+     0.03,
+     0.033,
+     0.04,
+     1
+    ],
+    "baseColorTexture": 0,
+    "mr_tex": null,
+    "metallic": 0.20000000298023224,
+    "roughness": 0.5199999809265137,
+    "emissive": null,
+    "ext": [],
+    "normalTexture": null
+   },
+   {
+    "name": "M_ATT_Gunmetal",
+    "alphaMode": "OPAQUE",
+    "doubleSided": false,
+    "baseColorFactor": [
+     0.11,
+     0.115,
+     0.12,
+     1
+    ],
+    "baseColorTexture": 1,
+    "mr_tex": null,
+    "metallic": 0.8500000238418579,
+    "roughness": 0.3499999940395355,
+    "emissive": null,
+    "ext": [],
+    "normalTexture": null
+   },
+   {
+    "name": "M_ATT_Bone",
+    "alphaMode": "OPAQUE",
+    "doubleSided": false,
+    "baseColorFactor": [
+     0.55,
+     0.52,
+     0.46,
+     1
+    ],
+    "baseColorTexture": 2,
+    "mr_tex": null,
+    "metallic": 0,
+    "roughness": 0.6000000238418579,
+    "emissive": null,
+    "ext": [],
+    "normalTexture": null
+   },
+   {
+    "name": "M_ATT_BoneStipple",
+    "alphaMode": "OPAQUE",
+    "doubleSided": false,
+    "baseColorFactor": [
+     0.44,
+     0.415,
+     0.365,
+     1
+    ],
+    "baseColorTexture": 3,
+    "mr_tex": null,
+    "metallic": 0,
+    "roughness": 0.7799999713897705,
+    "emissive": null,
+    "ext": [],
+    "normalTexture": null
+   }
+  ],
+  "images": [
+   {
+    "name": "att_worn_paint_50",
+    "embedded": true,
+    "uri": null,
+    "mime": "image/png"
+   },
+   {
+    "name": "att_brushed_metal_30",
+    "embedded": true,
+    "uri": null,
+    "mime": "image/png"
+   },
+   {
+    "name": "att_worn_paint_30",
+    "embedded": true,
+    "uri": null,
+    "mime": "image/png"
+   },
+   {
+    "name": "att_polymer_stipple_60",
+    "embedded": true,
+    "uri": null,
+    "mime": "image/png"
+   }
+  ],
+  "textures": [
+   {
+    "sampler": 0,
+    "source": 0
+   },
+   {
+    "sampler": 0,
+    "source": 1
+   },
+   {
+    "sampler": 0,
+    "source": 2
+   },
+   {
+    "sampler": 0,
+    "source": 3
+   }
+  ],
+  "samplers": [
+   {
+    "magFilter": 9729,
+    "minFilter": 9987
+   }
+  ],
+  "meshes": [
+   {
+    "name": "ATT_grip_vertical",
+    "prims": [
+     {
+      "attrs": [
+       "NORMAL",
+       "POSITION",
+       "TEXCOORD_0"
+      ],
+      "material": "M_ATT_Graphite",
+      "tris": 320,
+      "mode": 4
+     },
+     {
+      "attrs": [
+       "NORMAL",
+       "POSITION",
+       "TEXCOORD_0"
+      ],
+      "material": "M_ATT_Gunmetal",
+      "tris": 344,
+      "mode": 4
+     },
+     {
+      "attrs": [
+       "NORMAL",
+       "POSITION",
+       "TEXCOORD_0"
+      ],
+      "material": "M_ATT_Bone",
+      "tris": 449,
+      "mode": 4
+     },
+     {
+      "attrs": [
+       "NORMAL",
+       "POSITION",
+       "TEXCOORD_0"
+      ],
+      "material": "M_ATT_BoneStipple",
+      "tris": 225,
+      "mode": 4
+     }
+    ],
+    "tris": 1338
+   }
+  ],
+  "total_tris": 1338,
+  "extensionsUsed": []
+ },
+ "ATT_laser_L.glb": {
+  "bytes": 405096,
+  "gltf_version": "2.0",
+  "generator": "Khronos glTF Blender I/O v5.2.39",
+  "nodes": [
+   {
+    "name": "ATT_laser_L_Emitter",
+    "parent": "ATT_laser_L",
+    "mesh": "ATT_laser_L_Emitter",
+    "t": [
+     0,
+     0,
+     0
+    ],
+    "r": [
+     0,
+     0,
+     0,
+     1
+    ],
+    "s": [
+     1,
+     1,
+     1
+    ],
+    "extras": null
+   },
+   {
+    "name": "ATT_laser_L_SOCKET_Beam",
+    "parent": "ATT_laser_L",
+    "mesh": null,
+    "t": [
+     0.0205,
+     -0.0105,
+     0.0352
+    ],
+    "r": [
+     0,
+     0,
+     0,
+     1
+    ],
+    "s": [
+     1,
+     1,
+     1
+    ],
+    "extras": null
+   },
+   {
+    "name": "ATT_laser_L",
+    "parent": null,
+    "mesh": "ATT_laser_L",
+    "t": [
+     0,
+     0,
+     0
+    ],
+    "r": [
+     0,
+     0,
+     0,
+     1
+    ],
+    "s": [
+     1,
+     1,
+     1
+    ],
+    "extras": null
+   }
+  ],
+  "scene_roots": [
+   "ATT_laser_L"
+  ],
+  "materials": [
+   {
+    "name": "M_ATT_LaserEmitter",
+    "alphaMode": "OPAQUE",
+    "doubleSided": false,
+    "baseColorFactor": [
+     0.35,
+     0.01,
+     0.008,
+     1
+    ],
+    "baseColorTexture": null,
+    "mr_tex": null,
+    "metallic": 0,
+    "roughness": 0.25,
+    "emissive": [
+     1,
+     0.014999999664723873,
+     0.00800000037997961
+    ],
+    "ext": [
+     "KHR_materials_emissive_strength"
+    ],
+    "normalTexture": null
+   },
+   {
+    "name": "M_ATT_Graphite",
+    "alphaMode": "OPAQUE",
+    "doubleSided": false,
+    "baseColorFactor": [
+     0.03,
+     0.033,
+     0.04,
+     1
+    ],
+    "baseColorTexture": 0,
+    "mr_tex": null,
+    "metallic": 0.20000000298023224,
+    "roughness": 0.5199999809265137,
+    "emissive": null,
+    "ext": [],
+    "normalTexture": null
+   },
+   {
+    "name": "M_ATT_Gunmetal",
+    "alphaMode": "OPAQUE",
+    "doubleSided": false,
+    "baseColorFactor": [
+     0.11,
+     0.115,
+     0.12,
+     1
+    ],
+    "baseColorTexture": 1,
+    "mr_tex": null,
+    "metallic": 0.8500000238418579,
+    "roughness": 0.3499999940395355,
+    "emissive": null,
+    "ext": [],
+    "normalTexture": null
+   },
+   {
+    "name": "M_ATT_IRWindow",
+    "alphaMode": "OPAQUE",
+    "doubleSided": false,
+    "baseColorFactor": [
+     0.04,
+     0.01,
+     0.03,
+     1
+    ],
+    "baseColorTexture": null,
+    "mr_tex": null,
+    "metallic": 0,
+    "roughness": 0.05999999865889549,
+    "emissive": null,
+    "ext": [
+     "KHR_materials_clearcoat"
+    ],
+    "normalTexture": null
+   },
+   {
+    "name": "M_ATT_Rubber",
+    "alphaMode": "OPAQUE",
+    "doubleSided": false,
+    "baseColorFactor": [
+     0.022,
+     0.024,
+     0.028,
+     1
+    ],
+    "baseColorTexture": null,
+    "mr_tex": null,
+    "metallic": 0,
+    "roughness": 0.8799999952316284,
+    "emissive": null,
+    "ext": [],
+    "normalTexture": null
+   }
+  ],
+  "images": [
+   {
+    "name": "att_worn_paint_50",
+    "embedded": true,
+    "uri": null,
+    "mime": "image/png"
+   },
+   {
+    "name": "att_brushed_metal_30",
+    "embedded": true,
+    "uri": null,
+    "mime": "image/png"
+   }
+  ],
+  "textures": [
+   {
+    "sampler": 0,
+    "source": 0
+   },
+   {
+    "sampler": 0,
+    "source": 1
+   }
+  ],
+  "samplers": [
+   {
+    "magFilter": 9729,
+    "minFilter": 9987
+   }
+  ],
+  "meshes": [
+   {
+    "name": "ATT_laser_L_Emitter",
+    "prims": [
+     {
+      "attrs": [
+       "NORMAL",
+       "POSITION",
+       "TEXCOORD_0"
+      ],
+      "material": "M_ATT_LaserEmitter",
+      "tris": 44,
+      "mode": 4
+     }
+    ],
+    "tris": 44
+   },
+   {
+    "name": "ATT_laser_L",
+    "prims": [
+     {
+      "attrs": [
+       "NORMAL",
+       "POSITION",
+       "TEXCOORD_0"
+      ],
+      "material": "M_ATT_Graphite",
+      "tris": 404,
+      "mode": 4
+     },
+     {
+      "attrs": [
+       "NORMAL",
+       "POSITION",
+       "TEXCOORD_0"
+      ],
+      "material": "M_ATT_Gunmetal",
+      "tris": 556,
+      "mode": 4
+     },
+     {
+      "attrs": [
+       "NORMAL",
+       "POSITION",
+       "TEXCOORD_0"
+      ],
+      "material": "M_ATT_IRWindow",
+      "tris": 68,
+      "mode": 4
+     },
+     {
+      "attrs": [
+       "NORMAL",
+       "POSITION",
+       "TEXCOORD_0"
+      ],
+      "material": "M_ATT_Rubber",
+      "tris": 184,
+      "mode": 4
+     }
+    ],
+    "tris": 1212
+   }
+  ],
+  "total_tris": 1256,
+  "extensionsUsed": [
+   "KHR_materials_clearcoat",
+   "KHR_materials_emissive_strength"
+  ]
+ },
+ "ATT_laser_R.glb": {
+  "bytes": 404944,
+  "gltf_version": "2.0",
+  "generator": "Khronos glTF Blender I/O v5.2.39",
+  "nodes": [
+   {
+    "name": "ATT_laser_R_Emitter",
+    "parent": "ATT_laser_R",
+    "mesh": "ATT_laser_R_Emitter",
+    "t": [
+     0,
+     0,
+     0
+    ],
+    "r": [
+     0,
+     0,
+     0,
+     1
+    ],
+    "s": [
+     1,
+     1,
+     1
+    ],
+    "extras": null
+   },
+   {
+    "name": "ATT_laser_R_SOCKET_Beam",
+    "parent": "ATT_laser_R",
+    "mesh": null,
+    "t": [
+     -0.0205,
+     -0.0105,
+     0.0352
+    ],
+    "r": [
+     0,
+     0,
+     0,
+     1
+    ],
+    "s": [
+     1,
+     1,
+     1
+    ],
+    "extras": null
+   },
+   {
+    "name": "ATT_laser_R",
+    "parent": null,
+    "mesh": "ATT_laser_R",
+    "t": [
+     0,
+     0,
+     0
+    ],
+    "r": [
+     0,
+     0,
+     0,
+     1
+    ],
+    "s": [
+     1,
+     1,
+     1
+    ],
+    "extras": null
+   }
+  ],
+  "scene_roots": [
+   "ATT_laser_R"
+  ],
+  "materials": [
+   {
+    "name": "M_ATT_LaserEmitter",
+    "alphaMode": "OPAQUE",
+    "doubleSided": false,
+    "baseColorFactor": [
+     0.35,
+     0.01,
+     0.008,
+     1
+    ],
+    "baseColorTexture": null,
+    "mr_tex": null,
+    "metallic": 0,
+    "roughness": 0.25,
+    "emissive": [
+     1,
+     0.014999999664723873,
+     0.00800000037997961
+    ],
+    "ext": [
+     "KHR_materials_emissive_strength"
+    ],
+    "normalTexture": null
+   },
+   {
+    "name": "M_ATT_Graphite",
+    "alphaMode": "OPAQUE",
+    "doubleSided": false,
+    "baseColorFactor": [
+     0.03,
+     0.033,
+     0.04,
+     1
+    ],
+    "baseColorTexture": 0,
+    "mr_tex": null,
+    "metallic": 0.20000000298023224,
+    "roughness": 0.5199999809265137,
+    "emissive": null,
+    "ext": [],
+    "normalTexture": null
+   },
+   {
+    "name": "M_ATT_Gunmetal",
+    "alphaMode": "OPAQUE",
+    "doubleSided": false,
+    "baseColorFactor": [
+     0.11,
+     0.115,
+     0.12,
+     1
+    ],
+    "baseColorTexture": 1,
+    "mr_tex": null,
+    "metallic": 0.8500000238418579,
+    "roughness": 0.3499999940395355,
+    "emissive": null,
+    "ext": [],
+    "normalTexture": null
+   },
+   {
+    "name": "M_ATT_IRWindow",
+    "alphaMode": "OPAQUE",
+    "doubleSided": false,
+    "baseColorFactor": [
+     0.04,
+     0.01,
+     0.03,
+     1
+    ],
+    "baseColorTexture": null,
+    "mr_tex": null,
+    "metallic": 0,
+    "roughness": 0.05999999865889549,
+    "emissive": null,
+    "ext": [
+     "KHR_materials_clearcoat"
+    ],
+    "normalTexture": null
+   },
+   {
+    "name": "M_ATT_Rubber",
+    "alphaMode": "OPAQUE",
+    "doubleSided": false,
+    "baseColorFactor": [
+     0.022,
+     0.024,
+     0.028,
+     1
+    ],
+    "baseColorTexture": null,
+    "mr_tex": null,
+    "metallic": 0,
+    "roughness": 0.8799999952316284,
+    "emissive": null,
+    "ext": [],
+    "normalTexture": null
+   }
+  ],
+  "images": [
+   {
+    "name": "att_worn_paint_50",
+    "embedded": true,
+    "uri": null,
+    "mime": "image/png"
+   },
+   {
+    "name": "att_brushed_metal_30",
+    "embedded": true,
+    "uri": null,
+    "mime": "image/png"
+   }
+  ],
+  "textures": [
+   {
+    "sampler": 0,
+    "source": 0
+   },
+   {
+    "sampler": 0,
+    "source": 1
+   }
+  ],
+  "samplers": [
+   {
+    "magFilter": 9729,
+    "minFilter": 9987
+   }
+  ],
+  "meshes": [
+   {
+    "name": "ATT_laser_R_Emitter",
+    "prims": [
+     {
+      "attrs": [
+       "NORMAL",
+       "POSITION",
+       "TEXCOORD_0"
+      ],
+      "material": "M_ATT_LaserEmitter",
+      "tris": 44,
+      "mode": 4
+     }
+    ],
+    "tris": 44
+   },
+   {
+    "name": "ATT_laser_R",
+    "prims": [
+     {
+      "attrs": [
+       "NORMAL",
+       "POSITION",
+       "TEXCOORD_0"
+      ],
+      "material": "M_ATT_Graphite",
+      "tris": 404,
+      "mode": 4
+     },
+     {
+      "attrs": [
+       "NORMAL",
+       "POSITION",
+       "TEXCOORD_0"
+      ],
+      "material": "M_ATT_Gunmetal",
+      "tris": 556,
+      "mode": 4
+     },
+     {
+      "attrs": [
+       "NORMAL",
+       "POSITION",
+       "TEXCOORD_0"
+      ],
+      "material": "M_ATT_IRWindow",
+      "tris": 68,
+      "mode": 4
+     },
+     {
+      "attrs": [
+       "NORMAL",
+       "POSITION",
+       "TEXCOORD_0"
+      ],
+      "material": "M_ATT_Rubber",
+      "tris": 184,
+      "mode": 4
+     }
+    ],
+    "tris": 1212
+   }
+  ],
+  "total_tris": 1256,
+  "extensionsUsed": [
+   "KHR_materials_clearcoat",
+   "KHR_materials_emissive_strength"
+  ]
+ },
+ "ATT_shield_front.glb": {
+  "bytes": 472572,
+  "gltf_version": "2.0",
+  "generator": "Khronos glTF Blender I/O v5.2.39",
+  "nodes": [
+   {
+    "name": "ATT_shield_front_Glass",
+    "parent": "ATT_shield_front",
+    "mesh": "ATT_shield_front_Glass",
+    "t": [
+     0,
+     0,
+     0
+    ],
+    "r": [
+     0,
+     0,
+     0,
+     1
+    ],
+    "s": [
+     1,
+     1,
+     1
+    ],
+    "extras": null
+   },
+   {
+    "name": "ATT_shield_front",
+    "parent": null,
+    "mesh": "ATT_shield_front",
+    "t": [
+     0,
+     0,
+     0
+    ],
+    "r": [
+     0,
+     0,
+     0,
+     1
+    ],
+    "s": [
+     1,
+     1,
+     1
+    ],
+    "extras": null
+   }
+  ],
+  "scene_roots": [
+   "ATT_shield_front"
+  ],
+  "materials": [
+   {
+    "name": "M_ATT_ShieldGlass",
+    "alphaMode": "BLEND",
+    "doubleSided": false,
+    "baseColorFactor": [
+     0.24,
+     0.5,
+     0.85,
+     0.4
+    ],
+    "baseColorTexture": null,
+    "mr_tex": null,
+    "metallic": 0,
+    "roughness": 0.05000000074505806,
+    "emissive": null,
+    "ext": [],
+    "normalTexture": null
+   },
+   {
+    "name": "M_ATT_Graphite",
+    "alphaMode": "OPAQUE",
+    "doubleSided": false,
+    "baseColorFactor": [
+     0.03,
+     0.033,
+     0.04,
+     1
+    ],
+    "baseColorTexture": 0,
+    "mr_tex": null,
+    "metallic": 0.20000000298023224,
+    "roughness": 0.5199999809265137,
+    "emissive": null,
+    "ext": [],
+    "normalTexture": null
+   },
+   {
+    "name": "M_ATT_Gunmetal",
+    "alphaMode": "OPAQUE",
+    "doubleSided": false,
+    "baseColorFactor": [
+     0.11,
+     0.115,
+     0.12,
+     1
+    ],
+    "baseColorTexture": 1,
+    "mr_tex": null,
+    "metallic": 0.8500000238418579,
+    "roughness": 0.3499999940395355,
+    "emissive": null,
+    "ext": [],
+    "normalTexture": null
+   }
+  ],
+  "images": [
+   {
+    "name": "att_worn_paint_50",
+    "embedded": true,
+    "uri": null,
+    "mime": "image/png"
+   },
+   {
+    "name": "att_brushed_metal_30",
+    "embedded": true,
+    "uri": null,
+    "mime": "image/png"
+   }
+  ],
+  "textures": [
+   {
+    "sampler": 0,
+    "source": 0
+   },
+   {
+    "sampler": 0,
+    "source": 1
+   }
+  ],
+  "samplers": [
+   {
+    "magFilter": 9729,
+    "minFilter": 9987
+   }
+  ],
+  "meshes": [
+   {
+    "name": "ATT_shield_front_Glass",
+    "prims": [
+     {
+      "attrs": [
+       "NORMAL",
+       "POSITION",
+       "TEXCOORD_0"
+      ],
+      "material": "M_ATT_ShieldGlass",
+      "tris": 92,
+      "mode": 4
+     }
+    ],
+    "tris": 92
+   },
+   {
+    "name": "ATT_shield_front",
+    "prims": [
+     {
+      "attrs": [
+       "NORMAL",
+       "POSITION",
+       "TEXCOORD_0"
+      ],
+      "material": "M_ATT_Graphite",
+      "tris": 1796,
+      "mode": 4
+     },
+     {
+      "attrs": [
+       "NORMAL",
+       "POSITION",
+       "TEXCOORD_0"
+      ],
+      "material": "M_ATT_Gunmetal",
+      "tris": 952,
+      "mode": 4
+     }
+    ],
+    "tris": 2748
+   }
+  ],
+  "total_tris": 2840,
+  "extensionsUsed": []
+ },
+ "ATT_ugl_launcher.glb": {
+  "bytes": 989108,
+  "gltf_version": "2.0",
+  "generator": "Khronos glTF Blender I/O v5.2.39",
+  "nodes": [
+   {
+    "name": "ATT_ugl_launcher_SOCKET_Muzzle",
+    "parent": "ATT_ugl_launcher_Breech",
+    "mesh": null,
+    "t": [
+     0.0365,
+     0,
+     0.0905
+    ],
+    "r": [
+     0,
+     0,
+     0,
+     1
+    ],
+    "s": [
+     1,
+     1,
+     1
+    ],
+    "extras": null
+   },
+   {
+    "name": "ATT_ugl_launcher_Breech",
+    "parent": "ATT_ugl_launcher",
+    "mesh": "ATT_ugl_launcher_Breech",
+    "t": [
+     -0.0365,
+     -0.0615,
+     0.08
+    ],
+    "r": [
+     0,
+     0,
+     0,
+     1
+    ],
+    "s": [
+     1,
+     1,
+     1
+    ],
+    "extras": {
+     "hinge_axis": "local Z (vertical pin at the shooter's right front)",
+     "open_angle_deg": -40.0,
+     "closed_angle_deg": 0.0,
+     "note": "rotate about local Z by open_angle_deg: the breech end swings out to the shooter's LEFT (+X); every point of the tube moves forward, away from the breech face"
+    }
+   },
+   {
+    "name": "ATT_ugl_launcher_SOCKET_LeftHand",
+    "parent": "ATT_ugl_launcher",
+    "mesh": null,
+    "t": [
+     0,
+     -0.1,
+     -0.117
+    ],
+    "r": [
+     0,
+     0,
+     0,
+     1
+    ],
+    "s": [
+     1,
+     1,
+     1
+    ],
+    "extras": null
+   },
+   {
+    "name": "ATT_ugl_launcher_Trigger",
+    "parent": "ATT_ugl_launcher",
+    "mesh": "ATT_ugl_launcher_Trigger",
+    "t": [
+     0,
+     -0.056,
+     -0.056
+    ],
+    "r": [
+     0,
+     0,
+     0,
+     1
+    ],
+    "s": [
+     1,
+     1,
+     1
+    ],
+    "extras": {
+     "pivot_axis": "local X",
+     "pull_angle_deg": 12.0
+    }
+   },
+   {
+    "name": "ATT_ugl_launcher",
+    "parent": null,
+    "mesh": "ATT_ugl_launcher",
+    "t": [
+     0,
+     0,
+     0
+    ],
+    "r": [
+     0,
+     0,
+     0,
+     1
+    ],
+    "s": [
+     1,
+     1,
+     1
+    ],
+    "extras": null
+   }
+  ],
+  "scene_roots": [
+   "ATT_ugl_launcher"
+  ],
+  "materials": [
+   {
+    "name": "M_ATT_Gunmetal",
+    "alphaMode": "OPAQUE",
+    "doubleSided": false,
+    "baseColorFactor": [
+     0.11,
+     0.115,
+     0.12,
+     1
+    ],
+    "baseColorTexture": 0,
+    "mr_tex": null,
+    "metallic": 0.8500000238418579,
+    "roughness": 0.3499999940395355,
+    "emissive": null,
+    "ext": [],
+    "normalTexture": null
+   },
+   {
+    "name": "M_ATT_Bore",
+    "alphaMode": "OPAQUE",
+    "doubleSided": false,
+    "baseColorFactor": [
+     0.012,
+     0.012,
+     0.014,
+     1
+    ],
+    "baseColorTexture": null,
+    "mr_tex": null,
+    "metallic": 0.30000001192092896,
+    "roughness": 0.6499999761581421,
+    "emissive": null,
+    "ext": [],
+    "normalTexture": null
+   },
+   {
+    "name": "M_ATT_Graphite",
+    "alphaMode": "OPAQUE",
+    "doubleSided": false,
+    "baseColorFactor": [
+     0.03,
+     0.033,
+     0.04,
+     1
+    ],
+    "baseColorTexture": 1,
+    "mr_tex": null,
+    "metallic": 0.20000000298023224,
+    "roughness": 0.5199999809265137,
+    "emissive": null,
+    "ext": [],
+    "normalTexture": null
+   },
+   {
+    "name": "M_ATT_Bone",
+    "alphaMode": "OPAQUE",
+    "doubleSided": false,
+    "baseColorFactor": [
+     0.55,
+     0.52,
+     0.46,
+     1
+    ],
+    "baseColorTexture": 2,
+    "mr_tex": null,
+    "metallic": 0,
+    "roughness": 0.6000000238418579,
+    "emissive": null,
+    "ext": [],
+    "normalTexture": null
+   },
+   {
+    "name": "M_ATT_BoneStipple",
+    "alphaMode": "OPAQUE",
+    "doubleSided": false,
+    "baseColorFactor": [
+     0.44,
+     0.415,
+     0.365,
+     1
+    ],
+    "baseColorTexture": 3,
+    "mr_tex": null,
+    "metallic": 0,
+    "roughness": 0.7799999713897705,
+    "emissive": null,
+    "ext": [],
+    "normalTexture": null
+   }
+  ],
+  "images": [
+   {
+    "name": "att_brushed_metal_30",
+    "embedded": true,
+    "uri": null,
+    "mime": "image/png"
+   },
+   {
+    "name": "att_worn_paint_50",
+    "embedded": true,
+    "uri": null,
+    "mime": "image/png"
+   },
+   {
+    "name": "att_worn_paint_30",
+    "embedded": true,
+    "uri": null,
+    "mime": "image/png"
+   },
+   {
+    "name": "att_polymer_stipple_60",
+    "embedded": true,
+    "uri": null,
+    "mime": "image/png"
+   }
+  ],
+  "textures": [
+   {
+    "sampler": 0,
+    "source": 0
+   },
+   {
+    "sampler": 0,
+    "source": 1
+   },
+   {
+    "sampler": 0,
+    "source": 2
+   },
+   {
+    "sampler": 0,
+    "source": 3
+   }
+  ],
+  "samplers": [
+   {
+    "magFilter": 9729,
+    "minFilter": 9987
+   }
+  ],
+  "meshes": [
+   {
+    "name": "ATT_ugl_launcher_Breech",
+    "prims": [
+     {
+      "attrs": [
+       "NORMAL",
+       "POSITION",
+       "TEXCOORD_0"
+      ],
+      "material": "M_ATT_Gunmetal",
+      "tris": 960,
+      "mode": 4
+     },
+     {
+      "attrs": [
+       "NORMAL",
+       "POSITION",
+       "TEXCOORD_0"
+      ],
+      "material": "M_ATT_Bore",
+      "tris": 120,
+      "mode": 4
+     },
+     {
+      "attrs": [
+       "NORMAL",
+       "POSITION",
+       "TEXCOORD_0"
+      ],
+      "material": "M_ATT_Graphite",
+      "tris": 284,
+      "mode": 4
+     }
+    ],
+    "tris": 1364
+   },
+   {
+    "name": "ATT_ugl_launcher_Trigger",
+    "prims": [
+     {
+      "attrs": [
+       "NORMAL",
+       "POSITION",
+       "TEXCOORD_0"
+      ],
+      "material": "M_ATT_Gunmetal",
+      "tris": 84,
+      "mode": 4
+     }
+    ],
+    "tris": 84
+   },
+   {
+    "name": "ATT_ugl_launcher",
+    "prims": [
+     {
+      "attrs": [
+       "NORMAL",
+       "POSITION",
+       "TEXCOORD_0"
+      ],
+      "material": "M_ATT_Graphite",
+      "tris": 1092,
+      "mode": 4
+     },
+     {
+      "attrs": [
+       "NORMAL",
+       "POSITION",
+       "TEXCOORD_0"
+      ],
+      "material": "M_ATT_Gunmetal",
+      "tris": 1436,
+      "mode": 4
+     },
+     {
+      "attrs": [
+       "NORMAL",
+       "POSITION",
+       "TEXCOORD_0"
+      ],
+      "material": "M_ATT_Bone",
+      "tris": 996,
+      "mode": 4
+     },
+     {
+      "attrs": [
+       "NORMAL",
+       "POSITION",
+       "TEXCOORD_0"
+      ],
+      "material": "M_ATT_BoneStipple",
+      "tris": 88,
+      "mode": 4
+     }
+    ],
+    "tris": 3612
+   }
+  ],
+  "total_tris": 5060,
+  "extensionsUsed": []
+ }
+}

@@ -1,0 +1,1837 @@
+{
+ "exports": {
+  "grip_vertical": {
+   "nodes": {
+    "ATT_grip_vertical": {
+     "type": "MESH",
+     "parent": null,
+     "loc_local": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "rot_local_deg": [
+      0.0,
+      -0.0,
+      0.0
+     ],
+     "loc_world": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "tris": 1338,
+     "uv": [
+      "UVMap"
+     ],
+     "mats": [
+      "M_ATT_Graphite",
+      "M_ATT_Gunmetal",
+      "M_ATT_Bone",
+      "M_ATT_BoneStipple"
+     ],
+     "custom_normals": true
+    },
+    "ATT_grip_vertical_SOCKET_LeftHand": {
+     "type": "EMPTY",
+     "parent": "ATT_grip_vertical",
+     "loc_local": [
+      0.0,
+      -0.022,
+      -0.058
+     ],
+     "rot_local_deg": [
+      0.0,
+      -0.0,
+      0.0
+     ],
+     "loc_world": [
+      0.0,
+      -0.022,
+      -0.058
+     ]
+    }
+   },
+   "total_tris": 1338,
+   "bounds": [
+    [
+     -0.0171,
+     -0.03965,
+     -0.108
+    ],
+    [
+     0.0175,
+     0.034,
+     0.0083
+    ]
+   ],
+   "size": [
+    0.0346,
+    0.07365,
+    0.1163
+   ],
+   "topology": {
+    "open_edges": 0,
+    "nonmanifold_edges": 0,
+    "loose_verts": 0,
+    "zero_area_faces": 0,
+    "sliver_tris_aspect_gt_60": 46
+   }
+  },
+  "grip_angled": {
+   "nodes": {
+    "ATT_grip_angled": {
+     "type": "MESH",
+     "parent": null,
+     "loc_local": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "rot_local_deg": [
+      0.0,
+      -0.0,
+      0.0
+     ],
+     "loc_world": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "tris": 1348,
+     "uv": [
+      "UVMap"
+     ],
+     "mats": [
+      "M_ATT_Graphite",
+      "M_ATT_Gunmetal",
+      "M_ATT_Bone",
+      "M_ATT_BoneStipple"
+     ],
+     "custom_normals": true
+    },
+    "ATT_grip_angled_SOCKET_LeftHand": {
+     "type": "EMPTY",
+     "parent": "ATT_grip_angled",
+     "loc_local": [
+      0.0,
+      -0.005,
+      -0.03
+     ],
+     "rot_local_deg": [
+      0.0,
+      -0.0,
+      0.0
+     ],
+     "loc_world": [
+      0.0,
+      -0.005,
+      -0.03
+     ]
+    }
+   },
+   "total_tris": 1348,
+   "bounds": [
+    [
+     -0.0171,
+     -0.0545,
+     -0.06191
+    ],
+    [
+     0.0175,
+     0.05,
+     0.0083
+    ]
+   ],
+   "size": [
+    0.0346,
+    0.1045,
+    0.07021
+   ],
+   "topology": {
+    "open_edges": 0,
+    "nonmanifold_edges": 0,
+    "loose_verts": 0,
+    "zero_area_faces": 2,
+    "sliver_tris_aspect_gt_60": 98
+   }
+  },
+  "grip_stub": {
+   "nodes": {
+    "ATT_grip_stub": {
+     "type": "MESH",
+     "parent": null,
+     "loc_local": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "rot_local_deg": [
+      0.0,
+      -0.0,
+      0.0
+     ],
+     "loc_world": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "tris": 832,
+     "uv": [
+      "UVMap"
+     ],
+     "mats": [
+      "M_ATT_Graphite",
+      "M_ATT_Gunmetal",
+      "M_ATT_Bone",
+      "M_ATT_BoneStipple"
+     ],
+     "custom_normals": true
+    },
+    "ATT_grip_stub_SOCKET_LeftHand": {
+     "type": "EMPTY",
+     "parent": "ATT_grip_stub",
+     "loc_local": [
+      0.0,
+      0.045,
+      0.004
+     ],
+     "rot_local_deg": [
+      0.0,
+      -0.0,
+      0.0
+     ],
+     "loc_world": [
+      0.0,
+      0.045,
+      0.004
+     ]
+    }
+   },
+   "total_tris": 832,
+   "bounds": [
+    [
+     -0.0171,
+     -0.02575,
+     -0.0365
+    ],
+    [
+     0.0175,
+     0.024,
+     0.0083
+    ]
+   ],
+   "size": [
+    0.0346,
+    0.04975,
+    0.0448
+   ],
+   "topology": {
+    "open_edges": 0,
+    "nonmanifold_edges": 0,
+    "loose_verts": 0,
+    "zero_area_faces": 0,
+    "sliver_tris_aspect_gt_60": 62
+   }
+  },
+  "ugl_launcher": {
+   "nodes": {
+    "ATT_ugl_launcher": {
+     "type": "MESH",
+     "parent": null,
+     "loc_local": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "rot_local_deg": [
+      0.0,
+      -0.0,
+      0.0
+     ],
+     "loc_world": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "tris": 4294,
+     "uv": [
+      "UVMap"
+     ],
+     "mats": [
+      "M_ATT_Graphite",
+      "M_ATT_Gunmetal",
+      "M_ATT_Bone",
+      "M_ATT_BoneStipple"
+     ],
+     "custom_normals": true
+    },
+    "ATT_ugl_launcher_Breech": {
+     "type": "MESH",
+     "parent": "ATT_ugl_launcher",
+     "loc_local": [
+      -0.0365,
+      -0.074,
+      -0.0615
+     ],
+     "rot_local_deg": [
+      0.0,
+      -0.0,
+      0.0
+     ],
+     "loc_world": [
+      -0.0365,
+      -0.074,
+      -0.0615
+     ],
+     "tris": 1444,
+     "uv": [
+      "UVMap"
+     ],
+     "mats": [
+      "M_ATT_Gunmetal",
+      "M_ATT_Bore",
+      "M_ATT_Graphite"
+     ],
+     "custom_normals": true
+    },
+    "ATT_ugl_launcher_SOCKET_LeftHand": {
+     "type": "EMPTY",
+     "parent": "ATT_ugl_launcher",
+     "loc_local": [
+      0.0,
+      0.0985,
+      -0.1
+     ],
+     "rot_local_deg": [
+      0.0,
+      -0.0,
+      0.0
+     ],
+     "loc_world": [
+      0.0,
+      0.0985,
+      -0.1
+     ]
+    },
+    "ATT_ugl_launcher_SOCKET_Muzzle": {
+     "type": "EMPTY",
+     "parent": "ATT_ugl_launcher_Breech",
+     "loc_local": [
+      0.0365,
+      -0.076,
+      0.0
+     ],
+     "rot_local_deg": [
+      0.0,
+      -0.0,
+      0.0
+     ],
+     "loc_world": [
+      0.0,
+      -0.15,
+      -0.0615
+     ]
+    },
+    "ATT_ugl_launcher_Trigger": {
+     "type": "MESH",
+     "parent": "ATT_ugl_launcher",
+     "loc_local": [
+      0.0,
+      0.0335,
+      -0.056
+     ],
+     "rot_local_deg": [
+      0.0,
+      -0.0,
+      0.0
+     ],
+     "loc_world": [
+      0.0,
+      0.0335,
+      -0.056
+     ],
+     "tris": 84,
+     "uv": [
+      "UVMap"
+     ],
+     "mats": [
+      "M_ATT_Gunmetal"
+     ],
+     "custom_normals": true
+    }
+   },
+   "total_tris": 5822,
+   "bounds": [
+    [
+     -0.0425,
+     -0.15,
+     -0.16848
+    ],
+    [
+     0.0345,
+     0.13576,
+     0.0083
+    ]
+   ],
+   "size": [
+    0.077,
+    0.28576,
+    0.17678
+   ],
+   "topology": {
+    "open_edges": 0,
+    "nonmanifold_edges": 0,
+    "loose_verts": 0,
+    "zero_area_faces": 1,
+    "sliver_tris_aspect_gt_60": 272
+   }
+  },
+  "bipod": {
+   "nodes": {
+    "ATT_bipod": {
+     "type": "MESH",
+     "parent": null,
+     "loc_local": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "rot_local_deg": [
+      0.0,
+      -0.0,
+      0.0
+     ],
+     "loc_world": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "tris": 1492,
+     "uv": [
+      "UVMap"
+     ],
+     "mats": [
+      "M_ATT_Graphite",
+      "M_ATT_Gunmetal",
+      "M_ATT_Bone"
+     ],
+     "custom_normals": true
+    },
+    "ATT_bipod_Leg_L": {
+     "type": "MESH",
+     "parent": "ATT_bipod",
+     "loc_local": [
+      0.0325,
+      0.0,
+      -0.034
+     ],
+     "rot_local_deg": [
+      -40.0,
+      0.0,
+      0.0
+     ],
+     "loc_world": [
+      0.0325,
+      0.0,
+      -0.034
+     ],
+     "tris": 444,
+     "uv": [
+      "UVMap"
+     ],
+     "mats": [
+      "M_ATT_Graphite",
+      "M_ATT_Gunmetal"
+     ],
+     "custom_normals": true
+    },
+    "ATT_bipod_Leg_R": {
+     "type": "MESH",
+     "parent": "ATT_bipod",
+     "loc_local": [
+      -0.0325,
+      0.0,
+      -0.034
+     ],
+     "rot_local_deg": [
+      -40.0,
+      0.0,
+      0.0
+     ],
+     "loc_world": [
+      -0.0325,
+      0.0,
+      -0.034
+     ],
+     "tris": 444,
+     "uv": [
+      "UVMap"
+     ],
+     "mats": [
+      "M_ATT_Graphite",
+      "M_ATT_Gunmetal"
+     ],
+     "custom_normals": true
+    },
+    "ATT_bipod_LegLower_L": {
+     "type": "MESH",
+     "parent": "ATT_bipod_Leg_L",
+     "loc_local": [
+      0.02495,
+      0.0,
+      -0.11738
+     ],
+     "rot_local_deg": [
+      0.0,
+      -12.0,
+      0.0
+     ],
+     "loc_world": [
+      0.05745,
+      -0.07545,
+      -0.12392
+     ],
+     "tris": 720,
+     "uv": [
+      "UVMap"
+     ],
+     "mats": [
+      "M_ATT_Gunmetal",
+      "M_ATT_Graphite",
+      "M_ATT_Rubber"
+     ],
+     "custom_normals": true
+    },
+    "ATT_bipod_LegLower_R": {
+     "type": "MESH",
+     "parent": "ATT_bipod_Leg_R",
+     "loc_local": [
+      -0.02495,
+      0.0,
+      -0.11738
+     ],
+     "rot_local_deg": [
+      0.0,
+      12.0,
+      0.0
+     ],
+     "loc_world": [
+      -0.05745,
+      -0.07545,
+      -0.12392
+     ],
+     "tris": 720,
+     "uv": [
+      "UVMap"
+     ],
+     "mats": [
+      "M_ATT_Gunmetal",
+      "M_ATT_Graphite",
+      "M_ATT_Rubber"
+     ],
+     "custom_normals": true
+    }
+   },
+   "total_tris": 3820,
+   "bounds": [
+    [
+     -0.09912,
+     -0.17747,
+     -0.2155
+    ],
+    [
+     0.09912,
+     0.03,
+     0.0083
+    ]
+   ],
+   "size": [
+    0.19823,
+    0.20747,
+    0.2238
+   ],
+   "topology": {
+    "open_edges": 0,
+    "nonmanifold_edges": 0,
+    "loose_verts": 0,
+    "zero_area_faces": 1,
+    "sliver_tris_aspect_gt_60": 125
+   }
+  },
+  "laser_R": {
+   "nodes": {
+    "ATT_laser_R": {
+     "type": "MESH",
+     "parent": null,
+     "loc_local": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "rot_local_deg": [
+      0.0,
+      -0.0,
+      0.0
+     ],
+     "loc_world": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "tris": 1212,
+     "uv": [
+      "UVMap"
+     ],
+     "mats": [
+      "M_ATT_Graphite",
+      "M_ATT_Gunmetal",
+      "M_ATT_IRWindow",
+      "M_ATT_Rubber"
+     ],
+     "custom_normals": true
+    },
+    "ATT_laser_R_Emitter": {
+     "type": "MESH",
+     "parent": "ATT_laser_R",
+     "loc_local": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "rot_local_deg": [
+      0.0,
+      -0.0,
+      0.0
+     ],
+     "loc_world": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "tris": 44,
+     "uv": [
+      "UVMap"
+     ],
+     "mats": [
+      "M_ATT_LaserEmitter"
+     ],
+     "custom_normals": true
+    },
+    "ATT_laser_R_SOCKET_Beam": {
+     "type": "EMPTY",
+     "parent": "ATT_laser_R",
+     "loc_local": [
+      -0.0205,
+      -0.0352,
+      -0.0105
+     ],
+     "rot_local_deg": [
+      0.0,
+      -0.0,
+      0.0
+     ],
+     "loc_world": [
+      -0.0205,
+      -0.0352,
+      -0.0105
+     ]
+    }
+   },
+   "total_tris": 1256,
+   "bounds": [
+    [
+     -0.0371,
+     -0.0355,
+     -0.0175
+    ],
+    [
+     0.0083,
+     0.029,
+     0.0186
+    ]
+   ],
+   "size": [
+    0.0454,
+    0.0645,
+    0.0361
+   ],
+   "topology": {
+    "open_edges": 0,
+    "nonmanifold_edges": 0,
+    "loose_verts": 0,
+    "zero_area_faces": 0,
+    "sliver_tris_aspect_gt_60": 46
+   }
+  },
+  "laser_L": {
+   "nodes": {
+    "ATT_laser_L": {
+     "type": "MESH",
+     "parent": null,
+     "loc_local": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "rot_local_deg": [
+      0.0,
+      -0.0,
+      0.0
+     ],
+     "loc_world": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "tris": 1212,
+     "uv": [
+      "UVMap"
+     ],
+     "mats": [
+      "M_ATT_Graphite",
+      "M_ATT_Gunmetal",
+      "M_ATT_IRWindow",
+      "M_ATT_Rubber"
+     ],
+     "custom_normals": true
+    },
+    "ATT_laser_L_Emitter": {
+     "type": "MESH",
+     "parent": "ATT_laser_L",
+     "loc_local": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "rot_local_deg": [
+      0.0,
+      -0.0,
+      0.0
+     ],
+     "loc_world": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "tris": 44,
+     "uv": [
+      "UVMap"
+     ],
+     "mats": [
+      "M_ATT_LaserEmitter"
+     ],
+     "custom_normals": true
+    },
+    "ATT_laser_L_SOCKET_Beam": {
+     "type": "EMPTY",
+     "parent": "ATT_laser_L",
+     "loc_local": [
+      0.0205,
+      -0.0352,
+      -0.0105
+     ],
+     "rot_local_deg": [
+      0.0,
+      -0.0,
+      0.0
+     ],
+     "loc_world": [
+      0.0205,
+      -0.0352,
+      -0.0105
+     ]
+    }
+   },
+   "total_tris": 1256,
+   "bounds": [
+    [
+     -0.0083,
+     -0.0355,
+     -0.0175
+    ],
+    [
+     0.0371,
+     0.029,
+     0.0186
+    ]
+   ],
+   "size": [
+    0.0454,
+    0.0645,
+    0.0361
+   ],
+   "topology": {
+    "open_edges": 0,
+    "nonmanifold_edges": 0,
+    "loose_verts": 0,
+    "zero_area_faces": 0,
+    "sliver_tris_aspect_gt_60": 48
+   }
+  },
+  "flashlight_R": {
+   "nodes": {
+    "ATT_flashlight_R": {
+     "type": "MESH",
+     "parent": null,
+     "loc_local": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "rot_local_deg": [
+      0.0,
+      -0.0,
+      0.0
+     ],
+     "loc_world": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "tris": 1244,
+     "uv": [
+      "UVMap"
+     ],
+     "mats": [
+      "M_ATT_Graphite",
+      "M_ATT_Gunmetal",
+      "M_ATT_Rubber"
+     ],
+     "custom_normals": true
+    },
+    "ATT_flashlight_R_Lens": {
+     "type": "MESH",
+     "parent": "ATT_flashlight_R",
+     "loc_local": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "rot_local_deg": [
+      0.0,
+      -0.0,
+      0.0
+     ],
+     "loc_world": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "tris": 236,
+     "uv": [
+      "UVMap"
+     ],
+     "mats": [
+      "M_ATT_LightLens",
+      "M_ATT_LightLED"
+     ],
+     "custom_normals": true
+    },
+    "ATT_flashlight_R_SOCKET_Beam": {
+     "type": "EMPTY",
+     "parent": "ATT_flashlight_R",
+     "loc_local": [
+      -0.0265,
+      -0.0625,
+      0.0
+     ],
+     "rot_local_deg": [
+      0.0,
+      -0.0,
+      0.0
+     ],
+     "loc_world": [
+      -0.0265,
+      -0.0625,
+      0.0
+     ]
+    }
+   },
+   "total_tris": 1480,
+   "bounds": [
+    [
+     -0.0451,
+     -0.0622,
+     -0.0186
+    ],
+    [
+     0.0083,
+     0.0595,
+     0.0186
+    ]
+   ],
+   "size": [
+    0.0534,
+    0.1217,
+    0.0372
+   ],
+   "topology": {
+    "open_edges": 0,
+    "nonmanifold_edges": 0,
+    "loose_verts": 0,
+    "zero_area_faces": 0,
+    "sliver_tris_aspect_gt_60": 6
+   }
+  },
+  "flashlight_L": {
+   "nodes": {
+    "ATT_flashlight_L": {
+     "type": "MESH",
+     "parent": null,
+     "loc_local": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "rot_local_deg": [
+      0.0,
+      -0.0,
+      0.0
+     ],
+     "loc_world": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "tris": 1244,
+     "uv": [
+      "UVMap"
+     ],
+     "mats": [
+      "M_ATT_Graphite",
+      "M_ATT_Gunmetal",
+      "M_ATT_Rubber"
+     ],
+     "custom_normals": true
+    },
+    "ATT_flashlight_L_Lens": {
+     "type": "MESH",
+     "parent": "ATT_flashlight_L",
+     "loc_local": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "rot_local_deg": [
+      0.0,
+      -0.0,
+      0.0
+     ],
+     "loc_world": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "tris": 236,
+     "uv": [
+      "UVMap"
+     ],
+     "mats": [
+      "M_ATT_LightLens",
+      "M_ATT_LightLED"
+     ],
+     "custom_normals": true
+    },
+    "ATT_flashlight_L_SOCKET_Beam": {
+     "type": "EMPTY",
+     "parent": "ATT_flashlight_L",
+     "loc_local": [
+      0.0265,
+      -0.0625,
+      0.0
+     ],
+     "rot_local_deg": [
+      0.0,
+      -0.0,
+      0.0
+     ],
+     "loc_world": [
+      0.0265,
+      -0.0625,
+      0.0
+     ]
+    }
+   },
+   "total_tris": 1480,
+   "bounds": [
+    [
+     -0.0083,
+     -0.0622,
+     -0.0186
+    ],
+    [
+     0.0451,
+     0.0595,
+     0.0186
+    ]
+   ],
+   "size": [
+    0.0534,
+    0.1217,
+    0.0372
+   ],
+   "topology": {
+    "open_edges": 0,
+    "nonmanifold_edges": 0,
+    "loose_verts": 0,
+    "zero_area_faces": 0,
+    "sliver_tris_aspect_gt_60": 5
+   }
+  },
+  "shield_front": {
+   "nodes": {
+    "ATT_shield_front": {
+     "type": "MESH",
+     "parent": null,
+     "loc_local": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "rot_local_deg": [
+      0.0,
+      -0.0,
+      0.0
+     ],
+     "loc_world": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "tris": 2748,
+     "uv": [
+      "UVMap"
+     ],
+     "mats": [
+      "M_ATT_Graphite",
+      "M_ATT_Gunmetal"
+     ],
+     "custom_normals": true
+    },
+    "ATT_shield_front_Glass": {
+     "type": "MESH",
+     "parent": "ATT_shield_front",
+     "loc_local": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "rot_local_deg": [
+      0.0,
+      -0.0,
+      0.0
+     ],
+     "loc_world": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "tris": 92,
+     "uv": [
+      "UVMap"
+     ],
+     "mats": [
+      "M_ATT_ShieldGlass"
+     ],
+     "custom_normals": true
+    }
+   },
+   "total_tris": 2840,
+   "bounds": [
+    [
+     -0.15684,
+     -0.0458,
+     -0.1
+    ],
+    [
+     0.15684,
+     0.034,
+     0.16
+    ]
+   ],
+   "size": [
+    0.31367,
+    0.0798,
+    0.26
+   ],
+   "topology": {
+    "open_edges": 0,
+    "nonmanifold_edges": 0,
+    "loose_verts": 0,
+    "zero_area_faces": 0,
+    "sliver_tris_aspect_gt_60": 467
+   }
+  }
+ },
+ "ugl_on_mako": {
+  "glb_socket": {
+   "under_socket_used": [
+    0.0,
+    -0.335,
+    0.0155
+   ],
+   "ugl_vs_mag30_clear": 0.02955,
+   "ugl_vs_mag30_overlap": 0,
+   "ugl_vs_gun_nonrail_overlap": {},
+   "ugl_vs_gun_nonrail_clear": 0.0012,
+   "ugl_verts_inside_rails": [
+    0,
+    0.0
+   ],
+   "ugl_top_vs_handguard_clear": 0.0012,
+   "ugl_vs_shield_overlap": 0,
+   "ugl_vs_shield_clear": 0.01755,
+   "muzzle_world": [
+    0.0,
+    -0.485,
+    -0.046
+   ],
+   "shield_bounds": [
+    [
+     -0.15684,
+     -0.5213,
+     -0.016
+    ],
+    [
+     0.15684,
+     -0.4415,
+     0.244
+    ]
+   ],
+   "bore_rays_hit_shield": [
+    {
+     "offset_xz": [
+      0,
+      0
+     ],
+     "hit": false
+    },
+    {
+     "offset_xz": [
+      0,
+      0.0225
+     ],
+     "hit": false
+    },
+    {
+     "offset_xz": [
+      0.0225,
+      0
+     ],
+     "hit": false
+    },
+    {
+     "offset_xz": [
+      -0.0225,
+      0
+     ],
+     "hit": false
+    },
+    {
+     "offset_xz": [
+      0,
+      -0.0225
+     ],
+     "hit": false
+    },
+    {
+     "offset_xz": [
+      0.016,
+      0.016
+     ],
+     "hit": false
+    },
+    {
+     "offset_xz": [
+      -0.016,
+      0.016
+     ],
+     "hit": false
+    },
+    {
+     "offset_xz": [
+      0,
+      0.035
+     ],
+     "hit": true
+    }
+   ],
+   "grenade_top_edge_ray_vs_shield_by_elev_deg": {
+    "0": null,
+    "5": null,
+    "10": null,
+    "15": null,
+    "25": 0.0193
+   },
+   "lefthand_world": [
+    0.0,
+    -0.2365,
+    -0.0845
+   ],
+   "lefthand_to_mag30": 0.0804,
+   "grip_to_mag_gap_by_z": {
+    "-0.04": {
+     "ugl_rear_y": -0.2305,
+     "mag_front_y": -0.1525,
+     "gap": 0.078
+    },
+    "-0.05": {
+     "ugl_rear_y": -0.3345,
+     "mag_front_y": -0.1458,
+     "gap": 0.1887
+    },
+    "-0.06": {
+     "ugl_rear_y": -0.225,
+     "mag_front_y": -0.1538,
+     "gap": 0.0712
+    },
+    "-0.07": {
+     "ugl_rear_y": -0.225,
+     "mag_front_y": -0.1442,
+     "gap": 0.0807
+    },
+    "-0.08": {
+     "ugl_rear_y": -0.218,
+     "mag_front_y": -0.1561,
+     "gap": 0.0619
+    },
+    "-0.09": {
+     "ugl_rear_y": -0.2135,
+     "mag_front_y": -0.1295,
+     "gap": 0.084
+    },
+    "-0.1": {
+     "ugl_rear_y": -0.2449,
+     "mag_front_y": -0.1593,
+     "gap": 0.0856
+    },
+    "-0.11": {
+     "ugl_rear_y": -0.2095,
+     "mag_front_y": -0.1328,
+     "gap": 0.0767
+    },
+    "-0.12": {
+     "ugl_rear_y": -0.206,
+     "mag_front_y": -0.1634,
+     "gap": 0.0426
+    },
+    "-0.13": {
+     "ugl_rear_y": -0.1992,
+     "mag_front_y": -0.1355,
+     "gap": 0.0637
+    },
+    "-0.14": {
+     "ugl_rear_y": -0.2003,
+     "mag_front_y": -0.1672,
+     "gap": 0.0331
+    },
+    "-0.15": {
+     "ugl_rear_y": -0.2352,
+     "mag_front_y": -0.1734,
+     "gap": 0.0618
+    }
+   },
+   "breech_sweep": {
+    "0": {
+     "vs_body": 84,
+     "vs_body_inside": 0,
+     "vs_mako_overlap": 0,
+     "vs_shield_overlap": 0,
+     "vs_laser": 0,
+     "vs_flashlight": 0,
+     "breech_x_range": [
+      -0.0425,
+      0.0312
+     ],
+     "breech_y_range": [
+      -0.485,
+      -0.3355
+     ]
+    },
+    "-10": {
+     "vs_body": 84,
+     "vs_body_inside": 0,
+     "vs_mako_overlap": 0,
+     "vs_shield_overlap": 0,
+     "vs_laser": 0,
+     "vs_flashlight": 0,
+     "breech_x_range": [
+      -0.0434,
+      0.0402
+     ],
+     "breech_y_range": [
+      -0.4952,
+      -0.3382
+     ]
+    },
+    "-20": {
+     "vs_body": 84,
+     "vs_body_inside": 0,
+     "vs_mako_overlap": 0,
+     "vs_shield_overlap": 0,
+     "vs_laser": 0,
+     "vs_flashlight": 0,
+     "breech_x_range": [
+      -0.0558,
+      0.0494
+     ],
+     "breech_y_range": [
+      -0.5028,
+      -0.343
+     ]
+    },
+    "-30": {
+     "vs_body": 84,
+     "vs_body_inside": 0,
+     "vs_mako_overlap": 0,
+     "vs_shield_overlap": 0,
+     "vs_laser": 0,
+     "vs_flashlight": 0,
+     "breech_x_range": [
+      -0.068,
+      0.0561
+     ],
+     "breech_y_range": [
+      -0.5075,
+      -0.3499
+     ]
+    },
+    "-40": {
+     "vs_body": 84,
+     "vs_body_inside": 0,
+     "vs_mako_overlap": 0,
+     "vs_shield_overlap": 0,
+     "vs_laser": 0,
+     "vs_flashlight": 0,
+     "breech_x_range": [
+      -0.0795,
+      0.0599
+     ],
+     "breech_y_range": [
+      -0.5092,
+      -0.3585
+     ]
+    },
+    "tube_rear_centre_closed_to_open": [
+     [
+      0.0,
+      -0.335,
+      -0.046
+     ],
+     [
+      0.03903,
+      -0.37577,
+      -0.046
+     ]
+    ]
+   },
+   "trigger": {
+    "0": {
+     "overlap_body": 12,
+     "inside_body": [
+      8,
+      0.0
+     ]
+    },
+    "12": {
+     "overlap_body": 17,
+     "inside_body": [
+      13,
+      0.00067
+     ]
+    }
+   },
+   "vs_MAKO_mag_45.glb": {
+    "overlap": 0,
+    "clear": 0.03179
+   },
+   "vs_MAKO_mag_drum60.glb": {
+    "overlap": 0,
+    "clear": 0.03421
+   }
+  },
+  "sockets_json": {
+   "under_socket_used": [
+    0.0,
+    -0.335,
+    0.0075
+   ],
+   "ugl_vs_mag30_clear": 0.02744,
+   "ugl_vs_mag30_overlap": 0,
+   "ugl_vs_gun_nonrail_overlap": {},
+   "ugl_vs_gun_nonrail_clear": 0.0092,
+   "ugl_verts_inside_rails": [
+    0,
+    0.0
+   ],
+   "ugl_top_vs_handguard_clear": 0.0092,
+   "ugl_vs_shield_overlap": 0,
+   "ugl_vs_shield_clear": 0.01983,
+   "muzzle_world": [
+    0.0,
+    -0.485,
+    -0.054
+   ],
+   "shield_bounds": [
+    [
+     -0.15684,
+     -0.5213,
+     -0.016
+    ],
+    [
+     0.15684,
+     -0.4415,
+     0.244
+    ]
+   ],
+   "bore_rays_hit_shield": [
+    {
+     "offset_xz": [
+      0,
+      0
+     ],
+     "hit": false
+    },
+    {
+     "offset_xz": [
+      0,
+      0.0225
+     ],
+     "hit": false
+    },
+    {
+     "offset_xz": [
+      0.0225,
+      0
+     ],
+     "hit": false
+    },
+    {
+     "offset_xz": [
+      -0.0225,
+      0
+     ],
+     "hit": false
+    },
+    {
+     "offset_xz": [
+      0,
+      -0.0225
+     ],
+     "hit": false
+    },
+    {
+     "offset_xz": [
+      0.016,
+      0.016
+     ],
+     "hit": false
+    },
+    {
+     "offset_xz": [
+      -0.016,
+      0.016
+     ],
+     "hit": false
+    },
+    {
+     "offset_xz": [
+      0,
+      0.035
+     ],
+     "hit": false
+    }
+   ],
+   "grenade_top_edge_ray_vs_shield_by_elev_deg": {
+    "0": null,
+    "5": null,
+    "10": null,
+    "15": null,
+    "25": null
+   },
+   "lefthand_world": [
+    0.0,
+    -0.2365,
+    -0.0925
+   ],
+   "lefthand_to_mag30": 0.079,
+   "grip_to_mag_gap_by_z": {
+    "-0.04": {
+     "ugl_rear_y": -0.231,
+     "mag_front_y": -0.1525,
+     "gap": 0.0785
+    },
+    "-0.05": {
+     "ugl_rear_y": -0.2305,
+     "mag_front_y": -0.1458,
+     "gap": 0.0847
+    },
+    "-0.06": {
+     "ugl_rear_y": -0.3345,
+     "mag_front_y": -0.1538,
+     "gap": 0.1807
+    },
+    "-0.07": {
+     "ugl_rear_y": -0.225,
+     "mag_front_y": -0.1442,
+     "gap": 0.0808
+    },
+    "-0.08": {
+     "ugl_rear_y": -0.225,
+     "mag_front_y": -0.1561,
+     "gap": 0.0689
+    },
+    "-0.09": {
+     "ugl_rear_y": -0.218,
+     "mag_front_y": -0.1295,
+     "gap": 0.0885
+    },
+    "-0.1": {
+     "ugl_rear_y": -0.2135,
+     "mag_front_y": -0.1593,
+     "gap": 0.0542
+    },
+    "-0.11": {
+     "ugl_rear_y": -0.2449,
+     "mag_front_y": -0.1328,
+     "gap": 0.1122
+    },
+    "-0.12": {
+     "ugl_rear_y": -0.2485,
+     "mag_front_y": -0.1634,
+     "gap": 0.0851
+    },
+    "-0.13": {
+     "ugl_rear_y": -0.2045,
+     "mag_front_y": -0.1355,
+     "gap": 0.0689
+    },
+    "-0.14": {
+     "ugl_rear_y": -0.1992,
+     "mag_front_y": -0.1672,
+     "gap": 0.0321
+    },
+    "-0.15": {
+     "ugl_rear_y": -0.2018,
+     "mag_front_y": -0.1734,
+     "gap": 0.0284
+    },
+    "-0.16": {
+     "ugl_rear_y": -0.2352,
+     "mag_front_y": -0.1116,
+     "gap": 0.1236
+    }
+   },
+   "breech_sweep": {
+    "0": {
+     "vs_body": 84,
+     "vs_body_inside": 0,
+     "vs_mako_overlap": 0,
+     "vs_shield_overlap": 0,
+     "vs_laser": 0,
+     "vs_flashlight": 0,
+     "breech_x_range": [
+      -0.0425,
+      0.0312
+     ],
+     "breech_y_range": [
+      -0.485,
+      -0.3355
+     ]
+    },
+    "-10": {
+     "vs_body": 84,
+     "vs_body_inside": 0,
+     "vs_mako_overlap": 0,
+     "vs_shield_overlap": 0,
+     "vs_laser": 0,
+     "vs_flashlight": 0,
+     "breech_x_range": [
+      -0.0434,
+      0.0402
+     ],
+     "breech_y_range": [
+      -0.4952,
+      -0.3382
+     ]
+    },
+    "-20": {
+     "vs_body": 84,
+     "vs_body_inside": 0,
+     "vs_mako_overlap": 0,
+     "vs_shield_overlap": 0,
+     "vs_laser": 0,
+     "vs_flashlight": 0,
+     "breech_x_range": [
+      -0.0558,
+      0.0494
+     ],
+     "breech_y_range": [
+      -0.5028,
+      -0.343
+     ]
+    },
+    "-30": {
+     "vs_body": 84,
+     "vs_body_inside": 0,
+     "vs_mako_overlap": 0,
+     "vs_shield_overlap": 0,
+     "vs_laser": 0,
+     "vs_flashlight": 0,
+     "breech_x_range": [
+      -0.068,
+      0.0561
+     ],
+     "breech_y_range": [
+      -0.5075,
+      -0.3499
+     ]
+    },
+    "-40": {
+     "vs_body": 84,
+     "vs_body_inside": 0,
+     "vs_mako_overlap": 0,
+     "vs_shield_overlap": 0,
+     "vs_laser": 0,
+     "vs_flashlight": 0,
+     "breech_x_range": [
+      -0.0795,
+      0.0599
+     ],
+     "breech_y_range": [
+      -0.5092,
+      -0.3585
+     ]
+    },
+    "tube_rear_centre_closed_to_open": [
+     [
+      0.0,
+      -0.335,
+      -0.054
+     ],
+     [
+      0.03903,
+      -0.37577,
+      -0.054
+     ]
+    ]
+   },
+   "trigger": {
+    "0": {
+     "overlap_body": 12,
+     "inside_body": [
+      8,
+      0.0
+     ]
+    },
+    "12": {
+     "overlap_body": 17,
+     "inside_body": [
+      13,
+      0.00067
+     ]
+    }
+   },
+   "vs_MAKO_mag_45.glb": {
+    "overlap": 0,
+    "clear": 0.02943
+   },
+   "vs_MAKO_mag_drum60.glb": {
+    "overlap": 0,
+    "clear": 0.03737
+   }
+  }
+ },
+ "bipod": {
+  "deployed_x": [
+   -0.0991,
+   0.0991
+  ],
+  "folded_bounds": [
+   [
+    -0.09912,
+    -0.85263,
+    -0.04276
+   ],
+   [
+    0.09912,
+    -0.57,
+    0.0288
+   ]
+  ],
+  "warden_handguard_x": [
+   -0.0385,
+   0.0385
+  ],
+  "folded_feet_stick_out_beyond_handguard_m": 0.0606,
+  "folded_foot_lowest_z_below_socket": -0.0633
+ },
+ "laser_top_split_normal_deviation_gt20": {
+  "count": 0,
+  "samples": []
+ },
+ "laser_top_faces": [
+  {
+   "i": 349,
+   "c": [
+    -0.02242,
+    -0.00742,
+    0.017
+   ],
+   "n": 3,
+   "area_mm2": 404.88
+  },
+  {
+   "i": 350,
+   "c": [
+    -0.01558,
+    -0.01392,
+    0.017
+   ],
+   "n": 3,
+   "area_mm2": 609.87
+  },
+  {
+   "i": 351,
+   "c": [
+    -0.02242,
+    0.01965,
+    0.017
+   ],
+   "n": 3,
+   "area_mm2": 187.57
+  },
+  {
+   "i": 352,
+   "c": [
+    -0.01558,
+    0.01355,
+    0.017
+   ],
+   "n": 3,
+   "area_mm2": 187.58
+  },
+  {
+   "i": 460,
+   "c": [
+    0.00335,
+    0.01053,
+    0.0176
+   ],
+   "n": 3,
+   "area_mm2": 2.79
+  },
+  {
+   "i": 461,
+   "c": [
+    0.00589,
+    0.012,
+    0.0176
+   ],
+   "n": 3,
+   "area_mm2": 2.79
+  },
+  {
+   "i": 462,
+   "c": [
+    0.00335,
+    0.01347,
+    0.0176
+   ],
+   "n": 3,
+   "area_mm2": 2.79
+  },
+  {
+   "i": 463,
+   "c": [
+    0.0042,
+    0.012,
+    0.0176
+   ],
+   "n": 3,
+   "area_mm2": 8.37
+  },
+  {
+   "i": 1114,
+   "c": [
+    -0.02429,
+    -0.01057,
+    0.0186
+   ],
+   "n": 3,
+   "area_mm2": 11.87
+  },
+  {
+   "i": 1115,
+   "c": [
+    -0.017,
+    -0.01499,
+    0.0186
+   ],
+   "n": 3,
+   "area_mm2": 8.25
+  },
+  {
+   "i": 1116,
+   "c": [
+    -0.01371,
+    -0.00543,
+    0.0186
+   ],
+   "n": 3,
+   "area_mm2": 11.87
+  },
+  {
+   "i": 1117,
+   "c": [
+    -0.021,
+    -0.00101,
+    0.0186
+   ],
+   "n": 3,
+   "area_mm2": 8.25
+  },
+  {
+   "i": 1118,
+   "c": [
+    -0.02029,
+    -0.01057,
+    0.0186
+   ],
+   "n": 3,
+   "area_mm2": 67.74
+  },
+  {
+   "i": 1119,
+   "c": [
+    -0.01771,
+    -0.00543,
+    0.0186
+   ],
+   "n": 3,
+   "area_mm2": 67.74
+  }
+ ],
+ "shield_glass": {
+  "bounds": [
+   [
+    -0.095,
+    -0.037,
+    0.027
+   ],
+   [
+    0.095,
+    -0.03,
+    0.103
+   ]
+  ],
+  "thickness_y": 0.007,
+  "faces": 92,
+  "faces_facing_back(+Y)": 6,
+  "faces_facing_front(-Y)": 6,
+  "material": "M_ATT_ShieldGlass",
+  "blend": "BLENDED",
+  "backface_culling": true
+ }
+}

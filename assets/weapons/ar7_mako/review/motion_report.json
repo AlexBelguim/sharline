@@ -1,0 +1,202 @@
+{
+ "ChargingHandle +Y": {
+  "rest": {
+   "MAKO_Upper": 8,
+   "MAKO_BufferTube": 52
+  },
+  "sweep": [
+   [
+    "+0.010",
+    {
+     "MAKO_BufferTube": 58
+    }
+   ],
+   [
+    "+0.020",
+    {}
+   ],
+   [
+    "+0.040",
+    {}
+   ],
+   [
+    "+0.060",
+    {
+     "MAKO_stock_standard": 37
+    }
+   ]
+  ]
+ },
+ "Trigger rotX": {
+  "rest": {
+   "MAKO_Lower": 8,
+   "MAKO_Pins": 8
+  },
+  "sweep": [
+   [
+    "-15deg",
+    {}
+   ],
+   [
+    "-8deg",
+    {}
+   ],
+   [
+    "8deg",
+    {}
+   ],
+   [
+    "15deg",
+    {}
+   ]
+  ]
+ },
+ "DustCover rotY": {
+  "rest": {
+   "MAKO_Upper": 51
+  },
+  "sweep": [
+   [
+    "-100deg",
+    {}
+   ],
+   [
+    "-45deg",
+    {}
+   ],
+   [
+    "45deg",
+    {
+     "MAKO_Upper": 58
+    }
+   ],
+   [
+    "100deg",
+    {
+     "MAKO_Upper": 68
+    }
+   ]
+  ]
+ },
+ "BoltCatch rotX": {
+  "rest": {
+   "MAKO_Upper": 16,
+   "MAKO_Lower": 30
+  },
+  "sweep": [
+   [
+    "-10deg",
+    {
+     "MAKO_Lower": 41
+    }
+   ],
+   [
+    "10deg",
+    {
+     "MAKO_Lower": 45
+    }
+   ]
+  ]
+ },
+ "MagRelease +X": {
+  "rest": {
+   "MAKO_Lower": 16
+  },
+  "sweep": [
+   [
+    "+0.003",
+    {}
+   ]
+  ]
+ },
+ "Selector rotX": {
+  "rest": {
+   "MAKO_Lower": 16
+  },
+  "sweep": [
+   [
+    "-90deg",
+    {}
+   ],
+   [
+    "-45deg",
+    {}
+   ],
+   [
+    "45deg",
+    {}
+   ],
+   [
+    "90deg",
+    {}
+   ]
+  ]
+ },
+ "ForwardAssist -Y": {
+  "rest": {
+   "MAKO_Upper": 62,
+   "MAKO_BufferTube": 20
+  },
+  "sweep": [
+   [
+    "-0.004",
+    {
+     "MAKO_Upper": 126
+    }
+   ]
+  ]
+ },
+ "Stock collapse -Y": {
+  "rest": {
+   "MAKO_BufferTube": 24,
+   "MAKO_stock_standard_ButtPad": 26,
+   "MAKO_stock_standard_Lever": 26,
+   "MAKO_stock_standard_Sling": 12
+  },
+  "sweep": [
+   [
+    "-0.0165",
+    {
+     "MAKO_BufferTube": 50,
+     "MAKO_stock_standard_Sling": 28
+    }
+   ],
+   [
+    "-0.0330",
+    {
+     "MAKO_BufferTube": 40,
+     "MAKO_stock_standard_Lever": 30,
+     "MAKO_stock_standard_Sling": 18
+    }
+   ],
+   [
+    "-0.0495",
+    {
+     "MAKO_BufferTube": 60,
+     "MAKO_stock_standard_Lever": 44,
+     "MAKO_stock_standard_Sling": 33
+    }
+   ],
+   [
+    "-0.0660",
+    {
+     "MAKO_Lower": 53,
+     "MAKO_BufferTube": 108,
+     "MAKO_ChargingHandle": 74,
+     "MAKO_stock_standard_Sling": 20
+    }
+   ],
+   [
+    "-0.0830",
+    {
+     "MAKO_Upper": 123,
+     "MAKO_Lower": 79,
+     "MAKO_BufferTube": 108,
+     "MAKO_ChargingHandle": 70,
+     "MAKO_ForwardAssist": 64,
+     "MAKO_Pins": 20
+    }
+   ]
+  ]
+ }
+}

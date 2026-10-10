@@ -1,0 +1,167 @@
+08:56:46 | INFO: Data are loaded, start creating Blender stuff
+08:56:46 | INFO: Blender create Mesh node ATT_optic_reddot_Body
+08:56:46 | INFO: Blender create Mesh node ATT_optic_reddot_Glass
+08:56:46 | INFO: Blender create Mesh node ATT_optic_reddot_Glow
+08:56:46 | INFO: glTF import finished in 0.01s
+00:02.156  cycles           | WARNING HIPEW initialization failed: Error opening HIP dynamic library
+00:07.765  render           | Saved: 'F:\git\val etf\assets\weapons\attachments\optics\review\renders\_tmp_v-0.7_-1.0_-0.45.png'
+00:16.765  render           | Saved: 'F:\git\val etf\assets\weapons\attachments\optics\review\renders\_tmp_v0.25_-0.35_-1.0.png'
+00:24.484  render           | Saved: 'F:\git\val etf\assets\weapons\attachments\optics\review\renders\_tmp_v-0.65_1.0_0.6.png'
+00:31.656  render           | Saved: 'F:\git\val etf\assets\weapons\attachments\optics\review\renders\_tmp_v0.3_1.0_0.42.png'
+00:37.843  render           | Saved: 'F:\git\val etf\assets\weapons\attachments\optics\review\renders\_tmp_v0.8_0.9_-0.2.png'
+rendered F:\git\val etf\assets\weapons\attachments\optics\review\renders\_tmp_v-0.7_-1.0_-0.45.png
+rendered F:\git\val etf\assets\weapons\attachments\optics\review\renders\_tmp_v0.25_-0.35_-1.0.png
+rendered F:\git\val etf\assets\weapons\attachments\optics\review\renders\_tmp_v-0.65_1.0_0.6.png
+rendered F:\git\val etf\assets\weapons\attachments\optics\review\renders\_tmp_v0.3_1.0_0.42.png
+rendered F:\git\val etf\assets\weapons\attachments\optics\review\renders\_tmp_v0.8_0.9_-0.2.png
+08:57:22 | INFO: Data are loaded, start creating Blender stuff
+08:57:22 | INFO: Blender create Mesh node ATT_optic_holo_Body
+08:57:22 | INFO: Blender create Mesh node ATT_optic_holo_Glass
+08:57:22 | INFO: Blender create Mesh node ATT_optic_holo_Glow
+08:57:22 | INFO: glTF import finished in 0.11s
+00:45.328  render           | Saved: 'F:\git\val etf\assets\weapons\attachments\optics\review\renders\_tmp_v-0.7_-1.0_-0.45.png'
+00:53.484  render           | Saved: 'F:\git\val etf\assets\weapons\attachments\optics\review\renders\_tmp_v0.25_-0.35_-1.0.png'
+01:02.265  render           | Saved: 'F:\git\val etf\assets\weapons\attachments\optics\review\renders\_tmp_v-0.65_1.0_0.6.png'
+01:10.218  render           | Saved: 'F:\git\val etf\assets\weapons\attachments\optics\review\renders\_tmp_v0.3_1.0_0.42.png'
+01:15.640  render           | Saved: 'F:\git\val etf\assets\weapons\attachments\optics\review\renders\_tmp_v0.8_0.9_-0.2.png'
+rendered F:\git\val etf\assets\weapons\attachments\optics\review\renders\_tmp_v-0.7_-1.0_-0.45.png
+rendered F:\git\val etf\assets\weapons\attachments\optics\review\renders\_tmp_v0.25_-0.35_-1.0.png
+rendered F:\git\val etf\assets\weapons\attachments\optics\review\renders\_tmp_v-0.65_1.0_0.6.png
+rendered F:\git\val etf\assets\weapons\attachments\optics\review\renders\_tmp_v0.3_1.0_0.42.png
+rendered F:\git\val etf\assets\weapons\attachments\optics\review\renders\_tmp_v0.8_0.9_-0.2.png
+08:57:59 | INFO: Data are loaded, start creating Blender stuff
+08:57:59 | INFO: Blender create Mesh node ATT_optic_3x_Body
+08:57:59 | INFO: Blender create Mesh node ATT_optic_3x_Glass
+08:57:59 | INFO: Blender create Mesh node ATT_optic_3x_Glow
+08:57:59 | INFO: glTF import finished in 0.03s
+01:24.672  render           | Saved: 'F:\git\val etf\assets\weapons\attachments\optics\review\renders\_tmp_v-0.7_-1.0_-0.45.png'
+01:32.968  render           | Saved: 'F:\git\val etf\assets\weapons\attachments\optics\review\renders\_tmp_v0.25_-0.35_-1.0.png'
+01:42.703  render           | Saved: 'F:\git\val etf\assets\weapons\attachments\optics\review\renders\_tmp_v-0.65_1.0_0.6.png'
+01:49.515  render           | Saved: 'F:\git\val etf\assets\weapons\attachments\optics\review\renders\_tmp_v0.3_1.0_0.42.png'
+01:57.437  render           | Saved: 'F:\git\val etf\assets\weapons\attachments\optics\review\renders\_tmp_v0.8_0.9_-0.2.png'
+rendered F:\git\val etf\assets\weapons\attachments\optics\review\renders\_tmp_v-0.7_-1.0_-0.45.png
+rendered F:\git\val etf\assets\weapons\attachments\optics\review\renders\_tmp_v0.25_-0.35_-1.0.png
+rendered F:\git\val etf\assets\weapons\attachments\optics\review\renders\_tmp_v-0.65_1.0_0.6.png
+rendered F:\git\val etf\assets\weapons\attachments\optics\review\renders\_tmp_v0.3_1.0_0.42.png
+rendered F:\git\val etf\assets\weapons\attachments\optics\review\renders\_tmp_v0.8_0.9_-0.2.png
+08:58:41 | INFO: Data are loaded, start creating Blender stuff
+08:58:41 | INFO: Blender create Mesh node ATT_optic_sniper_Body
+08:58:41 | INFO: Blender create Mesh node ATT_optic_sniper_Glass
+08:58:41 | INFO: glTF import finished in 0.09s
+02:06.203  render           | Saved: 'F:\git\val etf\assets\weapons\attachments\optics\review\renders\_tmp_v-0.7_-1.0_-0.45.png'
+02:18.640  render           | Saved: 'F:\git\val etf\assets\weapons\attachments\optics\review\renders\_tmp_v0.25_-0.35_-1.0.png'
+02:26.328  render           | Saved: 'F:\git\val etf\assets\weapons\attachments\optics\review\renders\_tmp_v-0.65_1.0_0.6.png'
+02:33.718  render           | Saved: 'F:\git\val etf\assets\weapons\attachments\optics\review\renders\_tmp_v0.3_1.0_0.42.png'
+02:38.984  render           | Saved: 'F:\git\val etf\assets\weapons\attachments\optics\review\renders\_tmp_v0.8_0.9_-0.2.png'
+rendered F:\git\val etf\assets\weapons\attachments\optics\review\renders\_tmp_v-0.7_-1.0_-0.45.png
+rendered F:\git\val etf\assets\weapons\attachments\optics\review\renders\_tmp_v0.25_-0.35_-1.0.png
+rendered F:\git\val etf\assets\weapons\attachments\optics\review\renders\_tmp_v-0.65_1.0_0.6.png
+rendered F:\git\val etf\assets\weapons\attachments\optics\review\renders\_tmp_v0.3_1.0_0.42.png
+rendered F:\git\val etf\assets\weapons\attachments\optics\review\renders\_tmp_v0.8_0.9_-0.2.png
+08:59:23 | INFO: Data are loaded, start creating Blender stuff
+08:59:23 | INFO: Blender create Mesh node ATT_optic_thermal_Body
+08:59:23 | INFO: Blender create Mesh node ATT_optic_thermal_Glass
+08:59:23 | INFO: Blender create Mesh node ATT_optic_thermal_Glow
+08:59:23 | INFO: glTF import finished in 0.09s
+02:43.531  render           | Saved: 'F:\git\val etf\assets\weapons\attachments\optics\review\renders\_tmp_v-0.7_-1.0_-0.45.png'
+02:48.937  render           | Saved: 'F:\git\val etf\assets\weapons\attachments\optics\review\renders\_tmp_v0.25_-0.35_-1.0.png'
+02:54.906  render           | Saved: 'F:\git\val etf\assets\weapons\attachments\optics\review\renders\_tmp_v-0.65_1.0_0.6.png'
+03:00.625  render           | Saved: 'F:\git\val etf\assets\weapons\attachments\optics\review\renders\_tmp_v0.3_1.0_0.42.png'
+03:06.187  render           | Saved: 'F:\git\val etf\assets\weapons\attachments\optics\review\renders\_tmp_v0.8_0.9_-0.2.png'
+rendered F:\git\val etf\assets\weapons\attachments\optics\review\renders\_tmp_v-0.7_-1.0_-0.45.png
+rendered F:\git\val etf\assets\weapons\attachments\optics\review\renders\_tmp_v0.25_-0.35_-1.0.png
+rendered F:\git\val etf\assets\weapons\attachments\optics\review\renders\_tmp_v-0.65_1.0_0.6.png
+rendered F:\git\val etf\assets\weapons\attachments\optics\review\renders\_tmp_v0.3_1.0_0.42.png
+rendered F:\git\val etf\assets\weapons\attachments\optics\review\renders\_tmp_v0.8_0.9_-0.2.png
+08:59:50 | INFO: Data are loaded, start creating Blender stuff
+08:59:50 | INFO: Blender create Mesh node ATT_optic_reddot_Body
+08:59:50 | INFO: Blender create Mesh node ATT_optic_reddot_Glass
+08:59:50 | INFO: Blender create Mesh node ATT_optic_reddot_Glow
+08:59:50 | INFO: glTF import finished in 0.05s
+F:\git\val etf\assets\weapons\attachments\optics\review\review_render.py:65: DeprecationWarning: 'Material.use_nodes' is expected to be removed in Blender 6.0
+  m.use_nodes = True
+03:13.593  render           | Saved: 'F:\git\val etf\assets\weapons\attachments\optics\review\renders\_tmp_v0.75_-1_0.35.png'
+03:21.125  render           | Saved: 'F:\git\val etf\assets\weapons\attachments\optics\review\renders\_tmp_v-0.65_1.0_0.6.png'
+03:28.812  render           | Saved: 'F:\git\val etf\assets\weapons\attachments\optics\review\renders\_tmp_v-1_0_0.05.png'
+rendered F:\git\val etf\assets\weapons\attachments\optics\review\renders\_tmp_v0.75_-1_0.35.png
+rendered F:\git\val etf\assets\weapons\attachments\optics\review\renders\_tmp_v-0.65_1.0_0.6.png
+rendered F:\git\val etf\assets\weapons\attachments\optics\review\renders\_tmp_v-1_0_0.05.png
+09:00:13 | INFO: Data are loaded, start creating Blender stuff
+09:00:13 | INFO: Blender create Mesh node ATT_optic_holo_Body
+09:00:13 | INFO: Blender create Mesh node ATT_optic_holo_Glass
+09:00:13 | INFO: Blender create Mesh node ATT_optic_holo_Glow
+09:00:13 | INFO: glTF import finished in 0.03s
+03:35.625  render           | Saved: 'F:\git\val etf\assets\weapons\attachments\optics\review\renders\_tmp_v0.75_-1_0.35.png'
+03:40.156  render           | Saved: 'F:\git\val etf\assets\weapons\attachments\optics\review\renders\_tmp_v-0.65_1.0_0.6.png'
+03:45.734  render           | Saved: 'F:\git\val etf\assets\weapons\attachments\optics\review\renders\_tmp_v-1_0_0.05.png'
+rendered F:\git\val etf\assets\weapons\attachments\optics\review\renders\_tmp_v0.75_-1_0.35.png
+rendered F:\git\val etf\assets\weapons\attachments\optics\review\renders\_tmp_v-0.65_1.0_0.6.png
+rendered F:\git\val etf\assets\weapons\attachments\optics\review\renders\_tmp_v-1_0_0.05.png
+09:00:29 | INFO: Data are loaded, start creating Blender stuff
+09:00:29 | INFO: Blender create Mesh node ATT_optic_3x_Body
+09:00:29 | INFO: Blender create Mesh node ATT_optic_3x_Glass
+09:00:29 | INFO: Blender create Mesh node ATT_optic_3x_Glow
+09:00:29 | INFO: glTF import finished in 0.02s
+03:51.468  render           | Saved: 'F:\git\val etf\assets\weapons\attachments\optics\review\renders\_tmp_v0.75_-1_0.35.png'
+03:57.375  render           | Saved: 'F:\git\val etf\assets\weapons\attachments\optics\review\renders\_tmp_v-0.65_1.0_0.6.png'
+04:03.047  render           | Saved: 'F:\git\val etf\assets\weapons\attachments\optics\review\renders\_tmp_v-1_0_0.05.png'
+rendered F:\git\val etf\assets\weapons\attachments\optics\review\renders\_tmp_v0.75_-1_0.35.png
+rendered F:\git\val etf\assets\weapons\attachments\optics\review\renders\_tmp_v-0.65_1.0_0.6.png
+rendered F:\git\val etf\assets\weapons\attachments\optics\review\renders\_tmp_v-1_0_0.05.png
+09:00:47 | INFO: Data are loaded, start creating Blender stuff
+09:00:47 | INFO: Blender create Mesh node ATT_optic_sniper_Body
+09:00:47 | INFO: Blender create Mesh node ATT_optic_sniper_Glass
+09:00:47 | INFO: glTF import finished in 0.08s
+04:07.625  render           | Saved: 'F:\git\val etf\assets\weapons\attachments\optics\review\renders\_tmp_v0.75_-1_0.35.png'
+04:13.437  render           | Saved: 'F:\git\val etf\assets\weapons\attachments\optics\review\renders\_tmp_v-0.65_1.0_0.6.png'
+04:20.484  render           | Saved: 'F:\git\val etf\assets\weapons\attachments\optics\review\renders\_tmp_v-1_0_0.05.png'
+rendered F:\git\val etf\assets\weapons\attachments\optics\review\renders\_tmp_v0.75_-1_0.35.png
+rendered F:\git\val etf\assets\weapons\attachments\optics\review\renders\_tmp_v-0.65_1.0_0.6.png
+rendered F:\git\val etf\assets\weapons\attachments\optics\review\renders\_tmp_v-1_0_0.05.png
+09:01:04 | INFO: Data are loaded, start creating Blender stuff
+09:01:04 | INFO: Blender create Mesh node ATT_optic_thermal_Body
+09:01:04 | INFO: Blender create Mesh node ATT_optic_thermal_Glass
+09:01:04 | INFO: Blender create Mesh node ATT_optic_thermal_Glow
+09:01:04 | INFO: glTF import finished in 0.03s
+04:27.265  render           | Saved: 'F:\git\val etf\assets\weapons\attachments\optics\review\renders\_tmp_v0.75_-1_0.35.png'
+04:34.156  render           | Saved: 'F:\git\val etf\assets\weapons\attachments\optics\review\renders\_tmp_v-0.65_1.0_0.6.png'
+04:39.640  render           | Saved: 'F:\git\val etf\assets\weapons\attachments\optics\review\renders\_tmp_v-1_0_0.05.png'
+04:39.640  blend            | Read blend: "F:\git\val etf\assets\weapons\attachments\optics\optics.blend"
+F:\git\val etf\assets\weapons\attachments\optics\review\review_render.py:92: DeprecationWarning: 'Material.use_nodes' is expected to be removed in Blender 6.0
+  wm.use_nodes = True
+04:48.031  render           | Saved: 'F:\git\val etf\assets\weapons\attachments\optics\review\renders\_tmp_v0.75_-1_0.35.png'
+04:54.718  render           | Saved: 'F:\git\val etf\assets\weapons\attachments\optics\review\renders\_tmp_v-1_0_0.05.png'
+04:59.968  render           | Saved: 'F:\git\val etf\assets\weapons\attachments\optics\review\renders\_tmp_v-0.65_1.0_0.6.png'
+05:05.000  render           | Saved: 'F:\git\val etf\assets\weapons\attachments\optics\review\renders\_tmp_v0.75_-1_0.35.png'
+05:10.843  render           | Saved: 'F:\git\val etf\assets\weapons\attachments\optics\review\renders\_tmp_v-1_0_0.05.png'
+05:15.953  render           | Saved: 'F:\git\val etf\assets\weapons\attachments\optics\review\renders\_tmp_v-0.65_1.0_0.6.png'
+05:20.718  render           | Saved: 'F:\git\val etf\assets\weapons\attachments\optics\review\renders\_tmp_v0.75_-1_0.35.png'
+05:26.390  render           | Saved: 'F:\git\val etf\assets\weapons\attachments\optics\review\renders\_tmp_v-1_0_0.05.png'
+05:31.515  render           | Saved: 'F:\git\val etf\assets\weapons\attachments\optics\review\renders\_tmp_v-0.65_1.0_0.6.png'
+05:38.297  render           | Saved: 'F:\git\val etf\assets\weapons\attachments\optics\review\renders\_tmp_v0.75_-1_0.35.png'
+05:44.562  render           | Saved: 'F:\git\val etf\assets\weapons\attachments\optics\review\renders\_tmp_v-1_0_0.05.png'
+05:50.047  render           | Saved: 'F:\git\val etf\assets\weapons\attachments\optics\review\renders\_tmp_v-0.65_1.0_0.6.png'
+05:55.125  render           | Saved: 'F:\git\val etf\assets\weapons\attachments\optics\review\renders\_tmp_v0.75_-1_0.35.png'
+05:59.765  render           | Saved: 'F:\git\val etf\assets\weapons\attachments\optics\review\renders\_tmp_v-1_0_0.05.png'
+06:05.234  render           | Saved: 'F:\git\val etf\assets\weapons\attachments\optics\review\renders\_tmp_v-0.65_1.0_0.6.png'
+rendered F:\git\val etf\assets\weapons\attachments\optics\review\renders\_tmp_v0.75_-1_0.35.png
+rendered F:\git\val etf\assets\weapons\attachments\optics\review\renders\_tmp_v-0.65_1.0_0.6.png
+rendered F:\git\val etf\assets\weapons\attachments\optics\review\renders\_tmp_v-1_0_0.05.png
+rendered F:\git\val etf\assets\weapons\attachments\optics\review\renders\_tmp_v0.75_-1_0.35.png
+rendered F:\git\val etf\assets\weapons\attachments\optics\review\renders\_tmp_v-1_0_0.05.png
+rendered F:\git\val etf\assets\weapons\attachments\optics\review\renders\_tmp_v-0.65_1.0_0.6.png
+rendered F:\git\val etf\assets\weapons\attachments\optics\review\renders\_tmp_v0.75_-1_0.35.png
+rendered F:\git\val etf\assets\weapons\attachments\optics\review\renders\_tmp_v-1_0_0.05.png
+rendered F:\git\val etf\assets\weapons\attachments\optics\review\renders\_tmp_v-0.65_1.0_0.6.png
+rendered F:\git\val etf\assets\weapons\attachments\optics\review\renders\_tmp_v0.75_-1_0.35.png
+rendered F:\git\val etf\assets\weapons\attachments\optics\review\renders\_tmp_v-1_0_0.05.png
+rendered F:\git\val etf\assets\weapons\attachments\optics\review\renders\_tmp_v-0.65_1.0_0.6.png
+rendered F:\git\val etf\assets\weapons\attachments\optics\review\renders\_tmp_v0.75_-1_0.35.png
+rendered F:\git\val etf\assets\weapons\attachments\optics\review\renders\_tmp_v-1_0_0.05.png
+rendered F:\git\val etf\assets\weapons\attachments\optics\review\renders\_tmp_v-0.65_1.0_0.6.png
+rendered F:\git\val etf\assets\weapons\attachments\optics\review\renders\_tmp_v0.75_-1_0.35.png
+rendered F:\git\val etf\assets\weapons\attachments\optics\review\renders\_tmp_v-1_0_0.05.png
+rendered F:\git\val etf\assets\weapons\attachments\optics\review\renders\_tmp_v-0.65_1.0_0.6.png
+Blender 5.2.0 LTS (hash fbe6228777e7 built 2026-07-14 01:35:40)
+
+Blender quit

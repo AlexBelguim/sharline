@@ -1,0 +1,91 @@
+{
+ "asset": "AR-7 \"MAKO\" M4-style assault rifle (F:/git/val etf/assets/weapons/ar7_mako/): base + stock_standard/precision/light + mag_30/45/drum60. Scored on the exports on disk (09:01, which match the builder's report). I also re-ran the current, unexported build_mako.py in a scratch copy for comparison. Review files: F:/git/val etf/assets/weapons/ar7_mako/review/review.json, review/review_sheet_r2.png, review/r2/ (scripts, r2_tech_delivered.json, r2_tech_pending.json, r2_glb_scan.json, 84 renders).",
+ "scores": {
+  "silhouette": 7,
+  "craftsmanship": 6,
+  "style_consistency": 7,
+  "fidelity_to_brief_and_user_decisions": 7,
+  "game_readiness": 6
+ },
+ "issues": [
+  {
+   "severity": "critical",
+   "issue": "The asset folder is out of sync. A post-review fix pass edited build_mako.py and mako_lib.py (09:32-09:45) and rewrote sockets.json, tri_counts.json and textures/*.png, but never re-exported. sockets.json no longer matches the GLB/FBX the game loads. tri_counts.json matches neither the exports nor the script. The embedded textures differ from textures/. NOTES and renders describe the 09:01 build. check_glb.py would now fail, but build_mako.py runs it with subprocess.run(..., check=False), so the mismatch never stopped anything. NOTES' claim that check_glb 'fails the build' is false.",
+   "evidence": "r2/r2_glb_scan.json: mako_base.glb and mako_default.glb have MAKO_SOCKET_Under (0,-0.335,0.0155) and LeftHand (0,-0.33,0.0155); sockets.json says z 0.0075 for both (8 mm off). tri_counts.json default_total 25,642; GLB default 20,998; current script 20,772 (scratch re-run). textures/*.png dated 09:44, GLBs 09:01. _work/pre_review_fix/ holds the 09:32 snapshot.",
+   "fix": "Fix the bake_clean shading regression first (see the bake_clean issue below). Then run the full build once (blender -b --factory-startup -P build_mako.py, renders included), so GLB, FBX, blend, sockets.json, tri_counts.json, textures and renders all come from one run. Make the validation fatal: check_glb.py must sys.exit(1) on error, and build_mako.py must call it with check=True. Rewrite NOTES: socket table, tri counts, Stack_NN nodes and glTF extras, stock travel, and remove the false 'fails the build' claim."
+  },
+  {
+   "severity": "major",
+   "issue": "The charging handle is embedded in the castle nut and buffer tube at rest, and it collides through its whole pull. At full stroke it also drives into the front of stock_standard. The forward-assist cap also pokes into the tube and nut. This sits right in front of the first-person camera.",
+   "evidence": "CH z 0.0624-0.0745 vs castle-nut top 0.0696 and tube top 0.066 (r2_tech_delivered.json: BufferTube x ChargingHandle, 5.3 / 2.3 mm). The pull sweep overlaps the tube at every step from 0 to 0.06, plus stock_standard at 0.06 (37 tri pairs). ForwardAssist x BufferTube 2.7 mm. Renders: r2/renders/dlv_cu_ch_castle_rear_minusX.png, dlv_motion_ch_pulled_dc_open.png.",
+   "fix": "Keep the pending script's rear-receiver changes: CH_Z0 0.0702, wing top 0.0792, stroke_m 0.05 as a custom prop, and the FA cap at y 0.013-0.0285 in its own bore. I verified them in the scratch re-run: the sweep is clean from 0 to 0.05 (r2_tech_pending.json). Export them. Store stroke_m 0.05 (not 0.06) for the engine."
+  },
+  {
+   "severity": "major",
+   "issue": "Regression in the pending, unexported script: mako_lib.bake_clean applies the hardened-normal Bevel, then edits topology (dissolve_degenerate, dissolve_verts, triangulate, rotate_edges). Custom normals and sharp edges are lost, so the lower, magwell, trigger guard, upper flank, precision cheek and FA cap end come out 'melted', with smooth gradients across hard edges. Re-running the build as-is would publish worse shading than the current exports.",
+   "evidence": "r2/renders/pnd_clay_receiver_3q.png (melted) vs dlv_clay_receiver_3q.png (crisp). Also pnd_cu_magwell_front_low.png, pnd_cu_receiver_plusX.png, pnd_cu_ch_castle_rear_minusX.png (slanted smear on the FA cap end grooves).",
+   "fix": "Remove degenerate triangles before beveling: run the cleanup on the boolean result inside L.finish, right after L.clean and before the Bevel modifier is added. Alternatively, after bake_clean: clear custom split normals, me.set_sharp_from_angle(radians(30)), then add and apply a WeightedNormal modifier (FACE_AREA, keep_sharp=True). Without normal maps, zero-area tris are harmless in Bevy, so dropping bake_clean entirely is acceptable. Check a clay close-up of the lower at the cu_receiver_plusX angle before exporting."
+  },
+  {
+   "severity": "major",
+   "issue": "The mag check can only show all or nothing. Each magazine's visible cartridges are one merged _Stack mesh, so the engine cannot show 'roughly how full' the mag is. DIRECTION_LOG item 8 asks for exactly that.",
+   "evidence": "mag_30 has a single MAKO_mag_30_Stack: 392 tris, 14 islands. mag_45 Stack: 26 islands. drum60 Stack: 8 islands (r2_tech_delivered.json).",
+   "fix": "Keep the pending structure: a MAKO_<mag>_Stack empty with per-round MAKO_<mag>_Stack_NN children, each with min_rounds/round_index custom props, exported with export_extras=True (glTF) and use_custom_props=True (FBX). Document the show/hide rule in NOTES."
+  },
+  {
+   "severity": "major",
+   "issue": "NOTES tells the engine to slide stock_standard 0.083 m (6 positions). The stock's front is at y 0.098 and the castle-nut rear at y 0.0465, so only 0.0515 m of travel is clear. 0.083 would bury the stock 31.5 mm in the nut and receiver. A collapsed stock also lies in the CH's 0.05 pull path.",
+   "evidence": "stock_standard bounds y 0.098-0.262; castle nut / tube boss y 0.036-0.0465 (r2_tech_delivered.json health bounds). NOTES.md 'Moving parts': '6 positions, 0.0165 apart, 0.083 travel'.",
+   "fix": "Use the pending STOCK_TRAVEL (0, 0.0165, 0.033, 0.0495) stored as travel_positions_m on MAKO_stock_standard, and correct NOTES. Then either tell the engine to block the CH pull animation when the stock is collapsed, or lower the stock's front top edge about 4 mm. Re-check with a sweep of the CH at stroke 0.05 against the stock at travel 0.0495."
+  },
+  {
+   "severity": "major",
+   "issue": "The player-facing (+X) receiver is plainer than v09. The upper flank is one featureless 15 x 4 cm slab. The bolt catch is small. The rear of the upper is an angular chamfer, where v09 has a swept AR contour. The magwell reads as a box with a 'license-plate' recess. With the slim mag (0.064 deep, 6 mm window) and a handguard bottom flush with the parting line, this is the main reason the build looks more generic than v09 (IoU 0.69).",
+   "evidence": "r2/renders/dlv_cu_receiver_plusX.png, dlv_fp_reload.png, dlv_side_ortho_plusX.png vs _work/v09_receiver_crop.png and renders/compare_v09.png.",
+   "fix": "Keep the pending +X panel-line frame, pin bosses, deeper handguard (HG_BOT 0.017) and the 0.070 below-well mag flare. Add a swept lower-rear contour to the upper (r about 0.012 into the tube boss) and a 1.5-2 mm raised shoulder pad at the front of the +X flank (y -0.165..-0.140, z 0.050..0.070). Enlarge the bolt catch to an about 0.012 x 0.022 paddle with a 1.5 mm-proud lower lever. Widen the mag window to about 8-9 mm. Keep the magwell flare at 3 mm or less per side and 4 mm or less forward, so it does not turn into the pending version's deep 'bucket' funnel."
+  },
+  {
+   "severity": "major",
+   "issue": "The precision stock's cheek riser looks like a floating slab: there is a gap under it and its posts are hidden. This breaks the 'no floating or disconnected-looking parts' rule. The builder reported it fixed, but it is not. The pending version widens the gap to 5.5 mm and still reads as hovering from the side.",
+   "evidence": "Delivered: cheek bottom z 0.076 vs stock top z 0.0745 (1.5 mm), posts r 0.0041 (r2_tech_delivered.json). r2/renders/dlv_cu_precision_cheek.png, pnd_cu_precision_cheek.png.",
+   "fix": "Either seat the riser on the stock (zero gap, a raised comb with a 0.6 mm panel line), which is simplest and matches 'fixed stock, cheek riser', or make the hardware unmistakable: gunmetal posts r 0.006 or more with at least 8 mm exposed, and a riser about 4 mm narrower per side than the stock so the posts read in side view."
+  },
+  {
+   "severity": "minor",
+   "issue": "Drum (delivered): the round hub plus the symmetric lower arc window reads as a smiley face. The -X face shows only bullet tips. The 28-step outline is visibly faceted. The pending script fixes all three. Its remaining nits: 10-step case heads read as octagons up close, and the window end caps have small spikes.",
+   "evidence": "r2/renders/dlv_cu_drum_minusX.png, dlv_var_light_drum_3q_minusX.png vs pnd_cu_drum_minusX.png.",
+   "fix": "Keep the pending rear-arc window, the both-face case heads and the 40-step drum. Raise the case_head lathe to 14-16 steps (about +500 tris, still within budget) and weld or clean the window cap-to-arc joins."
+  },
+  {
+   "severity": "minor",
+   "issue": "The 'rounded' handguard slots are pointed hexagons: side rows use 3-segment end caps, the chamfer row 2. The QD cup uses 10 segments. The user's decision specifies rounded slots.",
+   "evidence": "r2/renders/dlv_cu_hg_bottom_rail.png, dlv_side_ortho_plusX.png (crop); pending pnd_cu_hg_bottom_rail.png shows proper pills.",
+   "fix": "Keep the pending SLOT_CAP_SEGS 8 and the 16-segment QD cup."
+  },
+  {
+   "severity": "minor",
+   "issue": "Grip (delivered): the stipple panel is a cooler, darker grey (base 0.50/0.475/0.42 x stipple at mix 0.5, rough 0.8) and reads as a sticker. The grip is a straight raked paddle with none of v09's finger swell, beavertail or flared base.",
+   "evidence": "r2/renders/dlv_cu_grip_rear_low.png, dlv_cu_receiver_plusX.png vs _work/v09_receiver_crop.png.",
+   "fix": "Keep the pending bone-hue stipple (tex_mix 0.34, stretch) and the new GRIP_KEYS (beavertail lip, palm swell, base flare). Add a single 3 mm finger bump on the front strap near z -0.045, so the side silhouette carries v09's A2-ish read."
+  },
+  {
+   "severity": "minor",
+   "issue": "Delivered castle nut: the gunmetal (metal 0.85, rough 0.35) mirrors the studio as chrome glints in the hip-fire view, and its lug faces show pinched or melted highlights.",
+   "evidence": "r2/renders/dlv_fp_hip.png, dlv_cu_ch_castle_rear_minusX.png.",
+   "fix": "Keep the pending build_castle_nut (graphite, planar radial quads, sharp lug edges)."
+  },
+  {
+   "severity": "minor",
+   "issue": "Zero-area faces in the delivered meshes (DustCover 48, stock_precision_Cheek 24, stock_precision 4, ForwardAssist 4, Lower 2, Upper 1). Many large boolean n-gons are fan-triangulated, though flat shading on them is clean.",
+   "evidence": "r2_tech_delivered.json health (zero_area, ngons_gt8); r2/renders/dlv_wire_receiver_minusX.png.",
+   "fix": "Remove them before beveling, as in the bake_clean fix above. Do not do it after the hardened-normal bevel."
+  },
+  {
+   "severity": "minor",
+   "issue": "The stock_standard QD sling loop is a thin wire ring. It disappears at gameplay distance and is the only 'noodly' part on the gun.",
+   "evidence": "r2/renders/dlv_cu_stock_under.png.",
+   "fix": "Thicken the ring's cross-section to 3 mm or more, or replace it with a flush QD cup like the handguard's."
+  }
+ ],
+ "verdict": "Not yet acceptable. It is close, and most of the fix already exists in the unexported script. The delivered GLBs are technically clean: sockets are correct and unrotated, glTF/FBX validity is good, there is no emissive, all 12 shared attachments fit with 0 mm penetration, and mags drop cleanly. The gun meets every hard user decision (no sights, no counter, long squared 3-row handguard, birdcage, graphite/bone split, mag window with cartridges) and reads as an M4 at 64 px. Blocking problems:\n\n1. The folder is half-updated by an interrupted fix pass. sockets.json disagrees with every exported GLB/FBX by 8 mm on Under/LeftHand, tri_counts.json and textures/ match nothing, and the validation step is non-fatal.\n2. The charging handle sits inside the castle nut and tube and clips through its whole pull.\n3. The pending script fixes that and several art notes (drum smiley, pill slots, stipple colour, per-round mag-check nodes, safe stock travel), but its new bake_clean step melts the shading on the lower, magwell and trigger guard. Exporting it as-is would be a regression.\n\nFix order: repair bake_clean (normals), run the full build once so every output comes from one run, and make check_glb fatal. Then address the art gaps against v09: player-facing receiver detail, the precision cheek riser that still floats, and grip/mag chunkiness."
+}

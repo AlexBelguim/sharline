@@ -1,0 +1,19 @@
+{
+  "asset": "AR-7 MAKO (assets/weapons/ar7_mako): base + stock_standard/precision/light + mag_30/45/drum60",
+  "review": "independent art-director / tech-art review r2, 2026-10-07 (supersedes the 09:22 attempt, kept as review_prev_0922.json)",
+  "reviewed_state": "DELIVERED = GLB/FBX/blend exports on disk (09:01, = builder report). PENDING = current build_mako.py/mako_lib.py (edited 09:32-09:45, never exported) re-run in a scratch copy for comparison.",
+  "scores_delivered": {"silhouette": 7, "craftsmanship": 6, "style_consistency": 7, "fidelity_to_brief_and_user_decisions": 7, "game_readiness": 6},
+  "verified_ok": [
+    "No iron sights, no ammo counter, no emissive in any GLB (r2/r2_glb_scan.json)",
+    "9 sockets, children of MAKO_Root, zero rotation, Side_R=-X / Side_L=+X; same values in GLB and FBX re-import (FBX root scale 1.0)",
+    "1 material per primitive, UVs + normals on every primitive, all textures embedded, no helper nodes",
+    "Rail: 0.021 wide, 0.0095 high, 51 slots at 0.010 pitch, 3 mm deep, y -0.493..+0.022",
+    "Default loadout 0.844 x 0.257 m, 20,998 tris; 0 non-manifold, 0 loose, all volumes positive",
+    "12 shared attachments (3 optics, 3 grips, UGL, laser/flashlight L+R, shield) on their sockets: 0 mm penetration",
+    "mag_30/45/drum60 drop 6 cm out of the well with 0 overlap",
+    "Silhouettes read as an M4 at 64 px for all three loadouts (r2/renders/dlv_sil_64_128.png)",
+    "Current build_mako.py runs from scratch in ~4 s (scratch copy) and passes check_glb; default 20,772 tris"
+  ],
+  "issues_file": "see the StructuredOutput issues list; evidence in review_sheet_r2.png, r2/renders/, r2/r2_tech_delivered.json, r2/r2_tech_pending.json, r2/r2_glb_scan.json",
+  "scripts": ["r2/r2_glb_scan.py", "r2/r2_tech.py", "r2/r2_render.py", "r2/r2_rail.py", "r2/r2_sheet.py", "r2/r2_review_sheet.py"]
+}

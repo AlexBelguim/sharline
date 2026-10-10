@@ -2,8 +2,8 @@
   "WARDEN_SOCKET_Optic": {
     "location": [
       0,
-      -0.08,
-      0.1375
+      -0.19,
+      0.117
     ],
     "rotation_deg": [
       0,
@@ -14,7 +14,7 @@
   "WARDEN_SOCKET_Stock": {
     "location": [
       0,
-      0.08,
+      0.022,
       0.075
     ],
     "rotation_deg": [
@@ -26,8 +26,8 @@
   "WARDEN_SOCKET_Mag": {
     "location": [
       0,
-      -0.27,
-      0.0
+      -0.299,
+      0.046
     ],
     "rotation_deg": [
       0,
@@ -39,7 +39,7 @@
     "location": [
       0,
       -0.6,
-      0.0205
+      0.0275
     ],
     "rotation_deg": [
       0,
@@ -49,9 +49,9 @@
   },
   "WARDEN_SOCKET_Side_R": {
     "location": [
-      -0.0455,
-      -0.645,
-      0.079
+      -0.0375,
+      -0.643,
+      0.066
     ],
     "rotation_deg": [
       0,
@@ -61,9 +61,9 @@
   },
   "WARDEN_SOCKET_Side_L": {
     "location": [
-      0.0455,
-      -0.645,
-      0.079
+      0.0375,
+      -0.643,
+      0.066
     ],
     "rotation_deg": [
       0,
@@ -86,8 +86,8 @@
   "WARDEN_SOCKET_LeftHand": {
     "location": [
       0,
-      -0.38,
-      0.03
+      -0.45,
+      0.037
     ],
     "rotation_deg": [
       0,

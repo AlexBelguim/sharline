@@ -1,0 +1,577 @@
+{
+  "optic_reddot": {
+    "intersections": 0,
+    "samples": [
+      {
+        "clamp_y": 0.0,
+        "where": "top",
+        "gap_m": 0.0001
+      },
+      {
+        "clamp_y": 0.0,
+        "where": "top_l",
+        "gap_m": 0.0001
+      },
+      {
+        "clamp_y": 0.0,
+        "where": "top_r",
+        "gap_m": 0.0001
+      },
+      {
+        "clamp_y": 0.0,
+        "where": "flank_l",
+        "gap_m": 0.0001
+      },
+      {
+        "clamp_y": 0.0,
+        "where": "flank_r",
+        "gap_m": 0.0001
+      }
+    ],
+    "max_gap_m": 0.0001,
+    "ok": true,
+    "near_plane": {
+      "nearest_in_view_m": 0.0327,
+      "near_plane_m": 0.03,
+      "ok": true
+    },
+    "ads_measure": {
+      "res_px": [
+        1920,
+        1080
+      ],
+      "vfov_deg": 63.18,
+      "hfov_deg": 95.1,
+      "eye_m": [
+        0.0,
+        -0.047,
+        0.133
+      ],
+      "window_px": {
+        "left": 630,
+        "right": 1289,
+        "top": 280,
+        "bottom": 636,
+        "width": 660,
+        "height": 357
+      },
+      "window_frac_w": 0.344,
+      "window_frac_h": 0.331,
+      "frame_px": {
+        "left": 41,
+        "right": 41,
+        "top": 41,
+        "bottom_body": 443
+      },
+      "frame_to_screen_edge": {
+        "left": false,
+        "right": false,
+        "top": false
+      },
+      "frame_frac_w": {
+        "left": 0.0214,
+        "right": 0.0214,
+        "top": 0.0214
+      },
+      "screen_clear_frac": 0.832,
+      "targets": {
+        "window_frac_w_min": 0.24,
+        "window_frac_h_min": 0.0,
+        "frame_frac_w_max": 0.025,
+        "window_ok": true,
+        "frame_ok": true
+      },
+      "on": "MAKO",
+      "optic_window_px": {
+        "left": 630,
+        "right": 1289,
+        "top": 280,
+        "bottom": 799,
+        "width": 660,
+        "height": 520
+      },
+      "optic_window_frac": [
+        0.344,
+        0.481
+      ]
+    },
+    "ads_measure_render_rs_78": {
+      "res_px": [
+        1920,
+        1080
+      ],
+      "vfov_deg": 70.3,
+      "hfov_deg": 102.76,
+      "eye_m": [
+        0.0,
+        -0.047,
+        0.133
+      ],
+      "window_px": {
+        "left": 672,
+        "right": 1247,
+        "top": 313,
+        "bottom": 623,
+        "width": 576,
+        "height": 311
+      },
+      "window_frac_w": 0.3,
+      "window_frac_h": 0.288,
+      "frame_px": {
+        "left": 36,
+        "right": 36,
+        "top": 36,
+        "bottom_body": 456
+      },
+      "frame_to_screen_edge": {
+        "left": false,
+        "right": false,
+        "top": false
+      },
+      "frame_frac_w": {
+        "left": 0.0187,
+        "right": 0.0187,
+        "top": 0.0187
+      },
+      "screen_clear_frac": 0.841,
+      "targets": {
+        "window_frac_w_min": 0.24,
+        "window_frac_h_min": 0.0,
+        "frame_frac_w_max": 0.025,
+        "window_ok": true,
+        "frame_ok": true
+      }
+    }
+  },
+  "optic_holo": {
+    "intersections": 0,
+    "samples": [
+      {
+        "clamp_y": 0.0,
+        "where": "top",
+        "gap_m": 0.0001
+      },
+      {
+        "clamp_y": 0.0,
+        "where": "top_l",
+        "gap_m": 0.0001
+      },
+      {
+        "clamp_y": 0.0,
+        "where": "top_r",
+        "gap_m": 0.0001
+      },
+      {
+        "clamp_y": 0.0,
+        "where": "flank_l",
+        "gap_m": 0.0001
+      },
+      {
+        "clamp_y": 0.0,
+        "where": "flank_r",
+        "gap_m": 0.0001
+      }
+    ],
+    "max_gap_m": 0.0001,
+    "ok": true,
+    "near_plane": {
+      "nearest_in_view_m": 0.0488,
+      "near_plane_m": 0.03,
+      "ok": true
+    },
+    "ads_measure": {
+      "res_px": [
+        1920,
+        1080
+      ],
+      "vfov_deg": 59.0,
+      "hfov_deg": 90.33,
+      "eye_m": [
+        0.0,
+        -0.002,
+        0.129
+      ],
+      "window_px": {
+        "left": 626,
+        "right": 1293,
+        "top": 253,
+        "bottom": 627,
+        "width": 668,
+        "height": 375
+      },
+      "window_frac_w": 0.348,
+      "window_frac_h": 0.347,
+      "frame_px": {
+        "left": 46,
+        "right": 46,
+        "top": 45,
+        "bottom_body": 452
+      },
+      "frame_to_screen_edge": {
+        "left": false,
+        "right": false,
+        "top": false
+      },
+      "frame_frac_w": {
+        "left": 0.024,
+        "right": 0.024,
+        "top": 0.0234
+      },
+      "screen_clear_frac": 0.823,
+      "targets": {
+        "window_frac_w_min": 0.3,
+        "window_frac_h_min": 0.24,
+        "frame_frac_w_max": 0.025,
+        "window_ok": true,
+        "frame_ok": true
+      },
+      "on": "MAKO",
+      "optic_window_px": {
+        "left": 626,
+        "right": 1293,
+        "top": 253,
+        "bottom": 721,
+        "width": 668,
+        "height": 469
+      },
+      "optic_window_frac": [
+        0.348,
+        0.434
+      ]
+    },
+    "ads_measure_render_rs_78": {
+      "res_px": [
+        1920,
+        1080
+      ],
+      "vfov_deg": 65.87,
+      "hfov_deg": 98.07,
+      "eye_m": [
+        0.0,
+        -0.002,
+        0.129
+      ],
+      "window_px": {
+        "left": 668,
+        "right": 1251,
+        "top": 290,
+        "bottom": 615,
+        "width": 584,
+        "height": 326
+      },
+      "window_frac_w": 0.304,
+      "window_frac_h": 0.302,
+      "frame_px": {
+        "left": 40,
+        "right": 40,
+        "top": 40,
+        "bottom_body": 464
+      },
+      "frame_to_screen_edge": {
+        "left": false,
+        "right": false,
+        "top": false
+      },
+      "frame_frac_w": {
+        "left": 0.0208,
+        "right": 0.0208,
+        "top": 0.0208
+      },
+      "screen_clear_frac": 0.841,
+      "targets": {
+        "window_frac_w_min": 0.3,
+        "window_frac_h_min": 0.24,
+        "frame_frac_w_max": 0.025,
+        "window_ok": true,
+        "frame_ok": true
+      }
+    }
+  },
+  "optic_projector": {
+    "intersections": 0,
+    "samples": [
+      {
+        "clamp_y": 0.0,
+        "where": "top",
+        "gap_m": 0.0001
+      },
+      {
+        "clamp_y": 0.0,
+        "where": "top_l",
+        "gap_m": 0.0001
+      },
+      {
+        "clamp_y": 0.0,
+        "where": "top_r",
+        "gap_m": 0.0001
+      },
+      {
+        "clamp_y": 0.0,
+        "where": "flank_l",
+        "gap_m": 0.0001
+      },
+      {
+        "clamp_y": 0.0,
+        "where": "flank_r",
+        "gap_m": 0.0001
+      }
+    ],
+    "max_gap_m": 0.0001,
+    "ok": true,
+    "flap_clearance": {
+      "frame_0": 0,
+      "frame_6": 0,
+      "frame_12": 0
+    },
+    "near_plane": {
+      "nearest_in_view_m": 0.045,
+      "near_plane_m": 0.03,
+      "ok": true
+    },
+    "ads_measure": {
+      "res_px": [
+        1920,
+        1080
+      ],
+      "vfov_deg": 61.02,
+      "hfov_deg": 92.67,
+      "eye_m": [
+        0.0,
+        -0.0105,
+        0.131
+      ],
+      "window_px": {
+        "left": 0,
+        "right": 1919,
+        "top": 0,
+        "bottom": 628,
+        "width": 1920,
+        "height": 629
+      },
+      "window_frac_w": 1.0,
+      "window_frac_h": 0.582,
+      "frame_px": {
+        "left": 0,
+        "right": 0,
+        "top": 0,
+        "bottom_body": 451
+      },
+      "frame_to_screen_edge": {
+        "left": true,
+        "right": true,
+        "top": true
+      },
+      "frame_frac_w": {
+        "left": 0.0,
+        "right": 0.0,
+        "top": 0.0
+      },
+      "screen_clear_frac": 0.904,
+      "hologram_frame_px": {
+        "width": 461.0,
+        "height": 345.4
+      },
+      "hologram_frame_frac": [
+        0.24,
+        0.32
+      ],
+      "on": "MAKO",
+      "optic_window_px": {
+        "left": 0,
+        "right": 1919,
+        "top": 0,
+        "bottom": 754,
+        "width": 1920,
+        "height": 755
+      },
+      "optic_window_frac": [
+        1.0,
+        0.699
+      ]
+    },
+    "ads_measure_render_rs_78": {
+      "res_px": [
+        1920,
+        1080
+      ],
+      "vfov_deg": 68.02,
+      "hfov_deg": 100.37,
+      "eye_m": [
+        0.0,
+        -0.0105,
+        0.131
+      ],
+      "window_px": {
+        "left": 0,
+        "right": 1919,
+        "top": 0,
+        "bottom": 617,
+        "width": 1920,
+        "height": 618
+      },
+      "window_frac_w": 1.0,
+      "window_frac_h": 0.572,
+      "frame_px": {
+        "left": 0,
+        "right": 0,
+        "top": 0,
+        "bottom_body": 462
+      },
+      "frame_to_screen_edge": {
+        "left": true,
+        "right": true,
+        "top": true
+      },
+      "frame_frac_w": {
+        "left": 0.0,
+        "right": 0.0,
+        "top": 0.0
+      },
+      "screen_clear_frac": 0.907,
+      "hologram_frame_px": {
+        "width": 402.6,
+        "height": 301.6
+      },
+      "hologram_frame_frac": [
+        0.21,
+        0.279
+      ]
+    }
+  },
+  "optic_3x": {
+    "intersections": 0,
+    "samples": [
+      {
+        "clamp_y": 0.0,
+        "where": "top",
+        "gap_m": 0.0001
+      },
+      {
+        "clamp_y": 0.0,
+        "where": "top_l",
+        "gap_m": 0.0001
+      },
+      {
+        "clamp_y": 0.0,
+        "where": "top_r",
+        "gap_m": 0.0001
+      },
+      {
+        "clamp_y": 0.0,
+        "where": "flank_l",
+        "gap_m": 0.0001
+      },
+      {
+        "clamp_y": 0.0,
+        "where": "flank_r",
+        "gap_m": 0.0001
+      }
+    ],
+    "max_gap_m": 0.0001,
+    "ok": true,
+    "near_plane": {
+      "nearest_in_view_m": 0.065,
+      "near_plane_m": 0.03,
+      "ok": true
+    }
+  },
+  "optic_sniper": {
+    "intersections": 0,
+    "samples": [
+      {
+        "clamp_y": -0.06,
+        "where": "top",
+        "gap_m": 0.0001
+      },
+      {
+        "clamp_y": -0.06,
+        "where": "top_l",
+        "gap_m": 0.0001
+      },
+      {
+        "clamp_y": -0.06,
+        "where": "top_r",
+        "gap_m": 0.0001
+      },
+      {
+        "clamp_y": -0.06,
+        "where": "flank_l",
+        "gap_m": 0.0001
+      },
+      {
+        "clamp_y": -0.06,
+        "where": "flank_r",
+        "gap_m": 0.0001
+      },
+      {
+        "clamp_y": 0.06,
+        "where": "top",
+        "gap_m": 0.0001
+      },
+      {
+        "clamp_y": 0.06,
+        "where": "top_l",
+        "gap_m": 0.0001
+      },
+      {
+        "clamp_y": 0.06,
+        "where": "top_r",
+        "gap_m": 0.0001
+      },
+      {
+        "clamp_y": 0.06,
+        "where": "flank_l",
+        "gap_m": 0.0001
+      },
+      {
+        "clamp_y": 0.06,
+        "where": "flank_r",
+        "gap_m": 0.0001
+      }
+    ],
+    "max_gap_m": 0.0001,
+    "ok": true,
+    "near_plane": {
+      "nearest_in_view_m": 0.085,
+      "near_plane_m": 0.03,
+      "ok": true
+    }
+  },
+  "optic_thermal": {
+    "intersections": 0,
+    "samples": [
+      {
+        "clamp_y": 0.0,
+        "where": "top",
+        "gap_m": 0.0001
+      },
+      {
+        "clamp_y": 0.0,
+        "where": "top_l",
+        "gap_m": 0.0001
+      },
+      {
+        "clamp_y": 0.0,
+        "where": "top_r",
+        "gap_m": 0.0001
+      },
+      {
+        "clamp_y": 0.0,
+        "where": "flank_l",
+        "gap_m": 0.0001
+      },
+      {
+        "clamp_y": 0.0,
+        "where": "flank_r",
+        "gap_m": 0.0001
+      }
+    ],
+    "max_gap_m": 0.0001,
+    "ok": true,
+    "near_plane": {
+      "nearest_in_view_m": 0.0468,
+      "near_plane_m": 0.03,
+      "ok": true
+    }
+  }
+}

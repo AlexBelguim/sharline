@@ -1,0 +1,2505 @@
+{
+ "optic_reddot": {
+  "file_bytes": 429372,
+  "generator": "Khronos glTF Blender I/O v5.2.39",
+  "extensionsUsed": [
+   "KHR_materials_clearcoat",
+   "KHR_materials_emissive_strength"
+  ],
+  "extensionsRequired": [],
+  "scene_roots": [
+   "ATT_optic_reddot"
+  ],
+  "nodes": {
+   "ATT_optic_reddot_Body": {
+    "children": [],
+    "mesh": "ATT_optic_reddot_Body",
+    "T": null,
+    "R": null,
+    "S": null,
+    "extras": null
+   },
+   "ATT_optic_reddot_Glass": {
+    "children": [],
+    "mesh": "ATT_optic_reddot_Glass",
+    "T": null,
+    "R": null,
+    "S": null,
+    "extras": null
+   },
+   "ATT_optic_reddot_Glint": {
+    "children": [],
+    "mesh": "ATT_optic_reddot_Glint",
+    "T": null,
+    "R": null,
+    "S": null,
+    "extras": null
+   },
+   "ATT_optic_reddot_Reticle": {
+    "children": [],
+    "mesh": "ATT_optic_reddot_Reticle",
+    "T": null,
+    "R": null,
+    "S": null,
+    "extras": null
+   },
+   "ATT_optic_reddot_SOCKET_ADS": {
+    "children": [],
+    "mesh": null,
+    "T": [
+     0,
+     0.04899999871850014,
+     0.013500000350177288
+    ],
+    "R": null,
+    "S": null,
+    "extras": {
+     "eye_relief_m": 0.065,
+     "note": "sight line at the rear of the reticle/eyepiece; camera eye point = +Y by eye_relief_m",
+     "reticle": "10 MOA dot"
+    }
+   },
+   "ATT_optic_reddot": {
+    "children": [
+     "ATT_optic_reddot_Body",
+     "ATT_optic_reddot_Glass",
+     "ATT_optic_reddot_Glint",
+     "ATT_optic_reddot_Reticle",
+     "ATT_optic_reddot_SOCKET_ADS"
+    ],
+    "mesh": null,
+    "T": null,
+    "R": null,
+    "S": null,
+    "extras": {
+     "optic_id": "optic_reddot",
+     "category": "optic",
+     "mount": "picatinny top rail; origin = clamp contact centre on rail top",
+     "ads_height_m": 0.049,
+     "length_m": 0.0465,
+     "magnification": "1.0",
+     "eye_relief_m": 0.065,
+     "body_node": "ATT_optic_reddot_Body",
+     "window_glass_node": "ATT_optic_reddot_Glass",
+     "reticle_node": "ATT_optic_reddot_Reticle",
+     "glint_node": "ATT_optic_reddot_Glint"
+    }
+   }
+  },
+  "materials": [
+   {
+    "name": "M_ATT_Graphite",
+    "alphaMode": "OPAQUE",
+    "doubleSided": false,
+    "baseColorFactor": [
+     1,
+     1,
+     1,
+     1
+    ],
+    "baseColorTexture": true,
+    "tex_transform": false,
+    "metallic": 0.25,
+    "roughness": 0.5,
+    "mr_texture": false,
+    "normal_texture": false,
+    "emissive": null,
+    "ext": {}
+   },
+   {
+    "name": "M_ATT_Dark",
+    "alphaMode": "OPAQUE",
+    "doubleSided": false,
+    "baseColorFactor": [
+     0.016,
+     0.017,
+     0.02,
+     1
+    ],
+    "baseColorTexture": false,
+    "tex_transform": false,
+    "metallic": 0,
+    "roughness": 0.75,
+    "mr_texture": false,
+    "normal_texture": false,
+    "emissive": null,
+    "ext": {}
+   },
+   {
+    "name": "M_ATT_Gunmetal",
+    "alphaMode": "OPAQUE",
+    "doubleSided": false,
+    "baseColorFactor": [
+     1,
+     1,
+     1,
+     1
+    ],
+    "baseColorTexture": true,
+    "tex_transform": false,
+    "metallic": 0.8500000238418579,
+    "roughness": 0.3499999940395355,
+    "mr_texture": false,
+    "normal_texture": false,
+    "emissive": null,
+    "ext": {}
+   },
+   {
+    "name": "M_ATT_Rubber",
+    "alphaMode": "OPAQUE",
+    "doubleSided": false,
+    "baseColorFactor": [
+     0.035,
+     0.037,
+     0.045,
+     1
+    ],
+    "baseColorTexture": false,
+    "tex_transform": false,
+    "metallic": 0,
+    "roughness": 0.8500000238418579,
+    "mr_texture": false,
+    "normal_texture": false,
+    "emissive": null,
+    "ext": {}
+   },
+   {
+    "name": "M_ATT_ReflexGlass",
+    "alphaMode": "BLEND",
+    "doubleSided": false,
+    "baseColorFactor": [
+     0.03,
+     0.07,
+     0.09,
+     0.3
+    ],
+    "baseColorTexture": false,
+    "tex_transform": false,
+    "metallic": 0,
+    "roughness": 0.029999999329447746,
+    "mr_texture": false,
+    "normal_texture": false,
+    "emissive": null,
+    "ext": {
+     "KHR_materials_clearcoat": {
+      "clearcoatFactor": 0.3499999940395355
+     }
+    }
+   },
+   {
+    "name": "M_ATT_IceGlint",
+    "alphaMode": "OPAQUE",
+    "doubleSided": false,
+    "baseColorFactor": [
+     0.45,
+     0.85,
+     1,
+     1
+    ],
+    "baseColorTexture": false,
+    "tex_transform": false,
+    "metallic": 0,
+    "roughness": 0.30000001192092896,
+    "mr_texture": false,
+    "normal_texture": false,
+    "emissive": [
+     0.44999998807907104,
+     0.8500000238418579,
+     1
+    ],
+    "ext": {
+     "KHR_materials_emissive_strength": {
+      "emissiveStrength": 2.200000047683716
+     }
+    }
+   },
+   {
+    "name": "M_ATT_IceReticle",
+    "alphaMode": "OPAQUE",
+    "doubleSided": false,
+    "baseColorFactor": [
+     0.45,
+     0.85,
+     1,
+     1
+    ],
+    "baseColorTexture": false,
+    "tex_transform": false,
+    "metallic": 0,
+    "roughness": 0.30000001192092896,
+    "mr_texture": false,
+    "normal_texture": false,
+    "emissive": [
+     0.44999998807907104,
+     0.8500000238418579,
+     1
+    ],
+    "ext": {
+     "KHR_materials_emissive_strength": {
+      "emissiveStrength": 1.600000023841858
+     }
+    }
+   }
+  ],
+  "primitives": [
+   {
+    "mesh": "ATT_optic_reddot_Body",
+    "material": "M_ATT_Graphite",
+    "attrs": [
+     "NORMAL",
+     "POSITION",
+     "TEXCOORD_0"
+    ],
+    "tris": 1192,
+    "mode": 4,
+    "bbox_gltf_min": [
+     -0.0143,
+     -0.0062,
+     -0.0215
+    ],
+    "bbox_gltf_max": [
+     0.0143,
+     0.0665,
+     0.025
+    ],
+    "bad_normals": 0,
+    "uv_range": [
+     0.012,
+     1.075,
+     -0.073,
+     0.988
+    ]
+   },
+   {
+    "mesh": "ATT_optic_reddot_Body",
+    "material": "M_ATT_Dark",
+    "attrs": [
+     "NORMAL",
+     "POSITION",
+     "TEXCOORD_0"
+    ],
+    "tris": 596,
+    "mode": 4,
+    "bbox_gltf_min": [
+     -0.0134,
+     0.0115,
+     -0.015
+    ],
+    "bbox_gltf_max": [
+     0.0134,
+     0.0595,
+     0.0246
+    ],
+    "bad_normals": 0,
+    "uv_range": [
+     0.02,
+     1.104,
+     -0.101,
+     0.988
+    ]
+   },
+   {
+    "mesh": "ATT_optic_reddot_Body",
+    "material": "M_ATT_Gunmetal",
+    "attrs": [
+     "NORMAL",
+     "POSITION",
+     "TEXCOORD_0"
+    ],
+    "tris": 332,
+    "mode": 4,
+    "bbox_gltf_min": [
+     -0.016,
+     -0.0046,
+     -0.0191
+    ],
+    "bbox_gltf_max": [
+     0.0175,
+     0.0379,
+     0.0001
+    ],
+    "bad_normals": 0,
+    "uv_range": [
+     0.034,
+     1.109,
+     -0.109,
+     0.988
+    ]
+   },
+   {
+    "mesh": "ATT_optic_reddot_Body",
+    "material": "M_ATT_Rubber",
+    "attrs": [
+     "NORMAL",
+     "POSITION",
+     "TEXCOORD_0"
+    ],
+    "tris": 216,
+    "mode": 4,
+    "bbox_gltf_min": [
+     -0.0146,
+     0.0272,
+     0.0108
+    ],
+    "bbox_gltf_max": [
+     0.0146,
+     0.0324,
+     0.0192
+    ],
+    "bad_normals": 0,
+    "uv_range": [
+     0.162,
+     1.078,
+     -0.106,
+     0.114
+    ]
+   },
+   {
+    "mesh": "ATT_optic_reddot_Glass",
+    "material": "M_ATT_ReflexGlass",
+    "attrs": [
+     "NORMAL",
+     "POSITION",
+     "TEXCOORD_0"
+    ],
+    "tris": 76,
+    "mode": 4,
+    "bbox_gltf_min": [
+     -0.0101,
+     0.038,
+     0.0117
+    ],
+    "bbox_gltf_max": [
+     0.0101,
+     0.06,
+     0.0167
+    ],
+    "bad_normals": 0,
+    "uv_range": [
+     0.001,
+     0.256,
+     0.758,
+     0.999
+    ]
+   },
+   {
+    "mesh": "ATT_optic_reddot_Glint",
+    "material": "M_ATT_IceGlint",
+    "attrs": [
+     "NORMAL",
+     "POSITION",
+     "TEXCOORD_0"
+    ],
+    "tris": 12,
+    "mode": 4,
+    "bbox_gltf_min": [
+     -0.0009,
+     0.0482,
+     0.0147
+    ],
+    "bbox_gltf_max": [
+     0.0009,
+     0.05,
+     0.015
+    ],
+    "bad_normals": 0,
+    "avg_normal_blender": [
+     0.0,
+     -0.985,
+     0.174
+    ],
+    "uv_range": [
+     0.0,
+     0.01,
+     0.99,
+     1.0
+    ]
+   },
+   {
+    "mesh": "ATT_optic_reddot_Reticle",
+    "material": "M_ATT_IceReticle",
+    "attrs": [
+     "NORMAL",
+     "POSITION",
+     "TEXCOORD_0"
+    ],
+    "tris": 12,
+    "mode": 4,
+    "bbox_gltf_min": [
+     -0.0001,
+     0.0488,
+     0.0135
+    ],
+    "bbox_gltf_max": [
+     0.0001,
+     0.049,
+     0.0136
+    ],
+    "bad_normals": 0,
+    "avg_normal_blender": [
+     0.0,
+     0.985,
+     -0.174
+    ],
+    "uv_range": [
+     0.0,
+     0.001,
+     0.999,
+     1.0
+    ]
+   }
+  ],
+  "tris_total": 2436,
+  "images": [
+   {
+    "name": "M_ATT_Graphite",
+    "mime": "image/png",
+    "bytes": 145981,
+    "size": [
+     512,
+     512
+    ],
+    "mode": "RGB",
+    "mean_rgb_srgb": [
+     46,
+     49,
+     54
+    ]
+   },
+   {
+    "name": "M_ATT_Gunmetal",
+    "mime": "image/png",
+    "bytes": 180097,
+    "size": [
+     512,
+     512
+    ],
+    "mode": "RGB",
+    "mean_rgb_srgb": [
+     91,
+     93,
+     95
+    ]
+   }
+  ],
+  "samplers": [
+   {
+    "magFilter": 9729,
+    "minFilter": 9987
+   }
+  ]
+ },
+ "optic_holo": {
+  "file_bytes": 678288,
+  "generator": "Khronos glTF Blender I/O v5.2.39",
+  "extensionsUsed": [
+   "KHR_materials_clearcoat",
+   "KHR_materials_emissive_strength"
+  ],
+  "extensionsRequired": [],
+  "scene_roots": [
+   "ATT_optic_holo"
+  ],
+  "nodes": {
+   "ATT_optic_holo_Body": {
+    "children": [],
+    "mesh": "ATT_optic_holo_Body",
+    "T": null,
+    "R": null,
+    "S": null,
+    "extras": null
+   },
+   "ATT_optic_holo_Glass": {
+    "children": [],
+    "mesh": "ATT_optic_holo_Glass",
+    "T": null,
+    "R": null,
+    "S": null,
+    "extras": null
+   },
+   "ATT_optic_holo_Glint": {
+    "children": [],
+    "mesh": "ATT_optic_holo_Glint",
+    "T": null,
+    "R": null,
+    "S": null,
+    "extras": null
+   },
+   "ATT_optic_holo_Reticle": {
+    "children": [],
+    "mesh": "ATT_optic_holo_Reticle",
+    "T": null,
+    "R": null,
+    "S": null,
+    "extras": null
+   },
+   "ATT_optic_holo_SOCKET_ADS": {
+    "children": [],
+    "mesh": null,
+    "T": [
+     0,
+     0.04500000178813934,
+     0.012600000016391277
+    ],
+    "R": null,
+    "S": null,
+    "extras": {
+     "eye_relief_m": 0.08,
+     "note": "sight line at the rear of the reticle/eyepiece; camera eye point = +Y by eye_relief_m",
+     "reticle": "10 MOA dot + 68 MOA ring"
+    }
+   },
+   "ATT_optic_holo": {
+    "children": [
+     "ATT_optic_holo_Body",
+     "ATT_optic_holo_Glass",
+     "ATT_optic_holo_Glint",
+     "ATT_optic_holo_Reticle",
+     "ATT_optic_holo_SOCKET_ADS"
+    ],
+    "mesh": null,
+    "T": null,
+    "R": null,
+    "S": null,
+    "extras": {
+     "optic_id": "optic_holo",
+     "category": "optic",
+     "mount": "picatinny top rail; origin = clamp contact centre on rail top",
+     "ads_height_m": 0.045,
+     "length_m": 0.0889,
+     "magnification": "1.0",
+     "eye_relief_m": 0.08,
+     "body_node": "ATT_optic_holo_Body",
+     "window_glass_node": "ATT_optic_holo_Glass",
+     "reticle_node": "ATT_optic_holo_Reticle",
+     "glint_node": "ATT_optic_holo_Glint"
+    }
+   }
+  },
+  "materials": [
+   {
+    "name": "M_ATT_Graphite",
+    "alphaMode": "OPAQUE",
+    "doubleSided": false,
+    "baseColorFactor": [
+     1,
+     1,
+     1,
+     1
+    ],
+    "baseColorTexture": true,
+    "tex_transform": false,
+    "metallic": 0.25,
+    "roughness": 0.5,
+    "mr_texture": false,
+    "normal_texture": false,
+    "emissive": null,
+    "ext": {}
+   },
+   {
+    "name": "M_ATT_Bone",
+    "alphaMode": "OPAQUE",
+    "doubleSided": false,
+    "baseColorFactor": [
+     1,
+     1,
+     1,
+     1
+    ],
+    "baseColorTexture": true,
+    "tex_transform": false,
+    "metallic": 0,
+    "roughness": 0.6000000238418579,
+    "mr_texture": false,
+    "normal_texture": false,
+    "emissive": null,
+    "ext": {}
+   },
+   {
+    "name": "M_ATT_Lining",
+    "alphaMode": "OPAQUE",
+    "doubleSided": false,
+    "baseColorFactor": [
+     0.045,
+     0.049,
+     0.058,
+     1
+    ],
+    "baseColorTexture": false,
+    "tex_transform": false,
+    "metallic": 0.15000000596046448,
+    "roughness": 0.5,
+    "mr_texture": false,
+    "normal_texture": false,
+    "emissive": null,
+    "ext": {}
+   },
+   {
+    "name": "M_ATT_Rubber",
+    "alphaMode": "OPAQUE",
+    "doubleSided": false,
+    "baseColorFactor": [
+     0.035,
+     0.037,
+     0.045,
+     1
+    ],
+    "baseColorTexture": false,
+    "tex_transform": false,
+    "metallic": 0,
+    "roughness": 0.8500000238418579,
+    "mr_texture": false,
+    "normal_texture": false,
+    "emissive": null,
+    "ext": {}
+   },
+   {
+    "name": "M_ATT_Dark",
+    "alphaMode": "OPAQUE",
+    "doubleSided": false,
+    "baseColorFactor": [
+     0.016,
+     0.017,
+     0.02,
+     1
+    ],
+    "baseColorTexture": false,
+    "tex_transform": false,
+    "metallic": 0,
+    "roughness": 0.75,
+    "mr_texture": false,
+    "normal_texture": false,
+    "emissive": null,
+    "ext": {}
+   },
+   {
+    "name": "M_ATT_Gunmetal",
+    "alphaMode": "OPAQUE",
+    "doubleSided": false,
+    "baseColorFactor": [
+     1,
+     1,
+     1,
+     1
+    ],
+    "baseColorTexture": true,
+    "tex_transform": false,
+    "metallic": 0.8500000238418579,
+    "roughness": 0.3499999940395355,
+    "mr_texture": false,
+    "normal_texture": false,
+    "emissive": null,
+    "ext": {}
+   },
+   {
+    "name": "M_ATT_ReflexGlass",
+    "alphaMode": "BLEND",
+    "doubleSided": false,
+    "baseColorFactor": [
+     0.03,
+     0.07,
+     0.09,
+     0.3
+    ],
+    "baseColorTexture": false,
+    "tex_transform": false,
+    "metallic": 0,
+    "roughness": 0.029999999329447746,
+    "mr_texture": false,
+    "normal_texture": false,
+    "emissive": null,
+    "ext": {
+     "KHR_materials_clearcoat": {
+      "clearcoatFactor": 0.3499999940395355
+     }
+    }
+   },
+   {
+    "name": "M_ATT_IceGlint",
+    "alphaMode": "OPAQUE",
+    "doubleSided": false,
+    "baseColorFactor": [
+     0.45,
+     0.85,
+     1,
+     1
+    ],
+    "baseColorTexture": false,
+    "tex_transform": false,
+    "metallic": 0,
+    "roughness": 0.30000001192092896,
+    "mr_texture": false,
+    "normal_texture": false,
+    "emissive": [
+     0.44999998807907104,
+     0.8500000238418579,
+     1
+    ],
+    "ext": {
+     "KHR_materials_emissive_strength": {
+      "emissiveStrength": 2.200000047683716
+     }
+    }
+   },
+   {
+    "name": "M_ATT_IceReticle",
+    "alphaMode": "OPAQUE",
+    "doubleSided": false,
+    "baseColorFactor": [
+     0.45,
+     0.85,
+     1,
+     1
+    ],
+    "baseColorTexture": false,
+    "tex_transform": false,
+    "metallic": 0,
+    "roughness": 0.30000001192092896,
+    "mr_texture": false,
+    "normal_texture": false,
+    "emissive": [
+     0.44999998807907104,
+     0.8500000238418579,
+     1
+    ],
+    "ext": {
+     "KHR_materials_emissive_strength": {
+      "emissiveStrength": 1.600000023841858
+     }
+    }
+   }
+  ],
+  "primitives": [
+   {
+    "mesh": "ATT_optic_holo_Body",
+    "material": "M_ATT_Graphite",
+    "attrs": [
+     "NORMAL",
+     "POSITION",
+     "TEXCOORD_0"
+    ],
+    "tris": 940,
+    "mode": 4,
+    "bbox_gltf_min": [
+     -0.0267,
+     -0.0062,
+     -0.03
+    ],
+    "bbox_gltf_max": [
+     0.0309,
+     0.0232,
+     0.0545
+    ],
+    "bad_normals": 0,
+    "uv_range": [
+     0.032,
+     2.158,
+     -1.304,
+     0.972
+    ]
+   },
+   {
+    "mesh": "ATT_optic_holo_Body",
+    "material": "M_ATT_Bone",
+    "attrs": [
+     "NORMAL",
+     "POSITION",
+     "TEXCOORD_0"
+    ],
+    "tris": 1211,
+    "mode": 4,
+    "bbox_gltf_min": [
+     -0.0235,
+     0.008,
+     -0.0316
+    ],
+    "bbox_gltf_max": [
+     0.0235,
+     0.071,
+     0.056
+    ],
+    "bad_normals": 0,
+    "uv_range": [
+     0.028,
+     2.224,
+     -1.221,
+     0.972
+    ]
+   },
+   {
+    "mesh": "ATT_optic_holo_Body",
+    "material": "M_ATT_Lining",
+    "attrs": [
+     "NORMAL",
+     "POSITION",
+     "TEXCOORD_0"
+    ],
+    "tris": 187,
+    "mode": 4,
+    "bbox_gltf_min": [
+     -0.0172,
+     0.0285,
+     -0.0286
+    ],
+    "bbox_gltf_max": [
+     0.0172,
+     0.06,
+     0.023
+    ],
+    "bad_normals": 0,
+    "uv_range": [
+     0.399,
+     1.7,
+     -1.025,
+     0.972
+    ]
+   },
+   {
+    "mesh": "ATT_optic_holo_Body",
+    "material": "M_ATT_Rubber",
+    "attrs": [
+     "NORMAL",
+     "POSITION",
+     "TEXCOORD_0"
+    ],
+    "tris": 1206,
+    "mode": 4,
+    "bbox_gltf_min": [
+     -0.0263,
+     0.0107,
+     -0.0329
+    ],
+    "bbox_gltf_max": [
+     0.0263,
+     0.0602,
+     0.0495
+    ],
+    "bad_normals": 0,
+    "uv_range": [
+     0.028,
+     2.285,
+     -1.303,
+     0.972
+    ]
+   },
+   {
+    "mesh": "ATT_optic_holo_Body",
+    "material": "M_ATT_Dark",
+    "attrs": [
+     "NORMAL",
+     "POSITION",
+     "TEXCOORD_0"
+    ],
+    "tris": 306,
+    "mode": 4,
+    "bbox_gltf_min": [
+     -0.0263,
+     0.0037,
+     0.0122
+    ],
+    "bbox_gltf_max": [
+     0.0291,
+     0.0202,
+     0.0452
+    ],
+    "bad_normals": 0,
+    "uv_range": [
+     0.028,
+     2.249,
+     -1.301,
+     0.566
+    ]
+   },
+   {
+    "mesh": "ATT_optic_holo_Body",
+    "material": "M_ATT_Gunmetal",
+    "attrs": [
+     "NORMAL",
+     "POSITION",
+     "TEXCOORD_0"
+    ],
+    "tris": 424,
+    "mode": 4,
+    "bbox_gltf_min": [
+     -0.0287,
+     -0.0052,
+     -0.0201
+    ],
+    "bbox_gltf_max": [
+     0.0321,
+     0.032,
+     0.0203
+    ],
+    "bad_normals": 0,
+    "uv_range": [
+     0.13,
+     2.308,
+     -1.304,
+     0.903
+    ]
+   },
+   {
+    "mesh": "ATT_optic_holo_Glass",
+    "material": "M_ATT_ReflexGlass",
+    "attrs": [
+     "NORMAL",
+     "POSITION",
+     "TEXCOORD_0"
+    ],
+    "tris": 76,
+    "mode": 4,
+    "bbox_gltf_min": [
+     -0.0176,
+     0.0282,
+     0.0106
+    ],
+    "bbox_gltf_max": [
+     0.0176,
+     0.0604,
+     0.0166
+    ],
+    "bad_normals": 0,
+    "uv_range": [
+     0.001,
+     0.403,
+     0.601,
+     0.999
+    ]
+   },
+   {
+    "mesh": "ATT_optic_holo_Glint",
+    "material": "M_ATT_IceGlint",
+    "attrs": [
+     "NORMAL",
+     "POSITION",
+     "TEXCOORD_0"
+    ],
+    "tris": 12,
+    "mode": 4,
+    "bbox_gltf_min": [
+     -0.0011,
+     0.044,
+     0.0141
+    ],
+    "bbox_gltf_max": [
+     0.0011,
+     0.0462,
+     0.0144
+    ],
+    "bad_normals": 0,
+    "avg_normal_blender": [
+     0.0,
+     -0.99,
+     0.139
+    ],
+    "uv_range": [
+     0.0,
+     0.013,
+     0.987,
+     1.0
+    ]
+   },
+   {
+    "mesh": "ATT_optic_holo_Reticle",
+    "material": "M_ATT_IceReticle",
+    "attrs": [
+     "NORMAL",
+     "POSITION",
+     "TEXCOORD_0"
+    ],
+    "tris": 92,
+    "mode": 4,
+    "bbox_gltf_min": [
+     -0.0008,
+     0.0441,
+     0.0126
+    ],
+    "bbox_gltf_max": [
+     0.0008,
+     0.0457,
+     0.0128
+    ],
+    "bad_normals": 0,
+    "avg_normal_blender": [
+     0.0,
+     0.99,
+     -0.139
+    ],
+    "uv_range": [
+     0.0,
+     0.011,
+     0.99,
+     1.0
+    ]
+   }
+  ],
+  "tris_total": 4454,
+  "images": [
+   {
+    "name": "M_ATT_Graphite",
+    "mime": "image/png",
+    "bytes": 145981,
+    "size": [
+     512,
+     512
+    ],
+    "mode": "RGB",
+    "mean_rgb_srgb": [
+     46,
+     49,
+     54
+    ]
+   },
+   {
+    "name": "M_ATT_Bone",
+    "mime": "image/png",
+    "bytes": 164566,
+    "size": [
+     512,
+     512
+    ],
+    "mode": "RGB",
+    "mean_rgb_srgb": [
+     184,
+     180,
+     170
+    ]
+   },
+   {
+    "name": "M_ATT_Gunmetal",
+    "mime": "image/png",
+    "bytes": 180097,
+    "size": [
+     512,
+     512
+    ],
+    "mode": "RGB",
+    "mean_rgb_srgb": [
+     91,
+     93,
+     95
+    ]
+   }
+  ],
+  "samplers": [
+   {
+    "magFilter": 9729,
+    "minFilter": 9987
+   }
+  ]
+ },
+ "optic_3x": {
+  "file_bytes": 505748,
+  "generator": "Khronos glTF Blender I/O v5.2.39",
+  "extensionsUsed": [
+   "KHR_materials_clearcoat",
+   "KHR_materials_emissive_strength"
+  ],
+  "extensionsRequired": [],
+  "scene_roots": [
+   "ATT_optic_3x"
+  ],
+  "nodes": {
+   "ATT_optic_3x_Body": {
+    "children": [],
+    "mesh": "ATT_optic_3x_Body",
+    "T": null,
+    "R": null,
+    "S": null,
+    "extras": null
+   },
+   "ATT_optic_3x_Objective": {
+    "children": [],
+    "mesh": "ATT_optic_3x_Objective",
+    "T": null,
+    "R": null,
+    "S": null,
+    "extras": null
+   },
+   "ATT_optic_3x_Ocular": {
+    "children": [],
+    "mesh": "ATT_optic_3x_Ocular",
+    "T": null,
+    "R": null,
+    "S": null,
+    "extras": null
+   },
+   "ATT_optic_3x_Reticle": {
+    "children": [],
+    "mesh": "ATT_optic_3x_Reticle",
+    "T": null,
+    "R": null,
+    "S": null,
+    "extras": null
+   },
+   "ATT_optic_3x_SOCKET_ADS": {
+    "children": [],
+    "mesh": null,
+    "T": [
+     0,
+     0.05000000074505806,
+     -0.0568000003695488
+    ],
+    "R": null,
+    "S": null,
+    "extras": {
+     "eye_relief_m": 0.065,
+     "note": "sight line at the rear of the reticle/eyepiece; camera eye point = +Y by eye_relief_m",
+     "reticle": "engine scope overlay on the Ocular node; the Reticle node is the illuminated centre for third-person views"
+    }
+   },
+   "ATT_optic_3x": {
+    "children": [
+     "ATT_optic_3x_Body",
+     "ATT_optic_3x_Objective",
+     "ATT_optic_3x_Ocular",
+     "ATT_optic_3x_Reticle",
+     "ATT_optic_3x_SOCKET_ADS"
+    ],
+    "mesh": null,
+    "T": null,
+    "R": null,
+    "S": null,
+    "extras": {
+     "optic_id": "optic_3x",
+     "category": "optic",
+     "mount": "picatinny top rail; origin = clamp contact centre on rail top",
+     "ads_height_m": 0.05,
+     "length_m": 0.1236,
+     "magnification": "3.0",
+     "eye_relief_m": 0.065,
+     "body_node": "ATT_optic_3x_Body",
+     "objective_node": "ATT_optic_3x_Objective",
+     "ocular_node": "ATT_optic_3x_Ocular",
+     "reticle_node": "ATT_optic_3x_Reticle"
+    }
+   }
+  },
+  "materials": [
+   {
+    "name": "M_ATT_Graphite",
+    "alphaMode": "OPAQUE",
+    "doubleSided": false,
+    "baseColorFactor": [
+     1,
+     1,
+     1,
+     1
+    ],
+    "baseColorTexture": true,
+    "tex_transform": false,
+    "metallic": 0.25,
+    "roughness": 0.5,
+    "mr_texture": false,
+    "normal_texture": false,
+    "emissive": null,
+    "ext": {}
+   },
+   {
+    "name": "M_ATT_Dark",
+    "alphaMode": "OPAQUE",
+    "doubleSided": false,
+    "baseColorFactor": [
+     0.016,
+     0.017,
+     0.02,
+     1
+    ],
+    "baseColorTexture": false,
+    "tex_transform": false,
+    "metallic": 0,
+    "roughness": 0.75,
+    "mr_texture": false,
+    "normal_texture": false,
+    "emissive": null,
+    "ext": {}
+   },
+   {
+    "name": "M_ATT_Rubber",
+    "alphaMode": "OPAQUE",
+    "doubleSided": false,
+    "baseColorFactor": [
+     0.035,
+     0.037,
+     0.045,
+     1
+    ],
+    "baseColorTexture": false,
+    "tex_transform": false,
+    "metallic": 0,
+    "roughness": 0.8500000238418579,
+    "mr_texture": false,
+    "normal_texture": false,
+    "emissive": null,
+    "ext": {}
+   },
+   {
+    "name": "M_ATT_Gunmetal",
+    "alphaMode": "OPAQUE",
+    "doubleSided": false,
+    "baseColorFactor": [
+     1,
+     1,
+     1,
+     1
+    ],
+    "baseColorTexture": true,
+    "tex_transform": false,
+    "metallic": 0.8500000238418579,
+    "roughness": 0.3499999940395355,
+    "mr_texture": false,
+    "normal_texture": false,
+    "emissive": null,
+    "ext": {}
+   },
+   {
+    "name": "M_ATT_LensObjective",
+    "alphaMode": "OPAQUE",
+    "doubleSided": false,
+    "baseColorFactor": [
+     0.005,
+     0.015,
+     0.048,
+     1
+    ],
+    "baseColorTexture": false,
+    "tex_transform": false,
+    "metallic": 0,
+    "roughness": 0.10000000149011612,
+    "mr_texture": false,
+    "normal_texture": false,
+    "emissive": null,
+    "ext": {
+     "KHR_materials_clearcoat": {
+      "clearcoatFactor": 1
+     }
+    }
+   },
+   {
+    "name": "M_ATT_LensOcular",
+    "alphaMode": "OPAQUE",
+    "doubleSided": false,
+    "baseColorFactor": [
+     0.005,
+     0.015,
+     0.048,
+     1
+    ],
+    "baseColorTexture": false,
+    "tex_transform": false,
+    "metallic": 0,
+    "roughness": 0.10000000149011612,
+    "mr_texture": false,
+    "normal_texture": false,
+    "emissive": null,
+    "ext": {
+     "KHR_materials_clearcoat": {
+      "clearcoatFactor": 1
+     }
+    }
+   },
+   {
+    "name": "M_ATT_IceReticle",
+    "alphaMode": "OPAQUE",
+    "doubleSided": false,
+    "baseColorFactor": [
+     0.45,
+     0.85,
+     1,
+     1
+    ],
+    "baseColorTexture": false,
+    "tex_transform": false,
+    "metallic": 0,
+    "roughness": 0.30000001192092896,
+    "mr_texture": false,
+    "normal_texture": false,
+    "emissive": [
+     0.44999998807907104,
+     0.8500000238418579,
+     1
+    ],
+    "ext": {
+     "KHR_materials_emissive_strength": {
+      "emissiveStrength": 1.600000023841858
+     }
+    }
+   }
+  ],
+  "primitives": [
+   {
+    "mesh": "ATT_optic_3x_Body",
+    "material": "M_ATT_Graphite",
+    "attrs": [
+     "NORMAL",
+     "POSITION",
+     "TEXCOORD_0"
+    ],
+    "tris": 3304,
+    "mode": 4,
+    "bbox_gltf_min": [
+     -0.0302,
+     -0.0062,
+     -0.0392
+    ],
+    "bbox_gltf_max": [
+     0.0284,
+     0.084,
+     0.0668
+    ],
+    "bad_normals": 0,
+    "uv_range": [
+     0.025,
+     2.056,
+     -1.056,
+     0.975
+    ]
+   },
+   {
+    "mesh": "ATT_optic_3x_Body",
+    "material": "M_ATT_Dark",
+    "attrs": [
+     "NORMAL",
+     "POSITION",
+     "TEXCOORD_0"
+    ],
+    "tris": 318,
+    "mode": 4,
+    "bbox_gltf_min": [
+     -0.0161,
+     0.01,
+     -0.0568
+    ],
+    "bbox_gltf_max": [
+     0.0161,
+     0.0661,
+     0.0668
+    ],
+    "bad_normals": 0,
+    "uv_range": [
+     0.693,
+     1.946,
+     -0.953,
+     0.975
+    ]
+   },
+   {
+    "mesh": "ATT_optic_3x_Body",
+    "material": "M_ATT_Rubber",
+    "attrs": [
+     "NORMAL",
+     "POSITION",
+     "TEXCOORD_0"
+    ],
+    "tris": 256,
+    "mode": 4,
+    "bbox_gltf_min": [
+     -0.018,
+     0.032,
+     -0.0568
+    ],
+    "bbox_gltf_max": [
+     0.018,
+     0.068,
+     -0.0392
+    ],
+    "bad_normals": 0,
+    "uv_range": [
+     0.336,
+     1.519,
+     -0.548,
+     0.2
+    ]
+   },
+   {
+    "mesh": "ATT_optic_3x_Body",
+    "material": "M_ATT_Gunmetal",
+    "attrs": [
+     "NORMAL",
+     "POSITION",
+     "TEXCOORD_0"
+    ],
+    "tris": 272,
+    "mode": 4,
+    "bbox_gltf_min": [
+     -0.0215,
+     -0.0043,
+     -0.022
+    ],
+    "bbox_gltf_max": [
+     0.0196,
+     0.0041,
+     0.0183
+    ],
+    "bad_normals": 0,
+    "uv_range": [
+     0.213,
+     2.037,
+     -1.046,
+     0.975
+    ]
+   },
+   {
+    "mesh": "ATT_optic_3x_Objective",
+    "material": "M_ATT_LensObjective",
+    "attrs": [
+     "NORMAL",
+     "POSITION",
+     "TEXCOORD_0"
+    ],
+    "tris": 192,
+    "mode": 4,
+    "bbox_gltf_min": [
+     -0.0159,
+     0.0341,
+     0.0598
+    ],
+    "bbox_gltf_max": [
+     0.0159,
+     0.0659,
+     0.0614
+    ],
+    "bad_normals": 0,
+    "uv_range": [
+     0.001,
+     0.384,
+     0.659,
+     0.999
+    ]
+   },
+   {
+    "mesh": "ATT_optic_3x_Ocular",
+    "material": "M_ATT_LensOcular",
+    "attrs": [
+     "NORMAL",
+     "POSITION",
+     "TEXCOORD_0"
+    ],
+    "tris": 192,
+    "mode": 4,
+    "bbox_gltf_min": [
+     -0.0129,
+     0.0371,
+     -0.0551
+    ],
+    "bbox_gltf_max": [
+     0.0129,
+     0.0629,
+     -0.054
+    ],
+    "bad_normals": 0,
+    "uv_range": [
+     0.001,
+     0.311,
+     0.715,
+     0.999
+    ]
+   },
+   {
+    "mesh": "ATT_optic_3x_Reticle",
+    "material": "M_ATT_IceReticle",
+    "attrs": [
+     "NORMAL",
+     "POSITION",
+     "TEXCOORD_0"
+    ],
+    "tris": 12,
+    "mode": 4,
+    "bbox_gltf_min": [
+     -0.0005,
+     0.0495,
+     -0.0552
+    ],
+    "bbox_gltf_max": [
+     0.0005,
+     0.0505,
+     -0.0552
+    ],
+    "bad_normals": 0,
+    "avg_normal_blender": [
+     0.0,
+     1.0,
+     0.0
+    ],
+    "uv_range": [
+     0.0,
+     0.006,
+     0.994,
+     1.0
+    ]
+   }
+  ],
+  "tris_total": 4546,
+  "images": [
+   {
+    "name": "M_ATT_Graphite",
+    "mime": "image/png",
+    "bytes": 145981,
+    "size": [
+     512,
+     512
+    ],
+    "mode": "RGB",
+    "mean_rgb_srgb": [
+     46,
+     49,
+     54
+    ]
+   },
+   {
+    "name": "M_ATT_Gunmetal",
+    "mime": "image/png",
+    "bytes": 180097,
+    "size": [
+     512,
+     512
+    ],
+    "mode": "RGB",
+    "mean_rgb_srgb": [
+     91,
+     93,
+     95
+    ]
+   }
+  ],
+  "samplers": [
+   {
+    "magFilter": 9729,
+    "minFilter": 9987
+   }
+  ]
+ },
+ "optic_sniper": {
+  "file_bytes": 526268,
+  "generator": "Khronos glTF Blender I/O v5.2.39",
+  "extensionsUsed": [
+   "KHR_materials_clearcoat"
+  ],
+  "extensionsRequired": [],
+  "scene_roots": [
+   "ATT_optic_sniper"
+  ],
+  "nodes": {
+   "ATT_optic_sniper_Body": {
+    "children": [],
+    "mesh": "ATT_optic_sniper_Body",
+    "T": null,
+    "R": null,
+    "S": null,
+    "extras": null
+   },
+   "ATT_optic_sniper_Objective": {
+    "children": [],
+    "mesh": "ATT_optic_sniper_Objective",
+    "T": null,
+    "R": null,
+    "S": null,
+    "extras": null
+   },
+   "ATT_optic_sniper_Ocular": {
+    "children": [],
+    "mesh": "ATT_optic_sniper_Ocular",
+    "T": null,
+    "R": null,
+    "S": null,
+    "extras": null
+   },
+   "ATT_optic_sniper_SOCKET_ADS": {
+    "children": [],
+    "mesh": null,
+    "T": [
+     0,
+     0.04050000011920929,
+     -0.14499999582767487
+    ],
+    "R": null,
+    "S": null,
+    "extras": {
+     "eye_relief_m": 0.085,
+     "note": "sight line at the rear of the reticle/eyepiece; camera eye point = +Y by eye_relief_m",
+     "reticle": "engine scope overlay on the Ocular node (no emissive: the ice ring is paint)"
+    }
+   },
+   "ATT_optic_sniper": {
+    "children": [
+     "ATT_optic_sniper_Body",
+     "ATT_optic_sniper_Objective",
+     "ATT_optic_sniper_Ocular",
+     "ATT_optic_sniper_SOCKET_ADS"
+    ],
+    "mesh": null,
+    "T": null,
+    "R": null,
+    "S": null,
+    "extras": {
+     "optic_id": "optic_sniper",
+     "category": "optic",
+     "mount": "picatinny top rail; origin = clamp contact centre on rail top",
+     "ads_height_m": 0.0405,
+     "length_m": 0.38,
+     "magnification": "5-25",
+     "eye_relief_m": 0.085,
+     "body_node": "ATT_optic_sniper_Body",
+     "objective_node": "ATT_optic_sniper_Objective",
+     "ocular_node": "ATT_optic_sniper_Ocular"
+    }
+   }
+  },
+  "materials": [
+   {
+    "name": "M_ATT_Graphite",
+    "alphaMode": "OPAQUE",
+    "doubleSided": false,
+    "baseColorFactor": [
+     1,
+     1,
+     1,
+     1
+    ],
+    "baseColorTexture": true,
+    "tex_transform": false,
+    "metallic": 0.25,
+    "roughness": 0.5,
+    "mr_texture": false,
+    "normal_texture": false,
+    "emissive": null,
+    "ext": {}
+   },
+   {
+    "name": "M_ATT_Rubber",
+    "alphaMode": "OPAQUE",
+    "doubleSided": false,
+    "baseColorFactor": [
+     0.035,
+     0.037,
+     0.045,
+     1
+    ],
+    "baseColorTexture": false,
+    "tex_transform": false,
+    "metallic": 0,
+    "roughness": 0.8500000238418579,
+    "mr_texture": false,
+    "normal_texture": false,
+    "emissive": null,
+    "ext": {}
+   },
+   {
+    "name": "M_ATT_Dark",
+    "alphaMode": "OPAQUE",
+    "doubleSided": false,
+    "baseColorFactor": [
+     0.016,
+     0.017,
+     0.02,
+     1
+    ],
+    "baseColorTexture": false,
+    "tex_transform": false,
+    "metallic": 0,
+    "roughness": 0.75,
+    "mr_texture": false,
+    "normal_texture": false,
+    "emissive": null,
+    "ext": {}
+   },
+   {
+    "name": "M_ATT_IcePaint",
+    "alphaMode": "OPAQUE",
+    "doubleSided": false,
+    "baseColorFactor": [
+     0.12,
+     0.5,
+     0.72,
+     1
+    ],
+    "baseColorTexture": false,
+    "tex_transform": false,
+    "metallic": 0,
+    "roughness": 0.4000000059604645,
+    "mr_texture": false,
+    "normal_texture": false,
+    "emissive": null,
+    "ext": {}
+   },
+   {
+    "name": "M_ATT_Gunmetal",
+    "alphaMode": "OPAQUE",
+    "doubleSided": false,
+    "baseColorFactor": [
+     1,
+     1,
+     1,
+     1
+    ],
+    "baseColorTexture": true,
+    "tex_transform": false,
+    "metallic": 0.8500000238418579,
+    "roughness": 0.3499999940395355,
+    "mr_texture": false,
+    "normal_texture": false,
+    "emissive": null,
+    "ext": {}
+   },
+   {
+    "name": "M_ATT_LensObjectiveDeep",
+    "alphaMode": "OPAQUE",
+    "doubleSided": false,
+    "baseColorFactor": [
+     0.02,
+     0.06,
+     0.17,
+     1
+    ],
+    "baseColorTexture": false,
+    "tex_transform": false,
+    "metallic": 0,
+    "roughness": 0.11999999731779099,
+    "mr_texture": false,
+    "normal_texture": false,
+    "emissive": null,
+    "ext": {
+     "KHR_materials_clearcoat": {
+      "clearcoatFactor": 1
+     }
+    }
+   },
+   {
+    "name": "M_ATT_LensOcular",
+    "alphaMode": "OPAQUE",
+    "doubleSided": false,
+    "baseColorFactor": [
+     0.005,
+     0.015,
+     0.048,
+     1
+    ],
+    "baseColorTexture": false,
+    "tex_transform": false,
+    "metallic": 0,
+    "roughness": 0.10000000149011612,
+    "mr_texture": false,
+    "normal_texture": false,
+    "emissive": null,
+    "ext": {
+     "KHR_materials_clearcoat": {
+      "clearcoatFactor": 1
+     }
+    }
+   }
+  ],
+  "primitives": [
+   {
+    "mesh": "ATT_optic_sniper_Body",
+    "material": "M_ATT_Graphite",
+    "attrs": [
+     "NORMAL",
+     "POSITION",
+     "TEXCOORD_0"
+    ],
+    "tris": 3264,
+    "mode": 4,
+    "bbox_gltf_min": [
+     -0.0478,
+     -0.0062,
+     -0.1288
+    ],
+    "bbox_gltf_max": [
+     0.04,
+     0.0905,
+     0.235
+    ],
+    "bad_normals": 0,
+    "uv_range": [
+     0.046,
+     3.663,
+     -2.663,
+     0.954
+    ]
+   },
+   {
+    "mesh": "ATT_optic_sniper_Body",
+    "material": "M_ATT_Rubber",
+    "attrs": [
+     "NORMAL",
+     "POSITION",
+     "TEXCOORD_0"
+    ],
+    "tris": 256,
+    "mode": 4,
+    "bbox_gltf_min": [
+     -0.0252,
+     0.0153,
+     -0.145
+    ],
+    "bbox_gltf_max": [
+     0.0252,
+     0.0657,
+     -0.1288
+    ],
+    "bad_normals": 0,
+    "uv_range": [
+     0.085,
+     1.489,
+     -1.451,
+     0.954
+    ]
+   },
+   {
+    "mesh": "ATT_optic_sniper_Body",
+    "material": "M_ATT_Dark",
+    "attrs": [
+     "NORMAL",
+     "POSITION",
+     "TEXCOORD_0"
+    ],
+    "tris": 328,
+    "mode": 4,
+    "bbox_gltf_min": [
+     -0.0298,
+     0.0107,
+     -0.145
+    ],
+    "bbox_gltf_max": [
+     0.0298,
+     0.0703,
+     0.1758
+    ],
+    "bad_normals": 0,
+    "uv_range": [
+     0.046,
+     3.708,
+     -2.722,
+     0.276
+    ]
+   },
+   {
+    "mesh": "ATT_optic_sniper_Body",
+    "material": "M_ATT_IcePaint",
+    "attrs": [
+     "NORMAL",
+     "POSITION",
+     "TEXCOORD_0"
+    ],
+    "tris": 192,
+    "mode": 4,
+    "bbox_gltf_min": [
+     -0.0355,
+     0.005,
+     0.1755
+    ],
+    "bbox_gltf_max": [
+     0.0355,
+     0.076,
+     0.1838
+    ],
+    "bad_normals": 0,
+    "uv_range": [
+     1.619,
+     3.374,
+     -2.21,
+     0.954
+    ]
+   },
+   {
+    "mesh": "ATT_optic_sniper_Body",
+    "material": "M_ATT_Gunmetal",
+    "attrs": [
+     "NORMAL",
+     "POSITION",
+     "TEXCOORD_0"
+    ],
+    "tris": 336,
+    "mode": 4,
+    "bbox_gltf_min": [
+     -0.0267,
+     -0.0062,
+     -0.0643
+    ],
+    "bbox_gltf_max": [
+     0.0267,
+     0.0467,
+     0.0643
+    ],
+    "bad_normals": 0,
+    "uv_range": [
+     0.114,
+     3.709,
+     -2.709,
+     0.49
+    ]
+   },
+   {
+    "mesh": "ATT_optic_sniper_Objective",
+    "material": "M_ATT_LensObjectiveDeep",
+    "attrs": [
+     "NORMAL",
+     "POSITION",
+     "TEXCOORD_0"
+    ],
+    "tris": 192,
+    "mode": 4,
+    "bbox_gltf_min": [
+     -0.0297,
+     0.0108,
+     0.1762
+    ],
+    "bbox_gltf_max": [
+     0.0297,
+     0.0702,
+     0.1792
+    ],
+    "bad_normals": 0,
+    "uv_range": [
+     0.002,
+     0.385,
+     0.283,
+     0.998
+    ]
+   },
+   {
+    "mesh": "ATT_optic_sniper_Ocular",
+    "material": "M_ATT_LensOcular",
+    "attrs": [
+     "NORMAL",
+     "POSITION",
+     "TEXCOORD_0"
+    ],
+    "tris": 128,
+    "mode": 4,
+    "bbox_gltf_min": [
+     -0.0197,
+     0.0208,
+     -0.1407
+    ],
+    "bbox_gltf_max": [
+     0.0197,
+     0.0602,
+     -0.1397
+    ],
+    "bad_normals": 0,
+    "uv_range": [
+     0.001,
+     0.244,
+     0.526,
+     0.999
+    ]
+   }
+  ],
+  "tris_total": 4696,
+  "images": [
+   {
+    "name": "M_ATT_Graphite",
+    "mime": "image/png",
+    "bytes": 145981,
+    "size": [
+     512,
+     512
+    ],
+    "mode": "RGB",
+    "mean_rgb_srgb": [
+     46,
+     49,
+     54
+    ]
+   },
+   {
+    "name": "M_ATT_Gunmetal",
+    "mime": "image/png",
+    "bytes": 180097,
+    "size": [
+     512,
+     512
+    ],
+    "mode": "RGB",
+    "mean_rgb_srgb": [
+     91,
+     93,
+     95
+    ]
+   }
+  ],
+  "samplers": [
+   {
+    "magFilter": 9729,
+    "minFilter": 9987
+   }
+  ]
+ },
+ "optic_thermal": {
+  "file_bytes": 506416,
+  "generator": "Khronos glTF Blender I/O v5.2.39",
+  "extensionsUsed": [
+   "KHR_materials_clearcoat",
+   "KHR_materials_emissive_strength"
+  ],
+  "extensionsRequired": [],
+  "scene_roots": [
+   "ATT_optic_thermal"
+  ],
+  "nodes": {
+   "ATT_optic_thermal_Body": {
+    "children": [],
+    "mesh": "ATT_optic_thermal_Body",
+    "T": null,
+    "R": null,
+    "S": null,
+    "extras": null
+   },
+   "ATT_optic_thermal_Display": {
+    "children": [],
+    "mesh": "ATT_optic_thermal_Display",
+    "T": null,
+    "R": null,
+    "S": null,
+    "extras": null
+   },
+   "ATT_optic_thermal_Objective": {
+    "children": [],
+    "mesh": "ATT_optic_thermal_Objective",
+    "T": null,
+    "R": null,
+    "S": null,
+    "extras": null
+   },
+   "ATT_optic_thermal_SOCKET_ADS": {
+    "children": [],
+    "mesh": null,
+    "T": [
+     0,
+     0.052000001072883606,
+     -0.09179999679327011
+    ],
+    "R": null,
+    "S": null,
+    "extras": {
+     "eye_relief_m": 0.025,
+     "note": "sight line at the rear of the reticle/eyepiece; camera eye point = +Y by eye_relief_m",
+     "reticle": "engine thermal view + reticle on the Display node"
+    }
+   },
+   "ATT_optic_thermal_StatusLight": {
+    "children": [],
+    "mesh": "ATT_optic_thermal_StatusLight",
+    "T": null,
+    "R": null,
+    "S": null,
+    "extras": null
+   },
+   "ATT_optic_thermal": {
+    "children": [
+     "ATT_optic_thermal_Body",
+     "ATT_optic_thermal_Display",
+     "ATT_optic_thermal_Objective",
+     "ATT_optic_thermal_SOCKET_ADS",
+     "ATT_optic_thermal_StatusLight"
+    ],
+    "mesh": null,
+    "T": null,
+    "R": null,
+    "S": null,
+    "extras": {
+     "optic_id": "optic_thermal",
+     "category": "optic",
+     "mount": "picatinny top rail; origin = clamp contact centre on rail top",
+     "ads_height_m": 0.052,
+     "length_m": 0.1844,
+     "magnification": "2-8 thermal",
+     "eye_relief_m": 0.025,
+     "body_node": "ATT_optic_thermal_Body",
+     "objective_node": "ATT_optic_thermal_Objective",
+     "display_node": "ATT_optic_thermal_Display",
+     "status_light_node": "ATT_optic_thermal_StatusLight"
+    }
+   }
+  },
+  "materials": [
+   {
+    "name": "M_ATT_Graphite",
+    "alphaMode": "OPAQUE",
+    "doubleSided": false,
+    "baseColorFactor": [
+     1,
+     1,
+     1,
+     1
+    ],
+    "baseColorTexture": true,
+    "tex_transform": false,
+    "metallic": 0.25,
+    "roughness": 0.5,
+    "mr_texture": false,
+    "normal_texture": false,
+    "emissive": null,
+    "ext": {}
+   },
+   {
+    "name": "M_ATT_Dark",
+    "alphaMode": "OPAQUE",
+    "doubleSided": false,
+    "baseColorFactor": [
+     0.016,
+     0.017,
+     0.02,
+     1
+    ],
+    "baseColorTexture": false,
+    "tex_transform": false,
+    "metallic": 0,
+    "roughness": 0.75,
+    "mr_texture": false,
+    "normal_texture": false,
+    "emissive": null,
+    "ext": {}
+   },
+   {
+    "name": "M_ATT_Rubber",
+    "alphaMode": "OPAQUE",
+    "doubleSided": false,
+    "baseColorFactor": [
+     0.035,
+     0.037,
+     0.045,
+     1
+    ],
+    "baseColorTexture": false,
+    "tex_transform": false,
+    "metallic": 0,
+    "roughness": 0.8500000238418579,
+    "mr_texture": false,
+    "normal_texture": false,
+    "emissive": null,
+    "ext": {}
+   },
+   {
+    "name": "M_ATT_Gunmetal",
+    "alphaMode": "OPAQUE",
+    "doubleSided": false,
+    "baseColorFactor": [
+     1,
+     1,
+     1,
+     1
+    ],
+    "baseColorTexture": true,
+    "tex_transform": false,
+    "metallic": 0.8500000238418579,
+    "roughness": 0.3499999940395355,
+    "mr_texture": false,
+    "normal_texture": false,
+    "emissive": null,
+    "ext": {}
+   },
+   {
+    "name": "M_ATT_Display",
+    "alphaMode": "OPAQUE",
+    "doubleSided": false,
+    "baseColorFactor": [
+     0.004,
+     0.005,
+     0.007,
+     1
+    ],
+    "baseColorTexture": false,
+    "tex_transform": false,
+    "metallic": 0.20000000298023224,
+    "roughness": 0.05000000074505806,
+    "mr_texture": false,
+    "normal_texture": false,
+    "emissive": null,
+    "ext": {
+     "KHR_materials_clearcoat": {
+      "clearcoatFactor": 1
+     }
+    }
+   },
+   {
+    "name": "M_ATT_Germanium",
+    "alphaMode": "OPAQUE",
+    "doubleSided": false,
+    "baseColorFactor": [
+     0.045,
+     0.024,
+     0.006,
+     1
+    ],
+    "baseColorTexture": false,
+    "tex_transform": false,
+    "metallic": 0.550000011920929,
+    "roughness": 0.05999999865889549,
+    "mr_texture": false,
+    "normal_texture": false,
+    "emissive": null,
+    "ext": {
+     "KHR_materials_clearcoat": {
+      "clearcoatFactor": 1
+     }
+    }
+   },
+   {
+    "name": "M_ATT_AmberGlow",
+    "alphaMode": "OPAQUE",
+    "doubleSided": false,
+    "baseColorFactor": [
+     1,
+     0.5,
+     0.08,
+     1
+    ],
+    "baseColorTexture": false,
+    "tex_transform": false,
+    "metallic": 0,
+    "roughness": 0.30000001192092896,
+    "mr_texture": false,
+    "normal_texture": false,
+    "emissive": [
+     1,
+     0.41999998688697815,
+     0.05000000074505806
+    ],
+    "ext": {
+     "KHR_materials_emissive_strength": {
+      "emissiveStrength": 3
+     }
+    }
+   }
+  ],
+  "primitives": [
+   {
+    "mesh": "ATT_optic_thermal_Body",
+    "material": "M_ATT_Graphite",
+    "attrs": [
+     "NORMAL",
+     "POSITION",
+     "TEXCOORD_0"
+    ],
+    "tris": 2060,
+    "mode": 4,
+    "bbox_gltf_min": [
+     -0.029,
+     -0.0062,
+     -0.066
+    ],
+    "bbox_gltf_max": [
+     0.041,
+     0.098,
+     0.0926
+    ],
+    "bad_normals": 0,
+    "uv_range": [
+     0.045,
+     3.459,
+     -2.432,
+     0.955
+    ]
+   },
+   {
+    "mesh": "ATT_optic_thermal_Body",
+    "material": "M_ATT_Dark",
+    "attrs": [
+     "NORMAL",
+     "POSITION",
+     "TEXCOORD_0"
+    ],
+    "tris": 858,
+    "mode": 4,
+    "bbox_gltf_min": [
+     -0.029,
+     0.018,
+     -0.0918
+    ],
+    "bbox_gltf_max": [
+     0.041,
+     0.09,
+     0.0917
+    ],
+    "bad_normals": 0,
+    "uv_range": [
+     0.045,
+     3.469,
+     -2.467,
+     0.955
+    ]
+   },
+   {
+    "mesh": "ATT_optic_thermal_Body",
+    "material": "M_ATT_Rubber",
+    "attrs": [
+     "NORMAL",
+     "POSITION",
+     "TEXCOORD_0"
+    ],
+    "tris": 580,
+    "mode": 4,
+    "bbox_gltf_min": [
+     -0.0202,
+     0.0318,
+     -0.0918
+    ],
+    "bbox_gltf_max": [
+     0.0202,
+     0.0925,
+     0.0248
+    ],
+    "bad_normals": 0,
+    "uv_range": [
+     0.248,
+     3.445,
+     -2.446,
+     0.955
+    ]
+   },
+   {
+    "mesh": "ATT_optic_thermal_Body",
+    "material": "M_ATT_Gunmetal",
+    "attrs": [
+     "NORMAL",
+     "POSITION",
+     "TEXCOORD_0"
+    ],
+    "tris": 396,
+    "mode": 4,
+    "bbox_gltf_min": [
+     -0.0204,
+     -0.005,
+     -0.0408
+    ],
+    "bbox_gltf_max": [
+     0.0422,
+     0.0522,
+     0.0301
+    ],
+    "bad_normals": 0,
+    "uv_range": [
+     0.445,
+     3.464,
+     -2.463,
+     0.955
+    ]
+   },
+   {
+    "mesh": "ATT_optic_thermal_Display",
+    "material": "M_ATT_Display",
+    "attrs": [
+     "NORMAL",
+     "POSITION",
+     "TEXCOORD_0"
+    ],
+    "tris": 128,
+    "mode": 4,
+    "bbox_gltf_min": [
+     -0.0133,
+     0.0387,
+     -0.0728
+    ],
+    "bbox_gltf_max": [
+     0.0133,
+     0.0653,
+     -0.0715
+    ],
+    "bad_normals": 0,
+    "uv_range": [
+     0.001,
+     0.322,
+     0.714,
+     0.999
+    ]
+   },
+   {
+    "mesh": "ATT_optic_thermal_Objective",
+    "material": "M_ATT_Germanium",
+    "attrs": [
+     "NORMAL",
+     "POSITION",
+     "TEXCOORD_0"
+    ],
+    "tris": 192,
+    "mode": 4,
+    "bbox_gltf_min": [
+     -0.0205,
+     0.0315,
+     0.071
+    ],
+    "bbox_gltf_max": [
+     0.0205,
+     0.0725,
+     0.0732
+    ],
+    "bad_normals": 0,
+    "uv_range": [
+     0.001,
+     0.268,
+     0.505,
+     0.999
+    ]
+   },
+   {
+    "mesh": "ATT_optic_thermal_StatusLight",
+    "material": "M_ATT_AmberGlow",
+    "attrs": [
+     "NORMAL",
+     "POSITION",
+     "TEXCOORD_0"
+    ],
+    "tris": 72,
+    "mode": 4,
+    "bbox_gltf_min": [
+     0.017,
+     0.0775,
+     -0.0641
+    ],
+    "bbox_gltf_max": [
+     0.02,
+     0.0805,
+     -0.0612
+    ],
+    "bad_normals": 0,
+    "uv_range": [
+     0.0,
+     0.046,
+     0.965,
+     1.0
+    ]
+   }
+  ],
+  "tris_total": 4286,
+  "images": [
+   {
+    "name": "M_ATT_Graphite",
+    "mime": "image/png",
+    "bytes": 145981,
+    "size": [
+     512,
+     512
+    ],
+    "mode": "RGB",
+    "mean_rgb_srgb": [
+     46,
+     49,
+     54
+    ]
+   },
+   {
+    "name": "M_ATT_Gunmetal",
+    "mime": "image/png",
+    "bytes": 180097,
+    "size": [
+     512,
+     512
+    ],
+    "mode": "RGB",
+    "mean_rgb_srgb": [
+     91,
+     93,
+     95
+    ]
+   }
+  ],
+  "samplers": [
+   {
+    "magFilter": 9729,
+    "minFilter": 9987
+   }
+  ]
+ }
+}

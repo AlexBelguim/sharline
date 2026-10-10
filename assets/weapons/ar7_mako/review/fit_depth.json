@@ -1,0 +1,32 @@
+{
+ "grip_vertical": {
+  "verts_inside_gun_gt_0.3mm": 0,
+  "max_depth_m": 0.0,
+  "deepest_vertex": null
+ },
+ "ugl": {
+  "verts_inside_gun_gt_0.3mm": 0,
+  "max_depth_m": 0.0,
+  "deepest_vertex": null
+ },
+ "laser_R": {
+  "verts_inside_gun_gt_0.3mm": 0,
+  "max_depth_m": 0.0,
+  "deepest_vertex": null
+ },
+ "flashlight_L": {
+  "verts_inside_gun_gt_0.3mm": 0,
+  "max_depth_m": 0.0,
+  "deepest_vertex": null
+ },
+ "shield": {
+  "verts_inside_gun_gt_0.3mm": 0,
+  "max_depth_m": 0.0,
+  "deepest_vertex": null
+ },
+ "optic_holo": {
+  "verts_inside_gun_gt_0.3mm": 0,
+  "max_depth_m": 0.0,
+  "deepest_vertex": null
+ }
+}

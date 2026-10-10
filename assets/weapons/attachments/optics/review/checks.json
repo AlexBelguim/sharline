@@ -1,0 +1,1241 @@
+{
+ "optic_reddot": {
+  "objects": [
+   "ATT_optic_reddot",
+   "ATT_optic_reddot_Body",
+   "ATT_optic_reddot_Glass",
+   "ATT_optic_reddot_Glow",
+   "ATT_optic_reddot_SOCKET_ADS"
+  ],
+  "root_loc": [
+   0.0,
+   0.0,
+   0.0
+  ],
+  "ads_loc": [
+   0.0,
+   -0.0132,
+   0.049
+  ],
+  "ads_parent": "ATT_optic_reddot",
+  "ads_rot": [
+   0.0,
+   -0.0,
+   0.0
+  ],
+  "bbox_min": [
+   -0.016,
+   -0.025,
+   -0.0062
+  ],
+  "bbox_max": [
+   0.0175,
+   0.0215,
+   0.0665
+  ],
+  "dims": [
+   0.0335,
+   0.0465,
+   0.0727
+  ],
+  "catalog": {
+   "length_m": 0.0465,
+   "width_m": 0.0335,
+   "height_m": 0.0727,
+   "ads_height_m": 0.049,
+   "tris": 2452
+  },
+  "meshes": {
+   "ATT_optic_reddot_Body": {
+    "tris": 2328,
+    "uv_layers": 1,
+    "materials": [
+     "M_ATT_Graphite",
+     "M_ATT_Dark",
+     "M_ATT_Gunmetal",
+     "M_ATT_Rubber"
+    ],
+    "non_manifold_edges": 2260,
+    "boundary_edges": 2260,
+    "wire_edges": 0,
+    "loose_verts": 0,
+    "degenerate_faces": 7,
+    "non_manifold_sample_bbox": [
+     [
+      -0.016,
+      -0.025,
+      -0.0062
+     ],
+     [
+      0.0175,
+      0.0215,
+      0.0661
+     ]
+    ],
+    "islands": 186,
+    "open_islands": 186,
+    "inverted_islands": [],
+    "zfight_candidates": 5,
+    "zfight_samples": [
+     {
+      "at": [
+       -0.0039,
+       -0.0194,
+       0.064
+      ],
+      "dist_mm": 0.04,
+      "same_dir": true
+     },
+     {
+      "at": [
+       -0.0022,
+       -0.025,
+       0.0385
+      ],
+      "dist_mm": 0.038,
+      "same_dir": true
+     },
+     {
+      "at": [
+       0.0021,
+       -0.025,
+       0.0385
+      ],
+      "dist_mm": 0.029,
+      "same_dir": true
+     },
+     {
+      "at": [
+       -0.0021,
+       -0.0249,
+       0.0385
+      ],
+      "dist_mm": 0.03,
+      "same_dir": true
+     },
+     {
+      "at": [
+       0.002,
+       -0.0249,
+       0.0385
+      ],
+      "dist_mm": 0.055,
+      "same_dir": true
+     }
+    ]
+   },
+   "ATT_optic_reddot_Glass": {
+    "tris": 76,
+    "uv_layers": 1,
+    "materials": [
+     "M_ATT_ReflexGlass"
+    ],
+    "non_manifold_edges": 88,
+    "boundary_edges": 88,
+    "wire_edges": 0,
+    "loose_verts": 0,
+    "degenerate_faces": 0,
+    "non_manifold_sample_bbox": [
+     [
+      -0.0101,
+      -0.0167,
+      0.038
+     ],
+     [
+      0.0101,
+      -0.0117,
+      0.06
+     ]
+    ],
+    "islands": 6,
+    "open_islands": 6,
+    "inverted_islands": [],
+    "zfight_candidates": 0,
+    "zfight_samples": []
+   },
+   "ATT_optic_reddot_Glow": {
+    "tris": 48,
+    "uv_layers": 1,
+    "materials": [
+     "M_ATT_IceGlow"
+    ],
+    "non_manifold_edges": 84,
+    "boundary_edges": 84,
+    "wire_edges": 0,
+    "loose_verts": 0,
+    "degenerate_faces": 0,
+    "non_manifold_sample_bbox": [
+     [
+      -0.0011,
+      -0.0137,
+      0.0478
+     ],
+     [
+      0.0011,
+      -0.0131,
+      0.0499
+     ]
+    ],
+    "islands": 18,
+    "open_islands": 18,
+    "inverted_islands": [],
+    "zfight_candidates": 0,
+    "zfight_samples": []
+   }
+  },
+  "tris_total": 2452,
+  "clamp_underside_z_on_centreline": [
+   0.0001,
+   0.00995,
+   0.01099,
+   0.01285,
+   0.01575,
+   0.01596
+  ],
+  "sightline_body_hit": null,
+  "eye_cone_blocked_frac_(+-18deg_grid)": 0.343,
+  "glass_overlaps_body_pairs": 112,
+  "glow_overlaps_body_pairs": 0,
+  "glow_to_glass_min_mm": 0.1
+ },
+ "optic_holo": {
+  "objects": [
+   "ATT_optic_holo",
+   "ATT_optic_holo_Body",
+   "ATT_optic_holo_Glass",
+   "ATT_optic_holo_Glow",
+   "ATT_optic_holo_SOCKET_ADS"
+  ],
+  "root_loc": [
+   0.0,
+   0.0,
+   0.0
+  ],
+  "ads_loc": [
+   0.0,
+   -0.0124,
+   0.045
+  ],
+  "ads_parent": "ATT_optic_holo",
+  "ads_rot": [
+   0.0,
+   -0.0,
+   0.0
+  ],
+  "bbox_min": [
+   -0.0263,
+   -0.056,
+   -0.0062
+  ],
+  "bbox_max": [
+   0.0321,
+   0.031,
+   0.069
+  ],
+  "dims": [
+   0.0584,
+   0.087,
+   0.0752
+  ],
+  "catalog": {
+   "length_m": 0.087,
+   "width_m": 0.0584,
+   "height_m": 0.0752,
+   "ads_height_m": 0.045,
+   "tris": 4002
+  },
+  "meshes": {
+   "ATT_optic_holo_Body": {
+    "tris": 3686,
+    "uv_layers": 1,
+    "materials": [
+     "M_ATT_Graphite",
+     "M_ATT_Bone",
+     "M_ATT_Dark",
+     "M_ATT_Rubber",
+     "M_ATT_Gunmetal"
+    ],
+    "non_manifold_edges": 3528,
+    "boundary_edges": 3528,
+    "wire_edges": 0,
+    "loose_verts": 0,
+    "degenerate_faces": 81,
+    "non_manifold_sample_bbox": [
+     [
+      -0.0263,
+      -0.056,
+      -0.006
+     ],
+     [
+      0.0306,
+      0.031,
+      0.069
+     ]
+    ],
+    "islands": 288,
+    "open_islands": 288,
+    "inverted_islands": [],
+    "zfight_candidates": 0,
+    "zfight_samples": []
+   },
+   "ATT_optic_holo_Glass": {
+    "tris": 76,
+    "uv_layers": 1,
+    "materials": [
+     "M_ATT_ReflexGlass"
+    ],
+    "non_manifold_edges": 88,
+    "boundary_edges": 88,
+    "wire_edges": 0,
+    "loose_verts": 0,
+    "degenerate_faces": 0,
+    "non_manifold_sample_bbox": [
+     [
+      -0.0176,
+      -0.0164,
+      0.0296
+     ],
+     [
+      0.0176,
+      -0.0106,
+      0.0604
+     ]
+    ],
+    "islands": 6,
+    "open_islands": 6,
+    "inverted_islands": [],
+    "zfight_candidates": 0,
+    "zfight_samples": []
+   },
+   "ATT_optic_holo_Glow": {
+    "tris": 240,
+    "uv_layers": 1,
+    "materials": [
+     "M_ATT_IceGlow"
+    ],
+    "non_manifold_edges": 360,
+    "boundary_edges": 360,
+    "wire_edges": 0,
+    "loose_verts": 0,
+    "degenerate_faces": 0,
+    "non_manifold_sample_bbox": [
+     [
+      -0.0058,
+      -0.0135,
+      0.0391
+     ],
+     [
+      0.0058,
+      -0.0117,
+      0.0506
+     ]
+    ],
+    "islands": 64,
+    "open_islands": 64,
+    "inverted_islands": [],
+    "zfight_candidates": 0,
+    "zfight_samples": []
+   }
+  },
+  "tris_total": 4002,
+  "clamp_underside_z_on_centreline": [
+   0.0001,
+   0.0015,
+   0.00179,
+   0.0027,
+   0.0081
+  ],
+  "sightline_body_hit": null,
+  "eye_cone_blocked_frac_(+-18deg_grid)": 0.793,
+  "glass_overlaps_body_pairs": 148,
+  "glow_overlaps_body_pairs": 0,
+  "glow_to_glass_min_mm": 0.05
+ },
+ "optic_3x": {
+  "objects": [
+   "ATT_optic_3x",
+   "ATT_optic_3x_Body",
+   "ATT_optic_3x_Glass",
+   "ATT_optic_3x_Glow",
+   "ATT_optic_3x_SOCKET_ADS"
+  ],
+  "root_loc": [
+   0.0,
+   0.0,
+   0.0
+  ],
+  "ads_loc": [
+   0.0,
+   0.0568,
+   0.05
+  ],
+  "ads_parent": "ATT_optic_3x",
+  "ads_rot": [
+   0.0,
+   -0.0,
+   0.0
+  ],
+  "bbox_min": [
+   -0.0302,
+   -0.0668,
+   -0.0062
+  ],
+  "bbox_max": [
+   0.0284,
+   0.0568,
+   0.084
+  ],
+  "dims": [
+   0.0586,
+   0.1236,
+   0.0902
+  ],
+  "catalog": {
+   "length_m": 0.1236,
+   "width_m": 0.0586,
+   "height_m": 0.0902,
+   "ads_height_m": 0.05,
+   "tris": 4180
+  },
+  "meshes": {
+   "ATT_optic_3x_Body": {
+    "tris": 3748,
+    "uv_layers": 1,
+    "materials": [
+     "M_ATT_Graphite",
+     "M_ATT_Dark",
+     "M_ATT_Rubber",
+     "M_ATT_Gunmetal"
+    ],
+    "non_manifold_edges": 3302,
+    "boundary_edges": 3302,
+    "wire_edges": 0,
+    "loose_verts": 0,
+    "degenerate_faces": 9,
+    "non_manifold_sample_bbox": [
+     [
+      -0.0302,
+      -0.0668,
+      -0.0062
+     ],
+     [
+      0.0284,
+      0.0568,
+      0.084
+     ]
+    ],
+    "islands": 215,
+    "open_islands": 215,
+    "inverted_islands": [],
+    "zfight_candidates": 0,
+    "zfight_samples": []
+   },
+   "ATT_optic_3x_Glass": {
+    "tris": 384,
+    "uv_layers": 1,
+    "materials": [
+     "M_ATT_Lens"
+    ],
+    "non_manifold_edges": 272,
+    "boundary_edges": 272,
+    "wire_edges": 0,
+    "loose_verts": 0,
+    "degenerate_faces": 0,
+    "non_manifold_sample_bbox": [
+     [
+      -0.0157,
+      -0.0604,
+      0.0343
+     ],
+     [
+      0.0157,
+      0.0543,
+      0.0657
+     ]
+    ],
+    "islands": 12,
+    "open_islands": 12,
+    "inverted_islands": [],
+    "zfight_candidates": 0,
+    "zfight_samples": []
+   },
+   "ATT_optic_3x_Glow": {
+    "tris": 48,
+    "uv_layers": 1,
+    "materials": [
+     "M_ATT_IceGlow"
+    ],
+    "non_manifold_edges": 72,
+    "boundary_edges": 72,
+    "wire_edges": 0,
+    "loose_verts": 0,
+    "degenerate_faces": 0,
+    "non_manifold_sample_bbox": [
+     [
+      -0.0008,
+      0.0551,
+      0.0492
+     ],
+     [
+      0.0008,
+      0.0553,
+      0.0508
+     ]
+    ],
+    "islands": 14,
+    "open_islands": 14,
+    "inverted_islands": [],
+    "zfight_candidates": 0,
+    "zfight_samples": []
+   }
+  },
+  "tris_total": 4180,
+  "clamp_underside_z_on_centreline": [
+   0.0001,
+   0.00095
+  ],
+  "sightline_body_hit": [
+   0.0,
+   0.0538,
+   0.05
+  ],
+  "eye_cone_blocked_frac_(+-18deg_grid)": 0.988,
+  "glass_overlaps_body_pairs": 0,
+  "glow_overlaps_body_pairs": 0,
+  "glow_to_glass_min_mm": 0.05
+ },
+ "optic_sniper": {
+  "objects": [
+   "ATT_optic_sniper",
+   "ATT_optic_sniper_Body",
+   "ATT_optic_sniper_Glass",
+   "ATT_optic_sniper_SOCKET_ADS"
+  ],
+  "root_loc": [
+   0.0,
+   0.0,
+   0.0
+  ],
+  "ads_loc": [
+   0.0,
+   0.145,
+   0.0405
+  ],
+  "ads_parent": "ATT_optic_sniper",
+  "ads_rot": [
+   0.0,
+   -0.0,
+   0.0
+  ],
+  "bbox_min": [
+   -0.0478,
+   -0.235,
+   -0.0062
+  ],
+  "bbox_max": [
+   0.04,
+   0.145,
+   0.0905
+  ],
+  "dims": [
+   0.0878,
+   0.38,
+   0.0967
+  ],
+  "catalog": {
+   "length_m": 0.38,
+   "width_m": 0.0878,
+   "height_m": 0.0967,
+   "ads_height_m": 0.0405,
+   "tris": 4644
+  },
+  "meshes": {
+   "ATT_optic_sniper_Body": {
+    "tris": 4324,
+    "uv_layers": 1,
+    "materials": [
+     "M_ATT_Graphite",
+     "M_ATT_Rubber",
+     "M_ATT_Dark",
+     "M_ATT_IcePaint",
+     "M_ATT_Gunmetal"
+    ],
+    "non_manifold_edges": 4506,
+    "boundary_edges": 4506,
+    "wire_edges": 0,
+    "loose_verts": 0,
+    "degenerate_faces": 32,
+    "non_manifold_sample_bbox": [
+     [
+      -0.0478,
+      -0.235,
+      -0.0058
+     ],
+     [
+      0.04,
+      0.1288,
+      0.0905
+     ]
+    ],
+    "islands": 414,
+    "open_islands": 414,
+    "inverted_islands": [],
+    "zfight_candidates": 0,
+    "zfight_samples": []
+   },
+   "ATT_optic_sniper_Glass": {
+    "tris": 320,
+    "uv_layers": 1,
+    "materials": [
+     "M_ATT_LensDeep",
+     "M_ATT_Lens"
+    ],
+    "non_manifold_edges": 272,
+    "boundary_edges": 272,
+    "wire_edges": 0,
+    "loose_verts": 0,
+    "degenerate_faces": 0,
+    "non_manifold_sample_bbox": [
+     [
+      -0.0294,
+      -0.1779,
+      0.0111
+     ],
+     [
+      0.0294,
+      0.14,
+      0.0699
+     ]
+    ],
+    "islands": 12,
+    "open_islands": 12,
+    "inverted_islands": [],
+    "zfight_candidates": 0,
+    "zfight_samples": []
+   }
+  },
+  "tris_total": 4644,
+  "clamp_underside_z_on_centreline": [
+   0.0001,
+   0.005,
+   0.00592,
+   0.0065,
+   0.00716,
+   0.0075
+  ],
+  "sightline_body_hit": [
+   0.0,
+   0.1395,
+   0.0405
+  ],
+  "eye_cone_blocked_frac_(+-18deg_grid)": 1.0,
+  "glass_overlaps_body_pairs": 0
+ },
+ "optic_thermal": {
+  "objects": [
+   "ATT_optic_thermal",
+   "ATT_optic_thermal_Body",
+   "ATT_optic_thermal_Glass",
+   "ATT_optic_thermal_Glow",
+   "ATT_optic_thermal_SOCKET_ADS"
+  ],
+  "root_loc": [
+   0.0,
+   0.0,
+   0.0
+  ],
+  "ads_loc": [
+   0.0,
+   0.0918,
+   0.052
+  ],
+  "ads_parent": "ATT_optic_thermal",
+  "ads_rot": [
+   0.0,
+   -0.0,
+   0.0
+  ],
+  "bbox_min": [
+   -0.029,
+   -0.0926,
+   -0.0062
+  ],
+  "bbox_max": [
+   0.0422,
+   0.0918,
+   0.098
+  ],
+  "dims": [
+   0.0712,
+   0.1844,
+   0.1042
+  ],
+  "catalog": {
+   "length_m": 0.1844,
+   "width_m": 0.0712,
+   "height_m": 0.1042,
+   "ads_height_m": 0.052,
+   "tris": 4286
+  },
+  "meshes": {
+   "ATT_optic_thermal_Body": {
+    "tris": 3894,
+    "uv_layers": 1,
+    "materials": [
+     "M_ATT_Graphite",
+     "M_ATT_Dark",
+     "M_ATT_Rubber",
+     "M_ATT_Gunmetal"
+    ],
+    "non_manifold_edges": 4054,
+    "boundary_edges": 4054,
+    "wire_edges": 0,
+    "loose_verts": 0,
+    "degenerate_faces": 8,
+    "non_manifold_sample_bbox": [
+     [
+      -0.029,
+      -0.0921,
+      -0.0062
+     ],
+     [
+      0.041,
+      0.0918,
+      0.098
+     ]
+    ],
+    "islands": 359,
+    "open_islands": 359,
+    "inverted_islands": [],
+    "zfight_candidates": 72,
+    "zfight_samples": [
+     {
+      "at": [
+       -0.013,
+       -0.0721,
+       0.035
+      ],
+      "dist_mm": 0.007,
+      "same_dir": false
+     },
+     {
+      "at": [
+       -0.0095,
+       -0.072,
+       0.0328
+      ],
+      "dist_mm": 0.053,
+      "same_dir": false
+     },
+     {
+      "at": [
+       -0.0014,
+       -0.072,
+       0.0306
+      ],
+      "dist_mm": 0.053,
+      "same_dir": false
+     },
+     {
+      "at": [
+       0.0028,
+       -0.072,
+       0.0308
+      ],
+      "dist_mm": 0.007,
+      "same_dir": false
+     },
+     {
+      "at": [
+       0.0069,
+       -0.072,
+       0.0317
+      ],
+      "dist_mm": 0.053,
+      "same_dir": false
+     },
+     {
+      "at": [
+       0.0141,
+       -0.0722,
+       0.0359
+      ],
+      "dist_mm": 0.053,
+      "same_dir": false
+     },
+     {
+      "at": [
+       0.0161,
+       -0.0733,
+       0.0661
+      ],
+      "dist_mm": 0.053,
+      "same_dir": false
+     },
+     {
+      "at": [
+       0.017,
+       -0.0723,
+       0.039
+      ],
+      "dist_mm": 0.007,
+      "same_dir": false
+     },
+     {
+      "at": [
+       0.0192,
+       -0.0725,
+       0.0425
+      ],
+      "dist_mm": 0.053,
+      "same_dir": false
+     },
+     {
+      "at": [
+       0.0141,
+       -0.0733,
+       0.0681
+      ],
+      "dist_mm": 0.053,
+      "same_dir": false
+     },
+     {
+      "at": [
+       0.0214,
+       -0.0728,
+       0.0506
+      ],
+      "dist_mm": 0.053,
+      "same_dir": false
+     },
+     {
+      "at": [
+       0.0212,
+       -0.0729,
+       0.0548
+      ],
+      "dist_mm": 0.007,
+      "same_dir": false
+     }
+    ]
+   },
+   "ATT_optic_thermal_Glass": {
+    "tris": 320,
+    "uv_layers": 1,
+    "materials": [
+     "M_ATT_Germanium",
+     "M_ATT_Display"
+    ],
+    "non_manifold_edges": 272,
+    "boundary_edges": 272,
+    "wire_edges": 0,
+    "loose_verts": 0,
+    "degenerate_faces": 0,
+    "non_manifold_sample_bbox": [
+     [
+      -0.0214,
+      -0.0724,
+      0.0304
+     ],
+     [
+      0.0216,
+      0.0726,
+      0.0734
+     ]
+    ],
+    "islands": 12,
+    "open_islands": 12,
+    "inverted_islands": [],
+    "zfight_candidates": 0,
+    "zfight_samples": []
+   },
+   "ATT_optic_thermal_Glow": {
+    "tris": 72,
+    "uv_layers": 1,
+    "materials": [
+     "M_ATT_AmberGlow"
+    ],
+    "non_manifold_edges": 64,
+    "boundary_edges": 64,
+    "wire_edges": 0,
+    "loose_verts": 0,
+    "degenerate_faces": 0,
+    "non_manifold_sample_bbox": [
+     [
+      0.0169,
+      0.0612,
+      0.0774
+     ],
+     [
+      0.0201,
+      0.0638,
+      0.0806
+     ]
+    ],
+    "islands": 6,
+    "open_islands": 6,
+    "inverted_islands": [],
+    "zfight_candidates": 0,
+    "zfight_samples": []
+   }
+  },
+  "tris_total": 4286,
+  "clamp_underside_z_on_centreline": [
+   0.0001,
+   0.00095,
+   0.018,
+   0.01866
+  ],
+  "sightline_body_hit": [
+   0.0,
+   0.062,
+   0.052
+  ],
+  "eye_cone_blocked_frac_(+-18deg_grid)": 1.0,
+  "glass_overlaps_body_pairs": 759,
+  "glow_overlaps_body_pairs": 103,
+  "glow_to_glass_min_mm": 19.399
+ },
+ "on_gun": {
+  "MAKO": {
+   "optic_reddot": {
+    "socket_json": [
+     0.0,
+     -0.0855,
+     0.084
+    ],
+    "socket_glb": [
+     0.0,
+     -0.0855,
+     0.084
+    ],
+    "clash_pairs": 0,
+    "rail_top_rel_socket_z": [
+     -0.003,
+     -0.003,
+     -0.003,
+     -0.003,
+     -0.003
+    ],
+    "rail_flank_x_at_depth": {
+     "-0.0005": [
+      null,
+      null
+     ],
+     "-0.002": [
+      null,
+      null
+     ],
+     "-0.004": [
+      0.0105,
+      -0.0105
+     ],
+     "-0.006": [
+      0.01046,
+      -0.01046
+     ],
+     "-0.0085": [
+      0.0085,
+      -0.0085
+     ]
+    }
+   },
+   "optic_holo": {
+    "socket_json": [
+     0.0,
+     -0.0855,
+     0.084
+    ],
+    "socket_glb": [
+     0.0,
+     -0.0855,
+     0.084
+    ],
+    "clash_pairs": 0,
+    "rail_top_rel_socket_z": [
+     -0.003,
+     -0.003,
+     -0.003,
+     -0.003,
+     -0.003
+    ],
+    "rail_flank_x_at_depth": {
+     "-0.0005": [
+      null,
+      null
+     ],
+     "-0.002": [
+      null,
+      null
+     ],
+     "-0.004": [
+      0.0105,
+      -0.0105
+     ],
+     "-0.006": [
+      0.01046,
+      -0.01046
+     ],
+     "-0.0085": [
+      0.0085,
+      -0.0085
+     ]
+    }
+   },
+   "optic_3x": {
+    "socket_json": [
+     0.0,
+     -0.0855,
+     0.084
+    ],
+    "socket_glb": [
+     0.0,
+     -0.0855,
+     0.084
+    ],
+    "clash_pairs": 0,
+    "rail_top_rel_socket_z": [
+     -0.003,
+     -0.003,
+     -0.003,
+     -0.003,
+     -0.003
+    ],
+    "rail_flank_x_at_depth": {
+     "-0.0005": [
+      null,
+      null
+     ],
+     "-0.002": [
+      null,
+      null
+     ],
+     "-0.004": [
+      0.0105,
+      -0.0105
+     ],
+     "-0.006": [
+      0.01046,
+      -0.01046
+     ],
+     "-0.0085": [
+      0.0085,
+      -0.0085
+     ]
+    }
+   }
+  },
+  "WARDEN": {
+   "optic_reddot": {
+    "socket_json": [
+     0.0,
+     -0.08,
+     0.1375
+    ],
+    "socket_glb": [
+     0.0,
+     -0.08,
+     0.1375
+    ],
+    "clash_pairs": 0,
+    "rail_top_rel_socket_z": [
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0
+    ],
+    "rail_flank_x_at_depth": {
+     "-0.0005": [
+      0.0105,
+      -0.0105
+     ],
+     "-0.002": [
+      0.0105,
+      -0.0105
+     ],
+     "-0.004": [
+      0.01,
+      -0.01
+     ],
+     "-0.006": [
+      0.008,
+      -0.008
+     ],
+     "-0.0085": [
+      0.0075,
+      -0.0075
+     ]
+    }
+   },
+   "optic_holo": {
+    "socket_json": [
+     0.0,
+     -0.08,
+     0.1375
+    ],
+    "socket_glb": [
+     0.0,
+     -0.08,
+     0.1375
+    ],
+    "clash_pairs": 0,
+    "rail_top_rel_socket_z": [
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0
+    ],
+    "rail_flank_x_at_depth": {
+     "-0.0005": [
+      0.0105,
+      -0.0105
+     ],
+     "-0.002": [
+      0.0105,
+      -0.0105
+     ],
+     "-0.004": [
+      0.01,
+      -0.01
+     ],
+     "-0.006": [
+      0.008,
+      -0.008
+     ],
+     "-0.0085": [
+      0.0075,
+      -0.0075
+     ]
+    }
+   },
+   "optic_3x": {
+    "socket_json": [
+     0.0,
+     -0.08,
+     0.1375
+    ],
+    "socket_glb": [
+     0.0,
+     -0.08,
+     0.1375
+    ],
+    "clash_pairs": 0,
+    "rail_top_rel_socket_z": [
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0
+    ],
+    "rail_flank_x_at_depth": {
+     "-0.0005": [
+      0.0105,
+      -0.0105
+     ],
+     "-0.002": [
+      0.0105,
+      -0.0105
+     ],
+     "-0.004": [
+      0.01,
+      -0.01
+     ],
+     "-0.006": [
+      0.008,
+      -0.008
+     ],
+     "-0.0085": [
+      0.0075,
+      -0.0075
+     ]
+    }
+   },
+   "optic_sniper": {
+    "socket_json": [
+     0.0,
+     -0.08,
+     0.1375
+    ],
+    "socket_glb": [
+     0.0,
+     -0.08,
+     0.1375
+    ],
+    "clash_pairs": 0,
+    "rail_top_rel_socket_z": [
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0
+    ],
+    "rail_flank_x_at_depth": {
+     "-0.0005": [
+      0.0105,
+      -0.0105
+     ],
+     "-0.002": [
+      0.0105,
+      -0.0105
+     ],
+     "-0.004": [
+      0.01,
+      -0.01
+     ],
+     "-0.006": [
+      0.008,
+      -0.008
+     ],
+     "-0.0085": [
+      0.0075,
+      -0.0075
+     ]
+    }
+   },
+   "optic_thermal": {
+    "socket_json": [
+     0.0,
+     -0.08,
+     0.1375
+    ],
+    "socket_glb": [
+     0.0,
+     -0.08,
+     0.1375
+    ],
+    "clash_pairs": 0,
+    "rail_top_rel_socket_z": [
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0
+    ],
+    "rail_flank_x_at_depth": {
+     "-0.0005": [
+      0.0105,
+      -0.0105
+     ],
+     "-0.002": [
+      0.0105,
+      -0.0105
+     ],
+     "-0.004": [
+      0.01,
+      -0.01
+     ],
+     "-0.006": [
+      0.008,
+      -0.008
+     ],
+     "-0.0085": [
+      0.0075,
+      -0.0075
+     ]
+    }
+   }
+  }
+ }
+}

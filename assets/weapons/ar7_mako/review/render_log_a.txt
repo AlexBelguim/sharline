@@ -1,0 +1,24 @@
+00:01.797  cycles           | WARNING HIPEW initialization failed: Error opening HIP dynamic library
+RENDERED F:/git/val etf/assets/weapons/ar7_mako\review\renders\fp_hip_holo.png
+RENDERED F:/git/val etf/assets/weapons/ar7_mako\review\renders\fp_hip_nooptic.png
+RENDERED F:/git/val etf/assets/weapons/ar7_mako\review\renders\fp_ads_holo.png
+RENDERED F:/git/val etf/assets/weapons/ar7_mako\review\renders\fp_ads_holo_shield.png
+RENDERED F:/git/val etf/assets/weapons/ar7_mako\review\renders\fp_hip_full.png
+RENDERED F:/git/val etf/assets/weapons/ar7_mako\review\renders\tp_small_side.png
+RENDERED F:/git/val etf/assets/weapons/ar7_mako\review\renders\worst_bottom.png
+RENDERED F:/git/val etf/assets/weapons/ar7_mako\review\renders\worst_rear_high.png
+RENDERED F:/git/val etf/assets/weapons/ar7_mako\review\renders\worst_front_low.png
+RENDERED F:/git/val etf/assets/weapons/ar7_mako\review\renders\worst_right_below.png
+RENDERED F:/git/val etf/assets/weapons/ar7_mako\review\renders\worst_left_high_rear.png
+RENDERED F:/git/val etf/assets/weapons/ar7_mako\review\renders\worst_straight_rear_eyelevel.png
+RENDERED F:/git/val etf/assets/weapons/ar7_mako\review\renders\v09dir_with_holo.png
+RENDERED F:/git/val etf/assets/weapons/ar7_mako\review\renders\side_ortho_plus_x.png
+RENDERED F:/git/val etf/assets/weapons/ar7_mako\review\renders\clay_three_quarter.png
+RENDERED F:/git/val etf/assets/weapons/ar7_mako\review\renders\clay_receiver_minusX.png
+RENDERED F:/git/val etf/assets/weapons/ar7_mako\review\renders\clay_receiver_plusX_high.png
+RENDERED F:/git/val etf/assets/weapons/ar7_mako\review\renders\clay_grip_rear_low.png
+RENDERED F:/git/val etf/assets/weapons/ar7_mako\review\renders\clay_handguard_front.png
+RENDERED F:/git/val etf/assets/weapons/ar7_mako\review\renders\sil_side_holo.png
+RENDERED F:/git/val etf/assets/weapons/ar7_mako\review\renders\sil_three_quarter_holo.png
+RENDERED F:/git/val etf/assets/weapons/ar7_mako\review\renders\sil_side_nooptic.png
+RV DONE

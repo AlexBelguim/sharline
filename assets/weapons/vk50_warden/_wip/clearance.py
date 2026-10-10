@@ -13,7 +13,7 @@ import bpy
 from mathutils import Matrix, Vector
 from mathutils.bvhtree import BVHTree
 
-sys.argv = [sys.argv[0], "--", "--no-export"]
+sys.argv = [sys.argv[0], "--", "--no-export", "--no-det-check", "--no-gate"]
 ns = runpy.run_path(r"F:/git/val etf/assets/weapons/vk50_warden/build_warden.py", run_name="warden_build")
 B = ns["B"]
 SOCK = ns["SOCKETS"]

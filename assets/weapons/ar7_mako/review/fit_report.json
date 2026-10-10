@@ -1,0 +1,109 @@
+{
+ "optic_holo": {
+  "overlapping_tri_pairs": 0,
+  "min_vertex_gap_m": 0.0001
+ },
+ "optic_3x": {
+  "overlapping_tri_pairs": 0,
+  "min_vertex_gap_m": 0.0001
+ },
+ "grip_vertical": {
+  "overlapping_tri_pairs": 214,
+  "min_vertex_gap_m": 0.0
+ },
+ "ugl": {
+  "overlapping_tri_pairs": 316,
+  "min_vertex_gap_m": 0.00021
+ },
+ "laser_R": {
+  "overlapping_tri_pairs": 161,
+  "min_vertex_gap_m": 0.0
+ },
+ "flashlight_L": {
+  "overlapping_tri_pairs": 102,
+  "min_vertex_gap_m": 0.00021
+ },
+ "shield": {
+  "overlapping_tri_pairs": 147,
+  "min_vertex_gap_m": 0.0
+ },
+ "ugl vs mag_30": {
+  "overlapping_tri_pairs": 0,
+  "min_vertex_gap_m": 0.01187
+ },
+ "ugl vs mag_45": {
+  "overlapping_tri_pairs": 0,
+  "min_vertex_gap_m": 0.01432
+ },
+ "ugl vs mag_drum60": {
+  "overlapping_tri_pairs": 0,
+  "min_vertex_gap_m": 0.02482
+ },
+ "grip_vertical vs mag_drum60": {
+  "overlapping_tri_pairs": 0,
+  "min_vertex_gap_m": 0.14741
+ },
+ "shield vs laser_R": {
+  "overlapping_tri_pairs": 0,
+  "min_vertex_gap_m": 0.01396
+ },
+ "shield vs flashlight_L": {
+  "overlapping_tri_pairs": 0,
+  "min_vertex_gap_m": 0.00675
+ },
+ "holo_sightline_hits_gun": null,
+ "holo_sightline_hits_shield_at": [
+  0.0,
+  -0.5055,
+  0.129
+ ],
+ "glb_nodes": {
+  "base": [
+   "MAKO_Barrel",
+   "MAKO_BoltCatch",
+   "MAKO_BufferTube",
+   "MAKO_ChargingHandle",
+   "MAKO_DustCover",
+   "MAKO_FlashHider",
+   "MAKO_ForwardAssist",
+   "MAKO_Grip",
+   "MAKO_Handguard",
+   "MAKO_Lower",
+   "MAKO_MagRelease",
+   "MAKO_Pins",
+   "MAKO_Rail",
+   "MAKO_RailBottom",
+   "MAKO_RailSide_L",
+   "MAKO_RailSide_R",
+   "MAKO_Root",
+   "MAKO_SOCKET_LeftHand",
+   "MAKO_SOCKET_Mag",
+   "MAKO_SOCKET_Muzzle",
+   "MAKO_SOCKET_Optic",
+   "MAKO_SOCKET_Shield",
+   "MAKO_SOCKET_Side_L",
+   "MAKO_SOCKET_Side_R",
+   "MAKO_SOCKET_Stock",
+   "MAKO_SOCKET_Under",
+   "MAKO_Selector",
+   "MAKO_Trigger",
+   "MAKO_Upper"
+  ],
+  "stock_standard": [
+   "MAKO_stock_standard",
+   "MAKO_stock_standard_ButtPad",
+   "MAKO_stock_standard_Lever",
+   "MAKO_stock_standard_Sling"
+  ],
+  "mag_30": [
+   "MAKO_mag_30",
+   "MAKO_mag_30_Round",
+   "MAKO_mag_30_Stack"
+  ],
+  "mag_drum60": [
+   "MAKO_mag_drum60",
+   "MAKO_mag_drum60_Round",
+   "MAKO_mag_drum60_Stack"
+  ]
+ }
+}

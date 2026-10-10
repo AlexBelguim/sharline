@@ -13,6 +13,14 @@ Run:
   "C:/Program Files/Blender Foundation/Blender 5.2/blender.exe" -b --factory-startup -P build_warden.py -- [--render none|quick|full|fitcheck] [--samples 48] [--no-export]
   then: python compare.py   (concept comparison, silhouettes, contact sheets; system python + PIL)
 
+Proportions: art/concepts/warden/concept_main.png at 1 px = 1 mm (DIRECTION_LOG item 13 -- the first build followed the
+BRIEF's bulky profile sketch). compare.py traces the concept outline and reports the silhouette IoU.
+
+Build safety: every boolean uses Blender's MANIFOLD solver (EXACT is not deterministic in 5.2); the script builds
+twice and refuses to export unless both builds match, every mesh passes a closed-mesh gate (no boundary /
+non-manifold edges, no zero-area triangles), the handguard slots and the magwell are ray-checked as open, and the
+exported glb files are re-imported and gated again.
+
 Conventions (art/STYLE_GUIDE.md, art/WEAPON_MODULAR_SPEC.md, art/DIRECTION_LOG.md):
   metres, Z up, muzzle -Y, origin = top centre of the pistol grip, bore axis x=0 z=0.075.
   Shooter's RIGHT = -X (bolt handle, ejection port), LEFT = +X.
@@ -31,22 +39,60 @@ import bmesh  # noqa: E402
 import bpy  # noqa: E402
 from mathutils import Matrix, Vector  # noqa: E402
 
-OUT = r"F:/git/val etf/assets/weapons/vk50_warden"
-REN = os.path.join(OUT, "renders")
-P = "WARDEN"
-BZ = 0.075            # bore axis height
-RAIL_TOP_Z = 0.1375   # top rail top surface
-HANDLE_Y = 0.096      # bolt-handle root centre (on the shroud, y 0.085..0.107, behind the receiver rear face 0.080)
-BOLT_LIFT_DEG = 60.0  # bolt cycle: lift about the bore axis ...
-BOLT_TRAVEL = 0.130   # ... then slide toward the butt (full 12.7 mm case length); the stocks keep this path clear
-T0 = time.time()
-
 argv = sys.argv[sys.argv.index("--") + 1:] if "--" in sys.argv else []
 ap = argparse.ArgumentParser()
 ap.add_argument("--render", default="none", help="none | quick | full | compare | fitcheck")
 ap.add_argument("--samples", type=int, default=48)
 ap.add_argument("--no-export", action="store_true")
+ap.add_argument("--out", default=r"F:/git/val etf/assets/weapons/vk50_warden",
+                help="output folder (default: the asset folder; a scratch folder for determinism rebuilds)")
+ap.add_argument("--no-det-check", action="store_true", help="skip the build-twice determinism check")
+ap.add_argument("--no-gate", action="store_true", help="report mesh-gate failures but export anyway")
 ARGS = ap.parse_args(argv)
+
+OUT = os.path.abspath(ARGS.out)
+REN = os.path.join(OUT, "renders")
+WIP = os.path.join(OUT, "_wip")
+P = "WARDEN"
+# ---- layout: concept_main.png proportions at 1 px = 1 mm (DIRECTION_LOG item 13: "follow the concept, the first
+# build was bulky and stumpy"). Origin = top centre of the pistol grip, muzzle -Y, bore x=0 z=BZ.
+BZ = 0.075                          # bore axis height
+RAIL_TOP_Z = 0.117                  # top rail top surface (42 mm over the bore, like the concept)
+RAIL_BASE_Z = RAIL_TOP_Z - 0.0095   # rail base = top of the receiver / handguard spine
+HG_Y0, HG_Y1 = -0.677, -0.336       # handguard nose tip / rear end (= upper receiver front face)
+HG_W, HG_BOT = 0.028, 0.037         # handguard half width / underside (slim: 56 x 70 mm incl. the spine)
+HG_SLOT_L, HG_SLOT_H = 0.055, 0.010
+HG_SLOTS = [(-0.555, 0.086), (-0.485, 0.086), (-0.415, 0.086),        # upper row (staggered; concept slot centres
+            (-0.585, 0.0645), (-0.515, 0.0645), (-0.445, 0.0645)]   # -0.559/-0.488/-0.416 and -0.589/-0.515/-0.441)
+HG_BSLOTS = (-0.505, -0.435)
+REC_Y0, REC_Y1 = -0.336, -0.100     # upper receiver front / rear face
+CH_Y0, CH_W = -0.3375, 0.0275       # chassis (lower receiver) front face (1.5 mm into the handguard: no slit) / half width
+CH_BOT, CH_TOP_REAR = 0.010, 0.063  # chassis underside behind the magwell / chassis top line (concept 0.061)
+CHANNEL_R = 0.0165                  # bolt channel along the chassis / stock top: the shroud (r 0.015) sits 3 mm
+                                    # down in it, so no daylight shows under it and the bolt still slides free
+STOCK_Y = 0.022                     # chassis rear face = stock interface (concept: sand starts here)
+TOPRAIL_Y0, TOPRAIL_Y1 = -0.640, -0.110
+UNDER_Y = -0.600                    # bottom rail centre (bipod)
+SIDE_Y, SIDE_Z, SIDE_L = -0.643, 0.066, 0.040   # short side rails in the nose, ahead of the lower slot row
+OPTIC_Y = -0.190                    # default optic clamp centre (concept: rings at -0.215 / -0.150)
+BAR_R = 0.0175                      # exposed barrel radius (concept: 35 mm)
+RACE_R, BOLT_R = 0.016, 0.0142      # raceway / bolt body radius (bolt body bottom 0.0608: clears the chassis top)
+SH_R, SH_Y1 = 0.015, -0.045         # bolt shroud radius (concept: 30 mm) / rear face (closed)
+HANDLE_Y = -0.085                   # bolt-handle root centre (on the shroud, behind the receiver rear face -0.100)
+KNOB_R = 0.0175                     # hex knob circumradius (35 mm, concept)
+BOLT_LIFT_DEG = 60.0                # bolt cycle: lift about the bore axis ...
+BOLT_TRAVEL = 0.130                 # ... then slide 0.13 m toward the butt (shroud rear face -0.045 -> +0.085)
+EPORT_Y = -0.200                    # ejection port centre (-X)
+BWIN_Y, BWIN_Z, BWIN_L, BWIN_H = -0.215, 0.0825, 0.110, 0.015   # +X bolt window (concept's gunmetal strip)
+SAFETY_Y, SAFETY_Z = -0.036, 0.034  # rotary safety hub (+X)
+TRIG_PIVOT = (0, -0.090, 0.012)
+MAG_Y0, MAG_Y1, MAG_TOP_Z = -0.299, -0.154, 0.046   # magazine front / rear face, top of the feed lips
+# (145 mm: the shortest box that holds a real 138 mm 12.7 mm cartridge; concept 130 mm, rear face matched)
+MAG_W, MAG_CH, MAGWELL_W = 0.0195, 0.0169, 0.0205   # mag outer half width / channel half width / magwell half width
+MAG_WIN_Y = -0.2265                 # mag-check window centre
+MONO_Y = 0.2335                     # monopod axis (inside the stock's rear upright)
+RISER_POSTS = (0.135, 0.195)        # cheek-riser posts (spread 60 mm under the pad)
+T0 = time.time()
 
 
 def log(*a):
@@ -96,14 +142,22 @@ def hull(name, points, mat=None):
 
 def rounded_rect(cu, cv, w, h, r, n=4):
     """Closed polygon (u, v) of a w x h rectangle centred at (cu, cv) with corner radius r."""
-    r = min(r, w / 2 * 0.999, h / 2 * 0.999)
+    r = min(r, w / 2, h / 2)
     pts = []
     for (ccx, ccy, a0) in [(cu + w / 2 - r, cv + h / 2 - r, 0), (cu - w / 2 + r, cv + h / 2 - r, 90),
                            (cu - w / 2 + r, cv - h / 2 + r, 180), (cu + w / 2 - r, cv - h / 2 + r, 270)]:
         for i in range(n + 1):
             a = math.radians(a0 + 90.0 * i / n)
             pts.append((ccx + r * math.cos(a), ccy + r * math.sin(a)))
-    return pts
+    # a stadium (r = half the short side) has no straight segment there: drop the doubled apex points, which made
+    # zero-length cutter edges and left sliver / non-manifold seams in the boolean result
+    out = []
+    for p in pts:
+        if not out or math.dist(p, out[-1]) > 1e-6:
+            out.append(p)
+    if len(out) > 1 and math.dist(out[0], out[-1]) <= 1e-6:
+        out.pop()
+    return out
 
 
 def stadium(cu, cv, w, h, n=5):
@@ -148,20 +202,58 @@ def set_origin(obj, point):
     return obj
 
 
+BOOL_SOLVER = "MANIFOLD"
+BOOL_LOG = []
+
+
+def boolean(obj, cutter, op):
+    """Local boolean (bc.boolean hard-codes the EXACT solver). Blender 5.2's EXACT solver is not deterministic: the
+    same two prisms gave different vertex positions in about 1 run in 4 (even with -t 1), which broke the
+    build-twice determinism gate. The MANIFOLD solver is deterministic, faster and leaves fewer stray vertices.
+    It refuses non-manifold operands (returns the input unchanged), so a boolean whose cutter overlaps the object
+    but changes nothing fails the build instead of silently shipping an uncut part."""
+    me0 = obj.data
+    n0 = len(me0.vertices)
+    co0 = [0.0] * (n0 * 3)
+    me0.vertices.foreach_get("co", co0)
+    s0 = sum(abs(c) for c in co0)
+    m = obj.modifiers.new("Bool_" + cutter.name, "BOOLEAN")
+    m.object = cutter
+    m.operation = op
+    m.solver = BOOL_SOLVER
+    bc.apply_modifiers(obj, only=[m.name])
+    me = obj.data
+    co = [0.0] * (len(me.vertices) * 3)
+    me.vertices.foreach_get("co", co)
+    unchanged = len(me.vertices) == n0 and abs(sum(abs(c) for c in co) - s0) < 1e-9
+    if unchanged:
+        # did the cutter actually reach the object? (bounding-box test in world space)
+        def bb(o):
+            ps = [o.matrix_world @ Vector(c) for c in o.bound_box]
+            return [min(p[i] for p in ps) for i in range(3)], [max(p[i] for p in ps) for i in range(3)]
+        (a0, a1), (b0, b1) = bb(obj), bb(cutter)
+        if all(a0[i] < b1[i] and b0[i] < a1[i] for i in range(3)):
+            BOOL_LOG.append((obj.name, cutter.name, op))
+    bpy.data.objects.remove(cutter, do_unlink=True)
+    if not me.polygons:
+        raise SystemExit(f"[warden] boolean {op} {cutter.name} emptied {obj.name}")
+    return obj
+
+
 def cut(obj, *cutters):
     for c in cutters:
-        bc.boolean(obj, c, "DIFFERENCE")
+        boolean(obj, c, "DIFFERENCE")
     return obj
 
 
 def union(obj, *others):
     for c in others:
-        bc.boolean(obj, c, "UNION")
+        boolean(obj, c, "UNION")
     return obj
 
 
 def intersect(obj, other):
-    return bc.boolean(obj, other, "INTERSECT")
+    return boolean(obj, other, "INTERSECT")
 
 
 def degen(obj, dist=1e-5):
@@ -232,11 +324,12 @@ def finish(obj, width, segs=1, angle=30, harden=True):
     return obj
 
 
-def finish_outer(obj, width, segs, inner, angle=30):
+def finish_outer(obj, width, segs, inner, angle=30, ddist=1e-5):
     """finish() variant that bevels only the edges a player can see: edges whose midpoint satisfies inner(co) (inside
     a hollow shell, e.g. the slot rims on the handguard's inner wall) keep a plain hard corner. Saves the triangles
-    of bevels nobody can see (triangle-budget review item)."""
-    degen(obj)
+    of bevels nobody can see (triangle-budget review item). ddist = dissolve_degenerate distance (review r2: on the
+    handguard the default 1e-5 collapsed the walls of two +X top vents and closed them over -> 1e-6 there)."""
+    degen(obj, ddist)
     me = obj.data
     for p in me.polygons:
         p.use_smooth = True
@@ -259,7 +352,7 @@ def finish_outer(obj, width, segs, inner, angle=30):
     m.miter_outer = "MITER_ARC"
     m.use_clamp_overlap = True
     bc.apply_modifiers(obj)
-    degen(obj)
+    degen(obj, ddist)
     att = obj.data.attributes.get("bevel_weight_edge")
     if att is not None:
         obj.data.attributes.remove(att)
@@ -453,12 +546,16 @@ def clean_slots(obj):
 
 def seal(obj):
     """Close the rare sliver holes an EXACT boolean + bevel can leave (meshes must be closed, the engine
-    backface-culls): merge near-coincident verts of the open edges (< 0.12 mm) and fill any remaining small boundary loops."""
+    backface-culls): merge near-coincident verts of the open edges (< 0.12 mm) and fill any remaining small boundary loops.
+    Review r2 (determinism): the vertex list is sorted by index -- a Python set of BMVerts iterates in id/address
+    order, which differs between runs and made remove_doubles pick different survivors (receiver 1,824 vs 1,836 tris)."""
     bm = bmesh.new()
     bm.from_mesh(obj.data)
+    bm.verts.index_update()
     nm = [e for e in bm.edges if not e.is_manifold]
     if nm:
-        bmesh.ops.remove_doubles(bm, verts=list({v for e in nm for v in e.verts}), dist=0.00012)
+        vs = sorted({v.index: v for e in nm for v in e.verts}.items())
+        bmesh.ops.remove_doubles(bm, verts=[v for _, v in vs], dist=0.00012)
         bnd = [e for e in bm.edges if e.is_boundary]
         if bnd:
             bmesh.ops.holes_fill(bm, edges=bnd, sides=12)
@@ -468,6 +565,66 @@ def seal(obj):
     return obj
 
 
+def tri_clean(obj):
+    """Review r2 (minor 6): triangulate in Blender with BEAUTY (instead of the exporter's plain fan/polyfill split of
+    the long boolean n-gons), keeping the custom (hardened / weighted) normals, then remove every zero-area triangle:
+    edges shorter than 1e-6 m are collapsed, and collinear 'needle' triangles get their longest edge rotated so both
+    neighbours become real triangles. The glb then ships exactly these triangles."""
+    m = obj.modifiers.new("Tri", "TRIANGULATE")
+    m.quad_method = "BEAUTY"
+    m.ngon_method = "BEAUTY"
+    m.min_vertices = 4
+    m.keep_custom_normals = True
+    bc.apply_modifiers(obj)
+    bm = bmesh.new()
+    bm.from_mesh(obj.data)
+    bmesh.ops.dissolve_degenerate(bm, dist=1e-6, edges=bm.edges[:])
+    for _ in range(16):
+        ng = [f for f in bm.faces if len(f.verts) > 3]      # dissolve_degenerate / face_join leave n-gons behind
+        if ng:
+            bmesh.ops.triangulate(bm, faces=ng, quad_method="BEAUTY", ngon_method="BEAUTY")
+        bm.faces.index_update()
+        bm.edges.index_update()
+        bad = sorted((f for f in bm.faces if f.calc_area() < 1e-10), key=lambda f: f.index)
+        if not bad:
+            break
+        for f in bad:
+            if not f.is_valid or f.calc_area() >= 1e-10:
+                continue
+            es = sorted(f.edges, key=lambda e: (-e.calc_length(), e.index))
+            if es[0].calc_length() < 5e-5:
+                # sub-0.05 mm crumb (bevel corner at a slot tip): collapse it to a point
+                bmesh.ops.collapse(bm, edges=list(f.edges), uvs=False)
+                continue
+            # needle (one vertex on the opposite edge): rotate that longest edge, so the needle and its neighbour
+            # become two real triangles (rotate_edges keeps the mesh manifold; the old join + connect could not)
+            e = es[0]
+            if len(e.link_faces) == 2 and all(len(g.verts) == 3 for g in e.link_faces):
+                bmesh.ops.rotate_edges(bm, edges=[e], use_ccw=False)
+        bmesh.ops.dissolve_degenerate(bm, dist=1e-6, edges=bm.edges[:])
+    bm.to_mesh(obj.data)
+    bm.free()
+    return obj
+
+
+def mesh_gate(obj):
+    """Closed-mesh gate (review r2): weld by POSITION ONLY at 1e-6 m (what an importer sees), then count boundary
+    edges, non-manifold edges and zero-area (< 1e-10 m^2) triangles. All three must be 0 for an exported mesh."""
+    bm = bmesh.new()
+    bm.from_mesh(obj.data)
+    bm.verts.index_update()
+    bmesh.ops.remove_doubles(bm, verts=bm.verts[:], dist=1e-6)
+    r = dict(boundary=sum(1 for e in bm.edges if e.is_boundary),
+             nonmanifold=sum(1 for e in bm.edges if not e.is_manifold),
+             zero_area=sum(1 for f in bm.faces if f.calc_area() < 1e-10),
+             tiny_lt_0_01mm2=sum(1 for f in bm.faces if f.calc_area() < 1e-8),
+             ngons=sum(1 for f in bm.faces if len(f.verts) > 3))
+    bad = [e for e in bm.edges if not e.is_manifold][:3]
+    r["examples"] = [[round(c, 4) for c in (e.verts[0].co + e.verts[1].co) / 2] for e in bad]
+    bm.free()
+    return r
+
+
 def world_uvs(obj):
     """One fresh smart-projected UV layer, rescaled to a constant world texel density: 1 UV unit = tile_m metres
     of the face's material (so wear / brushing / stipple have the same scale on every part and every export)."""
@@ -475,7 +632,12 @@ def world_uvs(obj):
     while me.uv_layers:
         me.uv_layers.remove(me.uv_layers[0])
     me.uv_layers.new(name="UVMap")
-    bc.smart_uv(obj, angle=66, margin=0.01)
+    try:
+        bc.smart_uv(obj, angle=66, margin=0.01)
+    except RuntimeError:
+        log("smart_uv failed on", obj.name, "faces", len(me.polygons), "in view layer",
+            obj.name in bpy.context.view_layer.objects, "mode", bpy.context.mode)
+        raise
     uv = me.uv_layers.active.data
     a3 = auv = 0.0
     for p in me.polygons:
@@ -499,10 +661,16 @@ RAIL_SEC = [(-0.0075, -0.0012), (0.0075, -0.0012), (0.0075, 0.0030), (0.0105, 0.
             (-0.0105, 0.0095), (-0.0105, 0.0060), (-0.0075, 0.0030)]
 
 
-def rail(name, length, mat, bevel=0.0):
+def rail(name, length, mat, bevel=0.0, ends=False):
     """Stylised Picatinny along local Y, centred at y=0, base z=0, top z=0.0095, top width 0.021,
-    cross slots 0.0045 long x 0.003 deep every 0.010 m (centred so both ends keep a full tooth)."""
+    cross slots 0.0045 long x 0.003 deep every 0.010 m (centred so both ends keep a full tooth).
+    ends=True ramps both ends down 45 degrees (concept: sloped rail ends, no sharp blunt block)."""
     obj = prism(name, RAIL_SEC, "Y", -length / 2, length / 2, mat)
+    if ends:
+        h = length / 2
+        intersect(obj, prism("_rends", [(-h - 0.001, -0.003), (h + 0.001, -0.003), (h + 0.001, 0.0035),
+                                        (h - 0.006, 0.0105), (-h + 0.006, 0.0105), (-h - 0.001, 0.0035)],
+                             "X", -0.02, 0.02))
     n = int((length - 0.008) / 0.010) + 1
     first = -(n - 1) * 0.010 / 2
     cs = [box("_slot", (0.03, 0.0045, 0.006), (0, first + i * 0.010, 0.0095 - 0.003 + 0.003)) for i in range(n)]
@@ -512,374 +680,450 @@ def rail(name, length, mat, bevel=0.0):
     return obj
 
 
+def slot_check(hg):
+    """Review r2 (major 1, generalised to every handguard opening): each slot must be a clean through-cut.
+    A ray along -X through the centre of a side slot must cross the whole shell without touching it (+X slot, bore
+    cavity, -X slot); a ray straight up through a bottom slot must first hit the cavity ROOF. Fails the build
+    otherwise, so a half-applied EXACT boolean (the r2 'ghost pocket' bug) can never ship again."""
+    from mathutils.bvhtree import BVHTree
+    bm = bmesh.new()
+    bm.from_mesh(hg.data)
+    bm.transform(hg.matrix_world)
+    t = BVHTree.FromBMesh(bm)
+    bm.free()
+    bad = []
+    for (yc, zc) in HG_SLOTS:
+        loc, _, _, _ = t.ray_cast(Vector((0.06, yc, zc)), Vector((-1, 0, 0)))
+        if loc is not None:
+            bad.append(("side", yc, zc, tuple(round(c, 4) for c in loc)))
+    for yc in HG_BSLOTS:
+        loc, _, _, _ = t.ray_cast(Vector((0.0, yc, 0.0)), Vector((0, 0, 1)))
+        if loc is None or loc.z < 0.090:
+            bad.append(("bottom", yc, None if loc is None else round(loc.z, 4)))
+    if bad:
+        raise SystemExit(f"[warden] SLOT CHECK FAILED (slot not cut through): {bad}")
+    log(f"slot check: all {len(HG_SLOTS)} side slots and {len(HG_BSLOTS)} bottom slots cut through")
+
+
+def magwell_check(cha):
+    """Rays straight up through the magwell (3 x 3 grid) must cross the open well and first meet the bridge under
+    the receiver (z >= 0.045). Catches a face spanning the opening (a 1 mm rear wall once made the bevel do that,
+    which no closed-mesh gate notices because the mesh stays manifold)."""
+    from mathutils.bvhtree import BVHTree
+    bm = bmesh.new()
+    bm.from_mesh(cha.data)
+    bm.transform(cha.matrix_world)
+    t = BVHTree.FromBMesh(bm)
+    bm.free()
+    bad = []
+    for x in (-0.012, 0.0, 0.012):
+        for y in (MAG_Y0 + 0.012, (MAG_Y0 + MAG_Y1) / 2, MAG_Y1 - 0.012):
+            loc, _, _, _ = t.ray_cast(Vector((x, y, -0.08)), Vector((0, 0, 1)))
+            if loc is None or loc.z < 0.045:
+                bad.append((x, y, None if loc is None else round(loc.z, 4)))
+    if bad:
+        raise SystemExit(f"[warden] MAGWELL CHECK FAILED (something spans the opening): {bad}")
+    log("magwell check: open (9 rays)")
+
+
 def place(obj, rot_y_deg=0.0, loc=(0, 0, 0)):
     obj.matrix_basis = Matrix.Translation(Vector(loc)) @ Matrix.Rotation(math.radians(rot_y_deg), 4, "Y")
     return bake(obj)
 
 
 # =========================================================================================== BASE GUN
+# Proportions follow art/concepts/warden/concept_main.png at 1 px = 1 mm (DIRECTION_LOG item 13), mapped to gun
+# coordinates as  y = px_x / 1000 - 1.156,  z = 0.335 - px_y / 1000  (brake front -1.100, bore z 0.075).
 def build_base(M, col):
     G, GM, S, SS = M["G"], M["GM"], M["S"], M["SS"]
     parts = []
 
-    # ------------------------------------------------------------------ receiver (monolithic upper)
-    side = prism("WARDEN_Receiver", [(0.080, 0.035), (0.080, 0.112), (0.064, 0.128), (-0.292, 0.128),
-                                     (-0.300, 0.120), (-0.300, 0.033), (-0.292, 0.025), (0.072, 0.025)],
-                 "X", -0.045, 0.045, G)
-    sec = prism("_rsec", [(-0.020, 0.010), (0.020, 0.010), (0.039, 0.029), (0.039, 0.117), (0.016, 0.140),
-                          (-0.016, 0.140), (-0.039, 0.117), (-0.039, 0.029)], "Y", -0.32, 0.10)
-    rec = intersect(side, sec)
-    # bolt raceway (internal, shows through the port and at the rear face)
-    cut(rec, cyl("_race", 0.0205, 0.27, (0, -0.050, BZ), "Y", 24))
+    # ------------------------------------------------------------------ upper receiver (monolithic)
+    # section: flat sides x +-0.030, 10 mm top chamfers, the rail spine on top (x +-0.013, up to the rail base)
+    rsec = [(-0.027, 0.054), (0.027, 0.054), (0.030, 0.057), (0.030, 0.090), (0.020, 0.100), (0.013, 0.100),
+            (0.013, RAIL_BASE_Z), (-0.013, RAIL_BASE_Z), (-0.013, 0.100), (-0.020, 0.100), (-0.030, 0.090),
+            (-0.030, 0.057)]
+    rec = prism("WARDEN_Receiver", rsec, "Y", REC_Y0, REC_Y1, G)
+    # the spine ramps down into the rear face (concept: sloped rail end over the bolt shroud)
+    intersect(rec, prism("_rside", [(REC_Y0 - 0.01, 0.04), (REC_Y0 - 0.01, 0.13), (REC_Y1 - 0.0085, 0.13),
+                                    (REC_Y1, 0.1015), (REC_Y1, 0.04)], "X", -0.05, 0.05))
+    # bolt raceway (open at the rear face, the bolt body slides in it)
+    cut(rec, cyl("_race", RACE_R, 0.200, (0, -0.190, BZ), "Y", 24))
     # ejection port, shooter's RIGHT (-X)
-    cut(rec, prism("_eport", rounded_rect(-0.1075, 0.081, 0.135, 0.040, 0.006), "X", -0.06, -0.010))
-    # bolt-handle relief (-X), open to the rear: a shallow stepped seat in front of the handle root. The root itself
-    # sits on the bolt shroud BEHIND the receiver rear face (y > 0.080), so the 60-degree lift happens in free air
-    # (review fix: the old root block sat in a closed-position notch and swept 16 mm into the receiver).
-    cut(rec, prism("_notch", [(0.071, 0.080), (0.090, 0.080), (0.090, 0.108), (0.079, 0.108)], "X", -0.06, -0.027))
-    # panel-line grooves, LEFT (+X): stepped line running from the chin up to the rear
-    gl = [(-0.305, 0.050), (-0.226, 0.050), (-0.204, 0.068), (0.085, 0.068)]
-    cut(rec, prism("_gL", band(gl, 0.0028), "X", 0.0365, 0.05))
-    gl2 = [(-0.305, 0.108), (-0.045, 0.108), (-0.029, 0.097), (0.085, 0.097)]
-    cut(rec, prism("_gL2", band(gl2, 0.0028), "X", 0.0365, 0.05))
-    # RIGHT (-X): line under the ejection port
-    gr = [(-0.305, 0.050), (0.006, 0.050), (0.020, 0.042), (0.085, 0.042)]
-    cut(rec, prism("_gR", band(gr, 0.0028), "X", -0.05, -0.0365))
-    finish(rec, 0.0035, 2)
+    ep = rounded_rect(EPORT_Y, BZ + 0.001, 0.100, 0.024, 0.006, 3)
+    cut(rec, prism("_eport", ep, "X", -0.05, -0.008))
+    # same 45-degree lead-in chamfer as the +X bolt window (3 mm)
+    cut(rec, hull("_epch", [(-0.027, y, z) for (y, z) in ep] + [(-0.031, y, z) for (y, z) in offset_poly(ep, 0.004)]))
+    # bolt window, LEFT (+X): the concept's gunmetal strip. A real opening into the raceway: the player sees the
+    # bolt body (and its +X flutes) slide back when cycling. Replaces the removed ammo counter as this side's focus.
+    bw = rounded_rect(BWIN_Y, BWIN_Z, BWIN_L, BWIN_H, 0.006, 3)
+    cut(rec, prism("_bwin", bw, "X", 0.008, 0.05))
+    # 45-degree, 4 mm chamfer round the window: it opens the slot to the light, so the gunmetal bolt reads as the
+    # concept's bright strip instead of a black slit
+    cut(rec, hull("_bwch", [(0.026, y, z) for (y, z) in bw] + [(0.031, y, z) for (y, z) in offset_poly(bw, 0.005)]))
+    # bevel what a player sees; the raceway interior (and the port / window rims where they meet it) stays hard
+    finish_outer(rec, 0.0032, 1, lambda c: c.x * c.x + (c.z - BZ) ** 2 < (RACE_R + 0.0007) ** 2 and c.y > -0.30)
     parts.append(rec)
 
-    # bolt-release button (LEFT, +X)
-    btn = cyl("WARDEN_BoltRelease", 0.0055, 0.006, (0.0395, 0.040, 0.0825), "X", 12, GM)
-    finish(btn, 0.0012, 1)
+    # bolt-release button (LEFT, +X), behind the bolt window
+    btn = cyl("WARDEN_BoltRelease", 0.0045, 0.005, (0.0315, -0.122, 0.068), "X", 12, GM)
+    finish(btn, 0.001, 1)
     parts.append(btn)
-    # rotary safety lever (LEFT, +X, under the shooter's thumb above the grip); origin at its pivot
-    hub = cyl("_sfh", 0.0068, 0.0045, (0.0412, 0.018, 0.041), "X", 14, GM)
-    finish(hub, 0.0012, 1)
-    pad = prism("_sfp", round_poly(band([(0.018, 0.041), (0.037, 0.0335)], 0.0072), 0.0022, 2), "X", 0.0395,
-                0.0428, GM)
-    finish(pad, 0.0010, 1)
+    # rotary safety lever (LEFT, +X, above the grip, under the thumb); origin at its pivot
+    hub = cyl("_sfh", 0.0055, 0.004, (0.0300, SAFETY_Y, SAFETY_Z), "X", 14, GM)   # 0.5 mm off the chassis side
+    finish(hub, 0.001, 1)
+    pad = prism("_sfp", round_poly(band([(SAFETY_Y, SAFETY_Z), (SAFETY_Y + 0.007, SAFETY_Z - 0.015)], 0.0062),
+                                   0.002, 2), "X", 0.0283, 0.0310, GM)
+    finish(pad, 0.0008, 1)
     saf = join([hub, pad], "WARDEN_Safety")
-    set_origin(saf, (0.039, 0.018, 0.041))
+    set_origin(saf, (0.0280, SAFETY_Y, SAFETY_Z))
     parts.append(saf)
 
-    # ------------------------------------------------------------------ chassis (lower bed + magwell + chin)
-    cha = prism("WARDEN_Chassis", [(0.080, 0.025), (-0.300, 0.025), (-0.300, 0.034), (-0.340, 0.034),
-                                   (-0.296, -0.040), (-0.290, -0.058), (-0.282, -0.068), (-0.112, -0.068),
-                                   (-0.104, -0.060), (-0.104, -0.010), (-0.030, 0.000), (0.040, 0.000),
-                                   (0.080, -0.010)], "X", -0.035, 0.035, G)
-    # magwell opening + flared entrance
-    cut(cha, box("_mw", (0.054, 0.1575, 0.090), (0, -0.19575, -0.041)))
-    fl = hull("_mwfl", [(sx * 0.031, y, -0.0705) for sx in (1, -1) for y in (-0.2785, -0.1130)] +
-              [(sx * 0.027, y, -0.0625) for sx in (1, -1) for y in (-0.2745, -0.1170)])
-    cut(cha, fl)
+    # ------------------------------------------------------------------ chassis (lower receiver, magwell, chin,
+    # trigger area and the rear extension that carries the grip and the stock)
+    cprof = [(STOCK_Y, CH_TOP_REAR), (CH_Y0, CH_TOP_REAR), (CH_Y0, 0.032), (-0.325, 0.022), (-0.311, 0.017),
+             (-0.1475, -0.0055), (-0.144, 0.004), (-0.140, CH_BOT), (STOCK_Y, CH_BOT)]
+    # (the magwell's rear wall is 5.5 mm at the bottom: a 1 mm sliver there made the bevel span the opening)
+    cha = prism("WARDEN_Chassis", cprof, "X", -CH_W, CH_W, G)
+    # chin under the handguard rear (concept: dark wedge stepping down from the handguard bottom)
+    chin = prism("_chin", [(-0.328, 0.040), (-0.405, 0.040), (-0.391, 0.026), (-0.328, 0.026)], "X", -0.020, 0.020)
+    union(cha, chin)
+    # magwell (the mag's top-front lip seats at the Mag socket, 4 mm under the raceway)
+    cut(cha, box("_mw", (2 * MAGWELL_W, MAG_Y1 - MAG_Y0 + 0.002, 0.090), (0, (MAG_Y0 + MAG_Y1) / 2,
+                                                                         MAG_TOP_Z + 0.003 - 0.045)))
     # trigger slot
-    cut(cha, box("_tslot", (0.011, 0.030, 0.030), (0, -0.057, -0.004)))
-    # rear stock-adapter lug: the interface every stock clamps over (sits inside the stocks' hinge block)
-    lug = prism("_lug", [(0.076, 0.038), (0.090, 0.038), (0.094, 0.034), (0.094, -0.004), (0.090, -0.008),
-                         (0.076, -0.008)], "X", -0.019, 0.019)
-    cut(lug, cyl("_lugh", 0.0045, 0.05, (0, 0.086, 0.015), "X", 12))
+    cut(cha, box("_tslot", (0.010, 0.024, 0.030), (0, -0.090, 0.012)))
+    # bolt channel: under the receiver it continues the raceway (hidden), behind it the shroud and the open bolt
+    # body ride in it
+    # (starts at y -0.285, inside the raceway's span, so its end cap is not coplanar with the raceway's end face)
+    cut(cha, cyl("_bch", CHANNEL_R, STOCK_Y + 0.002 + 0.285, (0, (STOCK_Y + 0.002 - 0.285) / 2, BZ), "Y", 24))
+    # rear stock-adapter lug: every stock clamps over it (hidden inside the stock's front block when assembled)
+    lug = prism("_lug", [(STOCK_Y - 0.004, 0.046), (STOCK_Y + 0.011, 0.046), (STOCK_Y + 0.014, 0.043),
+                         (STOCK_Y + 0.014, 0.021), (STOCK_Y + 0.011, 0.018), (STOCK_Y - 0.004, 0.018)],
+                "X", -0.012, 0.012)
+    cut(lug, cyl("_lugh", 0.003, 0.05, (0, STOCK_Y + 0.007, 0.032), "X", 12))
     union(cha, lug)
-    # side lightening pockets on the magwell block
     for sx in (1, -1):
-        cut(cha, prism("_pk", [(-0.262, -0.012), (-0.140, -0.012), (-0.140, -0.052), (-0.250, -0.052),
-                               (-0.262, -0.040)], "X", sx * 0.033, sx * 0.050))
-    finish(cha, 0.003, 2)
+        # trapezoid relief panel on the lower receiver front (concept)
+        cut(cha, prism("_trap", round_poly([(-0.300, 0.042), (-0.238, 0.042), (-0.247, 0.051), (-0.291, 0.051)],
+                                           0.0015, 1), "X", sx * (CH_W - 0.0012), sx * 0.05))
+        # stock-release latch recess on the rear extension
+        cut(cha, prism("_latch", rounded_rect(0.002, 0.033, 0.018, 0.016, 0.003, 2), "X", sx * (CH_W - 0.0012),
+                       sx * 0.05))
+        # long panel groove under the receiver overhang, ahead of the magwell
+        cut(cha, prism("_cg", band([(CH_Y0 - 0.005, 0.047), (-0.312, 0.047)], 0.0022), "X", sx * (CH_W - 0.0012),
+                       sx * 0.05))
+    # maker plate recess on the hero side (+X) where the concept's counter was (no screen, no emissive)
+    cut(cha, prism("_plate", rounded_rect(-0.176, 0.034, 0.046, 0.016, 0.004, 2), "X", CH_W - 0.0012, 0.05))
+    finish(cha, 0.0030, 1)       # crisp single chamfers on the hard metal parts (stylized; tri budget)
+    # take-down pins (heads on both sides), gunmetal
+    pins = []
+    for sx in (1, -1):
+        for (yp, zp) in ((-0.321, 0.044), (-0.072, 0.040)):
+            pn = cyl("_pin", 0.0042, 0.003, (sx * (CH_W + 0.0005), yp, zp), "X", 10, GM)
+            finish(pn, 0.0009, 1)
+            pins.append(pn)
+    cha = join([cha] + pins, "WARDEN_Chassis")
     parts.append(cha)
 
-    # ------------------------------------------------------------------ handguard (free-float, slotted shell)
-    hsec = [(-0.024, 0.030), (0.024, 0.030), (0.036, 0.042), (0.036, 0.116), (0.024, 0.128), (-0.024, 0.128),
-            (-0.036, 0.116), (-0.036, 0.042)]
-    hg = prism("WARDEN_Handguard", hsec, "Y", -0.700, -0.300, G)
-    # front profile: vertical upper front face, chamfered lower front
-    k = (0.692 - 0.656) / (0.068 - 0.030)
-    hside = prism("_hside", [(-0.290, 0.010), (-0.290, 0.150), (-0.690, 0.150), (-0.690, 0.068),
-                             (-0.690 + k * (0.068 - 0.010), 0.010)], "X", -0.05, 0.05)
-    intersect(hg, hside)
-    # inner cavity (wall 5 mm), open at the rear where the receiver closes it
-    isec = [(-0.021, 0.035), (0.021, 0.035), (0.031, 0.045), (0.031, 0.113), (0.021, 0.123), (-0.021, 0.123),
-            (-0.031, 0.113), (-0.031, 0.045)]
-    cav = prism("_cav", isec, "Y", -0.681, -0.296)
-    cav_side = prism("_cavs", [(-0.280, 0.020), (-0.280, 0.140), (-0.681, 0.140), (-0.681, 0.075),
-                               (-0.681 + k * (0.075 - 0.020), 0.020)], "X", -0.05, 0.05)
-    intersect(cav, cav_side)
+    # ------------------------------------------------------------------ handguard (slim free-float shell)
+    hsec = [(-0.021, HG_BOT), (0.021, HG_BOT), (HG_W, HG_BOT + 0.007), (HG_W, 0.088), (0.016, 0.100),
+            (0.0125, 0.100), (0.0125, RAIL_BASE_Z), (-0.0125, RAIL_BASE_Z), (-0.0125, 0.100), (-0.016, 0.100),
+            (-HG_W, 0.088), (-HG_W, HG_BOT + 0.007)]
+    hg = prism("WARDEN_Handguard", hsec, "Y", -0.700, HG_Y1, G)
+    # nose: the concept's raked front (tip at y -0.677, z 0.050), barrel leaves through the sloped face
+    intersect(hg, prism("_hside", [(HG_Y1 + 0.01, 0.020), (HG_Y1 + 0.01, 0.130), (-0.6367, 0.130), (HG_Y0, 0.050),
+                                   (-0.654, 0.020)], "X", -0.05, 0.05))
+    # inner cavity (5 mm wall), open at the rear where the receiver front face closes it
+    isec = [(-0.0175, 0.042), (0.0175, 0.042), (0.023, 0.0475), (0.023, 0.086), (0.0135, 0.0955), (-0.0135, 0.0955),
+            (-0.023, 0.086), (-0.023, 0.0475)]
+    cav = prism("_cav", isec, "Y", -0.668, HG_Y1 + 0.005)
+    intersect(cav, prism("_cavs", [(-0.300, 0.020), (-0.300, 0.140), (-0.626, 0.140), (-0.6727, 0.0503),
+                                   (-0.6476, 0.020)], "X", -0.05, 0.05))
     cut(hg, cav)
-    # barrel exit hole in the front cap
-    cut(hg, cyl("_bh", 0.0265, 0.05, (0, -0.690, BZ), "Y", 24))
-    # side slots: 2 rows x 4, rounded
-    for yc in (-0.372, -0.437, -0.502, -0.567):
-        cut(hg, prism("_s", stadium(yc, 0.1035, 0.050, 0.0145, 3), "X", -0.06, 0.06))
-        cut(hg, prism("_s", stadium(yc, 0.0640, 0.050, 0.0145, 3), "X", -0.06, 0.06))
+    # barrel exit hole in the nose face
+    cut(hg, cyl("_bh", 0.0200, 0.06, (0, -0.670, BZ), "Y", 24))   # r 0.020: not tangent to the cavity roof
+    # side slots: two staggered rows of three (concept rhythm), one joined cutter. Review r2 (major 2): both rows
+    # lie inside the barrel's side silhouette (z 0.0565-0.0935), so no slot looks through the gun (no light pills)
+    slots = [prism("_s", stadium(yc, zc, HG_SLOT_L, HG_SLOT_H, 3), "X", -0.06, 0.06) for (yc, zc) in HG_SLOTS]
+    cut(hg, join(slots, "_slots"))
     # bottom slots
-    for yc in (-0.405, -0.480):
-        cut(hg, prism("_sb", stadium(0.0, yc, 0.022, 0.055, 3), "Z", 0.020, 0.040))
-    # top vent slots either side of the rail
-    for yc in (-0.405, -0.470, -0.535):
-        for sx in (1, -1):
-            cut(hg, prism("_st", stadium(sx * 0.0175, yc, 0.007, 0.040, 2), "Z", 0.118, 0.140))
-    # bevel the outer shell only: the rims of the slots on the INNER wall face (x +-0.031, z 0.035 / 0.123) and
-    # the cavity corners stay hard (never seen, ~1k triangles saved)
-    finish_outer(hg, 0.0025, 1, lambda c: abs(c.x) < 0.0318 and 0.0342 < c.z < 0.1238 and c.y > -0.6818)
-    # review fix (soft diagonal wedge between slot columns 3 and 4): big planar faces become their own smooth fans
+    cut(hg, join([prism("_sb", stadium(0.0, yc, 0.014, 0.045, 3), "Z", 0.030, 0.045) for yc in HG_BSLOTS],
+                 "_bslots"))
+    # bevel the outer shell only: the cavity corners and the slot rims on the inner wall stay hard
+    finish_outer(hg, 0.0022, 1, lambda c: abs(c.x) < 0.0236 and 0.0414 < c.z < 0.0961 and c.y > -0.6735,
+                 ddist=1e-6)
     flat_big_faces(hg)
+    slot_check(hg)
     parts.append(hg)
-
-    # handguard clamp screws at the receiver joint (hex heads, both sides)
+    # clamp screws at the receiver joint (hex heads, both sides)
     for sx in (1, -1):
-        for zc in (0.052, 0.104):
-            s = cyl("_scr", 0.0042, 0.004, (sx * 0.0365, -0.316, zc), "X", 6, GM)
-            finish(s, 0.0008, 1)
+        for zc in (0.052, 0.075):
+            s = cyl("_scr", 0.0036, 0.003, (sx * (HG_W + 0.0005), -0.352, zc), "X", 6, GM)
+            finish(s, 0.0007, 1)
             parts.append(s)
 
     # ------------------------------------------------------------------ rails
-    rt = rail("WARDEN_RailTop", 0.752, G)
-    place(rt, 0, (0, (0.062 - 0.690) / 2, 0.128))
+    rt = rail("WARDEN_RailTop", TOPRAIL_Y1 - TOPRAIL_Y0, G, ends=True)
+    place(rt, 0, (0, (TOPRAIL_Y0 + TOPRAIL_Y1) / 2, RAIL_BASE_Z))
     parts.append(rt)
-    rb = rail("WARDEN_RailBottom", 0.110, G)
-    place(rb, 180, (0, -0.595, 0.030))
+    rb = rail("WARDEN_RailBottom", 0.110, G, ends=True)
+    place(rb, 180, (0, UNDER_Y, HG_BOT))
     parts.append(rb)
     for sx, nm in ((-1, "WARDEN_RailSide_R"), (1, "WARDEN_RailSide_L")):
-        rs = rail(nm, 0.060, G)
-        place(rs, 90 * sx, (sx * 0.036, -0.645, 0.079))
+        rs = rail(nm, SIDE_L, G, ends=True)
+        place(rs, 90 * sx, (sx * HG_W, SIDE_Y, SIDE_Z))
         parts.append(rs)
 
-    # ------------------------------------------------------------------ barrel (fluted, step-down) + brake
-    bar = lathe_y("WARDEN_Barrel", [(0, -0.240), (0.023, -0.240), (0.023, -0.600), (0.021, -0.680),
-                                    (0.021, -0.940), (0.016, -0.942), (0.016, -0.965), (0.009, -0.965),
-                                    (0.009, -0.955), (0, -0.955)], steps=24, mat=GM)
+    # ------------------------------------------------------------------ barrel (slim, fluted) + brake
+    bar = lathe_y("WARDEN_Barrel", [(0, -0.295), (0.0185, -0.295), (0.0185, -0.600), (BAR_R, -0.608),
+                                    (BAR_R, -0.990), (0.0125, -0.992), (0.0125, -1.004), (0, -1.004)], steps=24,
+                  mat=GM)
     for i in range(6):
         a = math.radians(30 + 60 * i)
-        c = prism("_fl", stadium(0.0, -0.8125, 0.0078, 0.225, 4), "Z", 0.0, 0.012)  # local: tangential x, y
-        # local x -> tangent t, local y -> Y, local z -> radial r (right-handed: t x Y = r);
-        # radial direction r=(cos a, sin a) in the XZ plane; cutter spans radius 0.018..0.030
+        c = prism("_fl", stadium(0.0, -0.8235, 0.0060, 0.303, 4), "Z", 0.0, 0.010)  # local: tangential x, y
+        # local x -> tangent, local y -> Y, local z -> radial (cos a, sin a) in the XZ plane; cuts 3 mm deep
         rmat = Matrix(((math.sin(a), 0, math.cos(a), 0),
                        (0, 1, 0, 0),
                        (-math.cos(a), 0, math.sin(a), 0),
                        (0, 0, 0, 1)))
-        c.matrix_basis = Matrix.Translation(Vector((0.018 * math.cos(a), 0, BZ + 0.018 * math.sin(a)))) @ rmat
+        c.matrix_basis = Matrix.Translation(Vector((0.0145 * math.cos(a), 0, BZ + 0.0145 * math.sin(a)))) @ rmat
         cut(bar, c)
     smooth(bar, 40)
     parts.append(bar)
 
-    # muzzle brake: big blocky dual-chamber, see-through ports
-    bs = prism("WARDEN_Brake", [(-0.950, BZ - 0.025), (-0.950, BZ + 0.025), (-0.956, BZ + 0.031),
-                                (-1.090, BZ + 0.031), (-1.100, BZ + 0.021), (-1.100, BZ - 0.021),
-                                (-1.090, BZ - 0.031), (-0.956, BZ - 0.031)], "X", -0.035, 0.035, GM)
-    bt = prism("_btop", [(-0.035, -0.950), (0.035, -0.950), (0.035, -1.090), (0.025, -1.100), (-0.025, -1.100),
-                         (-0.035, -1.090)], "Z", BZ - 0.05, BZ + 0.05)
-    intersect(bs, bt)
-    # long-edge chamfers (front section octagon)
-    bsec = prism("_bsec", [(-0.029, BZ - 0.031), (0.029, BZ - 0.031), (0.035, BZ - 0.025), (0.035, BZ + 0.025),
-                           (0.029, BZ + 0.031), (-0.029, BZ + 0.031), (-0.035, BZ + 0.025), (-0.035, BZ - 0.025)],
-                 "Y", -1.11, -0.94)
-    intersect(bs, bsec)
-    cut(bs, prism("_pA", rounded_rect(-1.0035, BZ, 0.037, 0.044, 0.005, 2), "X", -0.06, 0.06))
-    cut(bs, prism("_pB", rounded_rect(-1.0545, BZ, 0.039, 0.044, 0.005, 2), "X", -0.06, 0.06))
-    cut(bs, prism("_pC", rounded_rect(-0.9685, BZ, 0.013, 0.026, 0.004, 2), "X", -0.06, 0.06))
-    # top compensator vents (into the chambers)
-    for yc in (-1.0035, -1.0545):
-        for sx in (1, -1):
-            cut(bs, prism("_pv", stadium(sx * 0.0125, yc, 0.008, 0.026, 2), "Z", BZ, BZ + 0.05))
-    cut(bs, cyl("_bore", 0.0105, 0.2, (0, -1.02, BZ), "Y", 20))
-    finish(bs, 0.0022, 1)
+    # muzzle brake (concept: 108 x 47 mm block, three see-through ports getting smaller toward the rear)
+    BH, BW = 0.0235, 0.026
+    bs = prism("WARDEN_Brake", [(-0.992, BZ - 0.020), (-0.992, BZ + 0.020), (-0.996, BZ + BH), (-1.092, BZ + BH),
+                                (-1.100, BZ + BH - 0.008), (-1.100, BZ - BH + 0.008), (-1.092, BZ - BH),
+                                (-0.996, BZ - BH)], "X", -BW, BW, GM)
+    intersect(bs, prism("_btop", [(-BW, -0.990), (BW, -0.990), (BW, -1.093), (BW - 0.007, -1.100),
+                                  (-BW + 0.007, -1.100), (-BW, -1.093)], "Z", BZ - 0.05, BZ + 0.05))
+    intersect(bs, prism("_bsec", [(-BW + 0.005, BZ - BH), (BW - 0.005, BZ - BH), (BW, BZ - BH + 0.005),
+                                  (BW, BZ + BH - 0.005), (BW - 0.005, BZ + BH), (-BW + 0.005, BZ + BH),
+                                  (-BW, BZ + BH - 0.005), (-BW, BZ - BH + 0.005)], "Y", -1.11, -0.98))
+    # bore first: cut after the ports, the EXACT solver returned an empty mesh (the bore lies inside the port voids)
+    cut(bs, cyl("_bore", 0.0090, 0.2, (0, -1.04, BZ), "Y", 20))
+    # shallow frame around the small rear port (concept: a darker inset panel). Cut before the ports: cutting it
+    # after them left a 3-edge non-manifold seam at the port corner
+    for sx in (1, -1):
+        cut(bs, prism("_pCr", rounded_rect(-1.0325, BZ, 0.017, 0.032, 0.004, 2), "X", sx * (BW - 0.0015),
+                      sx * 0.05))
+    # three see-through ports as ONE joined cutter (no top vents: the concept has none, and on this 52 mm block
+    # they left non-manifold seams under the bevel)
+    cut(bs, join([prism("_pA", rounded_rect(-1.0785, BZ, 0.019, 0.026, 0.0045, 2), "X", -0.06, 0.06),
+                  prism("_pB", rounded_rect(-1.0535, BZ, 0.013, 0.027, 0.0040, 2), "X", -0.06, 0.06),
+                  prism("_pC", rounded_rect(-1.0325, BZ, 0.0065, 0.022, 0.0030, 2), "X", -0.06, 0.06)],
+                 "_ports"))
+    finish(bs, 0.0020, 1)
     parts.append(bs)
-    collar = lathe_y("WARDEN_BrakeCollar", [(0, -0.937), (0.021, -0.937), (0.0245, -0.940), (0.0245, -0.949),
-                                            (0.022, -0.952), (0, -0.952)], steps=8, mat=GM, angle=30)
-    finish(collar, 0.0008, 1)
+    collar = lathe_y("WARDEN_BrakeCollar", [(0, -0.981), (0.0182, -0.981), (0.0200, -0.983), (0.0200, -0.9925),
+                                            (0, -0.9925)], steps=8, mat=GM, angle=30)
+    finish(collar, 0.0007, 1)
     parts.append(collar)
 
     # ------------------------------------------------------------------ pistol grip (sand) + stipple panels
-    gp = [(-0.026, 0.004), (0.030, 0.004), (0.042, -0.018), (0.064, -0.110), (0.062, -0.124), (0.052, -0.132),
-          (0.020, -0.132), (0.010, -0.124), (-0.004, -0.072), (-0.010, -0.054), (-0.020, -0.036), (-0.026, -0.012)]
-    grip = prism("WARDEN_Grip", gp, "X", -0.018, 0.018, S)
-    # gentle palm-swell: narrow the front strap with an intersect section (top view)
-    finish(grip, 0.0065, 3)
+    gp = [(-0.059, 0.012), (0.010, 0.012), (0.004, 0.004), (-0.001, -0.008), (0.000, -0.020), (0.040, -0.098),
+          (0.039, -0.106), (0.032, -0.111), (-0.029, -0.119), (-0.036, -0.116), (-0.036, -0.109), (-0.031, -0.100),
+          (-0.048, -0.040), (-0.054, -0.034), (-0.059, -0.032)]
+    grip = prism("WARDEN_Grip", gp, "X", -0.016, 0.016, S)
+    finish(grip, 0.0055, 3)
     parts.append(grip)
-    pad_pts = [(0.006, -0.026), (0.030, -0.026), (0.050, -0.104), (0.046, -0.114), (0.024, -0.114),
-               (0.014, -0.100), (0.002, -0.056)]
+    pad_pts = round_poly([(-0.042, -0.036), (-0.004, -0.024), (0.029, -0.088), (-0.026, -0.094)], 0.004, 2)
     for sx in (1, -1):
-        pad = prism("_gpad", pad_pts, "X", sx * 0.0165, sx * 0.0195, SS)
-        finish(pad, 0.0012, 1)
+        pad = prism("_gpad", pad_pts, "X", sx * 0.0145, sx * 0.0172, SS)
+        finish(pad, 0.0009, 1)
         parts.append(pad)
+        gs = cyl("_gscr", 0.0032, 0.003, (sx * 0.0162, 0.006, -0.104), "X", 12, GM)
+        finish(gs, 0.0007, 1)
+        parts.append(gs)
 
-    # ------------------------------------------------------------------ trigger guard + trigger
-    tg = prism("WARDEN_TriggerGuard", [(-0.106, -0.004), (-0.106, -0.062), (-0.094, -0.072), (-0.026, -0.072),
-                                       (-0.004, -0.064), (-0.010, -0.030), (-0.014, -0.004)], "X", -0.010, 0.010, G)
-    cut(tg, prism("_tgh", [(-0.092, 0.010), (-0.092, -0.056), (-0.086, -0.062), (-0.030, -0.062),
-                           (-0.022, -0.054), (-0.024, 0.010)], "X", -0.05, 0.05))
-    finish(tg, 0.0025, 2)
+    # ------------------------------------------------------------------ trigger guard (open-top U) + trigger
+    tg = prism("WARDEN_TriggerGuard", [(-0.140, 0.012), (-0.140, -0.016), (-0.132, -0.030), (-0.118, -0.037),
+                                       (-0.066, -0.037), (-0.056, -0.029), (-0.056, 0.012)], "X", -0.0095, 0.0095, G)
+    cut(tg, prism("_tgh", round_poly([(-0.128, 0.020), (-0.128, -0.020), (-0.116, -0.027), (-0.072, -0.027),
+                                      (-0.068, -0.022), (-0.068, 0.020)], 0.006, 3), "X", -0.05, 0.05))
+    finish(tg, 0.0022, 2)
     parts.append(tg)
-
-    # mag release paddle (ahead of the trigger guard, under the magwell rear)
-    mr = prism("WARDEN_MagRelease", [(-0.116, -0.064), (-0.107, -0.064), (-0.104, -0.084), (-0.112, -0.086)],
-               "X", -0.011, 0.011, GM)
-    finish(mr, 0.0012, 1)
+    # mag release paddle (between the mag and the guard)
+    mr = prism("WARDEN_MagRelease", [(-0.1505, 0.004), (-0.1435, 0.004), (-0.143, -0.029), (-0.147, -0.035),
+                                     (-0.151, -0.033)], "X", -0.008, 0.008, GM)
+    finish(mr, 0.0010, 1)
     parts.append(mr)
-
-    trig = prism("WARDEN_Trigger", [(-0.058, 0.004), (-0.049, 0.004), (-0.051, -0.030), (-0.059, -0.048),
-                                    (-0.066, -0.046), (-0.060, -0.028)], "X", -0.004, 0.004, GM)
-    finish(trig, 0.0012, 1)
+    # curved trigger blade (concept hook), origin at its pivot
+    trig = prism("WARDEN_Trigger", [(-0.093, 0.018), (-0.086, 0.018), (-0.086, 0.000), (-0.088, -0.010),
+                                    (-0.094, -0.019), (-0.102, -0.024), (-0.1045, -0.0215), (-0.098, -0.015),
+                                    (-0.0935, -0.007), (-0.0925, 0.003)], "X", -0.0035, 0.0035, GM)
+    finish(trig, 0.0010, 1)
 
     # ------------------------------------------------------------------ bolt (separate, origin = bolt-axis rear)
-    bolt = lathe_y("WARDEN_Bolt", [(0, 0.112), (0.0170, 0.112), (0.0205, 0.1105),
-                                   (0.024, 0.1070), (0.024, 0.0855), (0.0225, 0.0820), (0.0185, 0.0820),
-                                   (0.0185, -0.171), (0.0160, -0.175), (0, -0.175)], steps=24, mat=GM, angle=35)
-    # shroud ring groove + bolt-body flutes visible in the port (facing -X / up)
-    for ang in (150, 180, 210):   # angle around the bore in the XZ plane, 180 = straight toward -X
+    # shroud: flat rear face with ONE crisp 45-degree chamfer (review r2 minor 4: no dome next to the knob)
+    bolt = lathe_y("WARDEN_Bolt", [(0, SH_Y1), (SH_R - 0.004, SH_Y1), (SH_R, SH_Y1 - 0.004), (SH_R, -0.0985),
+                                   (BOLT_R, -0.1000), (BOLT_R, -0.271), (BOLT_R - 0.002, -0.275), (0, -0.275)],
+                   steps=24, mat=GM, angle=35)
+    # bolt-body flutes: three facing the ejection port (-X), two facing the +X bolt window
+    for ang in (150, 180, 210, 18, 48):   # angle around the bore in the XZ plane, 0 = +X, 180 = -X
         a = math.radians(ang)
-        c = box("_bfl", (0.0042, 0.105, 0.006), (0, 0, 0))
-        # rotation about Y by (90 - a) maps local Z onto the radial direction (cos a, 0, sin a)
-        c.matrix_basis = (Matrix.Translation(Vector((0.0185 * math.cos(a), -0.105, BZ + 0.0185 * math.sin(a)))) @
+        c = box("_bfl", (0.0040, 0.120, 0.006), (0, 0, 0))
+        c.matrix_basis = (Matrix.Translation(Vector((BOLT_R * math.cos(a), -0.200, BZ + BOLT_R * math.sin(a)))) @
                           Matrix.Rotation(math.radians(90) - a, 4, "Y"))
         bake(c)
         cut(bolt, c)
-    gpro = [(0.030, 0.094), (0.0225, 0.094), (0.0225, 0.0975), (0.030, 0.0975)]
+    gpro = [(0.025, -0.0605), (SH_R - 0.0015, -0.0605), (SH_R - 0.0015, -0.0575), (0.025, -0.0575)]
     cut(bolt, lathe_y("_bg", gpro + [gpro[0]], steps=24))
     smooth(bolt, 35)
-    # handle root block on the shroud, behind the receiver rear face (y 0.080): clears the receiver during the lift
-    root = box("_broot", (0.030, 0.022, 0.022), (-0.020, HANDLE_Y, 0.0915), GM)
-    finish(root, 0.003, 1)
-    # oversized handle arm, angled down/out to the shooter's right
-    p0, p1 = Vector((-0.030, HANDLE_Y - 0.001, 0.092)), Vector((-0.082, HANDLE_Y + 0.013, 0.048))
+    # handle root on the shroud's -X side, BEHIND the receiver rear face: the 60-degree lift happens in free air
+    root = box("_broot", (0.020, 0.016, 0.018), (-0.019, HANDLE_Y, 0.077), GM)
+    finish(root, 0.0025, 1)
+    # handle arm: out and down along the shooter's RIGHT (-X), clear of the chassis side
+    # (leans out 32 deg: 7.8 mm from the chassis' top -X edge at z 0.063, so the closed handle clears it)
+    p0, p1 = Vector((-0.028, HANDLE_Y, 0.077)), Vector((-0.054, HANDLE_Y + 0.001, 0.035))
     d = p1 - p0
-    arm = bc.box("_barm", (0.017, 0.015, d.length + 0.010), loc=(0, 0, 0), smooth=None, mat=GM)
+    arm = bc.box("_barm", (0.0105, 0.0095, d.length + 0.008), loc=(0, 0, 0), smooth=None, mat=GM)
     arm.matrix_basis = Matrix.Translation((p0 + p1) / 2) @ d.to_track_quat("Z", "Y").to_matrix().to_4x4()
     bake(arm)
-    finish(arm, 0.004, 1)
-    # big knob, lathed along the arm direction
+    finish(arm, 0.0028, 1)
+    # oversized chamfered HEX knob (BRIEF 4.1 option; review r2 minor 4) with a grip groove
     dn = d.normalized()
-    kc = p1 + dn * 0.016
-    R = 0.024
-    kprof = [(0, -0.030), (0.0065, -0.030), (0.0065, -0.020)]
-    for deg in (-58, -40, -20, 0, 20, 38, 52):
-        a = math.radians(deg)
-        kprof.append((R * math.cos(a), R * math.sin(a)))
-    kprof += [(0.0125, R * math.sin(math.radians(56))), (0.0080, 0.0205), (0, 0.0205)]
-    knob = lathe_dir("_bknob", kprof, kc, dn, steps=20, mat=GM, angle=32)
-    bolt = join([bolt, root, arm, knob], "WARDEN_Bolt")
-    set_origin(bolt, (0, 0.112, BZ))
+    kc = p1 + dn * 0.012
+    R, KL, KC = KNOB_R, 0.0145, 0.0032     # circumradius, half length, end chamfer
+    kprof = [(0, -0.024), (0.0050, -0.024), (0.0050, -KL), (R - KC, -KL), (R, -KL + KC), (R, -0.0030),
+             (R - 0.0022, -0.0010), (R - 0.0022, 0.0010), (R, 0.0030), (R, KL - KC), (R - KC, KL), (0, KL)]
+    knob = lathe_dir("_bknob", kprof, kc, dn, steps=6, mat=GM, angle=25)
+    # cocking indicator: a short graphite stub in the centre of the flat shroud end
+    ci = lathe_y("_bci", [(0, SH_Y1 + 0.005), (0.0034, SH_Y1 + 0.005), (0.0045, SH_Y1 + 0.0039),
+                          (0.0045, SH_Y1 - 0.001), (0, SH_Y1 - 0.001)], steps=12, mat=G, angle=35)
+    bolt = join([bolt, root, arm, knob, ci], "WARDEN_Bolt")
+    set_origin(bolt, (0, SH_Y1, BZ))
 
     # merge small static detail bits into their host objects to keep the hierarchy clean
     screws = [o for o in parts if o.name.startswith("_scr")]
-    pads = [o for o in parts if o.name.startswith("_gpad")]
-    others = [o for o in parts if not o.name.startswith(("_scr", "_gpad")) and o not in (hg, grip)]
+    gbits = [o for o in parts if o.name.startswith(("_gpad", "_gscr"))]
+    others = [o for o in parts if not o.name.startswith(("_scr", "_gpad", "_gscr")) and o not in (hg, grip)]
     hg = join([hg] + screws, "WARDEN_Handguard")
-    grip = join([grip] + pads, "WARDEN_Grip")
+    grip = join([grip] + gbits, "WARDEN_Grip")
     statics = others + [hg, grip]
-    set_origin(trig, (0, -0.054, 0.0))
+    set_origin(trig, TRIG_PIVOT)
     return statics, trig, bolt
 
 
 # ================================================================================================ STOCKS
-STOCK_MOUNT = Vector((0, 0.080, BZ))
-KNUCKLE_X = 0.0315    # folding-stock hinge axis: folded, the arm's inner face sits at x 0.045 (clear of the +X safety
-                      # lever at 0.0435 and the receiver side at 0.039)
+STOCK_MOUNT = Vector((0, STOCK_Y, BZ))
+SF = STOCK_Y - 0.0002   # stock front face: 0.2 mm inside the chassis rear face (no crack, no coplanar faces)
+BEAM_TOP = CH_TOP_REAR  # stock top line = chassis top (concept 0.060-0.062), bolt channel continued to CHANNEL_END
+CHANNEL_END = 0.093     # end of the bolt channel in the stock tops (open shroud + cocking stub reach y 0.090)
+STOCK_BOT = 0.0105      # front-block underside (0.5 mm above the chassis underside: no coplanar sliver)
+RISER_Z0, RISER_Z1 = 0.0725, 0.1025   # concept: riser pad floats ~18 mm over the beam on two posts
+RISER_Y0 = 0.087        # riser pad nose: 2 mm behind the open shroud's rear face (0.085); underside chamfered
+KX, KY = 0.030, 0.034   # folding-stock hinge axis (vertical, on the LEFT +X side)
 
 
-def hinge_block(M, name, fold_knuckle=False):
-    G, GM = M["G"], M["GM"]
-    hb = prism(name, [(0.078, 0.045), (0.110, 0.045), (0.114, 0.041), (0.114, -0.011), (0.110, -0.015),
-                      (0.078, -0.015)], "X", -0.026, 0.026, G)
+def chamfered_window(obj, poly, half_w, depth):
+    """Cut a through-window (side profile polygon, axis X) and a 45-degree chamfer `depth` deep on both faces."""
+    cut(obj, prism("_win", poly, "X", -0.06, 0.06))
+    # the 45-degree hull reaches only 1 mm past the outer face, so it cannot graze the face beside the window
+    big = offset_poly(poly, depth + 0.001)
     for sx in (1, -1):
-        cut(hb, prism("_hbg", band([(0.074, 0.016), (0.118, 0.016)], 0.0025), "X", sx * 0.0238, sx * 0.03))
-    finish(hb, 0.003, 2)
-    bits = [hb]
-    for sx in (1, -1):
-        for (yy, zz) in ((0.087, 0.032), (0.087, 0.000)):
-            s = cyl("_hs", 0.0038, 0.004, (sx * 0.0255, yy, zz), "X", 6, GM)
-            finish(s, 0.0007, 1)
-            bits.append(s)
-    if fold_knuckle:
-        kn = cyl("_kn", 0.0085, 0.066, (KNUCKLE_X, 0.111, 0.015), "Z", 16, GM)
-        finish(kn, 0.0015, 1)
-        bits.append(kn)
-        for zz in (0.044, -0.014):
-            cap = cyl("_kc", 0.0095, 0.004, (KNUCKLE_X, 0.111, zz), "Z", 16, GM)
-            finish(cap, 0.001, 1)
-            bits.append(cap)
-    return bits
-
-
-BOLT_PATH_Y = 0.112 + BOLT_TRAVEL     # rear face of the open bolt shroud (0.242)
-BEAM_Z = 0.045                        # stock top beam: below the shroud bottom (0.051) all along the bolt path
-UPRIGHT_Z = 0.112                     # top of the rear upright that carries the riser posts (12 mm visible gap)
-RISER_Z0, RISER_Z1 = 0.124, 0.146     # cheek riser underside / top: the lifted handle (max z 0.118 in |x|<0.026) passes under
+        pts = ([(sx * (half_w - depth), y, z) for (y, z) in poly] +
+               [(sx * (half_w + 0.001), y, z) for (y, z) in big])
+        cut(obj, hull("_wch", pts))
+    return obj
 
 
 def build_stock_standard(M, col):
-    """Skeleton chassis stock. Review fix: the open bolt (lifted 60 deg, 0.13 m back) sweeps the space above the
-    bore line up to y 0.242, so the top beam stays LOW (z 0.045) back to y 0.238 and the comb rises only in the rear
-    upright behind the bolt path. The cheek riser is carried on two posts on that upright and overhangs forward,
-    high enough that the lifted handle root and arm pass underneath it."""
+    """Angular sand skeleton chassis stock (concept_main.png): long low top beam level with the chassis, a big
+    chamfered window over a thick diagonal brace, rear upright, LOP spacer rods to a sand plate + thick rubber pad,
+    a dark cheek riser floating on two posts and three lock pieces, and a monopod that retracts completely into the
+    rear upright (only its knurled foot shows, flush in a pocket under the upright: the concept has no spike). The
+    open bolt (lifted 60 deg, 0.13 m back) passes over the beam (1 mm clear) and stops 2 mm short of the riser."""
     G, GM, S, R = M["G"], M["GM"], M["S"], M["R"]
-    bits = hinge_block(M, "_hinge")
-    st = prism("_frame", [(0.090, BEAM_Z), (0.238, BEAM_Z), (0.252, 0.064), (0.252, 0.104), (0.260, UPRIGHT_Z),
-                          (0.284, UPRIGHT_Z), (0.292, 0.104), (0.292, -0.118), (0.282, -0.126), (0.240, -0.126),
-                          (0.100, -0.032), (0.090, -0.020)], "X", -0.023, 0.023, S)
-    # big triangular window with rounded corners (top beam 0.016 thick, rear post 0.024)
-    tri = [(0.142, 0.029), (0.268, 0.029), (0.268, -0.096)]
-    chamfered_window(st, round_poly(tri, 0.008, 3), 0.023, 0.0045)
-    # lightening pockets on the rear post and the front web (both sides)
+    bits = []
+    # concept outline: the brace's underside runs down at ~42 deg, then a steeper step to the flat bottom
+    outer = [(SF, BEAM_TOP), (0.243, BEAM_TOP), (0.2475, BEAM_TOP - 0.0045), (0.2475, -0.0755), (0.243, -0.080),
+             (0.171, -0.080), (0.157, -0.046), (0.094, STOCK_BOT), (SF, STOCK_BOT)]
+    st = prism("_frame", outer, "X", -0.020, 0.020, S)
+    win = round_poly([(0.138, 0.034), (0.2195, 0.034), (0.2195, -0.041), (0.209, -0.050), (0.138, 0.021)], 0.007, 3)
+    chamfered_window(st, win, 0.020, 0.004)
+    cut(st, cyl("_bch", CHANNEL_R, CHANNEL_END - SF + 0.002, (0, (CHANNEL_END + SF - 0.002) / 2, BZ), "Y", 24))
+    # sling slot through the front block
+    cut(st, prism("_sls", stadium(0.047, 0.036, 0.026, 0.011, 3), "X", -0.05, 0.05))
+    # pocket under the rear upright for the retracted monopod foot (flush: nothing below the stock line)
+    cut(st, cyl("_mpk", 0.0098, 0.010, (0, MONO_Y, -0.080), "Z", 16))
     for sx in (1, -1):
-        cut(st, prism("_pp", rounded_rect(0.2805, -0.019, 0.010, 0.118, 0.004, 2), "X", sx * 0.0205, sx * 0.04))
-        cut(st, prism("_pf", round_poly([(0.120, 0.016), (0.130, 0.016), (0.165, -0.020), (0.150, -0.040),
-                                         (0.120, -0.016)], 0.004, 2), "X", sx * 0.0205, sx * 0.04))
-    finish(st, 0.005, 2)
+        # joint seam between the front block and the frame
+        cut(st, prism("_seam", band([(0.068, 0.006), (0.068, 0.058)], 0.0018), "X", sx * 0.0190, sx * 0.03))
+        # small triangular lightening pockets in the top corners (concept)
+        cut(st, prism("_tp", round_poly([(0.121, BEAM_TOP - 0.0095), (0.134, BEAM_TOP - 0.0095), (0.121, BEAM_TOP - 0.0205)], 0.0012, 1), "X",
+                      sx * 0.0188, sx * 0.03))
+        cut(st, prism("_tp", round_poly([(0.2255, BEAM_TOP - 0.0095), (0.2425, BEAM_TOP - 0.0095), (0.2425, BEAM_TOP - 0.0205)], 0.0012, 1), "X",
+                      sx * 0.0188, sx * 0.03))
+    finish(st, 0.0045, 1)       # one flat chamfer: the concept paints crisp chamfer bands (and -1k tris)
     bits.append(st)
-    # riser-height knob (+X, on the rear upright) and QD sling cups
-    kb = knurl_cyl("_rk", 0.0085, 0.008, (0.027, 0.272, 0.080), "X", 16, 0.0008, GM)
-    finish(kb, 0.001, 1)
+    # riser posts: fixed collars on the beam top + central lock block with a knurled knob on +X
+    for yp in RISER_POSTS:
+        cl = cyl("_pcol", 0.0085, 0.0045, (0, yp, BEAM_TOP + 0.0012), "Z", 16, GM)
+        finish(cl, 0.0010, 1)
+        bits.append(cl)
+    blk = box("_rlb", (0.020, 0.022, 0.0075), (0, 0.165, BEAM_TOP + 0.003), G)   # top 2.7 mm under the riser
+    finish(blk, 0.0022, 1)
+    bits.append(blk)
+    kb = knurl_cyl("_rk", 0.0045, 0.007, (0.0135, 0.165, BEAM_TOP + 0.0035), "X", 14, 0.0007, GM)
+    finish(kb, 0.0008, 1)
     bits.append(kb)
+    # QD sling cups on the rear upright
     for sx in (1, -1):
-        # QD sling cup: lathed ring with a socket recess (same look as the old boolean version, ~half the tris)
         prof = [(0.0, -0.002), (0.0057, -0.002), (0.0065, -0.0012), (0.0065, 0.0012), (0.0057, 0.002),
                 (0.0035, 0.002), (0.0035, 0.0), (0.0, 0.0)]
-        qd = lathe_dir("_qd", prof, (sx * 0.0235, 0.2805, -0.090), (sx, 0, 0), steps=12, mat=GM, angle=40)
-        bits.append(qd)
-    # recoil pad
-    pad = prism("_pad", [(0.290, 0.104), (0.312, 0.100), (0.320, 0.082), (0.320, -0.110), (0.312, -0.126),
-                         (0.290, -0.130)], "X", -0.025, 0.025, R)
-    for zc in (-0.080, -0.040, 0.000, 0.040):
+        bits.append(lathe_dir("_qd", prof, (sx * 0.0195, 0.2335, -0.058), (sx, 0, 0), steps=12, mat=GM, angle=40))
+    # length-of-pull spacer rods, sand spacer plate and the thick rubber pad
+    for zc in (0.038, -0.060):
+        rod = cyl("_rod", 0.0055, 0.012, (0, 0.2515, zc), "Y", 12, GM)
+        smooth(rod, 40)
+        bits.append(rod)
+    plate = prism("_plate", [(0.2555, 0.082), (0.2615, 0.090), (0.280, 0.090), (0.280, -0.086), (0.2615, -0.086),
+                             (0.2555, -0.080)], "X", -0.022, 0.022, S)
+    finish(plate, 0.0030, 2)
+    bits.append(plate)
+    pad = prism("_pad", [(0.2795, 0.090), (0.312, 0.090), (0.320, 0.082), (0.320, -0.078), (0.312, -0.086),
+                         (0.2795, -0.086)], "X", -0.023, 0.023, R)
+    for zc in (-0.060, -0.020, 0.020, 0.060):
         cut(pad, box("_pg", (0.06, 0.006, 0.0035), (0, 0.3205, zc)))
-    finish(pad, 0.004, 2)
+    for sx in (1, -1):
+        cut(pad, box("_pgs", (0.003, 0.0022, 0.2), (sx * 0.023, 0.2915, 0.0)))
+    finish(pad, 0.0035, 2)
     bits.append(pad)
-    # monopod housing (fixed)
-    mh = box("_mh", (0.034, 0.030, 0.024), (0, 0.205, -0.105), G)
-    finish(mh, 0.003, 2)
-    bits.append(mh)
     stock = join(bits, "WARDEN_StockStandard")
     set_origin(stock, STOCK_MOUNT)
 
-    # cheek riser (child, slides up on its posts) -- origin at the upright top centre between the posts.
-    # Posts stand behind the bolt path (y >= 0.256); the pad overhangs forward over the open bolt.
+    # cheek riser (child, slides up on its posts) -- dark pad like the concept, origin at the beam top centre
     z0, z1 = RISER_Z0, RISER_Z1
-    cr = prism("WARDEN_StockStandard_CheekRiser", [(0.160, z0 + 0.004), (0.166, z1 - 0.009), (0.178, z1),
-                                                   (0.280, z1), (0.290, z1 - 0.010), (0.290, z0)],
-               "X", -0.020, 0.020, S)
-    finish(cr, 0.005, 3)
+    # the nose reaches over the open shroud's rear face (0.085, top 0.086) with a steep underside chamfer, so the
+    # pad starts 9 mm further forward than a flat-bottomed pad could (concept: pad front at y 0.076)
+    cr = prism("WARDEN_StockStandard_CheekRiser", [(RISER_Y0, z1 - 0.003), (RISER_Y0 + 0.003, z1), (0.2435, z1),
+                                                   (0.2475, z1 - 0.004), (0.2475, 0.089), (0.231, z0), (0.108, z0),
+                                                   (RISER_Y0 + 0.0035, 0.093)], "X", -0.020, 0.020, G)
+    finish(cr, 0.0040, 2)
     posts = []
-    for yp in (0.263, 0.281):
-        p = cyl("_post", 0.005, z0 + 0.004 - 0.100, (0, yp, (0.100 + z0 + 0.004) / 2), "Z", 12, GM)
-        finish(p, 0.0008, 1)
+    for yp in RISER_POSTS:
+        p = cyl("_post", 0.0050, z0 + 0.003 - 0.038, (0, yp, (0.038 + z0 + 0.003) / 2), "Z", 12, GM)
+        finish(p, 0.0007, 1)
         posts.append(p)
     cr = join([cr] + posts, "WARDEN_StockStandard_CheekRiser")
-    set_origin(cr, (0, 0.272, UPRIGHT_Z))
+    set_origin(cr, (0, 0.165, BEAM_TOP))
     cr["slide_axis"] = "Z"
     cr["travel_min_m"] = 0.0
-    cr["travel_max_m"] = 0.030
+    cr["travel_max_m"] = 0.012
 
-    # monopod (child, extends along -Z) -- origin at the housing bottom
-    col_ = cyl("_mcol", 0.0095, 0.070, (0, 0.205, -0.150), "Z", 14, GM)
+    # monopod (optional child, extends along -Z): retracted, the column hides inside the rear upright and only the
+    # knurled foot shows, flush in its pocket (0.5 mm above the stock's underside). Origin = foot underside centre.
+    col_ = cyl("_mcol", 0.0060, 0.120, (0, MONO_Y, -0.0775 + 0.060), "Z", 12, GM)
     smooth(col_, 40)
-    knurl = knurl_cyl("_mknurl", 0.0135, 0.014, (0, 0.205, -0.140), "Z", 16, 0.0012, GM)
-    finish(knurl, 0.0012, 1)
-    spike = cyl("_mspike", 0.0105, 0.020, (0, 0.205, -0.189), "Z", 14, GM, r2=0.0012)
-    spike.data.transform(Matrix.Translation(Vector((0, 0.205, -0.189))) @ Matrix.Rotation(math.pi, 4, "X") @
-                         Matrix.Translation(-Vector((0, 0.205, -0.189))))
-    smooth(spike, 40)
-    mono = join([col_, knurl, spike], "WARDEN_StockStandard_Monopod")
-    set_origin(mono, (0, 0.205, -0.117))
+    knurl = knurl_cyl("_mknurl", 0.0090, 0.004, (0, MONO_Y, -0.0775), "Z", 16, 0.0007, GM)
+    finish(knurl, 0.0008, 1)
+    mono = join([col_, knurl], "WARDEN_StockStandard_Monopod")
+    set_origin(mono, (0, MONO_Y, -0.0795))
     mono["slide_axis"] = "Z"
-    mono["travel_min_m"] = -0.045
+    mono["travel_min_m"] = -0.105     # extended: foot at z -0.185 (column still 15 mm inside the upright)
     mono["travel_max_m"] = 0.0
 
     for o in (stock, cr, mono):
@@ -931,47 +1175,52 @@ def offset_poly(pts, d):
     return out
 
 
-def chamfered_window(obj, poly, half_w, depth):
-    """Cut a through-window (side profile polygon, axis X) and a 45-degree chamfer `depth` deep on both faces."""
-    cut(obj, prism("_win", poly, "X", -0.06, 0.06))
-    # the 45-degree hull reaches only 1 mm past the outer face, so it cannot graze the face beside the window
-    # (review fix: depth + 0.004 left a hairline crease and a sliver along the stock top beam)
-    big = offset_poly(poly, depth + 0.001)
-    for sx in (1, -1):
-        pts = ([(sx * (half_w - depth), y, z) for (y, z) in poly] +
-               [(sx * (half_w + 0.001), y, z) for (y, z) in big])
-        cut(obj, hull("_wch", pts))
-    return obj
-
-
 def build_stock_folding(M, col):
+    """Lighter folding skeleton stock: graphite hinge block with two fixed knuckles on the LEFT (+X), a thinner
+    sand frame with one big window and a front slot, a rubber pad straight on the upright, no riser, no monopod.
+    Folds -180 deg about the vertical hinge axis so it lies along the LEFT side, clear of the bolt handle (-X)."""
     G, GM, S, R = M["G"], M["GM"], M["S"], M["R"]
-    fixed = join(hinge_block(M, "_hingeF", fold_knuckle=True), "WARDEN_StockFolding")
+    blk = prism("_hingeF", [(SF, BEAM_TOP), (0.044, BEAM_TOP), (0.044, STOCK_BOT), (SF, STOCK_BOT)], "X", -0.020,
+                0.020, G)
+    for sx in (1, -1):
+        cut(blk, prism("_hbg", band([(0.018, 0.032), (0.048, 0.032)], 0.0022), "X", sx * 0.0190, sx * 0.03))
+    cut(blk, cyl("_bch", CHANNEL_R, 0.050, (0, 0.040, BZ), "Y", 24))
+    finish(blk, 0.0028, 2)
+    bits = [blk]
+    for (za, zb) in ((0.0115, 0.0245), (0.0395, 0.0525)):
+        kn = cyl("_kn", 0.0085, zb - za, (KX, KY, (za + zb) / 2), "Z", 16, GM)
+        finish(kn, 0.0012, 1)
+        bits.append(kn)
+        # knuckle web back to the block
+        wb = prism("_kw", [(0.019, KY - 0.007), (KX, KY - 0.007), (KX, KY + 0.007), (0.019, KY + 0.007)], "Z", za, zb,
+                   G)
+        finish(wb, 0.0012, 1)
+        bits.append(wb)
+    fixed = join(bits, "WARDEN_StockFolding")
     set_origin(fixed, STOCK_MOUNT)
-    # folding arm: lighter Z-frame skeleton (w 0.036), no riser, no monopod. Same review fix as stock_standard:
-    # the top beam stays at z 0.044 under the bolt path and rises only behind the open shroud (y > 0.242).
-    outer = [(0.116, 0.044), (0.240, 0.044), (0.256, 0.068), (0.264, 0.076), (0.288, 0.076), (0.288, -0.104),
-             (0.278, -0.114), (0.246, -0.114), (0.128, -0.026), (0.116, -0.016)]
-    fr = prism("_ffr", outer, "X", -0.018, 0.018, S)
-    winA = round_poly([(0.134, 0.030), (0.216, 0.030), (0.134, -0.011)], 0.006)
-    winB = round_poly([(0.272, 0.030), (0.272, -0.094), (0.164, -0.028)], 0.006)
-    chamfered_window(fr, winA, 0.018, 0.0035)
-    chamfered_window(fr, winB, 0.018, 0.0035)
-    finish(fr, 0.0045, 2)
-    pad = prism("_fpad", [(0.286, 0.084), (0.304, 0.080), (0.310, 0.066), (0.310, -0.104), (0.302, -0.118),
-                          (0.286, -0.120)], "X", -0.022, 0.022, R)
-    for zc in (-0.070, -0.030, 0.010, 0.050):
-        cut(pad, box("_pg", (0.06, 0.006, 0.0035), (0, 0.3105, zc)))
-    finish(pad, 0.004, 2)
-    # hinge leaf (graphite) joining the arm to the knuckle on the LEFT (+X)
-    leaf = prism("_leaf", [(0.104, 0.040), (0.132, 0.040), (0.132, -0.012), (0.104, -0.012)], "X", 0.016,
-                 KNUCKLE_X + 0.0045, G)
-    finish(leaf, 0.002, 2)
-    core = prism("_fcore", [(0.1155, 0.044), (0.132, 0.044), (0.132, -0.016), (0.1155, -0.016)], "X", -0.017,
-                 0.017, G)
-    finish(core, 0.002, 2)
-    arm = join([fr, pad, leaf, core], "WARDEN_StockFolding_Arm")
-    set_origin(arm, (KNUCKLE_X, 0.111, 0.015))
+    # folding arm (child), origin on the hinge axis
+    outer = [(0.046, BEAM_TOP - 0.0005), (0.243, BEAM_TOP - 0.0005), (0.2475, BEAM_TOP - 0.005), (0.2475, -0.072),
+             (0.243, -0.0765), (0.190, -0.0765),
+             (0.090, STOCK_BOT), (0.046, STOCK_BOT)]
+    fr = prism("_ffr", outer, "X", -0.016, 0.016, S)
+    winA = round_poly([(0.118, 0.045), (0.2275, 0.045), (0.2275, -0.062), (0.207, -0.062), (0.1185, 0.0335)], 0.006,
+                      3)
+    chamfered_window(fr, winA, 0.016, 0.0035)
+    cut(fr, cyl("_bch", CHANNEL_R, CHANNEL_END - 0.040, (0, (CHANNEL_END + 0.040) / 2, BZ), "Y", 24))
+    cut(fr, prism("_fwb", stadium(0.073, 0.032, 0.034, 0.012, 3), "X", -0.05, 0.05))
+    finish(fr, 0.0040, 2)
+    pad = prism("_fpad", [(0.2470, 0.078), (0.298, 0.078), (0.304, 0.072), (0.304, -0.076), (0.298, -0.082),
+                          (0.2470, -0.082)], "X", -0.018, 0.018, R)
+    for zc in (-0.055, -0.015, 0.025, 0.060):
+        cut(pad, box("_pg", (0.06, 0.006, 0.0035), (0, 0.3045, zc)))
+    finish(pad, 0.0035, 2)
+    knA = cyl("_knA", 0.0085, 0.013, (KX, KY, 0.032), "Z", 16, GM)
+    finish(knA, 0.0012, 1)
+    leaf = prism("_leaf", [(0.0205, KY), (0.031, KY), (0.031, 0.054), (0.010, 0.054), (0.010, 0.0455),
+                           (0.0205, 0.0455)], "Z", 0.0255, 0.0385, G)
+    finish(leaf, 0.0012, 1)
+    arm = join([fr, pad, knA, leaf], "WARDEN_StockFolding_Arm")
+    set_origin(arm, (KX, KY, 0.032))
     arm["fold_axis"] = "Z"
     arm["fold_angle_deg"] = -180.0
     arm["note"] = "rotate about local Z by fold_angle_deg: stock swings out to +X and lies along the LEFT side"
@@ -984,26 +1233,33 @@ def build_stock_folding(M, col):
 
 
 # ============================================================================================= MAGAZINES
-MAG_MOUNT = Vector((0, -0.270, 0.0))
+MAG_MOUNT = Vector((0, MAG_Y0, MAG_TOP_Z))
+ROUND_TIP_Y = -0.2955     # bullet tip (gun coords); rim at -0.1575 (1 mm clear of both channel walls)
+FEED_LIP_GAP = 0.016      # lip-to-lip gap at the top face (narrower than the 0.0207 case: the lips hold it)
+STAGGER_X = 0.0060        # double-stack column offset (rounds 2.. alternate -X / +X); the top round is centred
+PITCH_1, PITCH = 0.0198, 0.0170   # centred top round -> first staggered round; staggered pitch
 
 
-ROUND_TOP_Z = -0.0075     # axis of the top cartridge: it stands ~3 mm proud of the feed lips
-ROUND_PITCH = 0.021       # single-stack column pitch (case diameter)
-ROUND_TIP_Y = -0.2655     # bullet tip (gun coords); rim at -0.1275
-FEED_LIP_GAP = 0.016      # lip-to-lip gap at the top face (narrower than the 0.021 case: the lips hold it)
+def round_centres(cap):
+    """(x, z) of every cartridge axis, round 1 = top (centred, 2.9 mm proud of the feed lips)."""
+    c0 = MAG_TOP_Z - 0.0075
+    out = [(0.0, c0)]
+    for i in range(1, cap):
+        out.append((-STAGGER_X if i % 2 else STAGGER_X, c0 - PITCH_1 - PITCH * (i - 1)))
+    return out
 
 
-def cartridge(name, tip_y, z, steps, M, simple=False):
-    """12.7 mm-class cartridge lying along Y, bullet tip toward -Y at tip_y, axis at height z (gun coords).
+def cartridge(name, tip_y, x, z, steps, M, simple=False):
+    """12.7 mm-class cartridge lying along Y, bullet tip toward -Y at tip_y, axis at (x, z) (gun coords).
     Two materials: gunmetal bullet, light steel case (reads clearly at the feed lips and in the window).
     simple=True: reduced profile for the rounds that are only ever seen through the window slot."""
     prof = [(0, 0.0), (0.0022, 0.003), (0.0046, 0.012), (0.0062, 0.026), (0.0066, 0.039), (0.0076, 0.039),
-            (0.0078, 0.056), (0.0099, 0.066), (0.0105, 0.128), (0.0090, 0.130), (0.0090, 0.1335),
-            (0.0104, 0.1345), (0.0104, 0.138), (0, 0.138)]
-    if simple:
-        prof = [(0, 0.0), (0.0040, 0.009), (0.0062, 0.026), (0.0066, 0.039), (0.0077, 0.040), (0.0099, 0.066),
-                (0.0105, 0.128), (0.0090, 0.131), (0.0104, 0.134), (0.0104, 0.138), (0, 0.138)]
-    o = lathe_y(name, [(r, tip_y + s) for (r, s) in prof], x=0.0, z=z, steps=steps, mat=M["C"], angle=40)
+            (0.0078, 0.056), (0.0099, 0.066), (0.0103, 0.128), (0.0090, 0.130), (0.0090, 0.1335),
+            (0.0103, 0.1345), (0.0103, 0.138), (0, 0.138)]
+    if simple:     # window-only rounds (review r2 budget): 9-point profile
+        prof = [(0, 0.0), (0.0046, 0.011), (0.0066, 0.039), (0.0099, 0.062), (0.0103, 0.128), (0.0090, 0.131),
+                (0.0103, 0.134), (0.0103, 0.138), (0, 0.138)]
+    o = lathe_y(name, [(r, tip_y + s) for (r, s) in prof], x=x, z=z, steps=steps, mat=M["C"], angle=40)
     o.data.materials.append(M["GM"])
     for p in o.data.polygons:
         if p.center.y - tip_y < 0.0385:      # bullet ogive ahead of the case mouth
@@ -1011,98 +1267,109 @@ def cartridge(name, tip_y, z, steps, M, simple=False):
     return o
 
 
-def build_mag(M, col, cap, body_bottom):
-    """mag_5 (cap 5, body bottom -0.150) or mag_8 (cap 8, body bottom -0.200). Single-stack 12.7 mm column
-    seen through a vertical window slot on each side; the top round sits in real feed lips (45-degree lip
-    undercut, FEED_LIP_GAP at the top face) and stands proud of them so it reads when the mag is out. The upper
-    0.072 m (inside the magwell) is 0.052 wide; below the well the body steps out to 0.056."""
-    G, GM, S = M["G"], M["GM"], M["S"]
-    zb = body_bottom
-    fr = 0.006 * (abs(zb) / 0.150)          # front face rakes forward toward the bottom
-    body = prism("_mbody", [(-0.270, 0.000), (-0.120, 0.000), (-0.118, zb), (-0.270 - fr, zb)], "X", -0.035,
-                 0.035, G)
-    # section: 6 mm 45-degree chamfer on the top outer edges so the feed lips read as a narrower ridge
-    msec = prism("_msec", [(-0.020, 0.010), (0.020, 0.010), (0.020, 0.0), (0.026, -0.006), (0.026, -0.0725),
-                           (0.028, -0.0745), (0.028, zb - 0.01), (-0.028, zb - 0.01), (-0.028, -0.0745),
-                           (-0.026, -0.0725), (-0.026, -0.006), (-0.020, 0.0)], "Y", -0.30, -0.10)
-    intersect(body, msec)
-    y0, y1 = -0.2665, -0.1255               # cartridge column length (+1 mm at the tip, +2 mm at the rim)
-    # internal channel for the cartridge column (narrow so the rounds sit right behind the window)
-    ch_top, ch_bot = -0.0045, zb + 0.008
-    cut(body, box("_mch", (0.025, y1 - y0, ch_top - ch_bot), (0, (y0 + y1) / 2, (ch_top + ch_bot) / 2)))
-    # feed lips: opening FEED_LIP_GAP wide at the top face, undercut at 45 degrees down to the channel width
+def build_mag(M, col, cap, front_bottom):
+    """mag_5 (cap 5) or mag_8 (cap 8): a slim double-stack 12.7 mm box magazine (concept: small dark mag whose
+    bottom follows the chassis' downward slope). The top round sits centred in real feed lips and stands 2.9 mm
+    proud of them; the rest of the column is staggered +-6 mm and shows through a vertical window slot on each
+    side (physical mag check, DIRECTION_LOG item 8). Origin = top-front of the mag (Mag socket)."""
+    G, GM = M["G"], M["GM"]
+    top = MAG_TOP_Z
+    zf, zr = front_bottom, front_bottom - 0.012
+    body = prism("_mbody", [(MAG_Y0, top), (MAG_Y1, top), (MAG_Y1, zr), (MAG_Y0 + 0.008, zf),
+                            (MAG_Y0, zf + 0.008)], "X", -0.03, 0.03, G)
+    # section: 7.5 mm chamfer on the top outer edges so the feed lips read as a narrower ridge
+    intersect(body, prism("_msec", [(-0.012, top + 0.01), (0.012, top + 0.01), (0.012, top), (MAG_W, top - 0.0075),
+                                    (MAG_W, zr - 0.02), (-MAG_W, zr - 0.02), (-MAG_W, top - 0.0075), (-0.012, top)],
+                          "Y", MAG_Y0 - 0.01, MAG_Y1 + 0.01))
+    y0, y1 = MAG_Y0 + 0.0025, MAG_Y1 - 0.0025    # internal channel (2.5 mm front / rear walls, 140 mm long)
+    rc = round_centres(cap)
+    fol_top = rc[-1][1] - 0.0104                 # follower top, full mag
+    fol_z = fol_top - 0.0035                     # follower centre (7 mm thick: keeps the mag as shallow as the concept)
+    ch_top, ch_bot = top - 0.008, fol_z - 0.005
+    cut(body, box("_mch", (2 * MAG_CH, y1 - y0, ch_top - ch_bot), (0, (y0 + y1) / 2, (ch_top + ch_bot) / 2)))
+    # feed lips: FEED_LIP_GAP wide at the top face, undercut at 45 degrees down to the channel
     g = FEED_LIP_GAP / 2
-    lips = prism("_mfl", [(-g, 0.012), (g, 0.012), (g, 0.0), (0.0125, -0.0045), (0.0125, -0.008),
-                          (-0.0125, -0.008), (-0.0125, -0.0045), (-g, 0.0)], "Y", y0, y1)
-    cut(body, lips)
-    # window slots both sides (physical mag-check window)
-    wz0, wz1 = -0.018, zb + 0.020
-    cut(body, prism("_mw", stadium(-0.181, (wz0 + wz1) / 2, 0.023, wz0 - wz1, 4), "X", -0.04, 0.04))
-    # rear catch notch
-    cut(body, box("_mcn", (0.020, 0.008, 0.010), (0, -0.120, -0.030)))
-    finish(body, 0.0022, 1)
-    # raised ribs flanking the window on the lower (wider) section
+    cut(body, prism("_mfl", [(-g, top + 0.012), (g, top + 0.012), (g, top), (0.0108, top - 0.0045),
+                             (0.0108, top - 0.0085), (-0.0108, top - 0.0085), (-0.0108, top - 0.0045), (-g, top)],
+                    "Y", y0, y1))
+    # window slot both sides; ends at the follower's bottom in its FULL position (review r2 minor 9: a full seated
+    # mag shows rounds + follower and no daylight)
+    # top at z 0.027: out of the gun the window shows round 2 too (mag check reads 2 left / 1 left); seated, the
+    # part above the magwell lip (z ~0.005 here) stays hidden behind the magwell walls, so nothing shows through
+    wz0, wz1 = 0.027, fol_z - 0.004
+    cut(body, prism("_mw", stadium(MAG_WIN_Y, (wz0 + wz1) / 2, 0.019, wz0 - wz1, 4), "X", -0.04, 0.04))
+    # rear catch notch (inside the magwell)
+    cut(body, box("_mcn", (0.016, 0.006, 0.008), (0, MAG_Y1, 0.022)))
+    finish(body, 0.0020, 1)
+    # raised ribs flanking the window below the magwell (concept: vertical ribs)
     ribs = []
     for sx in (1, -1):
-        for yc in (-0.232, -0.132):
-            h = abs(zb) - 0.084
-            rb = box("_mrib", (0.006, 0.010, h), (sx * 0.0285, yc, -0.080 - h / 2), G)
-            finish(rb, 0.0018, 1)
+        for yc in (MAG_Y0 + 0.024, MAG_Y1 - 0.024):
+            zb = zf + (zr - zf) * (yc - MAG_Y0) / (MAG_Y1 - MAG_Y0)
+            h = -0.010 - (zb + 0.006)
+            rb = box("_mrib", (0.0045, 0.008, h), (sx * (MAG_W + 0.0003), yc, -0.010 - h / 2), G)
+            finish(rb, 0.0015, 1)
             ribs.append(rb)
-    base = box("_mbase", (0.060, 0.172, 0.018), (0, -0.197 - fr / 2, zb - 0.009), S)
-    cut(base, prism("_mbg", band([(-0.30, zb - 0.009), (-0.09, zb - 0.009)], 0.003), "X", 0.028, 0.04))
-    cut(base, prism("_mbg2", band([(-0.30, zb - 0.009), (-0.09, zb - 0.009)], 0.003), "X", -0.04, -0.028))
-    finish(base, 0.004, 2)
+    # base plate (graphite like the concept's all-dark mag), follows the sloped bottom
+    base = prism("_mbase", [(MAG_Y0 - 0.0035, zf + 0.009), (MAG_Y0 + 0.004, zf + 0.002), (MAG_Y1 + 0.0035, zr + 0.002),
+                            (MAG_Y1 + 0.0035, zr - 0.009), (MAG_Y0 - 0.0035, zf - 0.009)], "X", -0.0215, 0.0215, G)
+    for sx in (1, -1):
+        cut(base, prism("_mbg", band([(MAG_Y0 - 0.01, zf - 0.0035), (MAG_Y1 + 0.01, zr - 0.0035)], 0.0024), "X",
+                        sx * 0.0205, sx * 0.04))
+    finish(base, 0.0030, 1)
     mag = join([body] + ribs + [base], f"WARDEN_Mag{cap}")
     set_origin(mag, MAG_MOUNT)
     bc.link(mag, col)
     mag["part"] = f"mag_{cap}"
     mag["capacity"] = cap
     mag["socket"] = "WARDEN_SOCKET_Mag"
-    # follower: separate child (review fix) so the engine can push it up under the lowest remaining round.
-    # Full mag: its top touches the bottom round. n rounds left: raise it min((cap - n) * travel_per_round_m,
-    # travel_max_m) along local +Z; empty: travel_max_m puts it right under the feed lips.
-    follower_z = ROUND_TOP_Z - ROUND_PITCH * (cap - 1) - 0.0105 - 0.006
-    fol = box(f"WARDEN_Mag{cap}_Follower", (0.0245, 0.136, 0.012), (0, -0.197, follower_z), G)
-    cut(fol, prism("_mfr", [(-0.2655, follower_z + 0.006), (-0.2475, follower_z + 0.006),
-                            (-0.2655, follower_z - 0.001)], "X", -0.02, 0.02))      # nose ramp
+    # follower: separate child so the engine can push it up under the lowest remaining round
+    fol = box(f"WARDEN_Mag{cap}_Follower", (2 * MAG_CH - 0.0006, y1 - y0 - 0.010, 0.007), (0, (y0 + y1) / 2, fol_z), G)
+    cut(fol, prism("_mfr", [(y0 - 0.001, fol_z + 0.0045), (y0 + 0.016, fol_z + 0.0045), (y0 - 0.001, fol_z - 0.001)],
+                   "X", -0.03, 0.03))       # nose ramp
     finish(fol, 0.0015, 1)
-    set_origin(fol, (0, -0.197, follower_z))
+    set_origin(fol, (0, (y0 + y1) / 2, fol_z))
+    # exact offsets (metres up along local +Z) for 0..cap rounds left; the top round needs 2.8 mm more than the
+    # staggered pitch because it sits centred
+    offs = []
+    for n in range(cap + 1):
+        if n == 0:
+            offs.append(round((top - 0.0090) - fol_top, 5))          # empty: right under the feed lips
+        else:
+            offs.append(round(rc[n - 1][1] - rc[-1][1], 5))
     fol["slide_axis"] = "Z"
-    fol["travel_per_round_m"] = ROUND_PITCH
-    fol["travel_max_m"] = round(ROUND_PITCH * (cap - 1) + 0.010, 4)
+    fol["travel_per_round_m"] = PITCH
+    fol["travel_max_m"] = offs[0]
+    fol["offset_by_rounds_left_m"] = ",".join(f"{v:.5f}" for v in offs)   # index = rounds left (FBX-safe string)
     bc.link(fol, col)
     bc.parent_keep(fol, mag)
-    rounds = []
-    for i in range(cap):
+    for i, (xc, zc) in enumerate(rc):
         nm = f"WARDEN_Mag{cap}_Round" if i == 0 else f"WARDEN_Mag{cap}_Round_{i + 1:02d}"
-        zc = ROUND_TOP_Z - ROUND_PITCH * i
-        # the top round reads at the feed lips (16 sides); the rest are only seen through the window (8 sides,
-        # simplified profile) -- review fix for the triangle budget
-        r = cartridge(nm, ROUND_TIP_Y, zc, 16 if i == 0 else 8, M, simple=i > 0)
-        set_origin(r, (0, ROUND_TIP_Y + 0.069, zc))
+        # the top round reads at the feed lips (16 sides); the rest are only seen through the window (8 sides)
+        r = cartridge(nm, ROUND_TIP_Y, xc, zc, 16 if i == 0 else 8, M, simple=i > 0)
+        set_origin(r, (xc, ROUND_TIP_Y + 0.069, zc))
         r["round_index"] = i + 1
         bc.link(r, col)
         bc.parent_keep(r, mag)
-        rounds.append(r)
     return mag
 
 
 # ================================================================================================ SOCKETS
 SOCKETS = {
-    "Optic": (0, -0.080, RAIL_TOP_Z),
-    "Stock": (0, 0.080, BZ),
-    "Mag": (0, -0.270, 0.0),
-    "Under": (0, -0.600, 0.0205),
-    "Side_R": (-0.0455, -0.645, 0.079),   # shooter's RIGHT = -X (modular spec handedness)
-    "Side_L": (0.0455, -0.645, 0.079),
+    "Optic": (0, OPTIC_Y, RAIL_TOP_Z),
+    "Stock": (0, STOCK_Y, BZ),
+    "Mag": (0, MAG_Y0, MAG_TOP_Z),
+    "Under": (0, UNDER_Y, HG_BOT - 0.0095),
+    "Side_R": (-(HG_W + 0.0095), SIDE_Y, SIDE_Z),   # shooter's RIGHT = -X (modular spec handedness)
+    "Side_L": (HG_W + 0.0095, SIDE_Y, SIDE_Z),
     "Muzzle": (0, -1.100, BZ),
-    "LeftHand": (0, -0.380, 0.030),
+    "LeftHand": (0, -0.450, HG_BOT),
 }
 
 
 def build_all():
     bc.reset_scene()
+    BOOL_LOG.clear()
     M = mats()
     c_base = bc.collection("WARDEN_Base")
     c_ss = bc.collection("WARDEN_Stock_Standard")
@@ -1155,14 +1422,20 @@ def build_all():
     ss = build_stock_standard(M, c_ss)
     sf = build_stock_folding(M, c_sf)
     log("building mags")
-    m5 = build_mag(M, c_m5, 5, -0.150)
-    m8 = build_mag(M, c_m8, 8, -0.200)
+    m5 = build_mag(M, c_m5, 5, -0.0545)     # base plate bottom z -0.0635 (front) .. -0.0755 (rear), like the concept
+    m8 = build_mag(M, c_m8, 8, -0.1055)
 
-    for o in list(bpy.data.objects):
+    for o in sorted(bpy.data.objects, key=lambda o: o.name):
         if o.type == "MESH" and not o.name.startswith("_"):
             seal(o)
             clean_slots(o)
+            tri_clean(o)
             world_uvs(o)
+    for b in BOOL_LOG:
+        log("  BOOLEAN NO-OP (cutter overlaps the bounds but changed nothing):", b)
+    # opening checks on the FINAL meshes (after seal / tri_clean)
+    slot_check(bpy.data.objects["WARDEN_Handguard"])
+    magwell_check(bpy.data.objects["WARDEN_Chassis"])
     return dict(root=root, statics=statics, trig=trig, bolt=bolt, sockets=sockets, ss=ss, sf=sf, m5=m5, m8=m8,
                 cols=dict(base=c_base, ss=c_ss, sf=c_sf, m5=c_m5, m8=c_m8))
 
@@ -1241,7 +1514,10 @@ def anim_sidecar(B):
             "round_index_rule": "round_index 1 = top round at the feed lips; hide the highest indices first",
             "follower": fol.name, "follower_axis": {"blender": "+Z", "gltf": "+Y"},
             "follower_travel_per_round_m": fol["travel_per_round_m"], "follower_travel_max_m": fol["travel_max_m"],
-            "follower_rule": "offset = min((capacity - rounds_left) * travel_per_round_m, travel_max_m)",
+            "follower_offset_by_rounds_left_m": [float(v) for v in fol["offset_by_rounds_left_m"].split(",")],
+            "follower_rule": "raise the follower along local +Z by follower_offset_by_rounds_left_m[rounds_left] "
+                             "(index 0 = empty: right under the feed lips). The step under the centred top round is "
+                             "larger than travel_per_round_m, so use the table rather than n * travel_per_round_m",
         }
     data = {
         "_about": "VK-50 WARDEN moving parts. Origins are pivots; rotations are about the object's local axis.",
@@ -1349,9 +1625,80 @@ def report(B):
         empty = [i for i, m in enumerate(o.data.materials) if m is None]
         if nm or empty or not o.data.uv_layers:
             print(f"  WARN {o.name}: non-manifold edges {nm}, empty slots {empty}, uv {len(o.data.uv_layers)}")
-    with open(os.path.join(OUT, "_wip", "tris.json"), "w") as f:
+    os.makedirs(WIP, exist_ok=True)
+    with open(os.path.join(WIP, "tris.json"), "w") as f:
         json.dump(rows, f, indent=2)
     return rows
+
+
+def signature():
+    """Per-mesh fingerprint (tris, verts, sum |coords|) -- two builds must produce identical values."""
+    sig = {}
+    for o in sorted(bpy.data.objects, key=lambda o: o.name):
+        if o.type != "MESH" or o.name.startswith("_"):
+            continue
+        co = [0.0] * (len(o.data.vertices) * 3)
+        o.data.vertices.foreach_get("co", co)
+        sig[o.name] = [tris(o), len(o.data.vertices), round(sum(abs(c) for c in co), 6)]
+    return sig
+
+
+def gate_all():
+    """Pre-export mesh gate on every exported mesh (review r2): 0 boundary, 0 non-manifold, 0 zero-area triangles
+    after a 1e-6 positional weld, and triangles only. Fails the build (no export) unless --no-gate."""
+    res, bad = {}, {}
+    for o in sorted(bpy.data.objects, key=lambda o: o.name):
+        if o.type != "MESH" or o.name.startswith("_"):
+            continue
+        r = mesh_gate(o)
+        res[o.name] = r
+        if r["boundary"] or r["nonmanifold"] or r["zero_area"] or r["ngons"]:
+            bad[o.name] = r
+    os.makedirs(WIP, exist_ok=True)
+    with open(os.path.join(WIP, "gate_blend.json"), "w") as f:
+        json.dump(res, f, indent=1)
+    tiny = sum(r["tiny_lt_0_01mm2"] for r in res.values())
+    log(f"mesh gate: {len(res)} meshes, {len(bad)} failing, {tiny} faces < 0.01 mm^2 (not zero-area)")
+    for k, v in bad.items():
+        log("  GATE FAIL", k, v)
+    if bad and not ARGS.no_gate:
+        raise SystemExit("[warden] MESH GATE FAILED -- nothing exported")
+    return res
+
+
+EXPORTED_GLB = ["warden_base.glb", "warden_default.glb"] + [fn + ".glb" for fn in
+                                                            ("WARDEN_stock_standard", "WARDEN_stock_folding",
+                                                             "WARDEN_mag_5", "WARDEN_mag_8")]
+
+
+def reimport_gate():
+    """Export gate (review r2): re-import every exported glb into an empty file, weld each mesh by position at
+    1e-6 m in world space and require 0 boundary edges, 0 non-manifold edges and 0 zero-area triangles. Writes
+    _wip/gate_glb.json. Resets the Blender session, so it runs last."""
+    out, fails = {}, []
+    for fn in EXPORTED_GLB:
+        bpy.ops.wm.read_factory_settings(use_empty=True)
+        bpy.ops.import_scene.gltf(filepath=os.path.join(OUT, fn))
+        for o in sorted([o for o in bpy.data.objects if o.type == "MESH"], key=lambda o: o.name):
+            bm = bmesh.new()
+            bm.from_mesh(o.data)
+            bm.transform(o.matrix_world)
+            bmesh.ops.remove_doubles(bm, verts=bm.verts[:], dist=1e-6)
+            r = dict(tris=sum(len(f.verts) - 2 for f in bm.faces),
+                     boundary=sum(1 for e in bm.edges if e.is_boundary),
+                     nonmanifold=sum(1 for e in bm.edges if not e.is_manifold),
+                     zero_area=sum(1 for f in bm.faces if f.calc_area() < 1e-10),
+                     materials=[m.name if m else None for m in o.data.materials])
+            bm.free()
+            out[f"{fn}:{o.name}"] = r
+            if r["boundary"] or r["nonmanifold"] or r["zero_area"] or None in r["materials"]:
+                fails.append((fn, o.name, r))
+    with open(os.path.join(WIP, "gate_glb.json"), "w") as f:
+        json.dump(out, f, indent=1)
+    log(f"re-import gate: {len(out)} meshes in {len(EXPORTED_GLB)} glb files, {len(fails)} failing")
+    for f_ in fails:
+        log("  GLB GATE FAIL", f_)
+    return not fails
 
 
 # ================================================================================================= RENDER
@@ -1480,15 +1827,24 @@ def fitcheck(B, default):
     out = rv("warden_fitcheck", objs, ("right", "left"), margin=1.04)
     out += rv("warden_fitcheck", objs, ("three_quarter",), margin=0.86, focus=((0, -0.40, -0.03), 0.72))
     out += rv("warden_fitcheck", objs, ("front",), res=(900, 900), ortho=True, margin=1.0,
-              focus=((0, -0.39, -0.04), 0.22))
+              focus=((0, -0.39, -0.03), 0.20))
     for o in added:
         bpy.data.objects.remove(o, do_unlink=True)
     return out
 
 
+def bright_bg(on=True):
+    """Swap the camera-ray background to a bright snow/sky value (The Yard range is a snowy fjord): see-through
+    holes then show as white pills. Used for the review-r2 'no light strips' check renders."""
+    nt = bpy.context.scene.world.node_tree
+    cam_bg = [n for n in nt.nodes if n.type == "BACKGROUND"][-1]
+    if not hasattr(bright_bg, "keep"):
+        bright_bg.keep = tuple(cam_bg.inputs[0].default_value)
+    cam_bg.inputs[0].default_value = (6.0, 6.2, 6.6, 1) if on else bright_bg.keep
+
+
 def do_renders(B, mode):
     render_world()
-    s = B["sockets"]
     for p, sk in ((B["ss"], "Stock"), (B["sf"], "Stock"), (B["m5"], "Mag"), (B["m8"], "Mag")):
         if p.parent is None:
             p.matrix_world = Matrix.Translation(Vector(SOCKETS[sk]))
@@ -1496,54 +1852,74 @@ def do_renders(B, mode):
     base = base_objs(B)
     default = base + tree(B["ss"]) + tree(B["m5"])
     out = []
+    smp = None if mode != "quick" else 24
     if mode in ("quick", "full", "compare"):
-        out += rv("warden", default, ("right", "left"), samples=None if mode != "quick" else 24)
-        out += rv("warden", default, ("three_quarter",), samples=None if mode != "quick" else 24, margin=0.86,
-                  focus=((0, -0.40, 0.0), 0.70))
+        out += rv("warden", default, ("right", "left"), samples=smp, margin=1.04)
+        out += rv("warden", default, ("three_quarter",), samples=smp, margin=0.86, focus=((0, -0.40, 0.0), 0.70))
         out += [exact_side(default, "warden_exact_side.png")]
     if mode == "full":
-        out += rv("warden", default, (TOP,), res=(1600, 640), rename=["top"])
-        out += rv("warden", default, ("front", "back"), res=(900, 900), focus=((0, -0.39, -0.02), 0.22),
+        out += rv("warden", default, (TOP,), res=(1600, 640), rename=["top"], margin=1.02)
+        out += rv("warden", default, ("front", "back"), res=(900, 900), focus=((0, -0.39, 0.0), 0.16),
                   ortho=True, margin=1.0)
-        out += rv("warden", default, ("three_quarter_back",), margin=0.86, focus=((0, -0.38, -0.035), 0.82))
+        out += rv("warden", default, ("three_quarter_back",), margin=0.86, focus=((0, -0.38, 0.0), 0.74))
         out += rv("warden", default, ("low",), margin=0.86, focus=((0, -0.40, 0.0), 0.70))
         # roughly what the player sees: from behind/above the right shoulder, down the rail
         out += rv("warden", default, ((-0.22, 1.0, 0.40),), res=(1600, 900), lens=40, margin=0.80,
-                  focus=((0, -0.36, 0.06), 0.55), rename=["fpv"])
+                  focus=((0, -0.36, 0.05), 0.55), rename=["fpv"])
         # close-ups
-        out += rv("warden_cu", default, ((0.9, -0.8, 0.45),), res=(1200, 900), focus=((0, -1.02, BZ), 0.11),
+        out += rv("warden_cu", default, ((0.9, -0.8, 0.45),), res=(1200, 900), focus=((0, -1.046, BZ), 0.075),
                   rename=["brake"])
-        out += rv("warden_cu", default, ((-1.0, 0.55, 0.45),), res=(1200, 900), focus=((-0.04, 0.03, 0.06), 0.13),
-                  rename=["bolt"])
-        # bolt cycle (review fix check): lifted in place (handle root rotates behind the receiver, in free air),
-        # then fully open (0.13 m back) -- the shroud stops in front of the stock upright, the handle passes
-        # under the cheek riser. Also checks the pivot/origin and the documented animation signs.
+        out += rv("warden_cu", default, ((-1.0, 0.55, 0.45),), res=(1200, 900),
+                  focus=((-0.03, -0.075, 0.055), 0.10), rename=["bolt"])
+        # bolt cycle: lifted in place (the root turns behind the receiver, in free air), then fully open (0.13 m
+        # back) -- the shroud stops 11 mm short of the cheek riser
         bolt = B["bolt"]
         loc0, rot0 = bolt.location.copy(), bolt.rotation_euler.copy()
         bolt.rotation_euler[1] = math.radians(bolt["lift_deg"])
         bpy.context.view_layer.update()
-        out += rv("warden_cu", default, ((-0.6, 1.0, 0.55),), res=(1200, 900), focus=((0, 0.09, 0.09), 0.11),
-                  rename=["bolt_lifted"])
+        out += rv("warden_cu", default, ((-0.6, 1.0, 0.55),), res=(1200, 900),
+                  focus=((-0.02, -0.07, 0.075), 0.10), rename=["bolt_lifted"])
         bolt.location.y += bolt["travel_m"]
         bpy.context.view_layer.update()
-        out += rv("warden_cu", default, ((-1.0, 0.55, 0.45),), res=(1200, 900), focus=((-0.02, 0.15, 0.07), 0.20),
-                  rename=["bolt_open"])
-        out += rv("warden_bolt_open", default, ("left",), res=(1400, 900), focus=((0, 0.15, 0.05), 0.21))
+        out += rv("warden_cu", default, ((-1.0, 0.55, 0.45),), res=(1200, 900),
+                  focus=((-0.02, 0.0, 0.065), 0.16), rename=["bolt_open"])
+        out += rv("warden_bolt_open", default, ("left",), res=(1400, 900), focus=((0, -0.02, 0.05), 0.19))
+        out += rv("warden_bolt_open", default, ("right",), res=(1400, 900), focus=((0, -0.12, 0.06), 0.19))
         out += rv("warden_bolt_open", default, ((-0.22, 1.0, 0.40),), res=(1400, 900), lens=40, margin=0.8,
-                  focus=((0, 0.05, 0.08), 0.30), rename=["fpv"])
+                  focus=((0, -0.06, 0.08), 0.30), rename=["fpv"])
         alt0 = base + tree(B["sf"]) + tree(B["m8"])
-        out += rv("warden_bolt_open", alt0, ((-1.0, 0.55, 0.45),), res=(1200, 900), focus=((-0.02, 0.15, 0.05), 0.20),
-                  rename=["folding_stock"])
+        out += rv("warden_bolt_open", alt0, ((-1.0, 0.55, 0.45),), res=(1200, 900),
+                  focus=((-0.02, 0.0, 0.05), 0.17), rename=["folding_stock"])
         bolt.location, bolt.rotation_euler = loc0, rot0
         bpy.context.view_layer.update()
-        out += rv("warden_cu", default, ((-1.0, -0.25, 0.25),), res=(1400, 900), focus=((0, -0.12, 0.05), 0.20),
+        out += rv("warden_cu", default, ((-1.0, -0.25, 0.25),), res=(1400, 900), focus=((0, -0.20, 0.05), 0.17),
                   rename=["receiver_right"])
-        out += rv("warden_cu", default, ((1.0, -0.35, 0.3),), res=(1400, 900), focus=((0, -0.12, 0.05), 0.20),
+        out += rv("warden_cu", default, ((1.0, -0.35, 0.3),), res=(1400, 900), focus=((0, -0.20, 0.05), 0.17),
                   rename=["receiver_left"])
-        out += rv("warden_cu", default, ((0.8, -0.6, -0.35),), res=(1400, 900), focus=((0, -0.50, 0.06), 0.24),
+        out += rv("warden_cu", default, ((0.8, -0.6, -0.35),), res=(1400, 900), focus=((0, -0.52, 0.06), 0.19),
                   rename=["handguard_under"])
-        out += rv("warden_cu", default, ((0.75, -0.55, -0.45),), res=(1400, 900), focus=((0, -0.16, -0.06), 0.16),
-                  rename=["magwell"])
+        out += rv("warden_cu", default, ((0.9, -0.35, 0.25),), res=(1400, 900), focus=((0, -0.50, 0.07), 0.15),
+                  rename=["handguard_left"])
+        out += rv("warden_cu", default, ((0.75, -0.55, -0.45),), res=(1400, 900),
+                  focus=((0, -0.23, -0.01), 0.12), rename=["magwell"])
+        out += rv("warden_cu", default, ((0.9, 0.3, 0.35),), res=(1400, 900), focus=((0, 0.17, 0.02), 0.16),
+                  rename=["stock_left"])
+        # underside: monopod foot flush in its pocket (retracted), then extended
+        out += rv("warden_cu", default, ((0.5, 0.45, -1.0),), res=(1400, 900), focus=((0, 0.20, -0.07), 0.10),
+                  rename=["stock_under"])
+        mono = next(o for o in B["ss"].children if o.name.endswith("Monopod"))
+        mono.location.z += mono["travel_min_m"]
+        bpy.context.view_layer.update()
+        out += rv("warden_cu", default, ("left",), res=(1400, 900), focus=((0, 0.20, -0.09), 0.17),
+                  rename=["monopod_extended"])
+        mono.location.z -= mono["travel_min_m"]
+        bpy.context.view_layer.update()
+        # review r2 major 2 check: side views against a bright snow background -- the slots must stay dark
+        bright_bg(True)
+        out += rv("warden_check_brightbg", default, ("right", "left"), res=(1600, 800), margin=1.04)
+        out += rv("warden_check_brightbg", default, ("right",), res=(1400, 800), focus=((0, -0.48, 0.07), 0.16),
+                  rename=["handguard_right"])
+        bright_bg(False)
         # variants: stocks + mags alone
         for key, nm in (("ss", "stock_standard"), ("sf", "stock_folding")):
             objs = tree(B[key])
@@ -1553,17 +1929,18 @@ def do_renders(B, mode):
             objs = tree(B[key])
             out += rv(f"warden_{nm}", objs, ("three_quarter", "right", (0.6, -0.5, 1.0)), res=(900, 1000),
                       margin=1.25, rename=["three_quarter", "right", "top_feedlips"])
-        # mag check with 2 rounds left (rounds 3..5 hidden, follower raised 3 x travel_per_round_m): the follower
-        # sits right under the remaining rounds (review fix), the window shows daylight below it
+        # mag check with 2 rounds left (rounds 3..5 hidden, follower raised by its table value): the follower sits
+        # right under the remaining rounds; empty: the follower right under the feed lips
         m5 = B["m5"]
         fol = next(o for o in m5.children if o.name.endswith("Follower"))
+        offs = [float(v) for v in fol["offset_by_rounds_left_m"].split(",")]
         rounds = sorted([o for o in m5.children if "_Round" in o.name], key=lambda o: o["round_index"])
         fz = fol.location.z
-        fol.location.z += 3 * fol["travel_per_round_m"]
+        fol.location.z = fz + offs[2]
         bpy.context.view_layer.update()
         out += rv("warden_mag_5_check", [m5, fol] + rounds[:2], ("right", (0.6, -0.5, 0.25)), res=(900, 1000),
                   margin=1.25, rename=["two_left", "two_left_three_quarter"])
-        fol.location.z = fz + fol["travel_max_m"]
+        fol.location.z = fz + offs[0]
         bpy.context.view_layer.update()
         out += rv("warden_mag_5_check", [m5, fol], ((0.6, -0.5, 1.0),), res=(900, 1000), margin=1.25,
                   rename=["empty_top"])
@@ -1575,7 +1952,7 @@ def do_renders(B, mode):
         out += socket_debug(B, default)
         # the alternative loadout on the gun: folding stock + mag_8
         alt = base + tree(B["sf"]) + tree(B["m8"])
-        out += rv("warden_alt", alt, ("right", "three_quarter"))
+        out += rv("warden_alt", alt, ("right", "three_quarter"), margin=1.04)
         # folded pose preview
         arm = B["sf"].children[0]
         arm.rotation_euler[2] = math.radians(arm["fold_angle_deg"])
@@ -1591,11 +1968,40 @@ def do_renders(B, mode):
 
 
 # =================================================================================================== MAIN
-B = build_all()
-log("built")
-rows = report(B)
-if not ARGS.no_export:
-    do_exports(B)
-if ARGS.render != "none":
-    do_renders(B, ARGS.render)
-log("done")
+def main():
+    global B
+    B = build_all()
+    log("built")
+    if not ARGS.no_det_check:
+        # review r2 (minor 5): build a second time from scratch and require identical meshes before anything is exported
+        sig1 = signature()
+        B = build_all()
+        sig2 = signature()
+        def same(a, b):     # identical topology; coordinates equal to float noise (sum |co| within 1e-5 m)
+            return a is not None and b is not None and a[:2] == b[:2] and abs(a[2] - b[2]) < 1e-5
+        diff = {k: (sig1.get(k), sig2.get(k)) for k in sorted(set(sig1) | set(sig2)) if not same(sig1.get(k),
+                                                                                                  sig2.get(k))}
+        if diff:
+            for k, v in diff.items():
+                log("  DETERMINISM DIFF", k, v)
+            raise SystemExit("[warden] DETERMINISM CHECK FAILED -- nothing exported")
+        log(f"determinism check: two builds identical ({len(sig2)} meshes)")
+    os.makedirs(WIP, exist_ok=True)
+    with open(os.path.join(WIP, "signature.json"), "w") as f:
+        json.dump(signature(), f, indent=1)
+    rows = report(B)
+    gate_all()
+    if not ARGS.no_export:
+        do_exports(B)
+    if ARGS.render != "none":
+        do_renders(B, ARGS.render)
+    if not ARGS.no_export:
+        ok = reimport_gate()
+        if not ok and not ARGS.no_gate:
+            raise SystemExit("[warden] RE-IMPORT GATE FAILED")
+    log("done")
+
+
+
+if __name__ in ("__main__", "warden_build"):     # runpy(..., run_name="warden_defs") = definitions only
+    main()

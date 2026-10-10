@@ -1,0 +1,10 @@
+{
+  "warden": {
+    "gun": "F:\\git\\val etf\\assets\\weapons\\vk50_warden\\warden_default.glb",
+    "gun_sha256": "8f84afe44a32c944526a31e596354a785707be8262cbecdae9e022da5124d860",
+    "tactical_blend_sha256": "3c8b3c7e3bf99f9bb86e6c2f51ad0715fa5efda280c2e9ba13a1007735c329a1",
+    "image_prefix": "warden_bipod",
+    "optic": "F:\\git\\val etf\\assets\\weapons\\attachments\\optics\\ATT_optic_sniper.glb",
+    "optic_sha256": "8ee8a56c8cd87bd780c8f05fad33b16007cb560209256280763c5ac80a0734d0"
+  }
+}

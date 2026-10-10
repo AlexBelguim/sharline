@@ -1,0 +1,98 @@
+{
+ "ugl_launcher/ATT_ugl_launcher/942": {
+  "area_mm2": 461.36,
+  "sample_pts": 7,
+  "coplanar_covering": [
+   {
+    "poly": 935,
+    "same_dir": false,
+    "pts_covered": 7,
+    "area_mm2": 675.33
+   },
+   {
+    "poly": 939,
+    "same_dir": false,
+    "pts_covered": 1,
+    "area_mm2": 1179.74
+   },
+   {
+    "poly": 940,
+    "same_dir": false,
+    "pts_covered": 2,
+    "area_mm2": 468.39
+   },
+   {
+    "poly": 941,
+    "same_dir": false,
+    "pts_covered": 1,
+    "area_mm2": 292.52
+   }
+  ]
+ },
+ "ugl_launcher/ATT_ugl_launcher/943": {
+  "area_mm2": 5.09,
+  "sample_pts": 7,
+  "coplanar_covering": [
+   {
+    "poly": 941,
+    "same_dir": false,
+    "pts_covered": 7,
+    "area_mm2": 292.52
+   },
+   {
+    "poly": 944,
+    "same_dir": false,
+    "pts_covered": 7,
+    "area_mm2": 130.86
+   }
+  ]
+ },
+ "laser_R/ATT_laser_R/353": {
+  "area_mm2": 205.0,
+  "sample_pts": 7,
+  "coplanar_covering": [
+   {
+    "poly": 349,
+    "same_dir": false,
+    "pts_covered": 5,
+    "area_mm2": 404.88
+   },
+   {
+    "poly": 350,
+    "same_dir": false,
+    "pts_covered": 7,
+    "area_mm2": 609.87
+   },
+   {
+    "poly": 352,
+    "same_dir": false,
+    "pts_covered": 1,
+    "area_mm2": 187.58
+   }
+  ]
+ },
+ "laser_L/ATT_laser_L/357": {
+  "area_mm2": 422.3,
+  "sample_pts": 7,
+  "coplanar_covering": [
+   {
+    "poly": 353,
+    "same_dir": false,
+    "pts_covered": 2,
+    "area_mm2": 187.58
+   },
+   {
+    "poly": 354,
+    "same_dir": false,
+    "pts_covered": 7,
+    "area_mm2": 609.87
+   },
+   {
+    "poly": 356,
+    "same_dir": false,
+    "pts_covered": 5,
+    "area_mm2": 404.88
+   }
+  ]
+ }
+}

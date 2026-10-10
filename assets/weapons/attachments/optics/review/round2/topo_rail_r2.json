@@ -1,0 +1,931 @@
+{
+ "blend": {
+  "collections": [
+   "ATT_optic_3x",
+   "ATT_optic_holo",
+   "ATT_optic_reddot",
+   "ATT_optic_sniper",
+   "ATT_optic_thermal",
+   "_Lights",
+   "_TestFit"
+  ],
+  "objects": [
+   [
+    "ATT_optic_3x",
+    "EMPTY",
+    "ATT_optic_3x"
+   ],
+   [
+    "ATT_optic_3x_Body",
+    "MESH",
+    "ATT_optic_3x"
+   ],
+   [
+    "ATT_optic_3x_Objective",
+    "MESH",
+    "ATT_optic_3x"
+   ],
+   [
+    "ATT_optic_3x_Ocular",
+    "MESH",
+    "ATT_optic_3x"
+   ],
+   [
+    "ATT_optic_3x_Reticle",
+    "MESH",
+    "ATT_optic_3x"
+   ],
+   [
+    "ATT_optic_3x_SOCKET_ADS",
+    "EMPTY",
+    "ATT_optic_3x"
+   ],
+   [
+    "ATT_optic_holo",
+    "EMPTY",
+    "ATT_optic_holo"
+   ],
+   [
+    "ATT_optic_holo_Body",
+    "MESH",
+    "ATT_optic_holo"
+   ],
+   [
+    "ATT_optic_holo_Glass",
+    "MESH",
+    "ATT_optic_holo"
+   ],
+   [
+    "ATT_optic_holo_Glint",
+    "MESH",
+    "ATT_optic_holo"
+   ],
+   [
+    "ATT_optic_holo_Reticle",
+    "MESH",
+    "ATT_optic_holo"
+   ],
+   [
+    "ATT_optic_holo_SOCKET_ADS",
+    "EMPTY",
+    "ATT_optic_holo"
+   ],
+   [
+    "ATT_optic_reddot",
+    "EMPTY",
+    "ATT_optic_reddot"
+   ],
+   [
+    "ATT_optic_reddot_Body",
+    "MESH",
+    "ATT_optic_reddot"
+   ],
+   [
+    "ATT_optic_reddot_Glass",
+    "MESH",
+    "ATT_optic_reddot"
+   ],
+   [
+    "ATT_optic_reddot_Glint",
+    "MESH",
+    "ATT_optic_reddot"
+   ],
+   [
+    "ATT_optic_reddot_Reticle",
+    "MESH",
+    "ATT_optic_reddot"
+   ],
+   [
+    "ATT_optic_reddot_SOCKET_ADS",
+    "EMPTY",
+    "ATT_optic_reddot"
+   ],
+   [
+    "ATT_optic_sniper",
+    "EMPTY",
+    "ATT_optic_sniper"
+   ],
+   [
+    "ATT_optic_sniper_Body",
+    "MESH",
+    "ATT_optic_sniper"
+   ],
+   [
+    "ATT_optic_sniper_Objective",
+    "MESH",
+    "ATT_optic_sniper"
+   ],
+   [
+    "ATT_optic_sniper_Ocular",
+    "MESH",
+    "ATT_optic_sniper"
+   ],
+   [
+    "ATT_optic_sniper_SOCKET_ADS",
+    "EMPTY",
+    "ATT_optic_sniper"
+   ],
+   [
+    "ATT_optic_thermal",
+    "EMPTY",
+    "ATT_optic_thermal"
+   ],
+   [
+    "ATT_optic_thermal_Body",
+    "MESH",
+    "ATT_optic_thermal"
+   ],
+   [
+    "ATT_optic_thermal_Display",
+    "MESH",
+    "ATT_optic_thermal"
+   ],
+   [
+    "ATT_optic_thermal_Objective",
+    "MESH",
+    "ATT_optic_thermal"
+   ],
+   [
+    "ATT_optic_thermal_SOCKET_ADS",
+    "EMPTY",
+    "ATT_optic_thermal"
+   ],
+   [
+    "ATT_optic_thermal_StatusLight",
+    "MESH",
+    "ATT_optic_thermal"
+   ],
+   [
+    "L_Fill",
+    "LIGHT",
+    "_Lights"
+   ],
+   [
+    "L_Key",
+    "LIGHT",
+    "_Lights"
+   ],
+   [
+    "L_Rim",
+    "LIGHT",
+    "_Lights"
+   ],
+   [
+    "L_RimL",
+    "LIGHT",
+    "_Lights"
+   ],
+   [
+    "_PreviewCam",
+    "CAMERA",
+    "Scene Collection"
+   ],
+   [
+    "_Rail_optic_3x",
+    "MESH",
+    "_TestFit"
+   ],
+   [
+    "_Rail_optic_3xBase",
+    "MESH",
+    "_TestFit"
+   ],
+   [
+    "_Rail_optic_holo",
+    "MESH",
+    "_TestFit"
+   ],
+   [
+    "_Rail_optic_holoBase",
+    "MESH",
+    "_TestFit"
+   ],
+   [
+    "_Rail_optic_reddot",
+    "MESH",
+    "_TestFit"
+   ],
+   [
+    "_Rail_optic_reddotBase",
+    "MESH",
+    "_TestFit"
+   ],
+   [
+    "_Rail_optic_sniper",
+    "MESH",
+    "_TestFit"
+   ],
+   [
+    "_Rail_optic_sniperBase",
+    "MESH",
+    "_TestFit"
+   ],
+   [
+    "_Rail_optic_thermal",
+    "MESH",
+    "_TestFit"
+   ],
+   [
+    "_Rail_optic_thermalBase",
+    "MESH",
+    "_TestFit"
+   ]
+  ],
+  "materials": [
+   "M_ATT_AmberGlow",
+   "M_ATT_Bone",
+   "M_ATT_Dark",
+   "M_ATT_Display",
+   "M_ATT_Germanium",
+   "M_ATT_Graphite",
+   "M_ATT_Gunmetal",
+   "M_ATT_IceGlint",
+   "M_ATT_IcePaint",
+   "M_ATT_IceReticle",
+   "M_ATT_LensObjective",
+   "M_ATT_LensObjectiveDeep",
+   "M_ATT_LensOcular",
+   "M_ATT_Lining",
+   "M_ATT_ReflexGlass",
+   "M_ATT_Rubber",
+   "_M_TestBase",
+   "_M_TestRail"
+  ],
+  "images": [
+   [
+    "M_ATT_Bone",
+    true
+   ],
+   [
+    "M_ATT_Graphite",
+    true
+   ],
+   [
+    "M_ATT_Gunmetal",
+    true
+   ],
+   [
+    "Render Result",
+    false
+   ]
+  ],
+  "optic_reddot": {
+   "ATT_optic_reddot_Body": {
+    "modifiers": [],
+    "tris": 2336,
+    "boundary_edges": 0,
+    "non_manifold_edges": 0,
+    "ngons": 47,
+    "max_ngon": 25,
+    "sharp_edges": 845,
+    "custom_normals": true
+   },
+   "ATT_optic_reddot_Glass": {
+    "modifiers": [],
+    "tris": 76,
+    "boundary_edges": 0,
+    "non_manifold_edges": 0,
+    "ngons": 2,
+    "max_ngon": 20,
+    "sharp_edges": 40,
+    "custom_normals": false
+   },
+   "ATT_optic_reddot_Glint": {
+    "modifiers": [],
+    "tris": 12,
+    "boundary_edges": 12,
+    "non_manifold_edges": 12,
+    "ngons": 0,
+    "max_ngon": 3,
+    "sharp_edges": 0,
+    "custom_normals": false,
+    "boundary_bbox": [
+     [
+      -0.0008,
+      -0.015,
+      0.0483
+     ],
+     [
+      0.0008,
+      -0.0147,
+      0.0499
+     ]
+    ]
+   },
+   "ATT_optic_reddot_Reticle": {
+    "modifiers": [],
+    "tris": 12,
+    "boundary_edges": 12,
+    "non_manifold_edges": 12,
+    "ngons": 0,
+    "max_ngon": 3,
+    "sharp_edges": 0,
+    "custom_normals": false,
+    "boundary_bbox": [
+     [
+      -0.0001,
+      -0.0136,
+      0.0488
+     ],
+     [
+      0.0001,
+      -0.0135,
+      0.049
+     ]
+    ]
+   }
+  },
+  "optic_holo": {
+   "ATT_optic_holo_Body": {
+    "modifiers": [],
+    "tris": 4274,
+    "boundary_edges": 0,
+    "non_manifold_edges": 0,
+    "ngons": 91,
+    "max_ngon": 30,
+    "sharp_edges": 1638,
+    "custom_normals": true
+   },
+   "ATT_optic_holo_Glass": {
+    "modifiers": [],
+    "tris": 76,
+    "boundary_edges": 0,
+    "non_manifold_edges": 0,
+    "ngons": 2,
+    "max_ngon": 20,
+    "sharp_edges": 40,
+    "custom_normals": false
+   },
+   "ATT_optic_holo_Glint": {
+    "modifiers": [],
+    "tris": 12,
+    "boundary_edges": 12,
+    "non_manifold_edges": 12,
+    "ngons": 0,
+    "max_ngon": 3,
+    "sharp_edges": 0,
+    "custom_normals": false,
+    "boundary_bbox": [
+     [
+      -0.001,
+      -0.0144,
+      0.0441
+     ],
+     [
+      0.001,
+      -0.0141,
+      0.0461
+     ]
+    ]
+   },
+   "ATT_optic_holo_Reticle": {
+    "modifiers": [],
+    "tris": 92,
+    "boundary_edges": 92,
+    "non_manifold_edges": 92,
+    "ngons": 0,
+    "max_ngon": 4,
+    "sharp_edges": 0,
+    "custom_normals": false,
+    "boundary_bbox": [
+     [
+      -0.0008,
+      -0.0128,
+      0.0441
+     ],
+     [
+      0.0008,
+      -0.0126,
+      0.0457
+     ]
+    ]
+   }
+  },
+  "optic_3x": {
+   "ATT_optic_3x_Body": {
+    "modifiers": [],
+    "tris": 4150,
+    "boundary_edges": 0,
+    "non_manifold_edges": 0,
+    "ngons": 33,
+    "max_ngon": 19,
+    "sharp_edges": 1591,
+    "custom_normals": true
+   },
+   "ATT_optic_3x_Objective": {
+    "modifiers": [],
+    "tris": 192,
+    "boundary_edges": 0,
+    "non_manifold_edges": 0,
+    "ngons": 0,
+    "max_ngon": 4,
+    "sharp_edges": 64,
+    "custom_normals": false
+   },
+   "ATT_optic_3x_Ocular": {
+    "modifiers": [],
+    "tris": 192,
+    "boundary_edges": 0,
+    "non_manifold_edges": 0,
+    "ngons": 0,
+    "max_ngon": 4,
+    "sharp_edges": 64,
+    "custom_normals": false
+   },
+   "ATT_optic_3x_Reticle": {
+    "modifiers": [],
+    "tris": 12,
+    "boundary_edges": 12,
+    "non_manifold_edges": 12,
+    "ngons": 0,
+    "max_ngon": 3,
+    "sharp_edges": 0,
+    "custom_normals": false,
+    "boundary_bbox": [
+     [
+      -0.0005,
+      0.0552,
+      0.0495
+     ],
+     [
+      0.0005,
+      0.0552,
+      0.0505
+     ]
+    ]
+   }
+  },
+  "optic_sniper": {
+   "ATT_optic_sniper_Body": {
+    "modifiers": [],
+    "tris": 4376,
+    "boundary_edges": 0,
+    "non_manifold_edges": 0,
+    "ngons": 8,
+    "max_ngon": 25,
+    "sharp_edges": 1898,
+    "custom_normals": true
+   },
+   "ATT_optic_sniper_Objective": {
+    "modifiers": [],
+    "tris": 192,
+    "boundary_edges": 0,
+    "non_manifold_edges": 0,
+    "ngons": 0,
+    "max_ngon": 4,
+    "sharp_edges": 64,
+    "custom_normals": false
+   },
+   "ATT_optic_sniper_Ocular": {
+    "modifiers": [],
+    "tris": 128,
+    "boundary_edges": 0,
+    "non_manifold_edges": 0,
+    "ngons": 0,
+    "max_ngon": 4,
+    "sharp_edges": 64,
+    "custom_normals": false
+   }
+  },
+  "optic_thermal": {
+   "ATT_optic_thermal_Body": {
+    "modifiers": [],
+    "tris": 3894,
+    "boundary_edges": 0,
+    "non_manifold_edges": 0,
+    "ngons": 58,
+    "max_ngon": 28,
+    "sharp_edges": 1747,
+    "custom_normals": true
+   },
+   "ATT_optic_thermal_Display": {
+    "modifiers": [],
+    "tris": 128,
+    "boundary_edges": 0,
+    "non_manifold_edges": 0,
+    "ngons": 0,
+    "max_ngon": 4,
+    "sharp_edges": 64,
+    "custom_normals": false
+   },
+   "ATT_optic_thermal_Objective": {
+    "modifiers": [],
+    "tris": 192,
+    "boundary_edges": 0,
+    "non_manifold_edges": 0,
+    "ngons": 0,
+    "max_ngon": 4,
+    "sharp_edges": 64,
+    "custom_normals": false
+   },
+   "ATT_optic_thermal_StatusLight": {
+    "modifiers": [],
+    "tris": 72,
+    "boundary_edges": 0,
+    "non_manifold_edges": 0,
+    "ngons": 0,
+    "max_ngon": 4,
+    "sharp_edges": 12,
+    "custom_normals": false
+   }
+  }
+ },
+ "glb_merged": {
+  "optic_reddot": {
+   "ATT_optic_reddot_Body": {
+    "boundary_edges": 0,
+    "non_manifold_edges": 0
+   },
+   "ATT_optic_reddot_Glass": {
+    "boundary_edges": 0,
+    "non_manifold_edges": 0
+   },
+   "ATT_optic_reddot_Glint": {
+    "boundary_edges": 12,
+    "non_manifold_edges": 12
+   },
+   "ATT_optic_reddot_Reticle": {
+    "boundary_edges": 12,
+    "non_manifold_edges": 12
+   }
+  },
+  "optic_holo": {
+   "ATT_optic_holo_Body": {
+    "boundary_edges": 0,
+    "non_manifold_edges": 0
+   },
+   "ATT_optic_holo_Glass": {
+    "boundary_edges": 0,
+    "non_manifold_edges": 0
+   },
+   "ATT_optic_holo_Glint": {
+    "boundary_edges": 12,
+    "non_manifold_edges": 12
+   },
+   "ATT_optic_holo_Reticle": {
+    "boundary_edges": 92,
+    "non_manifold_edges": 92
+   }
+  },
+  "optic_3x": {
+   "ATT_optic_3x_Body": {
+    "boundary_edges": 0,
+    "non_manifold_edges": 0
+   },
+   "ATT_optic_3x_Objective": {
+    "boundary_edges": 0,
+    "non_manifold_edges": 0
+   },
+   "ATT_optic_3x_Ocular": {
+    "boundary_edges": 0,
+    "non_manifold_edges": 0
+   },
+   "ATT_optic_3x_Reticle": {
+    "boundary_edges": 12,
+    "non_manifold_edges": 12
+   }
+  },
+  "optic_sniper": {
+   "ATT_optic_sniper_Body": {
+    "boundary_edges": 0,
+    "non_manifold_edges": 0
+   },
+   "ATT_optic_sniper_Objective": {
+    "boundary_edges": 0,
+    "non_manifold_edges": 0
+   },
+   "ATT_optic_sniper_Ocular": {
+    "boundary_edges": 0,
+    "non_manifold_edges": 0
+   }
+  },
+  "optic_thermal": {
+   "ATT_optic_thermal_Body": {
+    "boundary_edges": 0,
+    "non_manifold_edges": 0
+   },
+   "ATT_optic_thermal_Display": {
+    "boundary_edges": 0,
+    "non_manifold_edges": 0
+   },
+   "ATT_optic_thermal_Objective": {
+    "boundary_edges": 0,
+    "non_manifold_edges": 0
+   },
+   "ATT_optic_thermal_StatusLight": {
+    "boundary_edges": 0,
+    "non_manifold_edges": 0
+   }
+  }
+ },
+ "rails": {
+  "MAKO": {
+   "socket": [
+    0.0,
+    -0.0855,
+    0.084
+   ],
+   "top_profile_mm_rel_socket_every_1mm_dy-60..60": [
+    -3.0,
+    -3.0,
+    -3.0,
+    -0.2,
+    -0.0,
+    0.0,
+    -0.0,
+    -0.2,
+    -3.0,
+    -3.0,
+    -3.0,
+    -3.0,
+    -3.0,
+    -0.2,
+    0.0,
+    0.0,
+    -0.0,
+    -0.2,
+    -3.0,
+    -3.0,
+    -3.0,
+    -3.0,
+    -3.0,
+    -0.2,
+    0.0,
+    0.0,
+    0.0,
+    -0.2,
+    -3.0,
+    -3.0,
+    -3.0,
+    -3.0,
+    -3.0,
+    -0.2,
+    0.0,
+    0.0,
+    0.0,
+    -0.2,
+    -3.0,
+    -3.0,
+    -3.0,
+    -3.0,
+    -3.0,
+    -0.2,
+    0.0,
+    0.0,
+    0.0,
+    -0.2,
+    -3.0,
+    -3.0,
+    -3.0,
+    -3.0,
+    -3.0,
+    -0.2,
+    0.0,
+    0.0,
+    0.0,
+    -0.2,
+    -3.0,
+    -3.0,
+    -3.0,
+    -3.0,
+    -3.0,
+    -0.2,
+    0.0,
+    0.0,
+    0.0,
+    -0.2,
+    -3.0,
+    -3.0,
+    -3.0,
+    -3.0,
+    -3.0,
+    -0.2,
+    0.0,
+    0.0,
+    0.0,
+    -0.2,
+    -3.0,
+    -3.0,
+    -3.0,
+    -3.0,
+    -3.0,
+    -0.2,
+    0.0,
+    0.0,
+    0.0,
+    -0.2,
+    -3.0,
+    -3.0,
+    -3.0,
+    -3.0,
+    -3.0,
+    -0.2,
+    0.0,
+    0.0,
+    0.0,
+    -0.2,
+    -3.0,
+    -3.0,
+    -3.0,
+    -3.0,
+    -3.0,
+    -0.2,
+    0.0,
+    0.0,
+    0.0,
+    -0.2,
+    -3.0,
+    -3.0,
+    -3.0,
+    -3.0,
+    -3.0,
+    -0.2,
+    0.0,
+    0.0,
+    0.0,
+    -0.2,
+    -3.0,
+    -3.0,
+    -3.0
+   ],
+   "max_mm": -0.0,
+   "min_mm": -3.0,
+   "flank_x_mm_below_top": {
+    "-0.0005": [
+     null,
+     null
+    ],
+    "-0.0015": [
+     null,
+     null
+    ],
+    "-0.003": [
+     10.5,
+     -10.5
+    ],
+    "-0.005": [
+     10.5,
+     -10.5
+    ],
+    "-0.007": [
+     10.0,
+     -10.0
+    ]
+   }
+  },
+  "WARDEN": {
+   "socket": [
+    0.0,
+    -0.08,
+    0.1375
+   ],
+   "top_profile_mm_rel_socket_every_1mm_dy-60..60": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    -3.0,
+    -3.0,
+    -3.0,
+    -3.0,
+    -3.0,
+    -0.0,
+    0.0,
+    -0.0,
+    0.0,
+    0.0,
+    -3.0,
+    -3.0,
+    -3.0,
+    -3.0,
+    -3.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    -3.0,
+    -3.0,
+    -3.0,
+    -3.0,
+    -3.0,
+    -0.0,
+    0.0,
+    -0.0,
+    0.0,
+    0.0,
+    -3.0,
+    -3.0,
+    -3.0,
+    -3.0,
+    -3.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    -3.0,
+    -3.0,
+    -3.0,
+    -3.0,
+    -3.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    -3.0,
+    -3.0,
+    -3.0,
+    -3.0,
+    -3.0,
+    -0.0,
+    0.0,
+    -0.0,
+    -0.0,
+    0.0,
+    -3.0,
+    -3.0,
+    -3.0,
+    -3.0,
+    -3.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    -3.0,
+    -3.0,
+    -3.0,
+    -3.0,
+    -3.0,
+    0.0,
+    0.0,
+    -0.0,
+    0.0,
+    -0.0,
+    -3.0,
+    -3.0,
+    -3.0,
+    -3.0,
+    -3.0,
+    -0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    -3.0,
+    -3.0,
+    -3.0,
+    -3.0,
+    -3.0,
+    0.0,
+    -0.0,
+    -0.0,
+    -0.0,
+    -0.0,
+    -3.0,
+    -3.0,
+    -3.0,
+    -3.0,
+    -3.0,
+    0.0,
+    0.0,
+    -0.0,
+    0.0,
+    0.0,
+    -3.0,
+    -3.0,
+    -3.0,
+    -3.0,
+    -3.0,
+    -0.0,
+    0.0
+   ],
+   "max_mm": 0.0,
+   "min_mm": -3.0,
+   "flank_x_mm_below_top": {
+    "-0.0005": [
+     10.5,
+     -10.5
+    ],
+    "-0.0015": [
+     10.5,
+     -10.5
+    ],
+    "-0.003": [
+     10.5,
+     -10.5
+    ],
+    "-0.005": [
+     9.0,
+     -9.0
+    ],
+    "-0.007": [
+     7.5,
+     -7.5
+    ]
+   }
+  }
+ }
+}

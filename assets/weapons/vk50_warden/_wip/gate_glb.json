@@ -1,0 +1,636 @@
+{
+ "warden_base.glb:WARDEN_Barrel": {
+  "tris": 720,
+  "boundary": 0,
+  "nonmanifold": 0,
+  "zero_area": 0,
+  "materials": [
+   "M_Warden_Gunmetal"
+  ]
+ },
+ "warden_base.glb:WARDEN_Bolt": {
+  "tris": 860,
+  "boundary": 0,
+  "nonmanifold": 0,
+  "zero_area": 0,
+  "materials": [
+   "M_Warden_Gunmetal",
+   "M_Warden_Graphite"
+  ]
+ },
+ "warden_base.glb:WARDEN_BoltRelease": {
+  "tris": 100,
+  "boundary": 0,
+  "nonmanifold": 0,
+  "zero_area": 0,
+  "materials": [
+   "M_Warden_Gunmetal"
+  ]
+ },
+ "warden_base.glb:WARDEN_Brake": {
+  "tris": 1520,
+  "boundary": 0,
+  "nonmanifold": 0,
+  "zero_area": 0,
+  "materials": [
+   "M_Warden_Gunmetal"
+  ]
+ },
+ "warden_base.glb:WARDEN_BrakeCollar": {
+  "tris": 160,
+  "boundary": 0,
+  "nonmanifold": 0,
+  "zero_area": 0,
+  "materials": [
+   "M_Warden_Gunmetal"
+  ]
+ },
+ "warden_base.glb:WARDEN_Chassis": {
+  "tris": 1680,
+  "boundary": 0,
+  "nonmanifold": 0,
+  "zero_area": 0,
+  "materials": [
+   "M_Warden_Graphite",
+   "M_Warden_Gunmetal"
+  ]
+ },
+ "warden_base.glb:WARDEN_Grip": {
+  "tris": 936,
+  "boundary": 0,
+  "nonmanifold": 0,
+  "zero_area": 0,
+  "materials": [
+   "M_Warden_Sand",
+   "M_Warden_SandStipple",
+   "M_Warden_Gunmetal"
+  ]
+ },
+ "warden_base.glb:WARDEN_Handguard": {
+  "tris": 2288,
+  "boundary": 0,
+  "nonmanifold": 0,
+  "zero_area": 0,
+  "materials": [
+   "M_Warden_Graphite",
+   "M_Warden_Gunmetal"
+  ]
+ },
+ "warden_base.glb:WARDEN_MagRelease": {
+  "tris": 56,
+  "boundary": 0,
+  "nonmanifold": 0,
+  "zero_area": 0,
+  "materials": [
+   "M_Warden_Gunmetal"
+  ]
+ },
+ "warden_base.glb:WARDEN_RailBottom": {
+  "tris": 204,
+  "boundary": 0,
+  "nonmanifold": 0,
+  "zero_area": 0,
+  "materials": [
+   "M_Warden_Graphite"
+  ]
+ },
+ "warden_base.glb:WARDEN_RailSide_L": {
+  "tris": 92,
+  "boundary": 0,
+  "nonmanifold": 0,
+  "zero_area": 0,
+  "materials": [
+   "M_Warden_Graphite"
+  ]
+ },
+ "warden_base.glb:WARDEN_RailSide_R": {
+  "tris": 92,
+  "boundary": 0,
+  "nonmanifold": 0,
+  "zero_area": 0,
+  "materials": [
+   "M_Warden_Graphite"
+  ]
+ },
+ "warden_base.glb:WARDEN_RailTop": {
+  "tris": 876,
+  "boundary": 0,
+  "nonmanifold": 0,
+  "zero_area": 0,
+  "materials": [
+   "M_Warden_Graphite"
+  ]
+ },
+ "warden_base.glb:WARDEN_Receiver": {
+  "tris": 830,
+  "boundary": 0,
+  "nonmanifold": 0,
+  "zero_area": 0,
+  "materials": [
+   "M_Warden_Graphite"
+  ]
+ },
+ "warden_base.glb:WARDEN_Safety": {
+  "tris": 216,
+  "boundary": 0,
+  "nonmanifold": 0,
+  "zero_area": 0,
+  "materials": [
+   "M_Warden_Gunmetal"
+  ]
+ },
+ "warden_base.glb:WARDEN_Trigger": {
+  "tris": 92,
+  "boundary": 0,
+  "nonmanifold": 0,
+  "zero_area": 0,
+  "materials": [
+   "M_Warden_Gunmetal"
+  ]
+ },
+ "warden_base.glb:WARDEN_TriggerGuard": {
+  "tris": 408,
+  "boundary": 0,
+  "nonmanifold": 0,
+  "zero_area": 0,
+  "materials": [
+   "M_Warden_Graphite"
+  ]
+ },
+ "warden_default.glb:WARDEN_Barrel": {
+  "tris": 720,
+  "boundary": 0,
+  "nonmanifold": 0,
+  "zero_area": 0,
+  "materials": [
+   "M_Warden_Gunmetal"
+  ]
+ },
+ "warden_default.glb:WARDEN_Bolt": {
+  "tris": 860,
+  "boundary": 0,
+  "nonmanifold": 0,
+  "zero_area": 0,
+  "materials": [
+   "M_Warden_Gunmetal",
+   "M_Warden_Graphite"
+  ]
+ },
+ "warden_default.glb:WARDEN_BoltRelease": {
+  "tris": 100,
+  "boundary": 0,
+  "nonmanifold": 0,
+  "zero_area": 0,
+  "materials": [
+   "M_Warden_Gunmetal"
+  ]
+ },
+ "warden_default.glb:WARDEN_Brake": {
+  "tris": 1520,
+  "boundary": 0,
+  "nonmanifold": 0,
+  "zero_area": 0,
+  "materials": [
+   "M_Warden_Gunmetal"
+  ]
+ },
+ "warden_default.glb:WARDEN_BrakeCollar": {
+  "tris": 160,
+  "boundary": 0,
+  "nonmanifold": 0,
+  "zero_area": 0,
+  "materials": [
+   "M_Warden_Gunmetal"
+  ]
+ },
+ "warden_default.glb:WARDEN_Chassis": {
+  "tris": 1680,
+  "boundary": 0,
+  "nonmanifold": 0,
+  "zero_area": 0,
+  "materials": [
+   "M_Warden_Graphite",
+   "M_Warden_Gunmetal"
+  ]
+ },
+ "warden_default.glb:WARDEN_Grip": {
+  "tris": 936,
+  "boundary": 0,
+  "nonmanifold": 0,
+  "zero_area": 0,
+  "materials": [
+   "M_Warden_Sand",
+   "M_Warden_SandStipple",
+   "M_Warden_Gunmetal"
+  ]
+ },
+ "warden_default.glb:WARDEN_Handguard": {
+  "tris": 2288,
+  "boundary": 0,
+  "nonmanifold": 0,
+  "zero_area": 0,
+  "materials": [
+   "M_Warden_Graphite",
+   "M_Warden_Gunmetal"
+  ]
+ },
+ "warden_default.glb:WARDEN_Mag5": {
+  "tris": 924,
+  "boundary": 0,
+  "nonmanifold": 0,
+  "zero_area": 0,
+  "materials": [
+   "M_Warden_Graphite"
+  ]
+ },
+ "warden_default.glb:WARDEN_Mag5_Follower": {
+  "tris": 52,
+  "boundary": 0,
+  "nonmanifold": 0,
+  "zero_area": 0,
+  "materials": [
+   "M_Warden_Graphite"
+  ]
+ },
+ "warden_default.glb:WARDEN_Mag5_Round": {
+  "tris": 384,
+  "boundary": 0,
+  "nonmanifold": 0,
+  "zero_area": 0,
+  "materials": [
+   "M_Warden_Gunmetal",
+   "M_Warden_Cartridge"
+  ]
+ },
+ "warden_default.glb:WARDEN_Mag5_Round_02": {
+  "tris": 112,
+  "boundary": 0,
+  "nonmanifold": 0,
+  "zero_area": 0,
+  "materials": [
+   "M_Warden_Gunmetal",
+   "M_Warden_Cartridge"
+  ]
+ },
+ "warden_default.glb:WARDEN_Mag5_Round_03": {
+  "tris": 112,
+  "boundary": 0,
+  "nonmanifold": 0,
+  "zero_area": 0,
+  "materials": [
+   "M_Warden_Gunmetal",
+   "M_Warden_Cartridge"
+  ]
+ },
+ "warden_default.glb:WARDEN_Mag5_Round_04": {
+  "tris": 112,
+  "boundary": 0,
+  "nonmanifold": 0,
+  "zero_area": 0,
+  "materials": [
+   "M_Warden_Gunmetal",
+   "M_Warden_Cartridge"
+  ]
+ },
+ "warden_default.glb:WARDEN_Mag5_Round_05": {
+  "tris": 112,
+  "boundary": 0,
+  "nonmanifold": 0,
+  "zero_area": 0,
+  "materials": [
+   "M_Warden_Gunmetal",
+   "M_Warden_Cartridge"
+  ]
+ },
+ "warden_default.glb:WARDEN_MagRelease": {
+  "tris": 56,
+  "boundary": 0,
+  "nonmanifold": 0,
+  "zero_area": 0,
+  "materials": [
+   "M_Warden_Gunmetal"
+  ]
+ },
+ "warden_default.glb:WARDEN_RailBottom": {
+  "tris": 204,
+  "boundary": 0,
+  "nonmanifold": 0,
+  "zero_area": 0,
+  "materials": [
+   "M_Warden_Graphite"
+  ]
+ },
+ "warden_default.glb:WARDEN_RailSide_L": {
+  "tris": 92,
+  "boundary": 0,
+  "nonmanifold": 0,
+  "zero_area": 0,
+  "materials": [
+   "M_Warden_Graphite"
+  ]
+ },
+ "warden_default.glb:WARDEN_RailSide_R": {
+  "tris": 92,
+  "boundary": 0,
+  "nonmanifold": 0,
+  "zero_area": 0,
+  "materials": [
+   "M_Warden_Graphite"
+  ]
+ },
+ "warden_default.glb:WARDEN_RailTop": {
+  "tris": 876,
+  "boundary": 0,
+  "nonmanifold": 0,
+  "zero_area": 0,
+  "materials": [
+   "M_Warden_Graphite"
+  ]
+ },
+ "warden_default.glb:WARDEN_Receiver": {
+  "tris": 830,
+  "boundary": 0,
+  "nonmanifold": 0,
+  "zero_area": 0,
+  "materials": [
+   "M_Warden_Graphite"
+  ]
+ },
+ "warden_default.glb:WARDEN_Safety": {
+  "tris": 216,
+  "boundary": 0,
+  "nonmanifold": 0,
+  "zero_area": 0,
+  "materials": [
+   "M_Warden_Gunmetal"
+  ]
+ },
+ "warden_default.glb:WARDEN_StockStandard": {
+  "tris": 3324,
+  "boundary": 0,
+  "nonmanifold": 0,
+  "zero_area": 0,
+  "materials": [
+   "M_Warden_Sand",
+   "M_Warden_Gunmetal",
+   "M_Warden_Graphite",
+   "M_Warden_Rubber"
+  ]
+ },
+ "warden_default.glb:WARDEN_StockStandard_CheekRiser": {
+  "tris": 432,
+  "boundary": 0,
+  "nonmanifold": 0,
+  "zero_area": 0,
+  "materials": [
+   "M_Warden_Graphite",
+   "M_Warden_Gunmetal"
+  ]
+ },
+ "warden_default.glb:WARDEN_StockStandard_Monopod": {
+  "tris": 200,
+  "boundary": 0,
+  "nonmanifold": 0,
+  "zero_area": 0,
+  "materials": [
+   "M_Warden_Gunmetal"
+  ]
+ },
+ "warden_default.glb:WARDEN_Trigger": {
+  "tris": 92,
+  "boundary": 0,
+  "nonmanifold": 0,
+  "zero_area": 0,
+  "materials": [
+   "M_Warden_Gunmetal"
+  ]
+ },
+ "warden_default.glb:WARDEN_TriggerGuard": {
+  "tris": 408,
+  "boundary": 0,
+  "nonmanifold": 0,
+  "zero_area": 0,
+  "materials": [
+   "M_Warden_Graphite"
+  ]
+ },
+ "WARDEN_stock_standard.glb:WARDEN_StockStandard": {
+  "tris": 3324,
+  "boundary": 0,
+  "nonmanifold": 0,
+  "zero_area": 0,
+  "materials": [
+   "M_Warden_Sand",
+   "M_Warden_Gunmetal",
+   "M_Warden_Graphite",
+   "M_Warden_Rubber"
+  ]
+ },
+ "WARDEN_stock_standard.glb:WARDEN_StockStandard_CheekRiser": {
+  "tris": 432,
+  "boundary": 0,
+  "nonmanifold": 0,
+  "zero_area": 0,
+  "materials": [
+   "M_Warden_Graphite",
+   "M_Warden_Gunmetal"
+  ]
+ },
+ "WARDEN_stock_standard.glb:WARDEN_StockStandard_Monopod": {
+  "tris": 200,
+  "boundary": 0,
+  "nonmanifold": 0,
+  "zero_area": 0,
+  "materials": [
+   "M_Warden_Gunmetal"
+  ]
+ },
+ "WARDEN_stock_folding.glb:WARDEN_StockFolding": {
+  "tris": 768,
+  "boundary": 0,
+  "nonmanifold": 0,
+  "zero_area": 0,
+  "materials": [
+   "M_Warden_Graphite",
+   "M_Warden_Gunmetal"
+  ]
+ },
+ "WARDEN_stock_folding.glb:WARDEN_StockFolding_Arm": {
+  "tris": 2190,
+  "boundary": 0,
+  "nonmanifold": 0,
+  "zero_area": 0,
+  "materials": [
+   "M_Warden_Sand",
+   "M_Warden_Rubber",
+   "M_Warden_Gunmetal",
+   "M_Warden_Graphite"
+  ]
+ },
+ "WARDEN_mag_5.glb:WARDEN_Mag5": {
+  "tris": 924,
+  "boundary": 0,
+  "nonmanifold": 0,
+  "zero_area": 0,
+  "materials": [
+   "M_Warden_Graphite"
+  ]
+ },
+ "WARDEN_mag_5.glb:WARDEN_Mag5_Follower": {
+  "tris": 52,
+  "boundary": 0,
+  "nonmanifold": 0,
+  "zero_area": 0,
+  "materials": [
+   "M_Warden_Graphite"
+  ]
+ },
+ "WARDEN_mag_5.glb:WARDEN_Mag5_Round": {
+  "tris": 384,
+  "boundary": 0,
+  "nonmanifold": 0,
+  "zero_area": 0,
+  "materials": [
+   "M_Warden_Gunmetal",
+   "M_Warden_Cartridge"
+  ]
+ },
+ "WARDEN_mag_5.glb:WARDEN_Mag5_Round_02": {
+  "tris": 112,
+  "boundary": 0,
+  "nonmanifold": 0,
+  "zero_area": 0,
+  "materials": [
+   "M_Warden_Gunmetal",
+   "M_Warden_Cartridge"
+  ]
+ },
+ "WARDEN_mag_5.glb:WARDEN_Mag5_Round_03": {
+  "tris": 112,
+  "boundary": 0,
+  "nonmanifold": 0,
+  "zero_area": 0,
+  "materials": [
+   "M_Warden_Gunmetal",
+   "M_Warden_Cartridge"
+  ]
+ },
+ "WARDEN_mag_5.glb:WARDEN_Mag5_Round_04": {
+  "tris": 112,
+  "boundary": 0,
+  "nonmanifold": 0,
+  "zero_area": 0,
+  "materials": [
+   "M_Warden_Gunmetal",
+   "M_Warden_Cartridge"
+  ]
+ },
+ "WARDEN_mag_5.glb:WARDEN_Mag5_Round_05": {
+  "tris": 112,
+  "boundary": 0,
+  "nonmanifold": 0,
+  "zero_area": 0,
+  "materials": [
+   "M_Warden_Gunmetal",
+   "M_Warden_Cartridge"
+  ]
+ },
+ "WARDEN_mag_8.glb:WARDEN_Mag8": {
+  "tris": 924,
+  "boundary": 0,
+  "nonmanifold": 0,
+  "zero_area": 0,
+  "materials": [
+   "M_Warden_Graphite"
+  ]
+ },
+ "WARDEN_mag_8.glb:WARDEN_Mag8_Follower": {
+  "tris": 52,
+  "boundary": 0,
+  "nonmanifold": 0,
+  "zero_area": 0,
+  "materials": [
+   "M_Warden_Graphite"
+  ]
+ },
+ "WARDEN_mag_8.glb:WARDEN_Mag8_Round": {
+  "tris": 384,
+  "boundary": 0,
+  "nonmanifold": 0,
+  "zero_area": 0,
+  "materials": [
+   "M_Warden_Gunmetal",
+   "M_Warden_Cartridge"
+  ]
+ },
+ "WARDEN_mag_8.glb:WARDEN_Mag8_Round_02": {
+  "tris": 112,
+  "boundary": 0,
+  "nonmanifold": 0,
+  "zero_area": 0,
+  "materials": [
+   "M_Warden_Gunmetal",
+   "M_Warden_Cartridge"
+  ]
+ },
+ "WARDEN_mag_8.glb:WARDEN_Mag8_Round_03": {
+  "tris": 112,
+  "boundary": 0,
+  "nonmanifold": 0,
+  "zero_area": 0,
+  "materials": [
+   "M_Warden_Gunmetal",
+   "M_Warden_Cartridge"
+  ]
+ },
+ "WARDEN_mag_8.glb:WARDEN_Mag8_Round_04": {
+  "tris": 112,
+  "boundary": 0,
+  "nonmanifold": 0,
+  "zero_area": 0,
+  "materials": [
+   "M_Warden_Gunmetal",
+   "M_Warden_Cartridge"
+  ]
+ },
+ "WARDEN_mag_8.glb:WARDEN_Mag8_Round_05": {
+  "tris": 112,
+  "boundary": 0,
+  "nonmanifold": 0,
+  "zero_area": 0,
+  "materials": [
+   "M_Warden_Gunmetal",
+   "M_Warden_Cartridge"
+  ]
+ },
+ "WARDEN_mag_8.glb:WARDEN_Mag8_Round_06": {
+  "tris": 112,
+  "boundary": 0,
+  "nonmanifold": 0,
+  "zero_area": 0,
+  "materials": [
+   "M_Warden_Gunmetal",
+   "M_Warden_Cartridge"
+  ]
+ },
+ "WARDEN_mag_8.glb:WARDEN_Mag8_Round_07": {
+  "tris": 112,
+  "boundary": 0,
+  "nonmanifold": 0,
+  "zero_area": 0,
+  "materials": [
+   "M_Warden_Gunmetal",
+   "M_Warden_Cartridge"
+  ]
+ },
+ "WARDEN_mag_8.glb:WARDEN_Mag8_Round_08": {
+  "tris": 112,
+  "boundary": 0,
+  "nonmanifold": 0,
+  "zero_area": 0,
+  "materials": [
+   "M_Warden_Gunmetal",
+   "M_Warden_Cartridge"
+  ]
+ }
+}

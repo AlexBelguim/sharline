@@ -1,0 +1,979 @@
+{
+ "MAKO_mag_30.glb": {
+  "bytes": 592276,
+  "nodes": 3,
+  "meshes": 3,
+  "materials": [
+   {
+    "name": "M_MAKO_Brass",
+    "baseColorFactor": [
+     0.36000001430511475,
+     0.2800000011920929,
+     0.18000000715255737,
+     1
+    ],
+    "baseColorTexture": false,
+    "metal": 0.8500000238418579,
+    "rough": 0.3499999940395355,
+    "emissive": null,
+    "doubleSided": false,
+    "ext": []
+   },
+   {
+    "name": "M_MAKO_Gunmetal",
+    "baseColorFactor": null,
+    "baseColorTexture": true,
+    "metal": 0.8500000238418579,
+    "rough": 0.3499999940395355,
+    "emissive": null,
+    "doubleSided": false,
+    "ext": []
+   },
+   {
+    "name": "M_MAKO_Bone",
+    "baseColorFactor": null,
+    "baseColorTexture": true,
+    "metal": 0,
+    "rough": 0.6000000238418579,
+    "emissive": null,
+    "doubleSided": false,
+    "ext": []
+   },
+   {
+    "name": "M_MAKO_Graphite",
+    "baseColorFactor": null,
+    "baseColorTexture": true,
+    "metal": 0.20000000298023224,
+    "rough": 0.550000011920929,
+    "emissive": null,
+    "doubleSided": false,
+    "ext": []
+   },
+   {
+    "name": "M_MAKO_Dark",
+    "baseColorFactor": [
+     0.03500000014901161,
+     0.03700000047683716,
+     0.04500000178813934,
+     1
+    ],
+    "baseColorTexture": false,
+    "metal": 0,
+    "rough": 0.699999988079071,
+    "emissive": null,
+    "doubleSided": false,
+    "ext": []
+   }
+  ],
+  "images": [
+   {
+    "name": "M_MAKO_Gunmetal",
+    "embedded": true,
+    "mime": "image/png"
+   },
+   {
+    "name": "M_MAKO_Bone",
+    "embedded": true,
+    "mime": "image/png"
+   },
+   {
+    "name": "M_MAKO_Graphite",
+    "embedded": true,
+    "mime": "image/png"
+   }
+  ],
+  "issues": [],
+  "tris": 1816,
+  "primitives": 6,
+  "prims_without_material": 0,
+  "prims_without_uv": 0,
+  "prims_without_normal": 0,
+  "extensionsUsed": [],
+  "node_names": [
+   "MAKO_mag_30",
+   "MAKO_mag_30_Round",
+   "MAKO_mag_30_Stack"
+  ],
+  "roots": [
+   "MAKO_mag_30"
+  ],
+  "sockets": {},
+  "extras_nodes": {},
+  "helper_nodes": []
+ },
+ "MAKO_mag_45.glb": {
+  "bytes": 609732,
+  "nodes": 3,
+  "meshes": 3,
+  "materials": [
+   {
+    "name": "M_MAKO_Brass",
+    "baseColorFactor": [
+     0.36000001430511475,
+     0.2800000011920929,
+     0.18000000715255737,
+     1
+    ],
+    "baseColorTexture": false,
+    "metal": 0.8500000238418579,
+    "rough": 0.3499999940395355,
+    "emissive": null,
+    "doubleSided": false,
+    "ext": []
+   },
+   {
+    "name": "M_MAKO_Gunmetal",
+    "baseColorFactor": null,
+    "baseColorTexture": true,
+    "metal": 0.8500000238418579,
+    "rough": 0.3499999940395355,
+    "emissive": null,
+    "doubleSided": false,
+    "ext": []
+   },
+   {
+    "name": "M_MAKO_Bone",
+    "baseColorFactor": null,
+    "baseColorTexture": true,
+    "metal": 0,
+    "rough": 0.6000000238418579,
+    "emissive": null,
+    "doubleSided": false,
+    "ext": []
+   },
+   {
+    "name": "M_MAKO_Graphite",
+    "baseColorFactor": null,
+    "baseColorTexture": true,
+    "metal": 0.20000000298023224,
+    "rough": 0.550000011920929,
+    "emissive": null,
+    "doubleSided": false,
+    "ext": []
+   },
+   {
+    "name": "M_MAKO_Dark",
+    "baseColorFactor": [
+     0.03500000014901161,
+     0.03700000047683716,
+     0.04500000178813934,
+     1
+    ],
+    "baseColorTexture": false,
+    "metal": 0,
+    "rough": 0.699999988079071,
+    "emissive": null,
+    "doubleSided": false,
+    "ext": []
+   }
+  ],
+  "images": [
+   {
+    "name": "M_MAKO_Gunmetal",
+    "embedded": true,
+    "mime": "image/png"
+   },
+   {
+    "name": "M_MAKO_Bone",
+    "embedded": true,
+    "mime": "image/png"
+   },
+   {
+    "name": "M_MAKO_Graphite",
+    "embedded": true,
+    "mime": "image/png"
+   }
+  ],
+  "issues": [],
+  "tris": 2148,
+  "primitives": 6,
+  "prims_without_material": 0,
+  "prims_without_uv": 0,
+  "prims_without_normal": 0,
+  "extensionsUsed": [],
+  "node_names": [
+   "MAKO_mag_45",
+   "MAKO_mag_45_Round",
+   "MAKO_mag_45_Stack"
+  ],
+  "roots": [
+   "MAKO_mag_45"
+  ],
+  "sockets": {},
+  "extras_nodes": {},
+  "helper_nodes": []
+ },
+ "MAKO_mag_drum60.glb": {
+  "bytes": 707808,
+  "nodes": 3,
+  "meshes": 3,
+  "materials": [
+   {
+    "name": "M_MAKO_Brass",
+    "baseColorFactor": [
+     0.36000001430511475,
+     0.2800000011920929,
+     0.18000000715255737,
+     1
+    ],
+    "baseColorTexture": false,
+    "metal": 0.8500000238418579,
+    "rough": 0.3499999940395355,
+    "emissive": null,
+    "doubleSided": false,
+    "ext": []
+   },
+   {
+    "name": "M_MAKO_Gunmetal",
+    "baseColorFactor": null,
+    "baseColorTexture": true,
+    "metal": 0.8500000238418579,
+    "rough": 0.3499999940395355,
+    "emissive": null,
+    "doubleSided": false,
+    "ext": []
+   },
+   {
+    "name": "M_MAKO_Bone",
+    "baseColorFactor": null,
+    "baseColorTexture": true,
+    "metal": 0,
+    "rough": 0.6000000238418579,
+    "emissive": null,
+    "doubleSided": false,
+    "ext": []
+   },
+   {
+    "name": "M_MAKO_Dark",
+    "baseColorFactor": [
+     0.03500000014901161,
+     0.03700000047683716,
+     0.04500000178813934,
+     1
+    ],
+    "baseColorTexture": false,
+    "metal": 0,
+    "rough": 0.699999988079071,
+    "emissive": null,
+    "doubleSided": false,
+    "ext": []
+   },
+   {
+    "name": "M_MAKO_Graphite",
+    "baseColorFactor": null,
+    "baseColorTexture": true,
+    "metal": 0.20000000298023224,
+    "rough": 0.550000011920929,
+    "emissive": null,
+    "doubleSided": false,
+    "ext": []
+   }
+  ],
+  "images": [
+   {
+    "name": "M_MAKO_Gunmetal",
+    "embedded": true,
+    "mime": "image/png"
+   },
+   {
+    "name": "M_MAKO_Bone",
+    "embedded": true,
+    "mime": "image/png"
+   },
+   {
+    "name": "M_MAKO_Graphite",
+    "embedded": true,
+    "mime": "image/png"
+   }
+  ],
+  "issues": [],
+  "tris": 4938,
+  "primitives": 8,
+  "prims_without_material": 0,
+  "prims_without_uv": 0,
+  "prims_without_normal": 0,
+  "extensionsUsed": [],
+  "node_names": [
+   "MAKO_mag_drum60",
+   "MAKO_mag_drum60_Round",
+   "MAKO_mag_drum60_Stack"
+  ],
+  "roots": [
+   "MAKO_mag_drum60"
+  ],
+  "sockets": {},
+  "extras_nodes": {},
+  "helper_nodes": []
+ },
+ "MAKO_stock_light.glb": {
+  "bytes": 380584,
+  "nodes": 3,
+  "meshes": 3,
+  "materials": [
+   {
+    "name": "M_MAKO_Rubber",
+    "baseColorFactor": [
+     0.029999999329447746,
+     0.032999999821186066,
+     0.03999999910593033,
+     1
+    ],
+    "baseColorTexture": false,
+    "metal": 0,
+    "rough": 0.8500000238418579,
+    "emissive": null,
+    "doubleSided": false,
+    "ext": []
+   },
+   {
+    "name": "M_MAKO_Graphite",
+    "baseColorFactor": null,
+    "baseColorTexture": true,
+    "metal": 0.20000000298023224,
+    "rough": 0.550000011920929,
+    "emissive": null,
+    "doubleSided": false,
+    "ext": []
+   },
+   {
+    "name": "M_MAKO_Bone",
+    "baseColorFactor": null,
+    "baseColorTexture": true,
+    "metal": 0,
+    "rough": 0.6000000238418579,
+    "emissive": null,
+    "doubleSided": false,
+    "ext": []
+   },
+   {
+    "name": "M_MAKO_Dark",
+    "baseColorFactor": [
+     0.03500000014901161,
+     0.03700000047683716,
+     0.04500000178813934,
+     1
+    ],
+    "baseColorTexture": false,
+    "metal": 0,
+    "rough": 0.699999988079071,
+    "emissive": null,
+    "doubleSided": false,
+    "ext": []
+   }
+  ],
+  "images": [
+   {
+    "name": "M_MAKO_Graphite",
+    "embedded": true,
+    "mime": "image/png"
+   },
+   {
+    "name": "M_MAKO_Bone",
+    "embedded": true,
+    "mime": "image/png"
+   }
+  ],
+  "issues": [],
+  "tris": 1542,
+  "primitives": 4,
+  "prims_without_material": 0,
+  "prims_without_uv": 0,
+  "prims_without_normal": 0,
+  "extensionsUsed": [],
+  "node_names": [
+   "MAKO_stock_light",
+   "MAKO_stock_light_ButtPad",
+   "MAKO_stock_light_Lever"
+  ],
+  "roots": [
+   "MAKO_stock_light"
+  ],
+  "sockets": {},
+  "extras_nodes": {},
+  "helper_nodes": []
+ },
+ "MAKO_stock_precision.glb": {
+  "bytes": 485592,
+  "nodes": 4,
+  "meshes": 4,
+  "materials": [
+   {
+    "name": "M_MAKO_Rubber",
+    "baseColorFactor": [
+     0.029999999329447746,
+     0.032999999821186066,
+     0.03999999910593033,
+     1
+    ],
+    "baseColorTexture": false,
+    "metal": 0,
+    "rough": 0.8500000238418579,
+    "emissive": null,
+    "doubleSided": false,
+    "ext": []
+   },
+   {
+    "name": "M_MAKO_Bone",
+    "baseColorFactor": null,
+    "baseColorTexture": true,
+    "metal": 0,
+    "rough": 0.6000000238418579,
+    "emissive": null,
+    "doubleSided": false,
+    "ext": []
+   },
+   {
+    "name": "M_MAKO_Gunmetal",
+    "baseColorFactor": null,
+    "baseColorTexture": true,
+    "metal": 0.8500000238418579,
+    "rough": 0.3499999940395355,
+    "emissive": null,
+    "doubleSided": false,
+    "ext": []
+   },
+   {
+    "name": "M_MAKO_Dark",
+    "baseColorFactor": [
+     0.03500000014901161,
+     0.03700000047683716,
+     0.04500000178813934,
+     1
+    ],
+    "baseColorTexture": false,
+    "metal": 0,
+    "rough": 0.699999988079071,
+    "emissive": null,
+    "doubleSided": false,
+    "ext": []
+   }
+  ],
+  "images": [
+   {
+    "name": "M_MAKO_Bone",
+    "embedded": true,
+    "mime": "image/png"
+   },
+   {
+    "name": "M_MAKO_Gunmetal",
+    "embedded": true,
+    "mime": "image/png"
+   }
+  ],
+  "issues": [],
+  "tris": 3516,
+  "primitives": 5,
+  "prims_without_material": 0,
+  "prims_without_uv": 0,
+  "prims_without_normal": 0,
+  "extensionsUsed": [],
+  "node_names": [
+   "MAKO_stock_precision",
+   "MAKO_stock_precision_ButtPad",
+   "MAKO_stock_precision_Cheek",
+   "MAKO_stock_precision_Posts"
+  ],
+  "roots": [
+   "MAKO_stock_precision"
+  ],
+  "sockets": {},
+  "extras_nodes": {},
+  "helper_nodes": []
+ },
+ "MAKO_stock_standard.glb": {
+  "bytes": 590928,
+  "nodes": 4,
+  "meshes": 4,
+  "materials": [
+   {
+    "name": "M_MAKO_Rubber",
+    "baseColorFactor": [
+     0.029999999329447746,
+     0.032999999821186066,
+     0.03999999910593033,
+     1
+    ],
+    "baseColorTexture": false,
+    "metal": 0,
+    "rough": 0.8500000238418579,
+    "emissive": null,
+    "doubleSided": false,
+    "ext": []
+   },
+   {
+    "name": "M_MAKO_Graphite",
+    "baseColorFactor": null,
+    "baseColorTexture": true,
+    "metal": 0.20000000298023224,
+    "rough": 0.550000011920929,
+    "emissive": null,
+    "doubleSided": false,
+    "ext": []
+   },
+   {
+    "name": "M_MAKO_Gunmetal",
+    "baseColorFactor": null,
+    "baseColorTexture": true,
+    "metal": 0.8500000238418579,
+    "rough": 0.3499999940395355,
+    "emissive": null,
+    "doubleSided": false,
+    "ext": []
+   },
+   {
+    "name": "M_MAKO_Bone",
+    "baseColorFactor": null,
+    "baseColorTexture": true,
+    "metal": 0,
+    "rough": 0.6000000238418579,
+    "emissive": null,
+    "doubleSided": false,
+    "ext": []
+   },
+   {
+    "name": "M_MAKO_Dark",
+    "baseColorFactor": [
+     0.03500000014901161,
+     0.03700000047683716,
+     0.04500000178813934,
+     1
+    ],
+    "baseColorTexture": false,
+    "metal": 0,
+    "rough": 0.699999988079071,
+    "emissive": null,
+    "doubleSided": false,
+    "ext": []
+   }
+  ],
+  "images": [
+   {
+    "name": "M_MAKO_Graphite",
+    "embedded": true,
+    "mime": "image/png"
+   },
+   {
+    "name": "M_MAKO_Gunmetal",
+    "embedded": true,
+    "mime": "image/png"
+   },
+   {
+    "name": "M_MAKO_Bone",
+    "embedded": true,
+    "mime": "image/png"
+   }
+  ],
+  "issues": [],
+  "tris": 2000,
+  "primitives": 5,
+  "prims_without_material": 0,
+  "prims_without_uv": 0,
+  "prims_without_normal": 0,
+  "extensionsUsed": [],
+  "node_names": [
+   "MAKO_stock_standard",
+   "MAKO_stock_standard_ButtPad",
+   "MAKO_stock_standard_Lever",
+   "MAKO_stock_standard_Sling"
+  ],
+  "roots": [
+   "MAKO_stock_standard"
+  ],
+  "sockets": {},
+  "extras_nodes": {},
+  "helper_nodes": []
+ },
+ "mako_base.glb": {
+  "bytes": 1567404,
+  "nodes": 29,
+  "meshes": 19,
+  "materials": [
+   {
+    "name": "M_MAKO_Gunmetal",
+    "baseColorFactor": null,
+    "baseColorTexture": true,
+    "metal": 0.8500000238418579,
+    "rough": 0.3499999940395355,
+    "emissive": null,
+    "doubleSided": false,
+    "ext": []
+   },
+   {
+    "name": "M_MAKO_Graphite",
+    "baseColorFactor": null,
+    "baseColorTexture": true,
+    "metal": 0.20000000298023224,
+    "rough": 0.550000011920929,
+    "emissive": null,
+    "doubleSided": false,
+    "ext": []
+   },
+   {
+    "name": "M_MAKO_Dark",
+    "baseColorFactor": [
+     0.03500000014901161,
+     0.03700000047683716,
+     0.04500000178813934,
+     1
+    ],
+    "baseColorTexture": false,
+    "metal": 0,
+    "rough": 0.699999988079071,
+    "emissive": null,
+    "doubleSided": false,
+    "ext": []
+   },
+   {
+    "name": "M_MAKO_Bone",
+    "baseColorFactor": null,
+    "baseColorTexture": true,
+    "metal": 0,
+    "rough": 0.6000000238418579,
+    "emissive": null,
+    "doubleSided": false,
+    "ext": []
+   },
+   {
+    "name": "M_MAKO_BoneStipple",
+    "baseColorFactor": null,
+    "baseColorTexture": true,
+    "metal": 0,
+    "rough": 0.800000011920929,
+    "emissive": null,
+    "doubleSided": false,
+    "ext": []
+   }
+  ],
+  "images": [
+   {
+    "name": "M_MAKO_Gunmetal",
+    "embedded": true,
+    "mime": "image/png"
+   },
+   {
+    "name": "M_MAKO_Graphite",
+    "embedded": true,
+    "mime": "image/png"
+   },
+   {
+    "name": "M_MAKO_Bone",
+    "embedded": true,
+    "mime": "image/png"
+   },
+   {
+    "name": "M_MAKO_BoneStipple",
+    "embedded": true,
+    "mime": "image/png"
+   }
+  ],
+  "issues": [
+   "MAKO_SOCKET_LeftHand glb [0.0, -0.33, 0.0155] != sockets.json [0.0, -0.33, 0.0075] (d 8.0 mm)",
+   "MAKO_SOCKET_Under glb [0.0, -0.335, 0.0155] != sockets.json [0.0, -0.335, 0.0075] (d 8.0 mm)"
+  ],
+  "tris": 17182,
+  "primitives": 26,
+  "prims_without_material": 0,
+  "prims_without_uv": 0,
+  "prims_without_normal": 0,
+  "extensionsUsed": [],
+  "node_names": [
+   "MAKO_Barrel",
+   "MAKO_BoltCatch",
+   "MAKO_BufferTube",
+   "MAKO_ChargingHandle",
+   "MAKO_DustCover",
+   "MAKO_FlashHider",
+   "MAKO_ForwardAssist",
+   "MAKO_Grip",
+   "MAKO_Handguard",
+   "MAKO_Lower",
+   "MAKO_MagRelease",
+   "MAKO_Pins",
+   "MAKO_Rail",
+   "MAKO_RailBottom",
+   "MAKO_RailSide_L",
+   "MAKO_RailSide_R",
+   "MAKO_Root",
+   "MAKO_SOCKET_LeftHand",
+   "MAKO_SOCKET_Mag",
+   "MAKO_SOCKET_Muzzle",
+   "MAKO_SOCKET_Optic",
+   "MAKO_SOCKET_Shield",
+   "MAKO_SOCKET_Side_L",
+   "MAKO_SOCKET_Side_R",
+   "MAKO_SOCKET_Stock",
+   "MAKO_SOCKET_Under",
+   "MAKO_Selector",
+   "MAKO_Trigger",
+   "MAKO_Upper"
+  ],
+  "roots": [
+   "MAKO_Root"
+  ],
+  "sockets": {
+   "MAKO_SOCKET_LeftHand": [
+    0.0,
+    -0.33,
+    0.0155
+   ],
+   "MAKO_SOCKET_Mag": [
+    0.0,
+    -0.152,
+    0.012
+   ],
+   "MAKO_SOCKET_Muzzle": [
+    0.0,
+    -0.565,
+    0.05
+   ],
+   "MAKO_SOCKET_Optic": [
+    0.0,
+    -0.0855,
+    0.084
+   ],
+   "MAKO_SOCKET_Shield": [
+    0.0,
+    -0.4755,
+    0.084
+   ],
+   "MAKO_SOCKET_Side_L": [
+    0.0325,
+    -0.449,
+    0.05
+   ],
+   "MAKO_SOCKET_Side_R": [
+    -0.0325,
+    -0.449,
+    0.05
+   ],
+   "MAKO_SOCKET_Stock": [
+    0.0,
+    0.215,
+    0.05
+   ],
+   "MAKO_SOCKET_Under": [
+    0.0,
+    -0.335,
+    0.0155
+   ]
+  },
+  "extras_nodes": {},
+  "helper_nodes": []
+ },
+ "mako_default.glb": {
+  "bytes": 1728212,
+  "nodes": 36,
+  "meshes": 26,
+  "materials": [
+   {
+    "name": "M_MAKO_Brass",
+    "baseColorFactor": [
+     0.36000001430511475,
+     0.2800000011920929,
+     0.18000000715255737,
+     1
+    ],
+    "baseColorTexture": false,
+    "metal": 0.8500000238418579,
+    "rough": 0.3499999940395355,
+    "emissive": null,
+    "doubleSided": false,
+    "ext": []
+   },
+   {
+    "name": "M_MAKO_Gunmetal",
+    "baseColorFactor": null,
+    "baseColorTexture": true,
+    "metal": 0.8500000238418579,
+    "rough": 0.3499999940395355,
+    "emissive": null,
+    "doubleSided": false,
+    "ext": []
+   },
+   {
+    "name": "M_MAKO_Bone",
+    "baseColorFactor": null,
+    "baseColorTexture": true,
+    "metal": 0,
+    "rough": 0.6000000238418579,
+    "emissive": null,
+    "doubleSided": false,
+    "ext": []
+   },
+   {
+    "name": "M_MAKO_Graphite",
+    "baseColorFactor": null,
+    "baseColorTexture": true,
+    "metal": 0.20000000298023224,
+    "rough": 0.550000011920929,
+    "emissive": null,
+    "doubleSided": false,
+    "ext": []
+   },
+   {
+    "name": "M_MAKO_Dark",
+    "baseColorFactor": [
+     0.03500000014901161,
+     0.03700000047683716,
+     0.04500000178813934,
+     1
+    ],
+    "baseColorTexture": false,
+    "metal": 0,
+    "rough": 0.699999988079071,
+    "emissive": null,
+    "doubleSided": false,
+    "ext": []
+   },
+   {
+    "name": "M_MAKO_BoneStipple",
+    "baseColorFactor": null,
+    "baseColorTexture": true,
+    "metal": 0,
+    "rough": 0.800000011920929,
+    "emissive": null,
+    "doubleSided": false,
+    "ext": []
+   },
+   {
+    "name": "M_MAKO_Rubber",
+    "baseColorFactor": [
+     0.029999999329447746,
+     0.032999999821186066,
+     0.03999999910593033,
+     1
+    ],
+    "baseColorTexture": false,
+    "metal": 0,
+    "rough": 0.8500000238418579,
+    "emissive": null,
+    "doubleSided": false,
+    "ext": []
+   }
+  ],
+  "images": [
+   {
+    "name": "M_MAKO_Gunmetal",
+    "embedded": true,
+    "mime": "image/png"
+   },
+   {
+    "name": "M_MAKO_Bone",
+    "embedded": true,
+    "mime": "image/png"
+   },
+   {
+    "name": "M_MAKO_Graphite",
+    "embedded": true,
+    "mime": "image/png"
+   },
+   {
+    "name": "M_MAKO_BoneStipple",
+    "embedded": true,
+    "mime": "image/png"
+   }
+  ],
+  "issues": [
+   "MAKO_SOCKET_LeftHand glb [0.0, -0.33, 0.0155] != sockets.json [0.0, -0.33, 0.0075] (d 8.0 mm)",
+   "MAKO_SOCKET_Under glb [0.0, -0.335, 0.0155] != sockets.json [0.0, -0.335, 0.0075] (d 8.0 mm)"
+  ],
+  "tris": 20998,
+  "primitives": 37,
+  "prims_without_material": 0,
+  "prims_without_uv": 0,
+  "prims_without_normal": 0,
+  "extensionsUsed": [],
+  "node_names": [
+   "MAKO_Barrel",
+   "MAKO_BoltCatch",
+   "MAKO_BufferTube",
+   "MAKO_ChargingHandle",
+   "MAKO_DustCover",
+   "MAKO_FlashHider",
+   "MAKO_ForwardAssist",
+   "MAKO_Grip",
+   "MAKO_Handguard",
+   "MAKO_Lower",
+   "MAKO_MagRelease",
+   "MAKO_Pins",
+   "MAKO_Rail",
+   "MAKO_RailBottom",
+   "MAKO_RailSide_L",
+   "MAKO_RailSide_R",
+   "MAKO_Root",
+   "MAKO_SOCKET_LeftHand",
+   "MAKO_SOCKET_Mag",
+   "MAKO_SOCKET_Muzzle",
+   "MAKO_SOCKET_Optic",
+   "MAKO_SOCKET_Shield",
+   "MAKO_SOCKET_Side_L",
+   "MAKO_SOCKET_Side_R",
+   "MAKO_SOCKET_Stock",
+   "MAKO_SOCKET_Under",
+   "MAKO_Selector",
+   "MAKO_Trigger",
+   "MAKO_Upper",
+   "MAKO_mag_30",
+   "MAKO_mag_30_Round",
+   "MAKO_mag_30_Stack",
+   "MAKO_stock_standard",
+   "MAKO_stock_standard_ButtPad",
+   "MAKO_stock_standard_Lever",
+   "MAKO_stock_standard_Sling"
+  ],
+  "roots": [
+   "MAKO_mag_30",
+   "MAKO_Root",
+   "MAKO_stock_standard"
+  ],
+  "sockets": {
+   "MAKO_SOCKET_LeftHand": [
+    0.0,
+    -0.33,
+    0.0155
+   ],
+   "MAKO_SOCKET_Mag": [
+    0.0,
+    -0.152,
+    0.012
+   ],
+   "MAKO_SOCKET_Muzzle": [
+    0.0,
+    -0.565,
+    0.05
+   ],
+   "MAKO_SOCKET_Optic": [
+    0.0,
+    -0.0855,
+    0.084
+   ],
+   "MAKO_SOCKET_Shield": [
+    0.0,
+    -0.4755,
+    0.084
+   ],
+   "MAKO_SOCKET_Side_L": [
+    0.0325,
+    -0.449,
+    0.05
+   ],
+   "MAKO_SOCKET_Side_R": [
+    -0.0325,
+    -0.449,
+    0.05
+   ],
+   "MAKO_SOCKET_Stock": [
+    0.0,
+    0.215,
+    0.05
+   ],
+   "MAKO_SOCKET_Under": [
+    0.0,
+    -0.335,
+    0.0155
+   ]
+  },
+  "extras_nodes": {},
+  "helper_nodes": []
+ }
+}

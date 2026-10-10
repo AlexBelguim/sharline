@@ -1,0 +1,67 @@
+{
+ "asset": "ATT tactical / underbarrel / shield set (F:/git/val etf/assets/weapons/attachments/tactical/). This is review pass 2, run on the 09:44 exports. The UGL was rebuilt after review pass 1. Review files are in F:/git/val etf/assets/weapons/attachments/tactical/review/: review.json (this review), review_pass1.json (previous pass), and v2/ (scripts, JSON results, renders, sheet_v2_*.png).",
+ "scores": {
+  "silhouette": 7.5,
+  "style_consistency": 7.5,
+  "craftsmanship": 7,
+  "fidelity_to_brief_and_user_decisions": 7.5,
+  "game_readiness": 7
+ },
+ "issues": [
+  {
+   "severity": "major",
+   "issue": "The shield glass veils the scene behind it. Its base colour (0.24, 0.50, 0.85) at alpha 0.4 adds a bright lit layer, so in daylight targets seen through the viewport lose almost all contrast and colour. The viewport exists to be looked through, so this hurts gameplay readability. The effect comes from alpha-blending a lit, light-coloured surface, so it applies in Bevy as well as in Blender.",
+   "evidence": "review/v2/sheet_v2_glass_test.png and review/v2/renders/ads/eye_through_glass_no_optic_zoom40_eevee.png (sunlit EEVEE scene, eye at the holo ADS point). Through the glass a 2% black check renders as RGB(173,196,218) and a white check as (211,221,231), a contrast of about 1.15:1. An orange post renders as (209,207,217) through the glass and (223,169,128) through the open port.",
+   "fix": "In make_materials(), give M_ATT_ShieldGlass a dark blue tint, e.g. base (0.02, 0.045, 0.08), alpha 0.35\u20130.40, roughness 0.05\u20130.1. I tested this in a scratch scene: the black check renders (73,97,121), the white check (198,203,209), and the orange post stays orange (203,160,137). Then re-render the shield sight checks in a lit scene instead of the dark studio."
+  },
+  {
+   "severity": "major",
+   "issue": "The UGL deliverables are stale. The UGL was rebuilt at 09:44 (5822 tris, 0.286 m long, breech face at y 0, hinge at y \u22120.074, 20\u00b0 grip rake, ribs mid-tube). The renders, sheets and NOTES.md still show or describe the old UGL (5060 tris, 0.322 m, breech +0.021, hinge \u22120.080, 14\u00b0 rake, ribs at the front). Only two images of the current UGL exist, in _work/fix/it1.",
+   "evidence": "These all date from 09:06\u201309:08: renders/ugl_launcher/*.png, sheet_ugl_launcher.png, sheet_ugl_launcher_fit.png, sheet_compare.png, compare_ugl_launcher.png, sheet_overview.png and sheet_loadouts.png. ATT_ugl_launcher.glb is from 09:44. NOTES.md (08:53) has the old parts table and UGL section. renders/sheet_loadouts.png also has a layout fault: large empty bands with labels separated from their images.",
+   "fix": "Re-run render_tactical.py (sets alone, detail, fit, open, loadout) and make_sheets.py all. Regenerate compare_ugl_launcher.png against concepts/ugl_side_v01.png. Fix the sheet_loadouts layout. Update the NOTES.md parts table and UGL section from catalog.json."
+  },
+  {
+   "severity": "major",
+   "issue": "Fold-over triangles. After the booleans, n-gon triangulation left reverse-wound triangles lying on top of correctly wound ones, on the laser top face (both _R and _L) and on the UGL's +X receiver flank by the barrel latch. They show as black wedges in Cycles, including the builder's own deliverable render, and would z-fight in any double-sided viewer. The builder's inward-normal check did not catch them. In the engine they stay hidden only because back-face culling is on.",
+   "evidence": "renders/laser_R/laser_R_top.png (builder's render, large black diagonal wedge). review/v2/sheet_v2_foldover_tris.png compares Cycles with back-face-culled EEVEE. review/v2/v2_flip_scan.json: laser_R poly 353 (205 mm\u00b2), laser_L poly 357 (422 mm\u00b2), ATT_ugl_launcher polys 942/943 (466 mm\u00b2 at x +0.0315, y +0.03, z \u22120.04). review/v2/v2_dup_probe.json shows each of these is covered by correctly wound triangles in the same plane. The wireframe review/v2/renders/wire/ugl_wire_right.png shows a fan of sliver triangles at the latch. There are also zero-area triangles: UGL 3, grip_angled 3, grip_vertical 2, and 1 in each LegLower.",
+   "fix": "After L.cut on the laser body (the _gt groove) and on the UGL receiver (split line and latch), run bmesh dissolve_degenerate, then triangulate with BEAUTY for both quads and n-gons, or knife-split the n-gon before the bevel. Add a check to att_lib.check_mesh that fails any face whose winding differs from its corner normals by more than 120\u00b0, and that counts zero-area triangles. Re-export and re-render."
+  },
+  {
+   "severity": "major",
+   "issue": "The folded bipod pose is not usable. The 12\u00b0 outward splay is baked into the upper-leg mesh, and the engine's only control is a rotation about X. The folded legs therefore stay splayed, with the rubber feet 61 mm outside the Warden handguard on each side and hanging 63 mm below the rail. The Warden is carried folded most of the time, so this pose affects its silhouette.",
+   "evidence": "review/renders/bipod/warden_bipod_folded_from_below.png, review/renders/bipod/warden_bipod_folded_front.png and renders/bipod/bipod_folded_fit_right.png. In review/v2/v2_checks.json, the folded bipod spans x \u00b10.0991, the same as deployed; the Warden handguard spans x \u00b10.0385.",
+   "fix": "Build the leg straight and apply the splay as its own node rotation, either through an intermediate _LegSplay child or as a Y rotation of \u00b112\u00b0 on the Leg node. Export splay_deployed_deg 12 and splay_folded_deg 0. Fold to about \u221295\u00b0 so the legs tuck in parallel under the handguard, with the feet flat against them. Re-render the folded fit."
+  },
+  {
+   "severity": "minor",
+   "issue": "The optic sight line sits near the bottom of the glass. The ADS heights are 0.045\u20130.050 m above the rail and the glass spans 0.030\u20130.100 m, so when aiming the shooter sees only about 2.2\u00b0 below the aim point before the plate starts, against about 7.7\u00b0 above it. This follows the brief, but the aiming view is top-heavy.",
+   "evidence": "review/fbx_and_sight.json: clear vertical range holo \u22122.2\u00b0 to +7.7\u00b0, reddot \u22122.7\u00b0 to +7.2\u00b0, 3x \u22122.5\u00b0 to +6.0\u00b0. I re-read the ADS socket heights from the 09:39 optic exports and they are unchanged. See also review/v2/renders/ads/ads_holo_shield_game78_eevee.png.",
+   "fix": "Raise this with the user before changing anything, because the brief fixes the glass span. One option is to centre the window on about 0.055, e.g. glass z 0.015\u20130.095; there is 38 mm of plate between the glass and the port to allow this. The other is to keep the spec as written."
+  },
+  {
+   "severity": "minor",
+   "issue": "Cross-asset socket mismatch while the Mako is being reworked. ar7_mako/sockets.json (09:44) puts Under and LeftHand at z 0.0075, but the socket nodes in mako_default.glb (09:01) are still at z 0.0155. The tactical catalog.json test_sockets and the tactical.blend proxy follow sockets.json, so any fit made with them against the current gun glb floats 8 mm below the rail.",
+   "evidence": "review/v2/v2_checks.json, ugl_on_mako: UGL-to-handguard clearance is 1.2 mm using the glb node and 9.2 mm using sockets.json. The UGL clears everything at both heights: mag_30 29.6 / 27.4 mm, shield 17.6 / 19.8 mm.",
+   "fix": "No geometry change is needed. Once the Mako is re-exported, re-run build_tactical.py and the fit renders, and have the test fits read socket nodes from the gun glb, which is what the engine uses, instead of sockets.json."
+  },
+  {
+   "severity": "minor",
+   "issue": "Off-palette secondary hues. The laser's IR window (0.04, 0.01, 0.03 with clearcoat) reads as saturated plum next to the red emitter, giving the part two accents. M_ATT_BoneStipple reads brown-taupe on the grip ramps.",
+   "evidence": "renders/sheet_overview.png (laser_R and laser_L), review/renders/detail/grip_stub_under_back.png and review/renders/detail/grip_angled_under_back.png.",
+   "fix": "Make the IR window near-neutral dark glass, e.g. (0.015, 0.017, 0.022) with coat 1, so the red dot is the only accent. Move BoneStipple toward the bone hue, e.g. (0.47, 0.45, 0.40), and let the stipple texture provide the contrast."
+  },
+  {
+   "severity": "minor",
+   "issue": "The UGL tube is lathed with only 20 steps, so the muzzle ring and collar look visibly faceted in first-person close-ups. The UGL uses 5822 of its 6000-triangle budget.",
+   "evidence": "review/v2/renders/uglfit/kit_closed_front_low_left.png and review/v2/renders/uglfit/fp_inspect_left_ugl.png.",
+   "fix": "Use 28\u201332 steps for the tube front and muzzle collar. Pay for the extra triangles by dropping the 8-vertex screw heads to 6 vertices and removing bevel segments on ribs hidden under the band."
+  },
+  {
+   "severity": "minor",
+   "issue": "catalog.json disagrees with the game data. It lists the grips as compatible with both MAKO and WARDEN, but game/assets/data/attachments.ron gives grip_* fits only ar7_mako. The shared assets/weapons/attachments.json does not exist yet.",
+   "evidence": "catalog.json, parts[grip_*].compatible_weapons; game/assets/data/attachments.ron, under-rail entries.",
+   "fix": "Align compatible_weapons with the design data, or flag the difference to the design owner. Have the local session merge catalog.json into assets/weapons/attachments.json."
+  }
+ ],
+ "verdict": "Accept as a stylized prototype set after four fixes:\n1. Darken the shield glass tint (currently it leaves a target behind the glass at about 1.15:1 contrast in daylight).\n2. Regenerate the UGL renders, sheets and NOTES.md for the 09:44 rebuild.\n3. Clean the fold-over triangles on the laser top and the UGL flank.\n4. Give the bipod a clean folded pose with its own splay pivot.\n\nWhat I checked and found sound:\n- The rebuilt UGL now matches its concept and clears all three magazines (29\u201334 mm) and the shield (17.6 mm). Its breech swing is collision-free.\n- All parts are within budget, sockets and hinges follow the spec, and handedness and mirroring are correct. No ammo counters or stray emissives.\n- The GLB and FBX exports are valid, with embedded textures and extras.\n- A scratch-copy rebuild runs in about 5 s and reproduces the GLBs byte for byte."
+}

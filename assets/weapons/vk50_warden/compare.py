@@ -1,9 +1,10 @@
-"""Side-by-side / overlay comparison of the WARDEN build against the concept and the proportion sketch.
+"""Side-by-side / overlay comparison of the WARDEN build against concept_main.png (the proportion reference).
 
 Needs renders/warden_exact_side.png (1 px = 1 mm orthographic, transparent background, written by
 build_warden.py --render compare|quick|full). Run with the system python (PIL):
     python compare.py
-Writes renders/warden_compare.png, renders/warden_compare_overlay.png, renders/warden_silhouette.png and the
+Writes renders/warden_compare.png (concept, build, overlay, both outlines + IoU), renders/warden_compare_zoom.png
+(part-by-part 2 px/mm crops), renders/warden_compare_overlay.png, renders/warden_silhouette.png and the
 labelled contact sheets renders/warden_contact_sheet.png (assembled gun + close-ups) and
 renders/warden_contact_parts.png (stocks, magazines, base, alt loadout).
 
@@ -13,7 +14,7 @@ concept_main.png is drawn at ~1 px = 1 mm too: brake front at x=56, bore at y=25
 """
 import os
 
-from PIL import Image, ImageDraw, ImageFilter, ImageFont
+from PIL import Image, ImageDraw, ImageFilter, ImageFont  # numpy is used too
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 R = os.path.join(HERE, "renders")
@@ -55,30 +56,62 @@ def grid(im, color=(150, 150, 155), label=True):
     return im
 
 
+def concept_mask(cz):
+    """Trace the concept's gun silhouette (no scope, no bipod): everything clearly off the grey background, minus
+    the scope above the rail line over the receiver and the bipod under the handguard front."""
+    import numpy as np
+    a = np.asarray(cz).astype(np.int32)
+    H, W = a.shape[:2]
+    d = np.abs(a - a[5:40, 5:40].reshape(-1, 3).mean(0)).sum(2)
+    m = d > 40
+    yy, xx = np.mgrid[0:H, 0:W]
+    m &= ~((xx > PX(-0.47)) & (xx < PX(0.0)) & (yy < PZ(0.122)))      # scope + rings
+    m &= ~((xx > PX(-0.66)) & (xx < PX(-0.50)) & (yy > PZ(0.033)))     # bipod
+    m[:, :40] = False
+    return m
+
+
+def PX(y):
+    return int(round((y + 1.19) * 1000))
+
+
+def PZ(z):
+    return int(round((0.335 - z) * 1000))
+
+
+def edge_of(mask):
+    import numpy as np
+    im = Image.fromarray((mask * 255).astype(np.uint8))
+    return im.filter(ImageFilter.FIND_EDGES).filter(ImageFilter.MaxFilter(3))
+
+
 def main():
+    import numpy as np
     mine = Image.open(os.path.join(R, "warden_exact_side.png")).convert("RGBA")
     W, H = mine.size
     concept = Image.open(os.path.join(C, "concept_main.png")).convert("RGB")
     cz = Image.new("RGB", (W, H), (211, 211, 213))
     cz.paste(concept, (34, 0))
-    sketch = Image.open(os.path.join(C, "profile_sketch.png")).convert("RGB").crop((70, 33, 70 + W, 33 + H))
-
-    alpha = mine.split()[3].point(lambda v: 255 if v > 100 else 0)
-    edge = alpha.filter(ImageFilter.FIND_EDGES).filter(ImageFilter.MaxFilter(3))
+    bm = np.asarray(mine)[:, :, 3] > 100
+    cm = concept_mask(cz)
+    e_b, e_c = edge_of(bm), edge_of(cm)
     red = Image.new("RGB", (W, H), (235, 30, 40))
+    cyan = Image.new("RGB", (W, H), (0, 190, 215))
 
     mine_g = grid(on_bg(mine))
     ov_c = cz.copy()
-    ov_c.paste(red, mask=edge)
-    ov_s = sketch.copy()
-    ov_s.paste(red, mask=edge)
-    # translucent blend of the build over the concept
+    ov_c.paste(red, mask=e_b)
+    both = Image.new("RGB", (W, H), (250, 250, 250))
+    grid(both, (215, 215, 220))
+    both.paste(cyan, mask=e_c)
+    both.paste(red, mask=e_b)
+    iou = (cm & bm).sum() / max(1, (cm | bm).sum())
     blend = Image.blend(cz, on_bg(mine, (211, 211, 213)), 0.55)
 
-    rows = [("CONCEPT concept_main.png (style / colour reference, 1 px ~ 1 mm, aligned on brake front + bore)", cz),
+    rows = [("CONCEPT concept_main.png (THE proportion reference, DIRECTION_LOG 13; 1 px ~ 1 mm, aligned on brake front + bore)", cz),
             ("BUILD  exact orthographic left side (+X), 1 px = 1 mm (no scope / bipod: separate attachments)", mine_g),
             ("OVERLAY  build silhouette (red) on the concept", ov_c),
-            ("OVERLAY  build silhouette (red) on profile_sketch.png (BRIEF proportions proxy, incl. scope + bipod)", ov_s)]
+            (f"OUTLINES  concept traced without scope / bipod (cyan) vs build (red)   silhouette IoU {iou:.3f}", both)]
     lab = 30
     sheet = Image.new("RGB", (W, (H + lab) * len(rows)), (245, 245, 247))
     d = ImageDraw.Draw(sheet)
@@ -88,7 +121,7 @@ def main():
         sheet.paste(im, (0, y0 + lab))
     out = os.path.join(R, "warden_compare.png")
     sheet.save(out)
-    # side-by-side (build | concept) at half size for a quick look + blend
+    # blend + plain build
     sbs = Image.new("RGB", (W, H * 2 + 2 * lab), (245, 245, 247))
     d = ImageDraw.Draw(sbs)
     d.text((10, 6), "BLEND 55% build over concept", fill=(20, 20, 25), font=font(18))
@@ -96,8 +129,40 @@ def main():
     d.text((10, H + lab + 6), "BUILD (left side, +X)", fill=(20, 20, 25), font=font(18))
     sbs.paste(on_bg(mine), (0, H + 2 * lab))
     sbs.save(os.path.join(R, "warden_compare_overlay.png"))
-    print("wrote", out)
-
+    # zoomed part-by-part crops (2 px per mm): concept painting + both outlines
+    ov = np.asarray(cz).copy()
+    ov[np.asarray(e_c) > 0] = (0, 190, 215)
+    ov[np.asarray(e_b) > 0] = (235, 30, 40)
+    ovi = Image.fromarray(ov)
+    crops = [("muzzle brake + barrel", -1.12, -0.62), ("handguard, receiver, magazine", -0.72, -0.10),
+             ("grip, stock", -0.20, 0.34)]
+    tiles = []
+    for nm, y0, y1 in crops:
+        c = ovi.crop((PX(y0), PZ(0.16), PX(y1), PZ(-0.15)))
+        c = c.resize((c.width * 2, c.height * 2), Image.NEAREST)
+        dr = ImageDraw.Draw(c)
+        g = round(y0 + 0.05 - (y0 % 0.05), 2)
+        while g <= y1:
+            x = (PX(g) - PX(y0)) * 2
+            dr.line([(x, 0), (x, 10)], fill=(0, 0, 0))
+            dr.text((x + 2, 0), f"y{g:+.2f}", fill=(0, 0, 0), font=font(12))
+            g = round(g + 0.05, 2)
+        for gz in (-0.10, -0.05, 0.0, 0.05, 0.10, 0.15):
+            yv = (PZ(gz) - PZ(0.16)) * 2
+            dr.line([(0, yv), (10, yv)], fill=(0, 0, 0))
+            dr.text((12, yv - 7), f"z{gz:+.2f}", fill=(0, 0, 0), font=font(12))
+        tiles.append((nm, c))
+    Wz = max(t.width for _, t in tiles)
+    zs = Image.new("RGB", (Wz, sum(t.height + lab for _, t in tiles)), (245, 245, 247))
+    d = ImageDraw.Draw(zs)
+    y = 0
+    for nm, t in tiles:
+        d.text((10, y + 6), f"ZOOM 2 px/mm  {nm}: concept outline cyan, build outline red", fill=(20, 20, 25),
+               font=font(18))
+        zs.paste(t, (0, y + lab))
+        y += t.height + lab
+    zs.save(os.path.join(R, "warden_compare_zoom.png"))
+    print(f"wrote {out}  (silhouette IoU vs concept without scope / bipod: {iou:.3f})")
 
 
 def silhouettes():
@@ -171,6 +236,11 @@ def contact_sheets():
            ("close-up: receiver left", "warden_cu_receiver_left.png"),
            ("close-up: handguard underside, rails", "warden_cu_handguard_under.png"),
            ("close-up: magwell + mag seating", "warden_cu_magwell.png"),
+           ("close-up: handguard left (slots stay dark)", "warden_cu_handguard_left.png"),
+           ("close-up: stock left", "warden_cu_stock_left.png"),
+           ("stock underside: monopod foot flush (retracted)", "warden_cu_stock_under.png"),
+           ("monopod extended (optional, -0.105 m)", "warden_cu_monopod_extended.png"),
+           ("bright snow backdrop: no see-through slots", "warden_check_brightbg_left.png"),
            ("sockets (debug markers)", "warden_sockets_left.png")],
           "warden_contact_sheet.png", cols=4, tile=(640, 400),
           title="VK-50 WARDEN  default loadout (base + stock_standard + mag_5; optic + bipod are separate attachments)")

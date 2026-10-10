@@ -1,0 +1,73 @@
+{
+ "asset": "VK-50 \"WARDEN\" heavy bolt-action sniper, F:/git/val etf/assets/weapons/vk50_warden/. Round-2 independent review of the build exported at 09:37. Review files: F:/git/val etf/assets/weapons/vk50_warden/review/r2/ (REVIEW_r2.md, check_report.json, topology_report.json, glb_json_report.txt, scripts, renders/). All renders and checks used the exported glb/fbx files or the .blend opened read-only. Nothing in the asset was modified; the earlier review files in review/ were left in place.",
+ "scores": {
+  "silhouette": 7,
+  "style_consistency": 8,
+  "craftsmanship": 6.5,
+  "fidelity_to_brief_and_user_decisions": 8,
+  "game_readiness": 8
+ },
+ "issues": [
+  {
+   "severity": "major",
+   "issue": "Two of the three top vents on the +X side of the handguard top (y -0.535 and -0.470) were never cut through: the EXACT boolean only partly applied. They are shallow ghost pockets with smeared shading, plus a hairline crack beside the rail. The exported WARDEN_Handguard is not closed, despite NOTES.md saying every mesh is closed. All three -X vents are clean through-cuts. The same failure appears in a from-scratch rebuild, so it is a deterministic script bug (build_warden.py, around line 616).",
+   "evidence": "review/r2/renders/r2_cu_topvents_left_failed.png and r2_cu_handguard_top_ortho.png (the -X vents are clean in r2_cu_topvents_right_ok.png). After a 1e-6 positional weld, the glb handguard has 4 boundary and 6 non-manifold edges at (0.0175,-0.4375,0.128) and (0.0175,-0.5025,0.128), plus 7 zero-area triangles (topology_report.json, key glb:warden_default.glb:WARDEN_Handguard). r2_determinism.py shows the same 4 open edges in the rebuild.",
+   "fix": "Join the 6 '_st' vent cutters into one object and cut once, before the side-slot cuts, or nudge them off coincident planes (x \u00b10.0178, z 0.112-0.146). After cutting, ray-cast down through each vent centre and fail the build if the ray hits handguard geometry. Add an export gate: re-import every glb, weld at 1e-6, and assert 0 boundary edges and 0 zero-area faces per mesh."
+  },
+  {
+   "severity": "major",
+   "issue": "The upper side-slot row of the handguard is see-through. It sits above the barrel, so it shows the backdrop and reads as four bright pills on a gun that must have no emissive. Against the bright snowy-fjord range they look like glow strips. The concept paints both slot rows dark, and the holes also show up in the 64 px silhouette.",
+   "evidence": "The upper slot row spans z 0.0962-0.1107, but the barrel top is at z 0.098 (r 0.023 at z 0.075). See review/r2/renders/r2_cu_handguard_side_ortho_left.png and r2_side_left_skybg.png vs r2_side_left_darkbg.png. The builder's own renders/warden_right.png and warden_compare.png show white pills, against dark slots in concept_main.png.",
+   "fix": "Any one of: (a) add a dark inner heat-shield liner, a graphite plate at x \u00b10.0305 covering z 0.09-0.115 from y -0.60 to -0.34, behind the upper row; (b) lower the upper row to centre z \u2248 0.088 (slots 0.081-0.095) so the barrel occludes it; (c) make the upper row 3 mm blind pockets. Keep the two-row, four-column rhythm."
+  },
+  {
+   "severity": "major",
+   "issue": "The cheek riser is a 128 mm pad held by two thin posts only 18 mm apart at its very rear, so about 96 mm of it hangs unsupported. With the top beam dropped to z 0.045 to clear the bolt, the stock reads as a '\u0393' hook or diving board instead of the concept's continuous comb with a riser floating on two spread posts. That weakens BRIEF must-read #4 and looks structurally implausible. The builder's reason, clearing the 0.13 m bolt travel, is sound and the bolt path is verified clear.",
+   "evidence": "Measured on the glb (r2_riser_probe.py): riser pad y 0.162-0.290, z 0.124-0.146; posts \u00d8 9.6 mm centred at y 0.263 and 0.281. The BRIEF placed the posts at y 0.180 and 0.250. See review/r2/renders/r2_cu_stock_riser_right.png and r2_worst_rear_high_left.png, renders/warden_stock_standard_right.png, and the overlay in renders/warden_compare.png, where the build has a deep notch the concept does not.",
+   "fix": "Keep the bolt path clear and support the front of the riser outboard on the +X (cheek) side: add a post or angled web at x 0.026-0.034, y \u2248 0.17-0.19, from the beam (z 0.045) to the riser underside (0.124). It clears the shroud (|x|<0.024) and the -X handle path. Then spread the rear posts to about 40 mm. Alternatively, give the riser a tapered wedge underside so it reads as one solid cantilever. Re-run the bolt sweep in _wip/clearance.py afterwards."
+  },
+  {
+   "severity": "minor",
+   "issue": "In the first-person view the domed bolt-shroud end cap and the bolt knob read as two identical gunmetal balls side by side (both \u00d8 \u2248 48 mm). The knob is a dense smooth UV sphere, whereas BRIEF 4.1 asks for a faceted 8\u00d76 sphere or a hex knob and a shroud with a 0.004 rear chamfer.",
+   "evidence": "review/r2/renders/r2_loadout_fpv_hip.png, r2_worst_rear_low_right.png and r2_cu_receiver_rear_top.png. The knob alone has 370 vertices; the bolt is 1,252 tris against 0.8k in the BRIEF split.",
+   "fix": "Make the shroud rear a flat, chamfered cylinder end with a small cocking-indicator stub. Make the knob faceted (8 segments \u00d7 6 rings, flat-shaded) or a 6-sided hex knob with a 0.004 bevel. That leaves only one round shape in first person and saves about 350 tris."
+  },
+  {
+   "severity": "minor",
+   "issue": "The build is not deterministic. Two from-scratch rebuilds produced different WARDEN_Receiver geometry.",
+   "evidence": "Rebuild 1: receiver 1,824 tris, base 13,928. Rebuild 2: receiver 1,836, base 13,940, matching the shipped file. Both rebuilds used a copy of build_warden.py with OUT pointed at the scratchpad (review/r2/r2_determinism.py). Likely cause: seal() passes list({v for e in nm for v in e.verts}), whose order follows the BMVerts' id-based hashes, to remove_doubles.",
+   "fix": "Sort vertex and edge lists by index before every bmesh op (seal(), degen(), flat_big_faces()). Add a check that two consecutive builds produce identical per-mesh tri counts before export."
+  },
+  {
+   "severity": "minor",
+   "issue": "The glb exports contain zero-area and sliver triangles, and the flat faces are long boolean triangle fans. That is fragile for future normal maps, tangents and LODs.",
+   "evidence": "Zero-area triangles after a 1e-6 weld: Barrel 5, Handguard 7, StockStandard 9, StockFolding_Arm 20; the receiver also has 512 faces under 0.01 mm\u00b2 (review/r2/topology_report.json). Fans are visible in review/r2/renders/r2_wire_cu_receiver_right.png and r2_wire_cu_handguard_left.png.",
+   "fix": "Triangulate (beauty) in Blender before export, run bmesh dissolve_degenerate at 1e-6 after triangulating, and keep the re-import gate from the first issue so the exports ship with zero degenerate triangles."
+  },
+  {
+   "severity": "minor",
+   "issue": "Git case trap on the part files: git still tracks the old lowercase names, while the files on disk and NOTES.md use WARDEN_*. Because core.ignorecase=true, a plain 'git add' commits the new content under the lowercase paths, and Linux checkouts (the cloud game/ sessions) would not find WARDEN_stock_standard.glb and the others.",
+   "evidence": "git ls-files lists assets/weapons/vk50_warden/warden_stock_standard.glb, warden_mag_5.glb and so on; the files on disk are WARDEN_stock_standard.glb etc. core.ignorecase=true. NOTES.md records the problem but it is not fixed.",
+   "fix": "Before committing, run 'git mv -f warden_<part>.<ext> WARDEN_<part>.<ext>' for all 8 part files (4 parts \u00d7 .glb/.fbx), then check with 'git ls-files assets/weapons/vk50_warden | grep -i stock'."
+  },
+  {
+   "severity": "minor",
+   "issue": "The triangle budget for the full showcase set is over the BRIEF target. The gun alone (20.6k) is within 12-25k, but the BRIEF's 25k target covers base + stock + mag_5 + optic_sniper + bipod together, and the gun takes far more than its planned share of about 12.7k.",
+   "evidence": "Gun 20,596 + other agents' ATT_optic_sniper 4,728 + ATT_bipod 3,820 = about 29.1k (hard max 35k). Over the BRIEF 4.7 split: stock_standard 4.5k vs 2.5k, mag_5 2.2k vs 0.7k (about 960 tris are rounds, 3 of them hidden in the well when seated), brake + collar 2.2k vs 0.8k, handguard 3.3k vs 2.0k, chassis 1.5k vs 0.6k, bolt 1.25k vs 0.8k (review/r2/check_report.json).",
+   "fix": "Aim for 17k or less for the gun: faceted knob; simpler 6-8-sided rounds 2-5, or merge the rounds hidden in the well; fewer brake top-vent segments; trim hidden overlaps (barrel 39 mm inside the receiver, collar 16 mm over the barrel); fewer lathe steps on hidden parts."
+  },
+  {
+   "severity": "minor",
+   "issue": "With a full mag seated, the window still shows about 13 mm of background below the follower, so it reads as a hole in the mag foot.",
+   "evidence": "review/r2/renders/r2_side_left_skybg.png and the builder's renders/warden_right.png: below the magwell lip, the window shows round 5, the follower, then daylight.",
+   "fix": "End the window slot at the follower's full-mag bottom (z \u2248 -0.114 in gun coordinates), or add a static dark spring plate only below that position. The plate never crosses a cartridge, so the builder's objection to a septum does not apply."
+  },
+  {
+   "severity": "minor",
+   "issue": "The receiver's left (+X) side, which is the concept's hero side, is a large plain slab. The counter was removed per the user's decision, but the concept's other focal detail there, a raised bolt housing with a gunmetal bolt raceway along the top-rear, was not modelled. The hero view has no focal point between the handguard and the stock.",
+   "evidence": "renders/warden_cu_receiver_left.png and review/r2/renders/r2_clay_cu_receiver_left.png, compared with concept_main.png and concept_34.png (grey bolt raceway along the receiver top-rear).",
+   "fix": "Add a stepped, raised bolt-housing band along the receiver's top-rear with a narrow gunmetal raceway strip, or a recessed maker plate with two take-down pins. No emissive, and keep the existing panel lines."
+  }
+ ],
+ "verdict": "Accept with fixes. The Warden is a solid, game-ready stylized prototype.\n\nWhat passes (all on the re-imported exports):\n- All 8 sockets are exact (0.000 mm error, zero rotation, parented to WARDEN_Root at the origin), with Side_R at -X and Side_L at +X as the modular spec requires.\n- The rail standard is met: top rail top at z 0.1375, 0.021 wide, 0.0095 high, slots every 0.010; bottom rail face at z 0.0205; side rail faces at \u00b10.0455.\n- The glTF is clean: every primitive has a material, UVs and normals; textures are embedded; there are no extensions and no emissive; palette colours are correct.\n- There is no ammo counter, and handedness is correct (bolt, knob and ejection port on -X; safety and bolt release on +X).\n- The default assembly is 20,596 tris, inside 12k-25k.\n- The source .blend meshes are closed and consistently wound.\n- The bolt cycle, trigger, safety, riser, monopod and stock-fold sweeps are collision-free, also with the optic_sniper and optic_thermal mounted (39 mm clearance). The bipod, laser and flashlight seat on their rails.\n- The mag goes straight in with a 1 mm gap, and the mag check clearly reads \"2 left\" versus \"full\".\n- Proportions match profile_sketch.png. With the showcase loadout, the 64 px silhouette reads unmistakably as a heavy sniper.\n- The script rebuilt everything from scratch in about 5 s.\n\nWhat blocks sign-off (three majors):\n1. A failed EXACT boolean leaves two of the three +X handguard top vents as ghost pockets, with a hairline crack and 4 open edges in the shipped glb. This contradicts the \"all meshes closed\" claim in NOTES.md.\n2. The upper handguard slot row (z 0.096-0.111) sits above the barrel top (0.098), so it is see-through and reads as four bright pills (glow-strip-like) on bright backdrops, unlike the concept's dark slots.\n3. The cheek riser is a 128 mm pad on two posts 18 mm apart at its rear end. It is structurally unconvincing and turns the stock into a hook. The fix is an outboard +X support that keeps the bolt path clear.\n\nMinor:\n- In first person, the domed shroud cap reads as a second knob; the BRIEF asked for a faceted or hex knob.\n- The build is non-deterministic: the receiver tri count changed between two rebuilds.\n- The glb exports contain degenerate and sliver triangles.\n- The lowercase-vs-WARDEN_* git case trap is still unresolved.\n- The full showcase set is about 29.1k against the BRIEF's 25k target.\n- A full, seated mag still shows daylight at the bottom of its window.\n- The receiver's hero side lacks a focal detail.\n\nNote: the builder's hand-off summary quotes the old pre-fix triangle counts (15,124 / 22,486). NOTES.md and _wip/tris.json (13,940 / 20,596) are correct.\n\nThe full write-up is in review/r2/REVIEW_r2.md, with evidence renders in review/r2/renders/ (contact sheet: r2_review_contact_sheet.png; silhouettes: r2_silhouette_reads.png)."
+}

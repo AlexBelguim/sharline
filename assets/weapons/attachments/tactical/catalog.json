@@ -17,11 +17,17 @@
       "sockets_accepted": [
         "_SOCKET_Under"
       ],
+      "socket_names": {
+        "MAKO": "MAKO_SOCKET_Under"
+      },
       "compatible_weapons": [
-        "MAKO",
-        "WARDEN"
+        "MAKO"
       ],
-      "tris": 3108,
+      "compatible_weapon_ids": [
+        "ar7_mako"
+      ],
+      "game_attachment_id": "grip_vertical",
+      "tris": 1226,
       "objects": [
         "ATT_grip_vertical",
         "ATT_grip_vertical_SOCKET_LeftHand"
@@ -30,7 +36,17 @@
         "ATT_grip_vertical_SOCKET_LeftHand"
       ],
       "moving_parts": {},
-      "origin": "centre of clamp contact on the rail BOTTOM surface (part hangs -Z)"
+      "origin": "centre of clamp contact on the rail BOTTOM surface (part hangs -Z)",
+      "bounds_min": [
+        -0.0171,
+        -0.0397,
+        -0.108
+      ],
+      "bounds_max": [
+        0.0175,
+        0.034,
+        0.0083
+      ]
     },
     {
       "id": "ATT_grip_angled",
@@ -41,11 +57,17 @@
       "sockets_accepted": [
         "_SOCKET_Under"
       ],
+      "socket_names": {
+        "MAKO": "MAKO_SOCKET_Under"
+      },
       "compatible_weapons": [
-        "MAKO",
-        "WARDEN"
+        "MAKO"
       ],
-      "tris": 2520,
+      "compatible_weapon_ids": [
+        "ar7_mako"
+      ],
+      "game_attachment_id": "grip_angled",
+      "tris": 1236,
       "objects": [
         "ATT_grip_angled",
         "ATT_grip_angled_SOCKET_LeftHand"
@@ -54,7 +76,17 @@
         "ATT_grip_angled_SOCKET_LeftHand"
       ],
       "moving_parts": {},
-      "origin": "centre of clamp contact on the rail BOTTOM surface (part hangs -Z)"
+      "origin": "centre of clamp contact on the rail BOTTOM surface (part hangs -Z)",
+      "bounds_min": [
+        -0.0171,
+        -0.0545,
+        -0.0619
+      ],
+      "bounds_max": [
+        0.0175,
+        0.05,
+        0.0083
+      ]
     },
     {
       "id": "ATT_grip_stub",
@@ -65,11 +97,17 @@
       "sockets_accepted": [
         "_SOCKET_Under"
       ],
+      "socket_names": {
+        "MAKO": "MAKO_SOCKET_Under"
+      },
       "compatible_weapons": [
-        "MAKO",
-        "WARDEN"
+        "MAKO"
       ],
-      "tris": 1512,
+      "compatible_weapon_ids": [
+        "ar7_mako"
+      ],
+      "game_attachment_id": "grip_stub",
+      "tris": 784,
       "objects": [
         "ATT_grip_stub",
         "ATT_grip_stub_SOCKET_LeftHand"
@@ -78,7 +116,17 @@
         "ATT_grip_stub_SOCKET_LeftHand"
       ],
       "moving_parts": {},
-      "origin": "centre of clamp contact on the rail BOTTOM surface (part hangs -Z)"
+      "origin": "centre of clamp contact on the rail BOTTOM surface (part hangs -Z)",
+      "bounds_min": [
+        -0.0171,
+        -0.0257,
+        -0.0365
+      ],
+      "bounds_max": [
+        0.0175,
+        0.024,
+        0.0083
+      ]
     },
     {
       "id": "ATT_ugl_launcher",
@@ -89,10 +137,17 @@
       "sockets_accepted": [
         "_SOCKET_Under"
       ],
+      "socket_names": {
+        "MAKO": "MAKO_SOCKET_Under"
+      },
       "compatible_weapons": [
         "MAKO"
       ],
-      "tris": 6351,
+      "compatible_weapon_ids": [
+        "ar7_mako"
+      ],
+      "game_attachment_id": "ugl_launcher",
+      "tris": 5822,
       "objects": [
         "ATT_ugl_launcher",
         "ATT_ugl_launcher_Breech",
@@ -106,17 +161,60 @@
       ],
       "moving_parts": {
         "ATT_ugl_launcher_Breech": {
-          "hinge_axis": "local Z (vertical pin, shooter's right front)",
-          "open_angle_deg": -35.0,
+          "hinge_axis": "Blender local +Z (vertical pin at the shooter's right front) = glTF local +Y",
+          "hinge_axis_blender": [
+            0.0,
+            0.0,
+            1.0
+          ],
+          "hinge_axis_gltf": [
+            0.0,
+            1.0,
+            0.0
+          ],
+          "open_angle_deg": -40.0,
           "closed_angle_deg": 0.0,
-          "note": "rotate about local Z by open_angle_deg: the breech end swings out to the shooter's LEFT (+X)"
+          "pose_open_quat_gltf_xyzw": [
+            -0.0,
+            -0.34202,
+            0.0,
+            0.939693
+          ],
+          "pose_closed_quat_gltf_xyzw": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "note": "rotate about the hinge axis by open_angle_deg (right-hand rule): the breech end swings out to the shooter's LEFT (+X); every point of the tube moves forward, away from the breech face"
         },
         "ATT_ugl_launcher_Trigger": {
-          "pivot_axis": "local X",
-          "pull_angle_deg": 12.0
+          "pivot_axis": "Blender local +X = glTF local +X",
+          "pivot_axis_gltf": [
+            1.0,
+            0.0,
+            0.0
+          ],
+          "pull_angle_deg": 12.0,
+          "pose_pulled_quat_gltf_xyzw": [
+            0.104528,
+            0.0,
+            -0.0,
+            0.994522
+          ]
         }
       },
-      "origin": "centre of clamp contact on the rail BOTTOM surface (part hangs -Z)"
+      "origin": "centre of clamp contact on the rail BOTTOM surface (part hangs -Z)",
+      "bounds_min": [
+        -0.0425,
+        -0.15,
+        -0.1685
+      ],
+      "bounds_max": [
+        0.0345,
+        0.1358,
+        0.0083
+      ]
     },
     {
       "id": "ATT_bipod",
@@ -127,52 +225,233 @@
       "sockets_accepted": [
         "_SOCKET_Under"
       ],
+      "socket_names": {
+        "WARDEN": "WARDEN_SOCKET_Under"
+      },
       "compatible_weapons": [
         "WARDEN"
       ],
-      "tris": 5360,
+      "compatible_weapon_ids": [
+        "vk50_warden"
+      ],
+      "game_attachment_id": "bipod",
+      "tris": 3792,
       "objects": [
         "ATT_bipod",
         "ATT_bipod_Leg_L",
+        "ATT_bipod_LegSplay_L",
         "ATT_bipod_LegLower_L",
+        "ATT_bipod_Foot_L",
         "ATT_bipod_Leg_R",
-        "ATT_bipod_LegLower_R"
+        "ATT_bipod_LegSplay_R",
+        "ATT_bipod_LegLower_R",
+        "ATT_bipod_Foot_R"
       ],
       "child_sockets": [],
       "moving_parts": {
         "ATT_bipod_Leg_L": {
-          "hinge_axis": "local X (leg lies along local -Z)",
+          "hinge_axis": "local X (world X): the leg folds forward about it",
+          "hinge_axis_gltf": [
+            1.0,
+            0.0,
+            0.0
+          ],
           "deploy_angle_deg": 50.0,
-          "fold_angle_deg": -50.0,
-          "euler_x_deployed_deg": -40.0,
-          "euler_x_folded_deg": -90.0,
-          "splay_deg": 10.0,
-          "note": "deploy_angle_deg = legs 50 deg below the rail, forward. fold_angle_deg = extra rotation about the hinge (local X) that folds the leg forward along -Y under the rail (euler X -40 -> -90)."
+          "fold_angle_deg": -55.0,
+          "hinge_euler_x_deployed_deg": -40.0,
+          "hinge_euler_x_folded_deg": -95.0,
+          "pose_deployed_quat_gltf_xyzw": [
+            -0.34202,
+            -0.0,
+            0.0,
+            0.939693
+          ],
+          "pose_folded_quat_gltf_xyzw": [
+            -0.737277,
+            -0.0,
+            0.0,
+            0.67559
+          ],
+          "note": "delivered DEPLOYED (leg 50 deg below the rail, pointing forward). To fold: hinge euler X -40 -> -95 (fold_angle_deg), child LegSplay splay -> 0, grandchild Foot swivel -> swivel_folded_deg. All three are plain local rotations."
+        },
+        "ATT_bipod_LegSplay_L": {
+          "splay_axis": "local Y (along the rail when the leg hangs straight down)",
+          "splay_axis_gltf": [
+            0.0,
+            0.0,
+            -1.0
+          ],
+          "splay_deg": 12.0,
+          "splay_deployed_deg": 12.0,
+          "splay_folded_deg": 0.0,
+          "splay_euler_y_deployed_deg": -12.0,
+          "splay_euler_y_folded_deg": 0.0,
+          "pose_deployed_quat_gltf_xyzw": [
+            -0.0,
+            -0.0,
+            0.104528,
+            0.994522
+          ],
+          "pose_folded_quat_gltf_xyzw": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "note": "outward splay of the leg; blend splay_deployed_deg -> 0 while folding so the legs end parallel"
         },
         "ATT_bipod_LegLower_L": {
-          "slide_axis": "local -Z",
+          "slide_axis": "local -Z (along the leg)",
           "telescope_min_m": 0.0,
-          "telescope_max_m": 0.06,
+          "telescope_max_m": 0.05,
           "telescope_m": 0.0
+        },
+        "ATT_bipod_Foot_L": {
+          "swivel_axis": "local X (ankle pin)",
+          "swivel_axis_gltf": [
+            1.0,
+            0.0,
+            0.0
+          ],
+          "swivel_deployed_deg": 0.0,
+          "swivel_folded_deg": 54.4,
+          "pose_deployed_quat_gltf_xyzw": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "pose_folded_quat_gltf_xyzw": [
+            0.457098,
+            0.0,
+            -0.0,
+            0.889416
+          ],
+          "note": "rubber foot on the ankle pin: level on the ground deployed, flat along the leg folded"
         },
         "ATT_bipod_Leg_R": {
-          "hinge_axis": "local X (leg lies along local -Z)",
+          "hinge_axis": "local X (world X): the leg folds forward about it",
+          "hinge_axis_gltf": [
+            1.0,
+            0.0,
+            0.0
+          ],
           "deploy_angle_deg": 50.0,
-          "fold_angle_deg": -50.0,
-          "euler_x_deployed_deg": -40.0,
-          "euler_x_folded_deg": -90.0,
-          "splay_deg": 10.0,
-          "note": "deploy_angle_deg = legs 50 deg below the rail, forward. fold_angle_deg = extra rotation about the hinge (local X) that folds the leg forward along -Y under the rail (euler X -40 -> -90)."
+          "fold_angle_deg": -55.0,
+          "hinge_euler_x_deployed_deg": -40.0,
+          "hinge_euler_x_folded_deg": -95.0,
+          "pose_deployed_quat_gltf_xyzw": [
+            -0.34202,
+            -0.0,
+            0.0,
+            0.939693
+          ],
+          "pose_folded_quat_gltf_xyzw": [
+            -0.737277,
+            -0.0,
+            0.0,
+            0.67559
+          ],
+          "note": "delivered DEPLOYED (leg 50 deg below the rail, pointing forward). To fold: hinge euler X -40 -> -95 (fold_angle_deg), child LegSplay splay -> 0, grandchild Foot swivel -> swivel_folded_deg. All three are plain local rotations."
+        },
+        "ATT_bipod_LegSplay_R": {
+          "splay_axis": "local Y (along the rail when the leg hangs straight down)",
+          "splay_axis_gltf": [
+            0.0,
+            0.0,
+            -1.0
+          ],
+          "splay_deg": 12.0,
+          "splay_deployed_deg": 12.0,
+          "splay_folded_deg": 0.0,
+          "splay_euler_y_deployed_deg": 12.0,
+          "splay_euler_y_folded_deg": 0.0,
+          "pose_deployed_quat_gltf_xyzw": [
+            0.0,
+            0.0,
+            -0.104528,
+            0.994522
+          ],
+          "pose_folded_quat_gltf_xyzw": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "note": "outward splay of the leg; blend splay_deployed_deg -> 0 while folding so the legs end parallel"
         },
         "ATT_bipod_LegLower_R": {
-          "slide_axis": "local -Z",
+          "slide_axis": "local -Z (along the leg)",
           "telescope_min_m": 0.0,
-          "telescope_max_m": 0.06,
+          "telescope_max_m": 0.05,
           "telescope_m": 0.0
+        },
+        "ATT_bipod_Foot_R": {
+          "swivel_axis": "local X (ankle pin)",
+          "swivel_axis_gltf": [
+            1.0,
+            0.0,
+            0.0
+          ],
+          "swivel_deployed_deg": 0.0,
+          "swivel_folded_deg": 54.4,
+          "pose_deployed_quat_gltf_xyzw": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "pose_folded_quat_gltf_xyzw": [
+            0.457098,
+            0.0,
+            -0.0,
+            0.889416
+          ],
+          "note": "rubber foot on the ankle pin: level on the ground deployed, flat along the leg folded"
         }
       },
       "origin": "centre of clamp contact on the rail BOTTOM surface (part hangs -Z)",
-      "foot_sole_z": -0.2182
+      "bounds_min": [
+        -0.0991,
+        -0.1775,
+        -0.2155
+      ],
+      "bounds_max": [
+        0.0991,
+        0.03,
+        0.0083
+      ],
+      "foot_sole_z": -0.2155,
+      "deployed_bounds": [
+        [
+          -0.0991,
+          -0.1775,
+          -0.2155
+        ],
+        [
+          0.0991,
+          0.03,
+          0.0083
+        ]
+      ],
+      "folded_bounds": [
+        [
+          -0.0534,
+          -0.2592,
+          -0.0523
+        ],
+        [
+          0.0534,
+          0.03,
+          0.0083
+        ]
+      ],
+      "folded_pose": {
+        "hinge_euler_x_deg": -95.0,
+        "splay_deg": 0.0,
+        "foot_swivel_deg": 54.4,
+        "foot_sole_tilt_deg": 9.2
+      }
     },
     {
       "id": "ATT_laser_R",
@@ -183,11 +462,23 @@
       "sockets_accepted": [
         "_SOCKET_Side_R"
       ],
+      "socket_names": {
+        "MAKO": "MAKO_SOCKET_Side_R",
+        "WARDEN": "WARDEN_SOCKET_Side_R",
+        "SKINK": "SKINK_SOCKET_Side_R"
+      },
       "compatible_weapons": [
         "MAKO",
-        "WARDEN"
+        "WARDEN",
+        "SKINK"
       ],
-      "tris": 2712,
+      "compatible_weapon_ids": [
+        "ar7_mako",
+        "vk50_warden",
+        "sk9_skink"
+      ],
+      "game_attachment_id": "laser",
+      "tris": 1024,
       "objects": [
         "ATT_laser_R",
         "ATT_laser_R_Emitter",
@@ -197,7 +488,66 @@
         "ATT_laser_R_SOCKET_Beam"
       ],
       "moving_parts": {},
-      "origin": "centre of clamp contact on the rail outer face (part sticks out sideways)"
+      "origin": "centre of clamp contact on the rail outer face (part sticks out sideways)",
+      "bounds_min": [
+        -0.0371,
+        -0.0355,
+        -0.0175
+      ],
+      "bounds_max": [
+        0.0083,
+        0.029,
+        0.0186
+      ],
+      "mirror_of": "ATT_laser_L"
+    },
+    {
+      "id": "ATT_laser_L",
+      "category": "side_rail",
+      "mount": "side",
+      "file": "assets/weapons/attachments/tactical/ATT_laser_L.glb",
+      "fbx": "assets/weapons/attachments/tactical/ATT_laser_L.fbx",
+      "sockets_accepted": [
+        "_SOCKET_Side_L"
+      ],
+      "socket_names": {
+        "MAKO": "MAKO_SOCKET_Side_L",
+        "WARDEN": "WARDEN_SOCKET_Side_L",
+        "SKINK": "SKINK_SOCKET_Side_L"
+      },
+      "compatible_weapons": [
+        "MAKO",
+        "WARDEN",
+        "SKINK"
+      ],
+      "compatible_weapon_ids": [
+        "ar7_mako",
+        "vk50_warden",
+        "sk9_skink"
+      ],
+      "game_attachment_id": "laser",
+      "tris": 1024,
+      "objects": [
+        "ATT_laser_L",
+        "ATT_laser_L_Emitter",
+        "ATT_laser_L_SOCKET_Beam"
+      ],
+      "child_sockets": [
+        "ATT_laser_L_SOCKET_Beam"
+      ],
+      "moving_parts": {},
+      "origin": "centre of clamp contact on the rail outer face (part sticks out sideways)",
+      "bounds_min": [
+        -0.0083,
+        -0.0355,
+        -0.0175
+      ],
+      "bounds_max": [
+        0.0371,
+        0.029,
+        0.0186
+      ],
+      "mirror_of": "ATT_laser_R"
     },
     {
       "id": "ATT_flashlight_R",
@@ -208,11 +558,23 @@
       "sockets_accepted": [
         "_SOCKET_Side_R"
       ],
+      "socket_names": {
+        "MAKO": "MAKO_SOCKET_Side_R",
+        "WARDEN": "WARDEN_SOCKET_Side_R",
+        "SKINK": "SKINK_SOCKET_Side_R"
+      },
       "compatible_weapons": [
         "MAKO",
-        "WARDEN"
+        "WARDEN",
+        "SKINK"
       ],
-      "tris": 2080,
+      "compatible_weapon_ids": [
+        "ar7_mako",
+        "vk50_warden",
+        "sk9_skink"
+      ],
+      "game_attachment_id": "flashlight",
+      "tris": 1432,
       "objects": [
         "ATT_flashlight_R",
         "ATT_flashlight_R_Lens",
@@ -222,7 +584,66 @@
         "ATT_flashlight_R_SOCKET_Beam"
       ],
       "moving_parts": {},
-      "origin": "centre of clamp contact on the rail outer face (part sticks out sideways)"
+      "origin": "centre of clamp contact on the rail outer face (part sticks out sideways)",
+      "bounds_min": [
+        -0.0451,
+        -0.0622,
+        -0.0186
+      ],
+      "bounds_max": [
+        0.0083,
+        0.0595,
+        0.0186
+      ],
+      "mirror_of": "ATT_flashlight_L"
+    },
+    {
+      "id": "ATT_flashlight_L",
+      "category": "side_rail",
+      "mount": "side",
+      "file": "assets/weapons/attachments/tactical/ATT_flashlight_L.glb",
+      "fbx": "assets/weapons/attachments/tactical/ATT_flashlight_L.fbx",
+      "sockets_accepted": [
+        "_SOCKET_Side_L"
+      ],
+      "socket_names": {
+        "MAKO": "MAKO_SOCKET_Side_L",
+        "WARDEN": "WARDEN_SOCKET_Side_L",
+        "SKINK": "SKINK_SOCKET_Side_L"
+      },
+      "compatible_weapons": [
+        "MAKO",
+        "WARDEN",
+        "SKINK"
+      ],
+      "compatible_weapon_ids": [
+        "ar7_mako",
+        "vk50_warden",
+        "sk9_skink"
+      ],
+      "game_attachment_id": "flashlight",
+      "tris": 1432,
+      "objects": [
+        "ATT_flashlight_L",
+        "ATT_flashlight_L_Lens",
+        "ATT_flashlight_L_SOCKET_Beam"
+      ],
+      "child_sockets": [
+        "ATT_flashlight_L_SOCKET_Beam"
+      ],
+      "moving_parts": {},
+      "origin": "centre of clamp contact on the rail outer face (part sticks out sideways)",
+      "bounds_min": [
+        -0.0083,
+        -0.0622,
+        -0.0186
+      ],
+      "bounds_max": [
+        0.0451,
+        0.0595,
+        0.0186
+      ],
+      "mirror_of": "ATT_flashlight_R"
     },
     {
       "id": "ATT_shield_front",
@@ -233,10 +654,17 @@
       "sockets_accepted": [
         "_SOCKET_Shield"
       ],
+      "socket_names": {
+        "MAKO": "MAKO_SOCKET_Shield"
+      },
       "compatible_weapons": [
         "MAKO"
       ],
-      "tris": 5958,
+      "compatible_weapon_ids": [
+        "ar7_mako"
+      ],
+      "game_attachment_id": "shield_front",
+      "tris": 2720,
       "objects": [
         "ATT_shield_front",
         "ATT_shield_front_Glass"
@@ -244,6 +672,16 @@
       "child_sockets": [],
       "moving_parts": {},
       "origin": "centre of clamp contact on the rail TOP surface",
+      "bounds_min": [
+        -0.1568,
+        -0.0458,
+        -0.1
+      ],
+      "bounds_max": [
+        0.1568,
+        0.034,
+        0.16
+      ],
       "glass_z": [
         0.03,
         0.1
@@ -255,123 +693,130 @@
       "plate_x": [
         -0.16,
         0.16
-      ]
-    },
-    {
-      "id": "ATT_laser_L",
-      "category": "side_rail",
-      "mount": "side",
-      "file": "assets/weapons/attachments/tactical/ATT_laser_L.glb",
-      "fbx": "assets/weapons/attachments/tactical/ATT_laser_L.fbx",
-      "sockets_accepted": [
-        "_SOCKET_Side_L"
       ],
-      "compatible_weapons": [
-        "MAKO",
-        "WARDEN"
-      ],
-      "tris": 2712,
-      "objects": [
-        "ATT_laser_L",
-        "ATT_laser_L_Emitter",
-        "ATT_laser_L_SOCKET_Beam"
-      ],
-      "child_sockets": [
-        "ATT_laser_L_SOCKET_Beam"
-      ],
-      "moving_parts": {},
-      "origin": "centre of clamp contact on the rail outer face (part sticks out sideways)"
-    },
-    {
-      "id": "ATT_flashlight_L",
-      "category": "side_rail",
-      "mount": "side",
-      "file": "assets/weapons/attachments/tactical/ATT_flashlight_L.glb",
-      "fbx": "assets/weapons/attachments/tactical/ATT_flashlight_L.fbx",
-      "sockets_accepted": [
-        "_SOCKET_Side_L"
-      ],
-      "compatible_weapons": [
-        "MAKO",
-        "WARDEN"
-      ],
-      "tris": 2080,
-      "objects": [
-        "ATT_flashlight_L",
-        "ATT_flashlight_L_Lens",
-        "ATT_flashlight_L_SOCKET_Beam"
-      ],
-      "child_sockets": [
-        "ATT_flashlight_L_SOCKET_Beam"
-      ],
-      "moving_parts": {},
-      "origin": "centre of clamp contact on the rail outer face (part sticks out sideways)"
+      "port": {
+        "x": [
+          -0.08,
+          0.08
+        ],
+        "z": [
+          -0.066,
+          -0.008
+        ]
+      },
+      "glass_material": {
+        "base_color": [
+          0.02,
+          0.045,
+          0.08
+        ],
+        "alpha": 0.38,
+        "roughness": 0.08,
+        "alpha_mode": "BLEND"
+      }
     }
   ],
+  "notes": {
+    "SKINK": "sk9_skink (game id) has no art export yet; its prefix SKINK is assumed",
+    "compatibility": "compatible_weapon_ids mirror game/assets/data/attachments.ron fits"
+  },
   "test_sockets": {
     "MAKO": {
       "Optic": [
-        0,
-        -0.085,
+        0.0,
+        -0.0855,
         0.084
       ],
       "Under": [
-        0,
-        -0.36,
-        0.0165
+        0.0,
+        -0.335,
+        0.0075
       ],
       "Side_R": [
-        -0.0315,
-        -0.44,
+        -0.0325,
+        -0.449,
         0.05
       ],
       "Side_L": [
-        0.0315,
-        -0.44,
+        0.0325,
+        -0.449,
         0.05
       ],
       "Shield": [
-        0,
-        -0.48,
+        0.0,
+        -0.4755,
         0.084
       ],
       "Muzzle": [
-        0,
+        0.0,
         -0.565,
         0.05
       ],
       "LeftHand": [
-        0,
+        0.0,
         -0.33,
-        0.02
+        0.0075
+      ],
+      "Stock": [
+        0.0,
+        0.215,
+        0.05
+      ],
+      "Mag": [
+        0.0,
+        -0.152,
+        0.012
       ]
     },
     "WARDEN": {
       "Under": [
-        0,
+        0.0,
         -0.6,
-        0.0205
+        0.0275
       ],
       "Side_R": [
-        -0.0455,
-        -0.645,
-        0.079
+        -0.0375,
+        -0.643,
+        0.066
       ],
       "Side_L": [
-        0.0455,
-        -0.645,
-        0.079
+        0.0375,
+        -0.643,
+        0.066
       ],
       "Optic": [
-        0,
-        -0.08,
-        0.1375
+        0.0,
+        -0.19,
+        0.117
       ],
       "Muzzle": [
-        0,
+        0.0,
         -1.1,
         0.075
+      ],
+      "Stock": [
+        0.0,
+        0.022,
+        0.075
+      ],
+      "Mag": [
+        0.0,
+        -0.299,
+        0.046
+      ],
+      "LeftHand": [
+        0.0,
+        -0.45,
+        0.037
       ]
     }
+  },
+  "test_socket_source": {
+    "MAKO": "glb:mako_default.glb",
+    "WARDEN": "glb:warden_default.glb"
+  },
+  "test_socket_json_vs_glb_mismatch": {
+    "MAKO": {},
+    "WARDEN": {}
   }
 }

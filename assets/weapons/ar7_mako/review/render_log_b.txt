@@ -1,0 +1,25 @@
+00:01.782  cycles           | WARNING HIPEW initialization failed: Error opening HIP dynamic library
+RENDERED F:/git/val etf/assets/weapons/ar7_mako\review\renders\wire_three_quarter.png
+RENDERED F:/git/val etf/assets/weapons/ar7_mako\review\renders\wire_receiver_plusX.png
+RENDERED F:/git/val etf/assets/weapons/ar7_mako\review\renders\wire_handguard_minusX.png
+RENDERED F:/git/val etf/assets/weapons/ar7_mako\review\renders\cu_ch_fa_castle_rear_minusX.png
+RENDERED F:/git/val etf/assets/weapons/ar7_mako\review\renders\cu_ch_top_rear.png
+RENDERED F:/git/val etf/assets/weapons/ar7_mako\review\renders\cu_dustcover_minusX.png
+RENDERED F:/git/val etf/assets/weapons/ar7_mako\review\renders\cu_grip_junction_rear_below.png
+RENDERED F:/git/val etf/assets/weapons/ar7_mako\review\renders\cu_magwell_front_below.png
+RENDERED F:/git/val etf/assets/weapons/ar7_mako\review\renders\cu_stock_front_tube_entry.png
+RENDERED F:/git/val etf/assets/weapons/ar7_mako\review\renders\cu_stock_under.png
+RENDERED F:/git/val etf/assets/weapons/ar7_mako\review\renders\cu_handguard_bottom.png
+RENDERED F:/git/val etf/assets/weapons/ar7_mako\review\renders\cu_handguard_rear_joint_top.png
+RENDERED F:/git/val etf/assets/weapons/ar7_mako\review\renders\cu_rail_front_end.png
+RENDERED F:/git/val etf/assets/weapons/ar7_mako\review\renders\cu_mag_window_plusX.png
+RENDERED F:/git/val etf/assets/weapons/ar7_mako\review\renders\cu_precision_cheek.png
+RENDERED F:/git/val etf/assets/weapons/ar7_mako\review\renders\cu_precision_side_plusX.png
+RENDERED F:/git/val etf/assets/weapons/ar7_mako\review\renders\cu_light_stock_3q.png
+RENDERED F:/git/val etf/assets/weapons/ar7_mako\review\renders\cu_drum_front_low_minusX.png
+RENDERED F:/git/val etf/assets/weapons/ar7_mako\review\renders\cu_drum_minusX_side.png
+RENDERED F:/git/val etf/assets/weapons/ar7_mako\review\renders\var_precision_mag45_3x.png
+RENDERED F:/git/val etf/assets/weapons/ar7_mako\review\renders\var_light_drum_holo.png
+RENDERED F:/git/val etf/assets/weapons/ar7_mako\review\renders\var_full_ugl.png
+RENDERED F:/git/val etf/assets/weapons/ar7_mako\review\renders\var_full_shield.png
+RV DONE

@@ -1,0 +1,156 @@
+{
+ "scene": "sun 4.0 + sky (0.55,0.68,0.86) x1.1, board 6 m out, 0.25 m checker 2%/80%, orange post",
+ "glass_material": {
+  "base": [
+   0.019999999552965164,
+   0.04500000178813934,
+   0.07999999821186066
+  ],
+  "alpha": 0.3799999952316284,
+  "roughness": 0.07999999821186066
+ },
+ "views": {
+  "eye_0.0400": {
+   "square_a": [
+    42,
+    60,
+    76
+   ],
+   "square_b": [
+    164,
+    170,
+    176
+   ],
+   "post_through_glass": [
+    166,
+    122,
+    98
+   ],
+   "post_through_port": [
+    212,
+    159,
+    118
+   ],
+   "checker_contrast": 4.84
+  },
+  "eye_0.0575": {
+   "square_a": [
+    163,
+    170,
+    175
+   ],
+   "square_b": [
+    42,
+    61,
+    77
+   ],
+   "post_through_glass": [
+    166,
+    121,
+    97
+   ],
+   "post_through_port": [
+    212,
+    159,
+    117
+   ],
+   "checker_contrast": 4.77
+  },
+  "eye_0.0750": {
+   "square_a": [
+    42,
+    60,
+    77
+   ],
+   "square_b": [
+    164,
+    170,
+    176
+   ],
+   "post_through_glass": [
+    166,
+    121,
+    97
+   ],
+   "post_through_port": [
+    212,
+    159,
+    117
+   ],
+   "checker_contrast": 4.84
+  },
+  "eye_0.0575_no_glass": {
+   "square_a": [
+    204,
+    207,
+    209
+   ],
+   "square_b": [
+    46,
+    49,
+    51
+   ],
+   "post_through_glass": [
+    212,
+    161,
+    121
+   ],
+   "post_through_port": [
+    212,
+    159,
+    117
+   ],
+   "checker_contrast": 8.37
+  },
+  "eye_0.0575_old_glass_pre_review": {
+   "square_a": [
+    180,
+    194,
+    209
+   ],
+   "square_b": [
+    128,
+    163,
+    194
+   ],
+   "post_through_glass": [
+    176,
+    179,
+    193
+   ],
+   "post_through_port": [
+    212,
+    159,
+    117
+   ],
+   "checker_contrast": 1.46
+  },
+  "ads_holo": {
+   "square_a": [
+    126,
+    134,
+    140
+   ],
+   "square_b": [
+    31,
+    44,
+    55
+   ],
+   "post_through_glass": [
+    121,
+    84,
+    64
+   ],
+   "post_through_port": [
+    132,
+    132,
+    128
+   ],
+   "checker_contrast": 3.85
+  }
+ },
+ "socket_source": {
+  "MAKO": "glb nodes",
+  "WARDEN": "glb nodes"
+ }
+}

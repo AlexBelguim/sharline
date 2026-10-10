@@ -1,0 +1,747 @@
+{
+ "MAKO_mag_30.glb": {
+  "degenerate_tris": 6,
+  "bad_normals": 0,
+  "verts": 2035,
+  "tris": 1816,
+  "uv_min": [
+   0.0,
+   -0.65
+  ],
+  "uv_max": [
+   1.63,
+   1.0
+  ],
+  "prims": 6,
+  "mesh_degen": {
+   "MAKO_mag_30.002": 6
+  },
+  "samplers": [
+   {
+    "magFilter": 9729,
+    "minFilter": 9987
+   }
+  ],
+  "textures": [
+   [
+    0,
+    0
+   ],
+   [
+    1,
+    0
+   ],
+   [
+    2,
+    0
+   ]
+  ],
+  "mats": {
+   "M_MAKO_Brass": {
+    "pbrMetallicRoughness": {
+     "baseColorFactor": [
+      0.36000001430511475,
+      0.2800000011920929,
+      0.18000000715255737,
+      1
+     ],
+     "metallicFactor": 0.8500000238418579,
+     "roughnessFactor": 0.3499999940395355
+    }
+   },
+   "M_MAKO_Gunmetal": {
+    "pbrMetallicRoughness": {
+     "baseColorTexture": {
+      "index": 0
+     },
+     "metallicFactor": 0.8500000238418579,
+     "roughnessFactor": 0.3499999940395355
+    }
+   },
+   "M_MAKO_Bone": {
+    "pbrMetallicRoughness": {
+     "baseColorTexture": {
+      "index": 1
+     },
+     "metallicFactor": 0,
+     "roughnessFactor": 0.6000000238418579
+    }
+   },
+   "M_MAKO_Graphite": {
+    "pbrMetallicRoughness": {
+     "baseColorTexture": {
+      "index": 2
+     },
+     "metallicFactor": 0.20000000298023224,
+     "roughnessFactor": 0.550000011920929
+    }
+   },
+   "M_MAKO_Dark": {
+    "pbrMetallicRoughness": {
+     "baseColorFactor": [
+      0.03500000014901161,
+      0.03700000047683716,
+      0.04500000178813934,
+      1
+     ],
+     "metallicFactor": 0,
+     "roughnessFactor": 0.699999988079071
+    }
+   }
+  }
+ },
+ "MAKO_mag_45.glb": {
+  "degenerate_tris": 4,
+  "bad_normals": 0,
+  "verts": 2518,
+  "tris": 2148,
+  "uv_min": [
+   0.0,
+   -1.12
+  ],
+  "uv_max": [
+   2.16,
+   1.0
+  ],
+  "prims": 6,
+  "mesh_degen": {
+   "MAKO_mag_45.002": 4
+  },
+  "samplers": [
+   {
+    "magFilter": 9729,
+    "minFilter": 9987
+   }
+  ],
+  "textures": [
+   [
+    0,
+    0
+   ],
+   [
+    1,
+    0
+   ],
+   [
+    2,
+    0
+   ]
+  ],
+  "mats": {
+   "M_MAKO_Brass": {
+    "pbrMetallicRoughness": {
+     "baseColorFactor": [
+      0.36000001430511475,
+      0.2800000011920929,
+      0.18000000715255737,
+      1
+     ],
+     "metallicFactor": 0.8500000238418579,
+     "roughnessFactor": 0.3499999940395355
+    }
+   },
+   "M_MAKO_Gunmetal": {
+    "pbrMetallicRoughness": {
+     "baseColorTexture": {
+      "index": 0
+     },
+     "metallicFactor": 0.8500000238418579,
+     "roughnessFactor": 0.3499999940395355
+    }
+   },
+   "M_MAKO_Bone": {
+    "pbrMetallicRoughness": {
+     "baseColorTexture": {
+      "index": 1
+     },
+     "metallicFactor": 0,
+     "roughnessFactor": 0.6000000238418579
+    }
+   },
+   "M_MAKO_Graphite": {
+    "pbrMetallicRoughness": {
+     "baseColorTexture": {
+      "index": 2
+     },
+     "metallicFactor": 0.20000000298023224,
+     "roughnessFactor": 0.550000011920929
+    }
+   },
+   "M_MAKO_Dark": {
+    "pbrMetallicRoughness": {
+     "baseColorFactor": [
+      0.03500000014901161,
+      0.03700000047683716,
+      0.04500000178813934,
+      1
+     ],
+     "metallicFactor": 0,
+     "roughnessFactor": 0.699999988079071
+    }
+   }
+  }
+ },
+ "MAKO_mag_drum60.glb": {
+  "degenerate_tris": 5,
+  "bad_normals": 0,
+  "verts": 5012,
+  "tris": 4938,
+  "uv_min": [
+   0.0,
+   -1.64
+  ],
+  "uv_max": [
+   1.96,
+   1.0
+  ],
+  "prims": 8,
+  "mesh_degen": {
+   "MAKO_mag_drum60.001": 5
+  },
+  "samplers": [
+   {
+    "magFilter": 9729,
+    "minFilter": 9987
+   }
+  ],
+  "textures": [
+   [
+    0,
+    0
+   ],
+   [
+    1,
+    0
+   ],
+   [
+    2,
+    0
+   ]
+  ],
+  "mats": {
+   "M_MAKO_Brass": {
+    "pbrMetallicRoughness": {
+     "baseColorFactor": [
+      0.36000001430511475,
+      0.2800000011920929,
+      0.18000000715255737,
+      1
+     ],
+     "metallicFactor": 0.8500000238418579,
+     "roughnessFactor": 0.3499999940395355
+    }
+   },
+   "M_MAKO_Gunmetal": {
+    "pbrMetallicRoughness": {
+     "baseColorTexture": {
+      "index": 0
+     },
+     "metallicFactor": 0.8500000238418579,
+     "roughnessFactor": 0.3499999940395355
+    }
+   },
+   "M_MAKO_Bone": {
+    "pbrMetallicRoughness": {
+     "baseColorTexture": {
+      "index": 1
+     },
+     "metallicFactor": 0,
+     "roughnessFactor": 0.6000000238418579
+    }
+   },
+   "M_MAKO_Dark": {
+    "pbrMetallicRoughness": {
+     "baseColorFactor": [
+      0.03500000014901161,
+      0.03700000047683716,
+      0.04500000178813934,
+      1
+     ],
+     "metallicFactor": 0,
+     "roughnessFactor": 0.699999988079071
+    }
+   },
+   "M_MAKO_Graphite": {
+    "pbrMetallicRoughness": {
+     "baseColorTexture": {
+      "index": 2
+     },
+     "metallicFactor": 0.20000000298023224,
+     "roughnessFactor": 0.550000011920929
+    }
+   }
+  }
+ },
+ "MAKO_stock_light.glb": {
+  "degenerate_tris": 12,
+  "bad_normals": 0,
+  "verts": 1444,
+  "tris": 1542,
+  "uv_min": [
+   0.0,
+   -0.78
+  ],
+  "uv_max": [
+   1.85,
+   1.0
+  ],
+  "prims": 4,
+  "mesh_degen": {
+   "MAKO_stock_light_ButtPad": 8,
+   "MAKO_stock_light.001": 4
+  },
+  "samplers": [
+   {
+    "magFilter": 9729,
+    "minFilter": 9987
+   }
+  ],
+  "textures": [
+   [
+    0,
+    0
+   ],
+   [
+    1,
+    0
+   ]
+  ],
+  "mats": {
+   "M_MAKO_Rubber": {
+    "pbrMetallicRoughness": {
+     "baseColorFactor": [
+      0.029999999329447746,
+      0.032999999821186066,
+      0.03999999910593033,
+      1
+     ],
+     "metallicFactor": 0,
+     "roughnessFactor": 0.8500000238418579
+    }
+   },
+   "M_MAKO_Graphite": {
+    "pbrMetallicRoughness": {
+     "baseColorTexture": {
+      "index": 0
+     },
+     "metallicFactor": 0.20000000298023224,
+     "roughnessFactor": 0.550000011920929
+    }
+   },
+   "M_MAKO_Bone": {
+    "pbrMetallicRoughness": {
+     "baseColorTexture": {
+      "index": 1
+     },
+     "metallicFactor": 0,
+     "roughnessFactor": 0.6000000238418579
+    }
+   },
+   "M_MAKO_Dark": {
+    "pbrMetallicRoughness": {
+     "baseColorFactor": [
+      0.03500000014901161,
+      0.03700000047683716,
+      0.04500000178813934,
+      1
+     ],
+     "metallicFactor": 0,
+     "roughnessFactor": 0.699999988079071
+    }
+   }
+  }
+ },
+ "MAKO_stock_precision.glb": {
+  "degenerate_tris": 79,
+  "bad_normals": 0,
+  "verts": 3276,
+  "tris": 3516,
+  "uv_min": [
+   0.0,
+   -1.3
+  ],
+  "uv_max": [
+   2.35,
+   1.0
+  ],
+  "prims": 5,
+  "mesh_degen": {
+   "MAKO_stock_precision_ButtPad.002": 4,
+   "MAKO_stock_precision_Cheek.001": 59,
+   "MAKO_stock_precision.002": 16
+  },
+  "samplers": [
+   {
+    "magFilter": 9729,
+    "minFilter": 9987
+   }
+  ],
+  "textures": [
+   [
+    0,
+    0
+   ],
+   [
+    1,
+    0
+   ]
+  ],
+  "mats": {
+   "M_MAKO_Rubber": {
+    "pbrMetallicRoughness": {
+     "baseColorFactor": [
+      0.029999999329447746,
+      0.032999999821186066,
+      0.03999999910593033,
+      1
+     ],
+     "metallicFactor": 0,
+     "roughnessFactor": 0.8500000238418579
+    }
+   },
+   "M_MAKO_Bone": {
+    "pbrMetallicRoughness": {
+     "baseColorTexture": {
+      "index": 0
+     },
+     "metallicFactor": 0,
+     "roughnessFactor": 0.6000000238418579
+    }
+   },
+   "M_MAKO_Gunmetal": {
+    "pbrMetallicRoughness": {
+     "baseColorTexture": {
+      "index": 1
+     },
+     "metallicFactor": 0.8500000238418579,
+     "roughnessFactor": 0.3499999940395355
+    }
+   },
+   "M_MAKO_Dark": {
+    "pbrMetallicRoughness": {
+     "baseColorFactor": [
+      0.03500000014901161,
+      0.03700000047683716,
+      0.04500000178813934,
+      1
+     ],
+     "metallicFactor": 0,
+     "roughnessFactor": 0.699999988079071
+    }
+   }
+  }
+ },
+ "MAKO_stock_standard.glb": {
+  "degenerate_tris": 4,
+  "bad_normals": 0,
+  "verts": 1971,
+  "tris": 2000,
+  "uv_min": [
+   0.0,
+   -0.91
+  ],
+  "uv_max": [
+   1.94,
+   1.0
+  ],
+  "prims": 5,
+  "mesh_degen": {
+   "MAKO_stock_standard.002": 4
+  },
+  "samplers": [
+   {
+    "magFilter": 9729,
+    "minFilter": 9987
+   }
+  ],
+  "textures": [
+   [
+    0,
+    0
+   ],
+   [
+    1,
+    0
+   ],
+   [
+    2,
+    0
+   ]
+  ],
+  "mats": {
+   "M_MAKO_Rubber": {
+    "pbrMetallicRoughness": {
+     "baseColorFactor": [
+      0.029999999329447746,
+      0.032999999821186066,
+      0.03999999910593033,
+      1
+     ],
+     "metallicFactor": 0,
+     "roughnessFactor": 0.8500000238418579
+    }
+   },
+   "M_MAKO_Graphite": {
+    "pbrMetallicRoughness": {
+     "baseColorTexture": {
+      "index": 0
+     },
+     "metallicFactor": 0.20000000298023224,
+     "roughnessFactor": 0.550000011920929
+    }
+   },
+   "M_MAKO_Gunmetal": {
+    "pbrMetallicRoughness": {
+     "baseColorTexture": {
+      "index": 1
+     },
+     "metallicFactor": 0.8500000238418579,
+     "roughnessFactor": 0.3499999940395355
+    }
+   },
+   "M_MAKO_Bone": {
+    "pbrMetallicRoughness": {
+     "baseColorTexture": {
+      "index": 2
+     },
+     "metallicFactor": 0,
+     "roughnessFactor": 0.6000000238418579
+    }
+   },
+   "M_MAKO_Dark": {
+    "pbrMetallicRoughness": {
+     "baseColorFactor": [
+      0.03500000014901161,
+      0.03700000047683716,
+      0.04500000178813934,
+      1
+     ],
+     "metallicFactor": 0,
+     "roughnessFactor": 0.699999988079071
+    }
+   }
+  }
+ },
+ "mako_base.glb": {
+  "degenerate_tris": 897,
+  "bad_normals": 0,
+  "verts": 18689,
+  "tris": 17182,
+  "uv_min": [
+   0.0,
+   -2.08
+  ],
+  "uv_max": [
+   2.75,
+   1.0
+  ],
+  "prims": 26,
+  "mesh_degen": {
+   "MAKO_ChargingHandle.001": 2,
+   "MAKO_DustCover.001": 53,
+   "MAKO_ForwardAssist.001": 16,
+   "MAKO_Grip.001": 4,
+   "MAKO_Handguard.001": 39,
+   "MAKO_Lower.002": 520,
+   "MAKO_Upper.001": 263
+  },
+  "samplers": [
+   {
+    "magFilter": 9729,
+    "minFilter": 9987
+   }
+  ],
+  "textures": [
+   [
+    0,
+    0
+   ],
+   [
+    1,
+    0
+   ],
+   [
+    2,
+    0
+   ],
+   [
+    3,
+    0
+   ]
+  ],
+  "mats": {
+   "M_MAKO_Gunmetal": {
+    "pbrMetallicRoughness": {
+     "baseColorTexture": {
+      "index": 0
+     },
+     "metallicFactor": 0.8500000238418579,
+     "roughnessFactor": 0.3499999940395355
+    }
+   },
+   "M_MAKO_Graphite": {
+    "pbrMetallicRoughness": {
+     "baseColorTexture": {
+      "index": 1
+     },
+     "metallicFactor": 0.20000000298023224,
+     "roughnessFactor": 0.550000011920929
+    }
+   },
+   "M_MAKO_Dark": {
+    "pbrMetallicRoughness": {
+     "baseColorFactor": [
+      0.03500000014901161,
+      0.03700000047683716,
+      0.04500000178813934,
+      1
+     ],
+     "metallicFactor": 0,
+     "roughnessFactor": 0.699999988079071
+    }
+   },
+   "M_MAKO_Bone": {
+    "pbrMetallicRoughness": {
+     "baseColorTexture": {
+      "index": 2
+     },
+     "metallicFactor": 0,
+     "roughnessFactor": 0.6000000238418579
+    }
+   },
+   "M_MAKO_BoneStipple": {
+    "pbrMetallicRoughness": {
+     "baseColorTexture": {
+      "index": 3
+     },
+     "metallicFactor": 0,
+     "roughnessFactor": 0.800000011920929
+    }
+   }
+  }
+ },
+ "mako_default.glb": {
+  "degenerate_tris": 907,
+  "bad_normals": 0,
+  "verts": 22695,
+  "tris": 20998,
+  "uv_min": [
+   0.0,
+   -2.08
+  ],
+  "uv_max": [
+   2.75,
+   1.0
+  ],
+  "prims": 37,
+  "mesh_degen": {
+   "MAKO_mag_30.002": 6,
+   "MAKO_ChargingHandle.001": 2,
+   "MAKO_DustCover.001": 53,
+   "MAKO_ForwardAssist.001": 16,
+   "MAKO_Grip.001": 4,
+   "MAKO_Handguard.001": 39,
+   "MAKO_Lower.002": 520,
+   "MAKO_Upper.001": 263,
+   "MAKO_stock_standard.002": 4
+  },
+  "samplers": [
+   {
+    "magFilter": 9729,
+    "minFilter": 9987
+   }
+  ],
+  "textures": [
+   [
+    0,
+    0
+   ],
+   [
+    1,
+    0
+   ],
+   [
+    2,
+    0
+   ],
+   [
+    3,
+    0
+   ]
+  ],
+  "mats": {
+   "M_MAKO_Brass": {
+    "pbrMetallicRoughness": {
+     "baseColorFactor": [
+      0.36000001430511475,
+      0.2800000011920929,
+      0.18000000715255737,
+      1
+     ],
+     "metallicFactor": 0.8500000238418579,
+     "roughnessFactor": 0.3499999940395355
+    }
+   },
+   "M_MAKO_Gunmetal": {
+    "pbrMetallicRoughness": {
+     "baseColorTexture": {
+      "index": 0
+     },
+     "metallicFactor": 0.8500000238418579,
+     "roughnessFactor": 0.3499999940395355
+    }
+   },
+   "M_MAKO_Bone": {
+    "pbrMetallicRoughness": {
+     "baseColorTexture": {
+      "index": 1
+     },
+     "metallicFactor": 0,
+     "roughnessFactor": 0.6000000238418579
+    }
+   },
+   "M_MAKO_Graphite": {
+    "pbrMetallicRoughness": {
+     "baseColorTexture": {
+      "index": 2
+     },
+     "metallicFactor": 0.20000000298023224,
+     "roughnessFactor": 0.550000011920929
+    }
+   },
+   "M_MAKO_Dark": {
+    "pbrMetallicRoughness": {
+     "baseColorFactor": [
+      0.03500000014901161,
+      0.03700000047683716,
+      0.04500000178813934,
+      1
+     ],
+     "metallicFactor": 0,
+     "roughnessFactor": 0.699999988079071
+    }
+   },
+   "M_MAKO_BoneStipple": {
+    "pbrMetallicRoughness": {
+     "baseColorTexture": {
+      "index": 3
+     },
+     "metallicFactor": 0,
+     "roughnessFactor": 0.800000011920929
+    }
+   },
+   "M_MAKO_Rubber": {
+    "pbrMetallicRoughness": {
+     "baseColorFactor": [
+      0.029999999329447746,
+      0.032999999821186066,
+      0.03999999910593033,
+      1
+     ],
+     "metallicFactor": 0,
+     "roughnessFactor": 0.8500000238418579
+    }
+   }
+  }
+ }
+}

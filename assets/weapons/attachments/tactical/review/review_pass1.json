@@ -1,0 +1,22 @@
+{
+  "asset": "ATT tactical / underbarrel / shield set (assets/weapons/attachments/tactical)",
+  "reviewer_tools": {
+    "glb_json_check.py": "raw glTF container parse: nodes, extras, materials, embedded images -> glb_json_report.json",
+    "review_checks.py": "glb re-import, tris/UV/topology/normal parity per shell, fits on mako_default/warden_default -> review_checks.json",
+    "rail_probe.py": "triangle-level overlap classification vs real rails, UGL breech/trigger poses, bipod fold sweep -> rail_probe.json",
+    "fbx_and_sight.py": "FBX import sanity + clear sight window through the shield from the real optic ADS sockets -> fbx_and_sight.json",
+    "review_render.py": "silhouettes 64 px, wireframe overlays, first-person, ADS, UGL+shield clash, bipod ground/fold, worst-angle details",
+    "review_sheets.py": "sheet_*.png contact sheets"
+  },
+  "verified_ok": [
+    "All 10 GLBs and 10 FBXs load; node names, hierarchy, socket empties and custom props (glTF extras / FBX props) match the spec and catalog",
+    "Tri counts identical to catalog and inside every budget (grips 832-1348, UGL 5060, bipod 3820, laser 1256, light 1480, shield 2840)",
+    "Merged-by-distance topology: 0 open edges, 0 non-manifold edges, 0 loose verts, 0 inverted shells, 0 inward faces (ray parity) on every part incl. the mirrored _L variants",
+    "Every mesh has UVs and materials; textures embedded (bufferView); glass is BLEND alpha 0.4; only laser dot and light lens/LED emit",
+    "Rebuild from scratch in a scratch copy reproduces byte-identical GLB sizes and an identical catalog.json",
+    "Bipod: soles level at -0.2155, Warden bore 0.270 m above ground; Warden monopod sits 4 mm lower (gun rests level on bipod + monopod); fold sweep -40..-90 deg never hits the Warden",
+    "Lights: laser 14 mm / flashlight 2.4 mm from the shield port edge, beams do not hit the shield; no contact with Mako barrel/hider"
+  ],
+  "scores": {"silhouette": 7, "style_consistency": 7.5, "craftsmanship": 7.5, "fidelity_to_brief_and_user_decisions": 7.5, "game_readiness": 6.5},
+  "verdict": "Accept as a prototype set after 3 major fixes (UGL/shield clash, shield viewport vs real optic eye line, folded-bipod pose)."
+}
