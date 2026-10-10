@@ -805,7 +805,7 @@ mod tests {
             ["optic_holo", "mako_stock_standard", "mag_30"].iter().map(|i| d.attachment(i).unwrap()).collect();
         let s = weapon_stats(&d, mako, &def);
         assert!((s.ads_s - 0.13).abs() < 1e-5);
-        assert_eq!((s.rpm, s.range_m, s.mag), (720.0, 25.0, 30));
+        assert_eq!((s.rpm, s.range_m, s.mag), (720.0, 35.0, 30));
         assert!((s.recoil_v - 100.0).abs() < 1e-4 && (s.mobility - 100.0).abs() < 1e-4);
         assert!((s.reload_s - 2.1).abs() < 1e-5);
         let grip = parts_with(&def, AttachmentCategory::Under, d.attachment("grip_angled"));

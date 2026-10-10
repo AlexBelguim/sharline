@@ -440,7 +440,7 @@ mod tests {
         let mako = d.weapon("ar7_mako").unwrap();
         let warden = d.weapon("vk50_warden").unwrap();
         for (r, want) in
-            [(0.0, 46.0), (25.0, 46.0), (30.0, 44.5), (37.5, 42.25), (50.0, 38.5), (80.0, 33.5), (300.0, 33.5)]
+            [(0.0, 46.0), (35.0, 46.0), (47.5, 44.0), (60.0, 42.0), (75.0, 40.0), (90.0, 38.0), (300.0, 38.0)]
         {
             assert!((falloff(mako, r) - want).abs() < 1e-4, "mako {r}");
         }

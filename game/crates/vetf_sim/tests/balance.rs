@@ -155,6 +155,20 @@ fn ap_hits_shields_harder_but_keeps_the_mako_at_three_bare_torso_shots() {
     }
 }
 
+/// Playtest round 4: a gentle Mako falloff. Three bare-torso hits kill out to ~75 m (a hit does 40 or more), and
+/// even past 90 m it never takes more than four.
+#[test]
+fn the_mako_keeps_three_bare_torso_shots_to_about_75_m() {
+    let d = GameData::embedded();
+    let (none, mako) = (capped(&d, "arm_none"), std(&d, WeaponClass::AssaultRifle));
+    for range in [10.0, 35.0, 50.0, 60.0, 70.0, 75.0] {
+        assert_eq!(shots(&d, MAKO, &mako, &none, Zone::Torso, range), 3, "Mako at {range} m");
+    }
+    for range in [80.0, 90.0, 200.0] {
+        assert_eq!(shots(&d, MAKO, &mako, &none, Zone::Torso, range), 4, "Mako at {range} m");
+    }
+}
+
 /// Health left after one Warden torso shot at 30 m (None = dead).
 fn warden_torso(d: &GameData, a: &AmmoSpec, armor: &ArmorStats) -> Option<f32> {
     let w = d.weapon(WARDEN).unwrap();
@@ -409,7 +423,7 @@ fn damage_per_second_by_range() {
     };
     #[rustfmt::skip]
     let want = [
-        (5.0, 552.0, 720.0), (15.0, 552.0, 586.7), (25.0, 552.0, 320.0), (40.0, 498.0, 200.0), (60.0, 442.0, 200.0),
+        (5.0, 552.0, 720.0), (15.0, 552.0, 586.7), (25.0, 552.0, 320.0), (40.0, 542.4, 200.0), (60.0, 504.0, 200.0),
     ];
     for (r, mako, skink) in want {
         assert!((dps(MAKO, r) - mako).abs() < 0.5, "mako at {r} m: {}", dps(MAKO, r));

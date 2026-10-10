@@ -21,11 +21,12 @@
             name: "AR-7 Mako",
             cls: assault_rifle,
             ballistics: hitscan,
-            // 4 torso hits through the default Mender Scout halo (60 shield + 120 HP) out to ~28 m, 3 on a bare
-            // torso; the falloff keeps the design's shape (x0.84 at 50 m, x0.73 at 80 m).
+            // 4 torso hits through the default Mender Scout halo (60 shield + 120 HP) out to ~38 m, 3 on a bare
+            // torso out to ~75 m (a hit does 40 or more). Gentle falloff (playtest round 4): full to 35 m, 42 at
+            // 60 m, 38 from 90 m.
             damage: 46.0,
-            falloff: [(0.0, 46.0), (25.0, 46.0), (50.0, 38.5), (80.0, 33.5)],
-            min_damage: 33.5,
+            falloff: [(0.0, 46.0), (35.0, 46.0), (60.0, 42.0), (90.0, 38.0)],
+            min_damage: 38.0,
             max_range_m: 300.0,
             // Head x1.5: two head hits kill through any T3 head arc within 25 m (one on a bare head).
             zone_mult: (head: 1.5, torso: 1.0, arms: 0.8, legs: 0.85),

@@ -893,3 +893,10 @@ New (item 9c2, user direction; the design docs have no streaks). All numbers in 
     drawn, for our own viewmodel and for other players' third-person guns. With the gun up it is as before.
   - **Scoped:** fully aimed through a magnified optic, our own dot still shows in the scope view where the aim
     lands. There is no beam.
+
+## 39. A gentler Mako damage falloff (2026-10-10)
+- **Before:** 46 to 25 m, 38.5 at 50 m, 33.5 from 80 m. A bare torso (120 HP) took 3 hits only while a hit did 40 or
+  more, which ended around 45 m and felt like a cliff (user: "the damage drop from longer range is too severe on ar").
+- **Now:** 46 to 35 m, 42 at 60 m, 38 from 90 m (`weapons.ron`, `min_damage` 38). Three bare-torso hits hold to
+  about 75 m, and it never takes more than four. Headshot multipliers and the SMG's steep drop are unchanged. The
+  design JSON's falloff was already superseded (design_sync `gun_tuning_round_1`).
