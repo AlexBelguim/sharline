@@ -1,0 +1,126 @@
+{
+  "prefix": "KES",
+  "height_m": 1.7,
+  "bones": 61,
+  "tris": 12928,
+  "meshes": [
+    {
+      "name": "KES_Head",
+      "vertices": 3586,
+      "tris": 7168,
+      "uv": true,
+      "max_influences": 1,
+      "unweighted": 0,
+      "bad_sum": 0
+    },
+    {
+      "name": "KES_Ears",
+      "vertices": 194,
+      "tris": 380,
+      "uv": true,
+      "max_influences": 1,
+      "unweighted": 0,
+      "bad_sum": 0
+    },
+    {
+      "name": "KES_Eyelids",
+      "vertices": 448,
+      "tris": 672,
+      "uv": true,
+      "max_influences": 1,
+      "unweighted": 0,
+      "bad_sum": 0
+    },
+    {
+      "name": "KES_Neck",
+      "vertices": 120,
+      "tris": 192,
+      "uv": true,
+      "max_influences": 2,
+      "unweighted": 0,
+      "bad_sum": 0
+    },
+    {
+      "name": "KES_Eye_L",
+      "vertices": 321,
+      "tris": 576,
+      "uv": true,
+      "max_influences": 1,
+      "unweighted": 0,
+      "bad_sum": 0
+    },
+    {
+      "name": "KES_Eye_R",
+      "vertices": 321,
+      "tris": 576,
+      "uv": true,
+      "max_influences": 1,
+      "unweighted": 0,
+      "bad_sum": 0
+    },
+    {
+      "name": "KES_Brows",
+      "vertices": 104,
+      "tris": 200,
+      "uv": true,
+      "max_influences": 1,
+      "unweighted": 0,
+      "bad_sum": 0
+    },
+    {
+      "name": "KES_Lashes",
+      "vertices": 348,
+      "tris": 688,
+      "uv": true,
+      "max_influences": 1,
+      "unweighted": 0,
+      "bad_sum": 0
+    },
+    {
+      "name": "KES_Forearm_L",
+      "vertices": 192,
+      "tris": 336,
+      "uv": true,
+      "max_influences": 2,
+      "unweighted": 0,
+      "bad_sum": 0
+    },
+    {
+      "name": "KES_Hand_L",
+      "vertices": 460,
+      "tris": 896,
+      "uv": true,
+      "max_influences": 3,
+      "unweighted": 0,
+      "bad_sum": 0
+    },
+    {
+      "name": "KES_Forearm_R",
+      "vertices": 192,
+      "tris": 336,
+      "uv": true,
+      "max_influences": 2,
+      "unweighted": 0,
+      "bad_sum": 0
+    },
+    {
+      "name": "KES_Hand_R",
+      "vertices": 460,
+      "tris": 896,
+      "uv": true,
+      "max_influences": 3,
+      "unweighted": 0,
+      "bad_sum": 0
+    },
+    {
+      "name": "KES_QATransformProbe",
+      "vertices": 8,
+      "tris": 12,
+      "uv": true,
+      "max_influences": 1,
+      "unweighted": 0,
+      "bad_sum": 0
+    }
+  ],
+  "errors": []
+}

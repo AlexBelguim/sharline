@@ -1,0 +1,155 @@
+{
+  "mesh_transform_probe": [
+    0.17000000178813934,
+    -0.05999999865889549,
+    1.2200000286102295
+  ],
+  "sockets": {
+    "KES_SOCKET_Halo": [
+      1.3322676295501878e-15,
+      0.00400000624358654,
+      1.9200000762939453
+    ],
+    "KES_SOCKET_WeaponR": [
+      -0.5906878113746643,
+      -0.09334130585193634,
+      0.9405847787857056
+    ],
+    "KES_SOCKET_WeaponL": [
+      0.5906878113746643,
+      -0.09334132820367813,
+      0.9405847787857056
+    ],
+    "KES_SOCKET_BackAbility": [
+      -8.881784197001252e-16,
+      0.13500002026557922,
+      1.2899999618530273
+    ]
+  },
+  "weights": {
+    "prefix": "KES",
+    "height_m": 1.7,
+    "bones": 61,
+    "tris": 12928,
+    "meshes": [
+      {
+        "name": "KES_Head",
+        "vertices": 3586,
+        "tris": 7168,
+        "uv": true,
+        "max_influences": 1,
+        "unweighted": 0,
+        "bad_sum": 0
+      },
+      {
+        "name": "KES_Ears",
+        "vertices": 194,
+        "tris": 380,
+        "uv": true,
+        "max_influences": 1,
+        "unweighted": 0,
+        "bad_sum": 0
+      },
+      {
+        "name": "KES_Eyelids",
+        "vertices": 448,
+        "tris": 672,
+        "uv": true,
+        "max_influences": 1,
+        "unweighted": 0,
+        "bad_sum": 0
+      },
+      {
+        "name": "KES_Neck",
+        "vertices": 120,
+        "tris": 192,
+        "uv": true,
+        "max_influences": 2,
+        "unweighted": 0,
+        "bad_sum": 0
+      },
+      {
+        "name": "KES_Eye_L",
+        "vertices": 321,
+        "tris": 576,
+        "uv": true,
+        "max_influences": 1,
+        "unweighted": 0,
+        "bad_sum": 0
+      },
+      {
+        "name": "KES_Eye_R",
+        "vertices": 321,
+        "tris": 576,
+        "uv": true,
+        "max_influences": 1,
+        "unweighted": 0,
+        "bad_sum": 0
+      },
+      {
+        "name": "KES_Brows",
+        "vertices": 104,
+        "tris": 200,
+        "uv": true,
+        "max_influences": 1,
+        "unweighted": 0,
+        "bad_sum": 0
+      },
+      {
+        "name": "KES_Lashes",
+        "vertices": 348,
+        "tris": 688,
+        "uv": true,
+        "max_influences": 1,
+        "unweighted": 0,
+        "bad_sum": 0
+      },
+      {
+        "name": "KES_Forearm_L",
+        "vertices": 192,
+        "tris": 336,
+        "uv": true,
+        "max_influences": 2,
+        "unweighted": 0,
+        "bad_sum": 0
+      },
+      {
+        "name": "KES_Hand_L",
+        "vertices": 460,
+        "tris": 896,
+        "uv": true,
+        "max_influences": 3,
+        "unweighted": 0,
+        "bad_sum": 0
+      },
+      {
+        "name": "KES_Forearm_R",
+        "vertices": 192,
+        "tris": 336,
+        "uv": true,
+        "max_influences": 2,
+        "unweighted": 0,
+        "bad_sum": 0
+      },
+      {
+        "name": "KES_Hand_R",
+        "vertices": 460,
+        "tris": 896,
+        "uv": true,
+        "max_influences": 3,
+        "unweighted": 0,
+        "bad_sum": 0
+      },
+      {
+        "name": "KES_QATransformProbe",
+        "vertices": 8,
+        "tris": 12,
+        "uv": true,
+        "max_influences": 1,
+        "unweighted": 0,
+        "bad_sum": 0
+      }
+    ],
+    "errors": []
+  }
+}

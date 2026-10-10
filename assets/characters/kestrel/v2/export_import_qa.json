@@ -1,0 +1,56 @@
+[
+  {
+    "format": "glb",
+    "bytes": 29620576,
+    "rigs": 1,
+    "bones": 67,
+    "meshes": 109,
+    "tris": 54384,
+    "uv_all": true,
+    "max_influences": 3,
+    "min": [
+      -0.7267006635665894,
+      -0.2042739987373352,
+      -6.489649706509226e-08
+    ],
+    "max": [
+      0.7267006635665894,
+      0.284996896982193,
+      1.719614863395691
+    ],
+    "sockets": [
+      "KES_SOCKET_WeaponL",
+      "KES_SOCKET_WeaponR",
+      "KES_SOCKET_Halo",
+      "KES_SOCKET_BackAbility"
+    ],
+    "errors": []
+  },
+  {
+    "format": "fbx",
+    "bytes": 28598268,
+    "rigs": 1,
+    "bones": 67,
+    "meshes": 109,
+    "tris": 54384,
+    "uv_all": true,
+    "max_influences": 3,
+    "min": [
+      -0.7267004251480103,
+      -0.2042740434408188,
+      -1.2971717922027892e-07
+    ],
+    "max": [
+      0.7267006039619446,
+      0.2849968373775482,
+      1.719614863395691
+    ],
+    "sockets": [
+      "KES_SOCKET_BackAbility",
+      "KES_SOCKET_Halo",
+      "KES_SOCKET_WeaponL",
+      "KES_SOCKET_WeaponR"
+    ],
+    "errors": []
+  }
+]

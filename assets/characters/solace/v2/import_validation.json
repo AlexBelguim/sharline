@@ -1,0 +1,100 @@
+{
+  "glb": {
+    "triangles": 49692,
+    "mesh_objects": 18,
+    "importer_display_helpers": [
+      "Icosphere"
+    ],
+    "armatures": 1,
+    "bone_count": 61,
+    "missing_required_bones": [],
+    "missing_uv": [],
+    "missing_skin": [],
+    "bad_weight_vertices": 0,
+    "max_influences": 3,
+    "bounds_min": [
+      -0.7181510925292969,
+      -0.16681113839149475,
+      -1.390212389651424e-07
+    ],
+    "bounds_max": [
+      0.718151330947876,
+      0.23811854422092438,
+      1.708357572555542
+    ],
+    "drone_center": [
+      0.19332928955554962,
+      -0.04399991827085614,
+      0.9459329545497894
+    ],
+    "injector_vial_center": [
+      -0.5426215529441833,
+      -0.05079677887260914,
+      1.0503520965576172
+    ],
+    "sockets": [
+      "SOL_SOCKET_Hand_L",
+      "SOL_SOCKET_WeaponL",
+      "SOL_SOCKET_Hand_R",
+      "SOL_SOCKET_WeaponR",
+      "SOL_SOCKET_Injector",
+      "SOL_SOCKET_Halo",
+      "SOL_SOCKET_BackAbility",
+      "SOL_SOCKET_Bloom",
+      "SOL_SOCKET_Drone"
+    ],
+    "emissive_materials": [
+      "M_SOL_Glow"
+    ],
+    "animation_actions": 0,
+    "passed": true
+  },
+  "fbx": {
+    "triangles": 49692,
+    "mesh_objects": 18,
+    "importer_display_helpers": [],
+    "armatures": 1,
+    "bone_count": 61,
+    "missing_required_bones": [],
+    "missing_uv": [],
+    "missing_skin": [],
+    "bad_weight_vertices": 0,
+    "max_influences": 3,
+    "bounds_min": [
+      -0.7181512117385864,
+      -0.1668109893798828,
+      -1.000787221983046e-07
+    ],
+    "bounds_max": [
+      0.7181512117385864,
+      0.23811869323253632,
+      1.7083574533462524
+    ],
+    "drone_center": [
+      0.19332928955554962,
+      -0.04399972525425255,
+      0.9459328055381775
+    ],
+    "injector_vial_center": [
+      -0.5426213815808296,
+      -0.050796532072126865,
+      1.050351858139038
+    ],
+    "sockets": [
+      "SOL_SOCKET_Drone",
+      "SOL_SOCKET_BackAbility",
+      "SOL_SOCKET_Bloom",
+      "SOL_SOCKET_Halo",
+      "SOL_SOCKET_Hand_L",
+      "SOL_SOCKET_WeaponL",
+      "SOL_SOCKET_Injector",
+      "SOL_SOCKET_Hand_R",
+      "SOL_SOCKET_WeaponR"
+    ],
+    "emissive_materials": [
+      "M_SOL_Glow"
+    ],
+    "animation_actions": 0,
+    "passed": true
+  }
+}

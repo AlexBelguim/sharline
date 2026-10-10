@@ -1,0 +1,75 @@
+{
+  "KES_Head": {
+    "verts": 6395,
+    "triangles": 12634,
+    "boundary_edges": 160,
+    "source_credit": "Rain Rig \u00a9 Blender Foundation | cloud.blender.org",
+    "shape_keys": [
+      "Basis",
+      "mouth_open",
+      "Smile.L",
+      "Smile.R",
+      "LipsWide.L",
+      "LipsWide.R",
+      "LipsPuff_Upper",
+      "LipsPuff_Lower",
+      "CheekPuff.L",
+      "CheekPuff.R"
+    ]
+  },
+  "KES_Eyes": {
+    "verts": 1348,
+    "triangles": 2688,
+    "boundary_edges": 0,
+    "source_credit": "Rain Rig \u00a9 Blender Foundation | cloud.blender.org",
+    "shape_keys": []
+  },
+  "KES_Brows": {
+    "verts": 296,
+    "triangles": 520,
+    "boundary_edges": 68,
+    "source_credit": "Rain Rig \u00a9 Blender Foundation | cloud.blender.org",
+    "shape_keys": []
+  },
+  "KES_Lashes": {
+    "verts": 240,
+    "triangles": 472,
+    "boundary_edges": 0,
+    "source_credit": "Rain Rig \u00a9 Blender Foundation | cloud.blender.org",
+    "shape_keys": []
+  },
+  "dims": {
+    "height": 1.7,
+    "skull_height": 1.7,
+    "chin_z": 1.475,
+    "head_center": [
+      0,
+      0.004,
+      1.588
+    ],
+    "head_height": 0.225,
+    "head_width": 0.148,
+    "head_depth": 0.188,
+    "eye_center_L": [
+      0.03029157966375351,
+      -0.04950011149048805,
+      1.5873597860336304
+    ],
+    "eye_center_R": [
+      -0.03029157966375351,
+      -0.04950011149048805,
+      1.5873597860336304
+    ],
+    "eye_height": 1.5873597860336304,
+    "eye_radius": 0.014388405797101449,
+    "eye_front_y": -0.07812473177909851,
+    "shoulder_width": 0.4,
+    "sole_z": 0.0,
+    "arm_angle_deg": 45.0,
+    "crotch_z": 0.8,
+    "wrist_width": 0.055,
+    "hand_length": 0.182,
+    "body_tris": 13404
+  },
+  "bones": 61
+}

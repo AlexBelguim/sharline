@@ -1,0 +1,171 @@
+{
+  "prefix": "SOL",
+  "height_m": 1.68,
+  "bones": 61,
+  "tris": 49692,
+  "meshes": [
+    {
+      "name": "SOL_Face",
+      "vertices": 5442,
+      "tris": 10452,
+      "uv": true,
+      "max_influences": 2,
+      "unweighted": 0,
+      "bad_sum": 0
+    },
+    {
+      "name": "SOL_Lips",
+      "vertices": 232,
+      "tris": 336,
+      "uv": true,
+      "max_influences": 1,
+      "unweighted": 0,
+      "bad_sum": 0
+    },
+    {
+      "name": "SOL_MouthLine",
+      "vertices": 58,
+      "tris": 56,
+      "uv": true,
+      "max_influences": 1,
+      "unweighted": 0,
+      "bad_sum": 0
+    },
+    {
+      "name": "SOL_Gloves",
+      "vertices": 1704,
+      "tris": 3256,
+      "uv": true,
+      "max_influences": 3,
+      "unweighted": 0,
+      "bad_sum": 0
+    },
+    {
+      "name": "SOL_JacketOutfit",
+      "vertices": 4768,
+      "tris": 9208,
+      "uv": true,
+      "max_influences": 3,
+      "unweighted": 0,
+      "bad_sum": 0
+    },
+    {
+      "name": "SOL_PantsOutfit",
+      "vertices": 1720,
+      "tris": 3344,
+      "uv": true,
+      "max_influences": 2,
+      "unweighted": 0,
+      "bad_sum": 0
+    },
+    {
+      "name": "SOL_KneePads",
+      "vertices": 704,
+      "tris": 1384,
+      "uv": true,
+      "max_influences": 2,
+      "unweighted": 0,
+      "bad_sum": 0
+    },
+    {
+      "name": "SOL_Boots",
+      "vertices": 1024,
+      "tris": 2024,
+      "uv": true,
+      "max_influences": 2,
+      "unweighted": 0,
+      "bad_sum": 0
+    },
+    {
+      "name": "SOL_ClothAccessories",
+      "vertices": 696,
+      "tris": 1248,
+      "uv": true,
+      "max_influences": 2,
+      "unweighted": 0,
+      "bad_sum": 0
+    },
+    {
+      "name": "SOL_Hair",
+      "vertices": 4140,
+      "tris": 8148,
+      "uv": true,
+      "max_influences": 1,
+      "unweighted": 0,
+      "bad_sum": 0
+    },
+    {
+      "name": "SOL_BloomBody",
+      "vertices": 1638,
+      "tris": 3148,
+      "uv": true,
+      "max_influences": 1,
+      "unweighted": 0,
+      "bad_sum": 0
+    },
+    {
+      "name": "SOL_BloomVane_C",
+      "vertices": 484,
+      "tris": 964,
+      "uv": true,
+      "max_influences": 1,
+      "unweighted": 0,
+      "bad_sum": 0
+    },
+    {
+      "name": "SOL_BloomVane_L",
+      "vertices": 484,
+      "tris": 964,
+      "uv": true,
+      "max_influences": 1,
+      "unweighted": 0,
+      "bad_sum": 0
+    },
+    {
+      "name": "SOL_BloomVane_R",
+      "vertices": 484,
+      "tris": 964,
+      "uv": true,
+      "max_influences": 1,
+      "unweighted": 0,
+      "bad_sum": 0
+    },
+    {
+      "name": "SOL_InjectorBody",
+      "vertices": 688,
+      "tris": 1348,
+      "uv": true,
+      "max_influences": 1,
+      "unweighted": 0,
+      "bad_sum": 0
+    },
+    {
+      "name": "SOL_InjectorVial",
+      "vertices": 96,
+      "tris": 188,
+      "uv": true,
+      "max_influences": 1,
+      "unweighted": 0,
+      "bad_sum": 0
+    },
+    {
+      "name": "SOL_HealDroneShell",
+      "vertices": 1152,
+      "tris": 2196,
+      "uv": true,
+      "max_influences": 1,
+      "unweighted": 0,
+      "bad_sum": 0
+    },
+    {
+      "name": "SOL_ShoulderBloomMark",
+      "vertices": 240,
+      "tris": 464,
+      "uv": true,
+      "max_influences": 1,
+      "unweighted": 0,
+      "bad_sum": 0
+    }
+  ],
+  "errors": []
+}

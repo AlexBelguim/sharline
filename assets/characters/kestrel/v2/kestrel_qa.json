@@ -1,0 +1,882 @@
+{
+  "prefix": "KES",
+  "height_m": 1.7,
+  "bones": 67,
+  "tris": 58683,
+  "meshes": [
+    {
+      "name": "KES_Neck",
+      "vertices": 120,
+      "tris": 192,
+      "uv": true,
+      "max_influences": 2,
+      "unweighted": 0,
+      "bad_sum": 0
+    },
+    {
+      "name": "KES_Head",
+      "vertices": 6395,
+      "tris": 12634,
+      "uv": true,
+      "max_influences": 1,
+      "unweighted": 0,
+      "bad_sum": 0
+    },
+    {
+      "name": "KES_Eyes",
+      "vertices": 1348,
+      "tris": 2688,
+      "uv": true,
+      "max_influences": 1,
+      "unweighted": 0,
+      "bad_sum": 0
+    },
+    {
+      "name": "KES_Brows",
+      "vertices": 296,
+      "tris": 520,
+      "uv": true,
+      "max_influences": 1,
+      "unweighted": 0,
+      "bad_sum": 0
+    },
+    {
+      "name": "KES_Lashes",
+      "vertices": 240,
+      "tris": 472,
+      "uv": true,
+      "max_influences": 1,
+      "unweighted": 0,
+      "bad_sum": 0
+    },
+    {
+      "name": "KES_Part_body_arms_skin",
+      "vertices": 384,
+      "tris": 672,
+      "uv": true,
+      "max_influences": 2,
+      "unweighted": 0,
+      "bad_sum": 0
+    },
+    {
+      "name": "KES_Part_body_hands_skin",
+      "vertices": 920,
+      "tris": 1792,
+      "uv": true,
+      "max_influences": 3,
+      "unweighted": 0,
+      "bad_sum": 0
+    },
+    {
+      "name": "KES_UnderSuit",
+      "vertices": 520,
+      "tris": 960,
+      "uv": true,
+      "max_influences": 2,
+      "unweighted": 0,
+      "bad_sum": 0
+    },
+    {
+      "name": "KES_SuitZip",
+      "vertices": 60,
+      "tris": 116,
+      "uv": true,
+      "max_influences": 2,
+      "unweighted": 0,
+      "bad_sum": 0
+    },
+    {
+      "name": "KES_KneePad_L",
+      "vertices": 96,
+      "tris": 188,
+      "uv": true,
+      "max_influences": 1,
+      "unweighted": 0,
+      "bad_sum": 0
+    },
+    {
+      "name": "KES_KneeInset_L",
+      "vertices": 82,
+      "tris": 160,
+      "uv": true,
+      "max_influences": 1,
+      "unweighted": 0,
+      "bad_sum": 0
+    },
+    {
+      "name": "KES_KneeLowerFacet_L",
+      "vertices": 84,
+      "tris": 164,
+      "uv": true,
+      "max_influences": 1,
+      "unweighted": 0,
+      "bad_sum": 0
+    },
+    {
+      "name": "KES_KneeVent_L",
+      "vertices": 56,
+      "tris": 108,
+      "uv": true,
+      "max_influences": 1,
+      "unweighted": 0,
+      "bad_sum": 0
+    },
+    {
+      "name": "KES_GlovePanel_L",
+      "vertices": 56,
+      "tris": 108,
+      "uv": true,
+      "max_influences": 1,
+      "unweighted": 0,
+      "bad_sum": 0
+    },
+    {
+      "name": "KES_GrappleBracer",
+      "vertices": 192,
+      "tris": 380,
+      "uv": true,
+      "max_influences": 1,
+      "unweighted": 0,
+      "bad_sum": 0
+    },
+    {
+      "name": "KES_GrappleHousing",
+      "vertices": 108,
+      "tris": 212,
+      "uv": true,
+      "max_influences": 1,
+      "unweighted": 0,
+      "bad_sum": 0
+    },
+    {
+      "name": "KES_GrappleRail",
+      "vertices": 40,
+      "tris": 76,
+      "uv": true,
+      "max_influences": 1,
+      "unweighted": 0,
+      "bad_sum": 0
+    },
+    {
+      "name": "KES_GrappleAccent",
+      "vertices": 40,
+      "tris": 76,
+      "uv": true,
+      "max_influences": 1,
+      "unweighted": 0,
+      "bad_sum": 0
+    },
+    {
+      "name": "KES_GrappleHook",
+      "vertices": 36,
+      "tris": 68,
+      "uv": true,
+      "max_influences": 1,
+      "unweighted": 0,
+      "bad_sum": 0
+    },
+    {
+      "name": "KES_GrappleSpool",
+      "vertices": 144,
+      "tris": 284,
+      "uv": true,
+      "max_influences": 1,
+      "unweighted": 0,
+      "bad_sum": 0
+    },
+    {
+      "name": "KES_KneePad_R",
+      "vertices": 96,
+      "tris": 188,
+      "uv": true,
+      "max_influences": 1,
+      "unweighted": 0,
+      "bad_sum": 0
+    },
+    {
+      "name": "KES_KneeInset_R",
+      "vertices": 82,
+      "tris": 160,
+      "uv": true,
+      "max_influences": 1,
+      "unweighted": 0,
+      "bad_sum": 0
+    },
+    {
+      "name": "KES_KneeLowerFacet_R",
+      "vertices": 84,
+      "tris": 164,
+      "uv": true,
+      "max_influences": 1,
+      "unweighted": 0,
+      "bad_sum": 0
+    },
+    {
+      "name": "KES_KneeVent_R",
+      "vertices": 56,
+      "tris": 108,
+      "uv": true,
+      "max_influences": 1,
+      "unweighted": 0,
+      "bad_sum": 0
+    },
+    {
+      "name": "KES_GlovePanel_R",
+      "vertices": 56,
+      "tris": 108,
+      "uv": true,
+      "max_influences": 1,
+      "unweighted": 0,
+      "bad_sum": 0
+    },
+    {
+      "name": "KES_BackPlate",
+      "vertices": 140,
+      "tris": 276,
+      "uv": true,
+      "max_influences": 2,
+      "unweighted": 0,
+      "bad_sum": 0
+    },
+    {
+      "name": "KES_BackFacet",
+      "vertices": 84,
+      "tris": 164,
+      "uv": true,
+      "max_influences": 1,
+      "unweighted": 0,
+      "bad_sum": 0
+    },
+    {
+      "name": "KES_Belt",
+      "vertices": 280,
+      "tris": 480,
+      "uv": true,
+      "max_influences": 1,
+      "unweighted": 0,
+      "bad_sum": 0
+    },
+    {
+      "name": "KES_BeltBuckle",
+      "vertices": 56,
+      "tris": 108,
+      "uv": true,
+      "max_influences": 1,
+      "unweighted": 0,
+      "bad_sum": 0
+    },
+    {
+      "name": "KES_Pouch0",
+      "vertices": 56,
+      "tris": 108,
+      "uv": true,
+      "max_influences": 1,
+      "unweighted": 0,
+      "bad_sum": 0
+    },
+    {
+      "name": "KES_PouchFlap0",
+      "vertices": 56,
+      "tris": 108,
+      "uv": true,
+      "max_influences": 1,
+      "unweighted": 0,
+      "bad_sum": 0
+    },
+    {
+      "name": "KES_PouchSnap0",
+      "vertices": 56,
+      "tris": 108,
+      "uv": true,
+      "max_influences": 1,
+      "unweighted": 0,
+      "bad_sum": 0
+    },
+    {
+      "name": "KES_Pouch1",
+      "vertices": 56,
+      "tris": 108,
+      "uv": true,
+      "max_influences": 1,
+      "unweighted": 0,
+      "bad_sum": 0
+    },
+    {
+      "name": "KES_PouchFlap1",
+      "vertices": 56,
+      "tris": 108,
+      "uv": true,
+      "max_influences": 1,
+      "unweighted": 0,
+      "bad_sum": 0
+    },
+    {
+      "name": "KES_PouchSnap1",
+      "vertices": 56,
+      "tris": 108,
+      "uv": true,
+      "max_influences": 1,
+      "unweighted": 0,
+      "bad_sum": 0
+    },
+    {
+      "name": "KES_HolsterStrap0.72",
+      "vertices": 80,
+      "tris": 80,
+      "uv": true,
+      "max_influences": 1,
+      "unweighted": 0,
+      "bad_sum": 0
+    },
+    {
+      "name": "KES_HolsterStrap0.646",
+      "vertices": 80,
+      "tris": 80,
+      "uv": true,
+      "max_influences": 1,
+      "unweighted": 0,
+      "bad_sum": 0
+    },
+    {
+      "name": "KES_Holster",
+      "vertices": 90,
+      "tris": 176,
+      "uv": true,
+      "max_influences": 1,
+      "unweighted": 0,
+      "bad_sum": 0
+    },
+    {
+      "name": "KES_HolsterGrip",
+      "vertices": 56,
+      "tris": 108,
+      "uv": true,
+      "max_influences": 1,
+      "unweighted": 0,
+      "bad_sum": 0
+    },
+    {
+      "name": "KES_HolsterDrop",
+      "vertices": 60,
+      "tris": 116,
+      "uv": true,
+      "max_influences": 1,
+      "unweighted": 0,
+      "bad_sum": 0
+    },
+    {
+      "name": "KES_JetPackBody",
+      "vertices": 56,
+      "tris": 108,
+      "uv": true,
+      "max_influences": 2,
+      "unweighted": 0,
+      "bad_sum": 0
+    },
+    {
+      "name": "KES_JetPackSpine",
+      "vertices": 56,
+      "tris": 108,
+      "uv": true,
+      "max_influences": 2,
+      "unweighted": 0,
+      "bad_sum": 0
+    },
+    {
+      "name": "KES_Thruster_L",
+      "vertices": 162,
+      "tris": 320,
+      "uv": true,
+      "max_influences": 2,
+      "unweighted": 0,
+      "bad_sum": 0
+    },
+    {
+      "name": "KES_Nozzle_L",
+      "vertices": 224,
+      "tris": 448,
+      "uv": true,
+      "max_influences": 2,
+      "unweighted": 0,
+      "bad_sum": 0
+    },
+    {
+      "name": "KES_JetCore_L",
+      "vertices": 64,
+      "tris": 124,
+      "uv": true,
+      "max_influences": 2,
+      "unweighted": 0,
+      "bad_sum": 0
+    },
+    {
+      "name": "KES_JetBand_L",
+      "vertices": 128,
+      "tris": 256,
+      "uv": true,
+      "max_influences": 2,
+      "unweighted": 0,
+      "bad_sum": 0
+    },
+    {
+      "name": "KES_Thruster_R",
+      "vertices": 162,
+      "tris": 320,
+      "uv": true,
+      "max_influences": 2,
+      "unweighted": 0,
+      "bad_sum": 0
+    },
+    {
+      "name": "KES_Nozzle_R",
+      "vertices": 224,
+      "tris": 448,
+      "uv": true,
+      "max_influences": 2,
+      "unweighted": 0,
+      "bad_sum": 0
+    },
+    {
+      "name": "KES_JetCore_R",
+      "vertices": 64,
+      "tris": 124,
+      "uv": true,
+      "max_influences": 2,
+      "unweighted": 0,
+      "bad_sum": 0
+    },
+    {
+      "name": "KES_JetBand_R",
+      "vertices": 128,
+      "tris": 256,
+      "uv": true,
+      "max_influences": 2,
+      "unweighted": 0,
+      "bad_sum": 0
+    },
+    {
+      "name": "KES_HarnessBuckle_-1",
+      "vertices": 16,
+      "tris": 32,
+      "uv": true,
+      "max_influences": 1,
+      "unweighted": 0,
+      "bad_sum": 0
+    },
+    {
+      "name": "KES_HarnessBuckle_1",
+      "vertices": 16,
+      "tris": 32,
+      "uv": true,
+      "max_influences": 1,
+      "unweighted": 0,
+      "bad_sum": 0
+    },
+    {
+      "name": "KES_HolsterBuckle0.72",
+      "vertices": 16,
+      "tris": 32,
+      "uv": true,
+      "max_influences": 1,
+      "unweighted": 0,
+      "bad_sum": 0
+    },
+    {
+      "name": "KES_HolsterBuckle0.646",
+      "vertices": 16,
+      "tris": 32,
+      "uv": true,
+      "max_influences": 1,
+      "unweighted": 0,
+      "bad_sum": 0
+    },
+    {
+      "name": "KES_PantsCargoFlap",
+      "vertices": 36,
+      "tris": 68,
+      "uv": true,
+      "max_influences": 1,
+      "unweighted": 0,
+      "bad_sum": 0
+    },
+    {
+      "name": "KES_HolsterGripRib0",
+      "vertices": 56,
+      "tris": 108,
+      "uv": true,
+      "max_influences": 1,
+      "unweighted": 0,
+      "bad_sum": 0
+    },
+    {
+      "name": "KES_HolsterGripRib1",
+      "vertices": 56,
+      "tris": 108,
+      "uv": true,
+      "max_influences": 1,
+      "unweighted": 0,
+      "bad_sum": 0
+    },
+    {
+      "name": "KES_GrappleRailInset",
+      "vertices": 15,
+      "tris": 16,
+      "uv": true,
+      "max_influences": 1,
+      "unweighted": 0,
+      "bad_sum": 0
+    },
+    {
+      "name": "KES_PantsFly",
+      "vertices": 60,
+      "tris": 116,
+      "uv": true,
+      "max_influences": 1,
+      "unweighted": 0,
+      "bad_sum": 0
+    },
+    {
+      "name": "KES_BootUpper_L",
+      "vertices": 280,
+      "tris": 480,
+      "uv": true,
+      "max_influences": 2,
+      "unweighted": 0,
+      "bad_sum": 0
+    },
+    {
+      "name": "KES_BootCuff_L",
+      "vertices": 96,
+      "tris": 128,
+      "uv": true,
+      "max_influences": 1,
+      "unweighted": 0,
+      "bad_sum": 0
+    },
+    {
+      "name": "KES_BootTongue_L",
+      "vertices": 6,
+      "tris": 4,
+      "uv": true,
+      "max_influences": 2,
+      "unweighted": 0,
+      "bad_sum": 0
+    },
+    {
+      "name": "KES_BootHeelCounter_L",
+      "vertices": 56,
+      "tris": 108,
+      "uv": true,
+      "max_influences": 1,
+      "unweighted": 0,
+      "bad_sum": 0
+    },
+    {
+      "name": "KES_BootUpper_R",
+      "vertices": 280,
+      "tris": 480,
+      "uv": true,
+      "max_influences": 2,
+      "unweighted": 0,
+      "bad_sum": 0
+    },
+    {
+      "name": "KES_BootCuff_R",
+      "vertices": 96,
+      "tris": 128,
+      "uv": true,
+      "max_influences": 1,
+      "unweighted": 0,
+      "bad_sum": 0
+    },
+    {
+      "name": "KES_BootTongue_R",
+      "vertices": 6,
+      "tris": 4,
+      "uv": true,
+      "max_influences": 2,
+      "unweighted": 0,
+      "bad_sum": 0
+    },
+    {
+      "name": "KES_BootHeelCounter_R",
+      "vertices": 56,
+      "tris": 108,
+      "uv": true,
+      "max_influences": 1,
+      "unweighted": 0,
+      "bad_sum": 0
+    },
+    {
+      "name": "KES_ZipPull",
+      "vertices": 56,
+      "tris": 108,
+      "uv": true,
+      "max_influences": 1,
+      "unweighted": 0,
+      "bad_sum": 0
+    },
+    {
+      "name": "KES_ChestSculptedRig",
+      "vertices": 81,
+      "tris": 158,
+      "uv": true,
+      "max_influences": 2,
+      "unweighted": 0,
+      "bad_sum": 0
+    },
+    {
+      "name": "KES_HairScalp",
+      "vertices": 960,
+      "tris": 1854,
+      "uv": true,
+      "max_influences": 1,
+      "unweighted": 0,
+      "bad_sum": 0
+    },
+    {
+      "name": "KES_HairLock_FrontRight",
+      "vertices": 444,
+      "tris": 884,
+      "uv": true,
+      "max_influences": 3,
+      "unweighted": 0,
+      "bad_sum": 0
+    },
+    {
+      "name": "KES_HairLock_SideRight",
+      "vertices": 372,
+      "tris": 740,
+      "uv": true,
+      "max_influences": 3,
+      "unweighted": 0,
+      "bad_sum": 0
+    },
+    {
+      "name": "KES_HairLock_RearRight",
+      "vertices": 372,
+      "tris": 740,
+      "uv": true,
+      "max_influences": 3,
+      "unweighted": 0,
+      "bad_sum": 0
+    },
+    {
+      "name": "KES_HairLock_BackRight",
+      "vertices": 300,
+      "tris": 596,
+      "uv": true,
+      "max_influences": 3,
+      "unweighted": 0,
+      "bad_sum": 0
+    },
+    {
+      "name": "KES_HairLock_BackCentre",
+      "vertices": 300,
+      "tris": 596,
+      "uv": true,
+      "max_influences": 3,
+      "unweighted": 0,
+      "bad_sum": 0
+    },
+    {
+      "name": "KES_HairLock_BackLeft",
+      "vertices": 300,
+      "tris": 596,
+      "uv": true,
+      "max_influences": 3,
+      "unweighted": 0,
+      "bad_sum": 0
+    },
+    {
+      "name": "KES_HairLock_TempleLeft",
+      "vertices": 300,
+      "tris": 596,
+      "uv": true,
+      "max_influences": 1,
+      "unweighted": 0,
+      "bad_sum": 0
+    },
+    {
+      "name": "KES_HairLock_CrownLeft",
+      "vertices": 300,
+      "tris": 596,
+      "uv": true,
+      "max_influences": 1,
+      "unweighted": 0,
+      "bad_sum": 0
+    },
+    {
+      "name": "KES_LensRim",
+      "vertices": 168,
+      "tris": 336,
+      "uv": true,
+      "max_influences": 1,
+      "unweighted": 0,
+      "bad_sum": 0
+    },
+    {
+      "name": "KES_LensGlass",
+      "vertices": 6,
+      "tris": 4,
+      "uv": true,
+      "max_influences": 1,
+      "unweighted": 0,
+      "bad_sum": 0
+    },
+    {
+      "name": "KES_Earpiece",
+      "vertices": 56,
+      "tris": 108,
+      "uv": true,
+      "max_influences": 1,
+      "unweighted": 0,
+      "bad_sum": 0
+    },
+    {
+      "name": "KES_LensStrapUpper",
+      "vertices": 88,
+      "tris": 172,
+      "uv": true,
+      "max_influences": 1,
+      "unweighted": 0,
+      "bad_sum": 0
+    },
+    {
+      "name": "KES_LensStrapLower",
+      "vertices": 88,
+      "tris": 172,
+      "uv": true,
+      "max_influences": 1,
+      "unweighted": 0,
+      "bad_sum": 0
+    },
+    {
+      "name": "KES_LensStrapForehead",
+      "vertices": 88,
+      "tris": 172,
+      "uv": true,
+      "max_influences": 1,
+      "unweighted": 0,
+      "bad_sum": 0
+    },
+    {
+      "name": "KES_EarStatus",
+      "vertices": 56,
+      "tris": 108,
+      "uv": true,
+      "max_influences": 1,
+      "unweighted": 0,
+      "bad_sum": 0
+    },
+    {
+      "name": "KES_Part_jacket_jacket",
+      "vertices": 3806,
+      "tris": 7136,
+      "uv": true,
+      "max_influences": 3,
+      "unweighted": 0,
+      "bad_sum": 0
+    },
+    {
+      "name": "KES_Part_jacket_graph",
+      "vertices": 992,
+      "tris": 1800,
+      "uv": true,
+      "max_influences": 2,
+      "unweighted": 0,
+      "bad_sum": 0
+    },
+    {
+      "name": "KES_Part_jacket_jacketLight",
+      "vertices": 342,
+      "tris": 556,
+      "uv": true,
+      "max_influences": 3,
+      "unweighted": 0,
+      "bad_sum": 0
+    },
+    {
+      "name": "KES_Part_knee_pads_web",
+      "vertices": 256,
+      "tris": 256,
+      "uv": true,
+      "max_influences": 2,
+      "unweighted": 0,
+      "bad_sum": 0
+    },
+    {
+      "name": "KES_Part_jacket_teal",
+      "vertices": 432,
+      "tris": 760,
+      "uv": true,
+      "max_influences": 3,
+      "unweighted": 0,
+      "bad_sum": 0
+    },
+    {
+      "name": "KES_Part_gloves_graph",
+      "vertices": 224,
+      "tris": 440,
+      "uv": true,
+      "max_influences": 1,
+      "unweighted": 0,
+      "bad_sum": 0
+    },
+    {
+      "name": "KES_Part_chest_rig_web",
+      "vertices": 408,
+      "tris": 800,
+      "uv": true,
+      "max_influences": 2,
+      "unweighted": 0,
+      "bad_sum": 0
+    },
+    {
+      "name": "KES_Part_underlayer_graph",
+      "vertices": 30,
+      "tris": 32,
+      "uv": true,
+      "max_influences": 2,
+      "unweighted": 0,
+      "bad_sum": 0
+    },
+    {
+      "name": "KES_Part_chest_rig_webLight",
+      "vertices": 30,
+      "tris": 32,
+      "uv": true,
+      "max_influences": 1,
+      "unweighted": 0,
+      "bad_sum": 0
+    },
+    {
+      "name": "KES_Part_trousers_pants",
+      "vertices": 3923,
+      "tris": 7709,
+      "uv": true,
+      "max_influences": 4,
+      "unweighted": 0,
+      "bad_sum": 0
+    },
+    {
+      "name": "KES_Part_trousers_pantsLight",
+      "vertices": 150,
+      "tris": 264,
+      "uv": true,
+      "max_influences": 1,
+      "unweighted": 0,
+      "bad_sum": 0
+    },
+    {
+      "name": "KES_Part_footwear_graph",
+      "vertices": 560,
+      "tris": 1032,
+      "uv": true,
+      "max_influences": 2,
+      "unweighted": 0,
+      "bad_sum": 0
+    }
+  ],
+  "errors": []
+}

@@ -1,0 +1,14 @@
+{
+  "triangles": 49692,
+  "mesh_objects": 18,
+  "max_vertex_influences": 3,
+  "bad_weight_vertices": 0,
+  "missing_armature_modifiers": [],
+  "bad_weight_examples": [],
+  "skull_height_m": 1.68,
+  "rest_pose": "shared 45-degree A-pose; front -Y; feet Z0",
+  "source": "Fresh authored geometry; no TRELLIS or existing character mesh imported",
+  "emissive_materials": [
+    "M_SOL_Glow"
+  ]
+}

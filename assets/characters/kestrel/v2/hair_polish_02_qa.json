@@ -1,0 +1,82 @@
+{
+  "parts": {
+    "KES_HairScalp": {
+      "verts": 960,
+      "triangles": 1854,
+      "boundary_edges": 64,
+      "weights_max": 1,
+      "normalization_error": 0.0
+    },
+    "KES_HairLock_FrontRight": {
+      "verts": 444,
+      "triangles": 884,
+      "boundary_edges": 0,
+      "weights_max": 3,
+      "normalization_error": 2.9802322387695312e-08
+    },
+    "KES_HairLock_SideRight": {
+      "verts": 372,
+      "triangles": 740,
+      "boundary_edges": 0,
+      "weights_max": 3,
+      "normalization_error": 2.9802322387695312e-08
+    },
+    "KES_HairLock_RearRight": {
+      "verts": 372,
+      "triangles": 740,
+      "boundary_edges": 0,
+      "weights_max": 3,
+      "normalization_error": 2.9802322387695312e-08
+    },
+    "KES_HairLock_BackRight": {
+      "verts": 300,
+      "triangles": 596,
+      "boundary_edges": 0,
+      "weights_max": 3,
+      "normalization_error": 2.9802322387695312e-08
+    },
+    "KES_HairLock_BackCentre": {
+      "verts": 300,
+      "triangles": 596,
+      "boundary_edges": 0,
+      "weights_max": 3,
+      "normalization_error": 2.9802322387695312e-08
+    },
+    "KES_HairLock_BackLeft": {
+      "verts": 300,
+      "triangles": 596,
+      "boundary_edges": 0,
+      "weights_max": 3,
+      "normalization_error": 2.9802322387695312e-08
+    },
+    "KES_HairLock_TempleLeft": {
+      "verts": 300,
+      "triangles": 596,
+      "boundary_edges": 0,
+      "weights_max": 1,
+      "normalization_error": 0.0
+    },
+    "KES_HairLock_CrownLeft": {
+      "verts": 300,
+      "triangles": 596,
+      "boundary_edges": 0,
+      "weights_max": 1,
+      "normalization_error": 0.0
+    }
+  },
+  "bones": 67,
+  "hair_bones": [
+    "hair_front_r_01",
+    "hair_front_r_02",
+    "hair_side_r_01",
+    "hair_side_r_02",
+    "hair_back_01",
+    "hair_back_02"
+  ],
+  "hair_triangles": 7198,
+  "motion": {
+    "scalp_error_m": 0.0,
+    "root_error_m": 0.0,
+    "tip_displacement_m": 0.008777612243096459
+  }
+}

@@ -1,0 +1,38 @@
+[
+  {
+    "pose": "sprint",
+    "errors": [],
+    "max_influences": 4,
+    "bad_weight_sums": 0
+  },
+  {
+    "pose": "crouch",
+    "errors": [],
+    "max_influences": 4,
+    "bad_weight_sums": 0
+  },
+  {
+    "pose": "aim",
+    "errors": [],
+    "max_influences": 4,
+    "bad_weight_sums": 0
+  },
+  {
+    "pose": "elbow",
+    "errors": [],
+    "max_influences": 4,
+    "bad_weight_sums": 0
+  },
+  {
+    "pose": "knee",
+    "errors": [],
+    "max_influences": 4,
+    "bad_weight_sums": 0
+  },
+  {
+    "pose": "fist",
+    "errors": [],
+    "max_influences": 4,
+    "bad_weight_sums": 0
+  }
+]

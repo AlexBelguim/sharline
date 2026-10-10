@@ -1,0 +1,75 @@
+{
+  "input": "D:\\downloads\\base.obj",
+  "input_bytes": 52645092,
+  "obj_vertices": 249976,
+  "obj_uvs": 264441,
+  "obj_normals": 348834,
+  "polygons": 500000,
+  "face_arity": {
+    "3": 500000
+  },
+  "triangles": 500000,
+  "raw_bounds": [
+    [
+      -0.48806,
+      0.0,
+      -0.222482
+    ],
+    [
+      0.485188,
+      1.898092,
+      0.220524
+    ]
+  ],
+  "raw_dimensions": [
+    0.973248,
+    1.898092,
+    0.443006
+  ],
+  "objects": [
+    "model"
+  ],
+  "comments": [
+    "# Blender 4.3.2",
+    "# www.blender.org"
+  ],
+  "face_corners": {
+    "uv": 1500000,
+    "normal": 1500000,
+    "total": 1500000
+  },
+  "material_libraries": [],
+  "license": "not established from supplied OBJ",
+  "rig": false,
+  "pose_note": "OBJ has no skeletal rig or animation data",
+  "imported_meshes": [
+    {
+      "name": "model",
+      "vertices": 249976,
+      "edges": 750000,
+      "polygons": 500000,
+      "boundary_edges": 0,
+      "nonmanifold_edges": 0,
+      "components": 1,
+      "largest_component_vertices": [
+        249976
+      ],
+      "uv_layers": [
+        "UVMap"
+      ],
+      "bounds": [
+        [
+          -0.48805999755859375,
+          0.0,
+          -0.22248199582099915
+        ],
+        [
+          0.48518800735473633,
+          1.8980920314788818,
+          0.22052399814128876
+        ]
+      ]
+    }
+  ],
+  "inspection_scale_to_1_70": 0.8956362266752298
+}

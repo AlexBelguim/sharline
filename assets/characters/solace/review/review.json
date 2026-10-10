@@ -1,0 +1,161 @@
+{
+ "asset": "SOLACE, female field medic / healer agent (F:/git/val etf/assets/characters/solace/): solace.glb / .fbx / .blend from build_solace.py (TRELLIS s42 base + procedural Bloom module)",
+ "review_round": 1,
+ "date": "2026-10-07",
+ "reviewer_role": "independent senior art director + technical artist",
+ "context": "DIRECTION_LOG 11 says the TRELLIS characters are placeholders that will be remade later. The bar used here: would a lead accept this as a stylized placeholder prototype that can go into the engine now?",
+ "scores": {
+  "silhouette": 6.5,
+  "style_consistency": 6,
+  "craftsmanship": 5.5,
+  "game_readiness": 6,
+  "fidelity_to_brief_and_user_decisions": 7
+ },
+ "verdict": "Nearly acceptable as a placeholder prototype, and clearly stronger than Kestrel's first pass: no critical issues. The exports are valid. The build re-runs from scratch: my rebuild in the scratchpad took 147 s and produced byte-identical glTF JSON, with float noise in about 0.1% of the binary. Naming, sides, the three-petal emblem, the single emissive material and the hinged vanes with their extras are all correct. The weights hold up in a true arms-down, a rifle-ready pose, arms overhead, a long stride, splits, a torso twist and head turns. Three issues need a short fix pass before engine integration: (1) on a 30 degree or larger look-up the back of the hair passes through the Bloom bud's centre vane; (2) the heal drone is baked into the body skin, so the MEND DRONE ability cannot hide or launch it; (3) the arm, hand and leg bone frames differ from Kestrel's by up to 90 degrees, so one animation set cannot drive both agents. The rest is TRELLIS-surface polish: a hair loop round her left ear that reads as a headset, a ragged nape, the drone eye edge, a repaint patch by the pouch, mitten fingers and a lopsided rest stance. Readability polish: the bud reads ivory-on-ivory from behind, the ponytail does not read in silhouette, and the coral hem edging is thin.",
+ "what_works": [
+  "glb: 53-joint skin, inverse-bind error 5e-7, one material per primitive, 5 embedded PNGs, weights sum to 1 with at most 4 influences and no unweighted verts, only M_SOL_Glow is emissive (KHR_materials_emissive_strength 4), ORM metal channel 0, AO 1",
+  "FBX loads: 13 objects, 53 bones, no leaf bones, vane custom properties and socket extras preserved",
+  "Sides correct: ponytail, bracer and pouch on her RIGHT (-X); emblem and drone on her LEFT (+X). Emblem has three petals, no cross anywhere, no armour plates or pips",
+  "Vanes are separate nodes with the origin on the hinge and extras {open_angle_deg, closed_angle_deg, hinge_axis_local}. No vane-body or vane-vane overlap, closed or open",
+  "Sockets carry the task names (Halo / WeaponR / WeaponL / Injector / DroneDock / BloomVFX), matching Kestrel's naming. Halo sits 0.220 m above the model top. Attaching mako_default.glb to SOL_SOCKET_WeaponR gives the documented convention (grip in the palm, muzzle along the fingers, top toward the thumb): rv_weapon_rest_front.png, rv_weapon_hold_side.png",
+  "Deformation is solid in the reviewer's own poses: rv_pose_armsdown_*, rv_pose_rifle_*, rv_pose_overhead_*, rv_pose_stride_*, rv_pose_legs_*, rv_pose_twist_lookdown_*. The coat tail follows without tearing",
+  "Palette matches when measured on the atlas: pants median sRGB (0.655, 0.592, 0.494) vs sand (0.629, 0.561, 0.459); jacket back (0.831, 0.808, 0.761) vs ivory (0.850, 0.834, 0.793)",
+  "The bracer and its glowing vial are clearly visible from a first-person camera, as the brief asks: rv_fp_view.png"
+ ],
+ "issues": [
+  {
+   "id": "M1",
+   "severity": "major",
+   "issue": "When she looks up, the back of the hair clips through the Bloom bud's centre vane. The test splits head pitch 45% neck_01 / 55% head. At 20 degrees the hair is clear of the vanes; at 30 degrees it overlaps vane C (61 face pairs); at 40 degrees, 112. Aiming up at roofs, ziplines and jetpack targets is a constant gameplay pose, and the vane tip disappears into the hair.",
+   "evidence": "review/renders/rv_clip_lookup30_v1_0.25_0.15.png, review/renders/rv_pose_lookup_side.png; review/rv_clip.py output: look up 30 -> C overlap 61, 40 -> 112, 20 -> 0",
+   "fix": "In sol_parts, lower vane C's tip from Z 1.565 to about 1.50 (taper the meridian sooner), and/or move the bud axis about 0.025 m further back (+Y), and/or tilt the top of the bud back 6-8 degrees about the hub. Keep the front-view L/R tips unchanged. Then re-run review/rv_clip.py: overlap must be 0 at 40 degrees. The engine can also cap head pitch at about 25 degrees and give the rest of the aim offset to spine_01-03."
+  },
+  {
+   "id": "M2",
+   "severity": "major",
+   "issue": "The heal drone is not a separate object. It is TRELLIS geometry inside SOL_Body, rigid on pelvis (see the SOL_SOCKET_DroneDock extras note). The game cannot hide the docked drone or spawn it as its own entity for the MEND DRONE ability (agents.ron). Brief 4k/4l asks for SOL_Drone, origin at its centre, parented to the drone socket. In close-up the eye ring also has torn, ragged edges and the shell is lumpy.",
+   "evidence": "glb node list (review/glb_inspect.py): no drone node; review/renders/rv_close_drone.png",
+   "fix": "In stage C, delete the body faces within about 0.055 m of DRONE_C (0.165, -0.058, 1.012). Patch the coat behind with the existing sol_geo membrane fill. Build the brief's procedural drone as SOL_Drone: IvoryHard sphere r 0.040 with Z scaled 0.92, graphite equator band, graphite bezel with the Glow lens facing (0.707, -0.707, 0), dim Glow vent underneath, antenna stub. Put its origin at the centre and parent it to SOL_SOCKET_DroneDock. Keep M_SOL_Glow as the only emissive material."
+  },
+  {
+   "id": "M3",
+   "severity": "major",
+   "issue": "The bone local frames differ from Kestrel's, although the brief says 'RIG exactly like the Kestrel spec'. Rest local-rotation differences: upperarm_l/r 89.5/88.8 deg, hand_l/r 88.4/87.1, lowerarm 38-40, spine_01 37, thigh 27-33, pelvis 28; 16 of 53 joints differ by more than 30 deg. glTF animation channels store absolute local rotations, so one clip played on both agents twists Solace's arms about 90 degrees. Cause: Solace rolls the arms with local Z to the back (+Y); Kestrel's kes_rig.py aligns Z to -Y on the spine and legs and to +Z on the arms and fingers.",
+   "evidence": "review/rv_rig_compare.py output; assets/characters/kestrel/kes_rig.py lines 309-316; NOTES.md 'Rolls' paragraph",
+   "fix": "Adopt Kestrel's roll rules in sol_rig.bone_specs/build_armature, or agree one shared convention for both agents and write it into STYLE_GUIDE. Then rebuild stage D/E: weights are unaffected; sockets and Bloom parenting are recomputed by stage E. Re-run rv_rig_compare.py: target under 10 degrees on every non-finger joint."
+  },
+  {
+   "id": "m1",
+   "severity": "minor",
+   "issue": "A thin hair strand loops behind her left ear and under the lobe. Skin shows inside the loop, so it reads as a headset or earpiece band, which is Kestrel's identity element, not Solace's. It shows in every left-side and three-quarter view.",
+   "evidence": "renders/head_side_l.png, renders/solace_three_quarter.png, review/renders/rv_clay_head.png",
+   "fix": "In sol_tex, paint the skin texels enclosed by the loop hair-dark, as you did for the right-temple flakes, so the loop merges into the hair mass. Or delete the loop strand's faces below the ear top and close the gap with the membrane fill."
+  },
+  {
+   "id": "m2",
+   "severity": "minor",
+   "issue": "The back of the head and the nape are ragged: open cavities at the hair edges, skin-coloured crumpled bits at the nape behind her right ear, and stray flakes. A third-person or spectator camera sees exactly this area.",
+   "evidence": "review/renders/rv_close_collar_back.png, review/renders/rv_close_shoulder_r.png, review/renders/rv_clay_head.png",
+   "fix": "Run the same face-ID/visibility repair used in stage A on the head with a finer pass. Fill the nape cavities with membrane patches and paint the exposed skin-coloured nape texels hair-dark (extend SHARD_POLYS to the nape)."
+  },
+  {
+   "id": "m3",
+   "severity": "minor",
+   "issue": "From straight behind and at game distance the bud reads ivory-on-ivory against the coat. The seams are a soft pink wash and the coral vane rims are only about 6 mm. In v04 the bud has bold coral edges and a charcoal frame that separate it from the jacket. At about 14 m the bud is a white blob on a white coat.",
+   "evidence": "review/renders/rv_far_back.png (see the upscaled crop in review_sheet.png), renders/bloom_closed_back.png, art/concepts/solace/v04.png",
+   "fix": "Raise the vane rim to about 10-12 mm of coral on the outer edges, or add v04's slim graphite rails along the outer edges of vanes L/R down to the hub. Check again at 64 px from behind."
+  },
+  {
+   "id": "m4",
+   "severity": "minor",
+   "issue": "Brief section 9 asks for three silhouette hooks: the vane tips, the ponytail and the tail flare. The ponytail lies inside the torso outline, so it does not read in the front silhouette. The vane tips are small notches beside the neck.",
+   "evidence": "renders/silhouette_64.png",
+   "fix": "Push the ponytail's lower mass out about 2-3 cm past the right chest/arm outline, or give its tip a small outward curl (brief P5-P7). Optionally raise the L/R vane tips by about 1.5 cm."
+  },
+  {
+   "id": "m5",
+   "severity": "minor",
+   "issue": "The hands are TRELLIS mittens (fingers fused in pairs), yet each hand has 15 finger bones with clustered weights. The grip test gives a claw rather than a fist, and a weapon grip will shear the fused mass.",
+   "evidence": "review/renders/rv_clay_hands.png, renders/pose_grip_v0.7_-1_0.1.png",
+   "fix": "For the placeholder, either replace the hands with procedural glove hands (tools/female_base hand at the brief's settings, conformed at the wrist) with per-finger weights, or weight index+middle and ring+pinky together and document it. This is a priority for the planned remake."
+  },
+  {
+   "id": "m6",
+   "severity": "minor",
+   "issue": "Paint artifacts at the front waist: a hard-edged rectangular sand patch on the charcoal under-layer next to the pouch (left over from the pouch black-to-sand recolour), and a smeared triangular pouch flap. White jacket texels near the left shoulder strap carry dark scratches.",
+   "evidence": "review/renders/rv_close_pouch_belt.png, review/renders/rv_close_emblem.png",
+   "fix": "Limit the pouch recolour mask to the pouch geometry (normal/position test) and restore charcoal on the under-layer. Clean the strap-shadow scratches on the jacket with the same texel fill used on the coat back."
+  },
+  {
+   "id": "m7",
+   "severity": "minor",
+   "issue": "Some coral accents are weaker than the concepts and brief. The back hem and split edging is a thin, faint line (v04/v08 show a bold 1-1.5 cm coral hem). The emblem's coral reads pale pink on a low-contrast sand patch. TRELLIS added a lab-coat back pocket flap that no concept has, which pushes the read toward a doctor's lab coat rather than a field jacket.",
+   "evidence": "review/renders/rv_close_hem_back.png, review/renders/rv_close_emblem.png, renders/solace_back.png",
+   "fix": "Paint a 12 mm coral band along the tail hem and split edges (brief 4d), use full coral (1.0, 0.36, 0.30) on the emblem petals, and paint out or flatten the back pocket flap."
+  },
+  {
+   "id": "m8",
+   "severity": "minor",
+   "issue": "Brief deviations kept from v09: the wrap front hangs to mid-thigh on her left (brief: the front ends at Z 0.900) and the harness straps run down to bust level (brief: stop at the collarbone clips). The face reads neutral-stern rather than the brief's calm, warm half smile. The skin leans orange (face texture median sRGB (0.529, 0.345, 0.251) vs skin deep (0.542, 0.409, 0.326)).",
+   "evidence": "renders/solace_front.png, renders/head_head_front.png, review/rv_tech.py output",
+   "fix": "Accept the coat length for the placeholder and fix it in the remake. In sol_face, lift the mouth corners about 1 px and soften the brows, desaturate the skin regrade about 10% toward skin deep, and trim the straps' lower painted run."
+  },
+  {
+   "id": "m9",
+   "severity": "minor",
+   "issue": "The rest skeleton is lopsided from the TRELLIS stance. foot_r sits at X -0.213 vs foot_l at +0.047 (0.17 m asymmetry, right foot toed out about 25 degrees). The shoulder line is rotated about 13 degrees about Z (upperarm_l Y +0.052 vs upperarm_r Y -0.025). The arms hang about 56 degrees below horizontal (brief 42, style guide about 45). Retargeting by rest delta or mirrored clips will carry the lopsided stance.",
+   "evidence": "review/rv_tech.py joint-symmetry output, review/renders/rv_xray_front.png, review/renders/rv_xray_v0.0_-0.0_1.png",
+   "fix": "In stage D, before the final armature, pose-correct the mesh: a temporary rig rotates thigh_r/calf_r/foot_r to mirror the left leg and levels the shoulder line, then applies it as the rest pose. Build the final symmetric armature on that mesh."
+  },
+  {
+   "id": "m10",
+   "severity": "minor",
+   "issue": "The halo socket is on the head bone 0.42 m above the head joint. Even with use_position_only, a 20 degree head pitch moves the halo about 0.14 m forward. Kestrel's review flagged the same thing.",
+   "evidence": "glb: head joint (0, 0.039, 1.48), SOL_SOCKET_Halo (0, 0.024, 1.90)",
+   "fix": "Engine side: halo position = head joint world position + world-up 0.42 m. Or parent the socket to neck_01/spine_03 and document it. Record the chosen rule in the halo spec so both agents behave the same."
+  },
+  {
+   "id": "m11",
+   "severity": "minor",
+   "issue": "Weight leaks. Thigh/calf weight reaches the jacket waist above the belt: 302 verts above Z 1.05 at up to 37%, 48 verts above Z 1.10 at up to 27%, so the waist and drone region will drag on high kicks or a slide. A little opposite-side weight sits on the back of the coat tail: 43 verts on the right with thigh_l weight up to 11%, and 23 on the left with clavicle_r/thigh_r up to 13%. Some left-hand finger weights reach more than 2 cm behind the wrist (41 verts).",
+   "evidence": "review/rv_weights.py output",
+   "fix": "In apply_weight_rules, fade the tail's thigh share to 0 by the belt top (Z 1.00) and clamp opposite-side bones to 0 where |x| > 0.06. Restrict finger groups to verts in front of the wrist plane."
+  },
+  {
+   "id": "m12",
+   "severity": "minor",
+   "issue": "The builder's arms_down pose test over-rotates the arms (+38 deg plus 6 deg on arms already about 56 deg down), so both hands end up in the crotch. The renders do not show an arms-down pose, so the claim that the pose tests render cleanly is wrong for this test. The reviewer's corrected arms-down deforms well.",
+   "evidence": "renders/pose_arms_down_front.png vs review/renders/rv_pose_armsdown_front.png",
+   "fix": "Use target-direction posing in sol_rig.pose('arms_down'), aiming the upper arms at (±0.12, 0.02, -1), as review/rv_render.py aim_bone does."
+  },
+  {
+   "id": "m13",
+   "severity": "minor",
+   "issue": "Smaller technical points. 51,708 tris (target 30-50k, under the 70k max). SOL_Body is an open single sheet: 20.9k boundary edges, 892 islands of which 215 have fewer than 12 verts, double-sided material. Vane C has 9 degenerate faces. The yoke arms pass through the jacket at the collar (87 face pairs at Z 1.39-1.41; the brief asks for 6 mm clearance). Height 1.68 m includes the hair, so the body is about 2 cm short of the style guide. The weapon sockets sit about 3 cm from the web of the hand (palm centre); WEAPON_MODULAR_SPEC puts the grip origin at the web.",
+   "evidence": "review/rv_tech.py output",
+   "fix": "Drop islands under 12 verts that sit inside the shell. Dissolve the degenerate vane faces. Offset the yoke arm path 6 mm off the rebuilt coat surface. Optionally scale to 1.70 with the hair included. Move WeaponR/L about 3 cm toward the thumb-index web, or document the per-weapon offset as Kestrel does."
+  },
+  {
+   "id": "m14",
+   "severity": "minor",
+   "issue": "When fully open (L/R at 32 degrees) the side vanes reach X ±0.32 m and read as wings, which the brief forbids even for the burst.",
+   "evidence": "renders/bloom_open_back.png; review/rv_tech.py OPEN bbox (Vane_L max X 0.321)",
+   "fix": "Set the L/R open_angle_deg extras to about 20-22 degrees, or reduce the tip flare. The brief's 30 degrees assumed the un-flared tips."
+  }
+ ],
+ "reviewer_files": {
+  "scripts": [
+   "review/glb_inspect.py (raw glTF facts; was already present from an interrupted earlier review, used unchanged)",
+   "review/rv_tech.py (Blender: import glb, names/hierarchy/symmetry, mesh topology, weights, sockets, overlaps, open-vane test, texture colour sampling, FBX load)",
+   "review/rv_weights.py (weight leaks, joint centring, rolls, small islands)",
+   "review/rv_joint_xsec.py (joints vs mesh section centroids)",
+   "review/rv_rig_compare.py (rest local frames vs Kestrel)",
+   "review/rv_render.py -- rest clay wire close poses weapon (all review renders)",
+   "review/rv_clip.py (hair vs bud under head pitch/yaw, first-person view)",
+   "review/rv_xray.py (skeleton x-ray)",
+   "review/rv_sheet.py (review_sheet.png)"
+  ],
+  "renders": "review/renders/ (review_sheet.png is the summary)",
+  "rebuild_check": "Copied the scripts and raw TRELLIS glb to the session scratchpad with OUT patched there and ran build_solace.py --no-renders: exit 0 in 147 s, 51,708 tris, glTF JSON identical to the delivered solace.glb, binary chunk differs in 9,808 of 9,474,908 bytes (float noise)."
+ }
+}

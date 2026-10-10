@@ -1,0 +1,131 @@
+{
+ "asset": "KESTREL rigged character (F:/git/val etf/assets/characters/kestrel/: kestrel.glb / .fbx / .blend, build_kestrel.py + kes_*.py)",
+ "reviewer_role": "independent senior art director + technical artist (review pass 2, 'probeer opnieuw')",
+ "scores": {
+  "silhouette": 6,
+  "style_consistency": 5,
+  "craftsmanship": 4,
+  "game_readiness": 5,
+  "fidelity_to_brief_and_user_decisions": 5
+ },
+ "verified_good": [
+  "Re-runnable and deterministic: build scripts copied to the scratchpad (OUT redirected) and rebuilt from the raw TRELLIS s123 glb with --no-renders in 21 s, exit 0. All 4 textures are byte-identical to the shipped ones; the glb JSON is identical and the binary differs only in one position buffer by 2.5e-8 m (float noise).",
+  "glTF valid: Khronos Blender I/O 5.2, 4 embedded PNG textures, one material per primitive, 53-joint skin, inverse bind matrices match the rest pose (max error 5.8e-7), weights normalised (sum 1.0000), at most 4 influences, 0 unweighted verts.",
+  "Scale and orientation: 1.700 m tall, feet on Z=0, centred, faces -Y. The FBX re-imports at unit scale with identical bounds and socket positions.",
+  "Rig: all UE5 mannequin names are present, _l = +X (her left), the A-pose is as modelled, and 3-bone finger and thumb chains exist on both hands.",
+  "Sockets: KES_SOCKET_Halo (head, (0.005, 0.02, 1.92), 0.22 m above the hair top, world-identity rotation in glTF, 'position only' extra) and KES_SOCKET_WeaponR/L (hand_r/hand_l, glTF +Z along the hand = weapon muzzle, +Y = thumb side, which matches the weapon glb axes).",
+  "Normals are consistent over the whole body (face-orientation render: the only backfacing area is a small hole at the left temple).",
+  "Outfit fidelity to front_apose is good: bone chest plate, collar with teal zip line, belt and pouch, right-thigh holster, knee and elbow pads, boots, twin bone jet pods with teal base rings (rv2_cmp_full_vs_front_apose.png).",
+  "The eyepiece is on the correct side (her left, +X) and is a hex lens: translucent teal BLEND glass (base colour = palette teal, alpha 0.42), an emissive rim, and two straps plus a forehead strap to the earpiece. The eye is visible behind it.",
+  "Holster is rigid on thigh_r (weight 1.00) and the jet pack is rigid on spine_03 (0.99-1.00). Knees, deep crouch, sprint stride and fists deform acceptably."
+ ],
+ "issues": [
+  {
+   "severity": "critical",
+   "issue": "The chest plate is not rigid. Its edges carry clavicle/upperarm weights, so the plate crumples in a rifle-ready pose, which is the pose opponents see most. NOTES says the chest plate is rigid on spine_03, but only 205 verts were made rigid (build log 'chest 205').",
+   "evidence": "rv2_weights.py: plate right edge (37 verts): spine_03 mean 0.38, spine_02 0.36, upperarm_r 0.17 (max 0.24), clavicle_r max 0.25. Left edge: upperarm_l max 0.24, clavicle_l max 0.28. 171 verts at |x|<0.12 carry upperarm_r >= 0.2 (max 0.40). Renders: review/renders/pose_rifle_shoulder_r.png, pose_rifle_34.png.",
+   "fix": "In kes_skin.py, select the whole plate (bone-coloured texels in |x|<0.15, y<-0.07, 1.17<z<1.34 plus the connected inner layer). Weight it 100% spine_03, with at most 30% spine_02 on the bottom row. Strip clavicle/upperarm weights from all torso verts with |x|<0.13, then smooth only the jacket ring around the plate. Re-test with the right upper arm 30-45 deg forward."
+  },
+  {
+   "severity": "major",
+   "issue": "Raising the arms (zipline hang, reaching up) tears the torso. A webbing forms from the armpit to the jet pack and the chest stretches. The elbow pads are split about 50/50 between upperarm and lowerarm.",
+   "evidence": "render_review.py metrics: zipline pose 1945 edges stretched >1.8x (max 428 mm), mostly spine_02/03 and upperarm_l/r. Rifle pose: 656 edges (max 195 mm). review/renders/heat_zipline_front34.png, pose_zipline_armpit_l.png, pose_zipline_shoulders_back.png. rv2_weights_b.py: upperarm/lowerarm weights 0.3-0.8 at (+-0.33..0.38, 0.175, 1.03..1.13).",
+   "fix": "Limit upperarm influence to verts within about 9 cm of the upper-arm segment, with a short falloff band at the armpit. Give the lat/back panel and the jet-pack strap area to spine_03/clavicle. Solve heat weights on a proxy with the arms raised about 45 deg, or add UE5 twist/helper bones (upperarm_twist_01_l/r). Make the elbow pads rigid on lowerarm. Verify with arms overhead and a one-arm zipline hang."
+  },
+  {
+   "severity": "major",
+   "issue": "The back of the bob stretches into vertical streaks and shears when the head pitches or yaws. TRELLIS fused the hair bottom into the collar, and that band is weighted to spine_03/neck while the hair above follows the head.",
+   "evidence": "review/renders/nape_down25.png, nape_down25_yaw35.png (nape_sheet.png). Stress pose (head 30 deg down): 808 head-dominant edges stretched >1.8x. weight_probe.py: lower back hair/collar band 786 verts at spine_03 mean 0.92 next to 256 head verts.",
+   "fix": "Split the hair shell from the collar along the navy-hair/charcoal-collar texture boundary, make the whole hair 100% head, and move the head-to-neck blend band below the hair, on the collar only. Check head pitch +-30 deg and yaw +-60 deg from behind."
+  },
+  {
+   "severity": "major",
+   "issue": "The eyepiece breaks DIRECTION_LOG 3 ('small' lens, 'must not cover the brow or cheek'). The lens is about 35% larger than spec, reaches from the brow down to mid-nose height, and sits 2-3 cm proud of the face in a deep graphite housing that reads as a goggle cup, not a thin monocle frame. The straps float off the temple.",
+   "evidence": "Glass 6.7 x 5.0 cm, rim 7.4 x 5.4 cm (z 1.4855-1.5395), housing to y -0.0778; brief frame is 5.6 x 4.0 cm. review/renders/rv2_lens_front_ortho_with.png vs rv2_lens_front_ortho_without.png, rv2_lens_side_ortho.png, rv2_cmp_head_vs_v06.png. tech_log.txt: housing/strap to skin distance median 2.9 mm, max 32 mm.",
+   "fix": "Shrink the lens to about 5.0 x 3.6 cm, centred on the painted eye (about (0.047, -0.056, 1.512)), 8-12 mm in front of the eye, with a 3 mm frame instead of the deep housing. To stop needing a big lens over the old TRELLIS disc, shrinkwrap the disc verts back onto a smoothed face surface (eye socket) and repaint the skin around it. Shrinkwrap the straps to skin + 1.5 mm."
+  },
+  {
+   "severity": "major",
+   "issue": "The face does not read as v06's 'calm, determined' Kestrel. The lips protrude in a pout, the face is a soft round blob, a dark vertical streak runs down her right cheek like a scar or tear line, and her left temple (the tech side, seen in every 3/4 view) is a patchwork of jagged skin shards with a small open hole.",
+   "evidence": "review/renders/rv2_cmp_head_vs_v06.png, rv2_clay_face_front.png (lip protrusion is in the geometry), cu_face_low.png, wire_head_her_left.png, orient_full_front.png (backface hole at the left temple), renders/kestrel_head_three_quarter.png.",
+   "fix": "Push the mouth verts back 3-4 mm and flatten the lip volume. Repaint a narrow straight mouth with slightly down-turned corners. Move the fringe strand off the cheek by 3 mm and fill the dark gap texels with skin. At the left temple, delete the creased shard faces between the lens and the ear, fill and smooth, then clone-fill skin from neighbouring texels."
+  },
+  {
+   "severity": "major",
+   "issue": "Skin bleeds through the gloves as orange blotches across the palms, finger undersides and knuckles. That is far more than the 'few orange specks' in NOTES, and it shows on weapon-holding hands (first-person and close third-person).",
+   "evidence": "review/renders/cu_hand_l_palm.png, cu_hand_r_back.png, grip_L_in.png, grip_R_out.png, rv2_sprint_pouch_l.png; renders/pose_fists_l_v0.6_-1_0.3.png.",
+   "fix": "Extend the glove repaint in kes_fix.py to all palm-side and knuckle texels from the wrist band to the proximal finger joints, using a bone-distance mask rather than a colour mask. Push the inner skin layer 1 mm inward, or delete the inner skin faces under the glove shell, so it can't bleed through when posed."
+  },
+  {
+   "severity": "major",
+   "issue": "Black glyph-like marks and grey grime remain on the outer and back faces of both jet-pack pods. From a third-person or chasing-enemy camera this is the most visible part of her, and the style guide says no photoreal grime.",
+   "evidence": "review/renders/rv2_halo_tpcam_rest.png, cu_jetpack_side.png, nape_sheet.png; renders/kestrel_back.png, kestrel_three_quarter_back.png.",
+   "fix": "Apply the pod clean-up mask to the full surface of both pod islands, not just the front band. Flat-fill with bone (0.55, 0.52, 0.46) plus soft AO, keep the dark side panels and the teal rings, and re-check from a back third-person camera."
+  },
+  {
+   "severity": "minor",
+   "issue": "The halo socket sits on the head bone 0.45 m from the head joint. Even 'position only', head pitch swings it far off the skull, so the halo will drift forward when she looks down.",
+   "evidence": "rv2_render.py halo: head 30 deg down (neck 10 + head 20) puts the socket 11.0 cm forward of the skull top; 25 deg up puts it 9.3 cm back. render_review.py metrics: head-only pitch 15/30/45 deg moves the socket 11.7/23.3/34.4 cm. review/renders/rv2_halo_side_head_down30.png, rv2_halo_side_head_up25.png.",
+   "fix": "Choose one and document it in NOTES and the glTF extras: re-parent KES_SOCKET_Halo to neck_01/spine_03, or add KES_SOCKET_HaloAnchor at the skull top on head and define halo = anchor world position + 0.22 m world up."
+  },
+  {
+   "severity": "minor",
+   "issue": "The weapon sockets sit at the palm centre, about 2.2 cm below the web of the hand along the weapon's up axis. Per WEAPON_MODULAR_SPEC the weapon origin is the grip top where the web of the hand sits, so guns will sit low in the hand. Left and right also differ by 1.2 cm along the palm normal.",
+   "evidence": "rv2_socket.py: web point (thumb_01/index_01 midpoint) in socket-local (cm): R (2.9, -0.4, 2.2), L (1.7, -0.4, 2.3). review/renders/grip_sheet.png (mako_default.glb snapped to the sockets).",
+   "fix": "Move both sockets to the web point, inset about 1.5 cm along local +X into the grip volume, and make them mirror-symmetric. Verify with mako_default.glb in a curled-finger grip pose."
+  },
+  {
+   "severity": "minor",
+   "issue": "The left belt pouch is not rigid, contrary to NOTES: it is partly weighted to thigh_l and shears slightly when the knee lifts.",
+   "evidence": "rv2_weights_b.py: belt pouch L (567 verts) pelvis mean 0.64, thigh_l mean 0.27 (max 0.87). review/renders/rv2_sprint_pouch_l.png.",
+   "fix": "Grow the pouch mask to the whole pouch island and set it 100% pelvis, keeping the thigh blend on the trouser fabric only."
+  },
+  {
+   "severity": "minor",
+   "issue": "The lens rim and glass read pale mint/white, not the saturated teal of v06. Rim emission 3.5 (2.45 in the glb) clips to white, and the light paint behind the glass washes it out.",
+   "evidence": "renders/kestrel_head_front.png, review/renders/glb_eevee_head_34.png vs art/concepts/kestrel/v06.png.",
+   "fix": "Set rim emission to about 1.2-1.8 in palette teal (0, 0.70, 0.62), glass alpha 0.35-0.4 on a slightly darker teal, and darken the painted sclera/disc behind the glass so the iris and pupil read."
+  },
+  {
+   "severity": "minor",
+   "issue": "66,898 triangles against the 30-50k character target (under the 70k max), with no LODs. The body material is double-sided because of TRELLIS double layers.",
+   "evidence": "glb_inspect.py: KES_Body 66,000 + KES_Eyepiece 898. M_KES_Body doubleSided: true.",
+   "fix": "Decimate the body to about 48k (face/hands protected, UVs kept) and add KES_Body_LOD1 (about 20k) and LOD2 (about 8k) on the same skin. Delete the inner duplicate shell faces where possible so the material can be single-sided."
+  },
+  {
+   "severity": "minor",
+   "issue": "The collar's teal piping is a wobbly, uneven painted stripe, with stray teal splotches on the collar fronts. v06 has a clean, constant-width rim and front-edge line.",
+   "evidence": "review/renders/cu_collar_front_above.png, glb_eevee_head_34.png, renders/kestrel_head_three_quarter.png.",
+   "fix": "Paint the piping as a constant 4 mm band from an object-space distance to the collar top edge, plus the front V edge, and remove isolated teal islands outside that band."
+  },
+  {
+   "severity": "minor",
+   "issue": "The FBX loses roughness/metallic/AO (the ORM map is not carried) and contains a duplicate KES_BaseColor image.",
+   "evidence": "review/tech_log.txt: FBX re-import images = KES_BaseColor, KES_BaseColor.001, KES_Emission, KES_Normal. The glb is fine.",
+   "fix": "For the FBX pass, wire Separate Color(ORM).G to Roughness and .B to Metallic, or export separate grayscale maps. Make sure only one base-colour image node exists."
+  },
+  {
+   "severity": "minor",
+   "issue": "Height is measured to the hair top (1.700), but the style guide says 1.70 m without hair volume and the BRIEF has the skull crown at 1.700 with the hair top at about 1.72, so she is about 2 cm short.",
+   "evidence": "review/tech_log.txt: body bbox max Z 1.7000 (hair top); halo socket 0.22 above the hair top.",
+   "fix": "Scale so the skull crown is about 1.70 (hair top about 1.72) and keep the halo socket at hair top + 0.22."
+  },
+  {
+   "severity": "minor",
+   "issue": "From the front the silhouette is generic: the asymmetric hair wedge barely reads, the left-forearm grapple knob from the brief is missing, and the jet pack only reads from the side and 3/4.",
+   "evidence": "review/renders/sil_sheet.png, sil64_strip_x4.png.",
+   "fix": "Optional, cheap: push the long right-side hair sweep about 2 cm lower and outward at the tips (it also shows off the teal tips), and add a small bone grapple housing on her left forearm (BRIEF 4j), rigid on lowerarm_l."
+  }
+ ],
+ "evidence_sheet": "F:/git/val etf/assets/characters/kestrel/review/renders/rv2_key_issues_sheet.png (row 1: rifle-ready chest-plate crumple, zipline stretch heatmap, nape with head down 25 deg + yaw 35 deg, lens front ortho; row 2: lens side ortho, left palm glove bleed, halo with head down 30 deg, third-person back view of the pods)",
+ "scripts": [
+  "review/rv2_weights.py",
+  "review/rv2_weights_b.py",
+  "review/rv2_render.py",
+  "review/rv2_socket.py",
+  "review/rv2_sheet.py",
+  "review/render_review.py (metrics, poses, closeups)",
+  "review/glb_inspect.py"
+ ],
+ "verdict": "Not yet acceptable as a prototype character, but a solid base. It is valid, re-runnable and deterministic, and the rig, skin and socket naming are correct. It can go into the engine now as a placeholder. Before a lead would accept it, it needs one fix pass: (1) a truly rigid chest plate and cleaner shoulder/armpit weights, because the rifle-ready pose crumples the plate and arms-up tears the torso; (2) the hair split from the collar so the nape doesn't streak; (3) a smaller, seated lens per DIRECTION_LOG 3; (4) a face/temple, glove and jet-pod paint clean-up. Re-anchoring the halo and weapon sockets is a quick win."
+}

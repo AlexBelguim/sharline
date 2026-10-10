@@ -1,0 +1,402 @@
+{
+  "schema_version": 1,
+  "character_id": "kestrel",
+  "skin_id": "kestrel_default",
+  "status": "art_refinement",
+  "assembled_asset": "kestrel.glb",
+  "source_master": "kestrel_master.blend",
+  "frame": {
+    "units": "metres",
+    "blender_up": "Z",
+    "front": "-Y",
+    "gltf_up": "Y",
+    "sole_z": 0
+  },
+  "rig": {
+    "name": "KES_Armature",
+    "bones": [
+      "root",
+      "pelvis",
+      "spine_01",
+      "spine_02",
+      "spine_03",
+      "neck_01",
+      "head",
+      "hair_front_r_01",
+      "hair_front_r_02",
+      "hair_side_r_01",
+      "hair_side_r_02",
+      "hair_back_01",
+      "hair_back_02",
+      "clavicle_l",
+      "upperarm_l",
+      "lowerarm_l",
+      "hand_l",
+      "thumb_01_l",
+      "thumb_02_l",
+      "thumb_03_l",
+      "index_01_l",
+      "index_02_l",
+      "index_03_l",
+      "middle_01_l",
+      "middle_02_l",
+      "middle_03_l",
+      "ring_01_l",
+      "ring_02_l",
+      "ring_03_l",
+      "pinky_01_l",
+      "pinky_02_l",
+      "pinky_03_l",
+      "lowerarm_twist_01_l",
+      "upperarm_twist_01_l",
+      "clavicle_r",
+      "upperarm_r",
+      "lowerarm_r",
+      "hand_r",
+      "thumb_01_r",
+      "thumb_02_r",
+      "thumb_03_r",
+      "index_01_r",
+      "index_02_r",
+      "index_03_r",
+      "middle_01_r",
+      "middle_02_r",
+      "middle_03_r",
+      "ring_01_r",
+      "ring_02_r",
+      "ring_03_r",
+      "pinky_01_r",
+      "pinky_02_r",
+      "pinky_03_r",
+      "lowerarm_twist_01_r",
+      "upperarm_twist_01_r",
+      "thigh_l",
+      "calf_l",
+      "foot_l",
+      "ball_l",
+      "calf_twist_01_l",
+      "thigh_twist_01_l",
+      "thigh_r",
+      "calf_r",
+      "foot_r",
+      "ball_r",
+      "calf_twist_01_r",
+      "thigh_twist_01_r"
+    ],
+    "one_shared_rig": true
+  },
+  "cosmetic_bones": [
+    "hair_front_r_01",
+    "hair_front_r_02",
+    "hair_side_r_01",
+    "hair_side_r_02",
+    "hair_back_01",
+    "hair_back_02"
+  ],
+  "sockets": [
+    "KES_SOCKET_Halo",
+    "KES_SOCKET_WeaponR",
+    "KES_SOCKET_WeaponL",
+    "KES_SOCKET_BackAbility"
+  ],
+  "slots": {
+    "identity": {
+      "replaceable": false,
+      "rule": "Kestrel head, eyes and facial identity stay consistent",
+      "nodes": [
+        "KES_Brows",
+        "KES_Eyes",
+        "KES_Head",
+        "KES_Lashes"
+      ],
+      "materials": [
+        "M_KES_RainBrow",
+        "M_KES_RainEye",
+        "M_KES_RainFace"
+      ],
+      "triangles": 16314
+    },
+    "body_neck": {
+      "replaceable": false,
+      "rule": "Common anatomy, body-rig weights",
+      "nodes": [
+        "KES_Neck"
+      ],
+      "materials": [
+        "M_KES_Skin"
+      ],
+      "triangles": 192
+    },
+    "body_arms": {
+      "replaceable": false,
+      "rule": "Common exposed arms, body-rig weights",
+      "nodes": [
+        "KES_Part_body_arms_skin"
+      ],
+      "materials": [
+        "M_KES_Skin"
+      ],
+      "triangles": 672
+    },
+    "body_hands": {
+      "replaceable": false,
+      "rule": "Common articulated hands, finger rig; glove paint may vary",
+      "nodes": [
+        "KES_Part_body_hands_skin"
+      ],
+      "materials": [
+        "M_KES_Skin",
+        "M_KES_graph"
+      ],
+      "triangles": 1792
+    },
+    "hair": {
+      "replaceable": true,
+      "rule": "Static scalp/roots, thick 3D locks with optional cosmetic tip bones; preserve head clearance",
+      "nodes": [
+        "KES_HairLock_BackCentre",
+        "KES_HairLock_BackLeft",
+        "KES_HairLock_BackRight",
+        "KES_HairLock_CrownLeft",
+        "KES_HairLock_FrontRight",
+        "KES_HairLock_RearRight",
+        "KES_HairLock_SideRight",
+        "KES_HairLock_TempleLeft",
+        "KES_HairScalp"
+      ],
+      "materials": [
+        "M_KES_HairPaint"
+      ],
+      "triangles": 7198
+    },
+    "eyewear": {
+      "replaceable": true,
+      "rule": "LEFT lens/strap/earpiece; preserve the identity silhouette",
+      "nodes": [
+        "KES_EarStatus",
+        "KES_Earpiece",
+        "KES_LensGlass",
+        "KES_LensRim",
+        "KES_LensStrapForehead",
+        "KES_LensStrapLower",
+        "KES_LensStrapUpper"
+      ],
+      "materials": [
+        "M_KES_EyeGlass",
+        "M_KES_Glow",
+        "M_KES_graph"
+      ],
+      "triangles": 1072
+    },
+    "jacket": {
+      "replaceable": true,
+      "rule": "Skinned garment using the common torso/arm rig",
+      "nodes": [
+        "KES_Part_jacket_graph",
+        "KES_Part_jacket_jacket",
+        "KES_Part_jacket_jacketLight",
+        "KES_Part_jacket_teal",
+        "KES_ZipPull"
+      ],
+      "materials": [
+        "M_KES_graph",
+        "M_KES_gun",
+        "M_KES_jacket",
+        "M_KES_jacketLight",
+        "M_KES_teal"
+      ],
+      "triangles": 10360
+    },
+    "underlayer": {
+      "replaceable": true,
+      "rule": "Skinned under-suit; hide fully covered surfaces in an assembled skin",
+      "nodes": [
+        "KES_Part_underlayer_graph",
+        "KES_SuitZip",
+        "KES_UnderSuit"
+      ],
+      "materials": [
+        "M_KES_graph",
+        "M_KES_suit",
+        "M_KES_teal"
+      ],
+      "triangles": 1108
+    },
+    "trousers": {
+      "replaceable": true,
+      "rule": "Skinned to the same pelvis/leg rig",
+      "nodes": [
+        "KES_PantsCargoFlap",
+        "KES_PantsFly",
+        "KES_Part_trousers_pants",
+        "KES_Part_trousers_pantsLight"
+      ],
+      "materials": [
+        "M_KES_graph",
+        "M_KES_jacket",
+        "M_KES_pants",
+        "M_KES_pantsLight"
+      ],
+      "triangles": 8157
+    },
+    "footwear": {
+      "replaceable": true,
+      "rule": "Foot/ball weights; soles Z=0 in neutral pose",
+      "nodes": [
+        "KES_BootCuff_L",
+        "KES_BootCuff_R",
+        "KES_BootHeelCounter_L",
+        "KES_BootHeelCounter_R",
+        "KES_BootTongue_L",
+        "KES_BootTongue_R",
+        "KES_BootUpper_L",
+        "KES_BootUpper_R",
+        "KES_Part_footwear_graph"
+      ],
+      "materials": [
+        "M_KES_graph",
+        "M_KES_jacket"
+      ],
+      "triangles": 2472
+    },
+    "gloves": {
+      "replaceable": true,
+      "rule": "Hand/finger compatibility and weapon-grip clearance",
+      "nodes": [
+        "KES_GlovePanel_L",
+        "KES_GlovePanel_R",
+        "KES_Part_gloves_graph"
+      ],
+      "materials": [
+        "M_KES_boneShade",
+        "M_KES_graph"
+      ],
+      "triangles": 656
+    },
+    "chest_rig": {
+      "replaceable": true,
+      "rule": "Light costume rig; no armor stats or tier pips",
+      "nodes": [
+        "KES_BackFacet",
+        "KES_BackPlate",
+        "KES_ChestSculptedRig",
+        "KES_HarnessBuckle_-1",
+        "KES_HarnessBuckle_1",
+        "KES_Part_chest_rig_web",
+        "KES_Part_chest_rig_webLight"
+      ],
+      "materials": [
+        "M_KES_bone",
+        "M_KES_boneLight",
+        "M_KES_boneShade",
+        "M_KES_gun",
+        "M_KES_web",
+        "M_KES_webLight"
+      ],
+      "triangles": 1494
+    },
+    "knee_pads": {
+      "replaceable": true,
+      "rule": "Knee accessories retain calf/leg attachment and bend clearance",
+      "nodes": [
+        "KES_KneeInset_L",
+        "KES_KneeInset_R",
+        "KES_KneeLowerFacet_L",
+        "KES_KneeLowerFacet_R",
+        "KES_KneePad_L",
+        "KES_KneePad_R",
+        "KES_KneeVent_L",
+        "KES_KneeVent_R",
+        "KES_Part_knee_pads_web"
+      ],
+      "materials": [
+        "M_KES_bone",
+        "M_KES_boneShade",
+        "M_KES_graph",
+        "M_KES_padShadow",
+        "M_KES_web"
+      ],
+      "triangles": 1496
+    },
+    "waist_gear": {
+      "replaceable": true,
+      "rule": "Belt, pouches and holster; pelvis/thigh attachments",
+      "nodes": [
+        "KES_Belt",
+        "KES_BeltBuckle",
+        "KES_Holster",
+        "KES_HolsterBuckle0.646",
+        "KES_HolsterBuckle0.72",
+        "KES_HolsterDrop",
+        "KES_HolsterGrip",
+        "KES_HolsterGripRib0",
+        "KES_HolsterGripRib1",
+        "KES_HolsterStrap0.646",
+        "KES_HolsterStrap0.72",
+        "KES_Pouch0",
+        "KES_Pouch1",
+        "KES_PouchFlap0",
+        "KES_PouchFlap1",
+        "KES_PouchSnap0",
+        "KES_PouchSnap1"
+      ],
+      "materials": [
+        "M_KES_graph",
+        "M_KES_gun",
+        "M_KES_web",
+        "M_KES_webLight"
+      ],
+      "triangles": 2076
+    },
+    "ability_left": {
+      "replaceable": true,
+      "rule": "Grapple cosmetics keep the LEFT forearm socket/frame",
+      "nodes": [
+        "KES_GrappleAccent",
+        "KES_GrappleBracer",
+        "KES_GrappleHook",
+        "KES_GrappleHousing",
+        "KES_GrappleRail",
+        "KES_GrappleRailInset",
+        "KES_GrappleSpool"
+      ],
+      "materials": [
+        "M_KES_bone",
+        "M_KES_graph",
+        "M_KES_gun",
+        "M_KES_teal"
+      ],
+      "triangles": 1112
+    },
+    "ability_back": {
+      "replaceable": true,
+      "rule": "Jet cosmetics retain back/ability sockets and silhouette",
+      "nodes": [
+        "KES_JetBand_L",
+        "KES_JetBand_R",
+        "KES_JetCore_L",
+        "KES_JetCore_R",
+        "KES_JetPackBody",
+        "KES_JetPackSpine",
+        "KES_Nozzle_L",
+        "KES_Nozzle_R",
+        "KES_Thruster_L",
+        "KES_Thruster_R"
+      ],
+      "materials": [
+        "M_KES_Glow",
+        "M_KES_bone",
+        "M_KES_graph",
+        "M_KES_gun",
+        "M_KES_teal"
+      ],
+      "triangles": 2512
+    }
+  },
+  "available_skins": [
+    "kestrel_default"
+  ],
+  "alternative_parts_built": false,
+  "runtime_policy": "Load an assembled skin GLB. No separate part armatures or clothing simulation required.",
+  "body_visibility_policy": "Export only visible anatomy for each outfit. Do not rely on transparency to hide body intersections."
+}

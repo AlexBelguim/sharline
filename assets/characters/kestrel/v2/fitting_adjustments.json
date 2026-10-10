@@ -1,0 +1,137 @@
+[
+  {
+    "mesh": "KES_UnderSuit",
+    "vertices_adjusted": 2,
+    "largest_adjustment_m": 0.0008029457752748437
+  },
+  {
+    "mesh": "KES_Jacket",
+    "vertices_adjusted": 70,
+    "largest_adjustment_m": 0.025
+  },
+  {
+    "mesh": "KES_JacketHem",
+    "vertices_adjusted": 0,
+    "largest_adjustment_m": 0.0
+  },
+  {
+    "mesh": "KES_JacketSideSeam_-1",
+    "vertices_adjusted": 0,
+    "largest_adjustment_m": 0.0
+  },
+  {
+    "mesh": "KES_JacketSideSeam_1",
+    "vertices_adjusted": 0,
+    "largest_adjustment_m": 0.0
+  },
+  {
+    "mesh": "KES_Sleeve_L",
+    "vertices_adjusted": 60,
+    "largest_adjustment_m": 0.025
+  },
+  {
+    "mesh": "KES_SleeveCuff_L",
+    "vertices_adjusted": 0,
+    "largest_adjustment_m": 0.0
+  },
+  {
+    "mesh": "KES_SleevePiping_L",
+    "vertices_adjusted": 24,
+    "largest_adjustment_m": 0.01080982520715855
+  },
+  {
+    "mesh": "KES_Sleeve_R",
+    "vertices_adjusted": 60,
+    "largest_adjustment_m": 0.025
+  },
+  {
+    "mesh": "KES_SleeveCuff_R",
+    "vertices_adjusted": 0,
+    "largest_adjustment_m": 0.0
+  },
+  {
+    "mesh": "KES_SleevePiping_R",
+    "vertices_adjusted": 24,
+    "largest_adjustment_m": 0.010809869910642131
+  },
+  {
+    "mesh": "KES_SleeveConstruction_L",
+    "vertices_adjusted": 0,
+    "largest_adjustment_m": 0.0
+  },
+  {
+    "mesh": "KES_SleeveShoulderYoke_L",
+    "vertices_adjusted": 0,
+    "largest_adjustment_m": 0.0
+  },
+  {
+    "mesh": "KES_SleeveYokeHem_L",
+    "vertices_adjusted": 0,
+    "largest_adjustment_m": 0.0
+  },
+  {
+    "mesh": "KES_SleeveConstruction_R",
+    "vertices_adjusted": 0,
+    "largest_adjustment_m": 0.0
+  },
+  {
+    "mesh": "KES_SleeveShoulderYoke_R",
+    "vertices_adjusted": 4,
+    "largest_adjustment_m": 0.025
+  },
+  {
+    "mesh": "KES_SleeveYokeHem_R",
+    "vertices_adjusted": 0,
+    "largest_adjustment_m": 0.0
+  },
+  {
+    "mesh": "KES_UnderSuitDart_-1",
+    "vertices_adjusted": 0,
+    "largest_adjustment_m": 0.0
+  },
+  {
+    "mesh": "KES_UnderSuitDart_1",
+    "vertices_adjusted": 0,
+    "largest_adjustment_m": 0.0
+  },
+  {
+    "mesh": "KES_PantsCargoPocket",
+    "vertices_adjusted": 0,
+    "largest_adjustment_m": 0.0
+  },
+  {
+    "mesh": "KES_PantsCargoFlap",
+    "vertices_adjusted": 0,
+    "largest_adjustment_m": 0.0
+  },
+  {
+    "mesh": "KES_PantsCargoGusset",
+    "vertices_adjusted": 0,
+    "largest_adjustment_m": 0.0
+  },
+  {
+    "mesh": "KES_PantsCargoHem",
+    "vertices_adjusted": 0,
+    "largest_adjustment_m": 0.0
+  },
+  {
+    "mesh": "KES_PantsTailored",
+    "vertices_adjusted": 1043,
+    "largest_adjustment_m": 0.025
+  },
+  {
+    "mesh": "KES_PantsFrontPocket_-1",
+    "vertices_adjusted": 0,
+    "largest_adjustment_m": 0.0
+  },
+  {
+    "mesh": "KES_PantsFrontPocket_1",
+    "vertices_adjusted": 0,
+    "largest_adjustment_m": 0.0
+  },
+  {
+    "mesh": "KES_PantsFly",
+    "vertices_adjusted": 0,
+    "largest_adjustment_m": 0.0
+  }
+]

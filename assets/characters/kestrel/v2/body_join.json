@@ -1,0 +1,141 @@
+[
+  {
+    "result": "KES_Part_body_arms_skin",
+    "sources": [
+      "KES_Forearm_L",
+      "KES_Forearm_R"
+    ]
+  },
+  {
+    "result": "KES_Part_body_hands_skin",
+    "sources": [
+      "KES_Hand_L",
+      "KES_Hand_R"
+    ]
+  },
+  {
+    "result": "KES_Part_jacket_jacket",
+    "sources": [
+      "KES_Jacket",
+      "KES_HemRib_1.145",
+      "KES_HemRib_1.155",
+      "KES_HemRib_1.164",
+      "KES_Sleeve_L",
+      "KES_Sleeve_R",
+      "KES_SleeveYokeHem_L",
+      "KES_SleeveYokeHem_R",
+      "KES_CollarOuter"
+    ]
+  },
+  {
+    "result": "KES_Part_jacket_graph",
+    "sources": [
+      "KES_JacketHem",
+      "KES_SleeveCuff_L",
+      "KES_SleeveCuff_R",
+      "KES_CollarInside"
+    ]
+  },
+  {
+    "result": "KES_Part_jacket_jacketLight",
+    "sources": [
+      "KES_JacketSideSeam_-1",
+      "KES_JacketSideSeam_1",
+      "KES_SleeveConstruction_L",
+      "KES_SleeveShoulderYoke_L",
+      "KES_SleeveConstruction_R",
+      "KES_SleeveShoulderYoke_R",
+      "KES_CollarOverlap"
+    ]
+  },
+  {
+    "result": "KES_Part_knee_pads_web",
+    "sources": [
+      "KES_KneeStrap_L_0.478",
+      "KES_KneeStrap_L_0.507",
+      "KES_KneeStrap_R_0.478",
+      "KES_KneeStrap_R_0.507"
+    ]
+  },
+  {
+    "result": "KES_Part_jacket_teal",
+    "sources": [
+      "KES_SleevePiping_L",
+      "KES_SleevePiping_R",
+      "KES_CollarTurnedRim"
+    ]
+  },
+  {
+    "result": "KES_Part_gloves_graph",
+    "sources": [
+      "KES_GloveCuff_L",
+      "KES_GloveCuff_R"
+    ]
+  },
+  {
+    "result": "KES_Part_chest_rig_web",
+    "sources": [
+      "KES_ShoulderHarness_-1",
+      "KES_RibHarness_-1",
+      "KES_ShoulderHarness_1",
+      "KES_RibHarness_1"
+    ]
+  },
+  {
+    "result": "KES_Part_underlayer_graph",
+    "sources": [
+      "KES_UnderSuitDart_-1",
+      "KES_UnderSuitDart_1"
+    ]
+  },
+  {
+    "result": "KES_Part_chest_rig_webLight",
+    "sources": [
+      "KES_ShoulderHarnessEdge_-1",
+      "KES_ShoulderHarnessEdge_1"
+    ]
+  },
+  {
+    "result": "KES_Part_trousers_pants",
+    "sources": [
+      "KES_PantsCargoPocket",
+      "KES_PantsTailored"
+    ]
+  },
+  {
+    "result": "KES_Part_trousers_pantsLight",
+    "sources": [
+      "KES_PantsCargoGusset",
+      "KES_PantsCargoHem",
+      "KES_PantsFrontPocket_-1",
+      "KES_PantsFrontPocket_1"
+    ]
+  },
+  {
+    "result": "KES_Part_footwear_graph",
+    "sources": [
+      "KES_BootSole_L",
+      "KES_BootLace_L0_-1",
+      "KES_BootLace_L0_1",
+      "KES_BootLace_L1_-1",
+      "KES_BootLace_L1_1",
+      "KES_BootLace_L2_-1",
+      "KES_BootLace_L2_1",
+      "KES_BootLace_L3_-1",
+      "KES_BootLace_L3_1",
+      "KES_BootLace_L4_-1",
+      "KES_BootLace_L4_1",
+      "KES_BootSole_R",
+      "KES_BootLace_R0_-1",
+      "KES_BootLace_R0_1",
+      "KES_BootLace_R1_-1",
+      "KES_BootLace_R1_1",
+      "KES_BootLace_R2_-1",
+      "KES_BootLace_R2_1",
+      "KES_BootLace_R3_-1",
+      "KES_BootLace_R3_1",
+      "KES_BootLace_R4_-1",
+      "KES_BootLace_R4_1"
+    ]
+  }
+]

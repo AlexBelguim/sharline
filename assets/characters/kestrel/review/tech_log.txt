@@ -1,0 +1,133 @@
+[REV] === kestrel.blend
+[REV] object KES_Armature type ARMATURE parent None ptype OBJECT pbone '' loc (0.0, 0.0, 0.0) rot (0.0, 0.0, 0.0) scale (1.0, 1.0, 1.0) data KES_Armature mats []
+[REV] object KES_Body type MESH parent KES_Armature ptype OBJECT pbone '' loc (0.0, 0.0, 0.0) rot (0.0, 0.0, 0.0) scale (1.0, 1.0, 1.0) data KES_Body mats ['M_KES_Body']
+[REV] object KES_Eyepiece type MESH parent KES_Armature ptype OBJECT pbone '' loc (0.0, 0.0, 0.0) rot (0.0, 0.0, 0.0) scale (1.0, 1.0, 1.0) data KES_Eyepiece mats ['M_KES_EyeGlass', 'M_KES_EyeGlow', 'M_KES_Graphite']
+[REV] object KES_SOCKET_Halo type EMPTY parent KES_Armature ptype BONE pbone 'head' loc (0.005, 0.22, 0.0) rot (-1.5708, -0.0, 0.0) scale (1.0, 1.0, 1.0) data None mats []
+[REV] object KES_SOCKET_WeaponL type EMPTY parent KES_Armature ptype BONE pbone 'hand_l' loc (0.0012, -0.0424, -0.0213) rot (-1.0611, -1.7004, -1.6442) scale (1.0, 1.0, 1.0) data None mats []
+[REV] object KES_SOCKET_WeaponR type EMPTY parent KES_Armature ptype BONE pbone 'hand_r' loc (-0.0016, -0.0425, 0.0204) rot (0.0054, 1.6391, 2.7769) scale (1.0, 1.0, 1.0) data None mats []
+[REV] tris body 66000 eyepiece 898 total 66898
+[REV] KES_Body: verts 32289 faces 66000 boundary_edges 21 nonmanifold(>2 faces) 203 wire 1 loose_verts 0 degenerate_faces 1 islands 6 sizes(top10) [29811, 958, 445, 428, 347, 300] smallest [958, 445, 428, 347, 300]
+[REV]   uv layers: ['UVMap']
+[REV]   faces with zero UV area 54, faces with UVs outside 0-1 0
+[REV]   normals: 14/4000 sampled faces have an odd number of surfaces in front of them (points 'inward' if the shell were single and closed; TRELLIS double layers inflate this)
+[REV] KES_Eyepiece: verts 463 faces 448 boundary_edges 6 nonmanifold(>2 faces) 0 wire 0 loose_verts 0 degenerate_faces 0 islands 7 sizes(top10) [100, 100, 100, 96, 30, 24, 13] smallest [100, 96, 30, 24, 13]
+[REV]   uv layers: ['UVMap']
+[REV]   faces with zero UV area 0, faces with UVs outside 0-1 0
+[REV]   normals: 44/448 sampled faces have an odd number of surfaces in front of them (points 'inward' if the shell were single and closed; TRELLIS double layers inflate this)
+[REV]   KES_Body: vgroups 52 (non-bone groups []), influences hist [    0 14159 10577  2571  4982], weight sum min 0.9999 max 1.0001, unweighted 0
+[REV]   modifiers: [('ARMATURE', 'KES_Armature')]
+[REV]   KES_Eyepiece: vgroups 1 (non-bone groups []), influences hist [  0 463], weight sum min 1.0000 max 1.0000, unweighted 0
+[REV]   modifiers: [('ARMATURE', 'KES_Armature')]
+[REV] armature KES_Armature: 53 bones, missing UE5 [], extra []
+[REV]   arm object loc (0.0, 0.0, 0.0) rot (0.0, 0.0, 0.0) scale (1.0, 1.0, 1.0)
+[REV]   non-deform bones: ['root']
+[REV]   bone root         parent None         head (0.0, 0.0, 0.0) tail (0.0, 0.0, 0.12) len 0.120 roll-z (0.0, -1.0, 0.0)
+[REV]   bone pelvis       parent root         head (0.0, 0.016, 0.93) tail (0.0, 0.007, 1.0) len 0.071 roll-z (0.0, -0.13, 0.99)
+[REV]   bone spine_01     parent pelvis       head (0.0, 0.007, 1.0) tail (0.0, 0.005, 1.1) len 0.100 roll-z (-0.0, 0.11, 0.99)
+[REV]   bone spine_02     parent spine_01     head (0.0, 0.005, 1.1) tail (0.0, 0.012, 1.22) len 0.120 roll-z (-0.0, 0.08, 1.0)
+[REV]   bone spine_03     parent spine_02     head (0.0, 0.012, 1.22) tail (0.0, 0.02, 1.385) len 0.165 roll-z (0.0, -0.01, 1.0)
+[REV]   bone neck_01      parent spine_03     head (0.0, 0.02, 1.385) tail (0.0, 0.02, 1.47) len 0.085 roll-z (-0.0, -0.05, 1.0)
+[REV]   bone head         parent neck_01      head (0.0, 0.02, 1.47) tail (0.0, 0.02, 1.7) len 0.230 roll-z (0.0, 0.0, 1.0)
+[REV]   bone clavicle_l   parent spine_03     head (0.022, -0.01, 1.395) tail (0.17, -0.0, 1.352) len 0.154 roll-z (0.28, 0.96, 0.03)
+[REV]   bone upperarm_l   parent clavicle_l   head (0.17, -0.0, 1.352) tail (0.345, 0.011, 1.114) len 0.296 roll-z (0.0, 0.61, 0.79)
+[REV]   bone lowerarm_l   parent upperarm_l   head (0.345, 0.011, 1.114) tail (0.495, -0.013, 0.914) len 0.251 roll-z (0.17, -0.03, 0.98)
+[REV]   bone hand_l       parent lowerarm_l   head (0.495, -0.013, 0.914) tail (0.571, -0.045, 0.879) len 0.090 roll-z (0.09, -0.51, 0.86)
+[REV]   bone index_01_l   parent hand_l       head (0.572, -0.053, 0.88) tail (0.602, -0.052, 0.857) len 0.038 roll-z (-0.27, 0.21, 0.94)
+[REV]   bone index_02_l   parent index_01_l   head (0.602, -0.052, 0.857) tail (0.624, -0.053, 0.845) len 0.025 roll-z (0.05, -0.16, 0.99)
+[REV]   bone index_03_l   parent index_02_l   head (0.624, -0.053, 0.845) tail (0.642, -0.06, 0.835) len 0.022 roll-z (0.14, -0.06, 0.99)
+[REV]   bone middle_01_l  parent hand_l       head (0.57, -0.037, 0.879) tail (0.61, -0.026, 0.856) len 0.047 roll-z (-0.3, 0.02, 0.95)
+[REV]   bone middle_02_l  parent middle_01_l  head (0.61, -0.026, 0.856) tail (0.637, -0.029, 0.839) len 0.032 roll-z (0.2, 0.04, 0.98)
+[REV]   bone middle_03_l  parent middle_02_l  head (0.637, -0.029, 0.839) tail (0.659, -0.026, 0.825) len 0.026 roll-z (-0.12, -0.05, 0.99)
+[REV]   bone ring_01_l    parent hand_l       head (0.568, -0.007, 0.88) tail (0.604, -0.003, 0.856) len 0.043 roll-z (-0.28, 0.12, 0.95)
+[REV]   bone ring_02_l    parent ring_01_l    head (0.604, -0.003, 0.856) tail (0.625, 0.008, 0.836) len 0.031 roll-z (-0.2, 0.08, 0.98)
+[REV]   bone ring_03_l    parent ring_02_l    head (0.625, 0.008, 0.836) tail (0.646, 0.004, 0.823) len 0.025 roll-z (0.32, -0.18, 0.93)
+[REV]   bone pinky_01_l   parent hand_l       head (0.566, 0.024, 0.882) tail (0.597, 0.017, 0.865) len 0.037 roll-z (-0.09, 0.09, 0.99)
+[REV]   bone pinky_02_l   parent pinky_01_l   head (0.597, 0.017, 0.865) tail (0.612, 0.031, 0.844) len 0.029 roll-z (-0.59, 0.03, 0.8)
+[REV]   bone pinky_03_l   parent pinky_02_l   head (0.612, 0.031, 0.844) tail (0.629, 0.034, 0.836) len 0.020 roll-z (0.23, -0.41, 0.88)
+[REV]   bone thumb_01_l   parent hand_l       head (0.504, -0.053, 0.889) tail (0.538, -0.091, 0.853) len 0.063 roll-z (0.24, 0.17, 0.96)
+[REV]   bone thumb_02_l   parent thumb_01_l   head (0.538, -0.091, 0.853) tail (0.543, -0.1, 0.85) len 0.011 roll-z (0.06, -0.38, 0.92)
+[REV]   bone thumb_03_l   parent thumb_02_l   head (0.543, -0.1, 0.85) tail (0.547, -0.108, 0.848) len 0.009 roll-z (0.0, 0.0, 1.0)
+[REV]   bone clavicle_r   parent spine_03     head (-0.022, -0.01, 1.395) tail (-0.17, -0.0, 1.352) len 0.154 roll-z (-0.28, 0.96, 0.03)
+[REV]   bone upperarm_r   parent clavicle_r   head (-0.17, -0.0, 1.352) tail (-0.345, 0.011, 1.114) len 0.296 roll-z (-0.0, 0.61, 0.79)
+[REV]   bone lowerarm_r   parent upperarm_r   head (-0.345, 0.011, 1.114) tail (-0.487, -0.002, 0.901) len 0.256 roll-z (-0.13, 0.04, 0.99)
+[REV]   bone hand_r       parent lowerarm_r   head (-0.487, -0.002, 0.901) tail (-0.561, -0.035, 0.85) len 0.096 roll-z (-0.17, -0.42, 0.89)
+[REV]   bone index_01_r   parent hand_r       head (-0.56, -0.044, 0.846) tail (-0.592, -0.05, 0.826) len 0.039 roll-z (0.13, -0.02, 0.99)
+[REV]   bone index_02_r   parent index_01_r   head (-0.592, -0.05, 0.826) tail (-0.614, -0.053, 0.812) len 0.026 roll-z (-0.0, 0.0, 1.0)
+[REV]   bone index_03_r   parent index_02_r   head (-0.614, -0.053, 0.812) tail (-0.631, -0.056, 0.801) len 0.021 roll-z (0.0, 0.0, 1.0)
+[REV]   bone middle_01_r  parent hand_r       head (-0.563, -0.025, 0.853) tail (-0.609, -0.017, 0.831) len 0.051 roll-z (0.24, -0.19, 0.95)
+[REV]   bone middle_02_r  parent middle_01_r  head (-0.609, -0.017, 0.831) tail (-0.635, -0.023, 0.81) len 0.035 roll-z (-0.25, 0.18, 0.95)
+[REV]   bone middle_03_r  parent middle_02_r  head (-0.635, -0.023, 0.81) tail (-0.659, -0.023, 0.796) len 0.028 roll-z (0.13, -0.14, 0.98)
+[REV]   bone ring_01_r    parent hand_r       head (-0.564, 0.008, 0.855) tail (-0.601, 0.011, 0.826) len 0.047 roll-z (0.3, 0.05, 0.95)
+[REV]   bone ring_02_r    parent ring_01_r    head (-0.601, 0.011, 0.826) tail (-0.626, 0.016, 0.809) len 0.031 roll-z (0.06, -0.11, 0.99)
+[REV]   bone ring_03_r    parent ring_02_r    head (-0.626, 0.016, 0.809) tail (-0.65, 0.012, 0.799) len 0.026 roll-z (-0.14, -0.16, 0.98)
+[REV]   bone pinky_01_r   parent hand_r       head (-0.565, 0.033, 0.857) tail (-0.586, 0.036, 0.839) len 0.028 roll-z (0.34, 0.05, 0.94)
+[REV]   bone pinky_02_r   parent pinky_01_r   head (-0.586, 0.036, 0.839) tail (-0.602, 0.045, 0.83) len 0.020 roll-z (0.15, -0.27, 0.95)
+[REV]   bone pinky_03_r   parent pinky_02_r   head (-0.602, 0.045, 0.83) tail (-0.616, 0.05, 0.823) len 0.016 roll-z (-0.07, -0.04, 1.0)
+[REV]   bone thumb_01_r   parent hand_r       head (-0.491, -0.034, 0.87) tail (-0.519, -0.072, 0.835) len 0.059 roll-z (-0.29, -0.01, 0.96)
+[REV]   bone thumb_02_r   parent thumb_01_r   head (-0.519, -0.072, 0.835) tail (-0.525, -0.083, 0.827) len 0.015 roll-z (-0.06, -0.04, 1.0)
+[REV]   bone thumb_03_r   parent thumb_02_r   head (-0.525, -0.083, 0.827) tail (-0.53, -0.093, 0.82) len 0.013 roll-z (0.0, -0.0, 1.0)
+[REV]   bone thigh_l      parent pelvis       head (0.085, 0.0, 0.865) tail (0.148, 0.039, 0.495) len 0.377 roll-z (0.02, 0.03, 1.0)
+[REV]   bone calf_l       parent thigh_l      head (0.148, 0.039, 0.495) tail (0.205, 0.08, 0.09) len 0.411 roll-z (0.0, -0.01, 1.0)
+[REV]   bone foot_l       parent calf_l       head (0.205, 0.08, 0.09) tail (0.247, -0.034, 0.032) len 0.134 roll-z (-0.27, -0.91, 0.32)
+[REV]   bone ball_l       parent foot_l       head (0.247, -0.034, 0.032) tail (0.254, -0.105, 0.03) len 0.071 roll-z (0.01, -0.41, 0.91)
+[REV]   bone thigh_r      parent pelvis       head (-0.085, 0.0, 0.865) tail (-0.148, 0.039, 0.495) len 0.377 roll-z (-0.02, 0.03, 1.0)
+[REV]   bone calf_r       parent thigh_r      head (-0.148, 0.039, 0.495) tail (-0.205, 0.08, 0.09) len 0.411 roll-z (-0.0, -0.01, 1.0)
+[REV]   bone foot_r       parent calf_r       head (-0.205, 0.08, 0.09) tail (-0.247, -0.034, 0.032) len 0.134 roll-z (0.27, -0.91, 0.32)
+[REV]   bone ball_r       parent foot_r       head (-0.247, -0.034, 0.032) tail (-0.254, -0.105, 0.03) len 0.071 roll-z (-0.01, -0.41, 0.91)
+[REV]   mirror clavicle: pos asym 0.0 mm, z-axis(roll) asym 0.000
+[REV]   mirror upperarm: pos asym 0.0 mm, z-axis(roll) asym 0.000
+[REV]   mirror lowerarm: pos asym 18.8 mm, z-axis(roll) asym 0.081
+[REV]   mirror hand: pos asym 33.0 mm, z-axis(roll) asym 0.127
+[REV]   mirror thigh: pos asym 0.0 mm, z-axis(roll) asym 0.000
+[REV]   mirror calf: pos asym 0.0 mm, z-axis(roll) asym 0.000
+[REV]   mirror foot: pos asym 0.0 mm, z-axis(roll) asym 0.000
+[REV]   mirror ball: pos asym 0.0 mm, z-axis(roll) asym 0.000
+[REV] body world bbox min [-0.6649 -0.1332  0.    ] max [0.6649 0.3392 1.7   ] height 1.7000
+[REV] head-region (z>1.45) x range -0.129..0.128 y range -0.080..0.192
+[REV] skull top (z>1.62) centre x -0.007 y 0.051
+[REV] socket KES_SOCKET_Halo: parent KES_Armature type BONE bone head world pos (0.005, 0.02, 1.92) X (1.0, 0.0, 0.0) Y (0.0, 1.0, 0.0) Z (-0.0, -0.0, 1.0) keys ['usage']
+[REV]   halo above top of hair: 0.2200
+[REV] socket KES_SOCKET_WeaponL: parent KES_Armature type BONE bone hand_l world pos (0.5271, -0.0279, 0.876) X (0.457, -0.202, 0.866) Y (-0.889, -0.087, 0.449) Z (-0.016, -0.976, -0.219) keys ['usage']
+[REV] socket KES_SOCKET_WeaponR: parent KES_Armature type BONE bone hand_r world pos (-0.5379, -0.0262, 0.8895) X (0.479, 0.284, -0.831) Y (0.867, -0.009, 0.497) Z (0.133, -0.959, -0.25) keys ['usage']
+[REV] eyepiece part M_KES_EyeGlass: verts 13 bbox min [ 0.0138 -0.0645  1.4874] max [ 0.0809 -0.0465  1.5376] size [0.0672 0.018  0.0502] dist to body: min 3.4 mm median 8.5 mm max 13.6 mm
+[REV] eyepiece part M_KES_EyeGlow: verts 36 bbox min [ 0.0121 -0.0668  1.4855] max [0.1302 0.0609 1.5395] size [0.1181 0.1277 0.054 ] dist to body: min 5.4 mm median 20.9 mm max 24.4 mm
+[REV] eyepiece part M_KES_Graphite: verts 426 bbox min [-0.0212 -0.0778  1.4855] max [0.1295 0.0757 1.5751] size [0.1508 0.1535 0.0896] dist to body: min 0.1 mm median 2.9 mm max 32.1 mm
+[REV] material M_KES_Body: blend DITHERED ["BSDF {'Roughness': 'linked', 'Metallic': 'linked', 'Alpha': 1.0, 'Emission Strength': 4.0, 'Specular IOR Level': 0.35, 'Coat Weight': 0.0, 'Transmission Weight': 0.0}", 'IMG KES_BaseColor (2048, 2048) cs=sRGB packed=True', 'IMG KES_ORM (2048, 2048) cs=Non-Color packed=True', 'IMG KES_Normal (2048, 2048) cs=Non-Color packed=True', 'IMG KES_Emission (2048, 2048) cs=sRGB packed=True']
+[REV] material M_KES_EyeGlass: blend BLENDED ["BSDF {'Roughness': 0.1, 'Metallic': 0.0, 'Alpha': 0.42, 'Emission Strength': 0.12, 'Specular IOR Level': 0.5, 'Coat Weight': 0.0, 'Transmission Weight': 0.0}"]
+[REV] material M_KES_EyeGlow: blend DITHERED ["BSDF {'Roughness': 0.4, 'Metallic': 0.0, 'Alpha': 1.0, 'Emission Strength': 3.5, 'Specular IOR Level': 0.5, 'Coat Weight': 0.0, 'Transmission Weight': 0.0}"]
+[REV] material M_KES_Graphite: blend DITHERED ["BSDF {'Roughness': 0.55, 'Metallic': 0.0, 'Alpha': 1.0, 'Emission Strength': 0.0, 'Specular IOR Level': 0.5, 'Coat Weight': 0.0, 'Transmission Weight': 0.0}"]
+[REV] image KES_BaseColor 2048x2048 ch 4 ch0: mean 0.221 p1 0.035 p99 0.910; ch1: mean 0.191 p1 0.024 p99 0.698; ch2: mean 0.187 p1 0.035 p99 0.647
+[REV] image KES_Emission 2048x2048 ch 4 ch0: mean 0.000 p1 0.000 p99 0.000; ch1: mean 0.002 p1 0.000 p99 0.000; ch2: mean 0.001 p1 0.000 p99 0.000
+[REV] image KES_Normal 2048x2048 ch 4 ch0: mean 0.501 p1 0.098 p99 0.898; ch1: mean 0.498 p1 0.090 p99 0.914; ch2: mean 0.957 p1 0.627 p99 0.996
+[REV] image KES_ORM 2048x2048 ch 4 ch0: mean 0.835 p1 0.302 p99 1.000; ch1: mean 0.840 p1 0.596 p99 0.980; ch2: mean 0.024 p1 0.000 p99 0.325
+[REV] scene unit scale 1.0 system METRIC
+[REV] pose position POSE; any non-rest pose bones: []
+[REV] actions []; shape keys body None
+[REV] === kestrel.glb re-import
+[REV] glb object Icosphere type MESH parent None ptype OBJECT pbone '' dims (1.902, 2.0, 2.0)
+[REV] glb object KES_Armature type ARMATURE parent None ptype OBJECT pbone '' dims (1.309, 0.235, 1.572)
+[REV] glb object KES_Body type MESH parent KES_Armature ptype OBJECT pbone '' dims (1.33, 0.472, 1.7)
+[REV] glb object KES_Eyepiece type MESH parent KES_Armature ptype OBJECT pbone '' dims (0.151, 0.153, 0.09)
+[REV] glb object KES_SOCKET_Halo type EMPTY parent KES_Armature ptype BONE pbone 'head' dims (0.0, 0.0, 0.0)
+[REV] glb object KES_SOCKET_WeaponL type EMPTY parent KES_Armature ptype BONE pbone 'hand_l' dims (0.0, 0.0, 0.0)
+[REV] glb object KES_SOCKET_WeaponR type EMPTY parent KES_Armature ptype BONE pbone 'hand_r' dims (0.0, 0.0, 0.0)
+[REV] glb armature bones 53; body verts 56616 tris 66000
+[REV] glb body bbox min [-0.6649 -0.1332  0.    ] max [0.6649 0.3392 1.7   ]
+[REV] glb socket KES_SOCKET_Halo world (0.005, 0.02, 1.92) Y (-0.0, 1.0, -0.0) Z (-0.0, 0.0, 1.0)
+[REV] glb socket KES_SOCKET_WeaponL world (0.5271, -0.0279, 0.876) Y (-0.889, -0.087, 0.449) Z (-0.016, -0.976, -0.219)
+[REV] glb socket KES_SOCKET_WeaponR world (-0.5379, -0.0262, 0.8895) Y (0.867, -0.009, 0.497) Z (0.133, -0.959, -0.25)
+[REV] glb images [('KES_BaseColor', (2048, 2048)), ('KES_Emission', (2048, 2048)), ('KES_Normal', (2048, 2048)), ('KES_ORM', (2048, 2048))]
+[REV] glb materials ['M_KES_Body', 'M_KES_EyeGlass', 'M_KES_EyeGlow', 'M_KES_Graphite']
+[REV] === kestrel.fbx re-import
+[REV] fbx object KES_Armature type ARMATURE parent None ptype OBJECT pbone '' scale (1.0, 1.0, 1.0) dims (1.329, 0.247, 1.555)
+[REV] fbx object KES_Body type MESH parent KES_Armature ptype OBJECT pbone '' scale (1.0, 1.0, 1.0) dims (1.33, 0.472, 1.7)
+[REV] fbx object KES_Eyepiece type MESH parent KES_Armature ptype OBJECT pbone '' scale (1.0, 1.0, 1.0) dims (0.151, 0.153, 0.09)
+[REV] fbx object KES_SOCKET_Halo type EMPTY parent KES_Armature ptype BONE pbone 'head' scale (1.0, 1.0, 1.0) dims (0.0, 0.0, 0.0)
+[REV] fbx object KES_SOCKET_WeaponL type EMPTY parent KES_Armature ptype BONE pbone 'hand_l' scale (1.0, 1.0, 1.0) dims (0.0, 0.0, 0.0)
+[REV] fbx object KES_SOCKET_WeaponR type EMPTY parent KES_Armature ptype BONE pbone 'hand_r' scale (1.0, 1.0, 1.0) dims (0.0, 0.0, 0.0)
+[REV] fbx armature bones 53 names-ok True; body bbox min [-0.6649 -0.1332  0.    ] max [0.6649 0.3392 1.7   ]
+[REV] fbx socket KES_SOCKET_Halo world (0.005, 0.02, 1.92)
+[REV] fbx socket KES_SOCKET_WeaponL world (0.5271, -0.0279, 0.876)
+[REV] fbx socket KES_SOCKET_WeaponR world (-0.5379, -0.0262, 0.8895)
+[REV] fbx images [('KES_BaseColor', (2048, 2048), True), ('KES_BaseColor.001', (2048, 2048), True), ('KES_Emission', (2048, 2048), True), ('KES_Normal', (2048, 2048), True)]
+[REV] done

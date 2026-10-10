@@ -1,0 +1,18 @@
+{
+  "fixed_scalp_error_m": 0.0,
+  "fixed_root_error_m": 0.0,
+  "fixed_root_vertices": 1838,
+  "max_tip_displacement_m": 0.00787539550238765,
+  "cosmetic_bones": [
+    "hair_back_01",
+    "hair_back_02",
+    "hair_front_r_01",
+    "hair_front_r_02",
+    "hair_side_r_01",
+    "hair_side_r_02"
+  ],
+  "hair_meshes": 9,
+  "status": "PASS",
+  "game_motion_implemented": false,
+  "pose": "2 deg root / 5 deg tip demonstration"
+}
